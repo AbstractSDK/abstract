@@ -407,6 +407,30 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "NFT"
+            ],
+            "properties": {
+              "NFT": {
+                "type": "object",
+                "required": [
+                  "collection_addr",
+                  "token_id"
+                ],
+                "properties": {
+                  "collection_addr": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },

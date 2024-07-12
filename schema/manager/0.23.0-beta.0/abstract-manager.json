@@ -202,6 +202,30 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "NFT"
+            ],
+            "properties": {
+              "NFT": {
+                "type": "object",
+                "required": [
+                  "collection_addr",
+                  "token_id"
+                ],
+                "properties": {
+                  "collection_addr": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
@@ -526,28 +550,6 @@
         "additionalProperties": false
       },
       {
-        "description": "Proposes a new Owner The new owner has to claim ownership through the [`ExecuteMsg::UpdateOwnership`] message. The claim action can be called by the new owner directly OR by the owner of a top-level account if the new ownership structure is a sub-account.",
-        "type": "object",
-        "required": [
-          "propose_owner"
-        ],
-        "properties": {
-          "propose_owner": {
-            "type": "object",
-            "required": [
-              "owner"
-            ],
-            "properties": {
-              "owner": {
-                "$ref": "#/definitions/GovernanceDetails_for_String"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
         "description": "Update account statuses",
         "type": "object",
         "required": [
@@ -596,71 +598,20 @@
         "additionalProperties": false
       },
       {
-        "description": "Update the contract's ownership. The `action` to be provided can be either to propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership permanently.",
+        "description": "Update the contract's ownership. The `action` can propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership of the account permanently.",
         "type": "object",
         "required": [
           "update_ownership"
         ],
         "properties": {
           "update_ownership": {
-            "$ref": "#/definitions/Action"
+            "$ref": "#/definitions/GovAction"
           }
         },
         "additionalProperties": false
       }
     ],
     "definitions": {
-      "Action": {
-        "description": "Actions that can be taken to alter the contract's ownership",
-        "oneOf": [
-          {
-            "description": "Propose to transfer the contract's ownership to another account, optionally with an expiry time.\n\nCan only be called by the contract's current owner.\n\nAny existing pending ownership transfer is overwritten.",
-            "type": "object",
-            "required": [
-              "transfer_ownership"
-            ],
-            "properties": {
-              "transfer_ownership": {
-                "type": "object",
-                "required": [
-                  "new_owner"
-                ],
-                "properties": {
-                  "expiry": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/Expiration"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "new_owner": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Accept the pending ownership transfer.\n\nCan only be called by the pending owner.",
-            "type": "string",
-            "enum": [
-              "accept_ownership"
-            ]
-          },
-          {
-            "description": "Give up the contract's ownership and the possibility of appointing a new owner.\n\nCan only be invoked by the contract's current owner.\n\nAny existing pending ownership transfer is canceled.",
-            "type": "string",
-            "enum": [
-              "renounce_ownership"
-            ]
-          }
-        ]
-      },
       "AssetEntry": {
         "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
         "type": "string"
@@ -718,6 +669,57 @@
               }
             },
             "additionalProperties": false
+          }
+        ]
+      },
+      "GovAction": {
+        "description": "Actions that can be taken to alter the contract's governance ownership",
+        "oneOf": [
+          {
+            "description": "Propose to transfer the contract's ownership to another account, optionally with an expiry time.\n\nCan only be called by the contract's current owner.\n\nAny existing pending ownership transfer is overwritten.",
+            "type": "object",
+            "required": [
+              "transfer_ownership"
+            ],
+            "properties": {
+              "transfer_ownership": {
+                "type": "object",
+                "required": [
+                  "new_owner"
+                ],
+                "properties": {
+                  "expiry": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Expiration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "new_owner": {
+                    "$ref": "#/definitions/GovernanceDetails_for_String"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Accept the pending ownership transfer.\n\nCan only be called by the pending owner.",
+            "type": "string",
+            "enum": [
+              "accept_ownership"
+            ]
+          },
+          {
+            "description": "Give up the contract's ownership and the possibility of appointing a new owner.\n\nCan only be invoked by the contract's current owner.\n\nAny existing pending ownership transfer is canceled.",
+            "type": "string",
+            "enum": [
+              "renounce_ownership"
+            ]
           }
         ]
       },
@@ -809,6 +811,30 @@
             "properties": {
               "Renounced": {
                 "type": "object"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "NFT"
+            ],
+            "properties": {
+              "NFT": {
+                "type": "object",
+                "required": [
+                  "collection_addr",
+                  "token_id"
+                ],
+                "properties": {
+                  "collection_addr": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "additionalProperties": false
@@ -1242,17 +1268,16 @@
       ],
       "properties": {
         "info": {
-          "$ref": "#/definitions/AccountInfo_for_Addr"
+          "$ref": "#/definitions/AccountInfo"
         }
       },
       "additionalProperties": false,
       "definitions": {
-        "AccountInfo_for_Addr": {
+        "AccountInfo": {
           "description": "Abstract Account details.",
           "type": "object",
           "required": [
             "chain_id",
-            "governance_details",
             "name"
           ],
           "properties": {
@@ -1265,9 +1290,6 @@
                 "null"
               ]
             },
-            "governance_details": {
-              "$ref": "#/definitions/GovernanceDetails_for_Addr"
-            },
             "link": {
               "type": [
                 "string",
@@ -1279,120 +1301,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "Addr": {
-          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
-          "type": "string"
-        },
-        "GovernanceDetails_for_Addr": {
-          "description": "Governance types",
-          "oneOf": [
-            {
-              "description": "A single address is admin",
-              "type": "object",
-              "required": [
-                "Monarchy"
-              ],
-              "properties": {
-                "Monarchy": {
-                  "type": "object",
-                  "required": [
-                    "monarch"
-                  ],
-                  "properties": {
-                    "monarch": {
-                      "description": "The monarch's address",
-                      "allOf": [
-                        {
-                          "$ref": "#/definitions/Addr"
-                        }
-                      ]
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "description": "Used when the account is a sub-account of another account.",
-              "type": "object",
-              "required": [
-                "SubAccount"
-              ],
-              "properties": {
-                "SubAccount": {
-                  "type": "object",
-                  "required": [
-                    "manager",
-                    "proxy"
-                  ],
-                  "properties": {
-                    "manager": {
-                      "description": "The manager of the account of which this account is the sub-account.",
-                      "allOf": [
-                        {
-                          "$ref": "#/definitions/Addr"
-                        }
-                      ]
-                    },
-                    "proxy": {
-                      "description": "The proxy of the account of which this account is the sub-account.",
-                      "allOf": [
-                        {
-                          "$ref": "#/definitions/Addr"
-                        }
-                      ]
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "description": "An external governance source",
-              "type": "object",
-              "required": [
-                "External"
-              ],
-              "properties": {
-                "External": {
-                  "type": "object",
-                  "required": [
-                    "governance_address",
-                    "governance_type"
-                  ],
-                  "properties": {
-                    "governance_address": {
-                      "description": "The external contract address",
-                      "allOf": [
-                        {
-                          "$ref": "#/definitions/Addr"
-                        }
-                      ]
-                    },
-                    "governance_type": {
-                      "description": "Governance type used for doing extra off-chain queries depending on the type.",
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "description": "Renounced account This account no longer has an owner and cannot be used.",
-              "type": "object",
-              "required": [
-                "Renounced"
-              ],
-              "properties": {
-                "Renounced": {
-                  "type": "object"
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
         }
       }
     },
@@ -1532,12 +1440,16 @@
       "title": "Ownership_for_String",
       "description": "The contract's ownership info",
       "type": "object",
+      "required": [
+        "owner"
+      ],
       "properties": {
         "owner": {
-          "description": "The contract's current owner. `None` if the ownership has been renounced.",
-          "type": [
-            "string",
-            "null"
+          "description": "The contract's current owner.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/GovernanceDetails_for_String"
+            }
           ]
         },
         "pending_expiry": {
@@ -1553,9 +1465,13 @@
         },
         "pending_owner": {
           "description": "The account who has been proposed to take over the ownership. `None` if there isn't a pending ownership transfer.",
-          "type": [
-            "string",
-            "null"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/GovernanceDetails_for_String"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       },
@@ -1602,6 +1518,124 @@
                 "never": {
                   "type": "object",
                   "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "GovernanceDetails_for_String": {
+          "description": "Governance types",
+          "oneOf": [
+            {
+              "description": "A single address is admin",
+              "type": "object",
+              "required": [
+                "Monarchy"
+              ],
+              "properties": {
+                "Monarchy": {
+                  "type": "object",
+                  "required": [
+                    "monarch"
+                  ],
+                  "properties": {
+                    "monarch": {
+                      "description": "The monarch's address",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Used when the account is a sub-account of another account.",
+              "type": "object",
+              "required": [
+                "SubAccount"
+              ],
+              "properties": {
+                "SubAccount": {
+                  "type": "object",
+                  "required": [
+                    "manager",
+                    "proxy"
+                  ],
+                  "properties": {
+                    "manager": {
+                      "description": "The manager of the account of which this account is the sub-account.",
+                      "type": "string"
+                    },
+                    "proxy": {
+                      "description": "The proxy of the account of which this account is the sub-account.",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "An external governance source",
+              "type": "object",
+              "required": [
+                "External"
+              ],
+              "properties": {
+                "External": {
+                  "type": "object",
+                  "required": [
+                    "governance_address",
+                    "governance_type"
+                  ],
+                  "properties": {
+                    "governance_address": {
+                      "description": "The external contract address",
+                      "type": "string"
+                    },
+                    "governance_type": {
+                      "description": "Governance type used for doing extra off-chain queries depending on the type.",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Renounced account This account no longer has an owner and cannot be used.",
+              "type": "object",
+              "required": [
+                "Renounced"
+              ],
+              "properties": {
+                "Renounced": {
+                  "type": "object"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "NFT"
+              ],
+              "properties": {
+                "NFT": {
+                  "type": "object",
+                  "required": [
+                    "collection_addr",
+                    "token_id"
+                  ],
+                  "properties": {
+                    "collection_addr": {
+                      "type": "string"
+                    },
+                    "token_id": {
+                      "type": "string"
+                    }
+                  }
                 }
               },
               "additionalProperties": false
