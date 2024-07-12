@@ -10,10 +10,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let chain = DaemonBuilder::default()
-        .handle(rt.handle())
-        .chain(network)
-        .build()?;
+    let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
     let dex = DexAdapter::new(DEX_ADAPTER_ID, chain);
     dex.deploy(
         version,

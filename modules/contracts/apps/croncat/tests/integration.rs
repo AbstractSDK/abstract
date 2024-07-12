@@ -44,7 +44,7 @@ const DENOM: &str = "abstr";
 const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c52jqgfq000";
 
 fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Result<(Addr, Addr)> {
-    let sender = mock.sender();
+    let sender = mock.sender_addr();
     let pause_admin = Addr::unchecked(PAUSE_ADMIN);
     let agent_addr = mock.addr_make(AGENT);
 
@@ -221,7 +221,7 @@ struct TestingSetup {
 fn setup() -> anyhow::Result<TestingSetup> {
     // Create the mock
     let mock = MockBech32::new("mock");
-    let sender = mock.sender();
+    let sender = mock.sender_addr();
 
     mock.set_balance(&mock.addr_make(AGENT), coins(500_000, DENOM))?;
     // Construct the counter interface
@@ -233,7 +233,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender().to_string(),
+                monarch: mock.sender_addr().to_string(),
             })?;
     // claim the namespace so app can be deployed
     abstr_deployment.version_control.claim_namespace(

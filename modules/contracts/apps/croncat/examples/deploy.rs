@@ -20,17 +20,14 @@ fn main() -> anyhow::Result<()> {
     let chain = parse_network("uni-6").unwrap();
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let rt = Runtime::new()?;
-    let chain = DaemonBuilder::default()
-        .chain(chain)
-        .handle(rt.handle())
-        .build()?;
+    let chain = DaemonBuilder::new(chain).handle(rt.handle()).build()?;
     let app = Croncat::new(CRONCAT_ID, chain.clone());
 
     // Create account
     let abstract_deployment = Abstract::load_from(chain.clone())?;
     let account = abstract_deployment.account_factory.create_default_account(
         GovernanceDetails::Monarchy {
-            monarch: chain.sender().into_string(),
+            monarch: chain.sender_addr().into_string(),
         },
     )?;
 

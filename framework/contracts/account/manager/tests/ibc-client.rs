@@ -16,7 +16,7 @@ pub fn ibc_client_installed<Chain: CwEnv>(manager: &Manager<Chain>) -> AResult {
 #[test]
 fn throws_if_enabling_when_already_enabled() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
@@ -33,7 +33,7 @@ fn throws_if_enabling_when_already_enabled() -> AResult {
 #[test]
 fn throws_if_disabling_without_ibc_client_installed() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
@@ -49,7 +49,7 @@ fn throws_if_disabling_without_ibc_client_installed() -> AResult {
 #[test]
 fn can_update_ibc_settings() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 

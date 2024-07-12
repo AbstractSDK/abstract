@@ -33,7 +33,7 @@ mod mock_adapter {
 #[test]
 fn account_creation() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
@@ -102,7 +102,7 @@ fn account_creation() -> anyhow::Result<()> {
 #[test]
 fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
@@ -157,7 +157,7 @@ fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
 #[test]
 fn account_creation_full() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
@@ -241,7 +241,7 @@ fn account_creation_full() -> anyhow::Result<()> {
 #[test]
 fn account_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let sender = mock.sender();
+    let sender = mock.sender_addr();
 
     let admin = mock.addr_make("admin");
     let mut origin_chain = mock.clone();
@@ -322,7 +322,7 @@ fn account_action() -> anyhow::Result<()> {
 #[test]
 fn execute_action_with_account_creation() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let admin = mock.sender();
+    let admin = mock.sender_addr();
 
     let abstr = Abstract::deploy_on(mock.clone(), admin.to_string())?;
 
@@ -379,7 +379,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 #[test]
 fn execute_send_all_back_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let admin = mock.sender();
+    let admin = mock.sender_addr();
 
     let abstr = Abstract::deploy_on(mock.clone(), admin.to_string())?;
 

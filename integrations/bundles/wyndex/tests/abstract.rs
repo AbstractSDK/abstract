@@ -6,7 +6,7 @@ mod abstrct {
     #[test]
     fn deploy() {
         let mock = MockBech32::new("mock");
-        let owner = mock.sender();
+        let owner = mock.sender_addr();
 
         Abstract::deploy_on(mock.clone(), owner.to_string()).unwrap();
 

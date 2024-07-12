@@ -38,8 +38,8 @@ fn get_daemon(
     state: Option<DaemonState>,
     deployment_id: Option<String>,
 ) -> cw_orch::anyhow::Result<Daemon> {
-    let mut builder = DaemonBuilder::default();
-    builder.chain(chain).handle(handle);
+    let mut builder = DaemonBuilder::new(chain);
+    builder.handle(handle);
     if let Some(mnemonic) = mnemonic {
         builder.mnemonic(mnemonic);
     }
@@ -71,7 +71,6 @@ fn test_ibc(
     )?;
 
     let interchain = DaemonInterchainEnv::from_daemons(
-        handle,
         vec![src_daemon.clone(), dst_daemon.clone()],
         &ChannelCreationValidator,
     );

@@ -57,13 +57,13 @@ cw-semver = { version = "1.0" }
 tokio = { version = "1.33.0", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "1.0.5" }
-polytone-note = { package = "abstract-polytone-note", version = "2.0.0" }
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0" }
+polytone-note = { package = "abstract-polytone-note", version = "3.0.0" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "4.0.0" }
 
-cw-orch = { version = "0.23.0" }
-cw-orch-interchain = { version = "0.2.0" }
-cw-orch-clone-testing = { version = "0.5.1" }
-cw-orch-proto = { version = "0.3.0" }
+cw-orch = { version = "0.24.0" }
+cw-orch-interchain = { version = "0.3.0" }
+cw-orch-clone-testing = { version = "0.6.0" }
+cw-orch-proto = { version = "0.4.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
