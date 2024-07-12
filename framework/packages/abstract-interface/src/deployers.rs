@@ -6,7 +6,10 @@ use abstract_std::{
     },
 };
 use cosmwasm_std::to_json_binary;
-use cw_orch::prelude::{CwOrchError::StdErr, *};
+use cw_orch::{
+    environment::Environment,
+    prelude::{CwOrchError::StdErr, *},
+};
 use semver::Version;
 use serde::Serialize;
 
@@ -88,7 +91,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         strategy: DeployStrategy,
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
-        let abstr = Abstract::load_from(self.get_chain().to_owned())?;
+        let abstr = Abstract::load_from(self.environment().to_owned())?;
 
         // check for existing version, if not force strategy
         let vc_has_module = || {
@@ -148,7 +151,7 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
         strategy: DeployStrategy,
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
-        let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
+        let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
 
         // check for existing version
         let vc_has_module = || {
@@ -199,7 +202,7 @@ pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstanc
         strategy: DeployStrategy,
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
-        let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
+        let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
 
         // check for existing version
         let vc_has_module = || {

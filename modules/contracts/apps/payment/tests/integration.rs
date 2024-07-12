@@ -10,6 +10,7 @@ use abstract_interface::{
 use cosmwasm_std::{coin, coins, to_json_binary, Decimal, Uint128};
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
 use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
+use cw_orch::environment::Environment;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
@@ -33,7 +34,7 @@ type PaymentTestSetup = (
 fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<PaymentTestSetup> {
     let app = PaymentAppInterface::new(APP_ID, mock.clone());
 
-    let abstr_deployment = Abstract::deploy_on(mock.clone(), mock.sender().to_string())?;
+    let abstr_deployment = Abstract::deploy_on(mock.clone(), mock.sender_addr().to_string())?;
 
     let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(
         abstract_dex_adapter::DEX_ADAPTER_ID,
@@ -53,7 +54,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender().to_string(),
+                monarch: mock.sender_addr().to_string(),
             })?;
 
     // claim the namespace so app can be deployed
@@ -147,7 +148,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
     let mock = MockBech32::new("sender");
 
     let (account, abstr_deployment, app, wyndex) = setup(mock.clone(), None)?;
-    let mock: MockBech32 = abstr_deployment.ans_host.get_chain().clone();
+    let mock: MockBech32 = abstr_deployment.ans_host.environment().clone();
     let WynDex {
         eur_token,
         usd_token: _,
@@ -404,7 +405,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     let mock = MockBech32::new("sender");
 
     let (account, abstr_deployment, app, wyndex) = setup(mock, None)?;
-    let mock: MockBech32 = abstr_deployment.ans_host.get_chain().clone();
+    let mock: MockBech32 = abstr_deployment.ans_host.environment().clone();
     let WynDex {
         eur_token,
         usd_token: _,
@@ -482,7 +483,7 @@ fn test_sent_desired_asset() -> anyhow::Result<()> {
 
     let (_, abstr_deployment, app, wyndex) =
         setup(mock, Some(AssetEntry::new(wyndex_bundle::USD)))?;
-    let mock: MockBech32 = abstr_deployment.ans_host.get_chain().clone();
+    let mock: MockBech32 = abstr_deployment.ans_host.environment().clone();
     let WynDex { usd_token, .. } = wyndex;
 
     let tipper = mock.addr_make("tipper1");

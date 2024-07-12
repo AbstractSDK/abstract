@@ -9,6 +9,7 @@ use abstract_std::objects::namespace::Namespace;
 use abstract_std::objects::TruncatedChainId;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
+use cw_orch::daemon::DaemonState;
 use cw_orch::environment::ChainKind;
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
@@ -64,9 +65,13 @@ fn get_daemon(
     handle: &Handle,
     mnemonic: Option<String>,
     deployment_id: Option<String>,
+    state: Option<DaemonState>,
 ) -> cw_orch::anyhow::Result<Daemon> {
-    let mut builder = DaemonBuilder::default();
-    builder.chain(chain).handle(handle);
+    let mut builder = DaemonBuilder::new(chain);
+    builder.handle(handle);
+    if let Some(state) = state {
+        builder.state(state);
+    }
     if let Some(mnemonic) = mnemonic {
         builder.mnemonic(mnemonic);
     }
@@ -82,11 +87,16 @@ fn connect(
     (dst_chain, dst_mnemonic): (ChainInfo, Option<String>),
     handle: &Handle,
 ) -> cw_orch::anyhow::Result<()> {
-    let src_daemon = get_daemon(src_chain.clone(), handle, src_mnemonic.clone(), None)?;
-    let dst_daemon = get_daemon(dst_chain.clone(), handle, dst_mnemonic, None)?;
+    let src_daemon = get_daemon(src_chain.clone(), handle, src_mnemonic.clone(), None, None)?;
+    let dst_daemon = get_daemon(
+        dst_chain.clone(),
+        handle,
+        dst_mnemonic,
+        None,
+        Some(src_daemon.state()),
+    )?;
 
     let interchain = DaemonInterchainEnv::from_daemons(
-        handle,
         vec![src_daemon.clone(), dst_daemon.clone()],
         &ChannelCreationValidator,
     );

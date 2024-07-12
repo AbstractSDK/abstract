@@ -22,13 +22,13 @@ pub fn token_bridge() -> AnyResult<()> {
     env_logger::init();
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let interchain = Starship::new(rt.handle(), None)?.interchain_env();
+    let interchain = Starship::new(None)?.interchain_env();
 
-    let juno = interchain.chain(JUNO).unwrap();
-    let stargaze = interchain.chain(STARGAZE).unwrap();
+    let juno = interchain.get_chain(JUNO).unwrap();
+    let stargaze = interchain.get_chain(STARGAZE).unwrap();
 
-    let sender = juno.sender().to_string();
-    let receiver = stargaze.sender().to_string();
+    let sender = juno.sender_addr().to_string();
+    let receiver = stargaze.sender_addr().to_string();
 
     let test_amount: u128 = 100_000;
     let token_subdenom = format!(
@@ -80,7 +80,7 @@ pub fn token_bridge() -> AnyResult<()> {
     // Get balance on the remote chain
     let balance = stargaze
         .bank_querier()
-        .balance(stargaze.sender().to_string(), Some(denom.clone()))
+        .balance(stargaze.sender_addr().to_string(), Some(denom.clone()))
         .unwrap();
 
     assert_eq!(balance[0].amount, Uint128::from(test_amount));
@@ -101,7 +101,7 @@ pub fn token_bridge() -> AnyResult<()> {
 
     let balance = stargaze
         .bank_querier()
-        .balance(stargaze.sender().to_string(), Some(denom.clone()))
+        .balance(stargaze.sender_addr().to_string(), Some(denom.clone()))
         .unwrap();
 
     assert_eq!(balance[0].amount, Uint128::zero());

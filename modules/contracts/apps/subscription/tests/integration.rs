@@ -60,10 +60,10 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
     let cw20 = client
         .cw20_builder("test", "test", 6)
         .initial_balance(Cw20Coin {
-            address: chain.sender().to_string(),
+            address: chain.sender_addr().to_string(),
             amount: Uint128::new(1_000_000),
         })
-        .admin(chain.sender())
+        .admin(chain.sender_addr())
         .instantiate_with_id("abstract:cw20")?;
 
     let publisher: Publisher<_> = client

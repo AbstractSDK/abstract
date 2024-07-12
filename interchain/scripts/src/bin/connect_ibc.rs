@@ -1,10 +1,10 @@
 use abstract_interface::Abstract;
 use cw_orch::daemon::networks::{HARPOON_4, PION_1};
+use cw_orch::daemon::DaemonState;
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
 
 use cw_orch_interchain::prelude::*;
-use cw_orch_polytone::Polytone;
 use tokio::runtime::Runtime;
 
 /// Connect IBC between two chains.
@@ -33,9 +33,13 @@ fn get_daemon(
     handle: &Handle,
     mnemonic: Option<String>,
     deployment_id: Option<String>,
+    state: Option<DaemonState>,
 ) -> cw_orch::anyhow::Result<Daemon> {
-    let mut builder = DaemonBuilder::default();
-    builder.chain(chain).handle(handle);
+    let mut builder = DaemonBuilder::new(chain);
+    builder.handle(handle);
+    if let Some(state) = state {
+        builder.state(state);
+    }
     if let Some(mnemonic) = mnemonic {
         builder.mnemonic(mnemonic);
     }
@@ -54,8 +58,14 @@ fn connect(
     (dst_chain, dst_mnemonic): (ChainInfo, Option<String>),
     handle: &Handle,
 ) -> cw_orch::anyhow::Result<()> {
-    let src_daemon = get_daemon(src_chain.clone(), handle, src_mnemonic.clone(), None)?;
-    let dst_daemon = get_daemon(dst_chain.clone(), handle, dst_mnemonic, None)?;
+    let src_daemon = get_daemon(src_chain.clone(), handle, src_mnemonic.clone(), None, None)?;
+    let dst_daemon = get_daemon(
+        dst_chain.clone(),
+        handle,
+        dst_mnemonic,
+        None,
+        Some(src_daemon.state()),
+    )?;
 
     let src_abstract = Abstract::load_from(src_daemon.clone())?;
     let dst_abstract = Abstract::load_from(dst_daemon.clone())?;
@@ -65,13 +75,11 @@ fn connect(
         handle,
         src_mnemonic,
         Some(get_deployment_id(&src_chain, &dst_chain)),
+        Some(src_daemon.state()),
     )?;
 
-    let interchain = DaemonInterchainEnv::from_daemons(
-        handle,
-        vec![src_daemon, dst_daemon],
-        &ChannelCreationValidator,
-    );
+    let interchain =
+        DaemonInterchainEnv::from_daemons(vec![src_daemon, dst_daemon], &ChannelCreationValidator);
     src_abstract.connect_to(&dst_abstract, &interchain)?;
 
     Ok(())

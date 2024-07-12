@@ -12,6 +12,9 @@ use cw_orch::prelude::*;
 
 use crate::{account::Account, AbstractClient};
 
+// TODO: use this trait instead
+use cw_orch::environment::Environment as _;
+
 /// Trait for retrieving the CosmWasm environment that is being used.
 pub trait Environment<Chain: CwEnv> {
     /// Get the execution environment
@@ -30,12 +33,12 @@ impl<Chain: CwEnv, T> Infrastructure<Chain> for T where T: Environment<Chain> {}
 
 impl<Chain: CwEnv> Environment<Chain> for Account<Chain> {
     fn environment(&self) -> Chain {
-        self.abstr_account.proxy.get_chain().clone()
+        self.abstr_account.proxy.environment().clone()
     }
 }
 
 impl<Chain: CwEnv> Environment<Chain> for AbstractClient<Chain> {
     fn environment(&self) -> Chain {
-        self.abstr.version_control.get_chain().clone()
+        self.abstr.version_control.environment().clone()
     }
 }

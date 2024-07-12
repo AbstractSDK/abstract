@@ -10,10 +10,7 @@ fn deploy_etf(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     for network in networks {
-        let chain = DaemonBuilder::default()
-            .chain(network)
-            .handle(rt.handle())
-            .build()?;
+        let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
         let etf = Etf::new(ETF_APP_ID, chain);
         etf.deploy(version.clone(), DeployStrategy::Try)?;
     }

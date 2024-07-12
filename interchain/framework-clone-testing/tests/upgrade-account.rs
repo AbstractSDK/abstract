@@ -70,7 +70,7 @@ fn upgrade_accounts_and_sub_accounts() -> anyhow::Result<()> {
 
     let account = abstr_deployment.account_factory.create_default_account(
         abstract_client::GovernanceDetails::Monarchy {
-            monarch: chain.sender().to_string(),
+            monarch: chain.sender_addr().to_string(),
         },
     )?;
     let sub_account = account.create_sub_account(

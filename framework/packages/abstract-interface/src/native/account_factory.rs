@@ -6,7 +6,7 @@ use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, AccountId, AssetEntry},
 };
-use cw_orch::{interface, prelude::*};
+use cw_orch::{environment::Environment, interface, prelude::*};
 
 use crate::AbstractAccount;
 
@@ -78,7 +78,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             funds,
         )?;
 
-        AbstractAccount::from_tx_response(self.get_chain(), result)
+        AbstractAccount::from_tx_response(self.environment(), result)
     }
 
     pub fn create_default_account(
