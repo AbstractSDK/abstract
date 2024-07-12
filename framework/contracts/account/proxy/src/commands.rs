@@ -62,7 +62,7 @@ pub fn execute_ibc_action(deps: DepsMut, msg_info: MessageInfo, msg: IbcClientMs
         })?;
 
     let funds_to_send = if let IbcClientMsg::SendFunds { funds, .. } = &msg {
-        funds.iter().map(|send| send.coin.clone()).collect()
+        funds.clone()
     } else {
         vec![]
     };
@@ -466,6 +466,7 @@ mod test {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: "juno".parse().unwrap(),
                     funds: funds.clone(),
+                    memo: None,
                 },
             };
 
@@ -492,9 +493,10 @@ mod test {
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                         host_chain: "juno".parse().unwrap(),
                         funds: funds.clone(),
+                        memo: None,
                     })
                     .unwrap(),
-                    funds: funds.into_iter().map(|send| send.coin).collect(),
+                    funds,
                 },
             )));
         }

@@ -67,9 +67,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
-        ExecuteMsg::SendFunds { host_chain, funds } => {
-            commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
-        }
+        ExecuteMsg::SendFunds {
+            host_chain,
+            funds,
+            memo,
+        } => commands::execute_send_funds(deps, env, info, host_chain, funds, memo)
+            .map_err(Into::into),
         ExecuteMsg::Register {
             host_chain,
             base_asset,
@@ -605,7 +608,7 @@ mod tests {
             objects::{version_control::VersionControlError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
-        use cosmwasm_std::{coin, Binary, CosmosMsg, IbcMsg};
+        use cosmwasm_std::{coin, coins, Binary, CosmosMsg, IbcMsg};
         use prost::Name;
         use std::str::FromStr;
 
@@ -620,6 +623,7 @@ mod tests {
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
                 funds: vec![coin(1, "denom").into()],
+                memo: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -654,22 +658,23 @@ mod tests {
                 &remote_addr,
             )?;
 
-            let funds: Vec<InterchainSend> = vec![coin(1, "denom").into()];
+            let funds = coins(1, "denom");
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name.clone(),
                 funds: funds.clone(),
+                memo: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
 
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()
-                .map(|c| {
+                .map(|amount| {
                     IbcMsg::Transfer {
                         channel_id: channel_id.clone(),
                         to_address: remote_addr.clone(),
-                        amount: c.coin,
+                        amount,
                         timeout: mock_env().block.time.plus_seconds(PACKET_LIFETIME).into(),
                     }
                     .into()
@@ -681,14 +686,13 @@ mod tests {
                 res
             );
 
-            let funds: Vec<InterchainSend> = vec![InterchainSend {
-                coin: coin(1, "denom"),
-                memo: Some("some_memo".to_owned()),
-            }];
+            let funds = coins(1, "denom");
+            let memo = Some("some_memo".to_owned());
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
                 funds: funds.clone(),
+                memo: memo.clone(),
             };
 
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
@@ -703,8 +707,8 @@ mod tests {
                             source_port: "transfer".to_owned(),
                             source_channel: channel_id.clone(),
                             token: Some(ibc_proto::cosmos::base::v1beta1::Coin {
-                                denom: c.coin.denom,
-                                amount: c.coin.amount.to_string(),
+                                denom: c.denom,
+                                amount: c.amount.to_string(),
                             }),
                             sender: mock_env().contract.address.to_string(),
                             receiver: remote_addr.clone(),
@@ -714,7 +718,7 @@ mod tests {
                                 .time
                                 .plus_seconds(PACKET_LIFETIME)
                                 .nanos(),
-                            memo: c.memo.unwrap(),
+                            memo: memo.clone().unwrap(),
                         }
                         .encode_to_vec(),
                     ),

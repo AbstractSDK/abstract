@@ -742,8 +742,9 @@ mod test {
             PROXY,
             abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                    funds: vec![coin(10, origin_denom).into()],
+                    funds: coins(10, origin_denom),
                     host_chain: TruncatedChainId::from_chain_id(STARGAZE),
+                    memo: None,
                 },
             },
         )?;

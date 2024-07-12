@@ -11,12 +11,11 @@ use abstract_interchain_tests::{
 use abstract_interface::{Abstract, AbstractAccount, ProxyQueryFns};
 use abstract_std::{
     ans_host::ExecuteMsgFns,
-    ibc_client::InterchainSend,
     objects::{TruncatedChainId, UncheckedChannelEntry},
     ICS20, PROXY,
 };
 use anyhow::Result as AnyResult;
-use cosmwasm_std::coin;
+use cosmwasm_std::{coin, coins};
 use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
 use cw_orch_proto::tokenfactory::{create_denom, get_denom, mint};
@@ -113,10 +112,8 @@ pub fn test_send_funds() -> AnyResult<()> {
         abstract_std::proxy::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                 host_chain: TruncatedChainId::from_chain_id(STARGAZE),
-                funds: vec![InterchainSend {
-                    coin: coin(test_amount, get_denom(&juno, token_subdenom.as_str())),
-                    memo: Some("sent_some_tokens".to_owned()),
-                }],
+                funds: coins(test_amount, get_denom(&juno, token_subdenom.as_str())),
+                memo: Some("sent_some_tokens".to_owned()),
             },
         },
     )?;

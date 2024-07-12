@@ -9,7 +9,7 @@ use abstract_std::{
     ibc::{Callback, ModuleQuery},
     ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
-        IbcClientCallback, InstalledModuleIdentification, InterchainSend,
+        IbcClientCallback, InstalledModuleIdentification,
     },
     ibc_host::{self, HostAction, InternalAction},
     manager::{self, ModuleInstallConfig},
@@ -416,7 +416,8 @@ pub fn execute_send_funds(
     env: Env,
     info: MessageInfo,
     host_chain: TruncatedChainId,
-    funds: Vec<InterchainSend>,
+    funds: Vec<Coin>,
+    memo: Option<String>,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
@@ -443,7 +444,7 @@ pub fn execute_send_funds(
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;
 
     let mut transfers: Vec<CosmosMsg> = vec![];
-    for InterchainSend { coin, memo } in funds {
+    for coin in funds {
         // construct a packet to send
 
         let ics_20_send = _ics_20_send_msg(
@@ -451,7 +452,7 @@ pub fn execute_send_funds(
             ics20_channel_id.clone(),
             coin,
             remote_addr.clone(),
-            memo,
+            memo.clone(),
         );
         transfers.push(ics_20_send);
     }
