@@ -276,9 +276,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
             // only take accounts that the current sender owns
             let account = AbstractAccount::new(&self.abstr, account_id.clone());
-            if account.manager.ownership()?.owner
-                != Some(self.environment().sender_addr().to_string())
-            {
+            if account.manager.top_level_owner()?.address != self.environment().sender_addr() {
                 continue;
             }
 

@@ -4,7 +4,9 @@ use abstract_sdk::{
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
 };
 use abstract_std::{
-    objects::{dependency::StaticDependency, module::ModuleInfo, nested_admin::NestedAdmin},
+    objects::{
+        dependency::StaticDependency, module::ModuleInfo, ownership::nested_admin::NestedAdmin,
+    },
     standalone::StandaloneState,
     AbstractResult,
 };

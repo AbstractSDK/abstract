@@ -1,3 +1,5 @@
+use crate::objects::{gov_type::GovernanceDetails, ownership::Ownership};
+
 use cosmwasm_std::{
     attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, QuerierWrapper, Response, StdError,
     StdResult,
@@ -5,10 +7,7 @@ use cosmwasm_std::{
 use cw_controllers::{Admin, AdminError, AdminResponse};
 use schemars::JsonSchema;
 
-use crate::{
-    manager::{self, state::AccountInfo},
-    objects::gov_type::GovernanceDetails,
-};
+use super::query_ownership;
 
 /// Max manager admin recursion
 pub const MAX_ADMIN_RECURSION: usize = 2;
@@ -34,27 +33,50 @@ impl<'a> NestedAdmin<'a> {
 
     pub fn is_admin<Q: CustomQuery>(&self, deps: Deps<Q>, caller: &Addr) -> StdResult<bool> {
         match self.0.get(deps)? {
-            Some(owner) => {
-                // Initial check if directly called by the owner
-                if caller == owner {
-                    Ok(true)
-                } else {
-                    // Check if top level owner address is equal to the caller
-                    Ok(query_top_level_owner(&deps.querier, owner)
-                        .map(|owner| owner == caller)
-                        .unwrap_or(false))
-                }
-            }
+            Some(admin) => Self::is_admin_custom(&deps.querier, caller, admin),
             None => Ok(false),
         }
     }
 
+    /// Compares the provided admin to the caller.
+    /// Can be used when other ownership structure than `cw-controller::Admin` is used.
+    pub fn is_admin_custom<Q: CustomQuery>(
+        querier: &QuerierWrapper<Q>,
+        caller: &Addr,
+        admin: Addr,
+    ) -> StdResult<bool> {
+        // Initial check if directly called by the admin
+        if caller == admin {
+            Ok(true)
+        } else {
+            // Check if top level owner address is equal to the caller
+            Ok(query_top_level_owner_addr(querier, admin)
+                .map(|admin| admin == caller)
+                .unwrap_or(false))
+        }
+    }
+
+    /// Assert the caller is the admin of this nested ownership structures
     pub fn assert_admin<Q: CustomQuery>(
         &self,
         deps: Deps<Q>,
         caller: &Addr,
     ) -> Result<(), AdminError> {
         if !self.is_admin(deps, caller)? {
+            Err(AdminError::NotAdmin {})
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Assert the caller is the admin of this nested ownership structures
+    /// Either directly or indirectly
+    pub fn assert_admin_custom<Q: CustomQuery>(
+        querier: &QuerierWrapper<Q>,
+        caller: &Addr,
+        admin: Addr,
+    ) -> Result<(), AdminError> {
+        if !Self::is_admin_custom(querier, caller, admin)? {
             Err(AdminError::NotAdmin {})
         } else {
             Ok(())
@@ -95,7 +117,7 @@ impl<'a> NestedAdmin<'a> {
     // This method tries to get top-level account owner
     pub fn query_account_owner<Q: CustomQuery>(&self, deps: Deps<Q>) -> StdResult<AdminResponse> {
         let admin = match self.0.get(deps)? {
-            Some(owner) => Some(query_top_level_owner(&deps.querier, owner).map_err(|_| {
+            Some(owner) => Some(query_top_level_owner_addr(&deps.querier, owner).map_err(|_| {
                 StdError::generic_err(
                     "Failed to query top level owner. Make sure this module is owned by the manager",
                 )
@@ -108,34 +130,37 @@ impl<'a> NestedAdmin<'a> {
     }
 }
 
-pub fn query_top_level_owner<Q: CustomQuery>(
+pub fn query_top_level_owner_addr<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
     maybe_manager: Addr,
 ) -> StdResult<Addr> {
+    // Get top level account owner address
+    query_top_level_owner(querier, maybe_manager).and_then(|ownership| {
+        ownership
+            .owner
+            .owner_address(&querier.into_empty())
+            .ok_or(StdError::generic_err("Top level account got renounced"))
+    })
+}
+
+pub fn query_top_level_owner<Q: CustomQuery>(
+    querier: &QuerierWrapper<Q>,
+    maybe_manager: Addr,
+) -> StdResult<Ownership<Addr>> {
     // Starting from (potentially)manager that owns this module
-    let mut current = manager::state::INFO.query(querier, maybe_manager.clone());
+    let mut current = query_ownership(querier, maybe_manager);
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
     for _ in 0..MAX_ADMIN_RECURSION {
-        match &current {
-            Ok(AccountInfo {
-                governance_details: GovernanceDetails::SubAccount { manager, .. },
+        match current {
+            Ok(Ownership {
+                owner: GovernanceDetails::SubAccount { manager, .. },
                 ..
             }) => {
-                current = manager::state::INFO.query(querier, manager.clone());
+                current = query_ownership(querier, manager);
             }
             _ => break,
         }
     }
 
-    // Get top level account owner address
-    current.and_then(|info| {
-        info.governance_details
-            .owner_address()
-            .ok_or(StdError::generic_err("Top level account got renounced"))
-    })
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct TopLevelOwnerResponse {
-    pub address: Addr,
+    current
 }

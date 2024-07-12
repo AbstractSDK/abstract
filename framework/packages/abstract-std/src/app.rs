@@ -10,7 +10,7 @@ use crate::{
         MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
     },
     objects::{
-        ans_host::AnsHost, module_version::ModuleDataResponse, nested_admin::TopLevelOwnerResponse,
+        ans_host::AnsHost, gov_type::TopLevelOwnerResponse, module_version::ModuleDataResponse,
         version_control::VersionControlContract,
     },
     version_control::AccountBase,

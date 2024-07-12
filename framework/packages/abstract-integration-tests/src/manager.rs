@@ -13,7 +13,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
-        AccountId,
+        ownership, AccountId,
     },
     version_control::UpdateModule,
     PROXY,
@@ -296,7 +296,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     let AbstractAccount { manager, proxy } = &account;
     abstr
         .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+        .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // install adapter 1
@@ -328,7 +328,7 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
     let AbstractAccount { manager, proxy } = &account;
     abstr
         .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+        .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // install adapter 1
@@ -374,7 +374,7 @@ pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     deployment
         .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+        .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
@@ -503,7 +503,12 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
         manager: sub_manager_addr.to_string(),
         proxy: sub_proxy_addr.to_string(),
     };
-    new_account.manager.propose_owner(new_governance.clone())?;
+    new_account
+        .manager
+        .update_ownership(ownership::GovAction::TransferOwnership {
+            new_owner: new_governance.clone(),
+            expiry: None,
+        })?;
     let new_account_manager = new_account.manager.address()?;
     let new_account_id = new_account.id()?;
 
@@ -514,7 +519,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
         .module_action(vec![wasm_execute(
             new_account_manager,
             &abstract_std::manager::ExecuteMsg::UpdateOwnership(
-                cw_ownable::Action::AcceptOwnership,
+                ownership::GovAction::AcceptOwnership,
             ),
             vec![],
         )?
@@ -526,8 +531,8 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
 
     // owner of new_account updated
     let new_account = AbstractAccount::new(&deployment, AccountId::local(new_account_id.seq()));
-    let info = new_account.manager.info()?.info;
-    assert_eq!(new_governance, info.governance_details.into());
+    let owner = new_account.manager.ownership()?.owner;
+    assert_eq!(new_governance, owner);
 
     Ok(())
 }
