@@ -27,7 +27,7 @@ pub mod state {
         namespace::Namespace,
     };
 
-    pub const CONFIG: Item<Config> = Item::new("cfg");
+    pub const CONFIG: Item<Config> = Item::new("config");
 
     // Modules waiting for approvals
     pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pendm");
