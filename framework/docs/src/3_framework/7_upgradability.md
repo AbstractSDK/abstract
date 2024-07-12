@@ -13,7 +13,7 @@ If this is the first time you hear about smart-contract migrations, we recommend
 Upgrading a module is facilitated by the module version registry in
 the [version control contract](../5_platform/2_version_control.md). The mapping allows your Account to:
 
-- Instantiate a module of the latest versions. (see the previous section on [modules](./6_module_types.md#installing-and-uninstalling-modules))
+- Instantiate a module of the latest versions.
 - Upgrade a module to a new version.
 - Provide custom modules to other developers.
 - Do all this without losing sovereignty.
@@ -32,7 +32,7 @@ address.
 
 When a user decides to upgrade an Adapter module, the abstract infrastructure **moves** that user's configuration on that Adapter  to the new Adapter and removes the permissions of the old Adapter.
 
-However, any modules that depend on the upgraded Adapter module don't have to update any of their state as a module's address is resolved dynamically through the manager contract, similar to how DNS works! This is explained in more detail in the [dependency execution flow](./6_module_types.md#dependency-execution) of the last section.
+However, any modules that depend on the upgraded Adapter module don't have to update any of their state as a module's address is resolved dynamically through the manager contract, similar to how DNS works!
 
 ## Module Upgrade Flow
 

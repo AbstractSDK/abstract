@@ -1,6 +1,7 @@
 mod commands;
 pub mod contract;
 pub mod error;
+pub(crate) mod migrate;
 mod queries;
 mod validation;
 mod versioning;

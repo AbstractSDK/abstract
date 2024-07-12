@@ -7,7 +7,6 @@ pub mod common_namespace;
 pub mod version_control;
 
 mod entry;
-pub mod nested_admin;
 pub mod oracle;
 pub mod pool;
 pub mod salt;
@@ -24,6 +23,7 @@ pub mod module;
 pub mod module_reference;
 pub mod module_version;
 pub mod namespace;
+pub mod ownership;
 pub mod paged_map;
 pub mod price_source;
 pub mod time_weighted_average;

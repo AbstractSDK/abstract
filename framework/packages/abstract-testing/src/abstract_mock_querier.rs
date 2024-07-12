@@ -3,13 +3,14 @@ use abstract_std::{
     objects::{
         account::ACCOUNT_ID,
         common_namespace::{ADMIN_NAMESPACE, OWNERSHIP_STORAGE_KEY},
+        gov_type::GovernanceDetails,
+        ownership::Ownership,
         AccountId, AssetEntry, ChannelEntry,
     },
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfo;
-use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 
 use crate::prelude::*;
@@ -50,7 +51,9 @@ impl AbstractMockQuerierBuilder {
                 manager,
                 Item::new(OWNERSHIP_STORAGE_KEY),
                 &Some(Ownership {
-                    owner: Some(Addr::unchecked(OWNER)),
+                    owner: GovernanceDetails::Monarchy {
+                        monarch: Addr::unchecked(OWNER),
+                    },
                     pending_owner: None,
                     pending_expiry: None,
                 }),
