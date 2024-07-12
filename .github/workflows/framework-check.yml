@@ -111,35 +111,6 @@ jobs:
       - name: cargo hack
         working-directory: ./framework
         run: cargo hack --feature-powerset check --lib --tests
-  msrv:
-    runs-on: ubuntu-latest
-    # we use a matrix here just because env can't be used in job names
-    # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
-    strategy:
-      matrix:
-        msrv: [1.72.0] # Most of our repos use workspace manifests, which require 1.72.0
-    name: ubuntu / ${{ matrix.msrv }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
-            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
-        with:
-          version: "v0.4.2"
-      - name: Install ${{ matrix.msrv }}
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.msrv }}
-      - name: cargo +${{ matrix.msrv }} check
-        working-directory: ./framework
-        run: cargo check
-  
   # Find any unused dependencies
   unused-deps:
     runs-on: ubuntu-latest

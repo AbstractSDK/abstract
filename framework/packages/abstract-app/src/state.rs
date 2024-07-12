@@ -5,7 +5,9 @@ use abstract_sdk::{
 };
 use abstract_std::{
     app::AppState,
-    objects::{dependency::StaticDependency, module::ModuleInfo, nested_admin::NestedAdmin},
+    objects::{
+        dependency::StaticDependency, module::ModuleInfo, ownership::nested_admin::NestedAdmin,
+    },
     AbstractError, AbstractResult,
 };
 use cosmwasm_std::{Empty, StdResult, Storage};

@@ -6,7 +6,7 @@ use abstract_sdk::{
 use abstract_std::{
     adapter::{AdapterBaseMsg, AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     manager::state::ACCOUNT_MODULES,
-    objects::nested_admin::query_top_level_owner,
+    objects::ownership::nested_admin::query_top_level_owner_addr,
 };
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response, StdResult};
 use schemars::JsonSchema;
@@ -50,7 +50,7 @@ impl<
 }
 
 fn is_top_level_owner(querier: &QuerierWrapper, manager: Addr, sender: &Addr) -> StdResult<bool> {
-    let owner = query_top_level_owner(querier, manager)?;
+    let owner = query_top_level_owner_addr(querier, manager)?;
     Ok(owner == sender)
 }
 

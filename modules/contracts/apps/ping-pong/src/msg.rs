@@ -1,4 +1,4 @@
-use abstract_app::objects::chain_name::ChainName;
+use abstract_app::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
 
 use crate::contract::App;
@@ -15,10 +15,10 @@ pub struct AppInstantiateMsg {}
 #[derive(cw_orch::ExecuteFns)]
 pub enum AppExecuteMsg {
     /// Play ping pong between this module and its counterpart on another chain.
-    PingPong { opponent_chain: ChainName },
+    PingPong { opponent_chain: TruncatedChainId },
     /// Same as PingPong but first queries the state of the opponent chain.
     /// If the opponent chain should lose (block height not even), it will try to play.
-    QueryAndMaybePingPong { opponent_chain: ChainName },
+    QueryAndMaybePingPong { opponent_chain: TruncatedChainId },
 }
 
 /// App query messages
@@ -45,8 +45,8 @@ pub struct PingPongIbcMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub enum PingPongCallbackMsg {
-    Pinged { opponent_chain: ChainName },
-    QueryBlockHeight { opponent_chain: ChainName },
+    Pinged { opponent_chain: TruncatedChainId },
+    QueryBlockHeight { opponent_chain: TruncatedChainId },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -66,5 +66,5 @@ pub struct BlockHeightResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct PreviousPingPongResponse {
     pub pongs: Option<u32>,
-    pub host_chain: Option<ChainName>,
+    pub host_chain: Option<TruncatedChainId>,
 }

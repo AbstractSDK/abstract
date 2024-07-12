@@ -26,6 +26,7 @@ semver = { workspace = true, features = ["serde"] }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
 cw2 = { workspace = true }
+cw721 = "0.18.0"
 cw20 = { workspace = true }
 cw-orch = { workspace = true }
 cw-ownable = { workspace = true }

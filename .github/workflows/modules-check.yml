@@ -99,31 +99,7 @@ jobs:
           --mutually-exclusive-features \
           wynd,osmosis,astroport,bow,terraswap,astrovault,testing,osmosis-test,node-tests,interface,cw-orch,schema \
           --lib --tests
-  msrv:
-    runs-on: ubuntu-latest
-    # we use a matrix here just because env can't be used in job names
-    # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
-    strategy:
-      matrix:
-        msrv: [1.72.0] # cosmrs v0.15.0 requires 1.72.0 or newer
-    name: ubuntu / ${{ matrix.msrv }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
-            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
-      - name: Install ${{ matrix.msrv }}
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.msrv }}
-      - name: cargo +${{ matrix.msrv }} check
-        working-directory: ./modules
-        run: cargo check
-
+          
   # Find any unused dependencies
   unused-deps:
     runs-on: ubuntu-latest

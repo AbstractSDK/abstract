@@ -15,12 +15,9 @@ use abstract_std::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        chain_name::ChainName,
-        gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION,
-        AccountId, AssetEntry,
+        ownership, AccountId, AssetEntry, TruncatedChainId,
     },
     proxy, IBC_CLIENT, PROXY,
 };
@@ -65,7 +62,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
     ) -> AbstractClientResult<RemoteAccount<Chain, IBC>> {
         // Make sure ibc client installed on account
         let ibc_client = self.application::<IbcClient<Chain>>()?;
-        let remote_chain_name = ChainName::from_chain_id(&remote_chain.chain_id());
+        let remote_chain_name = TruncatedChainId::from_chain_id(&remote_chain.chain_id());
         let account_id = self.id()?;
 
         // Check it exists first
@@ -85,7 +82,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name =
-                ChainName::from_chain_id(&owner_account.manager.get_chain().chain_id());
+                TruncatedChainId::from_chain_id(&owner_account.manager.get_chain().chain_id());
             id.push_chain(chain_name);
             id
         };
@@ -183,7 +180,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
             install_modules,
             ..Default::default()
         };
-        let host_chain = ChainName::from_chain_id(&remote_env_info.chain_id);
+        let host_chain = TruncatedChainId::from_chain_id(&remote_env_info.chain_id);
 
         let response = owner_account
             .abstr_account
@@ -192,7 +189,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
 
         let remote_account_id = {
             let mut id = owner_account.id()?;
-            let chain_name = ChainName::from_chain_id(
+            let chain_name = TruncatedChainId::from_chain_id(
                 &owner_account.abstr_account.manager.get_chain().chain_id(),
             );
             id.push_chain(chain_name);
@@ -242,9 +239,9 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         self.remote_account_id.clone()
     }
 
-    /// ChainName of the host chain
-    pub fn host_chain(&self) -> ChainName {
-        ChainName::from_chain_id(&self.remote_chain().env_info().chain_id)
+    /// Truncated chain id of the host chain
+    pub fn host_chain(&self) -> TruncatedChainId {
+        TruncatedChainId::from_chain_id(&self.remote_chain().env_info().chain_id)
     }
 
     fn remote_chain(&self) -> Chain {
@@ -295,7 +292,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Query account info
-    pub fn info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
+    pub fn info(&self) -> AbstractClientResult<AccountInfo> {
         let info_response: InfoResponse = self
             .remote_chain()
             .query(&manager::QueryMsg::Info {}, &self.manager()?)
@@ -387,7 +384,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Returns owner of the account
-    pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
+    pub fn ownership(&self) -> AbstractClientResult<ownership::Ownership<String>> {
         let manager = self.manager()?;
         self.remote_chain()
             .query(&manager::QueryMsg::Ownership {}, &manager)
@@ -398,32 +395,11 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
-        let mut governance = self
-            .abstr_owner_account
+        self.abstr_owner_account
             .manager
-            .info()?
-            .info
-            .governance_details;
-
-        let environment = self.origin_chain();
-        // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-        for _ in 0..MAX_ADMIN_RECURSION {
-            match &governance {
-                GovernanceDetails::SubAccount { manager, .. } => {
-                    governance = environment
-                        .query::<_, InfoResponse>(&manager::QueryMsg::Info {}, manager)
-                        .map_err(|err| err.into())?
-                        .info
-                        .governance_details;
-                }
-                _ => break,
-            }
-        }
-
-        // Get top level account owner address
-        governance
-            .owner_address()
-            .ok_or(AbstractClientError::RenouncedAccount {})
+            .top_level_owner()
+            .map(|tlo| tlo.address)
+            .map_err(Into::into)
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.

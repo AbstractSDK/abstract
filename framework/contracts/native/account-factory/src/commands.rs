@@ -22,9 +22,11 @@ use abstract_std::{
     AbstractError, IBC_HOST,
 };
 use cosmwasm_std::{
-    ensure_eq, instantiate2_address, to_json_binary, Coins, CosmosMsg, Deps, DepsMut, Empty, Env,
-    MessageInfo, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
+    Env, MessageInfo, Storage, SubMsg, SubMsgResult, WasmMsg,
 };
+use cw721::OwnerOfResponse;
+use cw_ownable::OwnershipError;
 
 use crate::{
     contract::{AccountFactoryResponse, AccountFactoryResult},
@@ -65,6 +67,18 @@ pub fn execute_create_account(
             }
         )
     }
+    if let GovernanceDetails::NFT {
+        collection_addr,
+        token_id,
+    } = &governance
+    {
+        verify_nft_ownership(
+            deps.as_ref(),
+            info.sender.clone(),
+            collection_addr.clone(),
+            token_id.to_string(),
+        )?
+    }
     // If an account_id is provided, assert the caller is the ibc host and return the account_id.
     // Else get the next account id and set the origin to local.
     let account_id = match account_id {
@@ -97,7 +111,7 @@ pub fn execute_create_account(
             account_id.trace().verify_remote()?;
             account_id
         }
-        None => generate_new_local_account_id(deps.as_ref(), &info)?,
+        None => generate_new_local_account_id(deps.storage, &info)?,
     };
 
     // Query version_control for code_id of Proxy and Module contract
@@ -288,14 +302,16 @@ pub fn execute_create_account(
 
 // Generate new local account id
 fn generate_new_local_account_id(
-    deps: Deps,
+    storage: &mut dyn Storage,
     info: &MessageInfo,
 ) -> Result<AccountId, AccountFactoryError> {
     let origin = AccountTrace::Local;
-    let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
+    let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(storage)?.unwrap_or(0);
     if next_sequence == ABSTRACT_ACCOUNT_ID.seq() {
-        cw_ownable::assert_owner(deps.storage, &info.sender)?;
+        cw_ownable::assert_owner(storage, &info.sender)?;
     }
+    LOCAL_ACCOUNT_SEQUENCE.save(storage, &next_sequence.checked_add(1).unwrap())?;
+
     Ok(AccountId::new(next_sequence, origin)?)
 }
 
@@ -318,11 +334,6 @@ pub fn validate_instantiated_account(deps: DepsMut, _result: SubMsgResult) -> Ac
         &context.proxy_module,
         Some(account_base.proxy.clone()),
     )?;
-
-    // Add 1 to account sequence for local origin
-    if account_id.is_local() {
-        LOCAL_ACCOUNT_SEQUENCE.save(deps.storage, &account_id.seq().checked_add(1).unwrap())?;
-    }
 
     let resp = AccountFactoryResponse::new(
         "create_account",
@@ -366,4 +377,29 @@ pub fn execute_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(AccountFactoryResponse::action("update_config"))
+}
+
+/// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*
+fn verify_nft_ownership(
+    deps: Deps,
+    sender: Addr,
+    nft_addr: Addr,
+    nft_id: String,
+) -> Result<(), AccountFactoryError> {
+    // get owner of token_id from collection
+    let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
+        nft_addr,
+        &cw721::Cw721QueryMsg::OwnerOf {
+            token_id: nft_id,
+            include_expired: None,
+        },
+    )?;
+    // verify owner
+    ensure_eq!(
+        sender,
+        owner.owner,
+        AccountFactoryError::Ownership(OwnershipError::NotOwner)
+    );
+
+    Ok(())
 }
