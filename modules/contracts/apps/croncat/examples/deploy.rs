@@ -20,10 +20,7 @@ fn main() -> anyhow::Result<()> {
     let chain = parse_network("uni-6").unwrap();
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let rt = Runtime::new()?;
-    let chain = DaemonBuilder::default()
-        .chain(chain)
-        .handle(rt.handle())
-        .build()?;
+    let chain = DaemonBuilder::new(chain).handle(rt.handle()).build()?;
     let app = Croncat::new(CRONCAT_ID, chain.clone());
 
     // Create account

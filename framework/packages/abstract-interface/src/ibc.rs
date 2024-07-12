@@ -115,7 +115,7 @@ pub mod connection {
             polytone_connection.note.address()?.to_string(),
         )?;
         // We make sure the IBC execution is done so that the proxy address is saved inside the Abstract contract
-        let _ = interchain.check_ibc(&chain1_id, proxy_tx_result)?;
+        interchain.await_and_check_packets(&chain1_id, proxy_tx_result)?;
 
         // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
         let proxy_address = abstr.ibc.client.host(chain2_name)?;

@@ -32,8 +32,7 @@ fn main() -> anyhow::Result<()> {
     let version: Version = APP_VERSION.parse().unwrap();
     let runtime = Runtime::new()?;
 
-    let daemon = Daemon::builder()
-        .chain(LOCAL_JUNO)
+    let daemon = Daemon::builder(LOCAL_JUNO)
         .mnemonic(LOCAL_MNEMONIC)
         .handle(runtime.handle())
         .build()

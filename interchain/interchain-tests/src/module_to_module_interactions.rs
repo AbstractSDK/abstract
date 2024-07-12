@@ -389,7 +389,7 @@ pub mod test {
             ModuleInfo::from_id(TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE.into())?;
         let ibc_action_result = app.do_something_ibc(remote_name, target_module_info.clone())?;
 
-        let ibc_result = mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
+        let ibc_result = mock_interchain.await_packets(JUNO, ibc_action_result)?;
 
         let expected_error_outcome = format!(
             "Module {} does not have a stored module reference",
@@ -454,7 +454,7 @@ pub mod test {
             ModuleInfo::from_id(TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE.into())?;
         let ibc_action_result = app.do_something_ibc(remote_name, target_module_info.clone())?;
 
-        let ibc_result = mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
+        let ibc_result = mock_interchain.await_packets(JUNO, ibc_action_result)?;
 
         let expected_error_outcome =
             format!("App {} not installed on Account", target_module_info,);
@@ -522,9 +522,7 @@ pub mod test {
             },
         )?;
 
-        mock_interchain
-            .check_ibc(JUNO, remote_install_response)?
-            .into_result()?;
+        mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
         // We get the object for handling the actual module on the remote account
         let remote_manager = abstr_remote
@@ -562,9 +560,7 @@ pub mod test {
             get_received_ibc_callback_status_res
         );
 
-        mock_interchain
-            .check_ibc(JUNO, ibc_action_result)?
-            .into_result()?;
+        mock_interchain.await_and_check_packets(JUNO, ibc_action_result)?;
 
         assert_remote_module_call_status(
             &remote_account_app,
@@ -575,9 +571,7 @@ pub mod test {
         // Module to module query
 
         let ibc_action_result = app.query_module_ibc(remote_name, target_module_info)?;
-        mock_interchain
-            .check_ibc(JUNO, ibc_action_result)?
-            .into_result()?;
+        mock_interchain.await_and_check_packets(JUNO, ibc_action_result)?;
 
         let status = app.get_received_module_ibc_query_callback_status()?;
         assert_eq!("bar", status);
@@ -596,7 +590,7 @@ pub mod test {
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
-        let remote = mock_interchain.chain(STARGAZE)?;
+        let remote = mock_interchain.get_chain(STARGAZE)?;
         let remote_address =
             remote.addr_make_with_balance("remote-test", coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
 
@@ -627,9 +621,7 @@ pub mod test {
             get_received_ibc_query_callback_status_res
         );
 
-        mock_interchain
-            .check_ibc(JUNO, query_response)?
-            .into_result()?;
+        mock_interchain.await_and_check_packets(JUNO, query_response)?;
 
         let get_received_ibc_query_callback_status_res: ReceivedIbcQueryCallbackStatus =
             app.get_received_ibc_query_callback_status().unwrap();
@@ -704,9 +696,7 @@ pub mod test {
                 },
             )?;
 
-            mock_interchain
-                .check_ibc(JUNO, remote_install_response)?
-                .into_result()?;
+            mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
             // We get the object for handling the actual module on the remote account
             let remote_manager = abstr_remote

@@ -25,9 +25,8 @@ fn manual_deploy(network: ChainInfoOwned) -> anyhow::Result<()> {
         rt.block_on(ping_grpc(&url))?;
     }
 
-    let chain = DaemonBuilder::default()
+    let chain = DaemonBuilder::new(network.clone())
         .handle(rt.handle())
-        .chain(network.clone())
         .build()?;
 
     let sender = chain.sender_addr();
@@ -55,13 +54,13 @@ fn manual_deploy(network: ChainInfoOwned) -> anyhow::Result<()> {
                 Ok(_) => deployed, // Use the deployed instance if check is successful
                 Err(CwOrchError::AddrNotInStore(_)) => {
                     // If the check fails, deploy a new instance instead of returning an error
-                    Polytone::deploy_on(chain.clone(), None)?
+                    Polytone::deploy_on(chain.clone(), Empty {})?
                 }
                 Err(e) => return Err(e.into()), // Return any other error
             }
         }
         // If Polytone is not loaded, deploy a new one
-        Err(_) => Polytone::deploy_on(chain.clone(), None)?,
+        Err(_) => Polytone::deploy_on(chain.clone(), Empty {})?,
     };
 
     Ok(())

@@ -29,11 +29,11 @@ use cw_orch::{
     environment::{Environment as _, MutCwEnv},
     prelude::*,
 };
-use cw_orch_interchain::{types::IbcTxAnalysis, IbcQueryHandler, InterchainEnv};
+use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
 
 use crate::{
     client::AbstractClientResult, AbstractClient, AbstractClientError, Account, Environment,
-    RemoteApplication,
+    IbcTxAnalysisV2, RemoteApplication,
 };
 
 /// A builder for creating [`RemoteAccounts`](RemoteAccount).
@@ -191,7 +191,8 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         let response = owner_account
             .abstr_account
             .create_remote_account(account_details, host_chain)?;
-        let _ = self.ibc_env.check_ibc(&env_info.chain_id, response)?;
+        self.ibc_env
+            .await_and_check_packets(&env_info.chain_id, response)?;
 
         let remote_account_id = {
             let mut id = owner_account.id()?;
@@ -364,7 +365,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     ///
     /// Migrates manager and proxy contracts to their respective new versions.
     /// Note that execution will be done through source chain
-    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysis<Chain>> {
+    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let modules = vec![
             (
                 ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
@@ -433,7 +434,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
-    ) -> AbstractClientResult<IbcTxAnalysis<Chain>> {
+    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.execute_on_manager(vec![manager::ExecuteMsg::ExecOnModule {
             module_id: PROXY.to_owned(),
@@ -446,7 +447,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn execute_on_manager(
         &self,
         manager_msgs: Vec<manager::ExecuteMsg>,
-    ) -> AbstractClientResult<IbcTxAnalysis<Chain>> {
+    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
             host_chain: self.host_chain(),
             action: ibc_host::HostAction::Dispatch { manager_msgs },
@@ -537,16 +538,19 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub(crate) fn ibc_client_execute(
         &self,
         exec_msg: ibc_client::ExecuteMsg,
-    ) -> AbstractClientResult<IbcTxAnalysis<Chain>> {
+    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msg = proxy::ExecuteMsg::IbcAction { msg: exec_msg };
 
         let tx_response = self
             .abstr_owner_account
             .manager
             .execute_on_module(PROXY, msg)?;
-        self.ibc_env
-            .check_ibc(&self.origin_chain().chain_id(), tx_response)
-            .map_err(Into::into)
+        let packets = self
+            .ibc_env
+            .await_packets(&self.origin_chain().chain_id(), tx_response)
+            .map_err(Into::into)?;
+        packets.into_result()?;
+        Ok(IbcTxAnalysisV2(packets))
     }
 
     pub(crate) fn module<T: RegisteredModule + From<Contract<Chain>>>(

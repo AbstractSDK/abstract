@@ -8,8 +8,8 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     origin_chain_id: &str,
     remote_chain_id: &str,
 ) -> AnyResult<(Abstract<Chain>, Abstract<Chain>)> {
-    let origin_chain = interchain.chain(origin_chain_id).unwrap();
-    let remote_chain = interchain.chain(remote_chain_id).unwrap();
+    let origin_chain = interchain.get_chain(origin_chain_id).unwrap();
+    let remote_chain = interchain.get_chain(remote_chain_id).unwrap();
 
     // Deploying abstract and the IBC abstract logic
     let abstr_origin =
