@@ -22,7 +22,6 @@ use cw_orch_proto::tokenfactory::{create_denom, get_denom, mint};
 use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
 pub fn test_send_funds() -> AnyResult<()> {
-    std::env::set_var(cw_orch::daemon::env::MIN_GAS_ENV_NAME, "100000");
     env_logger::init();
 
     set_env();
