@@ -14,7 +14,8 @@ use abstract_sdk::std::{
 use abstract_std::{
     objects::module::ModuleStatus,
     version_control::{
-        state::{NAMESPACES_INFO, PENDING_MODULES}, AccountsResponse, ModuleConfiguration, NamespaceInfo, NamespaceResponse
+        state::{NAMESPACES_INFO, PENDING_MODULES},
+        AccountsResponse, ModuleConfiguration, NamespaceInfo, NamespaceResponse,
     },
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
@@ -38,21 +39,22 @@ pub fn handle_account_address_query(
     }
 }
 
-pub fn handle_accounts_query(deps: Deps, start_after: Option<AccountId>, limit: Option<u8>) -> StdResult<AccountsResponse> {
+pub fn handle_accounts_query(
+    deps: Deps,
+    start_after: Option<AccountId>,
+    limit: Option<u8>,
+) -> StdResult<AccountsResponse> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let start_bound: Option<Bound<&AccountId>> = start_after.as_ref().map(Bound::exclusive);
 
-    // // Load all modules
-    // modules.extend(
-    //     ACCOUNT_ADDRESSES.prefix()
-    //         .range(deps.storage, start_bound, None, Order::Ascending)
-    //         .take(limit)
-    //         .collect::<StdResult<Vec<_>>>()?,
-    // );
-    todo!()
-}
+    let accounts = ACCOUNT_ADDRESSES
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect::<StdResult<Vec<_>>>()?;
 
+    Ok(AccountsResponse { accounts })
+}
 
 pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<ModulesResponse> {
     let mut modules_response = ModulesResponse { modules: vec![] };
