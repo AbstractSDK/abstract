@@ -8,7 +8,7 @@ The [Account Console](https://console.abstract.money) is a web-based developer t
 
 It also allows you to easily view the abstract-specific infrastructure details like the [Abstract Name Service](./1_ans.md) or the [Version Control](2_version_control.md).
 
-The Account Console allows you to:
+The Account Console offers:
 
 - **Account Management**: Create, update, and delete accounts.
 - **Module Management**: Install, update, and delete modules.
@@ -31,7 +31,7 @@ network you want to connect to, and then proceed to create your Abstract Account
 
 ### Create Account
 
-Creating an account is straight forward process. Once in the Account Console, click "Create Account". You will be able
+Creating an account is straightforward process. Once in the Account Console, click "Create Account". You will be able
 to select the network you want to connect to, and then proceed to create your Abstract Account.
 
 > Are you having trouble creating an account? Please <a href="https://discord.gg/uch3Tq3aym" target="_blank">contact us

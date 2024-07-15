@@ -7,6 +7,7 @@
 
 - [Prerequisites](./3_framework/0_technologies.md)
 - [Account Abstraction](./3_framework/2_account_abstraction.md)
+- [Chain Abstraction](./3_framework/2_chain_abstraction.md)
 - [Accounts](./3_framework/3_architecture.md)
 - [Modules](./3_framework/5_modules.md)
     - [Module Types](./3_framework/6_module_types.md)
@@ -19,7 +20,7 @@
 - [Account Console](./5_platform/4_account_console.md)
 - [Abstract Name Service](./5_platform/1_ans.md)
 
-- [Contracts](./5_platform/index.md)
+- [Infrastructure](./5_platform/index.md)
     - [Version Control](./5_platform/2_version_control.md)
     - [Account Factory](./5_platform/3_account_factory.md)
     - [Module Factory](./5_platform/5_module_factory.md)
@@ -32,7 +33,7 @@
   <!-- - [Abstract Testing](./1_products/3_abstract_testing.md) -->
 
 - [Application Design Space](./2_introduction/1_design_space.md)
-  
+
 # Build With Abstract
 ---
 
@@ -49,9 +50,10 @@
   - [Module IBC](./ibc/module-ibc.md)
 - [Metadata](./4_get_started/9_metadata.md)
 - [Modules](./modules/index.md)
-    - [CW Staking](./modules/cw-staking.md)
-    - [Dex](./modules/dex.md)
-    - [Lending Market](./modules/lending-market.md)
+    - [DeFi Adapters](./modules/defi-adapters.md)
+        - [Dex](./modules/dex.md)
+        - [CW Staking](./modules/cw-staking.md)
+        - [Lending Market](./modules/lending-market.md)
     - [Subscription](./modules/subscription.md)
 
 # Case Studies
@@ -60,6 +62,7 @@
 - [Use Cases](./7_use_cases/index.md)
     - [Equilibrium](./7_use_cases/1_equilibrium.md)
     - [4t2 Finance](./7_use_cases/2_4t2.md)
+    - [XION](./7_use_cases/3_xion.md)
 
 
 # Resources and Support
@@ -73,6 +76,7 @@
 
 [Glossary](./9_glossary.md)
 [Contributing & Community](./contributing.md)
+[Contact Us](./11_contact.md)
 
 
 <!-- -Introduction

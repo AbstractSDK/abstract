@@ -1,12 +1,32 @@
-# Equilibrium
+# Equilibrium Rebalancer
 
-Equilibrium, dubbed as "The Cosmos Rebalancer" and awarded at HackWasm 2022, operates an auto-rebalancing protocol to
-facilitate creation of weighted portfolios of Cosmos assets, with portfolio allocations auto-adjusted per market
-fluctuations. The protocol is built using the Abstract SDK as a foundation as well as the CronCat protocol, and aims to
-boost liquidity within the Atom Economic Zone. Equilibrium's contracts are highly composable, audited for security, and
-enable innovative financial products on the Neutron blockchain. This initiative seeks to align with Neutron's core
-values and enhance its ecosystem by attracting investments, liquidity, and maximizing Miner Extractable Value (MEV)
-opportunities.
+Equilibrium, 1st place winner of HackWasm 2022, is a rebalancing protocol for DeFi portfolios. It allows users to create weighted baskets of assets and supports rebalancing of the portfolio using liquidity on any Dex in the interchain ecosystem, local or remote.
 
-For more details about Equilibrium, please visit the <a href="https://equilibrium.zone/" target="_blank">official
+## Architecture
+
+```mermaid
+flowchart
+	direction LR
+	subgraph App[ ]
+		direction TB
+		Balancer -- swaps --> Dex
+		Balancer -- updates shares --- ETF
+		Dex[/Dex/] --> AA["Abstract Account"]
+		ETF -- tokenizes --- AA
+		end
+
+	User -- rebalance --> App
+	User -- deposit --> App
+	User -- withdraw --> App
+	User -- update_weights --> App
+```
+
+### Modules
+
+- [Dex Adapter](../modules/dex.md)
+- [IBC Client](../3_framework/8_ibc.md)
+- Balancer:
+
+
+Read more on equilbrium on its <a href="https://equilibrium.zone/" target="_blank">official
 website</a>.

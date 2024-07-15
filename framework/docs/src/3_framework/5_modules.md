@@ -1,6 +1,6 @@
 # Modules
 
-Modularity is a core design principle of the Abstract platform. What enables this modularity are smart-contracts that we call *modules*.
+Modularity is a core design principle of the Abstract platform to allow for more maintainable and composable applications.
 
 A *module* in Abstract is a smart-contract that can be installed on an Abstract Account to extend the account's capabilities. Modules can be installed, removed, and configured by the account's owner, allowing for a high degree of customization. Additionally, modules can take on dependencies on other modules and securely interact with each other.
 
