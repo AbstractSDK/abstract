@@ -5,17 +5,6 @@ use cosmwasm_std::coins;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
 
-/// Returns a shared tokio runtime for all tests
-pub fn rt() -> &'static tokio::runtime::Runtime {
-    lazy_static::lazy_static! {
-        static ref RT: tokio::runtime::Runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .expect("Should create a tokio runtime");
-    }
-    &RT
-}
-
 /// Sets up the CloneTesting for chain.
 /// Returns the abstract client
 pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClient<CloneTesting>> {
@@ -24,7 +13,7 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
     std::env::set_var("STATE_FILE", "../scripts/state.json");
     // We set the state file to be able to clone test
     let gas_denom = chain.gas_denom;
-    let mut app = CloneTesting::new(rt(), chain)?;
+    let mut app = CloneTesting::new(chain)?;
     // Make sure sender have enough gas
     app.add_balance(&sender, coins(1_000_000_000_000_000, gas_denom))?;
     app.set_sender(sender);

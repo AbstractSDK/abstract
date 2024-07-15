@@ -11,7 +11,7 @@ use abstract_std::{
     IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Binary, Empty};
-use cw_orch::{interface, prelude::*};
+use cw_orch::{environment::Environment, interface, prelude::*};
 use serde::Serialize;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -89,7 +89,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         let config = self.config()?;
         let module_infos = modules.iter().map(|m| m.module.clone()).collect();
         let sim_response: SimulateInstallModulesResponse = self
-            .get_chain()
+            .environment()
             .query(
                 &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
                     modules: module_infos,

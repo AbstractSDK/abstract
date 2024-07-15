@@ -15,7 +15,7 @@ fn trading_frozen() {
     let uluna_info = AssetInfo::Native(uluna.to_string());
 
     let mock = MockBech32::new("mock");
-    let user = mock.sender();
+    let user = mock.sender_addr();
     mock.set_balance(&user, vec![coin(100_000, ujuno)]).unwrap();
 
     let mut suite = SuiteBuilder::new()
@@ -69,7 +69,7 @@ fn custom_fee_works() {
     let uluna_info = AssetInfo::Native(uluna.to_string());
 
     let mock = MockBech32::new("mock");
-    let user = mock.sender();
+    let user = mock.sender_addr();
     mock.set_balance(&user, vec![coin(1_001_000, ujuno), coin(1_000_000, uluna)])
         .unwrap();
 

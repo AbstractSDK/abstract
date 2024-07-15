@@ -2,7 +2,7 @@ use abstract_std::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
     VERSION_CONTROL,
 };
-use cw_orch::prelude::*;
+use cw_orch::{environment::Environment, prelude::*};
 
 use crate::{
     AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
@@ -34,7 +34,7 @@ pub fn get_account_contracts<Chain: CwEnv>(
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
-    let chain = version_control.get_chain().clone();
+    let chain = version_control.environment().clone();
 
     let manager = Manager::new_from_id(&account_id, chain.clone());
     let proxy = Proxy::new_from_id(&account_id, chain);

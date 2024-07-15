@@ -11,7 +11,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = deployment.module_factory;
@@ -28,7 +28,7 @@ fn instantiate() -> AResult {
 #[test]
 fn caller_must_be_manager() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let _not_owner = chain.addr_make("not_owner");
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 

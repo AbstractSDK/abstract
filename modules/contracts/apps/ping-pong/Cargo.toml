@@ -22,11 +22,11 @@ schemars = { workspace = true }
 cw-asset = { workspace = true }
 abstract-app = { workspace = true }
 cw-orch = { workspace = true }
-abstract-ibc-client = { version = "0.23.0-beta.0", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
+abstract-ibc-client = { version = "0.23.0", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
 
 [dev-dependencies]
-cw-orch-interchain = { version = "0.2", features = ["daemon"] }
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0" }
+cw-orch-interchain = { version = "0.3", features = ["daemon"] }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "4.0.0" }
 cw-orch = { workspace = true, features = ["daemon"] }
 abstract-client = { workspace = true, features = ["interchain"] }
 env_logger = "0.11"

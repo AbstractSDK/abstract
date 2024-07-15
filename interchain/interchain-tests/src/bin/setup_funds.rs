@@ -26,13 +26,11 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     set_env();
 
-    let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
-
-    let starship = Starship::new(rt.handle(), None).unwrap();
+    let starship = Starship::new(None).unwrap();
     let interchain = starship.interchain_env();
 
-    let juno = interchain.chain(JUNO).unwrap();
-    let stargaze = interchain.chain(STARGAZE).unwrap();
+    let juno = interchain.get_chain(JUNO).unwrap();
+    let stargaze = interchain.get_chain(STARGAZE).unwrap();
 
     let abstr_stargaze = Abstract::deploy_on(stargaze.clone(), stargaze.sender().to_string())?;
     let abstr_juno = Abstract::deploy_on(juno.clone(), juno.sender().to_string())?;
@@ -40,7 +38,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     // let abstr_stargaze: Abstract<Daemon> = Abstract::load_from(stargaze.clone())?;
     // let abstr_juno: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
 
-    let sender = juno.sender().to_string();
+    let sender = juno.sender_addr().to_string();
 
     let test_amount: u128 = 100_000_000_000;
     let token_subdenom = format!(
@@ -117,7 +115,8 @@ pub fn test_send_funds() -> AnyResult<()> {
         },
     )?;
 
-    let response = interchain.check_ibc(JUNO, send_funds_tx)?;
+    let response = interchain.await_packets(JUNO, send_funds_tx)?;
+    response.into_result()?;
     let memo = response.event_attr_value("fungible_token_packet", "memo")?;
     log::info!("Got memo: {memo}");
 
