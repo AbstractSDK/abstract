@@ -1091,28 +1091,6 @@
             "additionalProperties": false
           },
           {
-            "description": "Proposes a new Owner The new owner has to claim ownership through the [`ExecuteMsg::UpdateOwnership`] message. The claim action can be called by the new owner directly OR by the owner of a top-level account if the new ownership structure is a sub-account.",
-            "type": "object",
-            "required": [
-              "propose_owner"
-            ],
-            "properties": {
-              "propose_owner": {
-                "type": "object",
-                "required": [
-                  "owner"
-                ],
-                "properties": {
-                  "owner": {
-                    "$ref": "#/definitions/GovernanceDetails_for_String"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
             "description": "Update account statuses",
             "type": "object",
             "required": [
@@ -1161,14 +1139,14 @@
             "additionalProperties": false
           },
           {
-            "description": "Update the contract's ownership. The `action` to be provided can be either to propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership permanently.",
+            "description": "Update the contract's ownership. The `action` can propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership of the account permanently.",
             "type": "object",
             "required": [
               "update_ownership"
             ],
             "properties": {
               "update_ownership": {
-                "$ref": "#/definitions/Action"
+                "$ref": "#/definitions/GovAction"
               }
             },
             "additionalProperties": false
@@ -1240,6 +1218,57 @@
               }
             },
             "additionalProperties": false
+          }
+        ]
+      },
+      "GovAction": {
+        "description": "Actions that can be taken to alter the contract's governance ownership",
+        "oneOf": [
+          {
+            "description": "Propose to transfer the contract's ownership to another account, optionally with an expiry time.\n\nCan only be called by the contract's current owner.\n\nAny existing pending ownership transfer is overwritten.",
+            "type": "object",
+            "required": [
+              "transfer_ownership"
+            ],
+            "properties": {
+              "transfer_ownership": {
+                "type": "object",
+                "required": [
+                  "new_owner"
+                ],
+                "properties": {
+                  "expiry": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Expiration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "new_owner": {
+                    "$ref": "#/definitions/GovernanceDetails_for_String"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Accept the pending ownership transfer.\n\nCan only be called by the pending owner.",
+            "type": "string",
+            "enum": [
+              "accept_ownership"
+            ]
+          },
+          {
+            "description": "Give up the contract's ownership and the possibility of appointing a new owner.\n\nCan only be invoked by the contract's current owner.\n\nAny existing pending ownership transfer is canceled.",
+            "type": "string",
+            "enum": [
+              "renounce_ownership"
+            ]
           }
         ]
       },
@@ -1331,6 +1360,30 @@
             "properties": {
               "Renounced": {
                 "type": "object"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "NFT"
+            ],
+            "properties": {
+              "NFT": {
+                "type": "object",
+                "required": [
+                  "collection_addr",
+                  "token_id"
+                ],
+                "properties": {
+                  "collection_addr": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "additionalProperties": false
