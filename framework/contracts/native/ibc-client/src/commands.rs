@@ -26,6 +26,7 @@ use cosmwasm_std::{
 };
 use cw_storage_plus::Item;
 use polytone::callbacks::CallbackRequest;
+use prost::Name;
 
 use crate::{
     contract::{IbcClientResponse, IbcClientResult},
@@ -416,6 +417,7 @@ pub fn execute_send_funds(
     info: MessageInfo,
     host_chain: TruncatedChainId,
     funds: Vec<Coin>,
+    memo: Option<String>,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
@@ -442,23 +444,69 @@ pub fn execute_send_funds(
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;
 
     let mut transfers: Vec<CosmosMsg> = vec![];
-    for amount in funds {
+    for coin in funds {
         // construct a packet to send
 
-        transfers.push(
-            IbcMsg::Transfer {
-                channel_id: ics20_channel_id.clone(),
-                to_address: remote_addr.clone(),
-                amount,
-                timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-            }
-            .into(),
+        let ics_20_send = _ics_20_send_msg(
+            &env,
+            ics20_channel_id.clone(),
+            coin,
+            remote_addr.clone(),
+            memo.clone(),
         );
+        transfers.push(ics_20_send);
     }
 
     Ok(IbcClientResponse::action("handle_send_funds")
         //.add_message(proxy_msg)
         .add_messages(transfers))
+}
+
+fn _ics_20_send_msg(
+    env: &Env,
+    ics20_channel_id: String,
+    coin: Coin,
+    receiver: String,
+    memo: Option<String>,
+) -> CosmosMsg {
+    match memo {
+        Some(memo) => {
+            // If we have memo need to send it with stargate
+            // TODO: Remove when possible, cosmwasm-std 2.0.0+ supports memo
+            use ibc_proto::{
+                cosmos::base::v1beta1::Coin, ibc::applications::transfer::v1::MsgTransfer,
+            };
+            use prost::Message;
+
+            let value = MsgTransfer {
+                source_port: "transfer".to_string(), // ics20 default
+                source_channel: ics20_channel_id,
+                token: Some(Coin {
+                    denom: coin.denom,
+                    amount: coin.amount.to_string(),
+                }),
+                sender: env.contract.address.to_string(),
+                receiver,
+                timeout_height: None,
+                timeout_timestamp: env.block.time.plus_seconds(PACKET_LIFETIME).nanos(),
+                memo,
+            };
+
+            let value = value.encode_to_vec();
+            let value = Binary::from(value);
+            CosmosMsg::Stargate {
+                type_url: MsgTransfer::type_url(),
+                value,
+            }
+        }
+        None => IbcMsg::Transfer {
+            channel_id: ics20_channel_id,
+            to_address: receiver,
+            amount: coin,
+            timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+        }
+        .into(),
+    }
 }
 
 fn clear_accounts(store: &mut dyn Storage) {

@@ -247,11 +247,16 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         &self,
         host_chain: TruncatedChainId,
         funds: Vec<Coin>,
+        memo: Option<String>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
-                msg: IbcClientMsg::SendFunds { host_chain, funds },
+                msg: IbcClientMsg::SendFunds {
+                    host_chain,
+                    funds,
+                    memo,
+                },
             },
             vec![],
         )?
@@ -386,7 +391,11 @@ mod test {
 
         let expected_funds = coins(100, "denom");
 
-        let msg = client.ics20_transfer(TEST_HOST_CHAIN.parse().unwrap(), expected_funds.clone());
+        let msg = client.ics20_transfer(
+            TEST_HOST_CHAIN.parse().unwrap(),
+            expected_funds.clone(),
+            None,
+        );
         assert_that!(msg).is_ok();
 
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -395,6 +404,7 @@ mod test {
                 msg: IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     funds: expected_funds,
+                    memo: None,
                 },
             })
             .unwrap(),
