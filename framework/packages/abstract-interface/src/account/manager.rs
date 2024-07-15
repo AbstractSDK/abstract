@@ -5,14 +5,13 @@ use abstract_std::{
     manager::*,
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        chain_name::ChainName,
         module::{ModuleInfo, ModuleVersion},
-        AccountId,
+        AccountId, TruncatedChainId,
     },
     IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Binary, Empty};
-use cw_orch::{interface, prelude::*};
+use cw_orch::{environment::Environment, interface, prelude::*};
 use serde::Serialize;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -90,7 +89,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         let config = self.config()?;
         let module_infos = modules.iter().map(|m| m.module.clone()).collect();
         let sim_response: SimulateInstallModulesResponse = self
-            .get_chain()
+            .environment()
             .query(
                 &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
                     modules: module_infos,
@@ -196,7 +195,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     /// Helper to create remote accounts
     pub fn register_remote_account(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let result = self.exec_on_module(
@@ -233,7 +232,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn execute_on_remote(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         msg: ExecuteMsg,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
@@ -251,7 +250,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn execute_on_remote_module(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         module_id: &str,
         msg: Binary,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
@@ -273,7 +272,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn send_all_funds_back(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {

@@ -34,7 +34,7 @@ use abstract_std::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION,
+        ownership,
         validation::verifiers,
         AccountId, AssetEntry,
     },
@@ -42,12 +42,15 @@ use abstract_std::{
     PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
-use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
+use cw_orch::{
+    contract::Contract,
+    environment::{Environment as _, MutCwEnv},
+    prelude::*,
+};
 
 use crate::{
-    client::AbstractClientResult,
-    infrastructure::{Environment, Infrastructure},
-    AbstractClientError, Application,
+    client::AbstractClientResult, infrastructure::Infrastructure, AbstractClientError, Application,
+    Environment,
 };
 
 /// A builder for creating [`Accounts`](Account).
@@ -274,8 +277,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             }
         }
 
-        let chain = self.abstr.version_control.get_chain();
-        let sender = chain.sender().to_string();
+        let chain = self.abstr.version_control.environment();
+        let sender = chain.sender_addr().to_string();
         let name = self
             .name
             .clone()
@@ -427,7 +430,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Query account info
-    pub fn info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
+    pub fn info(&self) -> AbstractClientResult<AccountInfo> {
         let info_response: InfoResponse = self.abstr_account.manager.info()?;
         Ok(info_response.info)
     }
@@ -545,34 +548,18 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Returns owner of the account
-    pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
+    pub fn ownership(&self) -> AbstractClientResult<ownership::Ownership<String>> {
         self.abstr_account.manager.ownership().map_err(Into::into)
     }
 
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
-        let mut governance = self.abstr_account.manager.info()?.info.governance_details;
-
-        let environment = self.environment();
-        // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-        for _ in 0..MAX_ADMIN_RECURSION {
-            match &governance {
-                GovernanceDetails::SubAccount { manager, .. } => {
-                    governance = environment
-                        .query::<_, InfoResponse>(&manager::QueryMsg::Info {}, manager)
-                        .map_err(|err| err.into())?
-                        .info
-                        .governance_details;
-                }
-                _ => break,
-            }
-        }
-
-        // Get top level account owner address
-        governance
-            .owner_address()
-            .ok_or(AbstractClientError::RenouncedAccount {})
+        self.abstr_account
+            .manager
+            .top_level_owner()
+            .map(|tlo| tlo.address)
+            .map_err(Into::into)
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.
@@ -658,14 +645,18 @@ impl<Chain: CwEnv> Account<Chain> {
             if sub_account_ids.is_empty() {
                 break;
             }
-            sub_accounts.extend(sub_account_ids.into_iter().map(|id| {
+            sub_accounts.extend(sub_account_ids);
+        }
+
+        Ok(sub_accounts
+            .into_iter()
+            .map(|id| {
                 Account::new(
                     AbstractAccount::new(&abstr_deployment, AccountId::local(id)),
                     false,
                 )
-            }));
-        }
-        Ok(sub_accounts)
+            })
+            .collect())
     }
 
     /// Address of the proxy

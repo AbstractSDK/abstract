@@ -68,24 +68,43 @@ pub mod connection {
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;
-    use abstract_std::objects::chain_name::ChainName;
+    use abstract_std::objects::TruncatedChainId;
+    use cw_orch::environment::Environment;
     use cw_orch_interchain::prelude::*;
-    use cw_orch_polytone::Polytone;
-    /// This is used for creating a testing connection between two Abstract connections using an existing polytone connection
-    ///
-    /// You usually don't need this function on actual networks if you're not an Abstract maintainer
-    pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
+    use cw_orch_polytone::interchain::PolytoneConnection;
+
+    impl<Chain: IbcQueryHandler> Abstract<Chain> {
+        /// This is used for creating a testing connection between two Abstract connections.
+        ///
+        /// If a polytone deployment is already , it uses the existing deployment, If it doesn't exist, it creates it
+        ///
+        /// You usually don't need this function on actual networks if you're not an Abstract maintainer
+        pub fn connect_to<IBC: InterchainEnv<Chain>>(
+            &self,
+            remote_abstr: &Abstract<Chain>,
+            interchain: &IBC,
+        ) -> Result<(), AbstractInterfaceError> {
+            connect_one_way_to(self, remote_abstr, interchain)?;
+            connect_one_way_to(remote_abstr, self, interchain)?;
+            Ok(())
+        }
+    }
+
+    pub fn connect_one_way_to<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
         abstr: &Abstract<Chain>,
-        interchain: &IBC,
         dest: &Abstract<Chain>,
-        polytone_src: &Polytone<Chain>,
+        interchain: &IBC,
     ) -> Result<(), AbstractInterfaceError> {
         // First we register client and host respectively
-        let chain1_id = abstr.ibc.client.get_chain().chain_id();
-        let chain1_name = ChainName::from_chain_id(&chain1_id);
+        let chain1_id = abstr.ibc.client.environment().chain_id();
+        let chain1_name = TruncatedChainId::from_chain_id(&chain1_id);
 
-        let chain2_id = dest.ibc.client.get_chain().chain_id();
-        let chain2_name = ChainName::from_chain_id(&chain2_id);
+        let chain2_id = dest.ibc.client.environment().chain_id();
+        let chain2_name = TruncatedChainId::from_chain_id(&chain2_id);
+
+        // We get the polytone connection
+        let polytone_connection =
+            PolytoneConnection::deploy_between_if_needed(interchain, &chain1_id, &chain2_id)?;
 
         // First, we register the host with the client.
         // We register the polytone note with it because they are linked
@@ -93,10 +112,10 @@ pub mod connection {
         let proxy_tx_result = abstr.ibc.client.register_infrastructure(
             chain2_name.clone(),
             dest.ibc.host.address()?.to_string(),
-            polytone_src.note.address()?.to_string(),
+            polytone_connection.note.address()?.to_string(),
         )?;
         // We make sure the IBC execution is done so that the proxy address is saved inside the Abstract contract
-        let _ = interchain.check_ibc(&chain1_id, proxy_tx_result)?;
+        interchain.await_and_check_packets(&chain1_id, proxy_tx_result)?;
 
         // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
         let proxy_address = abstr.ibc.client.host(chain2_name)?;

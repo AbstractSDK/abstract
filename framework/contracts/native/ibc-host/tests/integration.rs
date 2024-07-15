@@ -9,8 +9,9 @@ use abstract_std::{
     },
     manager::ModuleInstallConfig,
     objects::{
-        gov_type::GovernanceDetails, module::ModuleInfo, AccountId, AssetEntry,
-        UncheckedChannelEntry,
+        gov_type::{GovAction, GovernanceDetails},
+        module::ModuleInfo,
+        AccountId, AssetEntry, UncheckedChannelEntry,
     },
     ACCOUNT_FACTORY, ICS20, MANAGER, PROXY,
 };
@@ -32,7 +33,7 @@ mod mock_adapter {
 #[test]
 fn account_creation() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
@@ -101,7 +102,7 @@ fn account_creation() -> anyhow::Result<()> {
 #[test]
 fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
@@ -156,7 +157,7 @@ fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
 #[test]
 fn account_creation_full() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
@@ -240,7 +241,7 @@ fn account_creation_full() -> anyhow::Result<()> {
 #[test]
 fn account_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let sender = mock.sender();
+    let sender = mock.sender_addr();
 
     let admin = mock.addr_make("admin");
     let mut origin_chain = mock.clone();
@@ -284,11 +285,14 @@ fn account_action() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ProposeOwner {
-                    owner: GovernanceDetails::Monarchy {
-                        monarch: mock.addr_make("new_owner").to_string(),
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateOwnership(
+                    GovAction::TransferOwnership {
+                        new_owner: GovernanceDetails::Monarchy {
+                            monarch: mock.addr_make("new_owner").to_string(),
+                        },
+                        expiry: None,
                     },
-                }],
+                )],
             },
             proxy_addr.to_string(),
         )
@@ -306,8 +310,10 @@ fn account_action() -> anyhow::Result<()> {
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
             .add_attribute("contract", MANAGER)
-            .add_attribute("action", "update_owner")
-            .add_attribute("governance_type", "monarch")
+            .add_attribute("action", "update_ownership")
+            .add_attribute("owner", "abstract-ibc")
+            .add_attribute("pending_owner", "monarch")
+            .add_attribute("pending_expiry", "none")
     ));
 
     Ok(())
@@ -316,7 +322,7 @@ fn account_action() -> anyhow::Result<()> {
 #[test]
 fn execute_action_with_account_creation() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let admin = mock.sender();
+    let admin = mock.sender_addr();
 
     let abstr = Abstract::deploy_on(mock.clone(), admin.to_string())?;
 
@@ -336,11 +342,14 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ProposeOwner {
-                    owner: GovernanceDetails::Monarchy {
-                        monarch: mock.addr_make("new_owner").to_string(),
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateOwnership(
+                    GovAction::TransferOwnership {
+                        new_owner: GovernanceDetails::Monarchy {
+                            monarch: mock.addr_make("new_owner").to_string(),
+                        },
+                        expiry: None,
                     },
-                }],
+                )],
             },
             mock.addr_make("proxy_address").to_string(),
         )
@@ -358,8 +367,10 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
             .add_attribute("contract", MANAGER)
-            .add_attribute("action", "update_owner")
-            .add_attribute("governance_type", "monarch")
+            .add_attribute("action", "update_ownership")
+            .add_attribute("owner", "abstract-ibc")
+            .add_attribute("pending_owner", "monarch")
+            .add_attribute("pending_expiry", "none")
     ));
 
     Ok(())
@@ -368,7 +379,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 #[test]
 fn execute_send_all_back_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let admin = mock.sender();
+    let admin = mock.sender_addr();
 
     let abstr = Abstract::deploy_on(mock.clone(), admin.to_string())?;
 

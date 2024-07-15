@@ -162,7 +162,7 @@ impl MockStaking for AstrovaultStake {
 
         chain.call_as(&Addr::unchecked(config.owner)).execute(
             &astrovault::mint_distributor::handle_msg::ExecuteMsg::UpdateExternalMintAllowlist {
-                allowlist: Some(vec![chain.sender().to_string()]),
+                allowlist: Some(vec![chain.sender_addr().to_string()]),
             },
             &[],
             &Addr::unchecked(mint_distributor_addr),

@@ -15,10 +15,7 @@ fn deploy_subscription(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     for network in networks {
-        let chain = DaemonBuilder::default()
-            .chain(network)
-            .handle(rt.handle())
-            .build()?;
+        let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
         let subscription_app = SubscriptionInterface::new(SUBSCRIPTION_ID, chain);
         subscription_app.deploy(version.clone(), DeployStrategy::Try)?;
     }

@@ -14,8 +14,8 @@
 use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{
-        chain_name::ChainName,
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
+        TruncatedChainId,
     },
     version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
@@ -32,7 +32,7 @@ mod proxy;
 use std::collections::HashSet;
 
 use abstract_std::{manager::ManagerModuleInfo, objects::AccountId};
-use cw_orch::prelude::*;
+use cw_orch::{environment::Environment, prelude::*};
 use serde::Serialize;
 use speculoos::prelude::*;
 
@@ -213,7 +213,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     pub fn register_remote_account(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         self.manager.register_remote_account(host_chain)
@@ -222,7 +222,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn create_remote_account(
         &self,
         account_details: AccountDetails,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let AccountDetails {
@@ -277,7 +277,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             funds,
         )?;
 
-        Self::from_tx_response(self.manager.get_chain(), result)
+        Self::from_tx_response(self.manager.environment(), result)
     }
 
     // Parse account from events
@@ -338,19 +338,48 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Attempts to upgrade the Account
     /// returns `true` if any migrations were performed.
-    pub fn upgrade(&self) -> Result<bool, AbstractInterfaceError> {
+    pub fn upgrade(
+        &self,
+        abstract_deployment: &Abstract<Chain>,
+    ) -> Result<bool, AbstractInterfaceError> {
         let mut one_migration_was_successful = false;
 
-        // We upgrade the manager to the latest version through all the versions
+        // upgrade sub accounts first
+        {
+            let mut sub_account_ids = vec![];
+            let mut start_after = None;
+            loop {
+                let sub_account_ids_page = self
+                    .manager
+                    .sub_account_ids(None, start_after)?
+                    .sub_accounts;
+
+                start_after = sub_account_ids_page.last().cloned();
+                if sub_account_ids_page.is_empty() {
+                    break;
+                }
+                sub_account_ids.extend(sub_account_ids_page);
+            }
+            dbg!(&sub_account_ids);
+            for sub_account_id in sub_account_ids {
+                let abstract_account =
+                    AbstractAccount::new(abstract_deployment, AccountId::local(sub_account_id));
+                if abstract_account.upgrade(abstract_deployment)? {
+                    one_migration_was_successful = true;
+                }
+            }
+        }
+
+        // We upgrade the proxy to the latest version through all the versions
         loop {
-            if self.upgrade_next_module_version(MANAGER)?.is_none() {
+            if self.upgrade_next_module_version(PROXY)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;
         }
 
         loop {
-            if self.upgrade_next_module_version(PROXY)?.is_none() {
+            if self.upgrade_next_module_version(MANAGER)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;
@@ -365,7 +394,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
     ) -> Result<Option<Chain::Response>, AbstractInterfaceError> {
-        let chain = self.manager.get_chain().clone();
+        let chain = self.manager.environment().clone();
 
         // We start by getting the current module version
         let current_cw2_module_version: ContractVersion = if module_id == MANAGER {
@@ -464,7 +493,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         namespace: impl Into<String>,
     ) -> Result<Chain::Response, AbstractInterfaceError> {
-        let abstr = Abstract::load_from(self.manager.get_chain().clone())?;
+        let abstr = Abstract::load_from(self.manager.environment().clone())?;
         abstr
             .version_control
             .claim_namespace(self.id()?, namespace.into())

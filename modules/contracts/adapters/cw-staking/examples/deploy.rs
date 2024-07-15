@@ -18,10 +18,7 @@ fn deploy_cw_staking(
     code_id: Option<u64>,
 ) -> anyhow::Result<()> {
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let chain = DaemonBuilder::default()
-        .handle(rt.handle())
-        .chain(network)
-        .build()?;
+    let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
 
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     version_control.set_address(&Addr::unchecked(

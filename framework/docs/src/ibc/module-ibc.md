@@ -25,36 +25,31 @@ flowchart
     end
 ```
 
-Let's see how to create a contract with IMC capabilities.
+Let's see how to create a contract with IMC capabilities by following the ping-pong example app that you can find <a href="https://github.com/AbstractSDK/abstract/blob/main/modules/contracts/apps/ping-pong/README.md" target="_blank">here</a>.
 
 ### Sending a message
 
-In order to send a message, a module needs to send a message on the current `ibc-client` module. To query the address of the `ibc-client` module, you can use the `app` or `adapter` variable available inside the endpoint like so:
+In order to send a message, a module needs to interact with the `ibc-client` module. You can use the <a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.IbcClient.html" target="_blank">`IbcClient` API</a> to interact with the ibc-client. The example below shows how the ping-pong app sends a message to an instance of itself on another chain.
 
 ```rust
-let ibc_client_addr = app.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
+{{#include ../../../../modules/contracts/apps/ping-pong/src/handlers/execute.rs:ibc_client}}
 ```
 
-The [message](https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html) looks like:
+- `opponent_chain` is the `TruncatedChainId` of the destination chain where the app is expected to be installed.
+- `target_module` describes the module on which the message will be executed on the remote chain. In this case, it is another instance of the ping-pong app.
+- `msg` is the message that will be executed on the remote module via a custom endpoint. We explain in the section about [receiving a message](#receiving-a-message) how this message is used by the targeted module.
+- `callback_info` is used to request a callback once the packet has been received and acknowledged. We explain more about this behavior in the [acks and callbacks section](#acknowledgements-and-callbacks)
 
-```rust
-pub enum IbcClientExecuteMsg{
-{{#include ../../../packages/abstract-std/src/native/ibc_client.rs:module-ibc-action}}
-    ...,
-}
+```admonish warning
+When sending an IBC message, the call on the remote chain might fail. If you want to revert state based on that failure, you **HAVE** to use a `Callback`. If you don't register a callback and the remote call fails, local state will **NOT** be reverted.
 ```
-
-- `host_chain` is the chain name of the destination chain
-- `target_module` describes the module on which the message will be executed on the remote chain
-- `msg` is the message that will be executed on the remote module. We explain in the section about [receiving a message](#receiving-a-message) how this message is used by the targeted module.
-- `callback_info` is used to ask for a callback once the packet has been received and acknowledged. We explain more about this behavior in the [acks and callbacks section](#acknowledgements-and-callbacks)
 
 ### Receiving a message
 
 In order for a module to receive a message coming from a remote Module, it needs to implement the [`module-ibc`](../4_get_started/3_module_builder.md#module-ibc) endpoint. The function signature for this endpoint is:
 
 ```rust
-pub fn module_ibc(deps: DepsMut, env: Env, module: Module, msg: ModuleIbcMsg) -> Result<Response, Error>;
+pub fn module_ibc(deps: DepsMut, env: Env, module: Module, source_module: ModuleIbcInfo, msg: Binary) -> Result<Response, Error>;
 ```
 
 The `deps`, `env` and `module` variables are identical to the `execute` endpoint and should be clear to you by now. If not here are some links to more documentation:
@@ -62,59 +57,31 @@ The `deps`, `env` and `module` variables are identical to the `execute` endpoint
 - `deps` and `env` are described in the <a target="blank" href="https://docs.cosmwasm.com/docs/smart-contracts/contract-semantics">CosmWasm documentation</a>
 - `module` (or `App` or `Adapter` usually) are described in the [Abstract SDK](../4_get_started/4_sdk.md) section of our docs
 
-The `msg` variable contains the msg constructed by the module on the source chain. The message is of type <a target="blank" href="https://docs.rs/abstract-std/latest/abstract_std/ibc/struct.ModuleIbcMsg.html">ModuleIbcMsg</a>:
+The `msg` variable contains the msg constructed by the module on the source chain. In this case the `PingPongIbcMsg`.
+
+The `source_module` variable contains information about the module that sent the message, as well as the source chain information. This information can be used to assert the source of a message, like so:
 
 ```rust
-{{#include ../../../packages/abstract-std/src/native/ibc.rs:module_ibc_msg}}
+{{#include ../../../../modules/contracts/apps/ping-pong/src/ibc/module.rs:module_ibc}}
 ```
 
-- `client_chain` is the name of the chain from which the call originates
-- `source_module` describes the caller modules on the remote chains
-- `msg` is the exact `Binary` data that was sent by the calling module on the client chain. How this data is used is up to the receiving module. As per CosmWasm conventions, we advise using `from_json` and `to_json_binary` for serialization and deserialization of this field into the expected type.
+For example, the above code will return an error if the source module doesn't match the receiving  module. This way only other ping-pong apps can call this ping-pong app!
 
-The most important thing to never forget here is access control. Similarly to the `MessageInfo` struct usually used in smart contracts or in other execution endpoints, the `source_module` variable can be used to permission some entry-points inside your module ibc interactions. A good practice is to verify the namespace and / or the module-id directly present inside the `source_module` variable. For example, the following code will return an error if the source module doesn't have the same namespace as the receiving module. That way, you make sure that no other module than what was published within your own namespace is able to send module ibc messages to your app:
+### Callbacks
 
-```rust
-cosmwasm_std::ensure_eq!(
-    source_module.namespace,
-    APP_NAMESPACE,
-    ContractError::Unauthorized {}
-);
-```
-
-### Acknowledgements and Callbacks
-
-#### Callback Request
-
-The `callback_info` field allows conditional message execution after the IBC packet process. When this field is used, the result of the IBC message execution will be forwarded to the [`ibc_callback`] handler of the calling contract. Here is the structure of the callback request:
-
-```rust
-{{#include ../../../packages/abstract-std/src/native/ibc.rs:callback-info}}
-```
-
-- `id` is used to identify the callback id that will be called after the ibc execution. This works similarly to the reply id but can be customized throughout the contract's lifecycle to indicate execution ordering.
-- `msg` can contain additional context that will be provided to the callback endpoint alongside the execution result. This allows developers to give context to the endpoint when receiving the execution result.
+As mentioned callbacks can be added to the IBC flow progress or revert your contract's state depending on the packets execution result.
 
 #### Callback Execution
 
-If a callback was requested when sending a module IBC message, the callback will be executed wether the execution was successful or not. A callback message will be executed on the ̀[`ibc_callback`](./4_get_started/3_module_builder.md#ibc-callback) endpoint of the calling module. The function signature for this endpoint is:
+If a callback was requested when sending a module IBC message, the callback will be executed wether the execution was successful or not. A callback message will be executed on the ̀[`ibc_callback`](../4_get_started/3_module_builder.md#ibc-callback) endpoint of the calling module. The function signature for this endpoint is:
 
 ```rust
-pub fn ibc_callback(deps: DepsMut, env: Env, module: Module, response_msg: IbcResponseMsg) -> Result<Response, Error>;
+pub fn ibc_callback(deps: DepsMut, env: Env, module: Module, callback: Callback, result: IbcResult,) -> Result<Response, Error>;
 ```
 
-The `response_msg` variable of type <a target="blank" href="https://docs.rs/abstract-std/latest/abstract_std/ibc/struct.IbcResponseMsg.html">`IbcResponseMsg`</a> contains the context message that was provided when the IBC action was initiated along with the result of the execution.
+The `callback` variable contains a `msg: Binary` that is the encoded callback message that was provided to the callback on construction. In the ping-pong case this was `PingPongCallbackMsg::Pinged`.
 
-```rust
-{{#include ../../../packages/abstract-std/src/native/ibc.rs:response-msg}}
-```
-
-As described above, the following fields are copied from the `CallbackRequest`:
-
-- `id` is used to identify the callback id that is called after the ibc execution.
-- `msg` is additional information that was passed directly by the callback request.
-
-The last field `result` contains information about the execution result of the ibc interaction. Matching on the structure, catching errors, reverting state changes, sending other messages, any execution is possible in this endpoint. This last part completes the interchain module communication flow and allows for full inter-operability!
+The `result` contains the result data from the IBC packet execution. You can match against this result to assert that the remote execution was successful and roll back state if it was not.
 
 ## Specification of Interchain Module Communication
 

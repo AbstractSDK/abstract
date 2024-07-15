@@ -1,7 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_std::ibc_client::QueryMsgFns as _;
 use abstract_std::ibc_host::QueryMsgFns;
-use abstract_std::objects::chain_name::ChainName;
+use abstract_std::objects::TruncatedChainId;
 use anyhow::anyhow;
 use cw_orch::prelude::*;
 use cw_orch_polytone::Polytone;
@@ -18,9 +18,8 @@ pub fn verify_polytone_connection(
 ) -> anyhow::Result<()> {
     // We just need to verify if the polytone deployment crate has the contracts in it
     let deployment_id = get_polytone_deployment_id(&src_chain, &dst_chain);
-    let src_daemon = Daemon::builder()
+    let src_daemon = Daemon::builder(src_chain)
         .handle(rt)
-        .chain(src_chain)
         .deployment_id(deployment_id.clone())
         .build()?;
 
@@ -38,13 +37,10 @@ pub fn verify_abstract_ibc(
     dst_chain: ChainInfo,
     rt: &Handle,
 ) -> anyhow::Result<()> {
-    let src_daemon = Daemon::builder()
+    let src_daemon = Daemon::builder(src_chain.clone()).handle(rt).build()?;
+    let dst_daemon = Daemon::builder(dst_chain.clone())
+        .state(src_daemon.state())
         .handle(rt)
-        .chain(src_chain.clone())
-        .build()?;
-    let dst_daemon = Daemon::builder()
-        .handle(rt)
-        .chain(dst_chain.clone())
         .build()?;
 
     let src_abstract = Abstract::load_from(src_daemon.clone())?;
@@ -54,7 +50,7 @@ pub fn verify_abstract_ibc(
     let host = src_abstract
         .ibc
         .client
-        .host(ChainName::from_chain_id(dst_chain.chain_id))?;
+        .host(TruncatedChainId::from_chain_id(dst_chain.chain_id))?;
 
     // We verify the host matches dst chain host for this original chain
     if host.remote_polytone_proxy.is_none() {
@@ -69,7 +65,7 @@ pub fn verify_abstract_ibc(
     let proxy = dst_abstract
         .ibc
         .host
-        .client_proxy(ChainName::from_chain_id(src_chain.chain_id).into_string())?;
+        .client_proxy(TruncatedChainId::from_chain_id(src_chain.chain_id).into_string())?;
 
     if host.remote_polytone_proxy.unwrap() != proxy.proxy {
         anyhow::bail!("Wrong proxy address registered on the dst chain")
