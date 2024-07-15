@@ -390,7 +390,7 @@ mod test {
         use super::*;
 
         use abstract_std::{manager, proxy::state::State};
-        use cosmwasm_std::coin;
+        use cosmwasm_std::coins;
 
         #[test]
         fn add_module() {
@@ -461,7 +461,7 @@ mod test {
                 )
                 .unwrap();
 
-            let funds = vec![coin(10, "denom").into()];
+            let funds = coins(10, "denom");
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: "juno".parse().unwrap(),

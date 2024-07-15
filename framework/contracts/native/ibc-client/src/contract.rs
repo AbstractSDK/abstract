@@ -608,7 +608,7 @@ mod tests {
             objects::{version_control::VersionControlError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
-        use cosmwasm_std::{coin, coins, Binary, CosmosMsg, IbcMsg};
+        use cosmwasm_std::{coins, Binary, CosmosMsg, IbcMsg};
         use prost::Name;
         use std::str::FromStr;
 
@@ -622,7 +622,7 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
-                funds: vec![coin(1, "denom").into()],
+                funds: coins(1, "denom"),
                 memo: None,
             };
 
