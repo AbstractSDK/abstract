@@ -8,14 +8,14 @@ use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract}
 
 use cosmwasm_std::Addr;
 
-/// Used to instantiate Standalone
+/// Data required for the `StandaloneContract::instantiate` function.
 #[cosmwasm_schema::cw_serde]
 pub struct StandaloneInstantiateMsg {
     pub ans_host_address: String,
     pub version_control_address: String,
 }
 
-/// The BaseState contains the main addresses needed for sending and verifying messages
+/// Contains the abstract infrastructure addresses needed the APIs.
 #[cosmwasm_schema::cw_serde]
 pub struct StandaloneState {
     pub proxy_address: Addr,
