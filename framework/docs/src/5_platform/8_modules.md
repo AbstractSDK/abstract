@@ -150,7 +150,7 @@ sequenceDiagram
 
 ### Dependency Execution
 
-In this example, we use the [Equilibrium App](../7_use_cases/1_equilibrium.md)'s `Rebalance` function as an example. Modules
+In this example, we use the [Equilibrium App](../7_use_cases/equilibrium.md)'s `Rebalance` function as an example. Modules
 with dependencies (`equilibrium:balancer` is dependent on `abstract:etf` and `abstract:dex`) have their addresses
 dynamically resolved when called.
 

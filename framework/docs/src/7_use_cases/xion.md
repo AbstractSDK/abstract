@@ -16,31 +16,6 @@ As of July 15th, 2024, XION has:
 - 150K+ Interchain Abstract Accounts on Neutron
 - 400K+ Transactions, 300K of which were cross-chain
 
-```mermaid
-flowchart LR
-
-  X((XION))
-  X ~~~ A
-
-  subgraph A[Abstract IBC]
-    Cosmos
-    L{{Landslide}}
-    U{{Union}}
-    P{{Polymer}}
-    C{{Celestia}}
-    Co{{Composable}}
-  end
-
-  X -.- Cosmos
-  X -.- L -.-> Avalanche
-  X -.- U -.-> Ethereum
-  X -.- P -.-> L2s
-  X -.-> C -.-> R[Sovereign Rollups]
-  X -.- Co -.-> Solana
-  Co -.-> Polkadot
-
-```
-
 ## Articles
 
 - [XION Launches Chain Abstraction to Neutron via Abstract](https://xion.burnt.com/blog/xion-launches-chain-abstraction-to-neutron-via-abstract)

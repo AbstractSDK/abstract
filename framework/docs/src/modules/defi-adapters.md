@@ -7,5 +7,5 @@ Abstract's DeFi [adapters](../3_framework/6_module_types.md#adapters) allow deve
 Adapters offered by Abstract currently include:
 
 - [Dex](./dex.md)
-- [CW Staking](./cw-staking.md)
 - [Lending Market](./lending-market.md)
+- [CW Staking](./cw-staking.md)

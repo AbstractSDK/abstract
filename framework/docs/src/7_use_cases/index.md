@@ -58,8 +58,8 @@ financial services to the unbanked and underbanked, all thanks to Abstract.
 
 ### Case Study
 
-- [Equilibrium](./1_equilibrium.md): Auto-rebalancing protocol for weighted portfolios of Cosmos assets.
-- [4t2 Finance](./2_4t2.md): Yield Aggregator for IBC-enabled Chains.
+- [Equilibrium](./equilibrium.md): Auto-rebalancing protocol for weighted portfolios of Cosmos assets.
+- [4t2 Finance](./4t2.md): Yield Aggregator for IBC-enabled Chains.
 
 ## Educational Use
 
