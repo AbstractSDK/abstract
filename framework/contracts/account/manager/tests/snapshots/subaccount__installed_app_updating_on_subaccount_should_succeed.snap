@@ -8,14 +8,14 @@ expression: all_storage
   - - cfg
     - "{\"version_control_contract\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_contract\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\",\"module_factory_address\":\"mock1wkwy0xh89ksdgj9hr347dyd2dw7zesmtrue6kfzyml4vdtz6e5wsldye53\"}"
   - - contract_info
-    - "{\"contract\":\"abstract:account-factory\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:account-factory\",\"version\":\"0.23.0\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:ans-host":
   - - config
     - "{\"next_unique_pool_id\":1}"
   - - contract_info
-    - "{\"contract\":\"abstract:ans-host\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:ans-host\",\"version\":\"0.23.0\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
   - - registered_dexes
@@ -24,16 +24,16 @@ expression: all_storage
   - - config
     - "{\"version_control\":{\"address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"},\"ans_host\":{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}}"
   - - contract_info
-    - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.23.0\"}"
   - - module_data
-    - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.23.0-beta.0\",\"dependencies\":[],\"metadata\":null}"
+    - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.23.0\",\"dependencies\":[],\"metadata\":null}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:ibc-host":
   - - cfg
     - "{\"ans_host\":{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"},\"account_factory\":\"mock17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgszycl2y\",\"version_control\":{\"address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"}}"
   - - contract_info
-    - "{\"contract\":\"abstract:ibc-host\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:ibc-host\",\"version\":\"0.23.0\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:manager-local-0":
@@ -48,7 +48,7 @@ expression: all_storage
   - - context
     - "[]"
   - - contract_info
-    - "{\"contract\":\"abstract:manager\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:manager\",\"version\":\"0.23.0\"}"
   - - info
     - "{\"name\":\"Default Abstract Account\",\"chain_id\":\"cosmos-testnet-14002\",\"description\":null,\"link\":null}"
   - - ownership
@@ -67,7 +67,7 @@ expression: all_storage
   - - context
     - "[]"
   - - contract_info
-    - "{\"contract\":\"abstract:manager\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:manager\",\"version\":\"0.23.0\"}"
   - - info
     - "{\"name\":\"Default Abstract Account\",\"chain_id\":\"cosmos-testnet-14002\",\"description\":null,\"link\":null}"
   - - ownership
@@ -84,7 +84,7 @@ expression: all_storage
   - - context
     - "[]"
   - - contract_info
-    - "{\"contract\":\"abstract:manager\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:manager\",\"version\":\"0.23.0\"}"
   - - info
     - "{\"name\":\"My subaccount\",\"chain_id\":\"cosmos-testnet-14002\",\"description\":\"new desc\",\"link\":null}"
   - - ownership
@@ -93,7 +93,7 @@ expression: all_storage
   - - "\u0000{5}config"
     - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - contract_info
-    - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.23.0\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:proxy-local-0":
@@ -106,7 +106,7 @@ expression: all_storage
   - - admin
     - "\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\""
   - - contract_info
-    - "{\"contract\":\"abstract:proxy\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:proxy\",\"version\":\"0.23.0\"}"
 "abstract:proxy-local-1":
   - - "\u0000{5}state"
     - "{\"modules\":[\"mock1ps47cz26ugmzp2emuqap8jmvjrkwyzgh4uupechr9et6w0a3ar6sv5ag3c\",\"mock15cnh8a268g6dhlzc4cay9mq7w8vt24hmknafxpngvmev4t7dj0jq607wev\"]}"
@@ -117,7 +117,7 @@ expression: all_storage
   - - admin
     - "\"mock1ps47cz26ugmzp2emuqap8jmvjrkwyzgh4uupechr9et6w0a3ar6sv5ag3c\""
   - - contract_info
-    - "{\"contract\":\"abstract:proxy\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:proxy\",\"version\":\"0.23.0\"}"
 "abstract:proxy-local-2":
   - - "\u0000{5}state"
     - "{\"modules\":[\"mock13cahl7h567qy5pal82h4qztgg6yp0dum7h0rx26lkvyednndhh8qcfqqvj\"]}"
@@ -128,23 +128,23 @@ expression: all_storage
   - - admin
     - "\"mock13cahl7h567qy5pal82h4qztgg6yp0dum7h0rx26lkvyednndhh8qcfqqvj\""
   - - contract_info
-    - "{\"contract\":\"abstract:proxy\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:proxy\",\"version\":\"0.23.0\"}"
 "abstract:version-control":
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u0005proxy0.23.0-beta.0"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u0005proxy0.23.0"
     - "{\"account_base\":6}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u0007manager0.23.0-beta.0"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u0007manager0.23.0"
     - "{\"account_base\":5}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\bans-host0.23.0-beta.0"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\bans-host0.23.0"
     - "{\"native\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\bibc-host0.23.0-beta.0"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\bibc-host0.23.0"
     - "{\"native\":\"mock14ejqjyq8um4p3xfqj74yld5waqljf88fz25yxnma0cngspxe3les6xzvf5\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\nibc-client0.23.0-beta.0"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\nibc-client0.23.0"
     - "{\"native\":\"mock1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcns7ctvz5\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u000emodule-factory0.23.0-beta.0"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u000emodule-factory0.23.0"
     - "{\"native\":\"mock1wkwy0xh89ksdgj9hr347dyd2dw7zesmtrue6kfzyml4vdtz6e5wsldye53\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u000faccount-factory0.23.0-beta.0"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u000faccount-factory0.23.0"
     - "{\"native\":\"mock17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgszycl2y\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u000fversion-control0.23.0-beta.0"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u000fversion-control0.23.0"
     - "{\"native\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"}"
   - - "\u0000\u0004accs\u0000\u0005local\u0000\u0000\u0000\u0000"
     - "{\"manager\":\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\",\"proxy\":\"mock1xsemjm2xzx8nfaj50rt2dn04g24yarrr3mf6uwhqtc4ampff9nsqrc867x\"}"
@@ -159,6 +159,6 @@ expression: all_storage
   - - cfg
     - "{\"account_factory_address\":\"mock17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgszycl2y\",\"security_disabled\":true,\"namespace_registration_fee\":null}"
   - - contract_info
-    - "{\"contract\":\"abstract:version-control\",\"version\":\"0.23.0-beta.0\"}"
+    - "{\"contract\":\"abstract:version-control\",\"version\":\"0.23.0\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
