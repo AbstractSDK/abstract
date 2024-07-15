@@ -16,7 +16,7 @@ use abstract_std::{
 };
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins};
-use cw_orch::prelude::*;
+use cw_orch::{daemon::RUNTIME, prelude::*};
 use cw_orch_interchain::prelude::*;
 use cw_orch_proto::tokenfactory::{create_denom, get_denom, mint};
 use ibc_relayer_types::core::ics24_host::identifier::PortId;
@@ -32,8 +32,8 @@ pub fn test_send_funds() -> AnyResult<()> {
     let juno = interchain.get_chain(JUNO).unwrap();
     let stargaze = interchain.get_chain(STARGAZE).unwrap();
 
-    let abstr_stargaze = Abstract::deploy_on(stargaze.clone(), stargaze.sender().to_string())?;
-    let abstr_juno = Abstract::deploy_on(juno.clone(), juno.sender().to_string())?;
+    let abstr_stargaze = Abstract::deploy_on(stargaze.clone(), stargaze.sender_addr().to_string())?;
+    let abstr_juno = Abstract::deploy_on(juno.clone(), juno.sender_addr().to_string())?;
     abstr_juno.connect_to(&abstr_stargaze, &interchain)?;
     // let abstr_stargaze: Abstract<Daemon> = Abstract::load_from(stargaze.clone())?;
     // let abstr_juno: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
@@ -100,7 +100,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     log::info!("client adddress {:?}", client);
 
     // Send funds to the remote account
-    rt.block_on(juno.wallet().bank_send(
+    RUNTIME.block_on(juno.sender().bank_send(
         &origin_account.proxy.addr_str()?,
         vec![coin(test_amount, get_denom(&juno, token_subdenom.as_str()))],
     ))?;
