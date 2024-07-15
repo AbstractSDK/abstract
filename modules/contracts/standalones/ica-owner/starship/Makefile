@@ -35,7 +35,7 @@ setup-helm:
 	starship setup
 
 install:
-	starship start --helmFile $(FILE)
+	starship start --config $(FILE)
 
 install-tiny:
 	$(MAKE) install FILE=$(TINY_FILE)
