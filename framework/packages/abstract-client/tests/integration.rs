@@ -36,12 +36,11 @@ use abstract_testing::{
 use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;
-use cw_ownable::Ownership;
 
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let client = AbstractClient::builder(chain).build()?;
 
     let account: Account<MockBech32> = client.account_builder().build()?;
@@ -52,23 +51,13 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy {
-                monarch: sender.clone()
-            },
             link: None,
         },
         account_info
     );
 
-    let ownership: Ownership<String> = account.ownership()?;
-    assert_eq!(
-        Ownership {
-            owner: Some(sender.to_string()),
-            pending_owner: None,
-            pending_expiry: None
-        },
-        ownership
-    );
+    let owner = account.owner()?;
+    assert_eq!(owner, sender);
 
     Ok(())
 }
@@ -106,10 +95,9 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
             name: String::from(name),
             chain_id: String::from("cosmos-testnet-14002"),
             description: Some(String::from(description)),
-            governance_details,
             link: Some(String::from(link)),
         },
-        account_info.into()
+        account_info
     );
 
     // Namespace is claimed.
@@ -164,7 +152,7 @@ fn err_fetching_unclaimed_namespace() -> anyhow::Result<()> {
 #[test]
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let client = AbstractClient::builder(chain).build()?;
 
     let publisher: Publisher<MockBech32> = client
@@ -177,11 +165,12 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy { monarch: sender },
             link: None,
         },
         account_info
     );
+    let owner = publisher.account().owner()?;
+    assert_eq!(owner, sender);
 
     Ok(())
 }
@@ -217,11 +206,13 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
             name: String::from(name),
             chain_id: String::from("cosmos-testnet-14002"),
             description: Some(String::from(description)),
-            governance_details,
             link: Some(String::from(link)),
         },
-        account_info.into()
+        account_info
     );
+
+    let ownership = publisher.account().ownership()?;
+    assert_eq!(ownership.owner, governance_details);
 
     // Namespace is claimed.
     let account_id = client
@@ -289,13 +280,17 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
             name: String::from("Sub Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::SubAccount {
-                manager: publisher_manager.clone(),
-                proxy: publisher_proxy
-            },
             link: None,
         },
         sub_account_details
+    );
+    let sub_account_ownership = my_app.account().ownership()?;
+    assert_eq!(
+        sub_account_ownership.owner,
+        GovernanceDetails::SubAccount {
+            manager: publisher_manager.to_string(),
+            proxy: publisher_proxy.to_string(),
+        }
     );
 
     let sub_accounts = publisher.account().sub_accounts()?;
@@ -321,12 +316,16 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy {
-                monarch: client.sender()
-            },
             link: None,
         },
         sub_account_details
+    );
+    let sub_account_ownership = my_adapter.account().ownership()?;
+    assert_eq!(
+        sub_account_ownership.owner,
+        GovernanceDetails::Monarchy {
+            monarch: client.sender().to_string()
+        }
     );
 
     Ok(())
@@ -362,13 +361,17 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
             name: String::from("Sub Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::SubAccount {
-                manager: publisher_manager.clone(),
-                proxy: publisher_proxy
-            },
             link: None,
         },
         sub_account_details
+    );
+    let sub_account_ownership = my_adapter.account().ownership()?;
+    assert_eq!(
+        sub_account_ownership.owner,
+        GovernanceDetails::SubAccount {
+            manager: publisher_manager.to_string(),
+            proxy: publisher_proxy.to_string(),
+        }
     );
 
     // Install adapter on current account
@@ -391,13 +394,18 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy {
-                monarch: client.sender()
-            },
             link: None,
         },
         sub_account_details
     );
+    let sub_account_ownership = my_adapter.account().ownership()?;
+    assert_eq!(
+        sub_account_ownership.owner,
+        GovernanceDetails::Monarchy {
+            monarch: client.sender().to_string()
+        }
+    );
+
     Ok(())
 }
 
@@ -522,7 +530,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 #[test]
 fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let client = AbstractClient::builder(chain.clone()).build()?;
 
     let name = "name";
@@ -594,7 +602,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
 #[test]
 fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let client = AbstractClient::builder(chain).build()?;
 
     let name = "name";
@@ -767,7 +775,7 @@ fn doc_example_test() -> anyhow::Result<()> {
     // ## ANCHOR: build_client
     // Create environment
     let env: MockBech32 = MockBech32::new("mock");
-    let sender: Addr = env.sender();
+    let sender: Addr = env.sender_addr();
 
     // Build the client
     let client: AbstractClient<MockBech32> = AbstractClient::builder(env).build()?;
@@ -832,9 +840,6 @@ fn doc_example_test() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy {
-                monarch: sender.clone()
-            },
             link: None,
         },
         account_info
@@ -1040,7 +1045,7 @@ fn install_application_on_account_builder() -> anyhow::Result<()> {
 fn auto_funds_work() -> anyhow::Result<()> {
     // Give enough tokens for the owner
     let chain = MockBech32::new("mock");
-    let owner = chain.sender();
+    let owner = chain.sender_addr();
     chain.set_balance(&owner, coins(50, TTOKEN))?;
 
     let client = AbstractClient::builder(chain).build()?;
@@ -1333,10 +1338,6 @@ fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
     let mock_app1 = account1.application::<MockAppI<MockBech32>>()?;
     let mock_app2 = account2.application::<MockAppI<MockBech32>>()?;
     let mock_app3 = account3.application::<MockAppI<MockBech32>>()?;
-
-    let mock_app1 = &*mock_app1;
-    let mock_app2 = &*mock_app2;
-    let mock_app3 = &*mock_app3;
 
     assert_ne!(mock_app1.id(), mock_app2.id());
     assert_ne!(mock_app1.id(), mock_app3.id());

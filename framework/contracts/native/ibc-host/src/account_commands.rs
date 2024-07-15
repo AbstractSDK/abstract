@@ -6,7 +6,7 @@ use abstract_std::{
     account_factory,
     ibc_host::state::CONFIG,
     manager::{self, ModuleInstallConfig},
-    objects::{chain_name::ChainName, AccountId, AssetEntry},
+    objects::{AccountId, AssetEntry, TruncatedChainId},
     proxy,
     version_control::AccountBase,
     PROXY,
@@ -106,7 +106,7 @@ pub fn receive_send_all_back(
     env: Env,
     account: AccountBase,
     client_proxy_address: String,
-    client_chain: ChainName,
+    client_chain: TruncatedChainId,
 ) -> HostResult {
     let wasm_msg = send_all_back(
         deps.as_ref(),
@@ -125,7 +125,7 @@ pub fn send_all_back(
     env: Env,
     account: AccountBase,
     client_proxy_address: String,
-    client_chain: ChainName,
+    client_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
     // get the ICS20 channel information
     let ans = CONFIG.load(deps.storage)?.ans_host;

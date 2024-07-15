@@ -49,12 +49,11 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
             rt.block_on(ping_grpc(&url))?;
         }
 
-        let chain = DaemonBuilder::default()
+        let chain = DaemonBuilder::new(network.clone())
             .handle(rt.handle())
-            .chain(network.clone())
             .build()?;
 
-        let sender = chain.sender();
+        let sender = chain.sender_addr();
 
         let deployment = match Abstract::deploy_on(chain, sender.to_string()) {
             Ok(deployment) => {

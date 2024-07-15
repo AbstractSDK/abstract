@@ -33,7 +33,7 @@ fn setup_mock() -> anyhow::Result<(
     AbstractAccount<MockBech32>,
 )> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;

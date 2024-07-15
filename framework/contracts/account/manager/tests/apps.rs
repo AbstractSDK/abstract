@@ -5,8 +5,8 @@ use abstract_manager::error::ManagerError;
 use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{
+        gov_type::TopLevelOwnerResponse,
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
-        nested_admin::TopLevelOwnerResponse,
         AccountId,
     },
     version_control::ModuleFilter,
@@ -25,7 +25,7 @@ gen_app_mock!(MockApp, APP_ID, APP_VERSION, &[]);
 #[test]
 fn execute_on_proxy_through_manager() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
@@ -71,7 +71,7 @@ fn execute_on_proxy_through_manager() -> AResult {
 #[test]
 fn account_install_app() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::account_install_app(chain.clone())?;
     take_storage_snapshot!(chain, "account_install_app");
@@ -81,7 +81,7 @@ fn account_install_app() -> AResult {
 #[test]
 fn account_app_ownership() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
@@ -124,7 +124,7 @@ fn account_app_ownership() -> AResult {
 #[test]
 fn subaccount_app_ownership() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
@@ -171,7 +171,7 @@ fn subaccount_app_ownership() -> AResult {
 #[test]
 fn cant_reinstall_app_after_uninstall() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
@@ -197,7 +197,7 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
 #[test]
 fn deploy_strategy_uploaded() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let _account = create_default_account(&deployment.account_factory)?;
 
@@ -270,7 +270,7 @@ fn deploy_strategy_uploaded() -> AResult {
 #[test]
 fn deploy_strategy_deployed() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let _account = create_default_account(&deployment.account_factory)?;
 

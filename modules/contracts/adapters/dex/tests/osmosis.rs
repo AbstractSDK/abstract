@@ -28,7 +28,7 @@ pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,
 ) -> anyhow::Result<AbstractAccount<Chain>> {
     let os = factory.create_default_account(GovernanceDetails::Monarchy {
-        monarch: Addr::unchecked(factory.get_chain().sender()).to_string(),
+        monarch: Addr::unchecked(factory.environment().sender_addr()).to_string(),
     })?;
     Ok(os)
 }
@@ -128,7 +128,7 @@ fn setup_mock() -> anyhow::Result<(
         coin(1_000_000_000_000, atom),
     ]);
 
-    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender_addr().to_string())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
     let dex_adapter = DexAdapter::new(DEX_ADAPTER_ID, chain.clone());

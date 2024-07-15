@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 
-use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 use cw_orch::prelude::*;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
+use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 
 use rust_embed::RustEmbed;
 
@@ -72,7 +72,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let mut deployment = Self::store_on(chain.clone())?;
 
         // ########### Instantiate ##############
-        deployment.instantiate(&chain, data)?;
+        deployment.instantiate(data)?;
 
         // Set Factory
         deployment.version_control.execute(
@@ -104,7 +104,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender().to_string(),
+                monarch: chain.sender_addr().to_string(),
             })?;
         Ok(deployment)
     }
@@ -167,11 +167,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(
-        &mut self,
-        _chain: &Chain,
-        admin: String,
-    ) -> Result<(), AbstractInterfaceError> {
+    pub fn instantiate(&mut self, admin: String) -> Result<(), AbstractInterfaceError> {
         let admin = Addr::unchecked(admin);
 
         self.ans_host.instantiate(

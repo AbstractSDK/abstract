@@ -7,11 +7,10 @@ use abstract_std::objects::AccountId;
 use cw_orch::daemon::networks::OSMOSIS_1;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
-use tokio::runtime::Runtime;
+
 fn main() -> anyhow::Result<()> {
-    let rt = Runtime::new()?;
     let chain = OSMOSIS_1;
-    let mut app = CloneTesting::new(&rt, chain)?;
+    let mut app = CloneTesting::new(chain)?;
     // Set the sender to the host proxy
     let abs = Abstract::load_from(app.clone())?;
     let proxy = abs.ibc.host.client_proxy("phoenix".to_string())?;

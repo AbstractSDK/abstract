@@ -1,8 +1,9 @@
 use abstract_std::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::{
+        gov_type::TopLevelOwnerResponse,
         module_version::{ModuleDataResponse, MODULE},
-        nested_admin::{query_top_level_owner, TopLevelOwnerResponse},
+        ownership::nested_admin::query_top_level_owner_addr,
     },
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
@@ -101,7 +102,7 @@ impl<
 
     fn top_level_owner(&self, deps: Deps) -> StdResult<TopLevelOwnerResponse> {
         let manager = self.admin.get(deps)?.unwrap();
-        let addr = query_top_level_owner(&deps.querier, manager)?;
+        let addr = query_top_level_owner_addr(&deps.querier, manager)?;
         Ok(TopLevelOwnerResponse { address: addr })
     }
 }

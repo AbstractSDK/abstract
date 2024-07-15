@@ -107,7 +107,7 @@ fn setup() -> anyhow::Result<(
 )> {
     // Create the mock
     let mock = MockBech32::new("mock");
-    let sender = mock.sender();
+    let sender = mock.sender_addr();
     mock.set_balance(&sender, vec![coin(INITIAL_BALANCE, DENOM)])?;
 
     let mut challenge_app = Challenge::new(CHALLENGE_APP_ID, mock.clone());
@@ -309,7 +309,7 @@ fn test_add_single_friend_for_challenge() -> anyhow::Result<()> {
         abstr
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender().to_string(),
+                monarch: mock.sender_addr().to_string(),
             })?;
     let new_friend: Friend<String> = Friend::AbstractAccount(new_account.id()?);
 

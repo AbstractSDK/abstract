@@ -77,7 +77,7 @@
               "remote": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/ChainName"
+                  "$ref": "#/definitions/TruncatedChainId"
                 }
               }
             },
@@ -89,7 +89,7 @@
         "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
         "type": "string"
       },
-      "ChainName": {
+      "TruncatedChainId": {
         "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
         "type": "string"
       }
@@ -324,7 +324,7 @@
               "remote": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/ChainName"
+                  "$ref": "#/definitions/TruncatedChainId"
                 }
               }
             },
@@ -686,10 +686,6 @@
         "description": "Callback message to set the dependencies after module upgrades.",
         "type": "object",
         "additionalProperties": false
-      },
-      "ChainName": {
-        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
-        "type": "string"
       },
       "Coin": {
         "type": "object",
@@ -1087,7 +1083,7 @@
                     "description": "Chain to register the infrastructure for (\"juno\", \"osmosis\", etc.)",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/ChainName"
+                        "$ref": "#/definitions/TruncatedChainId"
                       }
                     ]
                   },
@@ -1157,7 +1153,7 @@
                     "description": "host chain to be executed on Example: \"osmosis\"",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/ChainName"
+                        "$ref": "#/definitions/TruncatedChainId"
                       }
                     ]
                   }
@@ -1195,7 +1191,7 @@
                     "description": "host chain to be executed on Example: \"osmosis\"",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/ChainName"
+                        "$ref": "#/definitions/TruncatedChainId"
                       }
                     ]
                   },
@@ -1247,7 +1243,7 @@
                     "description": "host chain to be executed on Example: \"osmosis\"",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/ChainName"
+                        "$ref": "#/definitions/TruncatedChainId"
                       }
                     ]
                   },
@@ -1300,7 +1296,7 @@
                     "description": "host chain to be executed on Example: \"osmosis\"",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/ChainName"
+                        "$ref": "#/definitions/TruncatedChainId"
                       }
                     ]
                   },
@@ -1343,7 +1339,7 @@
                     "description": "host chain to be executed on Example: \"osmosis\"",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/ChainName"
+                        "$ref": "#/definitions/TruncatedChainId"
                       }
                     ]
                   }
@@ -1367,7 +1363,7 @@
                 ],
                 "properties": {
                   "host_chain": {
-                    "$ref": "#/definitions/ChainName"
+                    "$ref": "#/definitions/TruncatedChainId"
                   }
                 },
                 "additionalProperties": false
@@ -1622,28 +1618,6 @@
             "additionalProperties": false
           },
           {
-            "description": "Proposes a new Owner The new owner has to claim ownership through the [`ExecuteMsg::UpdateOwnership`] message. The claim action can be called by the new owner directly OR by the owner of a top-level account if the new ownership structure is a sub-account.",
-            "type": "object",
-            "required": [
-              "propose_owner"
-            ],
-            "properties": {
-              "propose_owner": {
-                "type": "object",
-                "required": [
-                  "owner"
-                ],
-                "properties": {
-                  "owner": {
-                    "$ref": "#/definitions/GovernanceDetails_for_String"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
             "description": "Update account statuses",
             "type": "object",
             "required": [
@@ -1692,14 +1666,14 @@
             "additionalProperties": false
           },
           {
-            "description": "Update the contract's ownership. The `action` to be provided can be either to propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership permanently.",
+            "description": "Update the contract's ownership. The `action` can propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership of the account permanently.",
             "type": "object",
             "required": [
               "update_ownership"
             ],
             "properties": {
               "update_ownership": {
-                "$ref": "#/definitions/Action"
+                "$ref": "#/definitions/GovAction"
               }
             },
             "additionalProperties": false
@@ -1771,6 +1745,57 @@
               }
             },
             "additionalProperties": false
+          }
+        ]
+      },
+      "GovAction": {
+        "description": "Actions that can be taken to alter the contract's governance ownership",
+        "oneOf": [
+          {
+            "description": "Propose to transfer the contract's ownership to another account, optionally with an expiry time.\n\nCan only be called by the contract's current owner.\n\nAny existing pending ownership transfer is overwritten.",
+            "type": "object",
+            "required": [
+              "transfer_ownership"
+            ],
+            "properties": {
+              "transfer_ownership": {
+                "type": "object",
+                "required": [
+                  "new_owner"
+                ],
+                "properties": {
+                  "expiry": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Expiration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "new_owner": {
+                    "$ref": "#/definitions/GovernanceDetails_for_String"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Accept the pending ownership transfer.\n\nCan only be called by the pending owner.",
+            "type": "string",
+            "enum": [
+              "accept_ownership"
+            ]
+          },
+          {
+            "description": "Give up the contract's ownership and the possibility of appointing a new owner.\n\nCan only be invoked by the contract's current owner.\n\nAny existing pending ownership transfer is canceled.",
+            "type": "string",
+            "enum": [
+              "renounce_ownership"
+            ]
           }
         ]
       },
@@ -1929,6 +1954,30 @@
             "properties": {
               "Renounced": {
                 "type": "object"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "NFT"
+            ],
+            "properties": {
+              "NFT": {
+                "type": "object",
+                "required": [
+                  "collection_addr",
+                  "token_id"
+                ],
+                "properties": {
+                  "collection_addr": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "additionalProperties": false
@@ -2815,6 +2864,10 @@
             "$ref": "#/definitions/Uint64"
           }
         ]
+      },
+      "TruncatedChainId": {
+        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+        "type": "string"
       },
       "Uint128": {
         "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",

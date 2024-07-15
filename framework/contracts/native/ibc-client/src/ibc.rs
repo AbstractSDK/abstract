@@ -4,7 +4,7 @@ use abstract_std::{
         state::{ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
-    objects::chain_name::ChainName,
+    objects::TruncatedChainId,
 };
 use cosmwasm_std::{from_json, Attribute, DepsMut, Env, MessageInfo};
 use polytone::callbacks::{Callback as PolytoneCallback, CallbackMessage};
@@ -24,7 +24,7 @@ pub fn receive_action_callback(
     // 1. First we verify the callback is well formed and sent by the right contract
 
     // only a note contract can call this endpoint
-    let host_chain: ChainName = REVERSE_POLYTONE_NOTE
+    let host_chain: TruncatedChainId = REVERSE_POLYTONE_NOTE
         .may_load(deps.storage, &info.sender)?
         .ok_or(IbcClientError::Unauthorized {})?;
 

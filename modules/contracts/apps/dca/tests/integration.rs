@@ -64,7 +64,7 @@ fn setup_croncat_contracts(
     mock: MockBech32,
     proxy_addr: String,
 ) -> anyhow::Result<(CronCatAddrs, Addr)> {
-    let sender = mock.sender();
+    let sender = mock.sender_addr();
     let pause_admin = mock.addr_make(PAUSE_ADMIN);
     let agent_addr = mock.addr_make(AGENT);
 
@@ -269,7 +269,7 @@ fn setup() -> anyhow::Result<(
 )> {
     // Create the mock
     let mock = MockBech32::new("mock");
-    let sender = mock.sender();
+    let sender = mock.sender_addr();
 
     // With funds
     mock.add_balance(&sender, coins(6_000_000_000, DENOM))?;
@@ -309,7 +309,7 @@ fn setup() -> anyhow::Result<(
     abstr_deployment
         .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
-            monarch: mock.sender().to_string(),
+            monarch: mock.sender_addr().to_string(),
         })?;
     abstr_deployment
         .version_control
@@ -333,7 +333,7 @@ fn setup() -> anyhow::Result<(
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender().to_string(),
+                monarch: mock.sender_addr().to_string(),
             })?;
     // Install DEX
     account.install_adapter(&dex_adapter, None)?;

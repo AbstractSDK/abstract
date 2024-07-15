@@ -202,7 +202,7 @@
               "remote": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/ChainName"
+                  "$ref": "#/definitions/TruncatedChainId"
                 }
               }
             },
@@ -267,10 +267,6 @@
       },
       "Binary": {
         "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
-        "type": "string"
-      },
-      "ChainName": {
-        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
         "type": "string"
       },
       "Expiration": {
@@ -411,6 +407,30 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "NFT"
+            ],
+            "properties": {
+              "NFT": {
+                "type": "object",
+                "required": [
+                  "collection_addr",
+                  "token_id"
+                ],
+                "properties": {
+                  "collection_addr": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
@@ -502,6 +522,10 @@
             "$ref": "#/definitions/Uint64"
           }
         ]
+      },
+      "TruncatedChainId": {
+        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+        "type": "string"
       },
       "Uint64": {
         "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
