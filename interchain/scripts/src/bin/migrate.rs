@@ -32,14 +32,15 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             Empty {},
             DeployStrategy::Try,
         )?;
-        DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
-            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
-            DexInstantiateMsg {
-                recipient_account: 0,
-                swap_fee: Decimal::permille(3),
-            },
-            DeployStrategy::Try,
-        )?;
+        // TODO: DEX oversized, not deployed in current release
+        // DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
+        //     abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
+        //     DexInstantiateMsg {
+        //         recipient_account: 0,
+        //         swap_fee: Decimal::permille(3),
+        //     },
+        //     DeployStrategy::Try,
+        // )?;
         MoneyMarketAdapter::new(MONEY_MARKET_ADAPTER_ID, chain.clone()).deploy(
             abstract_money_market_adapter::contract::CONTRACT_VERSION.parse()?,
             MoneyMarketInstantiateMsg {
