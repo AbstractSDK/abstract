@@ -28,7 +28,7 @@ abstract-std = { workspace = true }
 
 # Interface
 cw-orch = { workspace = true }
-abstract-interface = { workspace = true }
+abstract-interface = { version = "0.23.0", path = "../../packages/abstract-interface" }
 
 # Testing
 abstract-testing = { workspace = true, optional = true }
