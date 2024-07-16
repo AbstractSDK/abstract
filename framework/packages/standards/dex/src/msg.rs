@@ -5,13 +5,13 @@ use abstract_std::{
     adapter,
     objects::{
         fee::{Fee, UsageFee},
-        pool_id::UncheckedPoolAddress,
-        AnsAsset, AssetEntry, DexAssetPairing,
+        pool_id::{PoolAddressBase, UncheckedPoolAddress},
+        AnsAsset, AssetEntry, DexAssetPairing, PoolAddress,
     },
     AbstractError, AbstractResult,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
+use cosmwasm_std::{Addr, Api, CosmosMsg, Decimal, Uint128};
 use cw_asset::{AssetBase, AssetInfoBase};
 
 pub use crate::{ans_action::DexAnsAction, raw_action::DexRawAction};
@@ -100,6 +100,21 @@ pub enum DexExecuteMsg {
         /// The action to perform
         action: DexRawAction,
     },
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SwapNode<T: cw_address_like::AddressLike> {
+    pub pool_id: PoolAddressBase<T>,
+    pub ask_asset: AssetInfoBase<T>,
+}
+
+impl SwapNode<String> {
+    pub fn check(self, api: &dyn Api) -> AbstractResult<SwapNode<Addr>> {
+        Ok(SwapNode {
+            pool_id: self.pool_id.check(api)?,
+            ask_asset: self.ask_asset.check(api, None)?,
+        })
+    }
 }
 
 /// Query messages for the dex adapter

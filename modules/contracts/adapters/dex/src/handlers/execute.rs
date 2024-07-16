@@ -202,6 +202,7 @@ pub(crate) fn resolve_assets_to_transfer(
         )),
         DexRawAction::WithdrawLiquidity { lp_token, .. } => Ok(vec![offer_to_coin(lp_token)?]),
         DexRawAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
+        DexRawAction::RouteSwap { .. } => todo!(),
     }
     .map_err(Into::into)
 }

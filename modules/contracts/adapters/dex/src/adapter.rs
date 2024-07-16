@@ -93,6 +93,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                 )?,
                 SWAP,
             ),
+            DexRawAction::RouteSwap { .. } => todo!(),
         })
     }
 
@@ -124,6 +125,49 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             self.ans_host(deps)?,
         )?;
         let mut swap_msgs = exchange.swap(
+            deps,
+            pool_address,
+            offer_asset,
+            ask_asset,
+            belief_price,
+            max_spread,
+        )?;
+        // insert fee msg
+        if let Some(f) = fee_msg {
+            swap_msgs.push(f)
+        }
+
+        Ok(swap_msgs)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn resolve_route_swap(
+        &self,
+        deps: Deps,
+        sender: Addr,
+        offer_asset: AssetBase<String>,
+        ask_asset: AssetInfoBase<String>,
+        pool: PoolAddressBase<String>,
+        exchange: &mut dyn DexCommand,
+        max_spread: Option<Decimal>,
+        belief_price: Option<Decimal>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        let pool_address = pool.check(deps.api)?;
+        let mut offer_asset = offer_asset.check(deps.api, None)?;
+        let ask_asset = ask_asset.check(deps.api, None)?;
+
+        // account for fee
+        let dex_fees = DEX_FEES.load(deps.storage)?;
+        let usage_fee = dex_fees.swap_usage_fee()?;
+        let fee_msg = offer_asset.charge_usage_fee(usage_fee)?;
+
+        exchange.fetch_data(
+            deps,
+            sender,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
+        )?;
+        let mut swap_msgs = exchange.route_swap(
             deps,
             pool_address,
             offer_asset,

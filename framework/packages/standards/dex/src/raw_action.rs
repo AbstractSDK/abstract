@@ -5,6 +5,8 @@ use abstract_std::objects::pool_id::UncheckedPoolAddress;
 use cosmwasm_std::Decimal;
 use cw_asset::{AssetBase, AssetInfoBase};
 
+use crate::msg::SwapNode;
+
 /// Possible raw actions to perform on the DEX
 #[cosmwasm_schema::cw_serde]
 pub enum DexRawAction {
@@ -44,6 +46,17 @@ pub enum DexRawAction {
         offer_asset: AssetBase<String>,
         /// The asset to receive
         ask_asset: AssetInfoBase<String>,
+        /// The percentage of spread compared to pre-swap price or belief price (if provided)
+        max_spread: Option<Decimal>,
+        /// The belief price when submitting the transaction.
+        belief_price: Option<Decimal>,
+    },
+    /// Swap by route between multiple assets
+    RouteSwap {
+        /// Pool routes used to swap
+        route: Vec<SwapNode<String>>,
+        /// The asset to offer
+        offer_asset: AssetBase<String>,
         /// The percentage of spread compared to pre-swap price or belief price (if provided)
         max_spread: Option<Decimal>,
         /// The belief price when submitting the transaction.

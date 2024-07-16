@@ -1,4 +1,4 @@
-use abstract_dex_standard::Identify;
+use abstract_dex_standard::{Identify, SwapNode};
 use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::Addr;
 
@@ -91,6 +91,49 @@ impl DexCommand for Osmosis {
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             token_out_denom,
         }];
+
+        let token_in = Coin::try_from(offer_asset)?;
+
+        let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
+            sender: self
+                .addr_as_sender
+                .as_ref()
+                .expect("no local proxy")
+                .to_string(),
+            routes,
+            token_in: Some(token_in.into()),
+            token_out_min_amount: Uint128::one().to_string(),
+        }
+        .into();
+
+        Ok(vec![swap_msg])
+    }
+
+    fn route_swap(
+        &self,
+        _deps: Deps,
+        route_swap: Vec<SwapNode>,
+        offer_asset: Asset,
+        _belief_price: Option<Decimal>,
+        _max_spread: Option<Decimal>,
+    ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
+        let routes = route_swap
+            .into_iter()
+            .map(|swap_node| {
+                let pair_address = swap_node.pool_id.expect_id()?;
+                let token_out_denom = match swap_node.ask_asset {
+                    AssetInfo::Native(denom) => Ok(denom),
+                    // TODO: cw20? on osmosis?
+                    _ => Err(DexError::UnsupportedAssetType(
+                        swap_node.ask_asset.to_string(),
+                    )),
+                }?;
+                Ok(SwapAmountInRoute {
+                    pool_id: pair_address,
+                    token_out_denom,
+                })
+            })
+            .collect::<Result<_, DexError>>()?;
 
         let token_in = Coin::try_from(offer_asset)?;
 

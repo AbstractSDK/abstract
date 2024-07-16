@@ -4,7 +4,7 @@ use abstract_std::objects::{AssetEntry, DexAssetPairing, PoolAddress, PoolRefere
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
-use crate::error::DexError;
+use crate::{error::DexError, msg::SwapNode};
 
 pub type Return = Uint128;
 pub type Spread = Uint128;
@@ -53,6 +53,19 @@ pub trait DexCommand: Identify {
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
+
+    /// Execute a swap on the given DEX using the swap in question custom logic
+    #[allow(clippy::too_many_arguments)]
+    fn route_swap(
+        &self,
+        deps: Deps,
+        route_swap: Vec<SwapNode<Addr>>,
+        offer_asset: Asset,
+        belief_price: Option<Decimal>,
+        max_spread: Option<Decimal>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        unimplemented!();
+    }
 
     /// Provides liquidity on the the DEX
     fn provide_liquidity(
