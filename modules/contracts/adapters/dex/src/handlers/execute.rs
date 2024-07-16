@@ -14,9 +14,7 @@ use abstract_adapter::std::{
 use abstract_dex_standard::{
     ans_action::WholeDexAction, msg::ExecuteMsg, raw_action::DexRawAction, DexError, DEX_ADAPTER_ID,
 };
-use cosmwasm_std::{
-    ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-};
+use cosmwasm_std::{ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 use cw_asset::AssetBase;
 
 use crate::{
@@ -197,9 +195,6 @@ pub(crate) fn resolve_assets_to_transfer(
             let coins: Result<Vec<Coin>, _> = assets.iter().map(offer_to_coin).collect();
             coins
         }
-        DexRawAction::ProvideLiquiditySymmetric { .. } => Err(DexError::Std(
-            StdError::generic_err("Cross-chain symmetric provide liquidity not supported."),
-        )),
         DexRawAction::WithdrawLiquidity { lp_token, .. } => Ok(vec![offer_to_coin(lp_token)?]),
         DexRawAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
     }

@@ -22,15 +22,6 @@ pub enum DexAnsAction {
         /// Max spread to accept, is a percentage represented as a decimal.
         max_spread: Option<Decimal>,
     },
-    /// Provide liquidity equally between assets to a pool
-    ProvideLiquiditySymmetric {
-        /// The asset to offer
-        offer_asset: AnsAsset,
-        // support complex pool types
-        /// Assets that are paired with the offered asset
-        /// Should exclude the offer asset
-        paired_assets: Vec<AssetEntry>,
-    },
     /// Withdraw liquidity from a pool
     WithdrawLiquidity {
         /// The asset LP token that is provided.
@@ -96,24 +87,6 @@ impl Resolve for WholeDexAction {
                     pool: pool_address.into(),
                     assets: assets.into_iter().map(Into::into).collect(),
                     max_spread,
-                })
-            }
-            DexAnsAction::ProvideLiquiditySymmetric {
-                offer_asset,
-                mut paired_assets,
-            } => {
-                let paired_asset_infos = paired_assets.resolve(querier, ans_host)?;
-                let pool_address = pool_address(
-                    self.0.clone(),
-                    (paired_assets.swap_remove(0), offer_asset.name.clone()),
-                    querier,
-                    ans_host,
-                )?;
-                let offer_asset = offer_asset.resolve(querier, ans_host)?;
-                Ok(DexRawAction::ProvideLiquiditySymmetric {
-                    pool: pool_address.into(),
-                    offer_asset: offer_asset.into(),
-                    paired_assets: paired_asset_infos.into_iter().map(Into::into).collect(),
                 })
             }
             DexAnsAction::WithdrawLiquidity { lp_token } => {

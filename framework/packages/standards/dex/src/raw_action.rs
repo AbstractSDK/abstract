@@ -18,17 +18,6 @@ pub enum DexRawAction {
         /// Max spread to accept, is a percentage represented as a decimal.
         max_spread: Option<Decimal>,
     },
-    /// Provide liquidity equally between assets to a pool
-    ProvideLiquiditySymmetric {
-        /// Pool to provide liquidity to
-        pool: UncheckedPoolAddress,
-        /// The asset to offer
-        offer_asset: AssetBase<String>,
-        // support complex pool types
-        /// Assets that are paired with the offered asset
-        /// Should exclude the offer asset
-        paired_assets: Vec<AssetInfoBase<String>>,
-    },
     /// Withdraw liquidity from a pool
     WithdrawLiquidity {
         /// Pool to withdraw liquidity from

@@ -50,26 +50,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                     PROVIDE_LIQUIDITY,
                 )
             }
-            DexRawAction::ProvideLiquiditySymmetric {
-                pool,
-                offer_asset,
-                paired_assets,
-            } => {
-                if paired_assets.is_empty() {
-                    return Err(DexError::TooFewAssets {});
-                }
-                (
-                    self.resolve_provide_liquidity_symmetric(
-                        deps,
-                        sender,
-                        pool,
-                        offer_asset,
-                        paired_assets,
-                        exchange.as_mut(),
-                    )?,
-                    PROVIDE_LIQUIDITY_SYM,
-                )
-            }
             DexRawAction::WithdrawLiquidity { pool, lp_token } => (
                 self.resolve_withdraw_liquidity(deps, sender, lp_token, pool, exchange.as_mut())?,
                 WITHDRAW_LIQUIDITY,
@@ -161,31 +141,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             self.ans_host(deps)?,
         )?;
         exchange.provide_liquidity(deps, pool_address, offer_assets, max_spread)
-    }
-
-    fn resolve_provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        sender: Addr,
-        pool: PoolAddressBase<String>,
-        offer_asset: AssetBase<String>,
-        paired_assets: Vec<AssetInfoBase<String>>,
-        exchange: &mut dyn DexCommand,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pool_address = pool.check(deps.api)?;
-        let paired_assets = paired_assets
-            .into_iter()
-            .map(|o| o.check(deps.api, None))
-            .collect::<Result<_, _>>()?;
-        let offer_asset = offer_asset.check(deps.api, None)?;
-
-        exchange.fetch_data(
-            deps,
-            sender,
-            self.abstract_registry(deps)?,
-            self.ans_host(deps)?,
-        )?;
-        exchange.provide_liquidity_symmetric(deps, pool_address, offer_asset, paired_assets)
     }
 
     /// @todo

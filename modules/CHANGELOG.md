@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Dex integration Terraswap no longer supported on terra
 - Money Market Cavern protocol no longer supported
+- Provide liquidity symmetric no longer supported on Dex Adapters
 
 ### Fixed
 

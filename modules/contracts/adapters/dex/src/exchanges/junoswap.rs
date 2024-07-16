@@ -157,69 +157,6 @@ impl DexCommand for JunoSwap {
         Ok(msgs)
     }
 
-    fn provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pair_address = pool_id.expect_contract()?;
-        if paired_assets.len() > 1 {
-            return Err(DexError::TooManyAssets(2));
-        }
-        // Get pair info
-        let pair_config: InfoResponse = deps
-            .querier
-            .query_wasm_smart(pair_address.to_string(), &QueryMsg::Info {})?;
-        // because of the token1 / token2 thing we need to figure out what the offer asset is and calculate the required amount of the other asset.
-        let (token_1_amount, token_2_amount, other_asset) =
-            if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {
-                let price =
-                    Decimal::from_ratio(pair_config.token2_reserve, pair_config.token1_reserve);
-                // token2 = token1 * (token2/token1)
-                let token_2_amount = offer_asset.amount * price;
-                let other_asset = Asset {
-                    info: paired_assets[0].clone(),
-                    amount: token_2_amount,
-                };
-                (offer_asset.amount, token_2_amount, other_asset)
-            } else if denom_and_asset_match(&pair_config.token2_denom, &offer_asset.info)? {
-                let price =
-                    Decimal::from_ratio(pair_config.token1_reserve, pair_config.token2_reserve);
-                // token1 = token2 * (token1/token2)
-                let token_1_amount = offer_asset.amount * price;
-                let other_asset = Asset {
-                    info: paired_assets[0].clone(),
-                    amount: token_1_amount,
-                };
-                (token_1_amount, offer_asset.amount, other_asset)
-            } else {
-                return Err(DexError::DexMismatch(
-                    format!("{}/{}", offer_asset.info, paired_assets[0]),
-                    self.name().into(),
-                    pair_address.to_string(),
-                ));
-            };
-
-        let msg = ExecuteMsg::AddLiquidity {
-            token1_amount: token_1_amount,
-            min_liquidity: Uint128::zero(),
-            max_token2: token_2_amount,
-            expiration: None,
-        };
-        let assets = &[offer_asset, other_asset];
-        let mut msgs = cw_approve_msgs(assets, &pair_address)?;
-        let coins = coins_in_assets(assets);
-        let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: pair_address.into_string(),
-            msg: to_json_binary(&msg)?,
-            funds: coins,
-        });
-        msgs.push(junoswap_msg);
-        Ok(msgs)
-    }
-
     fn withdraw_liquidity(
         &self,
         _deps: Deps,

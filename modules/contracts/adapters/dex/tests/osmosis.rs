@@ -61,31 +61,6 @@ pub fn provide<Chain: CwEnv>(
     Ok(())
 }
 
-/// Provide symmetric liquidity using Abstract's OS (registered in daemon_state).
-pub fn provide_symmetric<Chain: CwEnv>(
-    dex_adapter: &DexAdapter<Chain>,
-    asset: (&str, u128),
-    paired_assets: &[&str],
-    dex: String,
-    os: &AbstractAccount<Chain>,
-) -> Result<(), AbstractInterfaceError> {
-    let asset_entry = AssetEntry::new(asset.0);
-    let paired_assets = paired_assets.iter().map(|&a| AssetEntry::new(a)).collect();
-
-    let provide_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-        proxy_address: Some(os.proxy.addr_str()?),
-        request: DexExecuteMsg::AnsAction {
-            dex,
-            action: DexAnsAction::ProvideLiquiditySymmetric {
-                offer_asset: AnsAsset::new(asset_entry, asset.1),
-                paired_assets,
-            },
-        },
-    });
-    dex_adapter.execute(&provide_msg, None)?;
-    Ok(())
-}
-
 /// Withdraw liquidity using Abstract's OS (registered in daemon_state).
 pub fn withdraw<Chain: CwEnv>(
     dex_adapter: &DexAdapter<Chain>,
@@ -366,52 +341,6 @@ fn provide_liquidity_one_sided() -> AnyResult<()> {
         .find(|c| c.denom == get_pool_token(pool_id))
         .unwrap();
     assert!(lp_balance.amount.u128() > 9_000_000_000_000_000_000);
-
-    Ok(())
-}
-
-#[test]
-fn provide_liquidity_symmetric() -> AnyResult<()> {
-    // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
-
-    let proxy_addr = os.proxy.address()?;
-
-    let provide_value = 1_000_000_000u128;
-
-    // Before providing, we need to have no assets in the proxy
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    assert!(balances.is_empty());
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value * 2, "uatom"))?;
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value * 2, "uosmo"))?;
-
-    // provide to the pool
-    provide_symmetric(
-        &dex_adapter,
-        ("atom", provide_value),
-        &["osmo"],
-        OSMOSIS.into(),
-        &os,
-    )?;
-
-    // provide to the pool reversed
-    provide_symmetric(
-        &dex_adapter,
-        ("osmo", provide_value),
-        &["atom"],
-        OSMOSIS.into(),
-        &os,
-    )?;
-
-    // After providing, we need to get the liquidity token
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    assert_eq!(
-        balances,
-        coins(
-            10_000_000_000_000_000_000 + 9_999_999_999_999_999_990,
-            get_pool_token(pool_id)
-        )
-    );
 
     Ok(())
 }

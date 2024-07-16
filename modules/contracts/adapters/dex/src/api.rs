@@ -123,20 +123,6 @@ pub mod raw {
             })
         }
 
-        /// Provide symmetric liquidity in the DEX
-        pub fn provide_liquidity_symmetric(
-            &self,
-            offer_asset: Asset,
-            paired_assets: Vec<AssetInfo>,
-            pool: PoolAddress,
-        ) -> AbstractSdkResult<CosmosMsg> {
-            self.execute(DexRawAction::ProvideLiquiditySymmetric {
-                offer_asset: offer_asset.into(),
-                paired_assets: paired_assets.into_iter().map(Into::into).collect(),
-                pool: pool.into(),
-            })
-        }
-
         /// Withdraw liquidity from the DEX
         pub fn withdraw_liquidity(
             &self,
@@ -275,18 +261,6 @@ pub mod ans {
             max_spread: Option<Decimal>,
         ) -> AbstractSdkResult<CosmosMsg> {
             self.execute(DexAnsAction::ProvideLiquidity { assets, max_spread })
-        }
-
-        /// Provide symmetrict liquidity in the DEX
-        pub fn provide_liquidity_symmetric(
-            &self,
-            offer_asset: AnsAsset,
-            paired_assets: Vec<AssetEntry>,
-        ) -> AbstractSdkResult<CosmosMsg> {
-            self.execute(DexAnsAction::ProvideLiquiditySymmetric {
-                offer_asset,
-                paired_assets,
-            })
         }
 
         /// Withdraw liquidity from the DEX
@@ -446,47 +420,6 @@ mod test {
     }
 
     #[test]
-    fn provide_liquidity_symmetric_msg() {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_adapter::abstract_testing::mock_querier();
-        let stub = MockModule::new();
-        let dex_name = "junoswap".to_string();
-
-        let dex = stub
-            .ans_dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
-
-        let offer = AnsAsset::new("taco", 1000u128);
-        let paired = vec![AssetEntry::new("bell")];
-        let _max_spread = Some(Decimal::percent(1));
-
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::AnsAction {
-            dex: dex_name,
-            action: DexAnsAction::ProvideLiquiditySymmetric {
-                offer_asset: offer.clone(),
-                paired_assets: paired.clone(),
-            },
-        });
-
-        let actual = dex.provide_liquidity_symmetric(offer, paired);
-
-        assert_that!(actual).is_ok();
-
-        let actual = match actual.unwrap() {
-            CosmosMsg::Wasm(msg) => msg,
-            _ => panic!("expected wasm msg"),
-        };
-        let expected = wasm_execute(
-            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
-
-        assert_that!(actual).is_equal_to(expected);
-    }
-
-    #[test]
     fn withdraw_liquidity_msg() {
         let mut deps = mock_dependencies();
         deps.querier = abstract_adapter::abstract_testing::mock_querier();
@@ -601,49 +534,6 @@ mod test {
             });
 
             let actual = dex.provide_liquidity(assets, max_spread, pool);
-
-            assert_that!(actual).is_ok();
-
-            let actual = match actual.unwrap() {
-                CosmosMsg::Wasm(msg) => msg,
-                _ => panic!("expected wasm msg"),
-            };
-            let expected = wasm_execute(
-                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
-                &expected,
-                vec![],
-            )
-            .unwrap();
-
-            assert_that!(actual).is_equal_to(expected);
-        }
-
-        #[test]
-        fn provide_liquidity_symmetric_msg() {
-            let mut deps = mock_dependencies();
-            deps.querier = abstract_adapter::abstract_testing::mock_querier();
-            let stub = MockModule::new();
-            let dex_name = "junoswap".to_string();
-
-            let dex = stub
-                .dex(deps.as_ref(), dex_name.clone())
-                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
-
-            let offer = Asset::native("taco", 1000u128);
-            let paired = vec![AssetInfo::native("bell")];
-            let _max_spread = Some(Decimal::percent(1));
-            let pool = PoolAddressBase::Id(POOL);
-
-            let expected = expected_request_with_test_proxy(DexExecuteMsg::RawAction {
-                dex: dex_name,
-                action: DexRawAction::ProvideLiquiditySymmetric {
-                    offer_asset: offer.clone().into(),
-                    paired_assets: paired.clone().into_iter().map(Into::into).collect(),
-                    pool: pool.clone().into(),
-                },
-            });
-
-            let actual = dex.provide_liquidity_symmetric(offer, paired, pool);
 
             assert_that!(actual).is_ok();
 
