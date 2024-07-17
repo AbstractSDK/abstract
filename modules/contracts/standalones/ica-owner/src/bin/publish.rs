@@ -32,7 +32,7 @@ fn publish(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .publisher_builder(standalone_namespace)
             .build()?;
 
-        if publisher.account().owner()? != chain.sender() {
+        if publisher.account().owner()? != chain.sender_addr() {
             panic!("The current sender can not publish to this namespace. Please use the wallet that owns the Account that owns the Namespace.")
         }
 
