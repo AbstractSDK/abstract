@@ -190,7 +190,7 @@ mod osmosis_test {
             coin(1_000_000_000_000, ASSET_2),
         ]);
 
-        let deployment = Abstract::deploy_on(tube.clone(), tube.sender().to_string())?;
+        let deployment = Abstract::deploy_on(tube.clone(), tube.sender_addr().to_string())?;
 
         let _root_os = create_default_account(&deployment.account_factory)?;
         let staking: OsmosisStakingAdapter<OsmosisTestTube> =
@@ -468,7 +468,7 @@ mod osmosis_test {
     fn reward_tokens_add_to_gauge() -> anyhow::Result<()> {
         let (mut chain, pool_id, staking, os) = setup_osmosis()?;
         // For gauge
-        chain.add_balance(chain.sender(), coins(1_000_000_000_000, ASSET_1))?;
+        chain.add_balance(chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
         let proxy_addr = os.proxy.address()?;
 
         let test_tube = chain.app.borrow();
@@ -489,7 +489,7 @@ mod osmosis_test {
             incentives.query_lockable_durations(&QueryLockableDurationsRequest {})?;
         let res = incentives.add_to_gauge(
             MsgAddToGauge {
-                owner: chain.sender().to_string(),
+                owner: chain.sender_addr().to_string(),
                 gauge_id: gauge_id_for_refill,
                 rewards: vec![cw_orch_osmosis_test_tube::osmosis_test_tube::osmosis_std::types::cosmos::base::v1beta1::Coin {
                     denom: ASSET_1.to_owned(),
@@ -510,7 +510,7 @@ mod osmosis_test {
     fn reward_tokens_create_gauge() -> anyhow::Result<()> {
         let (mut chain, pool_id, staking, os) = setup_osmosis()?;
         // For gauge
-        chain.add_balance(chain.sender(), coins(1_000_000_000_000, ASSET_1))?;
+        chain.add_balance(chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
         let proxy_addr = os.proxy.address()?;
 
         let test_tube = chain.app.borrow();
@@ -529,7 +529,7 @@ mod osmosis_test {
             MsgCreateGauge {
                 pool_id,
                 is_perpetual: true,
-                owner: chain.sender().to_string(),
+                owner: chain.sender_addr().to_string(),
                 distribute_to: Some(QueryCondition {
                     lock_query_type: LockQueryType::ByDuration.into(),
                     denom: get_pool_token(pool_id),

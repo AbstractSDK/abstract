@@ -32,6 +32,12 @@ mod interchain {
     mod remote_application;
     pub use remote_account::RemoteAccount;
     pub use remote_application::RemoteApplication;
+
+    // TODO: Why are we not returning ibc tx analysis after await
+    /// IbcTxAnalysis after waiting for interchain action
+    pub struct IbcTxAnalysisV2<Chain: cw_orch::environment::CwEnv>(
+        pub cw_orch_interchain::types::IbcTxAnalysis<Chain>,
+    );
 }
 #[cfg(feature = "interchain")]
 pub use interchain::*;

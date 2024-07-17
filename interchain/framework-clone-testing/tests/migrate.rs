@@ -47,7 +47,7 @@ fn old_account_migrate() -> anyhow::Result<()> {
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender().to_string(),
+                monarch: chain.sender_addr().to_string(),
             })?;
 
     let migrated = abstr_deployment.migrate_if_version_changed()?;
@@ -72,7 +72,7 @@ fn old_account_functions() -> anyhow::Result<()> {
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender().to_string(),
+                monarch: chain.sender_addr().to_string(),
             })?;
     let migrated = abstr_deployment.migrate_if_version_changed()?;
 

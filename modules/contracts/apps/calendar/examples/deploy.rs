@@ -32,10 +32,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     for network in networks {
         let version: Version = APP_VERSION.parse().unwrap();
         let rt = Runtime::new()?;
-        let chain = DaemonBuilder::default()
-            .handle(rt.handle())
-            .chain(network)
-            .build()?;
+        let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
 
         let app = CalendarAppInterface::new(APP_ID, chain);
         app.deploy(version, DeployStrategy::Try)?;

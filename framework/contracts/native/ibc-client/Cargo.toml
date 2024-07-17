@@ -30,6 +30,8 @@ cw-semver = { workspace = true }
 polytone-note = { workspace = true, features = ["library"] }
 polytone = { workspace = true }
 cw-paginate = "0.2.1"
+ibc-proto = { version = "0.46.0", default-features = false }
+prost = { version = "0.12.3", default-features = false }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

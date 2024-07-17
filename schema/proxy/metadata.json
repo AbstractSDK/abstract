@@ -1,9 +1,0 @@
-{
-  "name": "Proxy",
-  "description": "The proxy contract stores the OS's funds and whitelists contracts to perform actions on it. ",
-  "docs": "https://docs.abstract.money/building-on-abstract/native-contracts#proxy",
-  "website": "https://abstract.money",
-  "type": "core",
-  "icon": "RiCoinsLine",
-  "enabled": false
-}

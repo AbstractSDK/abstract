@@ -1,9 +1,0 @@
-{
-  "name": "Module factory",
-  "description": "Create abstract modules.",
-  "docs": "https://docs.rs/abstract-os/latest/abstract_os/module_factory/index.html",
-  "website": "https://abstract.money",
-  "type": "native",
-  "icon": "GiTrade",
-  "enabled": false
-}

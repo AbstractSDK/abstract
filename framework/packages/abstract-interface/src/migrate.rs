@@ -9,7 +9,7 @@ use abstract_std::{
 };
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
-use cw_orch::prelude::*;
+use cw_orch::{environment::Environment, prelude::*};
 
 impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
@@ -262,7 +262,7 @@ impl<T: CwEnv> Abstract<T> {
 fn contract_version<Chain: CwEnv, A: ContractInstance<Chain>>(
     contract: &A,
 ) -> Result<ContractVersion, crate::AbstractInterfaceError> {
-    let wasm_querier = contract.get_chain().wasm_querier();
+    let wasm_querier = contract.environment().wasm_querier();
     Ok(from_json(
         wasm_querier
             .raw_query(
@@ -323,7 +323,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 .expect("IBC host supposed to be migrated, but skipped instead");
         } else {
             // Version change is breaking, need to deploy new version
-            self.instantiate(abstr, &self.client.get_chain().sender())?;
+            self.instantiate(abstr, &self.client.environment().sender_addr())?;
         }
 
         Ok(true)

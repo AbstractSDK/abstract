@@ -67,9 +67,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
-        ExecuteMsg::SendFunds { host_chain, funds } => {
-            commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
-        }
+        ExecuteMsg::SendFunds {
+            host_chain,
+            funds,
+            memo,
+        } => commands::execute_send_funds(deps, env, info, host_chain, funds, memo)
+            .map_err(Into::into),
         ExecuteMsg::Register {
             host_chain,
             base_asset,
@@ -605,7 +608,8 @@ mod tests {
             objects::{version_control::VersionControlError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
-        use cosmwasm_std::{coins, Coin, CosmosMsg, IbcMsg};
+        use cosmwasm_std::{coins, Binary, CosmosMsg, IbcMsg};
+        use prost::Name;
         use std::str::FromStr;
 
         #[test]
@@ -619,6 +623,7 @@ mod tests {
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
                 funds: coins(1, "denom"),
+                memo: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -653,25 +658,70 @@ mod tests {
                 &remote_addr,
             )?;
 
-            let funds: Vec<Coin> = coins(1, "denom");
+            let funds = coins(1, "denom");
 
             let msg = ExecuteMsg::SendFunds {
-                host_chain: chain_name,
+                host_chain: chain_name.clone(),
                 funds: funds.clone(),
+                memo: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
 
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()
-                .map(|c| {
+                .map(|amount| {
                     IbcMsg::Transfer {
                         channel_id: channel_id.clone(),
                         to_address: remote_addr.clone(),
-                        amount: c,
+                        amount,
                         timeout: mock_env().block.time.plus_seconds(PACKET_LIFETIME).into(),
                     }
                     .into()
+                })
+                .collect();
+
+            assert_eq!(
+                IbcClientResponse::action("handle_send_funds").add_messages(transfer_msgs),
+                res
+            );
+
+            let funds = coins(1, "denom");
+            let memo = Some("some_memo".to_owned());
+
+            let msg = ExecuteMsg::SendFunds {
+                host_chain: chain_name,
+                funds: funds.clone(),
+                memo: memo.clone(),
+            };
+
+            let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
+
+            use prost::Message;
+            let transfer_msgs: Vec<CosmosMsg> = funds
+                .into_iter()
+                .map(|c| CosmosMsg::Stargate {
+                    type_url: ibc_proto::ibc::apps::transfer::v1::MsgTransfer::type_url(),
+                    value: Binary::from(
+                        ibc_proto::ibc::apps::transfer::v1::MsgTransfer {
+                            source_port: "transfer".to_owned(),
+                            source_channel: channel_id.clone(),
+                            token: Some(ibc_proto::cosmos::base::v1beta1::Coin {
+                                denom: c.denom,
+                                amount: c.amount.to_string(),
+                            }),
+                            sender: mock_env().contract.address.to_string(),
+                            receiver: remote_addr.clone(),
+                            timeout_height: None,
+                            timeout_timestamp: mock_env()
+                                .block
+                                .time
+                                .plus_seconds(PACKET_LIFETIME)
+                                .nanos(),
+                            memo: memo.clone().unwrap(),
+                        }
+                        .encode_to_vec(),
+                    ),
                 })
                 .collect();
 
