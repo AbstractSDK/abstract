@@ -11,7 +11,7 @@ use abstract_adapter::std::{
         AccountId, TruncatedChainId,
     },
 };
-use abstract_dex_standard::{msg::ExecuteMsg, raw_action::DexRawAction, DexError, DEX_ADAPTER_ID};
+use abstract_dex_standard::{action::DexAction, msg::ExecuteMsg, DexError, DEX_ADAPTER_ID};
 use cosmwasm_std::{ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 use cw_asset::AssetBase;
 
@@ -33,7 +33,7 @@ pub fn execute_handler(
     msg: DexExecuteMsg,
 ) -> DexResult {
     match msg {
-        DexExecuteMsg::RawAction {
+        DexExecuteMsg::Action {
             dex: dex_name,
             action,
         } => {
@@ -91,7 +91,7 @@ fn handle_local_request(
     _info: MessageInfo,
     adapter: &DexAdapter,
     exchange: String,
-    action: DexRawAction,
+    action: DexAction,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
     let target_account = adapter.account_base(deps.as_ref())?;
@@ -115,7 +115,7 @@ fn handle_ibc_request(
     info: MessageInfo,
     adapter: &DexAdapter,
     dex_name: DexName,
-    action: &DexRawAction,
+    action: &DexAction,
 ) -> DexResult {
     let host_chain = TruncatedChainId::from_string(dex_name.clone())?; // TODO, this is faulty
 
@@ -130,7 +130,7 @@ fn handle_ibc_request(
         manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
             module_id: DEX_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
-                &DexExecuteMsg::RawAction {
+                &DexExecuteMsg::Action {
                     dex: dex_name.clone(),
                     action: action.clone(),
                 }
@@ -145,7 +145,7 @@ fn handle_ibc_request(
         None
     } else {
         Some(Callback {
-            msg: to_json_binary(&DexExecuteMsg::RawAction {
+            msg: to_json_binary(&DexExecuteMsg::Action {
                 dex: dex_name.clone(),
                 action: action.clone(),
             })?,
@@ -159,7 +159,7 @@ fn handle_ibc_request(
 
 pub(crate) fn resolve_assets_to_transfer(
     deps: Deps,
-    dex_action: &DexRawAction,
+    dex_action: &DexAction,
     _ans_host: &AnsHost,
 ) -> DexResult<Vec<Coin>> {
     // resolve asset to native asset
@@ -171,12 +171,12 @@ pub(crate) fn resolve_assets_to_transfer(
     };
 
     match dex_action {
-        DexRawAction::ProvideLiquidity { assets, .. } => {
+        DexAction::ProvideLiquidity { assets, .. } => {
             let coins: Result<Vec<Coin>, _> = assets.iter().map(offer_to_coin).collect();
             coins
         }
-        DexRawAction::WithdrawLiquidity { lp_token, .. } => Ok(vec![offer_to_coin(lp_token)?]),
-        DexRawAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
+        DexAction::WithdrawLiquidity { lp_token, .. } => Ok(vec![offer_to_coin(lp_token)?]),
+        DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
     }
     .map_err(Into::into)
 }

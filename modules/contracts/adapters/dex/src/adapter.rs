@@ -4,7 +4,7 @@ use abstract_adapter::sdk::{
     Execution,
 };
 use abstract_adapter::std::objects::pool_id::PoolAddressBase;
-use abstract_dex_standard::{raw_action::DexRawAction, DexCommand, DexError};
+use abstract_dex_standard::{action::DexAction, DexCommand, DexError};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};
 
@@ -26,11 +26,11 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         &self,
         deps: Deps,
         sender: Addr,
-        action: DexRawAction,
+        action: DexAction,
         mut exchange: Box<dyn DexCommand>,
     ) -> Result<(Vec<CosmosMsg>, ReplyId), DexError> {
         Ok(match action {
-            DexRawAction::ProvideLiquidity {
+            DexAction::ProvideLiquidity {
                 pool,
                 assets,
                 max_spread,
@@ -50,11 +50,11 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                     PROVIDE_LIQUIDITY,
                 )
             }
-            DexRawAction::WithdrawLiquidity { pool, lp_token } => (
+            DexAction::WithdrawLiquidity { pool, lp_token } => (
                 self.resolve_withdraw_liquidity(deps, sender, lp_token, pool, exchange.as_mut())?,
                 WITHDRAW_LIQUIDITY,
             ),
-            DexRawAction::Swap {
+            DexAction::Swap {
                 pool,
                 offer_asset,
                 ask_asset,

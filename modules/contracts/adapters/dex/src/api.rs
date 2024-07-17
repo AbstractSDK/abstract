@@ -9,8 +9,8 @@ use abstract_adapter::std::objects::{module::ModuleId, AnsAsset, AssetEntry, Poo
 use abstract_adapter::traits::AbstractNameService;
 use abstract_dex_standard::msg::GenerateMessagesResponse;
 use abstract_dex_standard::{
+    action::DexAction,
     msg::{DexExecuteMsg, DexName, DexQueryMsg, SimulateSwapResponse},
-    raw_action::DexRawAction,
 };
 use cosmwasm_schema::serde::de::DeserializeOwned;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps};
@@ -85,13 +85,13 @@ pub mod raw {
             self.module_id
         }
 
-        /// Executes a [DexRawAction] in th DEX
-        fn execute(&self, action: DexRawAction) -> AbstractSdkResult<CosmosMsg> {
+        /// Executes a [DexAction] in th DEX
+        fn execute(&self, action: DexAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
             adapters.execute(
                 self.dex_module_id(),
-                DexExecuteMsg::RawAction {
+                DexExecuteMsg::Action {
                     dex: self.dex_name(),
                     action,
                 },
@@ -107,7 +107,7 @@ pub mod raw {
             belief_price: Option<Decimal>,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.execute(DexRawAction::Swap {
+            self.execute(DexAction::Swap {
                 offer_asset: offer_asset.into(),
                 ask_asset: ask_asset.into(),
                 belief_price,
@@ -123,7 +123,7 @@ pub mod raw {
             max_spread: Option<Decimal>,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.execute(DexRawAction::ProvideLiquidity {
+            self.execute(DexAction::ProvideLiquidity {
                 assets: assets.into_iter().map(Into::into).collect(),
                 pool: pool.into(),
                 max_spread,
@@ -136,7 +136,7 @@ pub mod raw {
             lp_token: Asset,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.execute(DexRawAction::WithdrawLiquidity {
+            self.execute(DexAction::WithdrawLiquidity {
                 lp_token: lp_token.into(),
                 pool: pool.into(),
             })
@@ -178,9 +178,9 @@ pub mod raw {
             addr_as_sender: impl Into<String>,
         ) -> AbstractSdkResult<GenerateMessagesResponse> {
             let response: GenerateMessagesResponse = self.query(DexQueryMsg::GenerateMessages {
-                message: DexExecuteMsg::RawAction {
+                message: DexExecuteMsg::Action {
                     dex: self.dex_name(),
-                    action: DexRawAction::Swap {
+                    action: DexAction::Swap {
                         offer_asset: offer_asset.into(),
                         ask_asset: ask_asset.into(),
                         max_spread,
@@ -245,7 +245,7 @@ pub mod ans {
 
             adapters.execute(
                 self.dex_module_id(),
-                DexExecuteMsg::RawAction {
+                DexExecuteMsg::Action {
                     dex: self.dex_name(),
                     action,
                 },
@@ -327,7 +327,7 @@ pub mod ans {
             .map_err(AbstractError::from)?;
 
             let response: GenerateMessagesResponse = self.query(DexQueryMsg::GenerateMessages {
-                message: DexExecuteMsg::RawAction {
+                message: DexExecuteMsg::Action {
                     dex: self.dex_name(),
                     action,
                 },
@@ -379,9 +379,9 @@ mod test {
         let belief_price = Some(Decimal::percent(2));
         let pool = PoolAddressBase::Id(POOL);
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::RawAction {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
-            action: DexRawAction::Swap {
+            action: DexAction::Swap {
                 offer_asset: offer_asset.clone().into(),
                 ask_asset: ask_asset.clone().into(),
                 max_spread,
@@ -423,9 +423,9 @@ mod test {
         let max_spread = Some(Decimal::percent(1));
         let pool = PoolAddressBase::Id(POOL);
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::RawAction {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
-            action: DexRawAction::ProvideLiquidity {
+            action: DexAction::ProvideLiquidity {
                 assets: assets.clone().into_iter().map(Into::into).collect(),
                 max_spread,
                 pool: pool.clone().into(),
@@ -464,9 +464,9 @@ mod test {
         let lp_token = Asset::native("taco", 1000u128);
         let pool = PoolAddressBase::Id(POOL);
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::RawAction {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
-            action: DexRawAction::WithdrawLiquidity {
+            action: DexAction::WithdrawLiquidity {
                 lp_token: lp_token.clone().into(),
                 pool: pool.clone().into(),
             },

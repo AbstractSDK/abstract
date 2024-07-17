@@ -85,13 +85,13 @@ pub mod interface {
         pub fn raw_action(
             &self,
             dex: String,
-            action: DexRawAction,
+            action: DexAction,
             account: impl AsRef<AbstractAccount<Chain>>,
         ) -> Result<<Chain as TxHandler>::Response, AbstractInterfaceError> {
             let account = account.as_ref();
             let msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: Some(account.proxy.addr_str()?),
-                request: DexExecuteMsg::RawAction { dex, action },
+                request: DexExecuteMsg::Action { dex, action },
             });
             self.execute(&msg, None).map_err(Into::into)
         }
@@ -127,7 +127,7 @@ pub mod interface {
             account: impl AsRef<AbstractAccount<Chain>>,
             pool: PoolAddressBase<String>,
         ) -> Result<(), AbstractInterfaceError> {
-            let action = DexRawAction::Swap {
+            let action = DexAction::Swap {
                 offer_asset: AssetBase::native(offer_asset.0, offer_asset.1),
                 ask_asset: AssetInfoBase::native(ask_asset),
                 pool,
@@ -166,7 +166,7 @@ pub mod interface {
         ) -> Result<(), AbstractInterfaceError> {
             let assets = assets.iter().map(|a| AssetBase::native(a.0, a.1)).collect();
 
-            let action = DexRawAction::ProvideLiquidity {
+            let action = DexAction::ProvideLiquidity {
                 assets,
                 pool,
                 max_spread: Some(Decimal::percent(30)),

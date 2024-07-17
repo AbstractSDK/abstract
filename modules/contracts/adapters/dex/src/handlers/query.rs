@@ -46,7 +46,7 @@ pub fn query_handler(
             addr_as_sender,
         } => {
             match message {
-                DexExecuteMsg::RawAction { dex, action } => {
+                DexExecuteMsg::Action { dex, action } => {
                     let (local_dex_name, is_over_ibc) = is_over_ibc(&env, &dex)?;
                     // if exchange is on an app-chain, execute the action on the app-chain
                     if is_over_ibc {

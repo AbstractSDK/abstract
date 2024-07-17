@@ -9,7 +9,7 @@ use abstract_std::objects::{
 use cosmwasm_std::{Decimal, StdError};
 use cw_asset::Asset;
 
-use crate::{msg::DexName, raw_action::DexRawAction};
+use crate::{action::DexAction, msg::DexName};
 
 /// Possible actions to perform on the DEX
 #[derive(Clone)]
@@ -43,7 +43,7 @@ pub enum DexAnsAction {
 pub struct WholeDexAction(pub DexName, pub DexAnsAction);
 
 impl Resolve for WholeDexAction {
-    type Output = DexRawAction;
+    type Output = DexAction;
 
     fn resolve(
         &self,
@@ -66,7 +66,7 @@ impl Resolve for WholeDexAction {
                     querier,
                     ans_host,
                 )?;
-                Ok(DexRawAction::ProvideLiquidity {
+                Ok(DexAction::ProvideLiquidity {
                     pool: pool_address.into(),
                     assets: assets.into_iter().map(Into::into).collect(),
                     max_spread,
@@ -93,7 +93,7 @@ impl Resolve for WholeDexAction {
                 }
 
                 let pool_address = pool_ids.pop().unwrap().pool_address;
-                Ok(DexRawAction::WithdrawLiquidity {
+                Ok(DexAction::WithdrawLiquidity {
                     pool: pool_address.into(),
                     lp_token: lp_asset.into(),
                 })
@@ -122,7 +122,7 @@ impl Resolve for WholeDexAction {
                 )?;
                 let offer_asset = Asset::new(offer_asset_info, offer_amount);
 
-                Ok(DexRawAction::Swap {
+                Ok(DexAction::Swap {
                     pool: pool_address.into(),
                     offer_asset: offer_asset.into(),
                     ask_asset: ask_asset_info.into(),
@@ -161,8 +161,8 @@ mod ans_resolve_interface {
     use crate::msg::DexExecuteMsg;
 
     use super::{
-        AnsAsset, AnsEntryConvertor, Asset, AssetEntry, DexAnsAction, DexAssetPairing,
-        DexRawAction, PoolAddress, WholeDexAction,
+        AnsAsset, AnsEntryConvertor, Asset, AssetEntry, DexAction, DexAnsAction, DexAssetPairing,
+        PoolAddress, WholeDexAction,
     };
 
     impl<Chain: cw_orch::environment::CwEnv> ClientResolve<Chain> for WholeDexAction {
@@ -187,9 +187,9 @@ mod ans_resolve_interface {
                         (asset_names.swap_remove(0), asset_names.swap_remove(0)),
                         ans_host,
                     )?;
-                    Ok(DexExecuteMsg::RawAction {
+                    Ok(DexExecuteMsg::Action {
                         dex: self.0.clone(),
-                        action: DexRawAction::ProvideLiquidity {
+                        action: DexAction::ProvideLiquidity {
                             pool: pool_address.into(),
                             assets: assets.into_iter().map(Into::into).collect(),
                             max_spread,
@@ -218,9 +218,9 @@ mod ans_resolve_interface {
                     }
 
                     let pool_address = pool_ids.pop().unwrap().pool_address;
-                    Ok(DexExecuteMsg::RawAction {
+                    Ok(DexExecuteMsg::Action {
                         dex: self.0.clone(),
-                        action: DexRawAction::WithdrawLiquidity {
+                        action: DexAction::WithdrawLiquidity {
                             pool: pool_address.into(),
                             lp_token: lp_asset.into(),
                         },
@@ -246,9 +246,9 @@ mod ans_resolve_interface {
                         pool_address(&self.0, (offer_asset.clone(), ask_asset.clone()), ans_host)?;
                     let offer_asset = Asset::new(offer_asset_info, offer_amount);
 
-                    Ok(DexExecuteMsg::RawAction {
+                    Ok(DexExecuteMsg::Action {
                         dex: self.0.clone(),
-                        action: DexRawAction::Swap {
+                        action: DexAction::Swap {
                             pool: pool_address.into(),
                             offer_asset: offer_asset.into(),
                             ask_asset: ask_asset_info.into(),
@@ -275,6 +275,6 @@ mod ans_resolve_interface {
         )])?;
         let (_, mut references) = pools_response.pools.pop().unwrap();
         // TODO: determine best pool?
-        Ok(references.swap_remove(0).pool_address.into())
+        Ok(references.swap_remove(0).pool_address)
     }
 }

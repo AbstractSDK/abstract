@@ -7,7 +7,7 @@ use cw_asset::{AssetBase, AssetInfoBase};
 
 /// Possible raw actions to perform on the DEX
 #[cosmwasm_schema::cw_serde]
-pub enum DexRawAction {
+pub enum DexAction {
     /// Provide arbitrary liquidity
     ProvideLiquidity {
         /// Pool to provide liquidity to

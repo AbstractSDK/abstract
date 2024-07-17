@@ -11,7 +11,7 @@ use cw20_base::msg::QueryMsgFns as _;
 use cw_asset::{AssetBase, AssetInfoBase};
 mod common;
 use abstract_dex_adapter::interface::DexAdapter;
-use abstract_dex_standard::raw_action::DexRawAction;
+use abstract_dex_standard::action::DexAction;
 use abstract_interface::{Abstract, AbstractAccount};
 use common::create_default_account;
 use cosmwasm_std::{coin, Decimal};
@@ -140,9 +140,9 @@ fn raw_swap_raw() -> anyhow::Result<()> {
     // swap 100 RAW to EUR
     let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(AdapterRequestMsg {
         proxy_address: None,
-        request: DexExecuteMsg::RawAction {
+        request: DexExecuteMsg::Action {
             dex: WYNDEX.to_owned(),
-            action: DexRawAction::Swap {
+            action: DexAction::Swap {
                 offer_asset: AssetBase::cw20(wyndex.raw_token.address()?.to_string(), 100u128),
                 ask_asset: AssetInfoBase::native(EUR),
                 pool: PoolAddress::contract(wyndex.raw_eur_pair).into(),

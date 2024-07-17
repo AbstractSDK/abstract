@@ -14,7 +14,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
 use cw_asset::{AssetBase, AssetInfoBase};
 
-pub use crate::raw_action::DexRawAction;
+pub use crate::action::DexAction;
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
@@ -87,11 +87,11 @@ pub enum DexExecuteMsg {
         recipient_account: Option<u32>,
     },
     /// Action to perform on the DEX with raw asset denominations
-    RawAction {
+    Action {
         /// The name of the dex to interact with
         dex: DexName,
         /// The action to perform
-        action: DexRawAction,
+        action: DexAction,
     },
 }
 
