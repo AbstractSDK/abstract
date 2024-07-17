@@ -17,13 +17,14 @@ pub mod host_exchange {
     pub use abstract_osmosis_adapter::dex::Osmosis;
 }
 
-#[cfg(feature = "testing")]
-pub mod dex_tester;
+// #[cfg(feature = "testing")]
+// pub mod dex_tester;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
-    use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError};
+    use abstract_adapter::abstract_interface::ClientResolve;
+    use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError, AnsHost};
     use abstract_adapter::abstract_interface::{AdapterDeployer, RegisteredModule};
     use abstract_adapter::sdk::features::ModuleIdentification;
     use abstract_adapter::std::{
@@ -31,6 +32,7 @@ pub mod interface {
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
 
+    use abstract_dex_standard::ans_action::{DexAnsAction, WholeDexAction};
     use cosmwasm_std::Decimal;
     use cw_asset::{AssetBase, AssetInfoBase};
     use cw_orch::{build::BuildPostfix, interface};
@@ -68,11 +70,13 @@ pub mod interface {
             dex: String,
             action: DexAnsAction,
             account: impl AsRef<AbstractAccount<Chain>>,
+            ans_host: &AnsHost<Chain>,
         ) -> Result<<Chain as TxHandler>::Response, AbstractInterfaceError> {
             let account = account.as_ref();
+            let request = WholeDexAction(dex, action).resolve(ans_host)?;
             let msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: Some(account.proxy.addr_str()?),
-                request: DexExecuteMsg::AnsAction { dex, action },
+                request,
             });
             self.execute(&msg, None).map_err(Into::into)
         }
@@ -99,6 +103,7 @@ pub mod interface {
             ask_asset: &str,
             dex: String,
             account: impl AsRef<AbstractAccount<Chain>>,
+            ans_host: &AnsHost<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);
@@ -109,7 +114,7 @@ pub mod interface {
                 max_spread: Some(Decimal::percent(30)),
                 belief_price: None,
             };
-            self.ans_action(dex, action, account)?;
+            self.ans_action(dex, action, account, ans_host)?;
             Ok(())
         }
 
@@ -139,6 +144,7 @@ pub mod interface {
             assets: Vec<(&str, u128)>,
             dex: String,
             account: impl AsRef<AbstractAccount<Chain>>,
+            ans_host: &AnsHost<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let assets = assets.iter().map(|a| AnsAsset::new(a.0, a.1)).collect();
 
@@ -146,7 +152,7 @@ pub mod interface {
                 assets,
                 max_spread: Some(Decimal::percent(30)),
             };
-            self.ans_action(dex, action, account)?;
+            self.ans_action(dex, action, account, ans_host)?;
             Ok(())
         }
 

@@ -114,20 +114,16 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         self.add_proxy_balance(&proxy_addr, &asset_info_a, swap_value)?;
 
         // swap 1_000_000_000 asset_a to asset_b
-        self.dex_adapter.execute(
-            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
-                request: DexExecuteMsg::AnsAction {
-                    dex: self.dex.name(),
-                    action: DexAnsAction::Swap {
-                        offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_a), swap_value),
-                        ask_asset: AssetEntry::new(&ans_asset_b),
-                        max_spread: None,
-                        belief_price: None,
-                    },
-                },
-            }),
-            None,
+        self.dex_adapter.ans_action(
+            self.dex.name(),
+            DexAnsAction::Swap {
+                offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_a), swap_value),
+                ask_asset: AssetEntry::new(&ans_asset_b),
+                max_spread: None,
+                belief_price: None,
+            },
+            &new_account,
+            self.abstr_deployment.name_service(),
         )?;
 
         // Assert balances
@@ -137,20 +133,16 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         assert!(!balance_b.is_zero());
 
         // swap balance_b asset_b to asset_a
-        self.dex_adapter.execute(
-            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
-                request: DexExecuteMsg::AnsAction {
-                    dex: self.dex.name(),
-                    action: DexAnsAction::Swap {
-                        offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_b), balance_b),
-                        ask_asset: AssetEntry::new(&ans_asset_a),
-                        max_spread: None,
-                        belief_price: None,
-                    },
-                },
-            }),
-            None,
+        self.dex_adapter.ans_action(
+            self.dex.name(),
+            DexAnsAction::Swap {
+                offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_b), balance_b),
+                ask_asset: AssetEntry::new(&ans_asset_a),
+                max_spread: None,
+                belief_price: None,
+            },
+            &new_account,
+            self.abstr_deployment.name_service(),
         )?;
 
         // Assert balances

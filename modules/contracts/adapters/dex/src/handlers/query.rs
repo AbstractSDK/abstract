@@ -1,7 +1,7 @@
 use abstract_adapter::sdk::features::AbstractNameService;
 use abstract_adapter::std::objects::{AssetEntry, DexAssetPairing, PoolAddress};
 use abstract_dex_standard::{
-    ans_action::{pool_address, WholeDexAction},
+    ans_action::pool_address,
     msg::{
         DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, SimulateSwapResponse,
     },
@@ -42,17 +42,9 @@ pub fn query_handler(
             to_json_binary(&simulate_response).map_err(Into::into)
         }
         DexQueryMsg::GenerateMessages {
-            mut message,
+            message,
             addr_as_sender,
         } => {
-            if let DexExecuteMsg::AnsAction { dex, action } = message {
-                let ans = adapter.name_service(deps);
-                let whole_dex_action = WholeDexAction(dex.clone(), action);
-                message = DexExecuteMsg::RawAction {
-                    dex,
-                    action: ans.query(&whole_dex_action)?,
-                }
-            }
             match message {
                 DexExecuteMsg::RawAction { dex, action } => {
                     let (local_dex_name, is_over_ibc) = is_over_ibc(&env, &dex)?;

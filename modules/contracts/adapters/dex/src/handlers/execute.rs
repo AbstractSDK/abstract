@@ -11,9 +11,7 @@ use abstract_adapter::std::{
         AccountId, TruncatedChainId,
     },
 };
-use abstract_dex_standard::{
-    ans_action::WholeDexAction, msg::ExecuteMsg, raw_action::DexRawAction, DexError, DEX_ADAPTER_ID,
-};
+use abstract_dex_standard::{msg::ExecuteMsg, raw_action::DexRawAction, DexError, DEX_ADAPTER_ID};
 use cosmwasm_std::{ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 use cw_asset::AssetBase;
 
@@ -35,24 +33,6 @@ pub fn execute_handler(
     msg: DexExecuteMsg,
 ) -> DexResult {
     match msg {
-        DexExecuteMsg::AnsAction {
-            dex: dex_name,
-            action,
-        } => {
-            let (local_dex_name, is_over_ibc) = is_over_ibc(&env, &dex_name)?;
-            // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
-            let whole_dex_action = WholeDexAction(local_dex_name.clone(), action);
-            let ans = adapter.name_service(deps.as_ref());
-            let raw_action = ans.query(&whole_dex_action)?;
-
-            // if exchange is on an app-chain, execute the action on the app-chain
-            if is_over_ibc {
-                handle_ibc_request(&deps, info, &adapter, local_dex_name, &raw_action)
-            } else {
-                // the action can be executed on the local chain
-                handle_local_request(deps, env, info, &adapter, local_dex_name, raw_action)
-            }
-        }
         DexExecuteMsg::RawAction {
             dex: dex_name,
             action,
