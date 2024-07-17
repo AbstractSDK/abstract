@@ -93,7 +93,7 @@ echo "All the contracts are published!"
 
 # Now all the packages and standards
 
-PACKAGES="abstract-interface abstract-adapter abstract-app abstract-client"
+PACKAGES="abstract-interface abstract-adapter abstract-app abstract-standalone abstract-client"
 STANDARDS="utils staking dex money-market"
 
 for pack in $PACKAGES; do
