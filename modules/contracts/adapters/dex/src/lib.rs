@@ -17,8 +17,8 @@ pub mod host_exchange {
     pub use abstract_osmosis_adapter::dex::Osmosis;
 }
 
-// #[cfg(feature = "testing")]
-// pub mod dex_tester;
+#[cfg(feature = "testing")]
+pub mod dex_tester;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
