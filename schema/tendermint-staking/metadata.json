@@ -1,9 +1,0 @@
-{
-  "name": "Staking",
-  "description": "Delegate from your OS's vault to validators to earn rewards.",
-  "docs": "https://docs.abstract.money",
-  "website": "https://abstract.money",
-  "type": "adapter",
-  "icon": "RiCoinsLine",
-  "readme": "https://raw.githubusercontent.com/AbstractSDK/abstract/main/modules/contracts/adapters/tendermint-staking/README.md"
-}

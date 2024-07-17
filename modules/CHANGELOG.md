@@ -9,17 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Ping pong application that demonstrates IBC features of abstract
-
 ### Changed
 
 ### Removed
 
 ### Fixed
 
-## [0.23.0] - yyyy-mm-dd
+## [0.23.0] - 2024-07-16
 
 ### Added
+
+- Ping pong application that demonstrates IBC features of abstract
 
 ### Changed
 
