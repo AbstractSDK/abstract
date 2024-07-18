@@ -92,14 +92,14 @@ pub mod connection {
 
     pub fn connect_one_way_to<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
         abstr: &Abstract<Chain>,
-        dest: &Abstract<Chain>,
+        host_abstr: &Abstract<Chain>,
         interchain: &IBC,
     ) -> Result<(), AbstractInterfaceError> {
         // First we register client and host respectively
         let chain1_id = abstr.ibc.client.environment().chain_id();
         let chain1_name = TruncatedChainId::from_chain_id(&chain1_id);
 
-        let chain2_id = dest.ibc.client.environment().chain_id();
+        let chain2_id = host_abstr.ibc.client.environment().chain_id();
         let chain2_name = TruncatedChainId::from_chain_id(&chain2_id);
 
         // We get the polytone connection
@@ -111,16 +111,17 @@ pub mod connection {
         // This triggers an IBC message that is used to get back the proxy address
         let proxy_tx_result = abstr.ibc.client.register_infrastructure(
             chain2_name.clone(),
-            dest.ibc.host.address()?.to_string(),
+            host_abstr.ibc.host.address()?.to_string(),
             polytone_connection.note.address()?.to_string(),
         )?;
         // We make sure the IBC execution is done so that the proxy address is saved inside the Abstract contract
         interchain.await_and_check_packets(&chain1_id, proxy_tx_result)?;
 
-        // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
+        // Finally, we get the proxy address and register the proxy with the ibc host for the host chain
         let proxy_address = abstr.ibc.client.host(chain2_name)?;
 
-        dest.ibc
+        host_abstr
+            .ibc
             .host
             .register_chain_proxy(chain1_name, proxy_address.remote_polytone_proxy.unwrap())?;
 
