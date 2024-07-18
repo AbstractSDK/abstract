@@ -239,17 +239,11 @@ pub mod ans {
         fn execute(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
             let ans_host = self.base.ans_host(self.deps)?;
-            let action = WholeDexAction(self.dex_name(), action)
+            let message = WholeDexAction(self.dex_name(), action)
                 .resolve(&self.deps.querier, &ans_host)
                 .map_err(AbstractError::from)?;
 
-            adapters.execute(
-                self.dex_module_id(),
-                DexExecuteMsg::Action {
-                    dex: self.dex_name(),
-                    action,
-                },
-            )
+            adapters.execute(self.dex_module_id(), message)
         }
 
         /// Swap assets in the DEX
@@ -314,7 +308,7 @@ pub mod ans {
             addr_as_sender: impl Into<String>,
         ) -> AbstractSdkResult<GenerateMessagesResponse> {
             let ans_host = self.base.ans_host(self.deps)?;
-            let action = WholeDexAction(
+            let message = WholeDexAction(
                 self.dex_name(),
                 DexAnsAction::Swap {
                     offer_asset,
@@ -327,10 +321,7 @@ pub mod ans {
             .map_err(AbstractError::from)?;
 
             let response: GenerateMessagesResponse = self.query(DexQueryMsg::GenerateMessages {
-                message: DexExecuteMsg::Action {
-                    dex: self.dex_name(),
-                    action,
-                },
+                message,
                 addr_as_sender: addr_as_sender.into(),
             })?;
             Ok(response)

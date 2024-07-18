@@ -77,7 +77,7 @@ pub fn query_handler(
             let cw_ask_asset = ans.query(&ask_asset)?;
 
             let pool_address = pool_address(
-                dex.clone(),
+                &dex,
                 (offer_asset.name.clone(), ask_asset.clone()),
                 &deps.querier,
                 ans.host(),

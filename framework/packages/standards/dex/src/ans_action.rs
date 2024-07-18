@@ -9,7 +9,10 @@ use abstract_std::objects::{
 use cosmwasm_std::{Decimal, StdError};
 use cw_asset::Asset;
 
-use crate::{action::DexAction, msg::DexName};
+use crate::{
+    action::DexAction,
+    msg::{DexExecuteMsg, DexName},
+};
 
 /// Possible actions to perform on the DEX
 #[derive(Clone)]
@@ -43,7 +46,7 @@ pub enum DexAnsAction {
 pub struct WholeDexAction(pub DexName, pub DexAnsAction);
 
 impl Resolve for WholeDexAction {
-    type Output = DexAction;
+    type Output = DexExecuteMsg;
 
     fn resolve(
         &self,
@@ -61,15 +64,18 @@ impl Resolve for WholeDexAction {
                 let assets = assets.resolve(querier, ans_host)?;
 
                 let pool_address = pool_address(
-                    self.0.clone(),
+                    &self.0,
                     (asset_names.swap_remove(0), asset_names.swap_remove(0)),
                     querier,
                     ans_host,
                 )?;
-                Ok(DexAction::ProvideLiquidity {
-                    pool: pool_address.into(),
-                    assets: assets.into_iter().map(Into::into).collect(),
-                    max_spread,
+                Ok(DexExecuteMsg::Action {
+                    dex: self.0.clone(),
+                    action: DexAction::ProvideLiquidity {
+                        pool: pool_address.into(),
+                        assets: assets.into_iter().map(Into::into).collect(),
+                        max_spread,
+                    },
                 })
             }
             DexAnsAction::WithdrawLiquidity { lp_token } => {
@@ -93,9 +99,12 @@ impl Resolve for WholeDexAction {
                 }
 
                 let pool_address = pool_ids.pop().unwrap().pool_address;
-                Ok(DexAction::WithdrawLiquidity {
-                    pool: pool_address.into(),
-                    lp_token: lp_asset.into(),
+                Ok(DexExecuteMsg::Action {
+                    dex: self.0.clone(),
+                    action: DexAction::WithdrawLiquidity {
+                        pool: pool_address.into(),
+                        lp_token: lp_asset.into(),
+                    },
                 })
             }
             DexAnsAction::Swap {
@@ -115,19 +124,22 @@ impl Resolve for WholeDexAction {
                 let ask_asset_info = ask_asset.resolve(querier, ans_host)?;
 
                 let pool_address = pool_address(
-                    self.0.clone(),
+                    &self.0,
                     (offer_asset.clone(), ask_asset.clone()),
                     querier,
                     ans_host,
                 )?;
                 let offer_asset = Asset::new(offer_asset_info, offer_amount);
 
-                Ok(DexAction::Swap {
-                    pool: pool_address.into(),
-                    offer_asset: offer_asset.into(),
-                    ask_asset: ask_asset_info.into(),
-                    max_spread,
-                    belief_price,
+                Ok(DexExecuteMsg::Action {
+                    dex: self.0.clone(),
+                    action: DexAction::Swap {
+                        pool: pool_address.into(),
+                        offer_asset: offer_asset.into(),
+                        ask_asset: ask_asset_info.into(),
+                        max_spread,
+                        belief_price,
+                    },
                 })
             }
         }
@@ -136,12 +148,12 @@ impl Resolve for WholeDexAction {
 
 /// Returns the first pool address to be able to swap given assets on the given dex
 pub fn pool_address(
-    dex: DexName,
+    dex: &str,
     assets: (AssetEntry, AssetEntry),
     querier: &cosmwasm_std::QuerierWrapper,
     ans_host: &AnsHost,
 ) -> abstract_std::objects::ans_host::AnsHostResult<PoolAddress> {
-    let dex_pair = DexAssetPairing::new(assets.0, assets.1, &dex);
+    let dex_pair = DexAssetPairing::new(assets.0, assets.1, dex);
     let mut pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
     // Currently takes the first pool found, but should be changed to take the best pool
     let found: PoolReference = pool_ref.pop().ok_or(AnsHostError::DexPairingNotFound {
@@ -158,11 +170,9 @@ mod ans_resolve_interface {
     use abstract_interface::ClientResolve;
     use abstract_std::ans_host::QueryMsgFns;
 
-    use crate::msg::DexExecuteMsg;
-
     use super::{
         AnsAsset, AnsEntryConvertor, Asset, AssetEntry, DexAction, DexAnsAction, DexAssetPairing,
-        PoolAddress, WholeDexAction,
+        DexExecuteMsg, PoolAddress, WholeDexAction,
     };
 
     impl<Chain: cw_orch::environment::CwEnv> ClientResolve<Chain> for WholeDexAction {
