@@ -21,7 +21,7 @@ impl Identify for Osmosis {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_dex_standard::{msg::SwapNode, DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
+    abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread, SwapNode},
     abstract_sdk::{
         feature_objects::AnsHost, features::AbstractRegistryAccess, std::objects::PoolAddress,
         AbstractSdkError,
