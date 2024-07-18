@@ -1,5 +1,3 @@
-![Abstract Nightly Build](https://github.com/AbstractSDK/abstract/actions/workflows/nightly.yml/badge.svg)
-
 # Abstract SDK
 
 Modular interchain application framework to enable the next generation of onchain apps. See [Abstract Money](https://abstract.money) if you're looking for the user-facing application platform.
