@@ -774,7 +774,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-interface"
-version = "0.23.0"
+version = "0.23.1"
 dependencies = [
  "abstract-account-factory",
  "abstract-ans-host",
