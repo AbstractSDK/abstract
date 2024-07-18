@@ -26,8 +26,8 @@ pub use error::{AbstractSdkError, EndpointError};
 pub use crate::apis::{authz::*, distribution::*, feegrant::*};
 pub use crate::{
     apis::{
-        accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
-        verify::*, version_registry::*,
+        accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, ibc_memo::*, modules::*,
+        respond::*, verify::*, version_registry::*,
     },
     features::AbstractNameServiceClient,
 };
