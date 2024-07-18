@@ -1,9 +1,0 @@
-{
-  "name": "Version Control",
-  "description": "Manage versions of smart-contracts on-chain",
-  "docs": "https://docs.rs/abstract-os/latest/abstract_os/os_factory/index.html",
-  "website": "https://abstract.money",
-  "type": "native",
-  "icon": "GiTrade",
-  "enabled": false
-}

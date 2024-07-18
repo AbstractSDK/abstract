@@ -1,9 +1,0 @@
-{
-  "name": "Abstract Name Service Host",
-  "description": "Name Service for assets, contracts, channels, etc.",
-  "docs": "https://docs.rs/abstract-os/latest/abstract_os/ans_host/index.html",
-  "website": "https://abstract.money",
-  "type": "native",
-  "icon": "GiTrade",
-  "enabled": false
-}
