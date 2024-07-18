@@ -14,7 +14,7 @@ pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
 pub const WITHDRAW_LIQUIDITY: u64 = 7546;
 pub const SWAP: u64 = 7544;
-pub const CUSTOM_SWAP: u64 = 7545;
+pub const SWAP_ROUTE: u64 = 7545;
 
 impl<T> DexAdapter for T where T: AbstractNameService + Execution + AbstractRegistryAccess {}
 
@@ -93,7 +93,23 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                 )?,
                 SWAP,
             ),
-            DexRawAction::RouteSwap { .. } => todo!(),
+            DexRawAction::RouteSwap {
+                route,
+                offer_asset,
+                max_spread,
+                belief_price,
+            } => (
+                self.resolve_route_swap(
+                    deps,
+                    sender,
+                    offer_asset,
+                    route,
+                    exchange.as_mut(),
+                    max_spread,
+                    belief_price,
+                )?,
+                SWAP_ROUTE,
+            ),
         })
     }
 

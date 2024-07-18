@@ -22,7 +22,7 @@ name = "schema"
 required-features = ["schema"]
 
 [features]
-default = ["export"]
+default = ["export", "osmosis-test"]
 export = []
 schema = ["abstract-adapter/schema"]
 # TODO: do we need all these deps here?
