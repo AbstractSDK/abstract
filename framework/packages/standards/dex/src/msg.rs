@@ -103,12 +103,31 @@ pub enum DexExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+/// Swap node for swap route
 pub struct SwapNode<T: cw_address_like::AddressLike> {
+    /// Pool id of the swap
     pub pool_id: PoolAddressBase<T>,
+    /// Asset in return from the swap
     pub ask_asset: AssetInfoBase<T>,
 }
 
 impl SwapNode<String> {
+    /// Validate data contained in an _unchecked_ **swap node** instance; return a new _checked_
+    /// **swap node** instance:
+    /// * For Contract addresses, assert its address is valid
+    ///
+    ///
+    /// ```rust,no_run
+    /// use cosmwasm_std::{Addr, Api};
+    /// use abstract_std::{abstract_dex_standard::msg::SwapNode, AbstractResult};
+    ///
+    /// fn validate_swap_node(api: &dyn Api, swap_node_unchecked: &SwapNode<String>) {
+    ///     match swap_node_unchecked.check(api) {
+    ///         Ok(info) => println!("swap node is valid: {}", info.to_string()),
+    ///         Err(err) => println!("swap node is invalid! reason: {}", err),
+    ///     }
+    /// }
+    /// ```
     pub fn check(self, api: &dyn Api) -> AbstractResult<SwapNode<Addr>> {
         Ok(SwapNode {
             pool_id: self.pool_id.check(api)?,
