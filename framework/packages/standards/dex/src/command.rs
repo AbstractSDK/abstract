@@ -56,10 +56,12 @@ pub trait DexCommand: Identify {
 
     /// Execute a swap on the given DEX using the swap in question custom logic
     #[allow(clippy::too_many_arguments)]
-    fn route_swap(
+    #[allow(unused)]
+    // TODO: do we need normal swap or should every integration be swap_route?
+    fn swap_route(
         &self,
         deps: Deps,
-        route_swap: Vec<SwapNode<Addr>>,
+        swap_route: Vec<SwapNode<Addr>>,
         offer_asset: Asset,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
@@ -113,9 +115,4 @@ pub trait DexCommand: Identify {
         // Dummy implementation, since most of dexes does not require this method
         Ok(())
     }
-    // fn raw_swap();
-    // fn raw_provide_liquidity();
-    // fn raw_withdraw_liquidity();
-    // fn route_swap();
-    // fn raw_route_swap();
 }

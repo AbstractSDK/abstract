@@ -1,4 +1,4 @@
-use abstract_dex_standard::{Identify, SwapNode};
+use abstract_dex_standard::Identify;
 use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::Addr;
 
@@ -21,7 +21,7 @@ impl Identify for Osmosis {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
+    abstract_dex_standard::{msg::SwapNode, DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::{
         feature_objects::AnsHost, features::AbstractRegistryAccess, std::objects::PoolAddress,
         AbstractSdkError,
@@ -109,15 +109,15 @@ impl DexCommand for Osmosis {
         Ok(vec![swap_msg])
     }
 
-    fn route_swap(
+    fn swap_route(
         &self,
         _deps: Deps,
-        route_swap: Vec<SwapNode>,
+        swap_route: Vec<SwapNode<Addr>>,
         offer_asset: Asset,
         _belief_price: Option<Decimal>,
         _max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-        let routes = route_swap
+        let routes = swap_route
             .into_iter()
             .map(|swap_node| {
                 let pair_address = swap_node.pool_id.expect_id()?;

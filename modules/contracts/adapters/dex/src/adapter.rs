@@ -4,7 +4,7 @@ use abstract_adapter::sdk::{
     Execution,
 };
 use abstract_adapter::std::objects::pool_id::PoolAddressBase;
-use abstract_dex_standard::{raw_action::DexRawAction, DexCommand, DexError};
+use abstract_dex_standard::{msg::SwapNode, raw_action::DexRawAction, DexCommand, DexError};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};
 
@@ -146,15 +146,16 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         deps: Deps,
         sender: Addr,
         offer_asset: AssetBase<String>,
-        ask_asset: AssetInfoBase<String>,
-        pool: PoolAddressBase<String>,
+        swap_route: Vec<SwapNode<String>>,
         exchange: &mut dyn DexCommand,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pool_address = pool.check(deps.api)?;
         let mut offer_asset = offer_asset.check(deps.api, None)?;
-        let ask_asset = ask_asset.check(deps.api, None)?;
+        let swap_route = swap_route
+            .into_iter()
+            .map(|node| node.check(deps.api))
+            .collect::<abstract_adapter::std::AbstractResult<_>>()?;
 
         // account for fee
         let dex_fees = DEX_FEES.load(deps.storage)?;
@@ -167,14 +168,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
         )?;
-        let mut swap_msgs = exchange.route_swap(
-            deps,
-            pool_address,
-            offer_asset,
-            ask_asset,
-            belief_price,
-            max_spread,
-        )?;
+        let mut swap_msgs =
+            exchange.swap_route(deps, swap_route, offer_asset, belief_price, max_spread)?;
         // insert fee msg
         if let Some(f) = fee_msg {
             swap_msgs.push(f)
