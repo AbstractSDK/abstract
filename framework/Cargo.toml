@@ -44,6 +44,7 @@ cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
 cw-address-like = { version = "1.0" }
 cw-clearable = { version = "0.1.2" }
+serde-cw-value = "0.7.0"
 
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
