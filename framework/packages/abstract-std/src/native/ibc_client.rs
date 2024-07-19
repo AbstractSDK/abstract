@@ -97,6 +97,7 @@ pub enum ExecuteMsg {
         /// Example: "osmosis"
         host_chain: TruncatedChainId,
         funds: Vec<Coin>,
+        memo: Option<String>,
     },
     /// Only callable by Account proxy
     /// Register an Account on a remote chain over IBC

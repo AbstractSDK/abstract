@@ -42,6 +42,7 @@ wasm-all-ci:
 schema:
   #!/usr/bin/env bash
   set -e
+  rm -rf schema # We don't want to keep previous version schemas or contracts we don't support anymore inside this repo
   sh scripts/modules-schema.sh
   sh scripts/framework-schema.sh
   set +e

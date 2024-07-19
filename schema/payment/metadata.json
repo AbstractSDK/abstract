@@ -1,9 +1,0 @@
-{
-  "name": "Payments",
-  "description": "Get paid in any asset.",
-  "website": "",
-  "docs": "",
-  "type": "app",
-  "icon": "GiTrade",
-  "enabled": true
-}

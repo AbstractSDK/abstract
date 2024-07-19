@@ -22,7 +22,7 @@ schemars = { workspace = true }
 cw-asset = { workspace = true }
 abstract-app = { workspace = true }
 cw-orch = { workspace = true }
-abstract-ibc-client = { version = "0.23.0-beta.0", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
+abstract-ibc-client = { version = "0.23.0", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
 
 [dev-dependencies]
 cw-orch-interchain = { version = "0.3", features = ["daemon"] }

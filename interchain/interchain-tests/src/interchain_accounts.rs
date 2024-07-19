@@ -724,6 +724,7 @@ mod test {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     funds: coins(10, origin_denom),
                     host_chain: TruncatedChainId::from_chain_id(STARGAZE),
+                    memo: None,
                 },
             },
         )?;
