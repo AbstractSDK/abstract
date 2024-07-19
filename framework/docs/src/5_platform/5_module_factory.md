@@ -84,7 +84,7 @@ sequenceDiagram
 
 ### App Execution w/ Dependencies
 
-In this example, we use [Equilibrium](../7_use_cases/1_equilibrium.md)'s `Rebalance` permissionless function as an example. Modules with
+In this example, we use [Equilibrium](../7_use_cases/equilibrium.md)'s `Rebalance` permissionless function as an example. Modules with
 dependencies (`equilibrium:balancer` is dependent on `abstract:etf` and `abstract:dex`) have their addresses dynamically
 resolved when called.
 

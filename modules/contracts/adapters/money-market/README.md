@@ -11,11 +11,15 @@ The Lending Market Adapter Module provides a unified interface to interact with 
 - **Borrow**: Borrow funds from the lending market
 - **Repay**: Repay funds to the lending market
 
+```admonish info
+Note that each one of these actions supports both ANS and raw variants, meaning that you can use both human-readable and explicit asset denominations.
+```
+
 ## Supported Lending Markets
 
 The following lending markets are currently supported:
 
-- Mars (Osmosis)
+- Mars (Osmosis, Neutron)
 - Kujira Ghost (Kujira)
 
 If you would like to request support for an additional lending market, please create a GitHub issue or reach out to us on Discord.
@@ -48,7 +52,7 @@ let deposit_msg = money_market.deposit(deposit_asset);
 
 ## Limitation
 
-The Money Market adapter provides easy ways of interacting with Money Markets. However, some errors can appear without the adapter catching them:
+The Lending Market adapter provides easy ways of interacting with lending markets. However, some errors can appear without the adapter catching them:
 
 - The lending market can have deposit limits enabled which may be crossed when using this adapter.
 - The lending market may not have liquidity available to borrow funds.

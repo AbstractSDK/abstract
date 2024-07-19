@@ -1,10 +1,6 @@
 # CW-Orchestrator
 
-The <a href="https://github.com/AbstractSDK/cw-orchestrator" target="_blank">cw-orchestrator</a> package is a scripting
-tool designed to simplify interactions with CosmWasm smart contracts. By providing a set of macros that generate
-type-safe interfaces for your contracts, it not only enhances the code's readability and maintainability but also
-reduces testing and deployment overhead. These interfaces can be seamlessly combined into a single object, fostering
-easier integration and collaboration.
+<a href="https://github.com/AbstractSDK/cw-orchestrator" target="_blank">Cw-orchestrator</a> is the most advanced CosmWasm scripting, testing, and deployment tool designed to simplify interactions with CosmWasm smart contracts. It provides a set of macros that generate type-safe interfaces for your contracts, it not only enhances the code's readability and maintainability but also reduces testing and deployment overhead. We encourage developers to publish their cw-orchestrator libraries for effective inter-team collaboration.
 
 Furthermore, cw-orchestrator allows for code reusability between testing and deployments, making it our
 primary tool in enabling Abstract's infrastructure to be highly available.
