@@ -191,6 +191,13 @@ pub enum QueryMsg {
     /// Returns [`AccountBaseResponse`]
     #[returns(AccountBaseResponse)]
     AccountBase { account_id: AccountId },
+    /// List Accounts
+    /// Returns [`AccountsResponse`]
+    #[returns(AccountsResponse)]
+    Accounts {
+        start_after: Option<AccountId>,
+        limit: Option<u8>,
+    },
     /// Queries module information
     /// Modules that are yanked are not returned
     /// Returns [`ModulesResponse`]
@@ -225,6 +232,11 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct AccountBaseResponse {
     pub account_base: AccountBase,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct AccountsResponse {
+    pub accounts: Vec<(AccountId, AccountBase)>,
 }
 
 #[cosmwasm_schema::cw_serde]

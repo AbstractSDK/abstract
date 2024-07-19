@@ -101,6 +101,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
         QueryMsg::AccountBase { account_id } => {
             to_json_binary(&queries::handle_account_address_query(deps, account_id)?)
         }
+        QueryMsg::Accounts { start_after, limit } => {
+            to_json_binary(&queries::handle_accounts_query(deps, start_after, limit)?)
+        }
         QueryMsg::Modules { infos } => to_json_binary(&queries::handle_modules_query(deps, infos)?),
         QueryMsg::Namespaces { accounts } => {
             to_json_binary(&queries::handle_namespaces_query(deps, accounts)?)

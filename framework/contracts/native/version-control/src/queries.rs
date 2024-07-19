@@ -15,7 +15,7 @@ use abstract_std::{
     objects::module::ModuleStatus,
     version_control::{
         state::{NAMESPACES_INFO, PENDING_MODULES},
-        ModuleConfiguration, NamespaceInfo, NamespaceResponse,
+        AccountsResponse, ModuleConfiguration, NamespaceInfo, NamespaceResponse,
     },
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
@@ -37,6 +37,23 @@ pub fn handle_account_address_query(
         )),
         Ok(base) => Ok(AccountBaseResponse { account_base: base }),
     }
+}
+
+pub fn handle_accounts_query(
+    deps: Deps,
+    start_after: Option<AccountId>,
+    limit: Option<u8>,
+) -> StdResult<AccountsResponse> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+
+    let start_bound: Option<Bound<&AccountId>> = start_after.as_ref().map(Bound::exclusive);
+
+    let accounts = ACCOUNT_ADDRESSES
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect::<StdResult<Vec<_>>>()?;
+
+    Ok(AccountsResponse { accounts })
 }
 
 pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<ModulesResponse> {

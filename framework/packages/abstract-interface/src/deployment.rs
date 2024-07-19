@@ -11,11 +11,9 @@ use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VE
 use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
-// Can't use symlinks in debug mode
-// https://github.com/pyrossh/rust-embed/pull/234
 #[folder = "./"]
 #[include = "state.json"]
-struct State;
+pub struct State;
 
 impl State {
     pub fn load_state() -> serde_json::Value {
