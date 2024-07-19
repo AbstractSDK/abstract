@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use cosmwasm_std::{from_json, to_json_binary, Addr, Binary, Coin, StdResult};
+use cosmwasm_std::{from_json, to_json_binary, Addr, Binary, Coin};
 use serde_cw_value::Value;
 
 /// Build memo value helper trait
