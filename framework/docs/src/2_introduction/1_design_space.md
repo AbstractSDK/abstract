@@ -1,7 +1,7 @@
 # The Abstract App Design Space
 
-The Abstract SDK broadens your design space beyond traditional smart contract application architectures. While
-applications built with stand-alone smart contracts can also be crafted using the SDK, the Abstract SDK promotes a level
+The [Abstract SDK](../3_framework/1_abstract_sdk.md) broadens your design space beyond traditional smart contract application architectures. While
+applications built with standalone smart contracts can also be crafted using the SDK, the Abstract SDK promotes a level
 of code reusability that goes beyond stand-alone smart contract development. It is through this code reusability that
 novel applications can be constructed with little effort in a short time.
 
@@ -64,10 +64,14 @@ This approach offers two significant benefits:
   maintain. Furthermore, the DEX and staking adapters are battle-tested smart contracts, which further reduces the
   attack surface.
 
-### Innovative: Self-Hosted Applications
+### Innovative: Self-Hosted (MyFi) Applications
 
-Self-hosted applications, on the other hand, represent a novel concept only achievable with the Abstract SDK. Here, _
-_users own their applications__ and don't need to transfer funds to the application's smart contract. Instead, they
+```admonish info
+Read [our blogpost on Abstract MyFi](https://medium.com/abstract-money/abstract-introduces-myfi-a-case-study-cff2bc0e2e4d) for a less technical overview.
+```
+
+MyFi, short for My Finance, is a novel concept for "self-hosted applications" only achievable with Abstract's unique application architecture.
+ Here, __users own their applications__ and don't need to transfer funds to the application's smart contract. Instead, they
 deploy the smart contract to their account, which grants the application rights to access those funds. Each application
 is a new instantiation of a smart contract that is owned and configurable by the user. The user can thus update the
 application's code, parameters, and permissions at any time, without relying on the application's maintainers.
