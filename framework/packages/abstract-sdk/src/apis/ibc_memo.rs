@@ -3,11 +3,11 @@ use std::collections::BTreeMap;
 use cosmwasm_std::{from_json, to_json_binary, Addr, Binary, Coin};
 use serde_cw_value::Value;
 
-/// Build memo value helper trait
-pub trait BuildIbcMemo {
-    /// Build memo value
+/// Trait for memo-based IBC message builders.
+pub trait IbcMemoBuilder {
+    /// Build the memo json [Value] object.
     fn build_value(self) -> Value;
-    /// Build memo
+    /// Build the memo json string.
     fn build(self) -> cosmwasm_std::StdResult<String>
     where
         Self: Sized,
@@ -16,15 +16,15 @@ pub trait BuildIbcMemo {
     }
 }
 
-/// Execute wasm memo
-pub struct ExecuteWasmContractMemoBuilder {
+/// Builder for [IbcHooks](https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks) memo field.
+pub struct IbcHooksBuilder {
     contract_addr: Addr,
     msg: Binary,
     funds: Option<Vec<Coin>>,
     ibc_callback: Option<Addr>,
 }
 
-impl ExecuteWasmContractMemoBuilder {
+impl IbcHooksBuilder {
     /// New Wasm Contract Memo IBC Hook
     pub fn new(contract_addr: Addr, msg: &impl serde::Serialize) -> Self {
         let msg = to_json_binary(&msg).unwrap();
@@ -50,7 +50,7 @@ impl ExecuteWasmContractMemoBuilder {
     }
 }
 
-impl BuildIbcMemo for ExecuteWasmContractMemoBuilder {
+impl IbcMemoBuilder for IbcHooksBuilder {
     fn build_value(self) -> Value {
         let mut execute_wasm_value = BTreeMap::from([
             (
@@ -97,17 +97,17 @@ impl BuildIbcMemo for ExecuteWasmContractMemoBuilder {
     }
 }
 
-/// Build packet forward middleware memo
-pub struct MiddlewareForwardMemoBuilder {
+/// Builder for [Packet Forward Middleware](https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware) memos.
+pub struct PacketForwardMiddlewareBuilder {
+    channel: String,
     receiver: Option<Addr>,
     port: Option<String>,
-    channel: String,
     timeout: Option<String>,
     retries: Option<u8>,
     next: Option<Value>,
 }
 
-impl MiddlewareForwardMemoBuilder {
+impl PacketForwardMiddlewareBuilder {
     /// Create forward memo
     pub fn new(channel: impl Into<String>) -> Self {
         Self {
@@ -146,15 +146,15 @@ impl MiddlewareForwardMemoBuilder {
     }
 
     /// Add next memo to middleware
-    pub fn next(mut self, next_memo: impl BuildIbcMemo) -> Self {
+    pub fn next(mut self, next_memo: impl IbcMemoBuilder) -> Self {
         self.next = Some(next_memo.build_value());
         self
     }
 }
 
-impl BuildIbcMemo for MiddlewareForwardMemoBuilder {
+impl IbcMemoBuilder for PacketForwardMiddlewareBuilder {
     fn build_value(self) -> Value {
-        let MiddlewareForwardMemoBuilder {
+        let PacketForwardMiddlewareBuilder {
             receiver,
             port,
             channel,
@@ -198,7 +198,7 @@ mod test {
 
     #[test]
     fn memo_middleware() {
-        let minimal = MiddlewareForwardMemoBuilder::new("channel-1")
+        let minimal = PacketForwardMiddlewareBuilder::new("channel-1")
             .build()
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&minimal).unwrap();
@@ -211,12 +211,12 @@ mod test {
         });
         assert_eq!(value, expected_value);
 
-        let complete = MiddlewareForwardMemoBuilder::new("channel-1")
+        let complete = PacketForwardMiddlewareBuilder::new("channel-1")
             .receiver(Addr::unchecked("foo"))
             .port("different_port")
             .timeout("10m")
             .retries(4)
-            .next(MiddlewareForwardMemoBuilder::new("channel-2"))
+            .next(PacketForwardMiddlewareBuilder::new("channel-2"))
             .build()
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&complete).unwrap();
@@ -238,10 +238,10 @@ mod test {
         });
         assert_eq!(value, expected_value);
 
-        let multimultihop = MiddlewareForwardMemoBuilder::new("channel-1")
+        let multimultihop = PacketForwardMiddlewareBuilder::new("channel-1")
             .next(
-                MiddlewareForwardMemoBuilder::new("channel-2")
-                    .next(MiddlewareForwardMemoBuilder::new("channel-3")),
+                PacketForwardMiddlewareBuilder::new("channel-2")
+                    .next(PacketForwardMiddlewareBuilder::new("channel-3")),
             )
             .build()
             .unwrap();
@@ -276,7 +276,7 @@ mod test {
             "withdraw": {}
         });
 
-        let minimal = ExecuteWasmContractMemoBuilder::new(Addr::unchecked("mock_addr"), &msg)
+        let minimal = IbcHooksBuilder::new(Addr::unchecked("mock_addr"), &msg)
             .build()
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&minimal).unwrap();
@@ -288,7 +288,7 @@ mod test {
         });
         assert_eq!(value, expected_value);
 
-        let complete = ExecuteWasmContractMemoBuilder::new(Addr::unchecked("mock_addr"), &msg)
+        let complete = IbcHooksBuilder::new(Addr::unchecked("mock_addr"), &msg)
             .funds(coins(42, "abstract"))
             .callback_contract(Addr::unchecked("callback_addr"))
             .build()
@@ -310,8 +310,8 @@ mod test {
 
     #[test]
     fn memo_hop_wasm_hook() {
-        let memo = MiddlewareForwardMemoBuilder::new("channel-1")
-            .next(ExecuteWasmContractMemoBuilder::new(
+        let memo = PacketForwardMiddlewareBuilder::new("channel-1")
+            .next(IbcHooksBuilder::new(
                 Addr::unchecked("mock_addr"),
                 &json!({
                     "withdraw": {}
