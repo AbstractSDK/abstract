@@ -1,6 +1,8 @@
-use std::collections::BTreeMap;
+mod hooks;
+mod pfm;
 
-use cosmwasm_std::{from_json, to_json_binary, Addr, Binary, Coin};
+pub use hooks::IbcHooksBuilder;
+pub use pfm::PacketForwardMiddlewareBuilder;
 use serde_cw_value::Value;
 
 /// Trait for memo-based IBC message builders.
@@ -16,184 +18,10 @@ pub trait IbcMemoBuilder {
     }
 }
 
-/// Builder for [IbcHooks](https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks) memo field.
-pub struct IbcHooksBuilder {
-    contract_addr: Addr,
-    msg: Binary,
-    funds: Option<Vec<Coin>>,
-    ibc_callback: Option<Addr>,
-}
-
-impl IbcHooksBuilder {
-    /// New Wasm Contract Memo IBC Hook
-    pub fn new(contract_addr: Addr, msg: &impl serde::Serialize) -> Self {
-        let msg = to_json_binary(&msg).unwrap();
-        Self {
-            contract_addr,
-            msg,
-            funds: None,
-            ibc_callback: None,
-        }
-    }
-
-    /// Add funds to hook
-    pub fn funds(mut self, funds: Vec<Coin>) -> Self {
-        self.funds = Some(funds);
-        self
-    }
-
-    /// Contract that will receive callback, see:
-    /// https://github.com/cosmos/ibc-apps/blob/main/modules/ibc-hooks/README.md#interface-for-receiving-the-acks-and-timeouts
-    pub fn callback_contract(mut self, callback_contract: Addr) -> Self {
-        self.ibc_callback = Some(callback_contract);
-        self
-    }
-}
-
-impl IbcMemoBuilder for IbcHooksBuilder {
-    fn build_value(self) -> Value {
-        let mut execute_wasm_value = BTreeMap::from([
-            (
-                Value::String("contract".to_owned()),
-                Value::String(self.contract_addr.into_string()),
-            ),
-            (
-                Value::String("msg".to_owned()),
-                from_json(&self.msg).expect("expected valid json message"),
-            ),
-        ]);
-
-        if let Some(funds) = self.funds {
-            execute_wasm_value.insert(
-                Value::String("funds".to_owned()),
-                Value::Seq(
-                    funds
-                        .into_iter()
-                        .map(|coin| {
-                            Value::Map(BTreeMap::from([
-                                (Value::String("denom".to_owned()), Value::String(coin.denom)),
-                                (
-                                    Value::String("amount".to_owned()),
-                                    Value::String(coin.amount.to_string()),
-                                ),
-                            ]))
-                        })
-                        .collect(),
-                ),
-            );
-        }
-
-        let mut memo = BTreeMap::from([(
-            Value::String("wasm".to_owned()),
-            Value::Map(execute_wasm_value.into_iter().collect()),
-        )]);
-        if let Some(contract_addr) = self.ibc_callback {
-            memo.insert(
-                Value::String("ibc_callback".to_owned()),
-                Value::String(contract_addr.into_string()),
-            );
-        }
-        Value::Map(memo)
-    }
-}
-
-/// Builder for [Packet Forward Middleware](https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware) memos.
-pub struct PacketForwardMiddlewareBuilder {
-    channel: String,
-    receiver: Option<Addr>,
-    port: Option<String>,
-    timeout: Option<String>,
-    retries: Option<u8>,
-    next: Option<Value>,
-}
-
-impl PacketForwardMiddlewareBuilder {
-    /// Create forward memo
-    pub fn new(channel: impl Into<String>) -> Self {
-        Self {
-            channel: channel.into(),
-            receiver: None,
-            port: None,
-            timeout: None,
-            retries: None,
-            next: None,
-        }
-    }
-
-    /// Address of the receiver, defaults to `pfm`
-    /// https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware#intermediate-receivers
-    pub fn receiver(mut self, receiver: Addr) -> Self {
-        self.receiver = Some(receiver);
-        self
-    }
-
-    /// Port, defaults to "transfer"
-    pub fn port(mut self, port: impl Into<String>) -> Self {
-        self.port = Some(port.into());
-        self
-    }
-
-    /// Timeout duration, for example: "10m"
-    pub fn timeout(mut self, timeout: impl Into<String>) -> Self {
-        self.timeout = Some(timeout.into());
-        self
-    }
-
-    /// Retries number
-    pub fn retries(mut self, retries: u8) -> Self {
-        self.retries = Some(retries);
-        self
-    }
-
-    /// Add next memo to middleware
-    pub fn next(mut self, next_memo: impl IbcMemoBuilder) -> Self {
-        self.next = Some(next_memo.build_value());
-        self
-    }
-}
-
-impl IbcMemoBuilder for PacketForwardMiddlewareBuilder {
-    fn build_value(self) -> Value {
-        let PacketForwardMiddlewareBuilder {
-            receiver,
-            port,
-            channel,
-            timeout,
-            retries,
-            next,
-        } = self;
-        let receiver = receiver.map(Addr::into_string).unwrap_or("pfm".to_owned());
-        let port = port.unwrap_or("transfer".to_owned());
-
-        let mut forward_value = BTreeMap::from([
-            (
-                Value::String("receiver".to_owned()),
-                Value::String(receiver),
-            ),
-            (Value::String("port".to_owned()), Value::String(port)),
-            (Value::String("channel".to_owned()), Value::String(channel)),
-        ]);
-        if let Some(timeout) = timeout {
-            forward_value.insert(Value::String("timeout".to_owned()), Value::String(timeout));
-        }
-        if let Some(retries) = retries {
-            forward_value.insert(Value::String("retries".to_owned()), Value::U8(retries));
-        }
-        if let Some(next) = next {
-            forward_value.insert(Value::String("next".to_owned()), next);
-        }
-
-        Value::Map(BTreeMap::from([(
-            Value::String("forward".to_owned()),
-            Value::Map(forward_value.into_iter().collect()),
-        )]))
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::coins;
+    use cosmwasm_std::{coins, Addr};
     use serde_json::json;
 
     #[test]
