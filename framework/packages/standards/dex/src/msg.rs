@@ -6,7 +6,7 @@ use abstract_std::{
     objects::{
         fee::{Fee, UsageFee},
         pool_id::{PoolAddressBase, UncheckedPoolAddress},
-        AnsAsset, AssetEntry, DexAssetPairing, PoolAddress,
+        AnsAsset, AssetEntry, DexAssetPairing,
     },
     AbstractError, AbstractResult,
 };
