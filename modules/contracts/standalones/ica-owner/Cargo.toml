@@ -67,5 +67,5 @@ my-standalone = { path = "." }
 abstract-client = { workspace = true }
 abstract-standalone = { workspace = true, features = ["test-utils"] }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
-cw-orch-starship = { version = "0.3.1" }
+cw-orch-starship = { version = "0.4.1" }
 cw-orch = { workspace = true, features = ["daemon"] }
