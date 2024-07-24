@@ -50,8 +50,8 @@ impl AdapterExecuteMsg for Empty {}
 pub trait AdapterQueryMsg: Serialize {}
 
 impl<T: AdapterQueryMsg> From<T> for QueryMsg<T> {
-    fn from(app: T) -> Self {
-        Self::Module(app)
+    fn from(module: T) -> Self {
+        Self::Module(module)
     }
 }
 

@@ -33,8 +33,8 @@ use serde::Serialize;
 /// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
 pub trait AppExecuteMsg: Serialize {}
 impl<T: AppExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
-    fn from(app: T) -> Self {
-        Self::Module(app)
+    fn from(module: T) -> Self {
+        Self::Module(module)
     }
 }
 
@@ -45,8 +45,8 @@ impl AppExecuteMsg for Empty {}
 /// Enables [`Into<QueryMsg>`] for BOOT fn-generation support.
 pub trait AppQueryMsg: Serialize {}
 impl<T: AppQueryMsg> From<T> for QueryMsg<T> {
-    fn from(app: T) -> Self {
-        Self::Module(app)
+    fn from(module: T) -> Self {
+        Self::Module(module)
     }
 }
 impl AppQueryMsg for Empty {}
