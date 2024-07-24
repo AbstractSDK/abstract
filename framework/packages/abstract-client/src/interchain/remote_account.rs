@@ -15,7 +15,7 @@ use abstract_std::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        module::{ModuleInfo, ModuleVersion},
+        module::{ModuleId, ModuleInfo, ModuleVersion},
         namespace::Namespace,
         ownership, AccountId, AssetEntry, TruncatedChainId,
     },
@@ -431,6 +431,27 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         })
     }
 
+    /// Deposit funds to the manager of the account with IBC transfer
+    pub fn deposit(
+        &self,
+        funds: Vec<Coin>,
+        memo: Option<String>,
+    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+        self.ibc_client_execute(ibc_client::ExecuteMsg::SendFunds {
+            host_chain: self.host_chain(),
+            funds,
+            memo,
+        })
+    }
+
+    /// Withdraw funds from the manager of the account
+    pub fn withdraw(&self) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+        self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
+            host_chain: self.host_chain(),
+            action: ibc_host::HostAction::Helpers(ibc_host::HelperAction::SendAllBack),
+        })
+    }
+
     /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
         let manager = self.manager()?;
@@ -469,6 +490,24 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             .query(&manager::QueryMsg::ModuleAddresses { ids }, &manager)
             .map_err(Into::into)
             .map_err(Into::into)
+    }
+
+    /// Check if module installed on account
+    pub fn module_installed(&self, id: ModuleId) -> AbstractClientResult<bool> {
+        let manager = self.manager()?;
+
+        let key = manager::state::ACCOUNT_MODULES.key(id).to_vec();
+        let maybe_module_addr = self
+            .remote_chain()
+            .wasm_querier()
+            .raw_query(manager, key)
+            .map_err(Into::into)?;
+        Ok(!maybe_module_addr.is_empty())
+    }
+
+    /// Check if module installed on account
+    pub fn ibc_status(&self) -> AbstractClientResult<bool> {
+        self.module_installed(IBC_CLIENT)
     }
 
     /// Retrieve installed application on account

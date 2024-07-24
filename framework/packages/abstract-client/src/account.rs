@@ -32,14 +32,14 @@ use abstract_std::{
     },
     objects::{
         gov_type::GovernanceDetails,
-        module::{ModuleInfo, ModuleVersion},
+        module::{ModuleId, ModuleInfo, ModuleVersion},
         namespace::Namespace,
         ownership,
         validation::verifiers,
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    PROXY,
+    IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{
@@ -83,6 +83,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
     install_modules: Vec<ModuleInstallConfig>,
+    enable_ibc: Option<bool>,
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
@@ -108,6 +109,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             ownership: None,
             owner_account: None,
             install_modules: vec![],
+            enable_ibc: None,
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: false,
@@ -215,6 +217,12 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self.install_modules.extend(deps_install_config);
         self.install_modules
             .push(M::install_config(module_configuration)?);
+        Ok(self)
+    }
+
+    /// Enable ibc on account
+    pub fn ibc_enable(&mut self, enable: bool) -> AbstractClientResult<&mut Self> {
+        self.enable_ibc = Some(enable);
         Ok(self)
     }
 
@@ -407,7 +415,6 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Query account balance of a given denom
-    // TODO: Asset balance?
     pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
@@ -427,6 +434,7 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
             .map_err(Into::into)
     }
+    // TODO: Ans balance
 
     /// Query account info
     pub fn info(&self) -> AbstractClientResult<AccountInfo> {
@@ -436,6 +444,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Install an application on the account.
     /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
+    /// Errors if this module already installed
     pub fn install_app<M: InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
@@ -451,6 +460,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Install an standalone on the account.
     /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
+    /// Errors if this module already installed
     pub fn install_standalone<M: InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
@@ -465,6 +475,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install an adapter on current account.
+    /// Errors if this module already installed
     pub fn install_adapter<M: InstallConfig<InitMsg = Empty> + From<Contract<Chain>>>(
         &self,
         funds: &[Coin],
@@ -481,6 +492,8 @@ impl<Chain: CwEnv> Account<Chain> {
     /// installs an App module and its dependencies with the provided dependencies config. \
     ///
     /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the App module.
+    /// Errors if this module installed
+    /// FIXME: Errors if any of the dependencies modules already installed
     pub fn install_app_with_dependencies<
         M: DependencyCreation + InstallConfig + From<Contract<Chain>>,
     >(
@@ -626,6 +639,25 @@ impl<Chain: CwEnv> Account<Chain> {
             .manager
             .module_addresses(ids)
             .map_err(Into::into)
+    }
+
+    /// Check if module installed on account
+    pub fn module_installed(&self, id: ModuleId) -> AbstractClientResult<bool> {
+        // Currently this is the only way that
+        // - Doesn't error on missing account module
+        // - Predictable gas usage
+        let key = manager::state::ACCOUNT_MODULES.key(id).to_vec();
+        let maybe_module_addr = self
+            .environment()
+            .wasm_querier()
+            .raw_query(self.abstr_account.manager.addr_str()?, key)
+            .map_err(Into::into)?;
+        Ok(!maybe_module_addr.is_empty())
+    }
+
+    /// Check if module installed on account
+    pub fn ibc_status(&self) -> AbstractClientResult<bool> {
+        self.module_installed(IBC_CLIENT)
     }
 
     /// Get Sub Accounts of this account

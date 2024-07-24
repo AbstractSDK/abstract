@@ -1380,3 +1380,19 @@ fn install_ibc_client_on_creation() -> anyhow::Result<()> {
     assert_eq!(ibc_module_addr.modules[0].0, IBC_CLIENT);
     Ok(())
 }
+
+#[test]
+fn module_installed() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let account = client
+        .account_builder()
+        .install_adapter::<IbcClient<MockBech32>>()?
+        .build()?;
+    let installed = account.module_installed(IBC_CLIENT)?;
+    assert!(installed);
+    let installed = account.module_installed(TEST_MODULE_ID)?;
+    assert!(!installed);
+    Ok(())
+}
