@@ -110,7 +110,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             install_modules: vec![],
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
-            install_on_sub_account: true,
+            install_on_sub_account: false,
             expected_local_account_id: None,
         }
     }
@@ -165,7 +165,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     /// And set install_on_sub_account to false to prevent installing on sub account of the sub account
     pub fn sub_account(&mut self, owner_account: &'a Account<Chain>) -> &mut Self {
         self.owner_account = Some(owner_account);
-        self.install_on_sub_account = false;
         self
     }
 
