@@ -36,9 +36,9 @@ cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "1.2.0"
-cw2 = { package = "abstract-cw2", version = "1.2.1" }
-cw20 = { package = "abstract-cw20", version = "1.2.1" }
-cw20-base = { package = "abstract-cw20-base", version = "1.2.1", features = [
+cw2 = { package = "abstract-cw2", version = "1.2.2" }
+cw20 = { package = "abstract-cw20", version = "3.0.0" }
+cw20-base = { package = "abstract-cw20-base", version = "3.0.0", features = [
   "library",
 ] }
 
@@ -62,7 +62,7 @@ cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "4.0.0" }
 
 cw-orch = { version = "0.24.0" }
 cw-orch-interchain = { version = "0.3.0" }
-cw-orch-clone-testing = { version = "0.6.0" }
+cw-orch-clone-testing = { version = "0.6.4" }
 cw-orch-proto = { version = "0.4.0" }
 
 # Keep these as path, creates cirular dependency otherwise

@@ -135,7 +135,7 @@ fn raw_swap_raw() -> anyhow::Result<()> {
     wyndex
         .raw_token
         .call_as(&owner)
-        .transfer(10_000u128.into(), proxy_addr.to_string())?;
+        .transfer(10_000u128, proxy_addr.to_string())?;
 
     // swap 100 RAW to EUR
     let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(AdapterRequestMsg {
