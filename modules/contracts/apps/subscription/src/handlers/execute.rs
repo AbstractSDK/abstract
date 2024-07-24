@@ -20,7 +20,7 @@ pub fn execute_handler(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: SubscriptionApp,
+    module: SubscriptionApp,
     msg: SubscriptionExecuteMsg,
 ) -> SubscriptionResult {
     match msg {
@@ -31,16 +31,16 @@ pub fn execute_handler(
                 .transpose()?
                 .unwrap_or(info.sender.clone());
             if let Some(coin) = maybe_received_coin.cloned() {
-                try_pay(app, deps, env, Asset::from(coin), subscriber_addr)
+                try_pay(module, deps, env, Asset::from(coin), subscriber_addr)
             } else {
                 Err(SubscriptionError::NotUsingCW20Hook {})
             }
         }
         SubscriptionExecuteMsg::Unsubscribe { unsubscribe_addrs } => {
-            unsubscribe(deps, env, app, unsubscribe_addrs)
+            unsubscribe(deps, env, module, unsubscribe_addrs)
         }
         SubscriptionExecuteMsg::ClaimEmissions { addr } => {
-            claim_subscriber_emissions(&app, &mut deps, &env, addr)
+            claim_subscriber_emissions(&module, &mut deps, &env, addr)
         }
         SubscriptionExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,
@@ -51,7 +51,7 @@ pub fn execute_handler(
             deps,
             env,
             info,
-            app,
+            module,
             payment_asset,
             subscription_cost_per_second,
             subscription_per_second_emissions,
@@ -67,7 +67,7 @@ pub fn execute_handler(
 /// Called when either paying with a native token or through the receive_cw20 endpoint when paying
 /// with a CW20.
 pub fn try_pay(
-    app: SubscriptionApp,
+    module: SubscriptionApp,
     deps: DepsMut,
     env: Env,
     asset: Asset,
@@ -76,7 +76,7 @@ pub fn try_pay(
     // Load all needed states
     let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let twa_data = INCOME_TWA.load(deps.storage)?;
-    let base_state = app.load_state(deps.storage)?;
+    let base_state = module.load_state(deps.storage)?;
     // Construct deposit info
     let deposit_info = config.payment_asset;
 
@@ -120,7 +120,7 @@ pub fn try_pay(
         SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
     }
 
-    Ok(app
+    Ok(module
         .response("pay")
         .add_attribute("received_funds", asset.to_string())
         .add_message(
@@ -132,7 +132,7 @@ pub fn try_pay(
 pub fn unsubscribe(
     deps: DepsMut,
     env: Env,
-    app: SubscriptionApp,
+    module: SubscriptionApp,
     unsubscribe_addrs: Vec<String>,
 ) -> SubscriptionResult {
     if unsubscribe_addrs.len() > MAX_UNSUBS {
@@ -159,7 +159,7 @@ pub fn unsubscribe(
         let mut subscriber = SUBSCRIBERS.load(deps.storage, &addr)?;
         if subscriber.is_expired(&env.block) {
             let maybe_claim_msg = match claim_emissions_msg(
-                &app,
+                &module,
                 deps.as_ref(),
                 &env,
                 &mut subscriber,
@@ -197,9 +197,9 @@ pub fn unsubscribe(
     // update subscription count
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
 
-    let mut response = app
+    let mut response = module
         .response("unsubscribe")
-        .add_messages(app.executor(deps.as_ref()).execute(claim_actions));
+        .add_messages(module.executor(deps.as_ref()).execute(claim_actions));
 
     if let Some(hook) = subscription_config.unsubscribe_hook_addr {
         let msg = UnsubscribedHookMsg {
@@ -214,7 +214,7 @@ pub fn unsubscribe(
 
 // Claim emissions
 pub fn claim_emissions_msg(
-    app: &SubscriptionApp,
+    module: &SubscriptionApp,
     deps: Deps,
     env: &Env,
     subscriber: &mut Subscriber,
@@ -252,7 +252,7 @@ pub fn claim_emissions_msg(
         // Update only if there was claim
         subscriber.last_emission_claim_timestamp = env.block.time;
 
-        let send_msg = app.bank(deps).transfer(vec![asset], subscriber_addr)?;
+        let send_msg = module.bank(deps).transfer(vec![asset], subscriber_addr)?;
         Ok(Some(send_msg))
     } else {
         Ok(None)
@@ -261,7 +261,7 @@ pub fn claim_emissions_msg(
 
 /// Checks if subscriber is allowed to claim his emissions
 pub fn claim_subscriber_emissions(
-    app: &SubscriptionApp,
+    module: &SubscriptionApp,
     deps: &mut DepsMut,
     env: &Env,
     addr: String,
@@ -272,7 +272,7 @@ pub fn claim_subscriber_emissions(
     let mut subscriber = SUBSCRIBERS.load(deps.storage, &subscriber_addr)?;
 
     let maybe_action = claim_emissions_msg(
-        app,
+        module,
         deps.as_ref(),
         env,
         &mut subscriber,
@@ -282,9 +282,9 @@ pub fn claim_subscriber_emissions(
     )?;
 
     SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
-    let mut response = app.response("claim_emissions");
+    let mut response = module.response("claim_emissions");
     if let Some(action) = maybe_action {
-        response = response.add_message(app.executor(deps.as_ref()).execute(vec![action])?);
+        response = response.add_message(module.executor(deps.as_ref()).execute(vec![action])?);
     }
     Ok(response)
 }
@@ -295,13 +295,13 @@ pub fn update_subscription_config(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    app: SubscriptionApp,
+    module: SubscriptionApp,
     payment_asset: Option<AssetInfoUnchecked>,
     subscription_cost_per_second: Option<Decimal>,
     subscription_per_second_emissions: Option<EmissionType<String>>,
     unsubscribe_hook_addr: Option<Clearable<String>>,
 ) -> SubscriptionResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 
@@ -325,5 +325,5 @@ pub fn update_subscription_config(
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;
 
-    Ok(app.response("update_subscription_config"))
+    Ok(module.response("update_subscription_config"))
 }

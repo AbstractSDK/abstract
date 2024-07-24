@@ -23,10 +23,10 @@ pub fn expect_eq<T: PartialEq + Debug>(t1: T, t2: T) -> Result<(), StdError> {
 }
 
 impl MoneyMarketCommandTester {
-    pub fn new<T: MoneyMarketCommand + 'static>(chain: ChainInfoOwned, adapter: T) -> Self {
+    pub fn new<T: MoneyMarketCommand + 'static>(chain: ChainInfoOwned, module: T) -> Self {
         Self {
             chain,
-            adapter: Box::new(adapter),
+            adapter: Box::new(module),
         }
     }
 

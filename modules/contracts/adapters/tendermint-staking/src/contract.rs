@@ -40,10 +40,10 @@ pub fn handle_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: TendermintStakeAdapter,
+    module: TendermintStakeAdapter,
     msg: TendermintStakingExecuteMsg,
 ) -> TendermintStakeResult {
-    let executor = adapter.executor(deps.as_ref());
+    let executor = module.executor(deps.as_ref());
     let msg = match msg {
         TendermintStakingExecuteMsg::Delegate { validator, amount } => executor.execute(
             iter::once(delegate_to(&deps.querier, &validator, amount.u128())?),
@@ -51,12 +51,12 @@ pub fn handle_request(
         TendermintStakingExecuteMsg::UndelegateFrom { validator, amount } => {
             let undelegate_msg = match amount {
                 Some(amount) => undelegate_from(&deps.querier, &validator, amount.u128())?,
-                None => undelegate_all_from(&deps.querier, adapter.target()?, &validator)?,
+                None => undelegate_all_from(&deps.querier, module.target()?, &validator)?,
             };
             executor.execute(iter::once(undelegate_msg))
         }
         TendermintStakingExecuteMsg::UndelegateAll {} => {
-            executor.execute(undelegate_all(&deps.querier, adapter.target()?)?)
+            executor.execute(undelegate_all(&deps.querier, module.target()?)?)
         }
 
         TendermintStakingExecuteMsg::Redelegate {
@@ -75,7 +75,7 @@ pub fn handle_request(
                     &deps.querier,
                     &source_validator,
                     &destination_validator,
-                    adapter.target()?,
+                    module.target()?,
                 )?,
             };
             executor.execute(iter::once(redelegate_msg))
@@ -90,7 +90,7 @@ pub fn handle_request(
             executor.execute(iter::once(withdraw_rewards(&validator)))
         }
         TendermintStakingExecuteMsg::WithdrawAllRewards {} => {
-            executor.execute(withdraw_all_rewards(&deps.querier, adapter.target()?)?)
+            executor.execute(withdraw_all_rewards(&deps.querier, module.target()?)?)
         }
     }?;
     Ok(Response::new().add_message(msg))

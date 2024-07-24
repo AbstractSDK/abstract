@@ -15,7 +15,7 @@ use crate::{
 pub fn ibc_callback(
     deps: DepsMut,
     env: Env,
-    app: App,
+    module: App,
     callback: Callback,
     result: IbcResult,
 ) -> AppResult {
@@ -35,18 +35,18 @@ pub fn ibc_callback(
                 let is_even = env.block.height % 2 == 0;
                 if is_even {
                     // We play ping again
-                    return ping_pong(deps, opponent_chain, app);
+                    return ping_pong(deps, opponent_chain, module);
                 }
                 // we lost
                 LOSSES.update(deps.storage, |l| AppResult::Ok(l + 1))?;
-                Ok(app.response("lost"))
+                Ok(module.response("lost"))
             } else {
                 WINS.update(deps.storage, |w| AppResult::Ok(w + 1))?;
-                Ok(app.response("won"))
+                Ok(module.response("won"))
             }
         }
         PingPongCallbackMsg::QueryBlockHeight { opponent_chain } => {
-            play_if_win(deps, app, result, opponent_chain)
+            play_if_win(deps, module, result, opponent_chain)
         }
     }
 }
@@ -56,7 +56,7 @@ pub fn ibc_callback(
 /// **Note**: The block height of the opponent chain changes all the time so we can't actually predict that we will win! This is just for demo purposes.
 pub fn play_if_win(
     deps: DepsMut,
-    app: App,
+    module: App,
     result: IbcResult,
     opponent_chain: TruncatedChainId,
 ) -> AppResult {
@@ -65,8 +65,8 @@ pub fn play_if_win(
 
     // If uneven we play
     if height % 2 == 1 {
-        ping_pong(deps, opponent_chain, app)
+        ping_pong(deps, opponent_chain, module)
     } else {
-        Ok(app.response("dont_play"))
+        Ok(module.response("dont_play"))
     }
 }

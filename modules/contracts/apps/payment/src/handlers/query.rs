@@ -16,7 +16,7 @@ const DEFAULT_LIMIT: u32 = 10;
 pub fn query_handler(
     deps: Deps,
     _env: Env,
-    _app: &PaymentApp,
+    _module: &PaymentApp,
     msg: AppQueryMsg,
 ) -> AppResult<Binary> {
     match msg {

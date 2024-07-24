@@ -24,10 +24,10 @@ pub fn expect_eq<T: PartialEq + Debug>(t1: T, t2: T) -> Result<(), StdError> {
 }
 
 impl DexCommandTester {
-    pub fn new<T: DexCommand + 'static>(chain: ChainInfoOwned, adapter: T) -> Self {
+    pub fn new<T: DexCommand + 'static>(chain: ChainInfoOwned, module: T) -> Self {
         Self {
             chain,
-            adapter: Box::new(adapter),
+            adapter: Box::new(module),
         }
     }
 

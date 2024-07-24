@@ -6,7 +6,7 @@ use crate::{
     state::{LOSSES, WINS},
 };
 
-pub fn query_handler(deps: Deps, env: Env, _app: &App, msg: AppQueryMsg) -> AppResult<Binary> {
+pub fn query_handler(deps: Deps, env: Env, _module: &App, msg: AppQueryMsg) -> AppResult<Binary> {
     match msg {
         AppQueryMsg::GameStatus {} => to_json_binary(&query_wins(deps)?),
         AppQueryMsg::BlockHeight {} => to_json_binary(&query_block_height(env)?),

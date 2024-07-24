@@ -16,7 +16,12 @@ use crate::{
     utils::user_balance_nonempty,
 };
 
-pub fn create_task_reply(deps: DepsMut, _env: Env, app: CroncatApp, reply: Reply) -> CroncatResult {
+pub fn create_task_reply(
+    deps: DepsMut,
+    _env: Env,
+    module: CroncatApp,
+    reply: Reply,
+) -> CroncatResult {
     let SubMsgResult::Ok(SubMsgResponse { data: Some(b), .. }) = reply.result else {
         return Err(AppError::Std(StdError::generic_err(
             "Failed to create a task",
@@ -33,7 +38,7 @@ pub fn create_task_reply(deps: DepsMut, _env: Env, app: CroncatApp, reply: Reply
     let key = TEMP_TASK_KEY.load(deps.storage)?;
     ACTIVE_TASKS.save(deps.storage, key, &(task.task_hash.clone(), task.version))?;
 
-    Ok(app
+    Ok(module
         .response("create_task_reply")
         .add_attribute("task_hash", task.task_hash)
         .set_data(task_bin))
@@ -42,14 +47,14 @@ pub fn create_task_reply(deps: DepsMut, _env: Env, app: CroncatApp, reply: Reply
 pub fn task_remove_reply(
     deps: DepsMut,
     _env: Env,
-    app: CroncatApp,
+    module: CroncatApp,
     _reply: Reply,
 ) -> CroncatResult {
     let manager_addr = REMOVED_TASK_MANAGER_ADDR.load(deps.storage)?;
-    let response = app.response("task_remove_reply");
+    let response = module.response("task_remove_reply");
     let response = if user_balance_nonempty(
         deps.as_ref(),
-        app.proxy_address(deps.as_ref())?,
+        module.proxy_address(deps.as_ref())?,
         manager_addr.clone(),
     )? {
         // withdraw locked balance
@@ -59,7 +64,7 @@ pub fn task_remove_reply(
             vec![],
         )?
         .into();
-        let executor_message = app
+        let executor_message = module
             .executor(deps.as_ref())
             .execute(iter::once(withdraw_msg))?;
         response.add_message(executor_message)

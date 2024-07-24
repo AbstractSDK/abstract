@@ -17,7 +17,7 @@ use crate::{
 pub fn query_handler(
     deps: Deps,
     _env: Env,
-    _app: &SubscriptionApp,
+    _module: &SubscriptionApp,
     msg: SubscriptionQueryMsg,
 ) -> SubscriptionResult<Binary> {
     match msg {

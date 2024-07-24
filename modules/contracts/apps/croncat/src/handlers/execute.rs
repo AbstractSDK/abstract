@@ -33,31 +33,31 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: CroncatApp,
+    module: CroncatApp,
     msg: AppExecuteMsg,
 ) -> CroncatResult {
     match msg {
-        AppExecuteMsg::UpdateConfig {} => update_config(deps, info, app),
+        AppExecuteMsg::UpdateConfig {} => update_config(deps, info, module),
         AppExecuteMsg::CreateTask {
             task,
             task_tag,
             assets,
-        } => create_task(deps, env, info, app, task, task_tag, assets),
-        AppExecuteMsg::RemoveTask { task_tag } => remove_task(deps, env, info, app, task_tag),
+        } => create_task(deps, env, info, module, task, task_tag, assets),
+        AppExecuteMsg::RemoveTask { task_tag } => remove_task(deps, env, info, module, task_tag),
         AppExecuteMsg::RefillTask { task_tag, assets } => {
-            refill_task(deps.as_ref(), env, info, app, task_tag, assets)
+            refill_task(deps.as_ref(), env, info, module, task_tag, assets)
         }
-        AppExecuteMsg::Purge { task_tags } => purge(deps, env, info, app, task_tags),
+        AppExecuteMsg::Purge { task_tags } => purge(deps, env, info, module, task_tags),
     }
 }
 
 /// Update the configuration of the app
-fn update_config(deps: DepsMut, msg_info: MessageInfo, app: CroncatApp) -> CroncatResult {
+fn update_config(deps: DepsMut, msg_info: MessageInfo, module: CroncatApp) -> CroncatResult {
     // Only the admin should be able to call this
-    app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     CONFIG.save(deps.storage, &Config {})?;
-    Ok(app.response("update_config"))
+    Ok(module.response("update_config"))
 }
 
 /// Create a task
@@ -65,17 +65,17 @@ fn create_task(
     deps: DepsMut,
     _env: Env,
     msg_info: MessageInfo,
-    app: CroncatApp,
+    module: CroncatApp,
     task_request: Box<TaskRequest>,
     task_tag: String,
     assets: AssetListUnchecked,
 ) -> CroncatResult {
-    if app
+    if module
         .admin
         .assert_admin(deps.as_ref(), &msg_info.sender)
         .is_err()
     {
-        assert_module_installed(deps.as_ref(), &msg_info.sender, &app)?;
+        assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;
     }
     let key = (msg_info.sender, task_tag);
     if ACTIVE_TASKS.has(deps.storage, key.clone()) {
@@ -84,9 +84,9 @@ fn create_task(
 
     let (funds, cw20s) = sort_funds(deps.api, assets)?;
 
-    let name_service = app.name_service(deps.as_ref());
+    let name_service = module.name_service(deps.as_ref());
     let factory_addr = factory_addr(&name_service)?;
-    let executor = app.executor(deps.as_ref());
+    let executor = module.executor(deps.as_ref());
 
     // Getting needed croncat addresses from factory
     let tasks_addr =
@@ -126,7 +126,7 @@ fn create_task(
     }
 
     TEMP_TASK_KEY.save(deps.storage, &key)?;
-    Ok(app
+    Ok(module
         .response("create_task")
         .add_messages(messages)
         .add_submessage(create_task_submessage))
@@ -137,20 +137,20 @@ fn remove_task(
     deps: DepsMut,
     _env: Env,
     msg_info: MessageInfo,
-    app: CroncatApp,
+    module: CroncatApp,
     task_tag: String,
 ) -> CroncatResult {
-    if app
+    if module
         .admin
         .assert_admin(deps.as_ref(), &msg_info.sender)
         .is_err()
     {
-        assert_module_installed(deps.as_ref(), &msg_info.sender, &app)?;
+        assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;
     }
     let key = (msg_info.sender, task_tag);
     let (task_hash, task_version) = ACTIVE_TASKS.load(deps.storage, key.clone())?;
 
-    let name_service = app.name_service(deps.as_ref());
+    let name_service = module.name_service(deps.as_ref());
     let factory_addr = factory_addr(&name_service)?;
     let tasks_addr = get_croncat_contract(
         &deps.querier,
@@ -173,7 +173,7 @@ fn remove_task(
         },
     )?;
 
-    let response = app.response("remove_task");
+    let response = module.response("remove_task");
     // If there is still task by this hash on contract send remove message
     // If not - check if there is anything to withdraw and withdraw if needed
     let response = if task_response.task.is_some() {
@@ -183,7 +183,7 @@ fn remove_task(
             vec![],
         )?
         .into();
-        let executor_submessage = app.executor(deps.as_ref()).execute_with_reply(
+        let executor_submessage = module.executor(deps.as_ref()).execute_with_reply(
             iter::once(remove_task_msg),
             ReplyOn::Success,
             TASK_REMOVE_REPLY_ID,
@@ -192,7 +192,7 @@ fn remove_task(
         response.add_submessage(executor_submessage)
     } else if user_balance_nonempty(
         deps.as_ref(),
-        app.proxy_address(deps.as_ref())?,
+        module.proxy_address(deps.as_ref())?,
         manager_addr.clone(),
     )? {
         // withdraw locked balance
@@ -202,7 +202,7 @@ fn remove_task(
             vec![],
         )?
         .into();
-        let executor_message = app
+        let executor_message = module
             .executor(deps.as_ref())
             .execute(iter::once(withdraw_msg))?;
         response.add_message(executor_message)
@@ -218,12 +218,12 @@ fn refill_task(
     deps: Deps,
     _env: Env,
     msg_info: MessageInfo,
-    app: CroncatApp,
+    module: CroncatApp,
     task_tag: String,
     assets: AssetListUnchecked,
 ) -> CroncatResult {
-    if app.admin.assert_admin(deps, &msg_info.sender).is_err() {
-        assert_module_installed(deps, &msg_info.sender, &app)?;
+    if module.admin.assert_admin(deps, &msg_info.sender).is_err() {
+        assert_module_installed(deps, &msg_info.sender, &module)?;
     }
 
     let key = (msg_info.sender, task_tag);
@@ -231,9 +231,9 @@ fn refill_task(
 
     let (funds, cw20s) = sort_funds(deps.api, assets)?;
 
-    let executor = app.executor(deps);
+    let executor = module.executor(deps);
 
-    let name_service = app.name_service(deps);
+    let name_service = module.name_service(deps);
     let factory_addr = factory_addr(&name_service)?;
     let manager_addr = get_croncat_contract(
         &deps.querier,
@@ -271,27 +271,27 @@ fn refill_task(
     }
     let msg = executor.execute(vec![account_action])?;
 
-    Ok(app.response("refill_task").add_message(msg))
+    Ok(module.response("refill_task").add_message(msg))
 }
 
 fn purge(
     deps: DepsMut,
     _env: Env,
     msg_info: MessageInfo,
-    app: CroncatApp,
+    module: CroncatApp,
     task_tags: Vec<String>,
 ) -> CroncatResult {
     // In case module got unregistered or admin got changed they have no reason to purge now
-    if app
+    if module
         .admin
         .assert_admin(deps.as_ref(), &msg_info.sender)
         .is_err()
     {
-        assert_module_installed(deps.as_ref(), &msg_info.sender, &app)?;
+        assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;
     }
 
     for tag in task_tags {
         ACTIVE_TASKS.remove(deps.storage, (msg_info.sender.clone(), tag));
     }
-    Ok(app.response("purge"))
+    Ok(module.response("purge"))
 }

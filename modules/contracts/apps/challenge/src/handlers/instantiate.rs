@@ -10,7 +10,7 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _app: ChallengeApp,
+    _module: ChallengeApp,
     msg: ChallengeInstantiateMsg,
 ) -> AppResult {
     NEXT_ID.save(deps.storage, &0u64)?;

@@ -20,7 +20,7 @@ use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 pub fn query_handler(
     deps: Deps,
     env: Env,
-    adapter: &DexAdapter,
+    module: &DexAdapter,
     msg: DexQueryMsg,
 ) -> DexResult<Binary> {
     match msg {
@@ -46,7 +46,7 @@ pub fn query_handler(
             addr_as_sender,
         } => {
             if let DexExecuteMsg::AnsAction { dex, action } = message {
-                let ans = adapter.name_service(deps);
+                let ans = module.name_service(deps);
                 let whole_dex_action = WholeDexAction(dex.clone(), action);
                 message = DexExecuteMsg::RawAction {
                     dex,
@@ -63,7 +63,7 @@ pub fn query_handler(
                     let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
                     let addr_as_sender = deps.api.addr_validate(&addr_as_sender)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
-                        adapter,
+                        module,
                         deps,
                         addr_as_sender,
                         action,
@@ -80,7 +80,7 @@ pub fn query_handler(
             ask_asset,
             dex,
         } => {
-            let ans = adapter.name_service(deps);
+            let ans = module.name_service(deps);
             let cw_offer_asset = ans.query(&offer_asset)?;
             let cw_ask_asset = ans.query(&ask_asset)?;
 
