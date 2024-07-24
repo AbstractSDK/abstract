@@ -1,5 +1,9 @@
 [workspace]
-members = ["contracts/apps/*", "contracts/adapters/*"]
+members = [
+  "contracts/apps/*",
+  "contracts/adapters/*",
+  "contracts/standalones/*",
+]
 
 resolver = "2"
 
@@ -46,6 +50,7 @@ clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
 cw-orch = { version = "0.24.0" }
+cw-orch-interchain = { version = "0.3.0" }
 cw-orch-osmosis-test-tube = { version = "0.2.0" }
 tokio = { version = "1.4", features = ["full"] }
 
@@ -54,6 +59,7 @@ tokio = { version = "1.4", features = ["full"] }
 abstract-interface = { version = "0.23.0" }
 abstract-adapter = { version = "0.23.0" }
 abstract-app = { version = "0.23.0" }
+abstract-standalone = { version = "0.22.0" }
 abstract-testing = { version = "0.23.0" }
 abstract-macros = { version = "0.23.0" }
 abstract-client = { version = "0.23.0" }
@@ -90,6 +96,7 @@ anyhow = "1"
 [patch.crates-io]
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
+abstract-standalone = { path = "../framework/packages/abstract-standalone" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
