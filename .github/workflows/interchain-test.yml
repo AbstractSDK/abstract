@@ -45,7 +45,9 @@ jobs:
         run: cargo generate-lockfile
       - uses: taiki-e/install-action@nextest
       - name: save private network configs
-        run: ${{ secrets.CW_ORCH_NETWORKS }} > ~/.cw-orchestrator/networks.json
+        run: |
+          mkdir -p ~/.cw-orchestrator
+          echo -n '${{ secrets.CW_ORCH_NETWORKS }}' > ~/.cw-orchestrator/networks.json
 
       - name: cargo test --locked
         working-directory: ./interchain
