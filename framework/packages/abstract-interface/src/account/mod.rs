@@ -169,21 +169,21 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     /// Installs an adapter from an adapter object
     pub fn install_adapter<CustomInitMsg: Serialize, T: AdapterDeployer<Chain, CustomInitMsg>>(
         &self,
-        adapter: &T,
+        module: &T,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
-        self.install_module_parse_addr::<Empty, _>(adapter, None, funds)
+        self.install_module_parse_addr::<Empty, _>(module, None, funds)
     }
 
     /// Installs an app from an app object
     pub fn install_app<CustomInitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
-        app: &T,
+        module: &T,
         custom_init_msg: &CustomInitMsg,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
-        self.install_module_parse_addr(app, Some(&custom_init_msg), funds)
+        self.install_module_parse_addr(module, Some(&custom_init_msg), funds)
     }
 
     /// Installs an standalone from an standalone object
