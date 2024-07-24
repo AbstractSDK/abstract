@@ -1,3 +1,5 @@
+use std::iter;
+
 use abstract_app::sdk::{
     features::{AbstractResponse, AccountIdentification},
     Execution,
@@ -59,7 +61,7 @@ pub fn task_remove_reply(
         .into();
         let executor_message = app
             .executor(deps.as_ref())
-            .execute(vec![withdraw_msg.into()])?;
+            .execute(iter::once(withdraw_msg))?;
         response.add_message(executor_message)
     } else {
         response

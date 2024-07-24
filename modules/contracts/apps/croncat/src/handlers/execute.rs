@@ -1,3 +1,5 @@
+use std::iter;
+
 use abstract_app::sdk::{
     features::{AbstractNameService, AccountIdentification},
     prelude::*,
@@ -120,7 +122,7 @@ fn create_task(
             vec![],
         )?
         .into();
-        messages.push(executor.execute(vec![cw20_transfer.into()])?);
+        messages.push(executor.execute(iter::once(cw20_transfer))?);
     }
 
     TEMP_TASK_KEY.save(deps.storage, &key)?;
@@ -182,7 +184,7 @@ fn remove_task(
         )?
         .into();
         let executor_submessage = app.executor(deps.as_ref()).execute_with_reply(
-            vec![remove_task_msg.into()],
+            iter::once(remove_task_msg),
             ReplyOn::Success,
             TASK_REMOVE_REPLY_ID,
         )?;
@@ -202,7 +204,7 @@ fn remove_task(
         .into();
         let executor_message = app
             .executor(deps.as_ref())
-            .execute(vec![withdraw_msg.into()])?;
+            .execute(iter::once(withdraw_msg))?;
         response.add_message(executor_message)
     } else {
         response

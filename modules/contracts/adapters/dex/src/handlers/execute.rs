@@ -124,9 +124,7 @@ fn handle_local_request(
         action,
         exchange,
     )?;
-    let proxy_msg = adapter
-        .executor(deps.as_ref())
-        .execute(msgs.into_iter().map(Into::into).collect())?;
+    let proxy_msg = adapter.executor(deps.as_ref()).execute(msgs)?;
     Ok(Response::new().add_message(proxy_msg))
 }
 

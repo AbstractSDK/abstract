@@ -87,8 +87,14 @@ impl<'a, T: Execution> Executor<'a, T> {
 
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<ExecutorMsg> {
-        let msgs = actions.into_iter().flat_map(|a| a.messages()).collect();
+    pub fn execute(
+        &self,
+        actions: impl IntoIterator<Item = impl Into<AccountAction>>,
+    ) -> AbstractSdkResult<ExecutorMsg> {
+        let msgs = actions
+            .into_iter()
+            .flat_map(|a| a.into().messages())
+            .collect();
         let msg = self
             .base
             .execute_on_proxy(self.deps, &ExecuteMsg::ModuleAction { msgs })?;
@@ -100,7 +106,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// The execution will be executed in a submessage and the reply will be sent to the provided `reply_on`.
     pub fn execute_with_reply(
         &self,
-        actions: Vec<AccountAction>,
+        actions: impl IntoIterator<Item = impl Into<AccountAction>>,
         reply_on: ReplyOn,
         id: u64,
     ) -> AbstractSdkResult<SubMsg> {
@@ -138,7 +144,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Return a "standard" response for the executed messages. (with the provided action).
     pub fn execute_with_response(
         &self,
-        actions: Vec<AccountAction>,
+        actions: impl IntoIterator<Item = impl Into<AccountAction>>,
         action: &str,
     ) -> AbstractSdkResult<Response> {
         let msg = self.execute(actions)?;
