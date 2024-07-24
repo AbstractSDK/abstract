@@ -4,7 +4,7 @@
 
 use abstract_macros::with_abstract_event;
 use abstract_std::proxy::ExecuteMsg;
-use cosmwasm_std::{CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use cosmwasm_std::{Coin, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
@@ -79,9 +79,11 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
-        let msg = self
-            .base
-            .execute_on_proxy(self.deps, &ExecuteMsg::ModuleActionWithData { msg })?;
+        let msg = self.base.execute_on_proxy(
+            self.deps,
+            &ExecuteMsg::ModuleActionWithData { msg },
+            vec![],
+        )?;
         Ok(ExecutorMsg(msg))
     }
 
@@ -91,13 +93,24 @@ impl<'a, T: Execution> Executor<'a, T> {
         &self,
         actions: impl IntoIterator<Item = impl Into<AccountAction>>,
     ) -> AbstractSdkResult<ExecutorMsg> {
+        self.execute_with_funds(actions, vec![])
+    }
+
+    /// Execute the msgs on the Account.
+    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
+    /// Funds attached from sending module to proxy
+    pub fn execute_with_funds(
+        &self,
+        actions: impl IntoIterator<Item = impl Into<AccountAction>>,
+        funds: Vec<Coin>,
+    ) -> AbstractSdkResult<ExecutorMsg> {
         let msgs = actions
             .into_iter()
             .flat_map(|a| a.into().messages())
             .collect();
-        let msg = self
-            .base
-            .execute_on_proxy(self.deps, &ExecuteMsg::ModuleAction { msgs })?;
+        let msg =
+            self.base
+                .execute_on_proxy(self.deps, &ExecuteMsg::ModuleAction { msgs }, funds)?;
         Ok(ExecutorMsg(msg))
     }
 
