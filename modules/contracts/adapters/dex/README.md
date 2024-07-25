@@ -11,6 +11,10 @@ The Dex Adapter Module provides a unified interface to interact with various dec
 - **Provide Liquidity Symmetric**: Add an equal value of two assets to a liquidity pool.
 - **Custom Swap**: Execute a swap with custom parameters, allowing for more advanced trading strategies.
 
+```admonish info
+Note that each one of these actions supports both ANS and raw variants, meaning that you can use both human-readable and explicit asset denominations.
+```
+
 ## Supported Dexes
 
 The following Dexes are currently supported:

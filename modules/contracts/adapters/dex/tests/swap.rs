@@ -122,7 +122,7 @@ fn swap_raw() -> anyhow::Result<()> {
     wyndex
         .raw_token
         .call_as(&owner)
-        .transfer(10_000u128.into(), proxy_addr.to_string())?;
+        .transfer(10_000u128, proxy_addr.to_string())?;
 
     // swap 100 RAW to EUR
     dex_adapter.ans_swap((RAW_TOKEN, 100), EUR, WYNDEX.into(), &os, &abstr.ans_host)?;

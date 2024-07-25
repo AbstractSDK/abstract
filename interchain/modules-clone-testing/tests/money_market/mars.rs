@@ -76,8 +76,8 @@ mod osmosis_tests {
         let chain = abstr_deployment.environment();
         let collateral_asset = ("osmo".to_owned(), "uosmo".to_owned());
         let lending_asset = (
-            "usdc".to_owned(),
-            "ibc/D189335C6E4A68B513C10AB227BF1C1D38C746766278BA3EEB4FB14124F1D858".to_owned(),
+            "kava>usdt".to_owned(),
+            "ibc/4ABBEF4C8926DDDB320AE5188CFD63267ABBCEFC0583E4AE05D6E5AA2401DDAB".to_owned(),
         );
         MoneyMarketTester::new(
             abstr_deployment,

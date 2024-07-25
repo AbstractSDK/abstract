@@ -142,7 +142,7 @@ fn proper_initialization() -> AResult {
 
     // withdraw from the etf
     etf_token.call_as(&owner).send(
-        500u128.into(),
+        500u128,
         etf_addr.clone(),
         cosmwasm_std::to_json_binary(&Cw20HookMsg::Claim {})?,
     )?;

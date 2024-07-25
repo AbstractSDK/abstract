@@ -29,7 +29,7 @@ The purpose of the Account is to hold funds for the user. Now if the user wants 
 See <a href="https://eips.ethereum.org/EIPS/eip-4337" target="_blank">EIP-4337</a> to read about account abstraction in the Ethereum ecosystem.
 ```
 
-In the next section we'll dig into the architecture of Abstract Accounts.
+In the next section we'll dig into the architecture of [Abstract Accounts](../3_framework/3_architecture.md).
 
 <!-- This concept of account abstraction can provide numerous benefits:
 

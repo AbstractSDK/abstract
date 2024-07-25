@@ -5,35 +5,48 @@
 
 Welcome to the Abstract Documentation!
 
-**Abstract is an account-based smart-contract development and distribution platform. Our platform and tooling allow developers to build and scale their applications in a chain-agnostic manner.**
+**Abstract is an account-based application distribution and development platform. Our platform and tooling allow developers to build and scale their applications in a chain-abstracted manner.**
 
-This first part of our documentation aims to provide you with the conceptual knowledge you need to understand the Abstract framework. The second part is a step-by-step guide on how to use the Abstract SDK to build your decentralized application.
+This first part of our documentation aims to provide you with the conceptual knowledge you need to understand the Abstract platform. The second part is a step-by-step guide on how to use the Abstract SDK to build your decentralized applications.
 
 ```admonish info
 Want a TL;DR? Read a [high-level overview on the Abstract Platform](https://medium.com/abstract-money/a-high-level-overview-of-abstract-moneys-interchain-app-platform-d30813c7a1b4).
 ```
 
 ```admonish info
-Prefer to watch? Check out our [video library](./video_and_content/videos.md)!
+Prefer video content? Check out our [video library](./video_and_content/videos.md)!
 ```
 
 ## Who is Abstract For?
 
-The Abstract SDK is designed for organizations and individual developers who want to build composable distributed applications in a fast, secure, and cost-effective manner.
+### Chains
+
+For chains, we offer [chain abstraction](./3_framework/2_chain_abstraction.md) and [Abstract Accounts](./3_framework/2_account_abstraction.md) for effective user acquisition and engagement. Every chain with Abstract integrated has access to all apps developed with the [Abstract SDK](3_framework/1_abstract_sdk.md).
+
+### Protocols
+
+For protocols, we offer [on-chain application infrastructure](./5_platform/index.md) for single + multi-chain application development and lifecycle management. We also maintain [DeFi adapters](./modules/defi-adapters.md) for Dexes, lending markets, and staking providers.
+
+### App Developers
+
+For app developers, we offer the [Abstract SDK](3_framework/1_abstract_sdk.md), the leading CosmWasm framework designed for organizations and individual developers who want to build composable distributed applications in a fast, secure, and cost-effective manner.
 
 We expect developers to be familiar with the Rust programming language and general programming concepts.
 
-```admonish info
-Coming from 👾EVM👾 ? Be sure to read up on CosmWasm and its differences from EVM in the [CosmWasm](./3_framework/0_technologies.md#cosmwasm) section.
-```
-
 ## Abstract Products
 
-- **[Abstract SDK](3_framework/1_abstract_sdk.md)**: The Abstract Software Development Kit (SDK) is a Rust library that is tightly integrated with Abstract's on-chain infrastructure. By using the SDK, developers can easily perform accounting-based operations and interactions with other smart contracts.
+- **[Abstract SDK](3_framework/1_abstract_sdk.md)**: Modular CosmWasm framework for developing composable and scalable dapps agnostic to chains and protocols.
 
-- **[cw-orchestrator](1_products/1_cw_orchestrator.md)**: A developer tool that simplifies the testing and deployment of smart contracts.
+- **[Application Infrastructure](./5_platform/index.md)**: On-chain infrastructure for application management.
 
-- **[Abstract JS](1_products/4_abstract_js.md)**: A JavaScript library that facilitates smart-contract interactions from a browser-based environment.
+- **[Abstract Accounts](./3_framework/3_architecture.md)**: Modular smart-contract accounts.
+
+- **[Abstract Interchain](3_framework/8_ibc.md)**: Interchain infrastructure and smart-contract abstractions for building multi-chain applications easily.
+
+- **[Abstract.js](1_products/4_abstract_js.md)**: TypeScript and React libraries for building full-stack Abstract dapps.
+
+- **[cw-orchestrator](1_products/1_cw_orchestrator.md)**: The most advanced CosmWasm scripting, testing, and deployment tool, written fully in Rust.
+
 
 Together these products form a complete end-to-end development platform for distributed applications.
 
@@ -56,8 +69,9 @@ Look at the
 <ul>
     <li><a href="https://abstract.money/" target="_blank">Website</a></li>
     <li><a href="https://github.com/AbstractSDK" target="_blank">Github</a></li>
-    <li><a href="https://medium.com/@abstractmoney" target="_blank">Medium</a></li>
+    <li><a href="https://medium.com/@abstractmoney" target="_blank">Medium Blog</a></li>
     <li><a href="https://docs.abstract.money/" target="_blank">Docs</a></li>
     <li><a href="https://console.abstract.money" target="_blank">Account Console</a></li>
     <li><a href="https://api.abstract.money/" target="_blank">Graphql API Explorer</a></li>
+    <li><a href="https://xion.abstract.money/" target="_blank">Chain Abstraction Demo</a></li>
 </ul>
