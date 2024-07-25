@@ -51,7 +51,7 @@ fn setup_mock() -> anyhow::Result<(
     wyndex
         .eur_usd_lp
         .call_as(&chain.addr_make(WYNDEX_OWNER))
-        .transfer(1000u128.into(), proxy_addr.to_string())?;
+        .transfer(1000u128, proxy_addr.to_string())?;
 
     // install exchange on AbstractAccount
     os.install_adapter(&staking, None)?;
