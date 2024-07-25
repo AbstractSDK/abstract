@@ -294,10 +294,12 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 if let Some(account_from_namespace) = account_from_namespace_result {
                     let modules_to_install =
                         account_from_namespace.missing_modules(&self.install_modules.clone())?;
-                    let funds = self.generate_funds(&modules_to_install, false)?;
-                    account_from_namespace
-                        .abstr_account
-                        .install_modules(modules_to_install, Some(&funds))?;
+                    if !modules_to_install.is_empty() {
+                        let funds = self.generate_funds(&modules_to_install, false)?;
+                        account_from_namespace
+                            .abstr_account
+                            .install_modules(modules_to_install, Some(&funds))?;
+                    }
                     return Ok(account_from_namespace);
                 }
             }

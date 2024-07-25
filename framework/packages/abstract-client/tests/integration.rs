@@ -251,6 +251,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .install_on_sub_account(true)
         .build()?;
 
     let publisher_account = publisher.account();
@@ -299,7 +300,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     // Install app on current account
     let publisher = client
-        .publisher_builder(Namespace::new("tester")?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .install_on_sub_account(false)
         .build()?;
     let my_adapter: Application<_, MockAppI<_>> =
@@ -337,7 +338,8 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain).build()?;
 
     let publisher: Publisher<_> = client
-        .publisher_builder(Namespace::new("tester")?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .install_on_sub_account(true)
         .build()?;
 
     let publisher_manager = publisher.account().manager()?;
@@ -376,7 +378,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
     // Install adapter on current account
     let publisher = client
-        .publisher_builder(Namespace::new("tester")?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .install_on_sub_account(false)
         .build()?;
     let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
