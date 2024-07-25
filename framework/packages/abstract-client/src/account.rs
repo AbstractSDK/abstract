@@ -788,6 +788,11 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.manager.address().map_err(Into::into)
     }
 
+    /// Address of the account (proxy)
+    pub fn address(&self) -> AbstractClientResult<Addr> {
+        self.proxy()
+    }
+
     /// Retrieve installed application on account
     /// This can't retrieve sub-account installed applications.
     pub fn application<M: RegisteredModule + From<Contract<Chain>>>(

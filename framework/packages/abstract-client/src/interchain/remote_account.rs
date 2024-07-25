@@ -258,13 +258,18 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         self.abstr_owner_account.manager.environment().clone()
     }
 
-    /// Get proxy address of the account
+    /// Address of the proxy
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         let base_response = self
             .remote_abstract()?
             .version_control
             .account_base(self.remote_account_id.clone())?;
         Ok(base_response.account_base.proxy)
+    }
+
+    /// Address of the account (proxy)
+    pub fn address(&self) -> AbstractClientResult<Addr> {
+        self.proxy()
     }
 
     /// Get manager address of the account
