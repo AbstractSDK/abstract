@@ -476,14 +476,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         })
     }
 
-    /// Withdraw funds from the manager of the account
-    pub fn withdraw(&self) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-            host_chain: self.host_chain(),
-            action: ibc_host::HostAction::Helpers(ibc_host::HelperAction::SendAllBack),
-        })
-    }
-
     /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
         let manager = self.manager()?;
