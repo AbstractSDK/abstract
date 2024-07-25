@@ -2,7 +2,9 @@
 //!
 //! [`Application`] represents a module installed on a (sub-)account
 
-use abstract_interface::RegisteredModule;
+use abstract_interface::{ManagerExecFns, RegisteredModule};
+use abstract_std::objects::module::ModuleInfo;
+use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};
 
 use crate::{account::Account, client::AbstractClientResult};
@@ -68,6 +70,20 @@ impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
     /// module of type `M`.
     pub fn module<T: RegisteredModule + From<Contract<Chain>>>(&self) -> AbstractClientResult<T> {
         self.account.module()
+    }
+}
+
+impl<Chain: CwEnv, M: RegisteredModule + MigratableContract> Application<Chain, M> {
+    /// Upgrade module on account to version of `Application`
+    pub fn upgrade(&self, migrate_msg: Option<&M::MigrateMsg>) -> AbstractClientResult<()> {
+        let module = ModuleInfo::from_id(M::module_id(), M::module_version().into())?;
+        if !self.account.module_version_installed(module.clone())? {
+            self.account.abstr_account.manager.upgrade(vec![(
+                module,
+                migrate_msg.map(|msg| to_json_binary(msg).unwrap()),
+            )])?;
+        }
+        Ok(())
     }
 }
 
