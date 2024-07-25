@@ -28,6 +28,7 @@ use cw_orch::{
     prelude::*,
 };
 use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     client::AbstractClientResult, AbstractClient, AbstractClientError, Account, Environment,
@@ -296,6 +297,22 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             .map_err(Into::into)
     }
 
+    /// Query account balance of a given denom
+    pub fn query_ans_balance(&self, ans_asset: AssetEntry) -> AbstractClientResult<Uint128> {
+        let proxy_addr = self.proxy()?;
+        let holding_ammount: proxy::HoldingAmountResponse = self
+            .remote_chain
+            .query(
+                &proxy::QueryMsg::HoldingAmount {
+                    identifier: ans_asset,
+                },
+                &proxy_addr,
+            )
+            .map_err(Into::into)?;
+
+        Ok(holding_ammount.amount)
+    }
+
     /// Query account info
     pub fn info(&self) -> AbstractClientResult<AccountInfo> {
         let info_response: InfoResponse = self
@@ -429,6 +446,21 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             host_chain: self.host_chain(),
             action: ibc_host::HostAction::Dispatch { manager_msgs },
         })
+    }
+
+    /// Queries a module on the account.
+    pub fn query_module<Q: Serialize + std::fmt::Debug, T: Serialize + DeserializeOwned>(
+        &self,
+        module_id: ModuleId,
+        msg: &Q,
+    ) -> AbstractClientResult<T> {
+        let mut module_address_response = self.module_addresses(vec![module_id.to_owned()])?;
+        let (_, module_addr) = module_address_response.modules.pop().unwrap();
+        let response = self
+            .remote_chain()
+            .query(msg, &module_addr)
+            .map_err(Into::into)?;
+        Ok(response)
     }
 
     /// Deposit funds to the manager of the account with IBC transfer
