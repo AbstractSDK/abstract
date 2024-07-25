@@ -4,6 +4,10 @@
 
 Welcome to the builder section of the Abstract documentation. The following sections will walk you through the process of setting up your development environment, creating an [App Module](../3_framework/6_module_types.md#apps) and deploying it to our on-chain registry so that it can be used by others.
 
+```admonish info
+Coming from 👾EVM👾 ? Be sure to read up on CosmWasm and its differences from EVM in the [CosmWasm](./3_framework/0_technologies.md#cosmwasm) section.
+```
+
 ## Tools used in this guide
 
 Here are the most important tools you will need to know about to get started with the Abstract SDK:
