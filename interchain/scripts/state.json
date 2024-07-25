@@ -257,6 +257,37 @@
         "abstract:proxy": "osmo1e4qygl0meldnra59pvrwa0mx55qskrlkuqsldqsah9gxqrt7gyts8vn2k8",
         "abstract:version-control": "osmo1rz2anx3zacprx4zv3uhuwqgsrwwertxhqfwmghf2ghce7ynejzgsag525c"
       }
+    },
+    "osmosis-1": {
+      "code_ids": {
+        "abstract:account-factory": 908,
+        "abstract:ans-host": 911,
+        "abstract:challenge": 788,
+        "abstract:cw-staking": 916,
+        "abstract:dca": 787,
+        "abstract:dex": 784,
+        "abstract:etf": 918,
+        "abstract:ibc-client": 914,
+        "abstract:ibc-host": 915,
+        "abstract:manager": 912,
+        "abstract:module-factory": 909,
+        "abstract:money-market": 917,
+        "abstract:proxy": 913,
+        "abstract:version-control": 910
+      },
+      "default": {
+        "abstract:account-factory": "osmo1clft6l9xdnfl543746hmqzksc9wrdwm24znfkact3xjln5z0v0xq78pg6a",
+        "abstract:ans-host": "osmo17ytzaykjflxfrh3cnp7wz5a73q6ylu0de27rje4adgkslsfurxhsrkq9es",
+        "abstract:cw-staking": "osmo1ayc57874f5stqqxlrtnqhvj9ajd68s22mwkskt995pgkltmefptsuhznew",
+        "abstract:dex": "osmo13av60etn6d6te9seakrpt9z4c04jw8sh3tufd8ppsur8jxvppreq5a7uqr",
+        "abstract:ibc-client": "osmo1kql443at7nx38s3z653xf4x2zdcp8ufg8wm8ac954cfhlcy24veq20rwep",
+        "abstract:ibc-host": "osmo1726qjgrfm5twx8rnewrenmxv5evz5m55sau6sd9muqcr0s0ws39s6vdtmr",
+        "abstract:manager": "osmo1n3a07gl57uyynwfa7ekvm7tturx7uxecwrlrd9h0wq450smun0wq7ekz6p",
+        "abstract:module-factory": "osmo1n28c9mtw9ehcddpaffewq4sczv4q0y3pfl76ll9v9alxx37rqdyqk89zsv",
+        "abstract:money-market": "osmo1cvfrqwnw0v3yxv23494t2t5970a3q4l86c6mlhzpze3tnd6u8sqsyvhr3r",
+        "abstract:proxy": "osmo16a0jnv8dcse7jdqqrp6s3kayvvjhnq7fftv8cxz8m6hk29phajdsmzvrnn",
+        "abstract:version-control": "osmo12wgxrzspr655r9zxmfmrzygxvvukdg9xt5xu2sw5zsrrjsvzlpmqp7jrg2"
+      }
     }
   },
   "terra2": {
@@ -320,6 +351,32 @@
         "abstract:money-market": "terra1u6nqythprqmdwy636yz0ksc82tmkly60y3h2fhx3ucvmrk3xu2yqul594j",
         "abstract:proxy": "terra1d8fdtdmt2e6yd64e747ukgy035t35rdtjqal9g8nseux4w3vxzpswu6tg4",
         "abstract:version-control": "terra1d87wpuvjgqe8a5qytneyd8puc7y2uan6tcr6mwq873trjm8v2pzs7t593t"
+      }
+    }
+  },
+  "union": {
+    "union-testnet-8": {
+      "code_ids": {
+        "abstract:account-factory": 81,
+        "abstract:ans-host": 79,
+        "abstract:ibc-client": 85,
+        "abstract:ibc-host": 86,
+        "abstract:manager": 83,
+        "abstract:module-factory": 82,
+        "abstract:proxy": 84,
+        "abstract:version-control": 80,
+        "polytone:note": 87,
+        "polytone:proxy": 89,
+        "polytone:voice": 88
+      },
+      "default": {
+        "abstract:account-factory": "union1czy8k839ywhy8wxejphxq67xga63jf68ssymal2qh4sv842hmstsjh6h6u",
+        "abstract:ans-host": "union1kvxlhsq2p2ws8ewf8s96d5y9ck0ur95kalq0kzfhwax8mqdxlnyqa4tecl",
+        "abstract:evm-ibc": "union1hfghs59ccj5vc8ql6j8pvmxemdxu6me0wxjcrzr6z0z7wm0xr8jqer4n4h",
+        "abstract:ibc-client": "union160zgd0kmkeq9m9elzhzk4m0j7xdwct426ylt5uu7ujkfqw8k6ndq7h8nw6",
+        "abstract:ibc-host": "union17ey07cp8fmtu4vfdrxffv5vttneym00228xamjty3xae8d49qgws2vr40m",
+        "abstract:module-factory": "union1va8ypx8rccnlmcez872lcklcqkpkeledny07lasttg2f6wehxfvs6q990c",
+        "abstract:version-control": "union19pw0rz9hnwcrv43zvqnna6q6ednun3qlt92vaxd8xwzv4rk7mzks5upw4t"
       }
     }
   }

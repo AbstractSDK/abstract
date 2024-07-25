@@ -14,10 +14,9 @@ framework.
 
 <a href="https://cosmwasm.com/" target="_blank">CosmWasm</a> is a smart contract framework that is built on Rust and WebAssembly (WASM) to perform deterministic compute suitable for decentralized systems. It was born out of a desire to outgrow Solidity's shortcomings.
 
-It is the only smart
-contract platform for public blockchains that has seen heavy adoption and stress-testing outside of the EVM ecosystem.
+It is the only smart contract platform for public blockchains that has seen heavy adoption and stress-testing outside of the EVM ecosystem.
 
-<!-- <details> 
+<!-- <details>
   <summary>Learn more</summary>
 
   ### The Actor Model
@@ -81,15 +80,9 @@ Diving one level deeper, we have the Rust programming language. While theoretica
 Learn more about Rust <a href="https://www.rust-lang.org/" target="_blank">here</a>, or learn by doing
 the <a href="https://github.com/rust-lang/rustlings/" target="_blank">rustlings</a>.
 
-## Javascript
+## Typescript
 
-You need to have a basic understanding of <a href="https://www.javascript.com/" target="_blank">Javascript</a> to use
+You need to have a basic understanding of <a href="https://www.typescriptlang.org/docs/" target="_blank">Typescript</a> to use
 our front-end library.
 
-You can learn about
-Javascript <a href="https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/JavaScript_basics" target="_blank">
-here</a>.
-
-## Hosting Layer
-
-The last component in the Abstract stack is the hosting layer. This is the layer that actually hosts the CosmWasm VM in which the smart-contracts run. Currently the <a href="https://v1.cosmos.network/" target="_blank">Cosmos-SDK</a> is the only officially supported hosting layer, but we are working on adding support for other hosting layers as they roll out.
+You can learn about Javascript <a href="https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/JavaScript_basics" target="_blank"> here</a>.
