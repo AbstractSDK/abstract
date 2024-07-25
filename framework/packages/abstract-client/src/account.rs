@@ -23,7 +23,8 @@ use std::fmt::{Debug, Display};
 
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, ProxyQueryFns,
+    RegisteredModule, VCQueryFns,
 };
 use abstract_std::{
     manager::{
@@ -38,7 +39,7 @@ use abstract_std::{
         validation::verifiers,
         AccountId, AssetEntry,
     },
-    version_control::NamespaceResponse,
+    version_control::{self, NamespaceResponse},
     IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
@@ -47,6 +48,7 @@ use cw_orch::{
     environment::{Environment as _, MutCwEnv},
     prelude::*,
 };
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     client::AbstractClientResult, infrastructure::Infrastructure, AbstractClientError, Application,
@@ -83,7 +85,6 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
     install_modules: Vec<ModuleInstallConfig>,
-    enable_ibc: Option<bool>,
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
@@ -109,7 +110,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             ownership: None,
             owner_account: None,
             install_modules: vec![],
-            enable_ibc: None,
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: false,
@@ -220,11 +220,24 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(self)
     }
 
-    /// Enable ibc on account
-    pub fn ibc_enable(&mut self, enable: bool) -> AbstractClientResult<&mut Self> {
-        self.enable_ibc = Some(enable);
-        Ok(self)
+    /// Install unchecked modules on current account.
+    ///
+    /// Since this method allows to pass unchecked `ModuleInstallConfig` \
+    /// calling this method should be avoided unless it's the only way to install module, for example no `InstallModule` implemented for the module
+    pub fn with_modules(
+        &mut self,
+        install_modules: impl IntoIterator<Item = ModuleInstallConfig>,
+    ) -> &mut Self {
+        self.install_modules.extend(install_modules);
+        self
     }
+
+    /// Enable ibc on account
+    // I truly dislike how much complexity it adds because it's often dependency of some module
+    // pub fn ibc_enable(&mut self, enable: bool) -> &mut Self {
+    //     self.ibc_enable = Some(enable);
+    //     self
+    // }
 
     /// Enables automatically paying for module instantiations and namespace registration.
     /// The provided function will be called with the required funds. If the function returns `false`,
@@ -279,6 +292,12 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
                 // Only return if the account can be retrieved without errors.
                 if let Some(account_from_namespace) = account_from_namespace_result {
+                    let modules_to_install =
+                        account_from_namespace.missing_modules(&self.install_modules.clone())?;
+                    let funds = self.generate_funds(&modules_to_install, false)?;
+                    account_from_namespace
+                        .abstr_account
+                        .install_modules(modules_to_install, Some(&funds))?;
                     return Ok(account_from_namespace);
                 }
             }
@@ -301,38 +320,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         verifiers::validate_link(self.link.as_deref())?;
 
         let install_modules = self.install_modules.clone();
-        let funds = match &self.funds {
-            AccountCreationFunds::Auto(auto_funds_assert) => {
-                let modules = install_modules.iter().map(|m| m.module.clone()).collect();
-                // Simulate module install to find out required funds
-                let simulate_response = self
-                    .abstr
-                    .module_factory
-                    .simulate_install_modules(modules)?;
-
-                let mut funds = Coins::try_from(simulate_response.total_required_funds).unwrap();
-
-                // Add namespace fee if any
-                if self.namespace.is_some() {
-                    let vc_config = self.abstr.version_control.config()?;
-
-                    if let Some(namespace_fee) = vc_config.namespace_registration_fee {
-                        funds
-                            .add(namespace_fee)
-                            .map_err(AbstractInterfaceError::from)?;
-                    }
-                };
-
-                let funds = funds.into_vec();
-                // Use auto funds assert function for validation
-                if !auto_funds_assert(&funds) {
-                    return Err(AbstractClientError::AutoFundsAssertFailed(funds));
-                }
-                funds
-            }
-            AccountCreationFunds::Coins(coins) => coins.to_vec(),
-        };
-
+        let funds = self.generate_funds(&install_modules, true)?;
         let account_details = AccountDetails {
             name,
             description: self.description.clone(),
@@ -353,6 +341,47 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 .create_sub_account(account_details, Some(&funds))?,
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
+    }
+
+    fn generate_funds(
+        &self,
+        // Not using self.install_modules because it's maybe build on existent account and we pass only new modules here
+        install_modules: &[ModuleInstallConfig],
+        // Include funds for namespace claiming
+        include_namespace_claiming: bool,
+    ) -> AbstractClientResult<Vec<Coin>> {
+        let funds = match &self.funds {
+            AccountCreationFunds::Auto(auto_funds_assert) => {
+                let modules = install_modules.iter().map(|m| m.module.clone()).collect();
+                // Simulate module install to find out required funds
+                let simulate_response = self
+                    .abstr
+                    .module_factory
+                    .simulate_install_modules(modules)?;
+
+                let mut funds = Coins::try_from(simulate_response.total_required_funds).unwrap();
+
+                // Add namespace fee if any
+                if include_namespace_claiming && self.namespace.is_some() {
+                    let vc_config = self.abstr.version_control.config()?;
+
+                    if let Some(namespace_fee) = vc_config.namespace_registration_fee {
+                        funds
+                            .add(namespace_fee)
+                            .map_err(AbstractInterfaceError::from)?;
+                    }
+                };
+
+                let funds = funds.into_vec();
+                // Use auto funds assert function for validation
+                if !auto_funds_assert(&funds) {
+                    return Err(AbstractClientError::AutoFundsAssertFailed(funds));
+                }
+                funds
+            }
+            AccountCreationFunds::Coins(coins) => coins.to_vec(),
+        };
+        Ok(funds)
     }
 }
 
@@ -434,7 +463,11 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
             .map_err(Into::into)
     }
-    // TODO: Ans balance
+
+    /// Query account balance of a given denom
+    pub fn query_ans_balance(&self, ans_asset: AssetEntry) -> AbstractClientResult<Uint128> {
+        Ok(self.abstr_account.proxy.holding_amount(ans_asset)?.amount)
+    }
 
     /// Query account info
     pub fn info(&self) -> AbstractClientResult<AccountInfo> {
@@ -603,6 +636,21 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
+    /// Queries a module on the account.
+    pub fn query_module<Q: Serialize + Debug, T: Serialize + DeserializeOwned>(
+        &self,
+        module_id: ModuleId,
+        msg: &Q,
+    ) -> AbstractClientResult<T> {
+        let mut module_address_response = self.module_addresses(vec![module_id.to_owned()])?;
+        let (_, module_addr) = module_address_response.modules.pop().unwrap();
+        let response = self
+            .environment()
+            .query(msg, &module_addr)
+            .map_err(Into::into)?;
+        Ok(response)
+    }
+
     /// Set IBC status on an Account.
     pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
@@ -653,6 +701,46 @@ impl<Chain: CwEnv> Account<Chain> {
             .raw_query(self.abstr_account.manager.addr_str()?, key)
             .map_err(Into::into)?;
         Ok(!maybe_module_addr.is_empty())
+    }
+
+    /// Check if module version installed on account
+    pub fn module_version_installed(&self, module: ModuleInfo) -> AbstractClientResult<bool> {
+        let module_id = module.id();
+        // First we need to verify it's installed or next query will fail with strange error
+        if !self.module_installed(&module_id)? {
+            return Ok(false);
+        }
+
+        let mut module_versions_response = self
+            .abstr_account
+            .manager
+            .module_versions(vec![module_id])?;
+        let installed_version = module_versions_response.versions.pop().unwrap().version;
+        let expected_version = match &module.version {
+            // If latest we need to find latest version stored in VC
+            ModuleVersion::Latest => {
+                let manager_config = self.abstr_account.manager.config()?;
+                let mut modules_response: version_control::ModulesResponse = self
+                    .environment()
+                    .query(
+                        &version_control::QueryMsg::Modules {
+                            infos: vec![module.clone()],
+                        },
+                        &manager_config.version_control_address,
+                    )
+                    .map_err(Into::into)?;
+                modules_response
+                    .modules
+                    .pop()
+                    .unwrap()
+                    .module
+                    .info
+                    .version
+                    .to_string()
+            }
+            ModuleVersion::Version(version) => version.clone(),
+        };
+        Ok(installed_version == expected_version)
     }
 
     /// Check if module installed on account
@@ -851,6 +939,32 @@ impl<Chain: CwEnv> Account<Chain> {
         } else {
             Err(AbstractClientError::ModuleNotInstalled {})
         }
+    }
+
+    fn missing_modules(
+        &self,
+        modules_to_maybe_install: &[ModuleInstallConfig],
+    ) -> AbstractClientResult<Vec<ModuleInstallConfig>> {
+        // TODO: Is it something supposed to work? Do we just create new sub account with those modules or what?
+        if self.install_on_sub_account {
+            return Ok(vec![]);
+        }
+
+        let mut modules_to_install = vec![];
+        let installed_modules = self.module_infos()?.module_infos;
+        for module in modules_to_maybe_install {
+            match installed_modules
+                .iter()
+                .find(|m| m.id == module.module.id())
+            {
+                Some(_installed_module) => {
+                    // Have this module installed, do we want to try to upgrade module if version is different?
+                }
+                None => modules_to_install.push(module.clone()),
+            }
+        }
+
+        Ok(modules_to_install)
     }
 
     /// Claim a namespace for an existing account

@@ -1396,3 +1396,54 @@ fn module_installed() -> anyhow::Result<()> {
     assert!(!installed);
     Ok(())
 }
+
+#[test]
+fn module_version_installed() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let account = client
+        .account_builder()
+        .install_adapter::<IbcClient<MockBech32>>()?
+        .build()?;
+
+    let installed = account.module_version_installed(ModuleInfo::from_id_latest(IBC_CLIENT)?)?;
+    assert!(installed);
+    let installed = account.module_version_installed(ModuleInfo::from_id(
+        IBC_CLIENT,
+        abstract_std::objects::module::ModuleVersion::Version(TEST_VERSION.to_string()),
+    )?)?;
+    assert!(installed);
+    let installed =
+        account.module_version_installed(ModuleInfo::from_id_latest(TEST_MODULE_ID)?)?;
+    assert!(!installed);
+    let installed = account.module_version_installed(ModuleInfo::from_id(
+        IBC_CLIENT,
+        abstract_std::objects::module::ModuleVersion::Version("0.1.0".to_string()),
+    )?)?;
+    assert!(!installed);
+    Ok(())
+}
+
+#[test]
+fn retrieve_account_builder_install_missing_modules() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    app_publisher.publish_app::<MockAppI<MockBech32>>()?;
+
+    let account = client
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+    // Same account
+    assert_eq!(app_publisher.account().id()?, account.id()?);
+    // Installed from builder after account was created
+    assert!(account.module_installed(TEST_MODULE_ID)?);
+    Ok(())
+}
