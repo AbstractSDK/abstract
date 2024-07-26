@@ -4,9 +4,9 @@
 rm -rf ./artifacts/*.wasm
 
 if [[ $(arch) == "arm64" ]]; then
-  image="abstractmoney/workspace-optimizer-arm64"
+  image="cosmwasm/optimizer-arm64:0.16.0"
 else
-  image="abstractmoney/workspace-optimizer"
+  image="cosmwasm/optimizer:0.16.0"
 fi
 
 # Optimized builds
@@ -15,4 +15,4 @@ docker run --rm -v "$(pwd)":/code \
   -v "$(dirname "$(pwd)")/integrations":/integrations \
   -v "$(dirname "$(pwd)")/framework":/framework \
   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  ${image}:0.14.0
+  ${image}:0.16.0
