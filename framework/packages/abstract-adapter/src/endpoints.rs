@@ -71,6 +71,7 @@ macro_rules! export_endpoints {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint, ReplyEndpoint, SudoEndpoint,
     };

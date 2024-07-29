@@ -1,3 +1,5 @@
+#![allow(clippy::needless_borrows_for_generic_args)]
+
 mod common;
 
 use abstract_interface::{

@@ -120,6 +120,7 @@ impl<
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use super::ExecuteMsg as SuperExecuteMsg;
     use crate::{mock::*, AppError};
     use abstract_sdk::base::ExecuteEndpoint;

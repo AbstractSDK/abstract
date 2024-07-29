@@ -257,6 +257,7 @@ pub fn execute_update_config(
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
     use abstract_testing::OWNER;
     use cosmwasm_std::{

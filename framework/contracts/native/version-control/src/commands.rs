@@ -612,6 +612,7 @@ pub fn validate_account_owner(
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::{
         manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
         objects::account::AccountTrace,
