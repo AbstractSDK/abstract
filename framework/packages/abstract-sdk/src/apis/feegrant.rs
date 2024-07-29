@@ -171,6 +171,7 @@ impl FeeGranter {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::{coins, testing::mock_dependencies};
 
     use super::*;

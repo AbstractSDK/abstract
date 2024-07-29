@@ -182,6 +182,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_app::abstract_testing::addresses::{TEST_MODULE_ADDRESS, TEST_MODULE_ID};
     use abstract_app::{abstract_testing::mock_querier, sdk::mock_module::MockModule};
     use cosmwasm_std::{coins, testing::mock_dependencies, wasm_execute, BankMsg};

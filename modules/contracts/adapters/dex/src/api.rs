@@ -331,9 +331,9 @@ pub mod ans {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
     use crate::msg::ExecuteMsg;
-
     use abstract_adapter::sdk::mock_module::MockModule;
     use abstract_adapter::std::adapter::AdapterRequestMsg;
     use abstract_adapter::std::objects::pool_id::PoolAddressBase;

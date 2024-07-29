@@ -112,6 +112,7 @@ pub fn query_holding_amount(
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
 
     use crate::contract::{execute, instantiate, query};

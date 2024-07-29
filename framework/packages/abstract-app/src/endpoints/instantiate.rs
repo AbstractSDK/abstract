@@ -76,6 +76,7 @@ impl<
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use super::InstantiateMsg as SuperInstantiateMsg;
     use crate::mock::*;
     use abstract_sdk::base::InstantiateEndpoint;
