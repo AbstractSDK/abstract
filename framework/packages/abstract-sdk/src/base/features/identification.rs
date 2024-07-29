@@ -40,6 +40,7 @@ pub trait AccountIdentification: Sized {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
