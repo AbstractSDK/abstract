@@ -64,6 +64,7 @@ fn associated_client(deps: Deps, chain: String) -> HostResult<ClientProxyRespons
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
 
     #[test]
     fn test_registered_client() {

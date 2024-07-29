@@ -344,6 +344,7 @@ pub mod ans {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_adapter::sdk::mock_module::MockModule;
     use abstract_adapter::std::adapter::AdapterRequestMsg;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};

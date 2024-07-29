@@ -200,6 +200,7 @@ pub fn maybe_add_new_deps(
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use std::collections::HashSet;
 
     use cosmwasm_std::testing::mock_dependencies;

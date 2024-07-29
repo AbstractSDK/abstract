@@ -222,6 +222,7 @@ impl Display for AccountTrace {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use std::str::FromStr;
 
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};

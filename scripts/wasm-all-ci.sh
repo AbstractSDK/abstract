@@ -4,13 +4,9 @@ set -e
 
 # Detect the architecture #
 if [[ $(arch) == "arm64" ]]; then
-image="cosmwasm/rust-optimizer-arm64"
-workspace_image="cosmwasm/workspace-optimizer-arm64"
-abstract_image="abstractmoney/workspace-optimizer-arm64"
+  image="cosmwasm/optimizer-arm64:0.16.0"
 else
-image="cosmwasm/rust-optimizer"
-workspace_image="cosmwasm/workspace-optimizer"
-abstract_image="abstractmoney/workspace-optimizer"
+  image="cosmwasm/optimizer:0.16.0"
 fi
 
 starting_dir=$(pwd)
@@ -43,7 +39,7 @@ docker cp Cargo.lock with_code:/code
 docker cp ./contracts with_code:/code
 docker cp ./packages with_code:/code
 # Run the build
-docker run --volumes-from with_code ${workspace_image}:0.15.0
+docker run --volumes-from with_code ${image}
 # Copy the artifacts back out
 docker cp with_code:/code/artifacts/ .
 ls artifacts
@@ -78,7 +74,7 @@ docker cp Cargo.lock modules_with_code:/code
 docker cp ./contracts modules_with_code:/code
 
 # Run the build
-docker run --volumes-from modules_with_code ${abstract_image}:0.15.0
+docker run --volumes-from modules_with_code ${image}
 # Copy the artifacts back out
 docker cp modules_with_code:/code/artifacts/ .
 ls artifacts

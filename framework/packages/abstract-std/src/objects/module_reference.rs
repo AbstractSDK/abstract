@@ -105,6 +105,7 @@ impl ModuleReference {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 
