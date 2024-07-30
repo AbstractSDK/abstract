@@ -49,7 +49,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     )?;
 
     // We need to enable ibc on the account.
-    origin_account.manager.set_ibc_status(true)?;
+    origin_account.manager.ibc_enable(true)?;
 
     // Now we send a message to the client saying that we want to create an account on the
     // destination chain
@@ -280,7 +280,7 @@ mod test {
             )?;
 
         // We need to enable ibc on the account.
-        origin_account.manager.set_ibc_status(true)?;
+        origin_account.manager.ibc_enable(true)?;
 
         // Now we send a message to the client saying that we want to create an account on the
         // destination chain

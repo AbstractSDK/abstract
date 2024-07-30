@@ -112,7 +112,7 @@ fn connect(
     let _ = account.upgrade(ModuleVersion::Latest);
 
     // We install the ibc client on the account. If it fails, it's ok (for instance if we're already updated)
-    let _ = account.set_ibc_status(true);
+    let _ = account.ibc_enable(true);
 
     // We create remote account
     let _ = account
