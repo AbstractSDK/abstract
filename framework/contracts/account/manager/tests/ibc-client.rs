@@ -39,7 +39,7 @@ fn throws_if_disabling_without_ibc_client_installed() -> AResult {
 
     let AbstractAccount { manager, proxy: _ } = &account;
 
-    let res = manager.ibc_enable(false);
+    let res = manager.set_ibc_status(false);
 
     assert_that!(&res).is_err();
 
@@ -58,7 +58,7 @@ fn can_update_ibc_settings() -> AResult {
     ibc_client_installed(manager).unwrap_err();
     manager.set_ibc_status(true)?;
     ibc_client_installed(manager)?;
-    manager.ibc_enable(false)?;
+    manager.set_ibc_status(false)?;
     ibc_client_installed(manager).unwrap_err();
 
     Ok(())
