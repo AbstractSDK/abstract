@@ -823,9 +823,17 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Install module on current account
     fn install_module_current_internal<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
-        modules: Vec<ModuleInstallConfig>,
+        mut modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
+        let module_infos = self.module_infos()?;
+        modules.retain(|m| {
+            !module_infos
+                .module_infos
+                .iter()
+                .any(|module_info| module_info.id == m.module.id())
+        });
+
         let install_module_response = self
             .abstr_account
             .manager
