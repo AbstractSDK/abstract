@@ -493,6 +493,7 @@ pub type ModuleMetadata = String;
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
     use speculoos::prelude::*;

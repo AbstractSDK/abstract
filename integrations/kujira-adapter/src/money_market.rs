@@ -1,6 +1,5 @@
 use crate::AVAILABLE_CHAINS;
 use abstract_money_market_standard::Identify;
-use cosmwasm_std::StdResult;
 
 pub const GHOST: &str = "ghost";
 
@@ -25,7 +24,8 @@ use ::{
         std::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     },
     cosmwasm_std::{
-        coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, StdError, Uint128,
+        coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, StdError, StdResult,
+        Uint128,
     },
     cw_asset::{Asset, AssetInfo},
     kujira::ghost::{

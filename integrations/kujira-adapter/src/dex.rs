@@ -28,13 +28,7 @@ use ::{
         Uint128,
     },
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
-    kujira::{
-        bow::{
-            self,
-            market_maker::{ConfigResponse, PoolResponse},
-        },
-        fin,
-    },
+    kujira::{bow, fin},
 };
 
 #[cfg(feature = "full_integration")]
@@ -156,89 +150,6 @@ impl DexCommand for Fin {
         Ok(msgs)
     }
 
-    fn provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        // unimplemented!();
-        let bow_pair_address: Addr = match pool_id {
-            PoolAddress::SeparateAddresses { swap: _, liquidity } => liquidity,
-            PoolAddress::Contract(liquidity) => liquidity,
-            _ => panic!("invalid address"),
-        };
-        let mut msgs = vec![];
-
-        if paired_assets.len() > 1 {
-            return Err(DexError::TooManyAssets(2));
-        }
-
-        // Pair config
-        let pair_config: ConfigResponse = deps.querier.query_wasm_smart(
-            bow_pair_address.to_string(),
-            &bow::market_maker::QueryMsg::Config {},
-        )?;
-
-        // Get pair info
-        let pair_info: PoolResponse = deps.querier.query_wasm_smart(
-            bow_pair_address.to_string(),
-            &bow::market_maker::QueryMsg::Pool {},
-        )?;
-
-        let pair_assets: Vec<kujira::Asset> = vec![
-            kujira::Asset {
-                amount: pair_info.balances[0],
-                info: kujira::AssetInfo::NativeToken {
-                    denom: pair_config.denoms[0].clone(),
-                },
-            },
-            kujira::Asset {
-                amount: pair_info.balances[1],
-                info: kujira::AssetInfo::NativeToken {
-                    denom: pair_config.denoms[1].clone(),
-                },
-            },
-        ];
-        let kujira_offer_asset = cw_asset_to_kujira(&offer_asset)?;
-        let other_asset = if pair_assets[0].info == kujira_offer_asset.info {
-            let price = Decimal::from_ratio(pair_assets[1].amount, pair_assets[0].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Asset {
-                amount: other_token_amount,
-                info: paired_assets[0].clone(),
-            }
-        } else if pair_assets[1].info == kujira_offer_asset.info {
-            let price = Decimal::from_ratio(pair_assets[0].amount, pair_assets[1].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Asset {
-                amount: other_token_amount,
-                info: paired_assets[0].clone(),
-            }
-        } else {
-            return Err(DexError::ArgumentMismatch(
-                offer_asset.to_string(),
-                pair_config.denoms.iter().map(|e| e.to_string()).collect(),
-            ));
-        };
-
-        let offer_assets = [offer_asset, other_asset];
-
-        let coins = coins_in_assets(&offer_assets);
-
-        let msg = bow::market_maker::ExecuteMsg::Deposit {
-            max_slippage: None,
-            callback: None,
-        };
-
-        // actual call to pair
-        let liquidity_msg = wasm_execute(bow_pair_address, &msg, coins)?.into();
-        msgs.push(liquidity_msg);
-
-        Ok(msgs)
-    }
-
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
@@ -321,10 +232,7 @@ mod tests {
 
     use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
     use abstract_sdk::std::objects::PoolAddress;
-    use cosmwasm_schema::serde::Deserialize;
-    use cosmwasm_std::{
-        coin, coins, from_json, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, WasmMsg,
-    };
+    use cosmwasm_std::{coin, coins, wasm_execute, Addr, Decimal, Decimal256};
     use cw_asset::{Asset, AssetInfo};
     use cw_orch::daemon::networks::HARPOON_4;
     use kujira::{bow, fin};
@@ -351,27 +259,6 @@ mod tests {
 
     fn max_spread() -> Decimal {
         Decimal::from_str("0.1").unwrap()
-    }
-
-    fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(msg).unwrap(),
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
-    }
-
-    fn get_wasm_addr(msg: CosmosMsg) -> String {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { contract_addr, .. }) => contract_addr,
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
-    }
-
-    fn get_wasm_funds(msg: CosmosMsg) -> Vec<Coin> {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { funds, .. }) => funds,
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
     }
 
     #[test]
@@ -471,37 +358,6 @@ mod tests {
             msgs[0].clone(),
         )
         .unwrap();
-    }
-
-    #[test]
-    fn provide_liquidity_symmetric() {
-        let amount_demo = 100_000u128;
-        let msgs = create_setup()
-            .test_provide_liquidity_symmetric(
-                pool_addr(),
-                Asset::new(AssetInfo::native(DEMO), amount_demo),
-                vec![AssetInfo::native(KUJI)],
-            )
-            .unwrap();
-
-        assert_eq!(msgs.len(), 1);
-        assert_eq!(get_wasm_addr(msgs[0].clone()), POOL_CONTRACT);
-
-        let unwrapped_msg: bow::market_maker::ExecuteMsg = get_wasm_msg(msgs[0].clone());
-        match unwrapped_msg {
-            bow::market_maker::ExecuteMsg::Deposit {
-                max_slippage,
-                callback,
-            } => {
-                assert_eq!(max_slippage, None);
-                assert_eq!(callback, None);
-            }
-            _ => panic!("Expected a provide liquidity variant"),
-        }
-
-        let funds = get_wasm_funds(msgs[0].clone());
-        assert_eq!(funds.len(), 2);
-        assert_eq!(funds[0], coin(amount_demo, DEMO),);
     }
 
     #[test]
