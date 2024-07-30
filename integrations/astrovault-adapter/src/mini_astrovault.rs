@@ -24,12 +24,6 @@ pub struct PoolSettings {
     pub xasset_mode_minter: Option<String>,
 }
 
-#[derive(cosmwasm_schema::serde::Deserialize)]
-#[serde(rename_all = "snake_case", crate = "::cosmwasm_schema::serde")]
-pub struct LpBalanceResponse {
-    pub locked: Uint128,
-}
-
 /// This is enum that includes all of the messages we use in astrovault cw20 hook
 /// It's separated for minimizing the size of the wasm
 #[cosmwasm_schema::cw_serde]

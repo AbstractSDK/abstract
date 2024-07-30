@@ -217,10 +217,6 @@ mod standard_pool_tests {
             Some(provide_value_b.u128()),
         )?;
         dex_tester.test_provide_liquidity_one_sided()?;
-        // dex_tester.test_provide_liquidity_symmetric(
-        //     Some(provide_value_a.u128()),
-        //     Some(provide_value_b.u128()),
-        // )?;
         Ok(())
     }
 
