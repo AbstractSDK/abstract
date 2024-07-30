@@ -85,7 +85,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
     install_modules: Vec<ModuleInstallConfig>,
-    enable_ibc: Option<bool>,
+    enable_ibc: bool,
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
@@ -111,7 +111,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             ownership: None,
             owner_account: None,
             install_modules: vec![],
-            enable_ibc: None,
+            enable_ibc: false,
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: false,
@@ -237,7 +237,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     /// Enable ibc on account. This parameter ignored if installation of `IbcClient`
     /// already specified in `install_modules`.
     pub fn enable_ibc(&mut self) -> &mut Self {
-        self.enable_ibc = Some(true);
+        self.enable_ibc = true;
         self
     }
 
@@ -350,7 +350,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     /// Modules to install without duplicates
     fn install_modules(&self) -> Vec<ModuleInstallConfig> {
         let mut install_modules = self.install_modules.clone();
-        if self.enable_ibc.unwrap_or(true) {
+        if self.enable_ibc {
             install_modules.push(IbcClient::<Chain>::install_config(&Empty {}).unwrap());
         }
         install_modules.dedup();
