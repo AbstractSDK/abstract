@@ -6,6 +6,8 @@
 
 ### Changed
 
+- Ibc related renaming to add more consistency in namings
+
 ### Removed
 
 ### Fixed

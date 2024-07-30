@@ -34,10 +34,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             action,
         } => {
             // This endpoint retrieves the chain name from the executor of the message
-            let client_chain: TruncatedChainId =
+            let src_chain: TruncatedChainId =
                 REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
-            handle_host_action(deps, env, client_chain, proxy_address, account_id, action)
+            handle_host_action(deps, env, src_chain, proxy_address, account_id, action)
         }
         ExecuteMsg::UpdateOwnership(action) => {
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
@@ -50,6 +50,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
         } => {
             let src_chain: TruncatedChainId =
                 REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
+
             handle_module_execute(deps, env, src_chain, source_module, target_module, msg)
         }
     }
