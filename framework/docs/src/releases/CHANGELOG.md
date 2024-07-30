@@ -12,10 +12,15 @@
 - `module_installed` method for Account that returns `true` if module installed on account
 - `module_version_installed` method for Account that returns `true` if module of this version installed on account
 - `address` method for Account to get address of account. Result of this method is the same as calling `proxy`
+- `ibc_enable` added Account builder, it defaults to `true`.
+- `module_status` on AbstractClient that returns current status of the module.
 
 ### Changed
 
-- Abstract Client: `install_on_sub_account` now defaults to `false` in Account Builder
+#### Abstract Client
+
+- `install_on_sub_account` now defaults to `false` in Account Builder
+- `set_ibc_status` renamed to `ibc_enable` on `Account`
 
 ### Removed
 
