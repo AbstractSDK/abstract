@@ -91,6 +91,40 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         }
     }
 
+    /// Get module status or return `None` if not deployed
+    pub fn module_status(
+        &self,
+        info: ModuleInfo,
+    ) -> Result<Option<ModuleStatus>, crate::AbstractInterfaceError> {
+        let is_module_status = |m: ModuleStatus| -> Result<bool, crate::AbstractInterfaceError> {
+            let is_module_status = !self
+                .module_list(
+                    Some(ModuleFilter {
+                        namespace: Some(info.namespace.to_string()),
+                        name: Some(info.name.clone()),
+                        version: Some(info.version.to_string()),
+                        status: Some(m),
+                    }),
+                    None,
+                    None,
+                )?
+                .modules
+                .is_empty();
+            Ok(is_module_status)
+        };
+
+        if is_module_status(ModuleStatus::Registered)? {
+            Ok(Some(ModuleStatus::Registered))
+        } else if is_module_status(ModuleStatus::Pending)? {
+            Ok(Some(ModuleStatus::Pending))
+        } else if is_module_status(ModuleStatus::Yanked)? {
+            Ok(Some(ModuleStatus::Yanked))
+        } else {
+            // Not deployed
+            Ok(None)
+        }
+    }
+
     pub fn register_base(
         &self,
         account: &AbstractAccount<Chain>,
@@ -274,17 +308,6 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
         Ok(module.reference.unwrap_standalone()?)
-    }
-
-    /// Retrieves an APP or STANDALONE code id from version control given the module **id** and **version**.
-    pub fn get_module_code_id(
-        &self,
-        id: &str,
-        version: ModuleVersion,
-    ) -> Result<u64, crate::AbstractInterfaceError> {
-        let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
-
-        Ok(module.reference.unwrap_code_id()?)
     }
 }
 

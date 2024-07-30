@@ -16,7 +16,9 @@ use abstract_client::{
     AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
     Publisher,
 };
-use abstract_interface::{ClientResolve, IbcClient, RegisteredModule, VCExecFns, VCQueryFns};
+use abstract_interface::{
+    ClientResolve, IbcClient, InstallConfig, RegisteredModule, VCExecFns, VCQueryFns,
+};
 use abstract_std::{
     adapter::AuthorizedAddressesResponse,
     ans_host::QueryMsgFns,
@@ -1447,5 +1449,46 @@ fn retrieve_account_builder_install_missing_modules() -> anyhow::Result<()> {
     assert_eq!(app_publisher.account().id()?, account.id()?);
     // Installed from builder after account was created
     assert!(account.module_installed(TEST_MODULE_ID)?);
+    Ok(())
+}
+
+#[test]
+fn module_status() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+    client
+        .version_control()
+        .update_config(None, None, Some(false))?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    let module_info = MockAppI::<MockBech32>::module_info().unwrap();
+    let module_status = client.module_status(module_info.clone())?;
+    assert!(module_status.is_none());
+
+    app_publisher.publish_app::<MockAppI<MockBech32>>()?;
+    let module_status = client.module_status(module_info.clone())?;
+    assert_eq!(
+        module_status,
+        Some(abstract_std::objects::module::ModuleStatus::Pending)
+    );
+
+    client
+        .version_control()
+        .approve_or_reject_modules(vec![module_info.clone()], vec![])?;
+    let module_status = client.module_status(module_info.clone())?;
+    assert_eq!(
+        module_status,
+        Some(abstract_std::objects::module::ModuleStatus::Registered)
+    );
+
+    client.version_control().yank_module(module_info.clone())?;
+    let module_status = client.module_status(module_info)?;
+    assert_eq!(
+        module_status,
+        Some(abstract_std::objects::module::ModuleStatus::Yanked)
+    );
     Ok(())
 }
