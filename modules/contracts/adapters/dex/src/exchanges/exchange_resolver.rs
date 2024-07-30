@@ -9,9 +9,6 @@ use cosmwasm_std::Env;
 /// This provides superior UX in case of an IBC execution
 pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexError> {
     match value {
-        crate::exchanges::junoswap::JUNOSWAP => {
-            Ok(Box::<crate::exchanges::junoswap::JunoSwap>::default())
-        }
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::dex::WynDex>::default())
         }
@@ -33,10 +30,6 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
 
 pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexError> {
     match value {
-        #[cfg(feature = "wynd")]
-        crate::exchanges::junoswap::JUNOSWAP => {
-            Ok(Box::<crate::exchanges::junoswap::JunoSwap>::default())
-        }
         #[cfg(feature = "wynd")]
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::dex::WynDex>::default())

@@ -1,9 +1,9 @@
 mod command;
 mod error;
 
+pub mod action;
 pub mod ans_action;
 pub mod msg;
-pub mod raw_action;
 #[cfg(feature = "testing")]
 pub mod tests;
 

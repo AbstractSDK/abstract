@@ -145,13 +145,6 @@ fn test_queries() -> anyhow::Result<()> {
 // }
 
 // #[test]
-// fn test_provide_liquidity_symmetric() -> anyhow::Result<()> {
-//     let dex_tester = setup()?;
-//     dex_tester.test_provide_liquidity_symmetric()?;
-//     Ok(())
-// }
-
-// #[test]
 // fn test_provide_liquidity_spread() -> anyhow::Result<()> {
 //     let dex_tester = setup()?;
 //     dex_tester.test_provide_liquidity_spread()?;

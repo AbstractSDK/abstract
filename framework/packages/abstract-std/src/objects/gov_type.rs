@@ -242,6 +242,7 @@ pub struct TopLevelOwnerResponse {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
 
     use cosmwasm_std::testing::mock_dependencies;

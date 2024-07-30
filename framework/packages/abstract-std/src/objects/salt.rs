@@ -13,6 +13,7 @@ pub fn generate_instantiate_salt(account_id: &AccountId) -> Binary {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
     use crate::objects::{account::AccountTrace, TruncatedChainId};
 

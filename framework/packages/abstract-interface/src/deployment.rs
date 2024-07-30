@@ -253,6 +253,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use std::borrow::Cow;
 
     use super::*;

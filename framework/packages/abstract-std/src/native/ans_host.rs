@@ -233,7 +233,6 @@ pub enum QueryMsg {
     RegisteredDexes {},
     /// Retrieve the pools with the specified keys
     /// returns [`PoolsResponse`]
-    /// TODO: this may need to take a start_after and limit for the return
     #[returns(PoolsResponse)]
     Pools { pairings: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.

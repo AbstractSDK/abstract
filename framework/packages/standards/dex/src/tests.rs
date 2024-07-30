@@ -64,22 +64,6 @@ impl DexCommandTester {
         Ok(msgs)
     }
 
-    pub fn test_provide_liquidity_symmetric(
-        &self,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        let deps = mock_dependencies(self.chain.clone());
-        let msgs = self.adapter.provide_liquidity_symmetric(
-            deps.as_ref(),
-            pool_id,
-            offer_asset,
-            paired_assets,
-        )?;
-        Ok(msgs)
-    }
-
     pub fn test_withdraw_liquidity(
         &self,
         pool_id: PoolAddress,

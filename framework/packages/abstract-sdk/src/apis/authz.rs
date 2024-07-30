@@ -187,7 +187,7 @@ impl AuthZ {
     ///
     /// * `grantee` -   The address of the grantee.
     /// * `msg` -       Message that you want to send using authz
-    /// When a sender is necessary in the resulting message, the granter is used
+    ///     When a sender is necessary in the resulting message, the granter is used
     pub fn execute(&self, grantee: &Addr, msg: impl Into<CosmosMsg>) -> CosmosMsg {
         let msg = msg.into();
         let (type_url, value) = match msg {
