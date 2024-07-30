@@ -80,7 +80,7 @@ fn test_ibc(
 
     let account = src_abstract.account_builder().build()?;
 
-    account.ibc_enable(true)?;
+    account.set_ibc_status(true)?;
 
     let remote_account = account
         .remote_account_builder(&interchain, &dst_abstract)

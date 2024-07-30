@@ -217,7 +217,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(result)
     }
 
-    pub fn ibc_enable(
+    pub fn set_ibc_status(
         &self,
         enabled: bool,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {

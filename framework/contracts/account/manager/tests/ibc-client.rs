@@ -22,8 +22,8 @@ fn throws_if_enabling_when_already_enabled() -> AResult {
 
     let AbstractAccount { manager, proxy: _ } = &account;
 
-    manager.ibc_enable(true)?;
-    let res = manager.ibc_enable(true);
+    manager.set_ibc_status(true)?;
+    let res = manager.set_ibc_status(true);
 
     assert_that!(&res).is_err();
 
@@ -56,7 +56,7 @@ fn can_update_ibc_settings() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
 
     ibc_client_installed(manager).unwrap_err();
-    manager.ibc_enable(true)?;
+    manager.set_ibc_status(true)?;
     ibc_client_installed(manager)?;
     manager.ibc_enable(false)?;
     ibc_client_installed(manager).unwrap_err();

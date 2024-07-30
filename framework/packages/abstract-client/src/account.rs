@@ -85,7 +85,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
     install_modules: Vec<ModuleInstallConfig>,
-    ibc_enable: Option<bool>,
+    enable_ibc: Option<bool>,
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
@@ -111,7 +111,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             ownership: None,
             owner_account: None,
             install_modules: vec![],
-            ibc_enable: None,
+            enable_ibc: None,
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: false,
@@ -236,10 +236,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
     /// Enable ibc on account. This parameter ignored if installation of `IbcClient`
     /// already specified in `install_modules`.
-    ///
-    /// Defaults to true
-    pub fn ibc_enable(&mut self, enable: bool) -> &mut Self {
-        self.ibc_enable = Some(enable);
+    pub fn enable_ibc(&mut self) -> &mut Self {
+        self.enable_ibc = Some(true);
         self
     }
 
@@ -352,7 +350,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     /// Modules to install without duplicates
     fn install_modules(&self) -> Vec<ModuleInstallConfig> {
         let mut install_modules = self.install_modules.clone();
-        if self.ibc_enable.unwrap_or(true) {
+        if self.enable_ibc.unwrap_or(true) {
             install_modules.push(IbcClient::<Chain>::install_config(&Empty {}).unwrap());
         }
         install_modules.dedup();
@@ -668,10 +666,10 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Set IBC status on an Account.
-    pub fn ibc_enable(&self, enabled: bool) -> AbstractClientResult<Chain::Response> {
+    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .manager
-            .ibc_enable(enabled)
+            .set_ibc_status(enabled)
             .map_err(Into::into)
     }
 
