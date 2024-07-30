@@ -23,7 +23,7 @@ use std::fmt::{Debug, Display};
 
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, ProxyQueryFns,
+    IbcClient, InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, ProxyQueryFns,
     RegisteredModule, VCQueryFns,
 };
 use abstract_std::{
@@ -85,6 +85,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
     install_modules: Vec<ModuleInstallConfig>,
+    ibc_enable: Option<bool>,
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
@@ -110,6 +111,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             ownership: None,
             owner_account: None,
             install_modules: vec![],
+            ibc_enable: None,
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: false,
@@ -232,12 +234,14 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
-    /// Enable ibc on account
-    // I truly dislike how much complexity it adds because it's often dependency of some module
-    // pub fn ibc_enable(&mut self, enable: bool) -> &mut Self {
-    //     self.ibc_enable = Some(enable);
-    //     self
-    // }
+    /// Enable ibc on account. This parameter ignored if installation of `IbcClient`
+    /// already specified in `install_modules`.
+    ///
+    /// Defaults to true
+    pub fn ibc_enable(&mut self, enable: bool) -> &mut Self {
+        self.ibc_enable = Some(enable);
+        self
+    }
 
     /// Enables automatically paying for module instantiations and namespace registration.
     /// The provided function will be called with the required funds. If the function returns `false`,
@@ -280,6 +284,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
     /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
+        let install_modules = self.install_modules();
         if self.fetch_if_namespace_claimed {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
@@ -293,7 +298,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 // Only return if the account can be retrieved without errors.
                 if let Some(account_from_namespace) = account_from_namespace_result {
                     let modules_to_install =
-                        account_from_namespace.missing_modules(&self.install_modules.clone())?;
+                        account_from_namespace.missing_modules(&install_modules)?;
                     if !modules_to_install.is_empty() {
                         let funds = self.generate_funds(&modules_to_install, false)?;
                         account_from_namespace
@@ -321,7 +326,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         verifiers::validate_description(self.description.as_deref())?;
         verifiers::validate_link(self.link.as_deref())?;
 
-        let install_modules = self.install_modules.clone();
         let funds = self.generate_funds(&install_modules, true)?;
         let account_details = AccountDetails {
             name,
@@ -343,6 +347,16 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 .create_sub_account(account_details, Some(&funds))?,
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
+    }
+
+    /// Modules to install without duplicates
+    fn install_modules(&self) -> Vec<ModuleInstallConfig> {
+        let mut install_modules = self.install_modules.clone();
+        if self.ibc_enable.unwrap_or(true) {
+            install_modules.push(IbcClient::<Chain>::install_config(&Empty {}).unwrap());
+        }
+        install_modules.dedup();
+        install_modules
     }
 
     fn generate_funds(
@@ -654,10 +668,10 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Set IBC status on an Account.
-    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<Chain::Response> {
+    pub fn ibc_enable(&self, enabled: bool) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .manager
-            .set_ibc_status(enabled)
+            .ibc_enable(enabled)
             .map_err(Into::into)
     }
 
