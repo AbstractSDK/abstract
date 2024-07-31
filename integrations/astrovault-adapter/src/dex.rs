@@ -384,114 +384,6 @@ impl DexCommand for Astrovault {
         Ok(msgs)
     }
 
-    #[allow(unused)]
-    fn provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        Err(DexError::NotImplemented(
-            "No space for implementation".to_owned(),
-        ))
-        // Sacrificed this method to decrease wasm size
-        // TODO: implementation is broken anyway, fixes required:
-        // - Stable pool: should it be 1:1 deposit?
-        // - Stable xAsset pool: Not really sure if we should support symmetric for xAsset as it's 1:0
-        // - Ratio pool: query ratio (astrovault::ratio_pool::query_msg::QueryMsg::Ratio) and provide with this "ratio"
-
-        // let pair_address = pool_id.expect_contract()?;
-        // let pool_type = self.fetch_pool_type(deps, &pair_address)?;
-
-        // if paired_assets.len() > 1 {
-        //     return Err(DexError::TooManyAssets(1));
-        // }
-        // // Get pair info
-        // let pair_assets = {
-        //     let pool_response: mini_astrovault::PoolResponse = deps.querier.query_wasm_smart(
-        //         pair_address.to_string(),
-        //         &mini_astrovault::AstrovaultQueryMsg::Pool {},
-        //     )?;
-        //     pool_response.assets
-        // };
-        // let astrovault_offer_asset = cw_asset_to_astrovault(&offer_asset)?;
-        // let other_asset = if pair_assets[0].info == astrovault_offer_asset.info {
-        //     let price = Decimal::from_ratio(pair_assets[1].amount, pair_assets[0].amount);
-        //     let other_token_amount = price * offer_asset.amount;
-        //     Asset {
-        //         amount: other_token_amount,
-        //         info: paired_assets[0].clone(),
-        //     }
-        // } else if pair_assets[1].info == astrovault_offer_asset.info {
-        //     let price = Decimal::from_ratio(pair_assets[0].amount, pair_assets[1].amount);
-        //     let other_token_amount = price * offer_asset.amount;
-        //     Asset {
-        //         amount: other_token_amount,
-        //         info: paired_assets[0].clone(),
-        //     }
-        // } else {
-        //     return Err(DexError::ArgumentMismatch(
-        //         offer_asset.to_string(),
-        //         pair_assets.iter().map(|e| e.info.to_string()).collect(),
-        //     ));
-        // };
-
-        // let offer_assets = [offer_asset, other_asset];
-
-        // let coins = coins_in_assets(&offer_assets);
-
-        // // approval msgs for cw20 tokens (if present)
-        // let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
-
-        // // construct execute msg
-        // let astrovault_assets = offer_assets
-        //     .iter()
-        //     .map(cw_asset_to_astrovault)
-        //     .collect::<Result<Vec<_>, _>>()?;
-
-        // let liquidity_msg = match pool_type {
-        //     AstrovaultPoolType::Standard => wasm_execute(
-        //         pair_address,
-        //         &mini_astrovault::AstrovaultExecuteMsg::ProvideLiquidity {
-        //             assets: [astrovault_assets[0].clone(), astrovault_assets[1].clone()],
-        //             slippage_tolerance: None,
-        //             direct_staking: None,
-        //             receiver: None,
-        //         },
-        //         coins,
-        //     )?,
-        //     // TODO: for xAsset pools should we just let it error by astrovault or provide single asset
-        //     AstrovaultPoolType::Stable { .. } => wasm_execute(
-        //         pair_address,
-        //         &mini_astrovault::AstrovaultExecuteMsg::DepositStable {
-        //             assets_amount: astrovault_assets
-        //                 .into_iter()
-        //                 .map(|asset| asset.amount)
-        //                 .collect(),
-        //             direct_staking: None,
-        //             receiver: None,
-        //         },
-        //         coins,
-        //     )?,
-        //     AstrovaultPoolType::Ratio => wasm_execute(
-        //         pair_address,
-        //         &mini_astrovault::AstrovaultExecuteMsg::DepositRatio {
-        //             assets_amount: [astrovault_assets[0].amount, astrovault_assets[1].amount],
-        //             direct_staking: None,
-        //             receiver: None,
-        //             expected_return: None,
-        //         },
-        //         coins,
-        //     )?,
-        // };
-
-        // // actual call to pair
-        // msgs.push(liquidity_msg.into());
-
-        // Ok(msgs)
-    }
-
     fn withdraw_liquidity(
         &self,
         deps: Deps,
@@ -730,11 +622,7 @@ mod tests {
 
     use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
     use abstract_sdk::std::objects::PoolAddress;
-    use cosmwasm_schema::serde::Deserialize;
-    use cosmwasm_std::{
-        coin, coins, from_json, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal,
-        Uint128, WasmMsg,
-    };
+    use cosmwasm_std::{coin, coins, to_json_binary, wasm_execute, Addr, Decimal};
     use cw20::Cw20ExecuteMsg;
     use cw_asset::{Asset, AssetInfo};
     use cw_orch::daemon::networks::ARCHWAY_1;
@@ -763,27 +651,6 @@ mod tests {
 
     fn max_spread() -> Decimal {
         Decimal::from_str("0.1").unwrap()
-    }
-
-    fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(msg).unwrap(),
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
-    }
-
-    fn get_wasm_addr(msg: CosmosMsg) -> String {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { contract_addr, .. }) => contract_addr,
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
-    }
-
-    fn get_wasm_funds(msg: CosmosMsg) -> Vec<Coin> {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { funds, .. }) => funds,
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
     }
 
     #[test]
@@ -1006,85 +873,6 @@ mod tests {
             msgs[1].clone(),
         )
         .unwrap();
-    }
-
-    #[test]
-    fn provide_liquidity_symmetric() {
-        let amount_usdc = 100_000u128;
-        let msgs = create_setup()
-            .test_provide_liquidity_symmetric(
-                PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
-                Asset::new(AssetInfo::native(USDC), amount_usdc),
-                vec![AssetInfo::native(ARCH)],
-            )
-            .unwrap();
-
-        assert_eq!(msgs.len(), 1);
-        assert_eq!(get_wasm_addr(msgs[0].clone()), STANDARD_POOL_CONTRACT);
-
-        let unwrapped_msg: astrovault::standard_pool::handle_msg::ExecuteMsg =
-            get_wasm_msg(msgs[0].clone());
-        match unwrapped_msg {
-            astrovault::standard_pool::handle_msg::ExecuteMsg::ProvideLiquidity {
-                assets,
-                slippage_tolerance,
-                receiver,
-                direct_staking,
-            } => {
-                assert_eq!(assets.len(), 2);
-                assert_eq!(
-                    assets[0],
-                    astrovault::assets::asset::Asset {
-                        amount: amount_usdc.into(),
-                        info: astrovault::assets::asset::AssetInfo::NativeToken {
-                            denom: USDC.to_string()
-                        },
-                    }
-                );
-                assert_eq!(slippage_tolerance, None);
-                assert_eq!(direct_staking, None);
-                assert_eq!(receiver, None)
-            }
-            _ => panic!("Expected a provide liquidity variant"),
-        }
-
-        let funds = get_wasm_funds(msgs[0].clone());
-        assert_eq!(funds.len(), 2);
-        assert_eq!(funds[1], coin(amount_usdc, USDC),);
-
-        // Stable
-
-        let msgs = create_setup()
-            .test_provide_liquidity_symmetric(
-                PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
-                Asset::new(AssetInfo::Cw20(Addr::unchecked(CW20_ARCH)), amount_usdc),
-                vec![AssetInfo::native(ARCH)],
-            )
-            .unwrap();
-
-        // first msg is allowance
-        assert_eq!(msgs.len(), 2);
-        assert_eq!(get_wasm_addr(msgs[1].clone()), STABLE_POOL_CONTRACT);
-
-        let unwrapped_msg: astrovault::stable_pool::handle_msg::ExecuteMsg =
-            get_wasm_msg(msgs[1].clone());
-        match unwrapped_msg {
-            astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
-                assets_amount,
-                receiver,
-                direct_staking,
-            } => {
-                assert_eq!(assets_amount.len(), 2);
-                assert_eq!(assets_amount[0], Uint128::new(amount_usdc));
-                assert_eq!(direct_staking, None);
-                assert_eq!(receiver, None)
-            }
-            _ => panic!("Expected a provide liquidity variant"),
-        }
-
-        let funds = get_wasm_funds(msgs[1].clone());
-        assert_eq!(funds.len(), 1);
-        assert_eq!(funds[0].denom, ARCH);
     }
 
     #[test]

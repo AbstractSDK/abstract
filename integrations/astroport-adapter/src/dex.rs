@@ -21,7 +21,7 @@ use ::{
         SwapNode,
     },
     abstract_sdk::std::objects::PoolAddress,
-    astroport::pair::{PoolResponse, SimulationResponse},
+    astroport::pair::SimulationResponse,
     astroport::router::SwapOperation,
     cosmwasm_std::{to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
@@ -217,78 +217,6 @@ impl DexCommand for Astroport {
         Ok(msgs)
     }
 
-    fn provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pair_address = pool_id.expect_contract()?;
-
-        if paired_assets.len() > 1 {
-            return Err(DexError::TooManyAssets(2));
-        }
-        // Get pair info
-        let pair_config: PoolResponse = deps.querier.query_wasm_smart(
-            pair_address.to_string(),
-            &astroport::pair::QueryMsg::Pool {},
-        )?;
-        let astroport_offer_asset = cw_asset_to_astroport(&offer_asset)?;
-        let other_asset = if pair_config.assets[0].info == astroport_offer_asset.info {
-            let price =
-                Decimal::from_ratio(pair_config.assets[1].amount, pair_config.assets[0].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Asset {
-                amount: other_token_amount,
-                info: paired_assets[0].clone(),
-            }
-        } else if pair_config.assets[1].info == astroport_offer_asset.info {
-            let price =
-                Decimal::from_ratio(pair_config.assets[0].amount, pair_config.assets[1].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Asset {
-                amount: other_token_amount,
-                info: paired_assets[0].clone(),
-            }
-        } else {
-            return Err(DexError::ArgumentMismatch(
-                offer_asset.to_string(),
-                pair_config
-                    .assets
-                    .iter()
-                    .map(|e| e.info.to_string())
-                    .collect(),
-            ));
-        };
-
-        let offer_assets = [offer_asset, other_asset];
-
-        let coins = coins_in_assets(&offer_assets);
-
-        // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
-
-        // construct execute msg
-        let astroport_assets = offer_assets
-            .iter()
-            .map(cw_asset_to_astroport)
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let msg = astroport::pair::ExecuteMsg::ProvideLiquidity {
-            assets: vec![astroport_assets[0].clone(), astroport_assets[1].clone()],
-            slippage_tolerance: None,
-            receiver: None,
-            auto_stake: None,
-        };
-
-        // actual call to pair
-        let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
-        msgs.push(liquidity_msg);
-
-        Ok(msgs)
-    }
-
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
@@ -357,11 +285,7 @@ mod tests {
 
     use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
     use abstract_sdk::std::objects::PoolAddress;
-    use cosmwasm_schema::serde::Deserialize;
-    use cosmwasm_std::{
-        coin, coins, from_json, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal,
-        WasmMsg,
-    };
+    use cosmwasm_std::{coin, coins, to_json_binary, wasm_execute, Addr, Decimal};
     use cw20::Cw20ExecuteMsg;
     use cw_asset::{Asset, AssetInfo};
     use cw_orch::daemon::networks::PHOENIX_1;
@@ -379,27 +303,6 @@ mod tests {
 
     fn max_spread() -> Decimal {
         Decimal::from_str("0.1").unwrap()
-    }
-
-    fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(msg).unwrap(),
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
-    }
-
-    fn get_wasm_addr(msg: CosmosMsg) -> String {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { contract_addr, .. }) => contract_addr,
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
-    }
-
-    fn get_wasm_funds(msg: CosmosMsg) -> Vec<Coin> {
-        match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { funds, .. }) => funds,
-            _ => panic!("Expected execute wasm msg, got a different enum"),
-        }
     }
 
     #[test]
@@ -524,50 +427,6 @@ mod tests {
             msgs[0].clone(),
         )
         .unwrap();
-    }
-
-    #[test]
-    fn provide_liquidity_symmetric() {
-        let amount_usdc = 100_000u128;
-        let msgs = create_setup()
-            .test_provide_liquidity_symmetric(
-                PoolAddress::contract(Addr::unchecked(POOL_CONTRACT)),
-                Asset::new(AssetInfo::native(USDC), amount_usdc),
-                vec![AssetInfo::native(LUNA)],
-            )
-            .unwrap();
-
-        assert_eq!(msgs.len(), 1);
-        assert_eq!(get_wasm_addr(msgs[0].clone()), POOL_CONTRACT);
-
-        let unwrapped_msg: astroport::pair::ExecuteMsg = get_wasm_msg(msgs[0].clone());
-        match unwrapped_msg {
-            astroport::pair::ExecuteMsg::ProvideLiquidity {
-                assets,
-                slippage_tolerance,
-                auto_stake,
-                receiver,
-            } => {
-                assert_eq!(assets.len(), 2);
-                assert_eq!(
-                    assets[0],
-                    astroport::asset::Asset {
-                        amount: amount_usdc.into(),
-                        info: astroport::asset::AssetInfo::NativeToken {
-                            denom: USDC.to_string()
-                        },
-                    }
-                );
-                assert_eq!(slippage_tolerance, None);
-                assert_eq!(auto_stake, None);
-                assert_eq!(receiver, None)
-            }
-            _ => panic!("Expected a provide liquidity variant"),
-        }
-
-        let funds = get_wasm_funds(msgs[0].clone());
-        assert_eq!(funds.len(), 2);
-        assert_eq!(funds[0], coin(amount_usdc, USDC),);
     }
 
     #[test]

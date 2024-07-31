@@ -9,7 +9,7 @@ use crate::msg::SwapNode;
 
 /// Possible raw actions to perform on the DEX
 #[cosmwasm_schema::cw_serde]
-pub enum DexRawAction {
+pub enum DexAction {
     /// Provide arbitrary liquidity
     ProvideLiquidity {
         /// Pool to provide liquidity to
@@ -19,17 +19,6 @@ pub enum DexRawAction {
         assets: Vec<AssetBase<String>>,
         /// Max spread to accept, is a percentage represented as a decimal.
         max_spread: Option<Decimal>,
-    },
-    /// Provide liquidity equally between assets to a pool
-    ProvideLiquiditySymmetric {
-        /// Pool to provide liquidity to
-        pool: UncheckedPoolAddress,
-        /// The asset to offer
-        offer_asset: AssetBase<String>,
-        // support complex pool types
-        /// Assets that are paired with the offered asset
-        /// Should exclude the offer asset
-        paired_assets: Vec<AssetInfoBase<String>>,
     },
     /// Withdraw liquidity from a pool
     WithdrawLiquidity {

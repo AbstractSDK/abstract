@@ -246,13 +246,6 @@ mod native_tests {
     }
 
     #[test]
-    fn test_provide_liquidity_symmetric() -> anyhow::Result<()> {
-        let dex_tester = setup_native()?;
-        dex_tester.test_provide_liquidity_symmetric(None, None)?;
-        Ok(())
-    }
-
-    #[test]
     fn test_provide_liquidity_spread() -> anyhow::Result<()> {
         let dex_tester = setup_native()?;
         dex_tester.test_provide_liquidity_spread()?;
@@ -336,13 +329,6 @@ mod cw20_tests {
         let dex_tester = setup_cw20()?;
         dex_tester.test_provide_liquidity_two_sided(None, None)?;
         dex_tester.test_provide_liquidity_one_sided()?;
-        Ok(())
-    }
-
-    #[test]
-    fn test_provide_liquidity_symmetric() -> anyhow::Result<()> {
-        let dex_tester = setup_cw20()?;
-        dex_tester.test_provide_liquidity_symmetric(None, None)?;
         Ok(())
     }
 

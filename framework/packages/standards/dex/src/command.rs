@@ -78,15 +78,6 @@ pub trait DexCommand: Identify {
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
 
-    /// Provide symmetric liquidity where available depending on the DEX
-    fn provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<CosmosMsg>, DexError>;
-
     /// Withdraw liquidity from DEX
     fn withdraw_liquidity(
         &self,

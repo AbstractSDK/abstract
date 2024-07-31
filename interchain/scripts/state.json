@@ -353,5 +353,31 @@
         "abstract:version-control": "terra1d87wpuvjgqe8a5qytneyd8puc7y2uan6tcr6mwq873trjm8v2pzs7t593t"
       }
     }
+  },
+  "union": {
+    "union-testnet-8": {
+      "code_ids": {
+        "abstract:account-factory": 81,
+        "abstract:ans-host": 79,
+        "abstract:ibc-client": 85,
+        "abstract:ibc-host": 86,
+        "abstract:manager": 83,
+        "abstract:module-factory": 82,
+        "abstract:proxy": 84,
+        "abstract:version-control": 80,
+        "polytone:note": 87,
+        "polytone:proxy": 89,
+        "polytone:voice": 88
+      },
+      "default": {
+        "abstract:account-factory": "union1czy8k839ywhy8wxejphxq67xga63jf68ssymal2qh4sv842hmstsjh6h6u",
+        "abstract:ans-host": "union1kvxlhsq2p2ws8ewf8s96d5y9ck0ur95kalq0kzfhwax8mqdxlnyqa4tecl",
+        "abstract:evm-ibc": "union1hfghs59ccj5vc8ql6j8pvmxemdxu6me0wxjcrzr6z0z7wm0xr8jqer4n4h",
+        "abstract:ibc-client": "union160zgd0kmkeq9m9elzhzk4m0j7xdwct426ylt5uu7ujkfqw8k6ndq7h8nw6",
+        "abstract:ibc-host": "union17ey07cp8fmtu4vfdrxffv5vttneym00228xamjty3xae8d49qgws2vr40m",
+        "abstract:module-factory": "union1va8ypx8rccnlmcez872lcklcqkpkeledny07lasttg2f6wehxfvs6q990c",
+        "abstract:version-control": "union19pw0rz9hnwcrv43zvqnna6q6ednun3qlt92vaxd8xwzv4rk7mzks5upw4t"
+      }
+    }
   }
 }

@@ -4,7 +4,7 @@ use abstract_adapter::sdk::{
     Execution,
 };
 use abstract_adapter::std::objects::pool_id::PoolAddressBase;
-use abstract_dex_standard::{msg::SwapNode, raw_action::DexRawAction, DexCommand, DexError};
+use abstract_dex_standard::{msg::SwapNode, action::DexAction, DexCommand, DexError};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};
 
@@ -26,11 +26,11 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         &self,
         deps: Deps,
         sender: Addr,
-        action: DexRawAction,
+        action: DexAction,
         mut exchange: Box<dyn DexCommand>,
     ) -> Result<(Vec<CosmosMsg>, ReplyId), DexError> {
         Ok(match action {
-            DexRawAction::ProvideLiquidity {
+            DexAction::ProvideLiquidity {
                 pool,
                 assets,
                 max_spread,
@@ -50,31 +50,11 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                     PROVIDE_LIQUIDITY,
                 )
             }
-            DexRawAction::ProvideLiquiditySymmetric {
-                pool,
-                offer_asset,
-                paired_assets,
-            } => {
-                if paired_assets.is_empty() {
-                    return Err(DexError::TooFewAssets {});
-                }
-                (
-                    self.resolve_provide_liquidity_symmetric(
-                        deps,
-                        sender,
-                        pool,
-                        offer_asset,
-                        paired_assets,
-                        exchange.as_mut(),
-                    )?,
-                    PROVIDE_LIQUIDITY_SYM,
-                )
-            }
-            DexRawAction::WithdrawLiquidity { pool, lp_token } => (
+            DexAction::WithdrawLiquidity { pool, lp_token } => (
                 self.resolve_withdraw_liquidity(deps, sender, lp_token, pool, exchange.as_mut())?,
                 WITHDRAW_LIQUIDITY,
             ),
-            DexRawAction::Swap {
+            DexAction::Swap {
                 pool,
                 offer_asset,
                 ask_asset,
@@ -216,31 +196,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             self.ans_host(deps)?,
         )?;
         exchange.provide_liquidity(deps, pool_address, offer_assets, max_spread)
-    }
-
-    fn resolve_provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        sender: Addr,
-        pool: PoolAddressBase<String>,
-        offer_asset: AssetBase<String>,
-        paired_assets: Vec<AssetInfoBase<String>>,
-        exchange: &mut dyn DexCommand,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pool_address = pool.check(deps.api)?;
-        let paired_assets = paired_assets
-            .into_iter()
-            .map(|o| o.check(deps.api, None))
-            .collect::<Result<_, _>>()?;
-        let offer_asset = offer_asset.check(deps.api, None)?;
-
-        exchange.fetch_data(
-            deps,
-            sender,
-            self.abstract_registry(deps)?,
-            self.ans_host(deps)?,
-        )?;
-        exchange.provide_liquidity_symmetric(deps, pool_address, offer_asset, paired_assets)
     }
 
     /// @todo

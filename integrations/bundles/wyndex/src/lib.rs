@@ -286,11 +286,8 @@ impl Deploy<MockBech32> for WynDex {
         state.set_address(RAW_EUR_STAKE, &raw_eur_staking);
 
         // set allowance
-        raw.call_as(&owner).increase_allowance(
-            10_000u128.into(),
-            raw_eur_pair.to_string(),
-            None,
-        )?;
+        raw.call_as(&owner)
+            .increase_allowance(10_000u128, raw_eur_pair.to_string(), None)?;
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
@@ -341,16 +338,11 @@ impl Deploy<MockBech32> for WynDex {
         state.set_address(RAW_RAW_2_STAKE, &raw_raw_2_staking);
 
         // set allowance
-        raw.call_as(&owner).increase_allowance(
-            10_000u128.into(),
-            raw_raw_2_pair.to_string(),
-            None,
-        )?;
-        raw_2.call_as(&owner).increase_allowance(
-            10_000u128.into(),
-            raw_raw_2_pair.to_string(),
-            None,
-        )?;
+        raw.call_as(&owner)
+            .increase_allowance(10_000u128, raw_raw_2_pair.to_string(), None)?;
+        raw_2
+            .call_as(&owner)
+            .increase_allowance(10_000u128, raw_raw_2_pair.to_string(), None)?;
         // owner provides some initial liquidity
         suite
             .provide_liquidity(

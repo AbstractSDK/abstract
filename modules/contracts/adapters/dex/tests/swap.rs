@@ -60,7 +60,7 @@ fn swap_native() -> anyhow::Result<()> {
     println!("{:?}", pools);
 
     // swap 100 EUR to USD
-    dex_adapter.ans_swap((EUR, 100), USD, WYNDEX.into(), &os)?;
+    dex_adapter.ans_swap((EUR, 100), USD, WYNDEX.into(), &os, &abstr.ans_host)?;
 
     // check balances
     let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
@@ -87,7 +87,13 @@ fn swap_native_without_chain() -> anyhow::Result<()> {
     let proxy_addr = os.proxy.address()?;
 
     // swap 100 EUR to USD
-    dex_adapter.ans_swap((EUR, 100), USD, WYNDEX_WITHOUT_CHAIN.into(), &os)?;
+    dex_adapter.ans_swap(
+        (EUR, 100),
+        USD,
+        WYNDEX_WITHOUT_CHAIN.into(),
+        &os,
+        &abstr.ans_host,
+    )?;
 
     // check balances
     let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
@@ -116,10 +122,10 @@ fn swap_raw() -> anyhow::Result<()> {
     wyndex
         .raw_token
         .call_as(&owner)
-        .transfer(10_000u128.into(), proxy_addr.to_string())?;
+        .transfer(10_000u128, proxy_addr.to_string())?;
 
     // swap 100 RAW to EUR
-    dex_adapter.ans_swap((RAW_TOKEN, 100), EUR, WYNDEX.into(), &os)?;
+    dex_adapter.ans_swap((RAW_TOKEN, 100), EUR, WYNDEX.into(), &os, &abstr.ans_host)?;
 
     // check balances
     let raw_balance = wyndex.raw_token.balance(proxy_addr.to_string())?;
