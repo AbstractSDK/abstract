@@ -9,7 +9,10 @@ use abstract_adapter::std::{
     },
 };
 use abstract_dex_adapter::{
-    contract::CONTRACT_VERSION, interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID,
+    contract::CONTRACT_VERSION,
+    interface::DexAdapter,
+    msg::{DexInstantiateMsg, SwapNode},
+    DEX_ADAPTER_ID,
 };
 use abstract_dex_standard::ans_action::DexAnsAction;
 use abstract_interface::{
@@ -19,6 +22,7 @@ use abstract_interface::{
 use abstract_osmosis_adapter::OSMOSIS;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins, Decimal, Uint128};
+use cw_asset::AssetBase;
 use cw_orch::prelude::*;
 use cw_orch_osmosis_test_tube::OsmosisTestTube;
 
@@ -92,10 +96,12 @@ fn setup_mock() -> anyhow::Result<(
 )> {
     let atom = "uatom";
     let osmo = "uosmo";
+    let juno = "ujunox";
 
     let chain = OsmosisTestTube::new(vec![
         coin(1_000_000_000_000, osmo),
         coin(1_000_000_000_000, atom),
+        coin(1_000_000_000_000, juno),
     ]);
 
     let deployment = Abstract::deploy_on(chain.clone(), chain.sender_addr().to_string())?;
@@ -397,6 +403,84 @@ fn withdraw_liquidity() -> AnyResult<()> {
     // After withdrawing, we should get some tokens in return and have some lp token left
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert_eq!(balances.len(), 3);
+
+    Ok(())
+}
+
+#[test]
+fn swap_route() -> AnyResult<()> {
+    // We need to deploy a Testube pool
+    let (chain, dex_adapter, os, abstr, pool_id_atom_osmo) = setup_mock()?;
+    let juno = "ujunox";
+    let osmo = "uosmo";
+
+    let pool_id_osmo_juno =
+        chain.create_pool(vec![coin(10_000_000_000, osmo), coin(10_000_000_000, juno)])?;
+
+    abstr
+        .ans_host
+        .update_asset_addresses(
+            vec![
+                ("osmo".to_string(), cw_asset::AssetInfoBase::native(osmo)),
+                ("juno".to_string(), cw_asset::AssetInfoBase::native(juno)),
+                (
+                    "osmosis/osmo,juno".to_string(),
+                    cw_asset::AssetInfoBase::native(get_pool_token(pool_id_osmo_juno)),
+                ),
+            ],
+            vec![],
+        )
+        .unwrap();
+
+    abstr
+        .ans_host
+        .update_pools(
+            vec![(
+                PoolAddressBase::id(pool_id_osmo_juno),
+                PoolMetadata::constant_product(
+                    OSMOSIS,
+                    vec!["osmo".to_string(), "juno".to_string()],
+                ),
+            )],
+            vec![],
+        )
+        .unwrap();
+
+    let proxy_addr = os.proxy.address()?;
+
+    let swap_value = 1_000_000_000u128;
+
+    chain.bank_send(proxy_addr.to_string(), coins(swap_value, "uatom"))?;
+
+    // Before swap, we need to have 0 uosmo and swap_value uatom
+    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    assert_eq!(balances, coins(swap_value, "uatom"));
+    // swap 100_000 uatom to uosmo
+    dex_adapter.raw_action(
+        OSMOSIS.to_string(),
+        abstract_dex_adapter::msg::DexAction::RouteSwap {
+            route: vec![
+                SwapNode {
+                    pool_id: PoolAddressBase::Id(pool_id_atom_osmo),
+                    ask_asset: cw_asset::AssetInfoBase::Native("uosmo".to_owned()),
+                },
+                SwapNode {
+                    pool_id: PoolAddressBase::Id(pool_id_osmo_juno),
+                    ask_asset: cw_asset::AssetInfoBase::Native(juno.to_owned()),
+                },
+            ],
+            offer_asset: AssetBase::native("uatom", swap_value),
+            max_spread: None,
+            belief_price: None,
+        },
+        &os,
+    )?;
+
+    // Assert balances
+    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    assert_eq!(balances.len(), 1);
+    let balance = chain.query_balance(proxy_addr.as_ref(), juno)?;
+    assert!(balance > Uint128::zero());
 
     Ok(())
 }

@@ -18,10 +18,12 @@ impl Identify for Astroport {
 use ::{
     abstract_dex_standard::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
+        SwapNode,
     },
     abstract_sdk::std::objects::PoolAddress,
     astroport::pair::SimulationResponse,
-    cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
+    astroport::router::SwapOperation,
+    cosmwasm_std::{to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
 };
@@ -70,6 +72,57 @@ impl DexCommand for Astroport {
                         ask_asset_info: None,
                         max_spread,
                         to: None,
+                    })?,
+                },
+                vec![],
+            )?
+            .into()],
+            _ => panic!("unsupported asset"),
+        };
+        Ok(swap_msg)
+    }
+
+    fn swap_route(
+        &self,
+        _deps: Deps,
+        swap_route: Vec<SwapNode<Addr>>,
+        offer_asset: Asset,
+        _belief_price: Option<Decimal>,
+        max_spread: Option<Decimal>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        let pair_address = swap_route[0].pool_id.expect_contract()?;
+        let mut operations = vec![];
+        let mut offer_asset_info = offer_asset.info.clone();
+        for node in swap_route {
+            operations.push(SwapOperation::AstroSwap {
+                offer_asset_info: cw_asset_info_to_astroport(&offer_asset_info)?,
+                ask_asset_info: cw_asset_info_to_astroport(&node.ask_asset)?,
+            });
+            offer_asset_info = node.ask_asset
+        }
+
+        let swap_msg: Vec<CosmosMsg> = match &offer_asset.info {
+            AssetInfo::Native(_) => vec![wasm_execute(
+                pair_address.to_string(),
+                &astroport::router::ExecuteMsg::ExecuteSwapOperations {
+                    operations,
+                    minimum_receive: None,
+                    to: None,
+                    max_spread,
+                },
+                vec![offer_asset.clone().try_into()?],
+            )?
+            .into()],
+            AssetInfo::Cw20(addr) => vec![wasm_execute(
+                addr.to_string(),
+                &Cw20ExecuteMsg::Send {
+                    contract: pair_address.to_string(),
+                    amount: offer_asset.amount,
+                    msg: to_json_binary(&astroport::router::Cw20HookMsg::ExecuteSwapOperations {
+                        operations,
+                        minimum_receive: None,
+                        to: None,
+                        max_spread,
                     })?,
                 },
                 vec![],
@@ -205,20 +258,24 @@ impl DexCommand for Astroport {
 
 #[cfg(feature = "full_integration")]
 fn cw_asset_to_astroport(asset: &Asset) -> Result<astroport::asset::Asset, DexError> {
-    match &asset.info {
-        AssetInfoBase::Native(denom) => Ok(astroport::asset::Asset {
-            amount: asset.amount,
-            info: astroport::asset::AssetInfo::NativeToken {
-                denom: denom.clone(),
-            },
+    Ok(astroport::asset::Asset {
+        info: cw_asset_info_to_astroport(&asset.info)?,
+        amount: asset.amount,
+    })
+}
+
+#[cfg(feature = "full_integration")]
+fn cw_asset_info_to_astroport(
+    asset_info: &AssetInfo,
+) -> Result<astroport::asset::AssetInfo, DexError> {
+    match &asset_info {
+        AssetInfoBase::Native(denom) => Ok(astroport::asset::AssetInfo::NativeToken {
+            denom: denom.clone(),
         }),
-        AssetInfoBase::Cw20(contract_addr) => Ok(astroport::asset::Asset {
-            amount: asset.amount,
-            info: astroport::asset::AssetInfo::Token {
-                contract_addr: contract_addr.clone(),
-            },
+        AssetInfoBase::Cw20(contract_addr) => Ok(astroport::asset::AssetInfo::Token {
+            contract_addr: contract_addr.clone(),
         }),
-        _ => Err(DexError::UnsupportedAssetType(asset.info.to_string())),
+        _ => Err(DexError::UnsupportedAssetType(asset_info.to_string())),
     }
 }
 

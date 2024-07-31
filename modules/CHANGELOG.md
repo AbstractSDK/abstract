@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Router swaps for `Osmosis` and `Astroport`
+
 ### Changed
 
 - Dex Raw Action renamed to Dex Action

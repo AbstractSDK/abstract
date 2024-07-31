@@ -171,12 +171,13 @@ pub(crate) fn resolve_assets_to_transfer(
     };
 
     match dex_action {
+        DexAction::RouteSwap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
+        DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
         DexAction::ProvideLiquidity { assets, .. } => {
             let coins: Result<Vec<Coin>, _> = assets.iter().map(offer_to_coin).collect();
             coins
         }
         DexAction::WithdrawLiquidity { lp_token, .. } => Ok(vec![offer_to_coin(lp_token)?]),
-        DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
     }
     .map_err(Into::into)
 }

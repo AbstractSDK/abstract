@@ -29,6 +29,7 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
+cw-address-like = { workspace = true }
 
 abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
