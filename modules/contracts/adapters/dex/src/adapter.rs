@@ -73,7 +73,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                 )?,
                 SWAP,
             ),
-            DexRawAction::RouteSwap {
+            DexAction::RouteSwap {
                 route,
                 offer_asset,
                 max_spread,

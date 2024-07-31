@@ -458,7 +458,7 @@ fn swap_route() -> AnyResult<()> {
     // swap 100_000 uatom to uosmo
     dex_adapter.raw_action(
         OSMOSIS.to_string(),
-        abstract_dex_adapter::msg::DexRawAction::RouteSwap {
+        abstract_dex_adapter::msg::DexAction::RouteSwap {
             route: vec![
                 SwapNode {
                     pool_id: PoolAddressBase::Id(pool_id_atom_osmo),
