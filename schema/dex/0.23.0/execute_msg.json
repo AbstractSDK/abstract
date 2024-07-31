@@ -567,6 +567,63 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "description": "Swap by route between multiple assets",
+          "type": "object",
+          "required": [
+            "route_swap"
+          ],
+          "properties": {
+            "route_swap": {
+              "type": "object",
+              "required": [
+                "offer_asset",
+                "route"
+              ],
+              "properties": {
+                "belief_price": {
+                  "description": "The belief price when submitting the transaction.",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "max_spread": {
+                  "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "offer_asset": {
+                  "description": "The asset to offer",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetBase_for_String"
+                    }
+                  ]
+                },
+                "route": {
+                  "description": "Pool routes used to swap",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/SwapNode_for_String"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -1487,6 +1544,33 @@
           }
         }
       }
+    },
+    "SwapNode_for_String": {
+      "description": "Swap node for swap route",
+      "type": "object",
+      "required": [
+        "ask_asset",
+        "pool_id"
+      ],
+      "properties": {
+        "ask_asset": {
+          "description": "Asset in return from the swap",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            }
+          ]
+        },
+        "pool_id": {
+          "description": "Pool id of the swap",
+          "allOf": [
+            {
+              "$ref": "#/definitions/PoolAddressBase_for_String"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "TruncatedChainId": {
       "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
