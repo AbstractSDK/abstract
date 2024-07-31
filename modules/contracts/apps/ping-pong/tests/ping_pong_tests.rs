@@ -54,7 +54,6 @@ impl<'a> PingPong<'a, MockBech32, MockBech32InterchainEnv> {
         let publisher_stargaze = abs_stargaze.publisher_builder(namespace).build()?;
         publisher_stargaze.publish_app::<AppInterface<_>>()?;
 
-        publisher_juno.account().set_ibc_status(true)?;
         let remote_account = app
             .account()
             .remote_account_builder(mock_interchain, &abs_stargaze)
@@ -137,7 +136,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     env.abs_stargaze
         .version_control()
         .account_base(AccountId::new(
-            1,
+            0,
             AccountTrace::Remote(vec![TruncatedChainId::from_chain_id(JUNO)]),
         )?)?;
 
