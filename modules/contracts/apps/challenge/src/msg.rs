@@ -245,9 +245,9 @@ impl Friend<String> {
     pub(crate) fn check(
         self,
         deps: Deps,
-        app: &ChallengeApp,
+        module: &ChallengeApp,
     ) -> AbstractSdkResult<(Addr, Friend<Addr>)> {
-        let account_registry = app.account_registry(deps)?;
+        let account_registry = module.account_registry(deps)?;
         let checked = match self {
             Friend::Addr(human) => {
                 let checked = human.check(deps)?;
@@ -263,11 +263,12 @@ impl Friend<String> {
 }
 
 impl Friend<Addr> {
-    pub(crate) fn addr(&self, deps: Deps, app: &ChallengeApp) -> AbstractSdkResult<Addr> {
+    pub(crate) fn addr(&self, deps: Deps, module: &ChallengeApp) -> AbstractSdkResult<Addr> {
         Ok(match self {
             Friend::Addr(human) => human.address.clone(),
             Friend::AbstractAccount(account_id) => {
-                app.account_registry(deps)?
+                module
+                    .account_registry(deps)?
                     .account_base(account_id)?
                     .manager
             }

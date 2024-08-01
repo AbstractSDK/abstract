@@ -12,10 +12,10 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: DexAdapter,
+    module: DexAdapter,
     msg: DexInstantiateMsg,
 ) -> DexResult {
-    let recipient = adapter
+    let recipient = module
         .account_registry(deps.as_ref())?
         .proxy_address(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
     let dex_fees = DexFees::new(msg.swap_fee, recipient)?;

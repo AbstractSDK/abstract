@@ -32,17 +32,17 @@ use wyndex_stake::msg::{
 use crate::{MULTI_HOP, POOL_FACTORY, WYNDEX_OWNER};
 pub const SEVEN_DAYS: u64 = 604800;
 
-fn store_multi_hop(app: &mut MockAppBech32) -> u64 {
+fn store_multi_hop(module: &mut MockAppBech32) -> u64 {
     let contract = Box::new(ContractWrapper::new_with_empty(
         wyndex_multi_hop::contract::execute,
         wyndex_multi_hop::contract::instantiate,
         wyndex_multi_hop::contract::query,
     ));
 
-    app.store_code(contract)
+    module.store_code(contract)
 }
 
-fn store_factory(app: &mut MockAppBech32) -> u64 {
+fn store_factory(module: &mut MockAppBech32) -> u64 {
     let contract = Box::new(
         ContractWrapper::new_with_empty(
             wyndex_factory::contract::execute,
@@ -52,10 +52,10 @@ fn store_factory(app: &mut MockAppBech32) -> u64 {
         .with_reply_empty(wyndex_factory::contract::reply),
     );
 
-    app.store_code(contract)
+    module.store_code(contract)
 }
 
-fn store_pair(app: &mut MockAppBech32) -> u64 {
+fn store_pair(module: &mut MockAppBech32) -> u64 {
     let contract = Box::new(
         ContractWrapper::new_with_empty(
             wyndex_pair::contract::execute,
@@ -65,27 +65,27 @@ fn store_pair(app: &mut MockAppBech32) -> u64 {
         .with_reply_empty(wyndex_pair::contract::reply),
     );
 
-    app.store_code(contract)
+    module.store_code(contract)
 }
 
-fn store_staking(app: &mut MockAppBech32) -> u64 {
+fn store_staking(module: &mut MockAppBech32) -> u64 {
     let contract = Box::new(ContractWrapper::new(
         wyndex_stake::contract::execute,
         wyndex_stake::contract::instantiate,
         wyndex_stake::contract::query,
     ));
 
-    app.store_code(contract)
+    module.store_code(contract)
 }
 
-fn store_cw20(app: &mut MockAppBech32) -> u64 {
+fn store_cw20(module: &mut MockAppBech32) -> u64 {
     let contract = Box::new(ContractWrapper::new(
         cw20_base::contract::execute,
         cw20_base::contract::instantiate,
         cw20_base::contract::query,
     ));
 
-    app.store_code(contract)
+    module.store_code(contract)
 }
 
 #[derive(Debug)]

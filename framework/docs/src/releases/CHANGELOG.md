@@ -4,6 +4,12 @@
 
 ### Added
 
+- `execute_with_funds` to Executor to attach funds to execution.
+
+### Changed
+
+- Account action on executor takes `impl IntoIter<Item = impl Into<AccountAction>>` instead of `Vec<AccountAction>`
+
 #### Abstract Client
 
 - `with_modules` method for Account Builder to add list of modules to install (`ModuleInstallConfig`)
@@ -14,11 +20,6 @@
 - `address` method for Account to get address of account. Result of this method is the same as calling `proxy`
 - `enable_ibc` added to Account builder.
 - `module_status` on AbstractClient that returns current status of the module.
-
-### Changed
-
-#### Abstract Client
-
 - `install_on_sub_account` now defaults to `false` in Account Builder
 
 ### Removed

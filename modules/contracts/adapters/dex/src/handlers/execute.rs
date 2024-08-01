@@ -29,7 +29,7 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    adapter: DexAdapter,
+    module: DexAdapter,
     msg: DexExecuteMsg,
 ) -> DexResult {
     match msg {
@@ -41,10 +41,10 @@ pub fn execute_handler(
 
             // if exchange is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
-                handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
+                handle_ibc_request(&deps, info, &module, local_dex_name, &action)
             } else {
                 // the action can be executed on the local chain
-                handle_local_request(deps, env, info, &adapter, local_dex_name, action)
+                handle_local_request(deps, env, info, &module, local_dex_name, action)
             }
         }
         DexExecuteMsg::UpdateFee {
@@ -52,7 +52,7 @@ pub fn execute_handler(
             recipient_account: recipient_account_id,
         } => {
             // Only namespace owner (abstract) can change recipient address
-            let namespace = adapter
+            let namespace = module
                 .module_registry(deps.as_ref())?
                 .query_namespace(Namespace::new(ABSTRACT_NAMESPACE)?)?;
 
@@ -60,7 +60,7 @@ pub fn execute_handler(
             let namespace_info = namespace.unwrap();
             ensure_eq!(
                 namespace_info.account_base,
-                adapter.target_account.clone().unwrap(),
+                module.target_account.clone().unwrap(),
                 DexError::Unauthorized {}
             );
             let mut fee = DEX_FEES.load(deps.storage)?;
@@ -72,7 +72,7 @@ pub fn execute_handler(
 
             // Update recipient account id
             if let Some(account_id) = recipient_account_id {
-                let recipient = adapter
+                let recipient = module
                     .account_registry(deps.as_ref())?
                     .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
                 fee.recipient = recipient;
@@ -89,22 +89,20 @@ fn handle_local_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: &DexAdapter,
+    module: &DexAdapter,
     exchange: String,
     action: DexAction,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let target_account = adapter.account_base(deps.as_ref())?;
+    let target_account = module.account_base(deps.as_ref())?;
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
-        adapter,
+        module,
         deps.as_ref(),
         target_account.proxy,
         action,
         exchange,
     )?;
-    let proxy_msg = adapter
-        .executor(deps.as_ref())
-        .execute(msgs.into_iter().map(Into::into).collect())?;
+    let proxy_msg = module.executor(deps.as_ref()).execute(msgs)?;
     Ok(Response::new().add_message(proxy_msg))
 }
 
@@ -113,14 +111,14 @@ fn handle_local_request(
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
-    adapter: &DexAdapter,
+    module: &DexAdapter,
     dex_name: DexName,
     action: &DexAction,
 ) -> DexResult {
     let host_chain = TruncatedChainId::from_string(dex_name.clone())?; // TODO, this is faulty
 
-    let ans = adapter.name_service(deps.as_ref());
-    let ibc_client = adapter.ibc_client(deps.as_ref());
+    let ans = module.name_service(deps.as_ref());
+    let ibc_client = module.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)

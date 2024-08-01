@@ -15,21 +15,21 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    app: App,
+    module: App,
     msg: AppExecuteMsg,
 ) -> AppResult {
     match msg {
-        AppExecuteMsg::PingPong { opponent_chain } => ping_pong(deps, opponent_chain, app),
+        AppExecuteMsg::PingPong { opponent_chain } => ping_pong(deps, opponent_chain, module),
         AppExecuteMsg::QueryAndMaybePingPong {
             opponent_chain: host_chain,
-        } => query_and_ping(&env, deps, host_chain, app),
+        } => query_and_ping(&env, deps, host_chain, module),
     }
 }
 
-pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: TruncatedChainId, app: App) -> AppResult {
+pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: TruncatedChainId, module: App) -> AppResult {
     // # ANCHOR: ibc_client
-    let self_module_info = app.module_info()?;
-    let ibc_client: IbcClient<_> = app.ibc_client(deps.as_ref());
+    let self_module_info = module.module_info()?;
+    let ibc_client: IbcClient<_> = module.ibc_client(deps.as_ref());
     let ibc_action: CosmosMsg = ibc_client.module_ibc_action(
         opponent_chain.clone(),
         self_module_info,
@@ -43,7 +43,7 @@ pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: TruncatedChainId, app: Ap
     )?;
     // # ANCHOR_END: ibc_client
 
-    Ok(app
+    Ok(module
         .response("ping_pong")
         .add_attribute("play", "ping")
         .add_message(ibc_action))
@@ -53,22 +53,22 @@ fn query_and_ping(
     env: &Env,
     deps: DepsMut,
     opponent_chain: TruncatedChainId,
-    app: App,
+    module: App,
 ) -> AppResult {
-    let ibc_client = app.ibc_client(deps.as_ref());
-    let dest_account_id = app
+    let ibc_client = module.ibc_client(deps.as_ref());
+    let dest_account_id = module
         .account_id(deps.as_ref())?
         .into_dest_account_id(TruncatedChainId::new(env), opponent_chain.clone());
 
     let module_query = ibc_client.module_ibc_query(
         opponent_chain.clone(),
         InstalledModuleIdentification {
-            module_info: app.module_info()?,
+            module_info: module.module_info()?,
             account_id: Some(dest_account_id),
         },
         &crate::msg::QueryMsg::from(AppQueryMsg::BlockHeight {}),
         Callback::new(&PingPongCallbackMsg::QueryBlockHeight { opponent_chain })?,
     )?;
 
-    Ok(app.response("rematch").add_message(module_query))
+    Ok(module.response("rematch").add_message(module_query))
 }

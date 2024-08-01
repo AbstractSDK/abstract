@@ -11,8 +11,8 @@ use crate::{
 pub fn migrate_handler(
     _deps: DepsMut,
     _env: Env,
-    app: CalendarApp,
+    module: CalendarApp,
     _msg: CalendarMigrateMsg,
 ) -> CalendarAppResult {
-    Ok(app.response("migrate"))
+    Ok(module.response("migrate"))
 }

@@ -12,7 +12,7 @@ pub fn receive_cw20(
     deps: DepsMut,
     env: Env,
     msg_info: MessageInfo,
-    app: SubscriptionApp,
+    module: SubscriptionApp,
     cw20_msg: Cw20ReceiveMsg,
 ) -> SubscriptionResult {
     match from_json(cw20_msg.msg)? {
@@ -25,7 +25,7 @@ pub fn receive_cw20(
             let subscriber_addr = deps
                 .api
                 .addr_validate(&subscriber_addr.unwrap_or(cw20_msg.sender))?;
-            execute::try_pay(app, deps, env, asset, subscriber_addr)
+            execute::try_pay(module, deps, env, asset, subscriber_addr)
         }
     }
 }

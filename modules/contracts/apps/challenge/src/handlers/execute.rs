@@ -28,33 +28,33 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: ChallengeApp,
+    module: ChallengeApp,
     msg: ChallengeExecuteMsg,
 ) -> AppResult {
     match msg {
         ChallengeExecuteMsg::CreateChallenge { challenge_req } => {
-            create_challenge(deps, env, info, app, challenge_req)
+            create_challenge(deps, env, info, module, challenge_req)
         }
         ChallengeExecuteMsg::UpdateChallenge {
             challenge_id,
             challenge,
-        } => update_challenge(deps, env, info, app, challenge_id, challenge),
+        } => update_challenge(deps, env, info, module, challenge_id, challenge),
         ChallengeExecuteMsg::CancelChallenge { challenge_id } => {
-            cancel_challenge(deps, env, info, &app, challenge_id)
+            cancel_challenge(deps, env, info, &module, challenge_id)
         }
         ChallengeExecuteMsg::UpdateFriendsForChallenge {
             challenge_id,
             friends,
             op_kind,
-        } => update_friends_for_challenge(deps, env, info, &app, challenge_id, friends, op_kind),
+        } => update_friends_for_challenge(deps, env, info, &module, challenge_id, friends, op_kind),
         ChallengeExecuteMsg::CastVote {
             vote_to_punish: vote,
             challenge_id,
-        } => cast_vote(deps, env, info, &app, vote, challenge_id),
+        } => cast_vote(deps, env, info, &module, vote, challenge_id),
         ChallengeExecuteMsg::CountVotes { challenge_id } => {
-            count_votes(deps, env, info, &app, challenge_id)
+            count_votes(deps, env, info, &module, challenge_id)
         }
-        ChallengeExecuteMsg::Veto { challenge_id } => veto(deps, env, info, &app, challenge_id),
+        ChallengeExecuteMsg::Veto { challenge_id } => veto(deps, env, info, &module, challenge_id),
         ChallengeExecuteMsg::UpdateConfig { new_vote_config } => {
             SIMPLE_VOTING.update_vote_config(deps.storage, &new_vote_config)?;
             Ok(Response::new())
@@ -67,11 +67,11 @@ fn create_challenge(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: ChallengeApp,
+    module: ChallengeApp,
     challenge_req: ChallengeRequest,
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
     ensure!(
         challenge_req.init_friends.len() < MAX_AMOUNT_OF_FRIENDS as usize,
         AppError::TooManyFriends {}
@@ -81,7 +81,7 @@ fn create_challenge(
         .init_friends
         .iter()
         .cloned()
-        .map(|human| human.check(deps.as_ref(), &app))
+        .map(|human| human.check(deps.as_ref(), &module))
         .collect::<AbstractSdkResult<_>>()?;
 
     let (friend_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
@@ -104,7 +104,7 @@ fn create_challenge(
     let challenge = ChallengeEntry::new(challenge_req, end_timestamp)?;
     CHALLENGES.save(deps.storage, challenge_id, &challenge)?;
 
-    Ok(app
+    Ok(module
         .response("create_challenge")
         .add_attribute("challenge_id", challenge_id.to_string()))
 }
@@ -113,11 +113,11 @@ fn update_challenge(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    app: ChallengeApp,
+    module: ChallengeApp,
     challenge_id: u64,
     new_challenge: ChallengeEntryUpdate,
 ) -> AppResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     // will return an error if the challenge doesn't exist
     let mut loaded_challenge: ChallengeEntry = CHALLENGES
@@ -136,7 +136,7 @@ fn update_challenge(
     // Save the updated challenge
     CHALLENGES.save(deps.storage, challenge_id, &loaded_challenge)?;
 
-    Ok(app
+    Ok(module
         .response("update_challenge")
         .add_attribute("challenge_id", challenge_id.to_string()))
 }
@@ -145,10 +145,10 @@ fn cancel_challenge(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let mut challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     // Check if this challenge still active
     if env.block.time >= challenge.end_timestamp {
@@ -165,7 +165,7 @@ fn cancel_challenge(
     challenge.end_timestamp = env.block.time;
     CHALLENGES.save(deps.storage, challenge_id, &challenge)?;
 
-    Ok(app
+    Ok(module
         .response("cancel_challenge")
         .add_attribute("challenge_id", challenge_id.to_string()))
 }
@@ -174,17 +174,17 @@ fn update_friends_for_challenge(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
     challenge_id: u64,
     friends: Vec<Friend<String>>,
     op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
     // Validate friend addr and account ids
     let friends_validated: Vec<(Addr, Friend<Addr>)> = friends
         .iter()
         .cloned()
-        .map(|human| human.check(deps.as_ref(), app))
+        .map(|human| human.check(deps.as_ref(), module))
         .collect::<AbstractSdkResult<_>>()?;
 
     let (voters_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
@@ -213,7 +213,7 @@ fn update_friends_for_challenge(
 
             let mut current_friends_addrs: Vec<Addr> = current_friends
                 .iter()
-                .map(|f| f.addr(deps.as_ref(), app))
+                .map(|f| f.addr(deps.as_ref(), module))
                 .collect::<AbstractSdkResult<_>>()?;
             current_friends_addrs.extend(voters_addrs);
             // Check if addrs unique
@@ -235,7 +235,7 @@ fn update_friends_for_challenge(
             })?;
         }
     }
-    Ok(app
+    Ok(module
         .response("update_friends")
         .add_attribute("challenge_id", challenge_id.to_string()))
 }
@@ -244,7 +244,7 @@ fn get_or_create_active_proposal(
     deps: &mut DepsMut,
     env: &Env,
     challenge_id: u64,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
 ) -> AppResult<ProposalId> {
     let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
 
@@ -263,7 +263,7 @@ fn get_or_create_active_proposal(
     let friends: Vec<Addr> = CHALLENGE_FRIENDS
         .load(deps.storage, challenge_id)?
         .into_iter()
-        .map(|friend| friend.addr(deps.as_ref(), app))
+        .map(|friend| friend.addr(deps.as_ref(), module))
         .collect::<AbstractSdkResult<_>>()?;
     let proposal_id = SIMPLE_VOTING.new_proposal(
         deps.storage,
@@ -281,13 +281,13 @@ fn cast_vote(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
     vote: Vote,
     challenge_id: u64,
 ) -> AppResult {
-    let proposal_id = get_or_create_active_proposal(&mut deps, &env, challenge_id, app)?;
+    let proposal_id = get_or_create_active_proposal(&mut deps, &env, challenge_id, module)?;
 
-    let voter = match app
+    let voter = match module
         .account_registry(deps.as_ref())?
         .assert_proxy(&info.sender)
     {
@@ -297,7 +297,7 @@ fn cast_vote(
     let proposal_info =
         SIMPLE_VOTING.cast_vote(deps.storage, &env.block, proposal_id, &voter, vote)?;
 
-    Ok(app
+    Ok(module
         .response("cast_vote")
         .add_attribute("proposal_info", format!("{proposal_info:?}")))
 }
@@ -306,7 +306,7 @@ fn count_votes(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
     let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
@@ -318,7 +318,7 @@ fn count_votes(
     try_finish_challenge(
         deps,
         env,
-        app,
+        module,
         proposal_info,
         outcome,
         challenge,
@@ -330,16 +330,16 @@ fn veto(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
     let proposal_id =
         last_proposal(challenge_id, deps.as_ref())?.ok_or(AppError::ExpectedProposal {})?;
 
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let proposal_info = SIMPLE_VOTING.veto_proposal(deps.storage, &env.block, proposal_id)?;
 
-    Ok(app
+    Ok(module
         .response("veto")
         .add_attribute("proposal_info", format!("{proposal_info:?}")))
 }
@@ -347,7 +347,7 @@ fn veto(
 fn try_finish_challenge(
     deps: DepsMut,
     _env: Env,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
     proposal_info: ProposalInfo,
     proposal_outcome: ProposalOutcome,
     mut challenge: ChallengeEntry,
@@ -362,9 +362,9 @@ fn try_finish_challenge(
 
     // Return here if not required to charge penalty
     let res = if !matches!(proposal_outcome, ProposalOutcome::Passed) {
-        app.response("finish_vote")
+        module.response("finish_vote")
     } else {
-        charge_penalty(deps, app, challenge, friends)?
+        charge_penalty(deps, module, challenge, friends)?
     };
     Ok(res
         .add_attribute("proposal_info", format!("{proposal_info:?}"))
@@ -373,7 +373,7 @@ fn try_finish_challenge(
 
 fn charge_penalty(
     deps: DepsMut,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
     challenge: ChallengeEntry,
     friends: Vec<Friend<Addr>>,
 ) -> Result<Response, AppError> {
@@ -394,8 +394,8 @@ fn charge_penalty(
         amount: amount_per_friend,
     };
 
-    let bank = app.bank(deps.as_ref());
-    let executor = app.executor(deps.as_ref());
+    let bank = module.bank(deps.as_ref());
+    let executor = module.executor(deps.as_ref());
 
     // Create a transfer action for each friend
     let transfer_actions = friends
@@ -404,7 +404,8 @@ fn charge_penalty(
             let recipent = match friend {
                 Friend::Addr(addr) => addr.address,
                 Friend::AbstractAccount(account_id) => {
-                    app.account_registry(deps.as_ref())?
+                    module
+                        .account_registry(deps.as_ref())?
                         .account_base(&account_id)?
                         .proxy
                 }
@@ -415,7 +416,7 @@ fn charge_penalty(
 
     let transfer_msg = executor.execute(transfer_actions)?;
 
-    Ok(app
+    Ok(module
         .response("charge_penalty")
         .add_message(transfer_msg)
         .add_attribute("remainder", remainder.to_string()))

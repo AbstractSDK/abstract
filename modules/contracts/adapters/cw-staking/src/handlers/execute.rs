@@ -20,7 +20,7 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    adapter: CwStakingContract,
+    module: CwStakingContract,
     msg: StakingExecuteMsg,
 ) -> StakingResult {
     let StakingExecuteMsg {
@@ -30,10 +30,10 @@ pub fn execute_handler(
     // if provider is on an app-chain, execute the action on the app-chain
     let (local_provider_name, is_over_ibc) = is_over_ibc(&env, &provider_name)?;
     if is_over_ibc {
-        handle_ibc_request(&deps, info, &adapter, local_provider_name, &action)
+        handle_ibc_request(&deps, info, &module, local_provider_name, &action)
     } else {
         // the action can be executed on the local chain
-        handle_local_request(deps, env, info, adapter, action, local_provider_name)
+        handle_local_request(deps, env, info, module, action, local_provider_name)
     }
 }
 
@@ -42,15 +42,15 @@ fn handle_local_request(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    adapter: CwStakingContract,
+    module: CwStakingContract,
     action: StakingAction,
     provider_name: String,
 ) -> StakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
-    let target_account = adapter.account_base(deps.as_ref())?;
-    Ok(adapter
+    let target_account = module.account_base(deps.as_ref())?;
+    Ok(module
         .custom_response("handle_local_request", vec![("provider", provider_name)])
-        .add_submessage(adapter.resolve_staking_action(
+        .add_submessage(module.resolve_staking_action(
             deps,
             env,
             target_account,
@@ -64,13 +64,13 @@ fn handle_local_request(
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
-    adapter: &CwStakingContract,
+    module: &CwStakingContract,
     provider_name: ProviderName,
     action: &StakingAction,
 ) -> StakingResult {
     let host_chain = TruncatedChainId::from_string(provider_name.clone())?; // TODO : Especially this line is faulty
-    let ans = adapter.name_service(deps.as_ref());
-    let ibc_client = adapter.ibc_client(deps.as_ref());
+    let ans = module.name_service(deps.as_ref());
+    let ibc_client = module.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
@@ -104,7 +104,7 @@ fn handle_ibc_request(
     };
     let ibc_action_msg = ibc_client.host_action(host_chain, host_action)?;
 
-    Ok(adapter
+    Ok(module
         .custom_response("handle_ibc_request", vec![("provider", provider_name)])
         // call both messages on the proxy
         .add_messages(vec![ics20_transfer_msg, ibc_action_msg]))

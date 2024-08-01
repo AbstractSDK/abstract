@@ -111,20 +111,20 @@ mod handlers {
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
-        app: CounterApp, // <-- Notice how the `CounterApp` is available here
+        module: CounterApp, // <-- Notice how the `CounterApp` is available here
         msg: CounterExecMsg,
     ) -> CounterResult {
         match msg {
-            CounterExecMsg::UpdateConfig {} => update_config(deps, info, app),
+            CounterExecMsg::UpdateConfig {} => update_config(deps, info, module),
         }
     }
 
     /// Update the configuration of the app
-    fn update_config(deps: DepsMut, msg_info: MessageInfo, app: CounterApp) -> CounterResult {
+    fn update_config(deps: DepsMut, msg_info: MessageInfo, module: CounterApp) -> CounterResult {
         // Only the admin should be able to call this
-        app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+        module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-        Ok(app
+        Ok(module
             .response("update_config")
             .set_data("counter_exec".as_bytes()))
     }

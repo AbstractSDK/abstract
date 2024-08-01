@@ -27,21 +27,21 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: CalendarApp,
+    module: CalendarApp,
     msg: CalendarExecuteMsg,
 ) -> CalendarAppResult {
     match msg {
         CalendarExecuteMsg::RequestMeeting {
             start_time,
             end_time,
-        } => request_meeting(deps, info, app, env, start_time, end_time),
+        } => request_meeting(deps, info, module, env, start_time, end_time),
         CalendarExecuteMsg::SlashFullStake {
             day_datetime,
             meeting_index,
         } => handle_stake(
             deps,
             info,
-            app,
+            module,
             env,
             day_datetime,
             meeting_index,
@@ -54,7 +54,7 @@ pub fn execute_handler(
         } => handle_stake(
             deps,
             info,
-            app,
+            module,
             env,
             day_datetime,
             meeting_index,
@@ -66,7 +66,7 @@ pub fn execute_handler(
         } => handle_stake(
             deps,
             info,
-            app,
+            module,
             env,
             day_datetime,
             meeting_index,
@@ -75,14 +75,14 @@ pub fn execute_handler(
         CalendarExecuteMsg::UpdateConfig {
             price_per_minute,
             denom,
-        } => update_config(deps, info, app, price_per_minute, denom),
+        } => update_config(deps, info, module, price_per_minute, denom),
     }
 }
 
 fn request_meeting(
     deps: DepsMut,
     info: MessageInfo,
-    app: CalendarApp,
+    module: CalendarApp,
     env: Env,
     meeting_start_time: Int64,
     meeting_end_time: Int64,
@@ -150,7 +150,7 @@ fn request_meeting(
 
     CALENDAR.save(deps.storage, start_of_day_timestamp, &existing_meetings)?;
 
-    Ok(app
+    Ok(module
         .response("request_meeting")
         .add_attribute("meeting_start_time", meeting_start_timestamp.to_string())
         .add_attribute("meeting_end_time", meeting_end_timestamp.to_string()))
@@ -159,13 +159,13 @@ fn request_meeting(
 fn handle_stake(
     deps: DepsMut,
     info: MessageInfo,
-    app: CalendarApp,
+    module: CalendarApp,
     env: Env,
     day_datetime: Int64,
     meeting_index: u32,
     stake_action: StakeAction,
 ) -> CalendarAppResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -190,17 +190,19 @@ fn handle_stake(
     }
 
     meeting.amount_staked = Uint128::zero();
-    let bank = app.bank(deps.as_ref());
+    let bank = module.bank(deps.as_ref());
 
     let response = match stake_action {
-        StakeAction::Return => app.response("return_stake").add_message(BankMsg::Send {
+        StakeAction::Return => module.response("return_stake").add_message(BankMsg::Send {
             to_address: requester,
             amount: vec![Coin::new(amount_staked.into(), config.denom)],
         }),
         StakeAction::FullSlash => {
             let proxy_deposit_msgs: Vec<CosmosMsg> =
                 bank.deposit(vec![Coin::new(amount_staked.into(), config.denom)])?;
-            app.response("full_slash").add_messages(proxy_deposit_msgs)
+            module
+                .response("full_slash")
+                .add_messages(proxy_deposit_msgs)
         }
         StakeAction::PartialSlash { minutes_late } => {
             // Cast should be safe given we cannot have a meeting longer than 24 hours.
@@ -217,7 +219,8 @@ fn handle_stake(
                 config.denom.clone(),
             )])?;
 
-            app.response("partial_slash")
+            module
+                .response("partial_slash")
                 .add_message(BankMsg::Send {
                     to_address: requester,
                     amount: vec![Coin::new(
@@ -237,11 +240,11 @@ fn handle_stake(
 fn update_config(
     deps: DepsMut,
     info: MessageInfo,
-    app: CalendarApp,
+    module: CalendarApp,
     price_per_minute: Option<Uint128>,
     denom: Option<AssetEntry>,
 ) -> CalendarAppResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut attrs = vec![];
     if let Some(price_per_minute) = price_per_minute {
@@ -249,20 +252,20 @@ fn update_config(
         attrs.push(("price_per_minute", price_per_minute.to_string()));
     }
     if let Some(unresolved) = denom {
-        let denom = resolve_native_ans_denom(deps.as_ref(), &app, unresolved.clone())?;
+        let denom = resolve_native_ans_denom(deps.as_ref(), &module, unresolved.clone())?;
         config.denom = denom;
         attrs.push(("denom", unresolved.to_string()));
     }
     CONFIG.save(deps.storage, &config)?;
-    Ok(app.custom_response("update_config", attrs))
+    Ok(module.custom_response("update_config", attrs))
 }
 
 pub fn resolve_native_ans_denom(
     deps: Deps,
-    app: &CalendarApp,
+    module: &CalendarApp,
     denom: AssetEntry,
 ) -> CalendarAppResult<String> {
-    let name_service = app.name_service(deps);
+    let name_service = module.name_service(deps);
     let resolved_denom = name_service.query(&denom)?;
     let denom = match resolved_denom {
         AssetInfoBase::Native(denom) => Ok(denom),

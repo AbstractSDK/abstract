@@ -90,27 +90,27 @@ mod tests {
         deps: DepsMut,
         _env: Env,
         _info: MessageInfo,
-        adapter: MockAdapterContract,
+        module: MockAdapterContract,
         _msg: MockExecMsg,
     ) -> Result<Response, MockError> {
-        let proxy = adapter.proxy_address(deps.as_ref())?;
+        let proxy = module.proxy_address(deps.as_ref())?;
         // assert with test values
         assert_that!(proxy.as_str()).is_equal_to(TEST_PROXY);
-        let manager = adapter.manager_address(deps.as_ref())?;
+        let manager = module.manager_address(deps.as_ref())?;
         assert_that!(manager.as_str()).is_equal_to(TEST_MANAGER);
-        let account = adapter.account_base(deps.as_ref())?;
+        let account = module.account_base(deps.as_ref())?;
         assert_that!(account).is_equal_to(AccountBase {
             manager: Addr::unchecked(TEST_MANAGER),
             proxy: Addr::unchecked(TEST_PROXY),
         });
-        let ans = adapter.ans_host(deps.as_ref())?;
+        let ans = module.ans_host(deps.as_ref())?;
         assert_that!(ans).is_equal_to(AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
-        let regist = adapter.abstract_registry(deps.as_ref())?;
+        let regist = module.abstract_registry(deps.as_ref())?;
         assert_that!(regist).is_equal_to(VersionControlContract::new(Addr::unchecked(
             TEST_VERSION_CONTROL,
         )));
 
-        adapter.target()?;
+        module.target()?;
 
         Ok(Response::default())
     }

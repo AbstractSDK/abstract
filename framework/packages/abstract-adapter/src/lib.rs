@@ -157,7 +157,7 @@ pub mod mock {
 
     pub fn mock_init_custom(
         deps: DepsMut,
-        adapter: MockAdapterContract,
+        module: MockAdapterContract,
     ) -> Result<Response, MockError> {
         let info = mock_info(OWNER, &[]);
         let init_msg = InstantiateMsg {
@@ -167,7 +167,7 @@ pub mod mock {
             },
             module: MockInitMsg {},
         };
-        adapter.instantiate(deps, mock_env(), info, init_msg)
+        module.instantiate(deps, mock_env(), info, init_msg)
     }
 
     /// Generate a BOOT instance for a mock adapter
