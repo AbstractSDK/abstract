@@ -509,7 +509,7 @@ dependencies = [
  "abstract-interface 0.23.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "abstract-sdk 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "abstract-std 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abstract-testing 0.23.0",
+ "abstract-testing 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "anyhow",
  "clap",
  "cosmwasm-schema",

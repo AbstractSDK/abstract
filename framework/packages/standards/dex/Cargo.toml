@@ -51,5 +51,5 @@ speculoos = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
-abstract-testing = { workspace = true }
+abstract-testing = { version = "0.23.0" }
 abstract-sdk = { version = "0.23.0", features = ["test-utils"] }
