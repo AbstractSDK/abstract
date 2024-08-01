@@ -519,6 +519,8 @@ dependencies = [
 [[package]]
 name = "abstract-dex-standard"
 version = "0.23.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5deb5c63c60af0dd9599f3703d90dfe116214f169a80ff8319d2b99c6a7acd2"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",

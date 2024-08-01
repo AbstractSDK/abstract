@@ -71,7 +71,7 @@ abstract-staking-standard = { version = "0.23.0" }
 # abstract-std = { path = "../framework/packages/abstract-std" }
 # abstract-macros = { path = "../framework/packages/abstract-macros" }
 # abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
-abstract-dex-standard = { path = "../framework/packages/standards/dex" }
+# abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 # abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 # abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
