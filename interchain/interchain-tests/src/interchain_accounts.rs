@@ -10,7 +10,7 @@ pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of an account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
 
 pub fn set_env() {
-    std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
+    std::env::set_var("STATE_FILE", "starship-state.json"); // Set in code for tests
     std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
 }
 

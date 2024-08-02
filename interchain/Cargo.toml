@@ -102,6 +102,14 @@ abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
+cw-orch-interchain = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
+cw-orch-clone-testing = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
+cw-orch-proto = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
+# cw-orch-interchain = { path = "../../cw-orchestrator/cw-orch-interchain" }
+# cw-orch = { path = "../../cw-orchestrator/cw-orch" }
+# cw-orch-clone-testing = { path = "../../cw-orchestrator/packages/clone-testing" }
+# cw-orch-proto = { path = "../../cw-orchestrator/packages/interchain/proto" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
