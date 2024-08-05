@@ -1,13 +1,21 @@
 chains:
-  - id: osmosis-1
-    name: osmosis
+  - id: juno-1
+    name: juno
     numValidators: 1
     ports:
       rest: 1313
       rpc: 26653
       grpc: 30658
       faucet: 8000
-  - id: juno-1
+  - id: junotwo-1
+    name: juno
+    numValidators: 1
+    ports:
+      rest: 1328
+      rpc: 26659
+      grpc: 30660
+      faucet: 8004
+  - id: junothree-1
     name: juno
     numValidators: 1
     ports:
@@ -15,8 +23,8 @@ chains:
       rpc: 26657
       grpc: 30657
       faucet: 8001
-  - id: stargaze-1
-    name: stargaze
+  - id: junofour-1
+    name: juno
     numValidators: 1
     ports:
       rest: 1323
@@ -25,21 +33,30 @@ chains:
       faucet: 8003
 
 relayers:
-  - name: osmo-juno
+  - name: juno-juno2
     type: hermes
     replicas: 1
     chains:
-      - osmosis-1
       - juno-1
+      - junotwo-1
     config:
       event_source:
         mode: "pull" # default is "push"
-  - name: juno-star
+  - name: juno2-juno3
     type: hermes
     replicas: 1
     chains:
-      - juno-1
-      - stargaze-1
+      - junotwo-1
+      - junothree-1
+    config:
+      event_source:
+        mode: "pull" # default is "push"
+  - name: juno3-juno4
+    type: hermes
+    replicas: 1
+    chains:
+      - junothree-1
+      - junofour-1
     config:
       event_source:
         mode: "pull" # default is "push"
