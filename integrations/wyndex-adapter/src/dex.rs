@@ -23,10 +23,7 @@ use ::{
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
-    wyndex::{
-        asset::{AssetInfoValidated, AssetValidated},
-        pair::*,
-    },
+    wyndex::pair::*,
 };
 
 #[cfg(feature = "full_integration")]
@@ -159,76 +156,6 @@ impl DexCommand for WynDex {
         Ok(msgs)
     }
 
-    fn provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pair_address = pool_id.expect_contract()?;
-
-        if paired_assets.len() > 1 {
-            return Err(DexError::TooManyAssets(2));
-        }
-        // Get pair info
-        let pair_config: PoolResponse = deps
-            .querier
-            .query_wasm_smart(pair_address.to_string(), &QueryMsg::Pool {})?;
-        let wyndex_offer_asset = cw_asset_to_wyndex_valid(&offer_asset)?;
-        let other_asset = if pair_config.assets[0].info == wyndex_offer_asset.info {
-            let price =
-                Decimal::from_ratio(pair_config.assets[1].amount, pair_config.assets[0].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Asset {
-                amount: other_token_amount,
-                info: paired_assets[0].clone(),
-            }
-        } else if pair_config.assets[1].info == wyndex_offer_asset.info {
-            let price =
-                Decimal::from_ratio(pair_config.assets[0].amount, pair_config.assets[1].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Asset {
-                amount: other_token_amount,
-                info: paired_assets[0].clone(),
-            }
-        } else {
-            return Err(DexError::ArgumentMismatch(
-                offer_asset.to_string(),
-                pair_config
-                    .assets
-                    .iter()
-                    .map(|e| e.info.to_string())
-                    .collect(),
-            ));
-        };
-
-        let offer_assets = [offer_asset, other_asset];
-
-        let coins = coins_in_assets(&offer_assets);
-
-        // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
-
-        // construct execute msg
-        let wyndex_assets = offer_assets
-            .iter()
-            .map(cw_asset_to_wyndex)
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let msg = ExecuteMsg::ProvideLiquidity {
-            assets: vec![wyndex_assets[0].clone(), wyndex_assets[1].clone()],
-            slippage_tolerance: None,
-            receiver: None,
-        };
-
-        // actual call to pair
-        let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
-        msgs.push(liquidity_msg);
-
-        Ok(msgs)
-    }
-
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
@@ -279,21 +206,6 @@ fn cw_asset_to_wyndex(asset: &Asset) -> Result<wyndex::asset::Asset, DexError> {
         AssetInfoBase::Cw20(contract_addr) => Ok(wyndex::asset::Asset {
             amount: asset.amount,
             info: wyndex::asset::AssetInfo::Token(contract_addr.to_string()),
-        }),
-        _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
-    }
-}
-
-#[cfg(feature = "full_integration")]
-fn cw_asset_to_wyndex_valid(asset: &Asset) -> Result<AssetValidated, DexError> {
-    match &asset.info {
-        AssetInfoBase::Native(denom) => Ok(AssetValidated {
-            amount: asset.amount,
-            info: AssetInfoValidated::Native(denom.clone()),
-        }),
-        AssetInfoBase::Cw20(contract_addr) => Ok(AssetValidated {
-            amount: asset.amount,
-            info: AssetInfoValidated::Token(contract_addr.clone()),
         }),
         _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
     }

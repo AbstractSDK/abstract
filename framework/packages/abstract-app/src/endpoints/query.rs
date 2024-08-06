@@ -109,6 +109,7 @@ impl<
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::base::QueryEndpoint;
     use cosmwasm_std::testing::mock_env;
     use cosmwasm_std::{Binary, Deps};

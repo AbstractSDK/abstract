@@ -12,11 +12,11 @@ use crate::{
 pub fn receive_module_ibc(
     deps: DepsMut,
     env: Env,
-    app: App,
+    module: App,
     source_module: ModuleIbcInfo,
     msg: Binary,
 ) -> AppResult<Response> {
-    let this_module_info = app.module_info()?;
+    let this_module_info = module.module_info()?;
     ensure_eq!(
         source_module.module,
         this_module_info,
@@ -32,7 +32,7 @@ pub fn receive_module_ibc(
     );
 
     // Respond with Pong in Ack if
-    let mut resp = app.response("ping_ponged");
+    let mut resp = module.response("ping_ponged");
 
     // if block is even, return pong
     let is_even = env.block.height % 2 == 0;

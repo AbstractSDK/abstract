@@ -20,10 +20,10 @@ use crate::{
 pub fn query_handler(
     deps: Deps,
     env: Env,
-    adapter: &MoneyMarketAdapter,
+    module: &MoneyMarketAdapter,
     msg: MoneyMarketQueryMsg,
 ) -> MoneyMarketResult<Binary> {
-    let ans = adapter.name_service(deps);
+    let ans = module.name_service(deps);
     let whole_money_market_query =
         MoneyMarketQueryResolveWrapper(platform_resolver::resolve_money_market, msg);
     let msg = ans.query(&whole_money_market_query)?;
@@ -38,7 +38,7 @@ pub fn query_handler(
                 action,
             } = message
             {
-                let ans = adapter.name_service(deps);
+                let ans = module.name_service(deps);
                 let whole_money_market_action = MoneyMarketActionResolveWrapper(
                     platform_resolver::resolve_money_market(&money_market)?,
                     action,
@@ -64,7 +64,7 @@ pub fn query_handler(
 
                     let (messages, _) =
                         crate::adapter::MoneyMarketAdapter::resolve_money_market_action(
-                            adapter,
+                            module,
                             deps,
                             addr_as_sender,
                             action,
@@ -86,7 +86,7 @@ pub fn query_handler(
                 unimplemented!()
             } else {
                 // the action can be executed on the local chain
-                handle_local_query(deps, env, local_money_market_name, adapter, msg)
+                handle_local_query(deps, env, local_money_market_name, module, msg)
             }
         }
     }
@@ -104,11 +104,11 @@ fn handle_local_query(
     deps: Deps,
     env: Env,
     money_market: String,
-    adapter: &MoneyMarketAdapter,
+    module: &MoneyMarketAdapter,
     query: MoneyMarketQueryMsg,
 ) -> MoneyMarketResult<Binary> {
     let mut money_market = platform_resolver::resolve_money_market(&money_market)?;
-    let ans_host = adapter.ans_host(deps)?;
+    let ans_host = module.ans_host(deps)?;
     Ok(match query {
         MoneyMarketQueryMsg::RawUserDeposit {
             user,

@@ -342,6 +342,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;

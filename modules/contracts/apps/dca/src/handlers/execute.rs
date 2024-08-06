@@ -59,7 +59,7 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: DCAApp,
+    module: DCAApp,
     msg: DCAExecuteMsg,
 ) -> AppResult {
     match msg {
@@ -71,7 +71,7 @@ pub fn execute_handler(
         } => update_config(
             deps,
             info,
-            app,
+            module,
             native_asset,
             new_dca_task_balance,
             task_refill_threshold,
@@ -86,7 +86,7 @@ pub fn execute_handler(
             deps,
             env,
             info,
-            app,
+            module,
             source_asset,
             target_asset,
             frequency,
@@ -102,15 +102,15 @@ pub fn execute_handler(
             deps,
             env,
             info,
-            app,
+            module,
             dca_id,
             new_source_asset,
             new_target_asset,
             new_frequency,
             new_dex,
         ),
-        DCAExecuteMsg::CancelDCA { dca_id } => cancel_dca(deps, info, app, dca_id),
-        DCAExecuteMsg::Convert { dca_id } => convert(deps, env, info, app, dca_id),
+        DCAExecuteMsg::CancelDCA { dca_id } => cancel_dca(deps, info, module, dca_id),
+        DCAExecuteMsg::Convert { dca_id } => convert(deps, env, info, module, dca_id),
     }
 }
 
@@ -118,18 +118,18 @@ pub fn execute_handler(
 fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
-    app: DCAApp,
+    module: DCAApp,
     new_native_asset: Option<AssetEntry>,
     new_dca_creation_amount: Option<Uint128>,
     new_refill_threshold: Option<Uint128>,
     new_max_spread: Option<Decimal>,
 ) -> AppResult {
     // Only the admin should be able to call this
-    app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let old_config = CONFIG.load(deps.storage)?;
     let new_native_denom = new_native_asset
         .map(|asset| {
-            let asset = app.name_service(deps.as_ref()).query(&asset)?;
+            let asset = module.name_service(deps.as_ref()).query(&asset)?;
             if let AssetInfoBase::Native(native) = asset {
                 Ok(native)
             } else {
@@ -148,7 +148,7 @@ fn update_config(
         },
     )?;
 
-    Ok(app.response("update_config"))
+    Ok(module.response("update_config"))
 }
 
 /// Create new DCA
@@ -156,19 +156,20 @@ fn create_dca(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: DCAApp,
+    module: DCAApp,
     source_asset: AnsAsset,
     target_asset: AssetEntry,
     frequency: Frequency,
     dex_name: DexName,
 ) -> AppResult {
     // Only the admin should be able to create dca
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
     // Simulate swap first
-    app.ans_dex(deps.as_ref(), dex_name.clone())
+    module
+        .ans_dex(deps.as_ref(), dex_name.clone())
         .simulate_swap(source_asset.clone(), target_asset.clone())?;
 
     // Generate DCA ID
@@ -182,10 +183,10 @@ fn create_dca(
     };
     DCA_LIST.save(deps.storage, dca_id, &dca_entry)?;
 
-    let cron_cat = app.cron_cat(deps.as_ref());
+    let cron_cat = module.cron_cat(deps.as_ref());
     let task_msg = create_convert_task_internal(env, dca_entry, dca_id, cron_cat, config)?;
 
-    Ok(app
+    Ok(module
         .response("create_dca")
         .add_message(task_msg)
         .add_attribute("dca_id", dca_id))
@@ -196,14 +197,14 @@ fn update_dca(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: DCAApp,
+    module: DCAApp,
     dca_id: DCAId,
     new_source_asset: Option<AnsAsset>,
     new_target_asset: Option<AssetEntry>,
     new_frequency: Option<Frequency>,
     new_dex: Option<DexName>,
 ) -> AppResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     // Only if frequency is changed we have to re-create a task
     let recreate_task = new_frequency.is_some();
@@ -217,15 +218,16 @@ fn update_dca(
     };
 
     // Simulate swap for a new dca
-    app.ans_dex(deps.as_ref(), new_dca.dex.clone())
+    module
+        .ans_dex(deps.as_ref(), new_dca.dex.clone())
         .simulate_swap(new_dca.source_asset.clone(), new_dca.target_asset.clone())?;
 
     DCA_LIST.save(deps.storage, dca_id, &new_dca)?;
 
-    let response = app.response("update_dca");
+    let response = module.response("update_dca");
     let response = if recreate_task {
         let config = CONFIG.load(deps.storage)?;
-        let cron_cat = app.cron_cat(deps.as_ref());
+        let cron_cat = module.cron_cat(deps.as_ref());
         let remove_task_msg = cron_cat.remove_task(dca_id)?;
         let create_task_msg = create_convert_task_internal(env, new_dca, dca_id, cron_cat, config)?;
         response.add_messages(vec![remove_task_msg, create_task_msg])
@@ -236,21 +238,21 @@ fn update_dca(
 }
 
 /// Remove existing dca, remove task from cron_cat
-fn cancel_dca(deps: DepsMut, info: MessageInfo, app: DCAApp, dca_id: DCAId) -> AppResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+fn cancel_dca(deps: DepsMut, info: MessageInfo, module: DCAApp, dca_id: DCAId) -> AppResult {
+    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     DCA_LIST.remove(deps.storage, dca_id);
 
-    let cron_cat = app.cron_cat(deps.as_ref());
+    let cron_cat = module.cron_cat(deps.as_ref());
     let remove_task_msg = cron_cat.remove_task(dca_id)?;
 
-    Ok(app.response("cancel_dca").add_message(remove_task_msg))
+    Ok(module.response("cancel_dca").add_message(remove_task_msg))
 }
 
 /// Execute swap if called my croncat manager
 /// Refill task if needed
-fn convert(deps: DepsMut, env: Env, info: MessageInfo, app: DCAApp, dca_id: DCAId) -> AppResult {
-    let cron_cat = app.cron_cat(deps.as_ref());
+fn convert(deps: DepsMut, env: Env, info: MessageInfo, module: DCAApp, dca_id: DCAId) -> AppResult {
+    let cron_cat = module.cron_cat(deps.as_ref());
 
     let manager_addr = cron_cat.query_manager_addr(env.contract.address.clone(), dca_id)?;
     if manager_addr != info.sender {
@@ -282,11 +284,11 @@ fn convert(deps: DepsMut, env: Env, info: MessageInfo, app: DCAApp, dca_id: DCAI
 
     // TODO: remove dca on failed swap?
     // Or `stop_on_fail` should be enough
-    messages.push(app.ans_dex(deps.as_ref(), dca.dex).swap(
+    messages.push(module.ans_dex(deps.as_ref(), dca.dex).swap(
         dca.source_asset,
         dca.target_asset,
         Some(config.max_spread),
         None,
     )?);
-    Ok(app.response("convert").add_messages(messages))
+    Ok(module.response("convert").add_messages(messages))
 }

@@ -12,10 +12,10 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    app: PaymentApp,
+    module: PaymentApp,
     msg: AppInstantiateMsg,
 ) -> AppResult {
-    let name_service = app.name_service(deps.as_ref());
+    let name_service = module.name_service(deps.as_ref());
 
     if let Some(asset) = &msg.desired_asset {
         name_service

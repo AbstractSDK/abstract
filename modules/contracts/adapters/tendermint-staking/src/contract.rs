@@ -1,3 +1,5 @@
+use std::iter;
+
 use abstract_adapter::sdk::Execution;
 use abstract_adapter::AdapterContract;
 use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response};
@@ -38,27 +40,24 @@ pub fn handle_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: TendermintStakeAdapter,
+    module: TendermintStakeAdapter,
     msg: TendermintStakingExecuteMsg,
 ) -> TendermintStakeResult {
-    let executor = adapter.executor(deps.as_ref());
+    let executor = module.executor(deps.as_ref());
     let msg = match msg {
-        TendermintStakingExecuteMsg::Delegate { validator, amount } => executor.execute(vec![
-            delegate_to(&deps.querier, &validator, amount.u128())?.into(),
-        ]),
+        TendermintStakingExecuteMsg::Delegate { validator, amount } => executor.execute(
+            iter::once(delegate_to(&deps.querier, &validator, amount.u128())?),
+        ),
         TendermintStakingExecuteMsg::UndelegateFrom { validator, amount } => {
             let undelegate_msg = match amount {
                 Some(amount) => undelegate_from(&deps.querier, &validator, amount.u128())?,
-                None => undelegate_all_from(&deps.querier, adapter.target()?, &validator)?,
+                None => undelegate_all_from(&deps.querier, module.target()?, &validator)?,
             };
-            executor.execute(vec![undelegate_msg.into()])
+            executor.execute(iter::once(undelegate_msg))
         }
-        TendermintStakingExecuteMsg::UndelegateAll {} => executor.execute(
-            undelegate_all(&deps.querier, adapter.target()?)?
-                .into_iter()
-                .map(Into::into)
-                .collect(),
-        ),
+        TendermintStakingExecuteMsg::UndelegateAll {} => {
+            executor.execute(undelegate_all(&deps.querier, module.target()?)?)
+        }
 
         TendermintStakingExecuteMsg::Redelegate {
             source_validator,
@@ -76,27 +75,23 @@ pub fn handle_request(
                     &deps.querier,
                     &source_validator,
                     &destination_validator,
-                    adapter.target()?,
+                    module.target()?,
                 )?,
             };
-            executor.execute(vec![redelegate_msg.into()])
+            executor.execute(iter::once(redelegate_msg))
         }
         TendermintStakingExecuteMsg::SetWithdrawAddress {
             new_withdraw_address,
-        } => executor.execute(vec![update_withdraw_address(
+        } => executor.execute(iter::once(update_withdraw_address(
             deps.api,
             &new_withdraw_address,
-        )?
-        .into()]),
+        )?)),
         TendermintStakingExecuteMsg::WithdrawDelegatorReward { validator } => {
-            executor.execute(vec![withdraw_rewards(&validator).into()])
+            executor.execute(iter::once(withdraw_rewards(&validator)))
         }
-        TendermintStakingExecuteMsg::WithdrawAllRewards {} => executor.execute(
-            withdraw_all_rewards(&deps.querier, adapter.target()?)?
-                .into_iter()
-                .map(Into::into)
-                .collect(),
-        ),
+        TendermintStakingExecuteMsg::WithdrawAllRewards {} => {
+            executor.execute(withdraw_all_rewards(&deps.querier, module.target()?)?)
+        }
     }?;
     Ok(Response::new().add_message(msg))
 }

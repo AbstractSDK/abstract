@@ -1,5 +1,5 @@
 use abstract_std::proxy;
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps};
+use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
 
 use crate::AbstractSdkResult;
 
@@ -12,9 +12,10 @@ pub trait AccountExecutor: AccountIdentification {
         &self,
         deps: Deps,
         msg: &proxy::ExecuteMsg,
+        funds: Vec<Coin>,
     ) -> AbstractSdkResult<CosmosMsg> {
         let proxy_address = self.proxy_address(deps)?;
-        wasm_execute(proxy_address, msg, vec![])
+        wasm_execute(proxy_address, msg, funds)
             .map(Into::into)
             .map_err(Into::into)
     }

@@ -21,7 +21,7 @@ const INITIAL_BALANCE: u128 = 10_000;
 fn request_meeting_with_start_time(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
-    app: Application<MockBech32, CalendarAppInterface<MockBech32>>,
+    module: Application<MockBech32, CalendarAppInterface<MockBech32>>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -30,7 +30,7 @@ fn request_meeting_with_start_time(
             hour: start_time.hour + 1,
             minute: start_time.minute,
         },
-        app,
+        module,
         Coin::new(60, DENOM),
     )
 }
@@ -38,7 +38,7 @@ fn request_meeting_with_start_time(
 fn request_meeting_with_end_time(
     day_datetime: DateTime<FixedOffset>,
     end_time: Time,
-    app: Application<MockBech32, CalendarAppInterface<MockBech32>>,
+    module: Application<MockBech32, CalendarAppInterface<MockBech32>>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -47,7 +47,7 @@ fn request_meeting_with_end_time(
             minute: end_time.minute,
         },
         end_time,
-        app,
+        module,
         Coin::new(60, DENOM),
     )
 }
@@ -56,7 +56,7 @@ fn request_meeting(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
     end_time: Time,
-    app: Application<MockBech32, CalendarAppInterface<MockBech32>>,
+    module: Application<MockBech32, CalendarAppInterface<MockBech32>>,
     funds: Coin,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     let meeting_start_datetime: NaiveDateTime = day_datetime
@@ -69,7 +69,7 @@ fn request_meeting(
         .with_minute(end_time.minute)
         .unwrap();
 
-    app.request_meeting(
+    module.request_meeting(
         meeting_end_datetime.and_utc().timestamp().into(),
         meeting_start_datetime.and_utc().timestamp().into(),
         &[funds],

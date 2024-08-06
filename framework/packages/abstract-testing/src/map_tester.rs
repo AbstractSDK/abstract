@@ -257,6 +257,7 @@ where
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
 
     mod determine_expected {

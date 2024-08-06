@@ -29,6 +29,7 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
+cw-address-like = { workspace = true }
 
 abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
@@ -37,6 +38,10 @@ cw-orch = { workspace = true }
 abstract-adapter = { version = "0.23.0", path = "../../abstract-adapter" }
 
 ibc-chain-registry = { version = "0.25.0", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+
+abstract-interface = { workspace = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }

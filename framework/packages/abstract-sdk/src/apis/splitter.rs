@@ -73,6 +73,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::objects::AnsAsset;
     use cosmwasm_std::{testing::mock_dependencies, Addr, CosmosMsg, Response, StdError, Uint128};
 

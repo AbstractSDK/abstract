@@ -11,8 +11,8 @@ use crate::{
 pub fn migrate_handler(
     _deps: DepsMut,
     _env: Env,
-    app: PaymentApp,
+    module: PaymentApp,
     _msg: AppMigrateMsg,
 ) -> AppResult {
-    Ok(app.response("migrate"))
+    Ok(module.response("migrate"))
 }

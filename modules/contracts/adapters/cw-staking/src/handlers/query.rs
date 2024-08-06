@@ -10,12 +10,12 @@ use crate::{
 pub fn query_handler(
     deps: Deps,
     env: Env,
-    app: &CwStakingAdapter,
+    module: &CwStakingAdapter,
     msg: StakingQueryMsg,
 ) -> StakingResult<Binary> {
-    let name_service = app.name_service(deps);
+    let name_service = module.name_service(deps);
     let ans_host = name_service.host();
-    let version_control_contract = app.abstract_registry(deps)?;
+    let version_control_contract = module.abstract_registry(deps)?;
 
     match msg {
         StakingQueryMsg::Info {

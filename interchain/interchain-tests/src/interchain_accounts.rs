@@ -64,6 +64,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
     use crate::{
         setup::{ibc_abstract_setup, mock_test::logger_test_init},

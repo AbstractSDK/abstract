@@ -41,7 +41,7 @@ cw-asset = { workspace = true }
 
 abstract-app = { workspace = true }
 
-chrono = { version = "0.4.31", default_features = false }
+chrono = { version = "0.4.31", default-features = false }
 cw-utils = "1.0.1"
 
 # Dependencies for interface

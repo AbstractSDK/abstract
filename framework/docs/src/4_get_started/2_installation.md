@@ -21,7 +21,7 @@ $ rustup target add wasm32-unknown-unknown
 
 ## Docker
 
-<a href= "https://www.docker.com/" target="_blank">Docker</a> is used to create a containerized environment for facilitating reproducible builds. Specifically we'll be using a slightly modified builder image available <a href= "https://hub.docker.com/r/abstractmoney/workspace-optimizer" target="_blank">here</a>. You can read about the slight modifications we made in <a href= "https://github.com/CosmWasm/rust-optimizer/pull/130" target="_blank">this PR</a>.
+<a href= "https://www.docker.com/" target="_blank">Docker</a> is used to create a containerized environment for facilitating reproducible builds. Specifically we'll be using <a href= "https://github.com/CosmWasm/optimizer" target="_blank">Cosmwasm Optimizer</a>.
 
 ## Git
 

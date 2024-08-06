@@ -96,18 +96,18 @@ pub fn execute_handler(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    app: App,
+    module: App,
     msg: AppExecuteMsg,
 ) -> AppResult {
     match msg {
-        AppExecuteMsg::Increment {} => increment(deps, app),
-        AppExecuteMsg::Reset { count } => reset(deps, info, count, app),
-        AppExecuteMsg::UpdateConfig {} => update_config(deps, info, app),
+        AppExecuteMsg::Increment {} => increment(deps, module),
+        AppExecuteMsg::Reset { count } => reset(deps, info, count, module),
+        AppExecuteMsg::UpdateConfig {} => update_config(deps, info, module),
     }
 }
 ```
 
-The code above should look very familiar. It's only a slight variation of the code you would write in a regular CosmWasm contract. The only difference is that you have access to the `app: App` attribute, which is the instance of your module.
+The code above should look very familiar. It's only a slight variation of the code you would write in a regular CosmWasm contract. The only difference is that you have access to the `module: App` attribute, which is the instance of your module.
 
 ```admonish info
 You can find more application code to read in our <a href="https://github.com/AbstractSDK/awesome-abstract" target="_blank">💥 Awesome Abstract repository 💥</a>.

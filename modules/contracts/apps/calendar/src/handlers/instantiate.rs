@@ -12,10 +12,10 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    app: CalendarApp,
+    module: CalendarApp,
     msg: CalendarInstantiateMsg,
 ) -> CalendarAppResult {
-    let denom = resolve_native_ans_denom(deps.as_ref(), &app, msg.denom)?;
+    let denom = resolve_native_ans_denom(deps.as_ref(), &module, msg.denom)?;
 
     msg.start_time.validate()?;
     msg.end_time.validate()?;
