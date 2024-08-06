@@ -5,8 +5,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use abstract_interchain_tests::{
-    interchain_accounts::{create_test_remote_account, set_env},
-    JUNO, STARGAZE,
+    interchain_accounts::create_test_remote_account, setup::set_starship_env, JUNO, STARGAZE,
 };
 use abstract_interface::{Abstract, AbstractAccount, ProxyQueryFns};
 use abstract_std::{
@@ -24,7 +23,7 @@ use ibc_relayer_types::core::ics24_host::identifier::PortId;
 pub fn test_send_funds() -> AnyResult<()> {
     env_logger::init();
 
-    set_env();
+    set_starship_env();
 
     let starship = Starship::new(None).unwrap();
     let interchain = starship.interchain_env();

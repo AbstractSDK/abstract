@@ -1,5 +1,5 @@
 NAME = tutorial
-FILE = ./configs/osmo-juno.yaml
+FILE = ./configs/four-junos.yaml
 
 HELM_REPO = starship
 HELM_CHART = devnet

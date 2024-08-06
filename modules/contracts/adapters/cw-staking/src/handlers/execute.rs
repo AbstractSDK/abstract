@@ -74,7 +74,7 @@ fn handle_ibc_request(
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
-    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins, None)?;
+    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins, None, None)?;
     // construct the action to be called on the host
     // construct the action to be called on the host
     let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {

@@ -111,6 +111,8 @@ cw-orch-interchain = { path = "../../cw-orchestrator/cw-orch-interchain" }
 cw-orch = { path = "../../cw-orchestrator/cw-orch" }
 cw-orch-clone-testing = { path = "../../cw-orchestrator/packages/clone-testing" }
 cw-orch-proto = { path = "../../cw-orchestrator/packages/interchain/proto" }
+[patch.'https://github.com/AbstractSDK/cw-orchestrator.git']
+counter-contract = { path = "../../cw-orchestrator/contracts/counter" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use cosmwasm_std::{from_json, to_json_binary, Addr, Binary, Coin};
+use cosmwasm_std::{from_json, to_json_binary, Addr, Binary};
 use serde_cw_value::Value;
 
 use super::IbcMemoBuilder;
@@ -9,7 +9,6 @@ use super::IbcMemoBuilder;
 pub struct IbcHooksBuilder {
     contract_addr: Addr,
     msg: Binary,
-    funds: Option<Vec<Coin>>,
     ibc_callback: Option<Addr>,
 }
 
@@ -20,15 +19,8 @@ impl IbcHooksBuilder {
         Self {
             contract_addr,
             msg,
-            funds: None,
             ibc_callback: None,
         }
-    }
-
-    /// Add funds to hook
-    pub fn funds(mut self, funds: Vec<Coin>) -> Self {
-        self.funds = Some(funds);
-        self
     }
 
     /// Contract that will receive callback, see:
@@ -40,8 +32,8 @@ impl IbcHooksBuilder {
 }
 
 impl IbcMemoBuilder for IbcHooksBuilder {
-    fn build_value(self) -> Value {
-        let mut execute_wasm_value = BTreeMap::from([
+    fn build_value_map(self) -> BTreeMap<Value, Value> {
+        let execute_wasm_value = BTreeMap::from([
             (
                 Value::String("contract".to_owned()),
                 Value::String(self.contract_addr.into_string()),
@@ -51,26 +43,6 @@ impl IbcMemoBuilder for IbcHooksBuilder {
                 from_json(&self.msg).expect("expected valid json message"),
             ),
         ]);
-
-        if let Some(funds) = self.funds {
-            execute_wasm_value.insert(
-                Value::String("funds".to_owned()),
-                Value::Seq(
-                    funds
-                        .into_iter()
-                        .map(|coin| {
-                            Value::Map(BTreeMap::from([
-                                (Value::String("denom".to_owned()), Value::String(coin.denom)),
-                                (
-                                    Value::String("amount".to_owned()),
-                                    Value::String(coin.amount.to_string()),
-                                ),
-                            ]))
-                        })
-                        .collect(),
-                ),
-            );
-        }
 
         let mut memo = BTreeMap::from([(
             Value::String("wasm".to_owned()),
@@ -82,6 +54,6 @@ impl IbcMemoBuilder for IbcHooksBuilder {
                 Value::String(contract_addr.into_string()),
             );
         }
-        Value::Map(memo)
+        memo
     }
 }

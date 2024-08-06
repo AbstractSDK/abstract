@@ -8,10 +8,10 @@ chains:
       grpc: 30658
       faucet: 8000
   - id: junotwo-1
-    name: juno
+    name: osmosis
     numValidators: 1
     ports:
-      rest: 1328
+      rest: 1317
       rpc: 26659
       grpc: 30660
       faucet: 8004
@@ -19,7 +19,7 @@ chains:
     name: juno
     numValidators: 1
     ports:
-      rest: 1317
+      rest: 1323
       rpc: 26657
       grpc: 30657
       faucet: 8001
@@ -27,7 +27,7 @@ chains:
     name: juno
     numValidators: 1
     ports:
-      rest: 1323
+      rest: 1328
       rpc: 26658
       grpc: 30659
       faucet: 8003
@@ -50,7 +50,7 @@ relayers:
       - junothree-1
     config:
       event_source:
-        mode: "pull" # default is "push"
+        mode: "pull"
   - name: juno3-juno4
     type: hermes
     replicas: 1
@@ -59,7 +59,7 @@ relayers:
       - junofour-1
     config:
       event_source:
-        mode: "pull" # default is "push"
+        mode: "pull"
 
 registry:
   enabled: true

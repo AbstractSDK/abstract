@@ -12,7 +12,7 @@ pub struct PacketForwardMiddlewareBuilder {
     port: Option<String>,
     timeout: Option<String>,
     retries: Option<u8>,
-    next: Option<Value>,
+    next: Option<BTreeMap<Value, Value>>,
 }
 
 impl PacketForwardMiddlewareBuilder {
@@ -55,13 +55,13 @@ impl PacketForwardMiddlewareBuilder {
 
     /// Add next memo to middleware
     pub fn next(mut self, next_memo: impl IbcMemoBuilder) -> Self {
-        self.next = Some(next_memo.build_value());
+        self.next = Some(next_memo.build_value_map());
         self
     }
 }
 
 impl IbcMemoBuilder for PacketForwardMiddlewareBuilder {
-    fn build_value(self) -> Value {
+    fn build_value_map(self) -> BTreeMap<Value, Value> {
         let PacketForwardMiddlewareBuilder {
             receiver,
             port,
@@ -88,12 +88,12 @@ impl IbcMemoBuilder for PacketForwardMiddlewareBuilder {
             forward_value.insert(Value::String("retries".to_owned()), Value::U8(retries));
         }
         if let Some(next) = next {
-            forward_value.insert(Value::String("next".to_owned()), next);
+            forward_value.insert(Value::String("next".to_owned()), Value::Map(next));
         }
 
-        Value::Map(BTreeMap::from([(
+        BTreeMap::from([(
             Value::String("forward".to_owned()),
             Value::Map(forward_value.into_iter().collect()),
-        )]))
+        )])
     }
 }

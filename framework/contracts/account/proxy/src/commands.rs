@@ -467,6 +467,7 @@ mod test {
                     host_chain: "juno".parse().unwrap(),
                     funds: funds.clone(),
                     memo: None,
+                    receiver: None,
                 },
             };
 
@@ -494,6 +495,7 @@ mod test {
                         host_chain: "juno".parse().unwrap(),
                         funds: funds.clone(),
                         memo: None,
+                        receiver: None,
                     })
                     .unwrap(),
                     funds,

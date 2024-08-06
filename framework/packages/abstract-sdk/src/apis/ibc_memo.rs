@@ -1,6 +1,8 @@
 mod hooks;
 mod pfm;
 
+use std::collections::BTreeMap;
+
 pub use hooks::IbcHooksBuilder;
 pub use pfm::PacketForwardMiddlewareBuilder;
 use serde_cw_value::Value;
@@ -8,20 +10,20 @@ use serde_cw_value::Value;
 /// Trait for memo-based IBC message builders.
 pub trait IbcMemoBuilder {
     /// Build the memo json [Value] object.
-    fn build_value(self) -> Value;
+    fn build_value_map(self) -> BTreeMap<Value, Value>;
     /// Build the memo json string.
     fn build(self) -> cosmwasm_std::StdResult<String>
     where
         Self: Sized,
     {
-        cosmwasm_std::to_json_string(&self.build_value())
+        cosmwasm_std::to_json_string(&self.build_value_map())
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::{coins, Addr};
+    use cosmwasm_std::Addr;
     use serde_json::json;
 
     #[test]
@@ -117,7 +119,6 @@ mod test {
         assert_eq!(value, expected_value);
 
         let complete = IbcHooksBuilder::new(Addr::unchecked("mock_addr"), &msg)
-            .funds(coins(42, "abstract"))
             .callback_contract(Addr::unchecked("callback_addr"))
             .build()
             .unwrap();
@@ -126,10 +127,6 @@ mod test {
             "wasm": {
                 "contract": "mock_addr",
                 "msg": {"withdraw": {}},
-                "funds": [{
-                    "amount": "42",
-                    "denom": "abstract"
-                }]
             },
             "ibc_callback": "callback_addr"
         });
