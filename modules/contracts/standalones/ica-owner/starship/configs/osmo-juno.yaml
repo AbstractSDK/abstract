@@ -26,11 +26,8 @@ relayers:
     config:
       event_source:
         mode: "pull" # default is "push"
-
-explorer:
-  enabled: true
-  ports:
-    rest: 8080
+    ports:
+      rest: 3001
 
 registry:
   enabled: true

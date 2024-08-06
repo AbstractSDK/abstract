@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added `MiddlewareForwardMemoBuilder` API for building middleware forwarding memo
+- Added `ExecuteWasmContractMemoBuilder` API for building wasm ibc hook memo
 - `execute_with_funds` to Executor to attach funds to execution.
 
 ### Changed

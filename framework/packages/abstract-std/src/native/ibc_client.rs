@@ -96,7 +96,10 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: TruncatedChainId,
+        /// TODO: comment https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks#ics20-packet-structure
+        receiver: Option<String>,
         funds: Vec<Coin>,
+
         memo: Option<String>,
     },
     /// Only callable by Account proxy
