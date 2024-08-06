@@ -38,7 +38,6 @@ pub fn test_pfm() -> AnyResult<()> {
 
     let juno = interchain.get_chain(JUNO).unwrap();
     let juno2 = interchain.get_chain(JUNO2).unwrap();
-    let juno3 = interchain.get_chain(JUNO3).unwrap();
     let juno4 = interchain.get_chain(JUNO4).unwrap();
 
     // Create a channel between the 4 chains for the transfer ports
@@ -80,6 +79,7 @@ pub fn test_pfm() -> AnyResult<()> {
     let abstr_juno2 = Abstract::deploy_on(juno2.clone(), juno2.sender_addr().to_string())?;
     connect_one_way_to(&abstr_juno, &abstr_juno2, &interchain)?;
 
+    // Faster to load if deployed
     // let abstr_juno = Abstract::load_from(juno.clone())?;
     // let abstr_juno2 = Abstract::load_from(juno2.clone())?;
 
@@ -145,13 +145,10 @@ pub fn test_pfm() -> AnyResult<()> {
         .unwrap()
         .to_string();
 
-    let memo = PacketForwardMiddlewareBuilder::new(juno2_juno3_channel_port_juno2)
-        .next(
-            PacketForwardMiddlewareBuilder::new(juno3_juno4_channel_port_juno3)
-                .receiver(juno4.sender_addr()),
-        )
+    let memo = PacketForwardMiddlewareBuilder::new(juno4.sender_addr())
+        .hop(juno2_juno3_channel_port_juno2)
+        .hop(juno3_juno4_channel_port_juno3)
         .build()?;
-    // We send from osmosis to juno funds with pfm memo that includes juno-stargaze channel
     origin_account.manager.execute_on_module(
         PROXY,
         abstract_std::proxy::ExecuteMsg::IbcAction {

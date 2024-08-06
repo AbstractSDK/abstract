@@ -88,6 +88,8 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+# Testing contract
+counter-contract = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
 # Do not remove, none of interchain packages are deployed
 [patch.crates-io]
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
@@ -103,16 +105,11 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
-# cw-orch-interchain = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
-# cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
-# cw-orch-clone-testing = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
-# cw-orch-proto = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
-cw-orch-interchain = { path = "../../cw-orchestrator/cw-orch-interchain" }
-cw-orch = { path = "../../cw-orchestrator/cw-orch" }
-cw-orch-clone-testing = { path = "../../cw-orchestrator/packages/clone-testing" }
-cw-orch-proto = { path = "../../cw-orchestrator/packages/interchain/proto" }
-[patch.'https://github.com/AbstractSDK/cw-orchestrator.git']
-counter-contract = { path = "../../cw-orchestrator/contracts/counter" }
+# TODO: remove git dep
+cw-orch-interchain = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
+cw-orch-clone-testing = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
+cw-orch-proto = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/starship-improvements" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

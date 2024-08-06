@@ -8,7 +8,7 @@ chains:
       grpc: 30658
       faucet: 8000
   - id: junotwo-1
-    name: osmosis
+    name: osmosis # Could be juno, but had problems on this spot and it was getting hard to debug with same addresses
     numValidators: 1
     ports:
       rest: 1317

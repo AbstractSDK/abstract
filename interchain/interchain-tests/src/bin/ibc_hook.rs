@@ -4,12 +4,8 @@
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use abstract_interchain_tests::{
-    interchain_accounts::create_test_remote_account, setup::set_starship_env, JUNO,
-};
-use abstract_interface::{
-    connection::connect_one_way_to, Abstract, AbstractAccount, ProxyQueryFns,
-};
+use abstract_interchain_tests::{setup::set_starship_env, JUNO};
+use abstract_interface::{connection::connect_one_way_to, Abstract};
 use abstract_sdk::{IbcHooksBuilder, IbcMemoBuilder};
 use abstract_std::{
     ans_host::ExecuteMsgFns,
@@ -38,7 +34,7 @@ pub fn test_pfm() -> AnyResult<()> {
     let juno = interchain.get_chain(JUNO).unwrap();
     let juno2 = interchain.get_chain(JUNO2).unwrap();
 
-    // Create a channel between the 4 chains for the transfer ports
+    // Create a channel between the 2 chains for the transfer ports
     // JUNO>JUNO2
     let juno_juno2_channel = interchain
         .create_channel(
@@ -51,12 +47,13 @@ pub fn test_pfm() -> AnyResult<()> {
         )?
         .interchain_channel;
 
-    // let abstr_juno = Abstract::deploy_on(juno.clone(), juno.sender_addr().to_string())?;
-    // let abstr_juno2 = Abstract::deploy_on(juno2.clone(), juno2.sender_addr().to_string())?;
-    // connect_one_way_to(&abstr_juno, &abstr_juno2, &interchain)?;
+    let abstr_juno = Abstract::deploy_on(juno.clone(), juno.sender_addr().to_string())?;
+    let abstr_juno2 = Abstract::deploy_on(juno2.clone(), juno2.sender_addr().to_string())?;
+    connect_one_way_to(&abstr_juno, &abstr_juno2, &interchain)?;
 
-    let abstr_juno = Abstract::load_from(juno.clone())?;
-    let abstr_juno2 = Abstract::load_from(juno2.clone())?;
+    // Faster to load if deployed
+    // let abstr_juno = Abstract::load_from(juno.clone())?;
+    // let abstr_juno2 = Abstract::load_from(juno2.clone())?;
 
     let counter_juno2 = init_counter(juno2.clone())?;
 
@@ -109,7 +106,7 @@ pub fn test_pfm() -> AnyResult<()> {
     ))?;
 
     let memo = IbcHooksBuilder::new(
-        counter_juno2.address()?,
+        counter_juno2.addr_str()?,
         &counter_contract::msg::ExecuteMsg::Increment {},
     )
     .build()?;
@@ -119,7 +116,29 @@ pub fn test_pfm() -> AnyResult<()> {
         abstract_std::proxy::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                 host_chain: TruncatedChainId::from_chain_id(JUNO2),
-                funds: coins(100_000_000_000, get_denom(&juno, token_subdenom.as_str())),
+                funds: coins(10_000_000_000, get_denom(&juno, token_subdenom.as_str())),
+                memo: Some(memo.clone()),
+                receiver: Some(counter_juno2.addr_str()?),
+            },
+        },
+    )?;
+    origin_account.manager.execute_on_module(
+        PROXY,
+        abstract_std::proxy::ExecuteMsg::IbcAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
+                host_chain: TruncatedChainId::from_chain_id(JUNO2),
+                funds: coins(10_000_000_000, get_denom(&juno, token_subdenom.as_str())),
+                memo: Some(memo.clone()),
+                receiver: Some(counter_juno2.addr_str()?),
+            },
+        },
+    )?;
+    origin_account.manager.execute_on_module(
+        PROXY,
+        abstract_std::proxy::ExecuteMsg::IbcAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
+                host_chain: TruncatedChainId::from_chain_id(JUNO2),
+                funds: coins(10_000_000_000, get_denom(&juno, token_subdenom.as_str())),
                 memo: Some(memo),
                 receiver: Some(counter_juno2.addr_str()?),
             },
@@ -131,6 +150,12 @@ pub fn test_pfm() -> AnyResult<()> {
     let count_juno2 = counter_juno2.get_count()?;
     log::info!("count juno2: {count_juno2:?}");
 
+    // Verify the funds have been received
+    let count_juno2_balance = juno2
+        .bank_querier()
+        .balance(counter_juno2.addr_str()?, None)?;
+
+    log::info!("count_juno2 balance, {:?}", count_juno2_balance);
     Ok(())
 }
 
