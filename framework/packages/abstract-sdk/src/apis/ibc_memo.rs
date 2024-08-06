@@ -1,5 +1,6 @@
 mod hooks;
 mod pfm;
+// mod pfm;
 
 use std::collections::BTreeMap;
 
@@ -28,7 +29,13 @@ mod test {
 
     #[test]
     fn memo_middleware() {
-        let minimal = PacketForwardMiddlewareBuilder::new("channel-1")
+        let empty = PacketForwardMiddlewareBuilder::new("who").build().unwrap();
+        let value: serde_json::Value = serde_json::from_str(&empty).unwrap();
+        let expected_value = json!({});
+        assert_eq!(value, expected_value);
+
+        let minimal = PacketForwardMiddlewareBuilder::new("foo")
+            .hop("channel-1")
             .build()
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&minimal).unwrap();
@@ -36,17 +43,17 @@ mod test {
             "forward": {
                 "channel": "channel-1",
                 "port": "transfer",
-                "receiver": "pfm",
+                "receiver": "foo",
             }
         });
         assert_eq!(value, expected_value);
 
-        let complete = PacketForwardMiddlewareBuilder::new("channel-1")
-            .receiver(Addr::unchecked("foo"))
+        let complete = PacketForwardMiddlewareBuilder::new("foo")
             .port("different_port")
+            .hop("channel-1")
             .timeout("10m")
             .retries(4)
-            .next(PacketForwardMiddlewareBuilder::new("channel-2"))
+            .hop("channel-2")
             .build()
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&complete).unwrap();
@@ -54,25 +61,24 @@ mod test {
             "forward": {
                 "channel": "channel-1",
                 "port": "different_port",
-                "receiver": "foo",
+                "receiver": "pfm",
                 "timeout": "10m",
                 "retries": 4,
                 "next": {
                     "forward": {
                         "channel": "channel-2",
-                        "port": "transfer",
-                        "receiver": "pfm",
+                        "port": "different_port",
+                        "receiver": "foo",
                     }
                 }
             }
         });
         assert_eq!(value, expected_value);
 
-        let multimultihop = PacketForwardMiddlewareBuilder::new("channel-1")
-            .next(
-                PacketForwardMiddlewareBuilder::new("channel-2")
-                    .next(PacketForwardMiddlewareBuilder::new("channel-3")),
-            )
+        let multimultihop = PacketForwardMiddlewareBuilder::new("receiver")
+            .hop("channel-1")
+            .hop("channel-2")
+            .hop("channel-3")
             .build()
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&multimultihop).unwrap();
@@ -90,7 +96,7 @@ mod test {
                             "forward": {
                                 "channel": "channel-3",
                                 "port": "transfer",
-                                "receiver": "pfm",
+                                "receiver": "receiver",
                             }
                         }
                     }
@@ -106,7 +112,7 @@ mod test {
             "withdraw": {}
         });
 
-        let minimal = IbcHooksBuilder::new(Addr::unchecked("mock_addr"), &msg)
+        let minimal = IbcHooksBuilder::new("mock_addr".to_owned(), &msg)
             .build()
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&minimal).unwrap();
@@ -118,7 +124,7 @@ mod test {
         });
         assert_eq!(value, expected_value);
 
-        let complete = IbcHooksBuilder::new(Addr::unchecked("mock_addr"), &msg)
+        let complete = IbcHooksBuilder::new("mock_addr".to_owned(), &msg)
             .callback_contract(Addr::unchecked("callback_addr"))
             .build()
             .unwrap();
@@ -129,34 +135,6 @@ mod test {
                 "msg": {"withdraw": {}},
             },
             "ibc_callback": "callback_addr"
-        });
-        assert_eq!(value, expected_value);
-    }
-
-    #[test]
-    fn memo_hop_wasm_hook() {
-        let memo = PacketForwardMiddlewareBuilder::new("channel-1")
-            .next(IbcHooksBuilder::new(
-                Addr::unchecked("mock_addr"),
-                &json!({
-                    "withdraw": {}
-                }),
-            ))
-            .build()
-            .unwrap();
-        let value: serde_json::Value = serde_json::from_str(&memo).unwrap();
-        let expected_value = json!({
-            "forward": {
-                "channel": "channel-1",
-                "port": "transfer",
-                "receiver": "pfm",
-                "next": {
-                    "wasm": {
-                        "contract": "mock_addr",
-                        "msg": {"withdraw": {}}
-                    }
-                }
-            }
         });
         assert_eq!(value, expected_value);
     }
