@@ -110,6 +110,7 @@ pub fn test_send_funds() -> AnyResult<()> {
                 host_chain: TruncatedChainId::from_chain_id(STARGAZE),
                 funds: coins(test_amount, get_denom(&juno, token_subdenom.as_str())),
                 memo: Some("sent_some_tokens".to_owned()),
+                receiver: None,
             },
         },
     )?;

@@ -478,6 +478,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             host_chain: self.host_chain(),
             funds,
             memo,
+            receiver: None,
         })
     }
 
