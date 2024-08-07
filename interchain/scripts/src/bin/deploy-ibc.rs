@@ -3,6 +3,7 @@ use std::iter;
 
 use abstract_interface::{Abstract, AbstractIbc};
 use abstract_scripts::ROLLKIT_TESTNET;
+use abstract_std::ibc_client::ListIbcInfrastructureResponse;
 use cw_orch::{
     daemon::{
         networks::{neutron::NEUTRON_NETWORK, ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1},
@@ -73,7 +74,13 @@ pub fn deploy_host_and_client<Chain: CwEnv>(chain: Chain) -> cw_orch::anyhow::Re
     let abs = Abstract::load_from(chain.clone())?;
     let ibc_infra = AbstractIbc::new(&chain);
     ibc_infra.upload()?;
-    ibc_infra.instantiate(&abs, &chain.sender_addr())?;
+    ibc_infra.instantiate(
+        &abs,
+        &chain.sender_addr(),
+        ListIbcInfrastructureResponse {
+            counterparts: vec![],
+        },
+    )?;
     ibc_infra.register(&abs.version_control)?;
 
     abs.version_control.approve_any_abstract_modules()?;
