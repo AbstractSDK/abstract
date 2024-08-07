@@ -83,60 +83,59 @@ impl EvmMsg<Address> {
 pub mod abi_types {
     use alloy::sol_types::sol;
 
-// Copied directly from solidity/src/Requests.sol
-sol! {
-  // Reflect the CW Packet
-struct Packet {
-    string sender;
-    Msg msg;
-}
+    // Copied directly from solidity/src/Requests.sol
+    sol! {
+      // Reflect the CW Packet
+    struct Packet {
+        string sender;
+        Msg msg;
+    }
 
-// Message called on the voice
-struct Msg {
-    MsgType msgType;
-    bytes[] data;
-}
+    // Message called on the voice
+    struct Msg {
+        MsgType msgType;
+        bytes[] data;
+    }
 
-// Type of voice message
-enum MsgType {
-    Execute
-//    Query
-}
+    // Type of voice message
+    enum MsgType {
+        Execute
+    //    Query
+    }
 
-// Message called on the proxy contract
-// Reflect EvmMsg<Address>
-struct EvmMsg {
-    EvmMsgType msgType;
-    bytes message;
-}
+    // Message called on the proxy contract
+    // Reflect EvmMsg<Address>
+    struct EvmMsg {
+        EvmMsgType msgType;
+        bytes message;
+    }
 
-// Type of message called on proxy contract
-enum EvmMsgType {
-    Call,
-}
+    // Type of message called on proxy contract
+    enum EvmMsgType {
+        Call,
+    }
 
-// Data to execute by proxy
-struct CallMessage {
-    address to;
-    bytes data;
-}
+    // Data to execute by proxy
+    struct CallMessage {
+        address to;
+        bytes data;
+    }
 
-struct ExecuteResult {
-    bool success;
-    bytes data;
-}
+    struct ExecuteResult {
+        bool success;
+        bytes data;
+    }
 
-struct ExecuteResponsePacket {
-    address executedBy;
-    ExecuteResult[] result;
-}
-struct Token {
-    address denom;
-    uint128 amount;
-}
+    struct ExecuteResponsePacket {
+        address executedBy;
+        ExecuteResult[] result;
+    }
+    struct Token {
+        address denom;
+        uint128 amount;
+    }
 
-}
-
+    }
 }
 
 #[cfg(test)]

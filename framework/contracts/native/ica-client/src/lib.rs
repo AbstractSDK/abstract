@@ -2,8 +2,8 @@ mod commands;
 pub mod contract;
 pub mod error;
 pub mod ibc;
-mod queries;
 pub mod msg;
+mod queries;
 
 #[cfg(test)]
 mod test_common {

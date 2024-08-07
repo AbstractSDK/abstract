@@ -129,9 +129,13 @@ pub fn account(
     Ok(AccountResponse { remote_proxy_addr })
 }
 
-pub(crate) fn query_ica_action(deps: Deps, proxy_address: String, chain: TruncatedChainId, action: IcaAction) -> IbcClientResult<IcaActionResponse> {
+pub(crate) fn query_ica_action(
+    deps: Deps,
+    proxy_address: String,
+    chain: TruncatedChainId,
+    action: IcaAction,
+) -> IbcClientResult<IcaActionResponse> {
     let proxy_addr = deps.api.addr_validate(&proxy_address)?;
 
     // match chain-id with cosmos or EVM
-    
 }

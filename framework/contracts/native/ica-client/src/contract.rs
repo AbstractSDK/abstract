@@ -1,3 +1,4 @@
+use crate::msg::{state::*, *};
 use abstract_macros::abstract_response;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
@@ -7,7 +8,6 @@ use abstract_std::{
     },
     IBC_CLIENT,
 };
-use crate::msg::{*,state::*};
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
@@ -44,17 +44,24 @@ pub fn instantiate(
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> IbcClientResult {
-    match msg {
-        
-    }
+    match msg {}
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryResponse> {
     match msg {
-        QueryMsg::Config {  } => to_json_binary(&queries::query_config(deps)?),
-        QueryMsg::Ownership {  } => to_json_binary(&queries::query_ownership(deps)?),
-        QueryMsg::IcaAction { proxy_address, chain, action } => to_json_binary(&queries::query_ica_action(deps, proxy_address, chain, action)?),
+        QueryMsg::Config {} => to_json_binary(&queries::query_config(deps)?),
+        QueryMsg::Ownership {} => to_json_binary(&queries::query_ownership(deps)?),
+        QueryMsg::IcaAction {
+            proxy_address,
+            chain,
+            action,
+        } => to_json_binary(&queries::query_ica_action(
+            deps,
+            proxy_address,
+            chain,
+            action,
+        )?),
     }
 }
 

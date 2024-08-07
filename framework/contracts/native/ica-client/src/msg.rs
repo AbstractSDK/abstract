@@ -33,7 +33,7 @@ pub mod state {
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> = Map::new("revpn");
 
     pub const CONFIG: Item<Config> = Item::new("config");
-   
+
     // For callbacks tests
     pub const ACKS: Item<Vec<String>> = Item::new("tmpc");
 }
@@ -50,8 +50,7 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-pub enum ExecuteMsg {
-}
+pub enum ExecuteMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
@@ -67,14 +66,14 @@ pub enum QueryMsg {
     Config {},
 
     #[returns(IcaActionResult)]
-	IcaAction {
-		// Proxy address used to query polytone implementations or proxy itself.
-		proxy_address: String,
-		// Chain to send to
-		chain: TruncatedChainId,
-		// Queries go first
-		action: Vec<IcaAction>,
-	}
+    IcaAction {
+        // Proxy address used to query polytone implementations or proxy itself.
+        proxy_address: String,
+        // Chain to send to
+        chain: TruncatedChainId,
+        // Queries go first
+        action: Vec<IcaAction>,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -85,6 +84,6 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 struct IcaActionResult {
-	/// messages that call the underlying implementations (be it polytone/cw-ica-controller/etc)
-	msgs: Vec<CosmosMsg>
+    /// messages that call the underlying implementations (be it polytone/cw-ica-controller/etc)
+    msgs: Vec<CosmosMsg>,
 }
