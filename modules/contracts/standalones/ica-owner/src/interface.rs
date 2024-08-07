@@ -32,7 +32,7 @@ impl<Chain: cw_orch::environment::CwEnv> abstract_interface::RegisteredModule
         MY_STANDALONE.version()
     }
 
-    fn dependencies() -> &'static [StaticDependency] {
+    fn dependencies<'a>() -> &'a [StaticDependency] {
         MY_STANDALONE.dependencies()
     }
 }
