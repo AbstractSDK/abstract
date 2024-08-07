@@ -60,6 +60,7 @@ pub enum ExecuteMsg {
     ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
     IbcAction { msg: IbcClientMsg },
+    IcaAction { action_query: QueryRequest },
     /// Adds the provided address to whitelisted dapps
     AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps

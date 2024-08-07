@@ -144,6 +144,11 @@ pub enum ExecuteMsg {
         /// execute the custom host function
         action: HostAction,
     },
+    /// Execute an action on a remote ICA
+    RemoteIcaAction {
+        host_chain: TruncatedChainId,
+        action: IcaAction,
+    },
     /// Owner method: Remove connection for remote chain
     RemoveHost { host_chain: TruncatedChainId },
     /// Callback from the Polytone implementation

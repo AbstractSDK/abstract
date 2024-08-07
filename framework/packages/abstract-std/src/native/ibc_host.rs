@@ -8,7 +8,7 @@
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary};
+use cosmwasm_std::{Addr, Binary, CosmosMsg};
 
 use crate::{
     ibc_client::InstalledModuleIdentification,
@@ -90,6 +90,8 @@ pub enum HelperAction {
 /// Callable actions on a remote host
 #[cosmwasm_schema::cw_serde]
 pub enum HostAction {
+    /// Dispatch messages to a remote manager contract.
+    /// Will create a new Account if required.
     Dispatch {
         manager_msgs: Vec<manager::ExecuteMsg>,
     },
