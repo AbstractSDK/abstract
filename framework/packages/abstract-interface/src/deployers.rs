@@ -1,6 +1,7 @@
 use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{
+        dependency::StaticDependency,
         module::{ModuleInfo, ModuleVersion},
         AccountId,
     },
@@ -27,6 +28,8 @@ pub trait RegisteredModule {
     fn installed_module_contract_id(account_id: &AccountId) -> String {
         format!("{}-{}", Self::module_id(), account_id)
     }
+    /// Dependencies of the module
+    fn dependencies<'a>() -> &'a [StaticDependency];
 }
 
 /// Trait to access module dependency information tied directly to the type.
@@ -142,7 +145,9 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
 }
 
 /// Trait for deploying APPs
-pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
+pub trait AppDeployer<Chain: CwEnv>:
+    Sized + Uploadable + ContractInstance<Chain> + RegisteredModule
+{
     /// Deploys the app. If the app is already deployed, it will return an error.
     /// Use `DeployStrategy::Try` if you want to deploy the app only if it is not already deployed.
     fn deploy(
@@ -193,7 +198,9 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
 }
 
 /// Trait for deploying Standalones
-pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
+pub trait StandaloneDeployer<Chain: CwEnv>:
+    Sized + Uploadable + ContractInstance<Chain> + RegisteredModule
+{
     /// Deploys the app. If the app is already deployed, it will return an error.
     /// Use `maybe_deploy` if you want to deploy the app only if it is not already deployed.
     fn deploy(

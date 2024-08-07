@@ -27,11 +27,13 @@ pub mod interface {
     use abstract_adapter::abstract_interface::{
         AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
     };
-    use abstract_adapter::sdk::{base::Handler, features::ModuleIdentification as _};
+    use abstract_adapter::objects::dependency::StaticDependency;
+    use abstract_adapter::sdk::features::ModuleIdentification as _;
     use abstract_adapter::std::{
         adapter,
         objects::{AnsAsset, AssetEntry},
     };
+    use abstract_adapter::traits::Dependencies;
     use cw_orch::{build::BuildPostfix, contract::Contract, interface, prelude::*};
 
     use crate::{
@@ -64,7 +66,7 @@ pub mod interface {
     }
 
     impl<Chain: CwEnv> RegisteredModule for CwStakingAdapter<Chain> {
-        type InitMsg = <crate::contract::CwStakingAdapter as Handler>::CustomInitMsg;
+        type InitMsg = <crate::contract::CwStakingAdapter as abstract_adapter::sdk::base::Handler>::CustomInitMsg;
 
         fn module_id<'a>() -> &'a str {
             CW_STAKING_ADAPTER.module_id()
@@ -72,6 +74,10 @@ pub mod interface {
 
         fn module_version<'a>() -> &'a str {
             CW_STAKING_ADAPTER.version()
+        }
+
+        fn dependencies<'a>() -> &'a [StaticDependency] {
+            CW_STAKING_ADAPTER.dependencies()
         }
     }
 

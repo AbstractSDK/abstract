@@ -18,7 +18,8 @@ pub use crate::api::MoneyMarketInterface;
 pub mod interface {
     use abstract_adapter::{
         abstract_interface::{AdapterDeployer, RegisteredModule},
-        traits::ModuleIdentification as _,
+        objects::dependency::StaticDependency,
+        traits::{Dependencies, ModuleIdentification as _},
     };
     use abstract_money_market_standard::msg::{
         ExecuteMsg, InstantiateMsg, MoneyMarketInstantiateMsg, QueryMsg,
@@ -77,6 +78,10 @@ pub mod interface {
 
         fn module_version<'a>() -> &'a str {
             MONEY_MARKET_ADAPTER.version()
+        }
+
+        fn dependencies<'a>() -> &'a [StaticDependency] {
+            MONEY_MARKET_ADAPTER.dependencies()
         }
     }
 

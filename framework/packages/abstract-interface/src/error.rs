@@ -35,7 +35,7 @@ pub enum AbstractInterfaceError {
     NotUpdated(String),
 
     #[error(transparent)]
-    Semver(#[from] cw_semver::Error),
+    Semver(#[from] semver::Error),
 }
 
 impl AbstractInterfaceError {

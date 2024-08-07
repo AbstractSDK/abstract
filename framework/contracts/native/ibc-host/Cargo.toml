@@ -32,7 +32,7 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
-cw-semver = { workspace = true }
+semver = { workspace = true }
 abstract-macros = { workspace = true }
 cw-orch = { workspace = true }
 cw-paginate = "0.2.1"
