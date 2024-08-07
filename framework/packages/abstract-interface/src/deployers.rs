@@ -84,6 +84,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
     + CwOrchInstantiate<Chain, InstantiateMsg = abstract_std::adapter::InstantiateMsg<CustomInitMsg>>
     + Uploadable
     + Sized
+    + RegisteredModule
 {
     /// Deploys the adapter. If the adapter is already deployed, it will return an error.
     /// Use `DeployStrategy::Try` if you want to deploy the adapter only if it is not already deployed.
@@ -95,6 +96,10 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.environment().to_owned())?;
+
+        abstr
+            .version_control
+            .assert_dependencies_deployed(Self::dependencies())?;
 
         // check for existing version, if not force strategy
         let vc_has_module = || {
@@ -158,6 +163,10 @@ pub trait AppDeployer<Chain: CwEnv>:
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
 
+        abstr
+            .version_control
+            .assert_dependencies_deployed(Self::dependencies())?;
+
         // check for existing version
         let vc_has_module = || {
             abstr
@@ -210,6 +219,10 @@ pub trait StandaloneDeployer<Chain: CwEnv>:
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
+
+        abstr
+            .version_control
+            .assert_dependencies_deployed(Self::dependencies())?;
 
         // check for existing version
         let vc_has_module = || {

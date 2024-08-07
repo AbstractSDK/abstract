@@ -189,7 +189,7 @@ pub mod mock {
         }
 
         fn dependencies<'a>() -> &'a [abstract_std::objects::dependency::StaticDependency] {
-            &BASIC_MOCK_STANDALONE.dependencies
+            BASIC_MOCK_STANDALONE.dependencies
         }
     }
 
