@@ -177,6 +177,22 @@ pub mod mock {
 
     impl<T: cw_orch::prelude::CwEnv> abstract_interface::StandaloneDeployer<T> for MockStandaloneI<T> {}
 
+    impl<T: cw_orch::prelude::CwEnv> abstract_interface::RegisteredModule for MockStandaloneI<T> {
+        type InitMsg = MockInitMsg;
+
+        fn module_id<'a>() -> &'a str {
+            BASIC_MOCK_STANDALONE.module_id()
+        }
+
+        fn module_version<'a>() -> &'a str {
+            BASIC_MOCK_STANDALONE.version()
+        }
+
+        fn dependencies<'a>() -> &'a [abstract_std::objects::dependency::StaticDependency] {
+            BASIC_MOCK_STANDALONE.dependencies
+        }
+    }
+
     impl<T: cw_orch::prelude::CwEnv> Uploadable for MockStandaloneI<T> {
         fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
             Box::new(
@@ -264,6 +280,22 @@ pub mod mock {
             impl<T: cw_orch::prelude::CwEnv> ::abstract_interface::StandaloneDeployer<T>
                 for $name<T>
             {
+            }
+
+            impl<T: cw_orch::prelude::CwEnv> ::abstract_interface::RegisteredModule for $name<T> {
+                type InitMsg = $crate::mock::MockInitMsg;
+
+                fn module_id<'a>() -> &'a str {
+                    MOCK_APP_WITH_DEP.module_id()
+                }
+
+                fn module_version<'a>() -> &'a str {
+                    MOCK_APP_WITH_DEP.version()
+                }
+
+                fn dependencies<'a>() -> &'a [abstract_std::objects::dependency::StaticDependency] {
+                    $crate::traits::Dependencies::dependencies(&MOCK_APP_WITH_DEP)
+                }
             }
 
             impl<T: cw_orch::prelude::CwEnv> Uploadable for $name<T> {

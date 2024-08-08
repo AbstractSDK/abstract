@@ -1,4 +1,4 @@
-use abstract_std::AbstractError;
+use abstract_std::{objects::dependency::StaticDependency, AbstractError};
 use cosmwasm_std::StdError;
 use cw_orch::prelude::CwOrchError;
 use thiserror::Error;
@@ -35,7 +35,10 @@ pub enum AbstractInterfaceError {
     NotUpdated(String),
 
     #[error(transparent)]
-    Semver(#[from] cw_semver::Error),
+    Semver(#[from] semver::Error),
+
+    #[error("No matching module deployed {0:?}")]
+    NoMatchingModule(StaticDependency),
 }
 
 impl AbstractInterfaceError {

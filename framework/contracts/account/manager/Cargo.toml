@@ -33,7 +33,6 @@ thiserror = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
 semver = { workspace = true }
-cw-semver = { workspace = true }
 abstract-macros = { workspace = true }
 
 [dev-dependencies]

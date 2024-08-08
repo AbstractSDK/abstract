@@ -141,7 +141,7 @@ pub fn assert_contract_upgrade(
 pub fn assert_cw_contract_upgrade(
     storage: &dyn Storage,
     to_contract: impl ToString,
-    to_version: cw_semver::Version,
+    to_version: semver::Version,
 ) -> Result<(), AbstractError> {
     assert_contract_upgrade(
         storage,

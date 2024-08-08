@@ -82,8 +82,8 @@ pub enum VCError {
     NotAccountFactory {},
 }
 
-impl From<cw_semver::Error> for VCError {
-    fn from(err: cw_semver::Error) -> Self {
+impl From<semver::Error> for VCError {
+    fn from(err: semver::Error) -> Self {
         Self::SemVer(err.to_string())
     }
 }

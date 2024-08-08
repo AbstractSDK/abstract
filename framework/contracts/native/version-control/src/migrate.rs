@@ -5,8 +5,8 @@ use abstract_std::{
 };
 
 use cosmwasm_std::{DepsMut, Env};
-use cw_semver::Version;
 use cw_storage_plus::Item;
+use semver::Version;
 
 use crate::contract::{VCResult, VcResponse, CONTRACT_VERSION};
 

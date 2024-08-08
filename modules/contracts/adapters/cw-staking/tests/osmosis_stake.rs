@@ -7,8 +7,10 @@ mod osmosis_test {
     use std::path::PathBuf;
 
     use abstract_adapter::abstract_interface::{
-        Abstract, AbstractAccount, AbstractInterfaceError, AdapterDeployer, DeployStrategy, Manager,
+        Abstract, AbstractAccount, AbstractInterfaceError, AdapterDeployer, DeployStrategy,
+        Manager, RegisteredModule,
     };
+    use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::std::{
         adapter,
         ans_host::ExecuteMsgFns,
@@ -17,6 +19,7 @@ mod osmosis_test {
         },
         MANAGER,
     };
+    use abstract_adapter::traits::{Dependencies, ModuleIdentification};
     use abstract_cw_staking::{
         contract::CONTRACT_VERSION,
         msg::{
@@ -69,6 +72,22 @@ mod osmosis_test {
     pub struct OsmosisStakingAdapter<Chain>;
 
     impl<Chain: CwEnv> AdapterDeployer<Chain, Empty> for OsmosisStakingAdapter<Chain> {}
+
+    impl<Chain: CwEnv> RegisteredModule for OsmosisStakingAdapter<Chain> {
+        type InitMsg = InstantiateMsg;
+
+        fn module_id<'a>() -> &'a str {
+            abstract_cw_staking::contract::CW_STAKING_ADAPTER.module_id()
+        }
+
+        fn module_version<'a>() -> &'a str {
+            abstract_cw_staking::contract::CW_STAKING_ADAPTER.version()
+        }
+
+        fn dependencies<'a>() -> &'a [StaticDependency] {
+            abstract_cw_staking::contract::CW_STAKING_ADAPTER.dependencies()
+        }
+    }
 
     impl<Chain: CwEnv> Uploadable for OsmosisStakingAdapter<Chain> {
         fn wrapper() -> <Mock as TxHandler>::ContractSource {

@@ -168,7 +168,7 @@ mod tests {
 
     mod migrate {
         use abstract_std::{version_control::MigrateMsg, AbstractError};
-        use cw_semver::Version;
+        use semver::Version;
 
         use super::*;
 

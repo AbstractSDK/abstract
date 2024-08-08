@@ -8,7 +8,7 @@ use abstract_std::{
 use cosmwasm_std::{
     Binary, Deps, DepsMut, Env, IbcReceiveResponse, MessageInfo, Reply, Response, StdError,
 };
-use cw_semver::Version;
+use semver::Version;
 
 use crate::{
     endpoints::{
