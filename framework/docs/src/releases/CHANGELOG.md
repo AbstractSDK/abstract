@@ -5,6 +5,7 @@
 ### Added
 
 - `execute_with_funds` to Executor to attach funds to execution.
+- New module type: `Service`, acts the same as Native, but can be registered by any namespace
 
 ### Changed
 

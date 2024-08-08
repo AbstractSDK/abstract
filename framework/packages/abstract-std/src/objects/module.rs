@@ -337,8 +337,10 @@ impl Module {
     // Helper to know if this module supposed to be whitelisted on proxy contract
     pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
-            // Standalone or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
-            ModuleReference::Standalone(_) | ModuleReference::Native(_) => false,
+            // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
+            ModuleReference::Standalone(_)
+            | ModuleReference::Native(_)
+            | ModuleReference::Service(_) => false,
             _ => true,
         }
     }
@@ -442,8 +444,9 @@ pub fn assert_module_data_validity(
     );
     // we're done if it's not an actual module
     match module_claim.reference {
-        ModuleReference::AccountBase(_) => return Ok(()),
-        ModuleReference::Native(_) => return Ok(()),
+        ModuleReference::AccountBase(_)
+        | ModuleReference::Native(_)
+        | ModuleReference::Service(_) => return Ok(()),
         _ => {}
     }
 
