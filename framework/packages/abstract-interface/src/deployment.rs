@@ -6,7 +6,10 @@ use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
-use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_std::{
+    ibc_client::ListIbcInfrastructureResponse, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
+    PROXY, VERSION_CONTROL,
+};
 
 use rust_embed::RustEmbed;
 
@@ -215,7 +218,14 @@ impl<Chain: CwEnv> Abstract<Chain> {
         )?;
 
         // We also instantiate ibc contracts
-        self.ibc.instantiate(self, &admin)?;
+        self.ibc.instantiate(
+            self,
+            &admin,
+            ListIbcInfrastructureResponse {
+                // TODO: Do we want to pass it from DeployData?
+                counterparts: vec![],
+            },
+        )?;
         self.ibc.register(&self.version_control)?;
 
         Ok(())

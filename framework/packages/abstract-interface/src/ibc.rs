@@ -1,5 +1,8 @@
 use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, VersionControl};
-use abstract_std::{IBC_CLIENT, IBC_HOST};
+use abstract_std::{
+    ibc_client::{ExecuteMsgFns, ListIbcInfrastructureResponse},
+    IBC_CLIENT, IBC_HOST,
+};
 use cw_orch::prelude::*;
 pub struct AbstractIbc<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
@@ -22,7 +25,12 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         Ok(())
     }
 
-    pub fn instantiate(&self, abstr: &Abstract<Chain>, admin: &Addr) -> Result<(), CwOrchError> {
+    pub fn instantiate(
+        &self,
+        abstr: &Abstract<Chain>,
+        admin: &Addr,
+        register_infrastractures: ListIbcInfrastructureResponse,
+    ) -> Result<(), CwOrchError> {
         self.client.instantiate(
             &abstract_std::ibc_client::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
@@ -31,6 +39,14 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             Some(admin),
             None,
         )?;
+
+        for (chain, ibc_infrastracture) in register_infrastractures.counterparts {
+            self.client.register_infrastructure(
+                chain,
+                ibc_infrastracture.remote_abstract_host,
+                ibc_infrastracture.polytone_note,
+            )?;
+        }
 
         self.host.instantiate(
             &abstract_std::ibc_host::InstantiateMsg {
@@ -65,7 +81,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 // Helpers to create connection with another chain
 pub mod connection {
     use super::*;
-    use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;
     use abstract_std::objects::TruncatedChainId;
