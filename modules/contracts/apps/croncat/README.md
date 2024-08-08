@@ -19,7 +19,7 @@ The CronCat app module is used to automate Abstract Account actions or other mod
 To use the Croncat App Module in your Rust project, add the following dependency to your `Cargo.toml`:
 ```toml
 [dependencies]
-croncat-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.18.0", default-features = false }
+croncat-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="<latest-tag>", default-features = false }
 ```
 
 ## Usage with the Abstract SDK

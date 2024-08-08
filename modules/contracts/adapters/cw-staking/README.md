@@ -42,7 +42,7 @@ To use the CW-Staking Adapter Module in your Rust project, add the following dep
 
 ```toml
 [dependencies]
-abstract-cw-staking = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.20.0", default-features = false }
+abstract-cw-staking = { git = "https://github.com/AbstractSDK/abstract.git", tag="<latest-tag>", default-features = false }
 ```
 
 ## Usage with the Abstract SDK
