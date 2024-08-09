@@ -40,13 +40,13 @@ use abstract_std::objects::{
     AccountId,
 };
 use cosmwasm_std::{BlockInfo, Uint128};
-use cw_orch::{environment::Environment as _, prelude::*};
+use cw_orch::{contract::Contract, environment::Environment as _, prelude::*};
 use rand::Rng;
 
 use crate::{
     account::{Account, AccountBuilder},
     source::AccountSource,
-    AbstractClientError, Environment, PublisherBuilder,
+    AbstractClientError, Environment, PublisherBuilder, Service,
 };
 
 /// Client to interact with Abstract accounts and modules
@@ -128,6 +128,16 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Abstract Ibc Client contract allows users to create and use Interchain Abstract Accounts
     pub fn ibc_client(&self) -> &IbcClient<Chain> {
         &self.abstr.ibc.client
+    }
+
+    /// Service contract API
+    pub fn service<M: RegisteredModule + From<Contract<Chain>>>(
+        &self,
+    ) -> AbstractClientResult<Service<Chain, M>> {
+        let contract = Contract::new(M::module_id(), self.environment());
+        let module: M = contract.into();
+
+        Service::new(self.version_control(), module)
     }
 
     /// Return current block info see [`BlockInfo`].

@@ -1507,6 +1507,12 @@ fn register_service() -> anyhow::Result<()> {
 
     service_publisher.publish_service::<MockService<MockBech32>>(&MockMsg {})?;
 
+    // Can get service without account
+    let service = client.service::<MockService<MockBech32>>()?;
+    let res: String = service.query(&MockMsg {})?;
+    assert_eq!(res, "test");
+
+    // Or from an account with Application if installed
     let account = client
         .account_builder()
         .namespace(Namespace::new(TEST_NAMESPACE)?)
