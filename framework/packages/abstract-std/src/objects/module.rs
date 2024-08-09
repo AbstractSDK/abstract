@@ -407,8 +407,8 @@ pub fn assert_module_data_validity(
     // verify that the contract's data is equal to its registered data
     let cw_2_data_res = cw2::CONTRACT.query(querier, module_address.clone());
 
-    // For standalone we only check the version if cw2 exists
-    if let ModuleReference::Standalone(_) = module_claim.reference {
+    // For standalone and service we only check the version if cw2 exists
+    if let ModuleReference::Standalone(_) | ModuleReference::Service(_) = module_claim.reference {
         if let Ok(cw_2_data) = cw_2_data_res {
             ensure_eq!(
                 version,
