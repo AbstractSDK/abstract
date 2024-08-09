@@ -263,7 +263,6 @@ mod tests {
 
         use cosmwasm_std::wasm_execute;
 
-
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
             let mut deps = mock_dependencies();

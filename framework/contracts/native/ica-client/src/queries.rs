@@ -73,7 +73,9 @@ pub(crate) fn ica_action(
                 memo,
             } => match chain_type {
                 ChainType::Evm => {
-                    return Ok(vec![evm::send_funds(deps, &env, &chain, &cfg, funds, receiver, memo)?])
+                    return Ok(vec![evm::send_funds(
+                        deps, &env, &chain, &cfg, funds, receiver, memo,
+                    )?])
                 }
                 _ => unimplemented!(),
             },
