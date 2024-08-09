@@ -1,11 +1,12 @@
 pub mod contract;
 pub mod error;
 pub use abstract_ica::msg;
+mod chain_types;
 mod queries;
 
 #[cfg(test)]
 mod test_common {
-    use abstract_std::ibc_client::InstantiateMsg;
+    use crate::msg::InstantiateMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},

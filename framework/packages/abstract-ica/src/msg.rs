@@ -16,26 +16,7 @@ pub mod state {
         pub ans_host: AnsHost,
     }
 
-    /// Information about the deployed infrastructure we're connected to.
-    #[cosmwasm_schema::cw_serde]
-    pub struct IbcInfrastructure {
-        /// Address of the polytone note deployed on the local chain. This contract will forward the messages for us.
-        pub polytone_note: Addr,
-        /// The address of the abstract host deployed on the remote chain. This address will be called with our packet.
-        pub remote_abstract_host: String,
-        // The remote polytone proxy address which will be called by the polytone host.
-        pub remote_proxy: Option<String>,
-    }
-
-    // Saves the local note deployed contract and the remote abstract host connected
-    // This allows sending cross-chain messages
-    pub const IBC_INFRA: Map<&TruncatedChainId, IbcInfrastructure> = Map::new("ibci");
-    pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> = Map::new("revpn");
-
     pub const CONFIG: Item<Config> = Item::new("config");
-
-    // For callbacks tests
-    pub const ACKS: Item<Vec<String>> = Item::new("tmpc");
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
@@ -85,5 +66,5 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct IcaActionResult {
     /// messages that call the underlying implementations (be it polytone/cw-ica-controller/etc)
-    msgs: Vec<CosmosMsg>,
+    pub msgs: Vec<CosmosMsg>,
 }

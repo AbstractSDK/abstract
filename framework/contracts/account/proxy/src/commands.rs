@@ -3,8 +3,13 @@ use abstract_sdk::std::{
     proxy::state::{ADMIN, ANS_HOST, STATE},
     IBC_CLIENT,
 };
-use abstract_std::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
-use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
+use abstract_std::{
+    objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry},
+    ICA_CLIENT,
+};
+use cosmwasm_std::{
+    wasm_execute, Binary, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg,
+};
 
 use crate::{
     contract::{ProxyResponse, ProxyResult, RESPONSE_REPLY_ID},
@@ -13,8 +18,8 @@ use crate::{
 
 const LIST_SIZE_LIMIT: usize = 15;
 
-/// Executes actions forwarded by whitelisted contracts
-/// This contracts acts as a proxy contract for the dApps
+/// Executes `Vec<CosmosMsg>` on the proxy.
+/// Permission: Module
 pub fn execute_module_action(
     deps: DepsMut,
     msg_info: MessageInfo,
@@ -28,8 +33,8 @@ pub fn execute_module_action(
     Ok(ProxyResponse::action("execute_module_action").add_messages(msgs))
 }
 
-/// Executes actions forwarded by whitelisted contracts
-/// This contracts acts as a proxy contract for the dApps
+/// Executes `CosmosMsg` on the proxy and forwards its response.
+/// Permission: Module
 pub fn execute_module_action_response(
     deps: DepsMut,
     msg_info: MessageInfo,
@@ -45,8 +50,8 @@ pub fn execute_module_action_response(
     Ok(ProxyResponse::action("execute_module_action_response").add_submessage(submsg))
 }
 
-/// Executes IBC actions forwarded by whitelisted contracts
-/// Calls the messages on the IBC client (ensuring permission)
+/// Executes IBC actions on the IBC client.
+/// Permission: Module
 pub fn execute_ibc_action(deps: DepsMut, msg_info: MessageInfo, msg: IbcClientMsg) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
     if !state.modules.contains(&msg_info.sender) {
@@ -69,6 +74,35 @@ pub fn execute_ibc_action(deps: DepsMut, msg_info: MessageInfo, msg: IbcClientMs
     let client_msg = wasm_execute(ibc_client_address, &msg, funds_to_send)?;
 
     Ok(ProxyResponse::action("execute_ibc_action").add_message(client_msg))
+}
+
+/// Execute an action on an ICA.
+/// Permission: Module
+///
+/// This function queries the `abstract:ica-client` contract from the account's manager.
+/// It then fires a smart-query on that address of type [`QueryMsg::IcaAction`](abstract_ica::msg::QueryMsg).
+///
+/// The resulting `Vec<CosmosMsg>` are then executed on the proxy contract.
+pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> ProxyResult {
+    let state = STATE.load(deps.storage)?;
+    if !state.modules.contains(&msg_info.sender) {
+        return Err(ProxyError::SenderNotWhitelisted {});
+    }
+
+    let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
+    let ica_client_address = abstract_sdk::std::manager::state::ACCOUNT_MODULES
+        .query(&deps.querier, manager_address, ICA_CLIENT)?
+        .ok_or_else(|| {
+            StdError::generic_err(format!(
+                "ica_client not found on manager. Add it under the {ICA_CLIENT} name."
+            ))
+        })?;
+
+    let res: abstract_ica::msg::IcaActionResult = deps
+        .querier
+        .query_wasm_smart(ica_client_address, &action_query)?;
+
+    Ok(ProxyResponse::action("ica_action").add_messages(res.msgs))
 }
 
 /// Update the stored vault asset information

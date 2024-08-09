@@ -60,4 +60,10 @@ pub enum IcaClientError {
 
     #[error("chain {chain} has no associated type (evm/cosmos/...)")]
     NoChainType { chain: String },
+
+    #[error("No existing remote account and no recipient specified")]
+    NoRecipient {},
+
+    #[error("messages for chain {chain} are not of type {ty}")]
+    WrongChainType { chain: String, ty: String },
 }

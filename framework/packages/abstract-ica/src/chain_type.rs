@@ -1,10 +1,21 @@
+use std::fmt::Display;
+
 use abstract_sdk::std::objects::TruncatedChainId;
 use abstract_sdk::std::registry::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ChainType {
     Evm,
     Cosmos,
+}
+
+impl Display for ChainType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChainType::Evm => write!(f, "EVM"),
+            ChainType::Cosmos => write!(f, "Cosmos"),
+        }
+    }
 }
 
 pub trait CastChainType {

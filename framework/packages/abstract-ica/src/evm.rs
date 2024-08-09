@@ -3,6 +3,8 @@ use alloy_sol_types::SolValue;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::HexBinary;
 
+// TODO: this is duplicated from `evm-note!`
+
 /// Marks either `String` or valid EVM `Address`.
 ///
 /// String is used in unverified types, such as messages and query responses.

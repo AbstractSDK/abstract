@@ -64,7 +64,7 @@ pub enum ExecuteMsg {
     /// Provides access to different ICA implementations for different ecosystems.
     IcaAction {
         /// Query of type `abstract-ica-client::msg::QueryMsg`
-        action_query: Binary,
+        action_query_msg: Binary,
     },
     /// Adds the provided address to whitelisted dapps
     AddModules { modules: Vec<String> },
