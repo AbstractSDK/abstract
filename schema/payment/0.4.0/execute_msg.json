@@ -56,14 +56,14 @@
       "additionalProperties": false
     },
     {
-      "description": "Receive endpoint for CW20 / external service integrations",
+      "description": "Untagged variant of message",
       "type": "object",
       "required": [
-        "receive"
+        "untagged"
       ],
       "properties": {
-        "receive": {
-          "$ref": "#/definitions/Cw20ReceiveMsg"
+        "untagged": {
+          "$ref": "#/definitions/MyUntaggedMsg"
         }
       },
       "additionalProperties": false
@@ -879,6 +879,24 @@
           "properties": {
             "version": {
               "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "MyUntaggedMsg": {
+      "description": "Untagged message",
+      "oneOf": [
+        {
+          "description": "Cw20 Receive",
+          "type": "object",
+          "required": [
+            "receive"
+          ],
+          "properties": {
+            "receive": {
+              "$ref": "#/definitions/Cw20ReceiveMsg"
             }
           },
           "additionalProperties": false

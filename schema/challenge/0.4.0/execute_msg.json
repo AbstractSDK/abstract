@@ -56,13 +56,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Receive endpoint for CW20 / external service integrations",
+      "description": "Untagged variant of message",
       "type": "object",
       "required": [
-        "receive"
+        "untagged"
       ],
       "properties": {
-        "receive": {
+        "untagged": {
           "$ref": "#/definitions/Empty"
         }
       },
