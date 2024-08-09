@@ -42,4 +42,3 @@ impl CastChainType for TruncatedChainId {
         chains.get(self.as_str()).copied()
     }
 }
-

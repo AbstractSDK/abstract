@@ -53,35 +53,23 @@ pub struct InstantiateMsg {
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Sets the admin
-    SetAdmin {
-        admin: String,
-    },
+    SetAdmin { admin: String },
     /// Executes the provided messages if sender is whitelisted
-    ModuleAction {
-        msgs: Vec<CosmosMsg<Empty>>,
-    },
+    ModuleAction { msgs: Vec<CosmosMsg<Empty>> },
     /// Execute a message and forward the Response data
-    ModuleActionWithData {
-        msg: CosmosMsg<Empty>,
-    },
+    ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
-    IbcAction {
-        msg: IbcClientMsg,
-    },
-    /// Queries the Abstract Ica Client with the provided action query. 
+    IbcAction { msg: IbcClientMsg },
+    /// Queries the Abstract Ica Client with the provided action query.
     /// Provides access to different ICA implementations for different ecosystems.
     IcaAction {
         /// Query of type `abstract-ica-client::msg::QueryMsg`
         action_query: Binary,
     },
     /// Adds the provided address to whitelisted dapps
-    AddModules {
-        modules: Vec<String>,
-    },
+    AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps
-    RemoveModule {
-        module: String,
-    },
+    RemoveModule { module: String },
     /// Updates the VAULT_ASSETS map
     UpdateAssets {
         to_add: Vec<(AssetEntry, UncheckedPriceSource)>,

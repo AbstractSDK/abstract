@@ -10,11 +10,15 @@ use abstract_sdk::{
         PROXY,
     },
 };
-use abstract_std::{objects::{
-    module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
-}, ICA_CLIENT};
+use abstract_std::{
+    objects::{
+        module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
+    },
+    ICA_CLIENT,
+};
 use cosmwasm_std::{
-    to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Reply, Response, StdError, SubMsgResult
+    to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Reply, Response,
+    StdError, SubMsgResult,
 };
 use semver::Version;
 
@@ -82,13 +86,17 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::UpdateAssets { to_add, to_remove } => {
             update_assets(deps, info, to_add, to_remove)
-        }, 
+        }
         ExecuteMsg::IcaAction { action_query } => ica_action(deps, info, action_query),
     }
 }
 
 /// Execute an action on an ICA.
-fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: abstract_ica::msg::QueryMsg) -> ProxyResult {
+fn ica_action(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    action_query: abstract_ica::msg::QueryMsg,
+) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
     if !state.modules.contains(&msg_info.sender) {
         return Err(ProxyError::SenderNotWhitelisted {});
@@ -104,7 +112,6 @@ fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: abstract_ica::
         })?;
 
     let res = deps.querier.query(&action_query)?;
-
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
