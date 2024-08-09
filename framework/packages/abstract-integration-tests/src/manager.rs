@@ -1,4 +1,4 @@
-use abstract_adapter::mock::{MockExecMsg, MockReceiveMsg};
+use abstract_adapter::mock::{MockExecMsg, MockUntaggedMsg};
 use abstract_app::mock::MockInitMsg;
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
@@ -433,7 +433,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 
     let manager_address = account.manager.address()?;
     staking_adapter.call_as(&manager_address).execute(
-        &abstract_std::adapter::ExecuteMsg::<MockExecMsg, MockReceiveMsg>::Base(
+        &abstract_std::adapter::ExecuteMsg::<MockExecMsg, MockUntaggedMsg>::Base(
             abstract_std::adapter::BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {

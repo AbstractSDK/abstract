@@ -20,7 +20,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg: AppQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > QueryEndpoint
     for AppContract<
@@ -29,7 +29,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {
@@ -50,7 +50,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
     AppContract<
@@ -59,7 +59,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {

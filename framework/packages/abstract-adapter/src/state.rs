@@ -2,7 +2,7 @@ use abstract_sdk::features::ModuleIdentification;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
-        ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
+        ModuleIbcHandlerFn, QueryHandlerFn, ReplyHandlerFn, SudoHandlerFn, UntaggedHandlerFn,
     },
     namespaces::BASE_STATE,
     std::version_control::AccountBase,
@@ -44,7 +44,7 @@ pub struct AdapterContract<
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
-    Receive: 'static = Empty,
+    UntaggedMsg: 'static = Empty,
     SudoMsg: 'static = Empty,
 > where
     Self: Handler,
@@ -58,8 +58,8 @@ pub struct AdapterContract<
 }
 
 /// Constructor
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, UntaggedMsg, SudoMsg>
+    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, UntaggedMsg, SudoMsg>
 {
     pub const fn new(
         name: &'static str,
@@ -138,11 +138,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_receive(
+    pub const fn with_untagged(
         mut self,
-        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
+        untagged_handler: UntaggedHandlerFn<Self, UntaggedMsg, Error>,
     ) -> Self {
-        self.contract = self.contract.with_receive(receive_handler);
+        self.contract = self.contract.with_untagged(untagged_handler);
         self
     }
 
@@ -190,7 +190,7 @@ mod tests {
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+            .with_untagged(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
             .with_ibc_callback(|_, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })

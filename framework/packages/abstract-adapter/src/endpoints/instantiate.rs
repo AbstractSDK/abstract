@@ -18,10 +18,10 @@ impl<
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
         CustomQueryMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > InstantiateEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, UntaggedMsg, SudoMsg>
 {
     type InstantiateMsg = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the api

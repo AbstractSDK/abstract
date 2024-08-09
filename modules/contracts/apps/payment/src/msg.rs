@@ -2,6 +2,7 @@ use abstract_app::sdk::cw_helpers::Clearable;
 use abstract_app::std::objects::{AnsAsset, AssetEntry, DexName};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
+use cw20::Cw20ReceiveMsg;
 
 use crate::contract::PaymentApp;
 
@@ -97,4 +98,11 @@ pub struct TippersCountResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct TipCountResponse {
     pub count: u32,
+}
+
+/// Untagged message
+#[cosmwasm_schema::cw_serde]
+pub enum MyUntaggedMsg {
+    /// Cw20 Receive
+    Receive(Cw20ReceiveMsg),
 }

@@ -19,7 +19,7 @@ pub struct CounterQueryMsg;
 pub struct CounterMigrateMsg;
 
 #[cosmwasm_schema::cw_serde]
-pub struct CounterReceiveMsg;
+pub struct CounterUntaggedMsg;
 
 #[cosmwasm_schema::cw_serde]
 pub struct CounterSudoMsg;
@@ -58,7 +58,7 @@ pub type CounterApp = AppContract<
     CounterExecMsg,
     CounterQueryMsg,
     CounterMigrateMsg,
-    CounterReceiveMsg,
+    CounterUntaggedMsg,
     CounterSudoMsg,
 >;
 // ANCHOR_END: counter_app
@@ -74,7 +74,7 @@ pub const COUNTER_APP: CounterApp = CounterApp::new(COUNTER_ID, APP_VERSION, Non
     .with_execute(handlers::execute)
     .with_query(handlers::query)
     .with_sudo(handlers::sudo)
-    .with_receive(handlers::receive)
+    .with_untagged(handlers::receive)
     .with_replies(&[(1u64, handlers::reply)])
     .with_migrate(handlers::migrate);
 // ANCHOR_END: handlers
@@ -100,7 +100,7 @@ mod handlers {
         |_, _, _, _| to_json_binary("counter_query").map_err(Into::into);
     pub const sudo: SudoHandlerFn<CounterApp, CounterSudoMsg, CounterError> =
         |_, _, _, _| Ok(Response::new().set_data("counter_sudo".as_bytes()));
-    pub const receive: ReceiveHandlerFn<CounterApp, CounterReceiveMsg, CounterError> =
+    pub const receive: UntaggedHandlerFn<CounterApp, CounterUntaggedMsg, CounterError> =
         |_, _, _, _, _| Ok(Response::new().set_data("counter_receive".as_bytes()));
     pub const reply: ReplyHandlerFn<CounterApp, CounterError> =
         |_, _, _, msg| Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()));

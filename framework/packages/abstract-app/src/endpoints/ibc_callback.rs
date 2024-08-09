@@ -10,7 +10,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > IbcCallbackEndpoint
     for AppContract<
@@ -19,7 +19,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {

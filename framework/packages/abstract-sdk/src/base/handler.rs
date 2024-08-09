@@ -4,7 +4,7 @@ use cw2::ContractVersion;
 
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
+    MigrateHandlerFn, ModuleIbcHandlerFn, QueryHandlerFn, SudoHandlerFn, UntaggedHandlerFn,
 };
 use crate::{
     base::{
@@ -29,8 +29,8 @@ where
     type CustomQueryMsg;
     /// Custom migrate message for the contract
     type CustomMigrateMsg;
-    /// Receive message for the contract
-    type ReceiveMsg;
+    /// Untagged message for the contract
+    type UntaggedMsg;
     /// Sudo message for the contract
     type SudoMsg;
 
@@ -146,19 +146,19 @@ where
     }
 
     /// Get a reply handler if it exists.
-    fn maybe_receive_handler(
+    fn maybe_untagged_handler(
         &self,
-    ) -> Option<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
+    ) -> Option<UntaggedHandlerFn<Self, Self::UntaggedMsg, Self::Error>> {
         let contract = self.contract();
-        contract.receive_handler
+        contract.untagged_handler
     }
     /// Get a receive handler or return an error.
-    fn receive_handler(
+    fn untagged_handler(
         &self,
-    ) -> AbstractSdkResult<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
-        let Some(handler) = self.maybe_receive_handler() else {
+    ) -> AbstractSdkResult<UntaggedHandlerFn<Self, Self::UntaggedMsg, Self::Error>> {
+        let Some(handler) = self.maybe_untagged_handler() else {
             return Err(AbstractSdkError::MissingHandler {
-                endpoint: "receive".to_string(),
+                endpoint: "untagged".to_string(),
             });
         };
         Ok(handler)

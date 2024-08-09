@@ -22,8 +22,8 @@ use crate::{
     },
 };
 
-pub type ExecuteMsg<Request = Empty, ReceiveMsg = Empty> =
-    MiddlewareExecMsg<BaseExecuteMsg, AdapterRequestMsg<Request>, ReceiveMsg>;
+pub type ExecuteMsg<Request = Empty, UntaggedMsg = Empty> =
+    MiddlewareExecMsg<BaseExecuteMsg, AdapterRequestMsg<Request>, UntaggedMsg>;
 pub type QueryMsg<ModuleMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, ModuleMsg>;
 pub type InstantiateMsg<ModuleMsg = Empty> =
     MiddlewareInstantiateMsg<BaseInstantiateMsg, ModuleMsg>;
@@ -67,8 +67,8 @@ pub struct BaseInstantiateMsg {
     pub version_control_address: String,
 }
 
-impl<RequestMsg, ReceiveMsg> From<BaseExecuteMsg>
-    for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg, ReceiveMsg>
+impl<RequestMsg, UntaggedMsg> From<BaseExecuteMsg>
+    for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg, UntaggedMsg>
 {
     fn from(adapter_msg: BaseExecuteMsg) -> Self {
         Self::Base(adapter_msg)

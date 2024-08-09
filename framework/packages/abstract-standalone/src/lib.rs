@@ -63,7 +63,7 @@ pub mod mock {
     pub struct MockMigrateMsg;
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockReceiveMsg;
+    pub struct MockUntaggedMsg;
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg;
@@ -191,7 +191,7 @@ pub mod mock {
         ($name:ident,$id:expr, $version:expr) => {
             use ::cw_orch::prelude::*;
             use $crate::mock::{
-                MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg,
+                MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockUntaggedMsg,
             };
             use $crate::sdk::base::Handler;
             use $crate::sdk::features::AccountIdentification;

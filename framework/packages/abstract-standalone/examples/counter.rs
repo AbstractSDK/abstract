@@ -21,7 +21,7 @@ pub struct CounterQueryMsg;
 pub struct CounterMigrateMsg;
 
 #[cosmwasm_schema::cw_serde]
-pub struct CounterReceiveMsg;
+pub struct CounterUntaggedMsg;
 
 #[cosmwasm_schema::cw_serde]
 pub struct CounterSudoMsg;

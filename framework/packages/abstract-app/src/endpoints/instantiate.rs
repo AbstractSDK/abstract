@@ -19,7 +19,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > InstantiateEndpoint
     for AppContract<
@@ -28,7 +28,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {
