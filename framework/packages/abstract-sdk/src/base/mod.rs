@@ -9,11 +9,11 @@ mod handler;
 
 pub use contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, ModuleIbcHandlerFn, ModuleId, ModuleMetadata, QueryHandlerFn,
-    ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn, VersionString,
+    MigrateHandlerFn, ModuleIbcHandlerFn, ModuleId, ModuleMetadata, QueryHandlerFn, ReplyHandlerFn,
+    SudoHandlerFn, UntaggedHandlerFn, VersionString,
 };
 pub use endpoints::{
     ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint, MigrateEndpoint, ModuleIbcEndpoint,
-    QueryEndpoint, ReceiveEndpoint, ReplyEndpoint, SudoEndpoint,
+    QueryEndpoint, ReplyEndpoint, SudoEndpoint, UntaggedEndpoint,
 };
 pub use handler::Handler;

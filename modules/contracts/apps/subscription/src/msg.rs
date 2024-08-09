@@ -31,6 +31,7 @@
 use abstract_app::sdk::cw_helpers::Clearable;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{to_json_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
+use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 use super::state::{EmissionType, Subscriber, SubscriptionConfig, SubscriptionState};
@@ -204,4 +205,11 @@ impl UnsubscribedHookMsg {
         };
         Ok(execute.into())
     }
+}
+
+/// Untagged message
+#[cosmwasm_schema::cw_serde]
+pub enum MyUntaggedMsg {
+    /// Cw20 Receive
+    Receive(Cw20ReceiveMsg),
 }

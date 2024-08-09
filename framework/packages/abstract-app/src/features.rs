@@ -16,7 +16,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > AbstractNameService
     for AppContract<
@@ -25,7 +25,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {
@@ -42,7 +42,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > AccountIdentification
     for AppContract<
@@ -51,7 +51,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {
@@ -66,7 +66,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > AccountExecutor
     for AppContract<
@@ -75,7 +75,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {
@@ -87,7 +87,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > AbstractRegistryAccess
     for AppContract<
@@ -96,7 +96,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {

@@ -51,8 +51,8 @@ pub type MigrateHandlerFn<Module, CustomMigrateMsg, Error> =
 
 // ANCHOR: rec
 /// Function signature for a receive handler.
-pub type ReceiveHandlerFn<Module, ReceiveMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, ReceiveMsg) -> Result<Response, Error>;
+pub type UntaggedHandlerFn<Module, UntaggedMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, UntaggedMsg) -> Result<Response, Error>;
 // ANCHOR_END: rec
 
 // ANCHOR: sudo
@@ -95,9 +95,9 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
     pub(crate) sudo_handler: Option<SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>>,
     /// List of reply handlers per reply ID.
     pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
-    /// Handler of `Receive variant Execute messages.
-    pub(crate) receive_handler:
-        Option<ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>>,
+    /// Handler of `Untagged variant Execute messages.
+    pub(crate) untagged_handler:
+        Option<UntaggedHandlerFn<Module, <Module as Handler>::UntaggedMsg, Error>>,
     /// IBC callback handler following an IBC action
     pub(crate) ibc_callback_handler: Option<IbcCallbackHandlerFn<Module, Error>>,
     /// Module IBC handler for passing messages between a module on different chains.
@@ -117,7 +117,7 @@ where
             reply_handlers: [&[], &[]],
             dependencies: &[],
             execute_handler: None,
-            receive_handler: None,
+            untagged_handler: None,
             migrate_handler: None,
             sudo_handler: None,
             instantiate_handler: None,
@@ -197,11 +197,11 @@ where
     }
 
     /// Add receive handler to the contract.
-    pub const fn with_receive(
+    pub const fn with_untagged(
         mut self,
-        receive_handler: ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>,
+        untagged_handler: UntaggedHandlerFn<Module, <Module as Handler>::UntaggedMsg, Error>,
     ) -> Self {
-        self.receive_handler = Some(receive_handler);
+        self.untagged_handler = Some(untagged_handler);
         self
     }
 
@@ -245,7 +245,7 @@ mod test {
     struct MockMigrateMsg;
 
     #[cosmwasm_schema::cw_serde]
-    struct MockReceiveMsg;
+    struct MockUntaggedMsg;
 
     #[cosmwasm_schema::cw_serde]
     struct MockSudoMsg;
@@ -268,7 +268,7 @@ mod test {
         type CustomExecMsg = MockExecMsg;
         type CustomQueryMsg = MockQueryMsg;
         type CustomMigrateMsg = MockMigrateMsg;
-        type ReceiveMsg = MockReceiveMsg;
+        type UntaggedMsg = MockUntaggedMsg;
         type SudoMsg = MockSudoMsg;
 
         fn contract(&self) -> &AbstractContract<Self, Self::Error> {
@@ -295,7 +295,7 @@ mod test {
         assert!(contract.dependencies.is_empty());
         assert!(contract.ibc_callback_handler.is_none());
         assert!(contract.instantiate_handler.is_none());
-        assert!(contract.receive_handler.is_none());
+        assert!(contract.untagged_handler.is_none());
         assert!(contract.execute_handler.is_none());
         assert!(contract.query_handler.is_none());
         assert!(contract.migrate_handler.is_none());
@@ -326,9 +326,11 @@ mod test {
     #[test]
     fn test_with_receive() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_receive(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "receive")));
+            .with_untagged(
+                |_, _, _, _, _| Ok(Response::default().add_attribute("test", "receive")),
+            );
 
-        assert!(contract.receive_handler.is_some());
+        assert!(contract.untagged_handler.is_some());
     }
 
     #[test]

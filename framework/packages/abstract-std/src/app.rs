@@ -16,8 +16,8 @@ use crate::{
     version_control::AccountBase,
 };
 
-pub type ExecuteMsg<ModuleMsg = Empty, ReceiveMsg = Empty> =
-    EndpointExecMsg<BaseExecuteMsg, ModuleMsg, ReceiveMsg>;
+pub type ExecuteMsg<ModuleMsg = Empty, UntaggedMsg = Empty> =
+    EndpointExecMsg<BaseExecuteMsg, ModuleMsg, UntaggedMsg>;
 pub type QueryMsg<ModuleMsg = Empty> = EndpointQueryMsg<BaseQueryMsg, ModuleMsg>;
 pub type InstantiateMsg<ModuleMsg = Empty> = EndpointInstantiateMsg<BaseInstantiateMsg, ModuleMsg>;
 pub type MigrateMsg<ModuleMsg = Empty> = EndpointMigrateMsg<BaseMigrateMsg, ModuleMsg>;

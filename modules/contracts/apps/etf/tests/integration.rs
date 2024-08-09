@@ -1,6 +1,3 @@
-// #[cfg(test)]
-// mod test_utils;
-
 use abstract_app::objects::{price_source::UncheckedPriceSource, AssetEntry};
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy, ProxyExecFns,

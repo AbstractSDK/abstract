@@ -15,7 +15,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg: Serialize + JsonSchema,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     > MigrateEndpoint
     for AppContract<
@@ -24,7 +24,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {

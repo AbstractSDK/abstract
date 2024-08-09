@@ -17,7 +17,7 @@
 //!
 //! /// EndpointMsg to the Base.
 //! #[cosmwasm_schema::cw_serde]
-//! pub enum ExecuteMsg<BaseMsg, ModuleMsg, ReceiveMsg = Empty> {
+//! pub enum ExecuteMsg<BaseMsg, ModuleMsg, UntaggedMsg = Empty> {
 //!     /// A base configuration message.
 //!     Base(BaseMsg),
 //!     /// An app request.
@@ -25,7 +25,7 @@
 //!     /// IbcReceive to process IBC callbacks
 //!     IbcCallback(IbcResponseMsg),
 //!     /// Receive endpoint for CW20 / external service integrations
-//!     Receive(ReceiveMsg),
+//!     Receive(UntaggedMsg),
 //! }
 //!
 //! #[cosmwasm_schema::cw_serde]
@@ -72,13 +72,13 @@
 //! # use schemars::JsonSchema;
 //! # use serde::Serialize;
 //!
-//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg: Serialize + JsonSchema >
-//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg > {
+//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, UntaggedMsg, SudoMsg: Serialize + JsonSchema >
+//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, UntaggedMsg, SudoMsg > {
 //!     
 //!     // Expected entrypoint ExecuteMsg type, imported from abstract_std.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`
 //!     // type that is inserted into the expected execute message.
-//!     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
+//!     type ExecuteMsg = ExecuteMsg<CustomExecMsg, UntaggedMsg>;
 //!     
 //!     fn execute(
 //!         self,
@@ -132,9 +132,9 @@ mod instantiate;
 pub(crate) mod migrate;
 mod modules_ibc;
 mod query;
-mod receive;
 mod reply;
 mod sudo;
+mod untagged;
 
 // Provide endpoints under ::base::traits::
 pub use execute::ExecuteEndpoint;
@@ -143,6 +143,6 @@ pub use instantiate::InstantiateEndpoint;
 pub use migrate::MigrateEndpoint;
 pub use modules_ibc::ModuleIbcEndpoint;
 pub use query::QueryEndpoint;
-pub use receive::ReceiveEndpoint;
 pub use reply::ReplyEndpoint;
 pub use sudo::SudoEndpoint;
+pub use untagged::UntaggedEndpoint;

@@ -6,7 +6,7 @@ use crate::ibc::{IbcResponseMsg, ModuleIbcMsg};
 // ANCHOR: exec
 /// Wrapper around all possible messages that can be sent to the module.
 #[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg<BaseMsg, CustomExecMsg, ReceiveMsg = Empty> {
+pub enum ExecuteMsg<BaseMsg, CustomExecMsg, UntaggedMsg = Empty> {
     /// A configuration message, defined by the base.
     Base(BaseMsg),
     /// An app request defined by a base consumer.
@@ -18,8 +18,9 @@ pub enum ExecuteMsg<BaseMsg, CustomExecMsg, ReceiveMsg = Empty> {
     /// In order to trust this, the apps and adapters verify this comes from the ibc-host contract.
     /// They should also trust the sending chain
     ModuleIbc(ModuleIbcMsg),
-    /// Receive endpoint for CW20 / external service integrations
-    Receive(ReceiveMsg),
+    /// Untagged variant of message
+    #[serde(untagged)]
+    Untagged(UntaggedMsg),
 }
 // ANCHOR_END: exec
 

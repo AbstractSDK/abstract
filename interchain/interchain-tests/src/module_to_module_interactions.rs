@@ -84,7 +84,7 @@ pub struct ReceivedIbcModuleStatus {
 pub struct MockMigrateMsg;
 
 #[cosmwasm_schema::cw_serde]
-pub struct MockReceiveMsg;
+pub struct MockUntaggedMsg;
 
 #[cosmwasm_schema::cw_serde]
 pub struct MockSudoMsg;
@@ -119,7 +119,7 @@ pub type MockAppContract = AppContract<
     MockExecMsg,
     MockQueryMsg,
     MockMigrateMsg,
-    MockReceiveMsg,
+    MockUntaggedMsg,
     MockSudoMsg,
 >;
 
@@ -248,7 +248,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             .unwrap()),
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-        .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+        .with_untagged(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
         .with_ibc_callback(|deps, _, _, callback, result| {
             eprintln!("{:?}", result);
             match &result {

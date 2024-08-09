@@ -5,6 +5,7 @@
 ### Added
 
 - `execute_with_funds` to Executor to attach funds to execution.
+- `Untagged` endpoint got added where custom top-level actions could be added.
 
 ### Changed
 
@@ -23,6 +24,8 @@
 - `install_on_sub_account` now defaults to `false` in Account Builder
 
 ### Removed
+
+- Module Endpoint `Receive` got removed
 
 ### Fixed
 

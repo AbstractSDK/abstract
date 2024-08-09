@@ -15,7 +15,7 @@ use cw_storage_plus::Item;
 
 use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReplyHandlerFn, UntaggedHandlerFn,
 };
 
 pub trait ContractError:
@@ -43,7 +43,7 @@ pub struct AppContract<
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
     CustomMigrateMsg: 'static,
-    Receive: 'static = Empty,
+    Untagged: 'static = Empty,
     SudoMsg: 'static = Empty,
 > {
     // Custom state for every App
@@ -61,7 +61,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
     AppContract<
@@ -70,7 +70,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {
@@ -153,11 +153,11 @@ impl<
         self
     }
 
-    pub const fn with_receive(
+    pub const fn with_untagged(
         mut self,
-        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
+        untagged_handler: UntaggedHandlerFn<Self, UntaggedMsg, Error>,
     ) -> Self {
-        self.contract = self.contract.with_receive(receive_handler);
+        self.contract = self.contract.with_untagged(untagged_handler);
         self
     }
 
@@ -191,7 +191,7 @@ mod tests {
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+            .with_untagged(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
             .with_ibc_callback(|_, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })

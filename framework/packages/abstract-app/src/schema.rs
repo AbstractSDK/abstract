@@ -19,7 +19,7 @@ impl<
         CustomInitMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + AppQueryMsg + QueryResponses,
         CustomMigrateMsg: Serialize + JsonSchema,
-        ReceiveMsg: Serialize + JsonSchema,
+        UntaggedMsg: Serialize + JsonSchema,
         SudoMsg: Serialize + JsonSchema,
     >
     AppContract<
@@ -28,7 +28,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {
@@ -37,7 +37,7 @@ impl<
             name: "schema",
             instantiate: app::InstantiateMsg<CustomInitMsg>,
             query: app::QueryMsg<CustomQueryMsg>,
-            execute: app::ExecuteMsg<CustomExecMsg, ReceiveMsg>,
+            execute: app::ExecuteMsg<CustomExecMsg, UntaggedMsg>,
             migrate: app::MigrateMsg<CustomMigrateMsg>,
         };
 

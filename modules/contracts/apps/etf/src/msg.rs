@@ -40,6 +40,7 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Decimal};
+use cw20::Cw20ReceiveMsg;
 use cw_asset::AssetUnchecked;
 
 use crate::contract::EtfApp;
@@ -106,4 +107,11 @@ pub struct StateResponse {
     pub manager_addr: Addr,
     /// Fee charged on withdrawal
     pub fee: Decimal,
+}
+
+/// Untagged message
+#[cosmwasm_schema::cw_serde]
+pub enum MyUntaggedMsg {
+    /// Cw20 Receive
+    Receive(Cw20ReceiveMsg),
 }

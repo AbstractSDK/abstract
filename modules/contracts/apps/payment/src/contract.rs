@@ -5,7 +5,7 @@ use cosmwasm_std::Response;
 use crate::{
     error::AppError,
     handlers,
-    msg::{AppExecuteMsg, AppInstantiateMsg, AppMigrateMsg, AppQueryMsg},
+    msg::{AppExecuteMsg, AppInstantiateMsg, AppMigrateMsg, AppQueryMsg, MyUntaggedMsg},
 };
 
 /// The version of your app
@@ -23,7 +23,7 @@ pub type PaymentApp = AppContract<
     AppExecuteMsg,
     AppQueryMsg,
     AppMigrateMsg,
-    cw20::Cw20ReceiveMsg,
+    MyUntaggedMsg,
 >;
 
 const DEX_DEPENDENCY: StaticDependency = StaticDependency::new(
@@ -36,7 +36,7 @@ const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
     .with_migrate(handlers::migrate_handler)
-    .with_receive(handlers::receive_handler)
+    .with_untagged(handlers::untagged_handler)
     .with_dependencies(&[DEX_DEPENDENCY]);
 
 // Export handlers

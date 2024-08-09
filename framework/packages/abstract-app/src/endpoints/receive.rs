@@ -1,6 +1,6 @@
 use crate::{
     state::{AppContract, ContractError},
-    ReceiveEndpoint,
+    UntaggedEndpoint,
 };
 
 impl<
@@ -9,16 +9,16 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
-    > ReceiveEndpoint
+    > UntaggedEndpoint
     for AppContract<
         Error,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        UntaggedMsg,
         SudoMsg,
     >
 {

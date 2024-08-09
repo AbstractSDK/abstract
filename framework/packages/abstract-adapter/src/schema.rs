@@ -21,16 +21,16 @@ impl<
         CustomExecMsg: Serialize + JsonSchema + AdapterExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + AdapterQueryMsg + QueryResponses,
-        ReceiveMsg: Serialize + JsonSchema,
+        UntaggedMsg: Serialize + JsonSchema,
         SudoMsg,
-    > AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    > AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, UntaggedMsg, SudoMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         write_api! {
             name: "schema",
             instantiate: adapter::InstantiateMsg<CustomInitMsg>,
             query: adapter::QueryMsg<CustomQueryMsg>,
-            execute: adapter::ExecuteMsg<CustomExecMsg, ReceiveMsg>,
+            execute: adapter::ExecuteMsg<CustomExecMsg, UntaggedMsg>,
             migrate: Empty,
         };
 

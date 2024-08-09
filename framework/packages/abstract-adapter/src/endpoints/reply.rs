@@ -2,9 +2,9 @@ use abstract_sdk::base::ReplyEndpoint;
 
 use crate::{state::ContractError, AdapterContract};
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, UntaggedMsg, SudoMsg>
     ReplyEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, UntaggedMsg, SudoMsg>
 {
 }
 

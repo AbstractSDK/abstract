@@ -1,11 +1,10 @@
 use abstract_app::AppContract;
 use cosmwasm_std::Response;
-use cw20::Cw20ReceiveMsg;
 
 use crate::{
     handlers,
     msg::{
-        SubscriptionExecuteMsg, SubscriptionInstantiateMsg, SubscriptionMigrateMsg,
+        MyUntaggedMsg, SubscriptionExecuteMsg, SubscriptionInstantiateMsg, SubscriptionMigrateMsg,
         SubscriptionQueryMsg,
     },
     SubscriptionError,
@@ -19,7 +18,7 @@ pub type SubscriptionApp = AppContract<
     SubscriptionExecuteMsg,
     SubscriptionQueryMsg,
     SubscriptionMigrateMsg,
-    Cw20ReceiveMsg,
+    MyUntaggedMsg,
 >;
 
 pub const SUBSCRIPTION_ID: &str = "abstract:subscription";
@@ -30,7 +29,7 @@ const SUBSCRIPTION_MODULE: SubscriptionApp =
         .with_execute(handlers::execute_handler)
         .with_instantiate(handlers::instantiate_handler)
         .with_query(handlers::query_handler)
-        .with_receive(handlers::receive_cw20);
+        .with_untagged(handlers::untagged_handler);
 
 // export endpoints
 #[cfg(feature = "export")]
