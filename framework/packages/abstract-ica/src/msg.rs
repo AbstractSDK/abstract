@@ -1,12 +1,12 @@
-use abstract_ica::IcaAction;
-use abstract_std::objects::TruncatedChainId;
+use crate::IcaAction;
+use abstract_sdk::std::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg};
 
 pub mod state {
 
     use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
-    use abstract_std::objects::TruncatedChainId;
+    use abstract_sdk::std::objects::TruncatedChainId;
     use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};
 
@@ -72,7 +72,7 @@ pub enum QueryMsg {
         // Chain to send to
         chain: TruncatedChainId,
         // Queries go first
-        action: Vec<IcaAction>,
+        actions: Vec<IcaAction>,
     },
 }
 
@@ -83,7 +83,7 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-struct IcaActionResult {
+pub struct IcaActionResult {
     /// messages that call the underlying implementations (be it polytone/cw-ica-controller/etc)
     msgs: Vec<CosmosMsg>,
 }

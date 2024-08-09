@@ -19,7 +19,6 @@ crate-type = ["cdylib", "rlib"]
 default = ["export"]
 export = []
 
-
 [dependencies]
 abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
@@ -36,6 +35,7 @@ semver = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-macros = { workspace = true }
+abstract-ica = { workspace = true }
 
 [dev-dependencies]
 cw20 = { workspace = true }

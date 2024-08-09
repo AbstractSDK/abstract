@@ -1,8 +1,6 @@
-mod commands;
 pub mod contract;
 pub mod error;
-pub mod ibc;
-pub mod msg;
+pub use abstract_ica::msg;
 mod queries;
 
 #[cfg(test)]
@@ -14,9 +12,9 @@ mod test_common {
         DepsMut,
     };
 
-    use crate::{contract, contract::IbcClientResult};
+    use crate::{contract, contract::IcaClientResult};
 
-    pub fn mock_init(deps: DepsMut) -> IbcClientResult {
+    pub fn mock_init(deps: DepsMut) -> IcaClientResult {
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.into(),
             version_control_address: TEST_VERSION_CONTROL.into(),

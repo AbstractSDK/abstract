@@ -7,8 +7,9 @@ use cosmwasm_std::StdError;
 use polytone::callbacks::CallbackMessage;
 use thiserror::Error;
 
+// TODO: Remove unused errs
 #[derive(Error, Debug, PartialEq)]
-pub enum IbcClientError {
+pub enum IcaClientError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -56,4 +57,7 @@ pub enum IbcClientError {
 
     #[error("IBC Client is not installed on {account_id}")]
     IbcClientNotInstalled { account_id: AccountId },
+
+    #[error("chain {chain} has no associated type (evm/cosmos/...)")]
+    NoChainType { chain: String },
 }

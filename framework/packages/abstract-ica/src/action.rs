@@ -1,11 +1,11 @@
 use cosmwasm_std::{Coin, Coins, CosmosMsg};
 use evm_note::polytone::ack::Callback;
-use polytone::callbacks::CallbackRequest;
 
 use crate::evm::EvmMsg;
 
 /// Interchain Account Action
 #[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
 pub enum IcaAction {
     // Execute on the ICA
     Execute(IcaExecute),
@@ -16,33 +16,45 @@ pub enum IcaAction {
     // ... other actions?
 }
 
+impl IcaAction {
+    // Used to set ordering
+    pub fn discriminant(&self) -> u8 {
+        match self {
+            IcaAction::Execute(_) => 0,
+            IcaAction::Fund(_) => 1,
+            // IcaAction::Query(_) => 2,
+        }
+    }
+}
+
 /// Queries first
 /// Execute second
 /// Funds transfers last
 impl PartialOrd for IcaAction {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match (self, other) {
-            (IcaAction::Execute(_), IcaAction::Execute(_)) => Some(std::cmp::Ordering::Equal),
-            (IcaAction::Fund(_), IcaAction::Fund(_)) => Some(std::cmp::Ordering::Equal),
-            (IcaAction::Execute(_), IcaAction::Fund(_)) => Some(std::cmp::Ordering::Greater),
-            (IcaAction::Fund(_), IcaAction::Execute(_)) => Some(std::cmp::Ordering::Less),
-            // (IcaAction::Query(_), IcaAction::Query(_)) => Some(std::cmp::Ordering::Equal),
-            // (IcaAction::Query(_), _) => Some(std::cmp::Ordering::Less),
-            // (_, IcaAction::Query(_)) => Some(std::cmp::Ordering::Greater),
-        }
+        self.discriminant().partial_cmp(&other.discriminant())
     }
 }
 
+impl Ord for IcaAction {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl Eq for IcaAction {}
+
 #[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
 pub enum IcaExecute {
     Evm {
         msgs: Vec<EvmMsg<String>>,
-        callback: Option<CallbackRequest>,
+        callback: Option<evm_note::msg::CallbackRequest>,
     },
-    Cosmos {
-        msgs: Vec<CosmosMsg>,
-        callback: Option<CallbackRequest>,
-    },
+    // Cosmos {
+    //     msgs: Vec<CosmosMsg>,
+    //     callback: Option<CallbackRequest>,
+    // },
 }
 
 // pub enum IcaQuery {

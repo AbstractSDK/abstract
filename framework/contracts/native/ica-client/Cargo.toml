@@ -28,7 +28,7 @@ abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cw-semver = { workspace = true }
-polytone-note = { workspace = true, features = ["library"] }
+evm-note = { git = "https://github.com/AbstractSDK/evm-ibc", branch = "main" }
 polytone = { workspace = true }
 cw-paginate = "0.2.1"
 ibc-proto = { version = "0.46.0", default-features = false }

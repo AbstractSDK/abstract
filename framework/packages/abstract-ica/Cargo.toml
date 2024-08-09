@@ -17,15 +17,14 @@ cosmwasm-std = { workspace = true, features = ["iterator"] }
 cosmwasm-schema = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
-cw-utils = { workspace = true }
-cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
+cw-ownable = { workspace = true }
 serde = { workspace = true }
-cw-asset = { workspace = true }
-cw-address-like = { workspace = true }
 polytone = { workspace = true }
-sha2 = { version = "0.10.8", default-features = false }
-cw-clearable = { workspace = true }
+map-macro = "0.3.0"
+
+cw-orch = {workspace = true}
+abstract-sdk = {workspace = true}
 
 # Cosmos
 cw-ica-controller = "0.6.1"

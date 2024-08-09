@@ -8,7 +8,7 @@
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, CosmosMsg};
+use cosmwasm_std::{Addr, Binary};
 
 use crate::{
     ibc_client::InstalledModuleIdentification,

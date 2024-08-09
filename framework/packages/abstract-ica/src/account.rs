@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+// TODO: implement dev-facing API for abstract-ica
 pub struct InterchainAccount<T> {
     _marker: PhantomData<T>,
 }

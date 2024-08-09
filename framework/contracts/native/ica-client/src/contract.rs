@@ -11,11 +11,11 @@ use abstract_std::{
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
-use crate::{commands, error::IbcClientError, ibc, queries};
+use crate::{commands, error::IcaClientError, ibc, queries};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub(crate) type IbcClientResult<T = Response> = Result<T, IbcClientError>;
+pub(crate) type IcaClientResult<T = Response> = Result<T, IcaClientError>;
 
 #[abstract_response(IBC_CLIENT)]
 pub(crate) struct IbcClientResponse;
@@ -26,7 +26,7 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> IbcClientResult {
+) -> IcaClientResult {
     cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     let cfg = Config {
         version_control: VersionControlContract::new(
@@ -43,30 +43,30 @@ pub fn instantiate(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> IbcClientResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> IcaClientResult {
     match msg {}
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryResponse> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IcaClientResult<QueryResponse> {
     match msg {
-        QueryMsg::Config {} => to_json_binary(&queries::query_config(deps)?),
-        QueryMsg::Ownership {} => to_json_binary(&queries::query_ownership(deps)?),
+        QueryMsg::Config {} => to_json_binary(&queries::config(deps)?).map_err(Into::into),
+        QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?).map_err(Into::into),
         QueryMsg::IcaAction {
             proxy_address,
             chain,
-            action,
-        } => to_json_binary(&queries::query_ica_action(
+            actions,
+        } => to_json_binary(&queries::ica_action(
             deps,
             proxy_address,
             chain,
-            action,
-        )?),
+            actions,
+        )?).map_err(Into::into),
     }
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IcaClientResult {
     let to_version: Version = CONTRACT_VERSION.parse().unwrap();
 
     assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
@@ -90,13 +90,13 @@ mod tests {
     use cw_ownable::{Ownership, OwnershipError};
     use speculoos::prelude::*;
 
-    type IbcClientTestResult = Result<(), IbcClientError>;
+    type IbcClientTestResult = Result<(), IcaClientError>;
 
-    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> IbcClientResult {
+    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> IcaClientResult {
         execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> IbcClientResult {
+    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> IcaClientResult {
         execute_as(deps, OWNER, msg)
     }
 
@@ -107,13 +107,13 @@ mod tests {
         let res = execute_as(deps.as_mut(), "not_admin", msg);
         assert_that!(&res)
             .is_err()
-            .matches(|e| matches!(e, IbcClientError::Ownership(OwnershipError::NotOwner)));
+            .matches(|e| matches!(e, IcaClientError::Ownership(OwnershipError::NotOwner)));
 
         Ok(())
     }
 
     #[test]
-    fn instantiate_works() -> IbcClientResult<()> {
+    fn instantiate_works() -> IcaClientResult<()> {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.into(),
@@ -155,7 +155,7 @@ mod tests {
         use abstract_std::AbstractError;
 
         #[test]
-        fn disallow_same_version() -> IbcClientResult<()> {
+        fn disallow_same_version() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -165,7 +165,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(IbcClientError::Abstract(
+                .is_equal_to(IcaClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: IBC_CLIENT.to_string(),
                         from: version.to_string().parse().unwrap(),
@@ -177,7 +177,7 @@ mod tests {
         }
 
         #[test]
-        fn disallow_downgrade() -> IbcClientResult<()> {
+        fn disallow_downgrade() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -190,7 +190,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(IbcClientError::Abstract(
+                .is_equal_to(IcaClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: IBC_CLIENT.to_string(),
                         from: big_version.parse().unwrap(),
@@ -202,7 +202,7 @@ mod tests {
         }
 
         #[test]
-        fn disallow_name_change() -> IbcClientResult<()> {
+        fn disallow_name_change() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -214,7 +214,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(IbcClientError::Abstract(
+                .is_equal_to(IcaClientError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
                         to: IBC_CLIENT.parse().unwrap(),
@@ -225,7 +225,7 @@ mod tests {
         }
 
         #[test]
-        fn works() -> IbcClientResult<()> {
+        fn works() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -258,7 +258,7 @@ mod tests {
         use crate::commands::PACKET_LIFETIME;
 
         #[test]
-        fn only_admin() -> IbcClientResult<()> {
+        fn only_admin() -> IcaClientResult<()> {
             test_only_admin(ExecuteMsg::RegisterInfrastructure {
                 chain: "host-chain".parse().unwrap(),
                 note: String::from("note"),
@@ -290,7 +290,7 @@ mod tests {
             let res = execute_as_admin(deps.as_mut(), msg);
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::HostAddressExists {}));
+                .matches(|e| matches!(e, IcaClientError::HostAddressExists {}));
 
             Ok(())
         }
@@ -428,7 +428,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
+                    IcaClientError::VersionControlError(VersionControlError::NotProxy(..))
                 )
             });
             Ok(())
@@ -458,7 +458,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::ForbiddenInternalCall {}));
+                .matches(|e| matches!(e, IcaClientError::ForbiddenInternalCall {}));
             Ok(())
         }
 
@@ -556,7 +556,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
+                    IcaClientError::VersionControlError(VersionControlError::NotProxy(..))
                 )
             });
             Ok(())
@@ -692,7 +692,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
+                    IcaClientError::VersionControlError(VersionControlError::NotProxy(..))
                 )
             });
             Ok(())
@@ -966,7 +966,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::Unauthorized { .. }));
+                .matches(|e| matches!(e, IcaClientError::Unauthorized { .. }));
 
             Ok(())
         }
@@ -993,7 +993,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::Unauthorized { .. }));
+                .matches(|e| matches!(e, IcaClientError::Unauthorized { .. }));
 
             Ok(())
         }
@@ -1021,7 +1021,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::UnregisteredChain { .. }));
+                .matches(|e| matches!(e, IcaClientError::UnregisteredChain { .. }));
 
             Ok(())
         }
@@ -1058,7 +1058,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+                .matches(|e| matches!(e, IcaClientError::IbcFailed(_callback_msg)));
 
             Ok(())
         }
@@ -1141,7 +1141,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+                .matches(|e| matches!(e, IcaClientError::IbcFailed(_callback_msg)));
 
             Ok(())
         }
@@ -1177,7 +1177,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+                .matches(|e| matches!(e, IcaClientError::IbcFailed(_callback_msg)));
 
             Ok(())
         }
@@ -1213,7 +1213,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+                .matches(|e| matches!(e, IcaClientError::IbcFailed(_callback_msg)));
 
             Ok(())
         }
