@@ -37,7 +37,7 @@ impl IcaAction {
 /// Funds transfers last
 impl PartialOrd for IcaAction {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.discriminant().partial_cmp(&other.discriminant())
+        Some(self.cmp(other))
     }
 }
 

@@ -6,9 +6,7 @@ use cosmwasm_std::{Addr, CosmosMsg};
 pub mod state {
 
     use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
-    use abstract_sdk::std::objects::TruncatedChainId;
-    use cosmwasm_std::Addr;
-    use cw_storage_plus::{Item, Map};
+    use cw_storage_plus::Item;
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {

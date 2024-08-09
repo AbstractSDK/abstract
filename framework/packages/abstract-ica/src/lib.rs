@@ -1,7 +1,5 @@
-mod account;
 mod action;
 mod chain_type;
-mod cosmos;
 mod evm;
 pub mod msg;
 

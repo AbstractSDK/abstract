@@ -24,7 +24,7 @@ pub(crate) struct IbcClientResponse;
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> IcaClientResult {
     cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
@@ -43,7 +43,7 @@ pub fn instantiate(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> IcaClientResult {
+pub fn execute(_deps: DepsMut, _env: Env, _info: MessageInfo, msg: ExecuteMsg) -> IcaClientResult {
     match msg {}
 }
 

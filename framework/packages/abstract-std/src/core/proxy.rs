@@ -11,7 +11,7 @@
 //! After configuring the price sources [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Binary, CosmosMsg, Empty, QueryRequest, Uint128};
+use cosmwasm_std::{Binary, CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 #[allow(unused_imports)]
