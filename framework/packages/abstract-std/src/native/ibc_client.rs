@@ -221,8 +221,9 @@ impl InstalledModuleIdentification {
                     ))?
                 }
             }
-            ModuleReference::Native(addr) => addr.clone(),
-            ModuleReference::Adapter(addr) => addr.clone(),
+            ModuleReference::Native(addr)
+            | ModuleReference::Adapter(addr)
+            | ModuleReference::Service(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
                 let account_base = vc.account_base(&target_account_id, &deps.querier)?;

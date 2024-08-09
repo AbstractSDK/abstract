@@ -136,21 +136,24 @@ pub fn query_module_version(
     // - failed cw2 query
     // - the query succeeded but the cw2 name doesn't adhere to our formatting standards
     //
-    // Which means this contract is a standalone contract. Hence we need to get its information from VersionControl.
-    let code_id = deps
-        .querier
-        .query_wasm_contract_info(module_addr.to_string())?
-        .code_id;
-    let module_version = version_control
-        .query_standalone_info_raw(code_id, &deps.querier)
-        .map_err(AbstractError::from)
-        .and_then(|module_info| {
-            let version = ContractVersion::try_from(module_info)?;
-            Ok(version)
-        })
-        .map_err(|e| StdError::generic_err(e.to_string()))?;
-
-    Ok(module_version)
+    // Which means this contract is a standalone or service contract. Hence we need to get its information from VersionControl.
+    let module_info = match version_control.query_service_info_raw(&module_addr, &deps.querier) {
+        // We got service
+        Ok(module_info) => module_info,
+        // Didn't got service, let's try to get standalone
+        Err(_) => {
+            let code_id = deps
+                .querier
+                .query_wasm_contract_info(module_addr.to_string())?
+                .code_id;
+            version_control
+                .query_standalone_info_raw(code_id, &deps.querier)
+                .map_err(|e| StdError::generic_err(e.to_string()))?
+        }
+    };
+    let version =
+        ContractVersion::try_from(module_info).map_err(|e| StdError::generic_err(e.to_string()))?;
+    Ok(version)
 }
 
 /// RawQuery the module versions of the modules part of the Account

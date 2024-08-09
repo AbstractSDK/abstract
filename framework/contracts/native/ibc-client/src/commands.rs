@@ -239,9 +239,10 @@ pub fn execute_send_module_to_module_packet(
 
     // We need additional information depending on the module type
     let source_module = match module_info.reference {
-        ModuleReference::AccountBase(_) => return Err(IbcClientError::Unauthorized {}),
-        ModuleReference::Native(_) => return Err(IbcClientError::Unauthorized {}),
-        ModuleReference::Standalone(_) => return Err(IbcClientError::Unauthorized {}),
+        ModuleReference::AccountBase(_)
+        | ModuleReference::Native(_)
+        | ModuleReference::Standalone(_)
+        | ModuleReference::Service(_) => return Err(IbcClientError::Unauthorized {}),
         ModuleReference::Adapter(_) => InstalledModuleIdentification {
             module_info: module_info.info,
             account_id: None,

@@ -242,3 +242,58 @@ pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstanc
         Ok(())
     }
 }
+
+/// Trait for deploying Services
+pub trait ServiceDeployer<Chain: CwEnv>:
+    Sized + Uploadable + ContractInstance<Chain> + CwOrchInstantiate<Chain>
+{
+    /// Deploys the module. If the module is already deployed, it will return an error.
+    /// Use `maybe_deploy` if you want to deploy the module only if it is not already deployed.
+    fn deploy(
+        &self,
+        version: Version,
+        custom_init_msg: &<Self as InstantiableContract>::InstantiateMsg,
+        strategy: DeployStrategy,
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        // retrieve the deployment
+        let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
+
+        // check for existing version
+        let vc_has_module = || {
+            abstr
+                .version_control
+                .registered_or_pending_module(
+                    ModuleInfo::from_id(&self.id(), ModuleVersion::from(version.to_string()))
+                        .unwrap(),
+                )
+                .and_then(|module| module.reference.unwrap_standalone().map_err(Into::into))
+        };
+
+        match strategy {
+            DeployStrategy::Error => {
+                if vc_has_module().is_ok() {
+                    return Err(StdErr(format!(
+                        "Service {} already exists with version {}",
+                        self.id(),
+                        version
+                    ))
+                    .into());
+                }
+            }
+            DeployStrategy::Try => {
+                if vc_has_module().is_ok() {
+                    return Ok(());
+                }
+            }
+            DeployStrategy::Force => {}
+        }
+
+        self.upload_if_needed()?;
+        self.instantiate(custom_init_msg, None, None)?;
+        abstr
+            .version_control
+            .register_services(vec![(self.as_instance(), version.to_string())])?;
+
+        Ok(())
+    }
+}

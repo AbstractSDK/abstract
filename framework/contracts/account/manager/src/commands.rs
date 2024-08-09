@@ -148,7 +148,9 @@ pub(crate) fn _install_modules(
         installed_modules.push(module.info.id_with_version());
 
         let init_msg_salt = match &module.reference {
-            ModuleReference::Adapter(module_address) | ModuleReference::Native(module_address) => {
+            ModuleReference::Adapter(module_address)
+            | ModuleReference::Native(module_address)
+            | ModuleReference::Service(module_address) => {
                 if module.should_be_whitelisted() {
                     add_to_proxy.push(module_address.to_string());
                 }

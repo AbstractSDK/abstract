@@ -163,7 +163,8 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
 
         match module.reference.clone() {
             ModuleReference::Adapter(queried_address)
-            | ModuleReference::Native(queried_address) => {
+            | ModuleReference::Native(queried_address)
+            | ModuleReference::Service(queried_address) => {
                 if queried_address == address {
                     Ok(module)
                 } else {

@@ -35,6 +35,8 @@ pub mod state {
     pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("lib");
     // Reverse map for module info of standalone modules
     pub const STANDALONE_INFOS: Map<u64, ModuleInfo> = Map::new("stli");
+    // Reverse map for module info of service modules
+    pub const SERVICE_INFOS: Map<&cosmwasm_std::Addr, ModuleInfo> = Map::new("svci");
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Configuration

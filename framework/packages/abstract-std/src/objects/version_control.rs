@@ -9,7 +9,7 @@ use super::{
     AccountId,
 };
 use crate::version_control::{
-    state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, STANDALONE_INFOS},
+    state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
     AccountBase, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
     NamespacesResponse, QueryMsg,
 };
@@ -48,6 +48,13 @@ pub enum VersionControlError {
     QueryFailed {
         method_name: String,
         error: cosmwasm_std::StdError,
+    },
+
+    // Service module not found in version registry
+    #[error("Service {service_addr} not found in version registry {registry_addr}.")]
+    ServiceNotFound {
+        service_addr: Addr,
+        registry_addr: Addr,
     },
 }
 
@@ -178,6 +185,25 @@ impl VersionControlContract {
             })?;
         module_info.ok_or_else(|| VersionControlError::StandaloneNotFound {
             code_id,
+            registry_addr: self.address.clone(),
+        })
+    }
+
+    /// Queries the module info of the standalone code id
+    #[function_name::named]
+    pub fn query_service_info_raw(
+        &self,
+        service_addr: &Addr,
+        querier: &QuerierWrapper,
+    ) -> VersionControlResult<ModuleInfo> {
+        let module_info = SERVICE_INFOS
+            .query(querier, self.address.clone(), service_addr)
+            .map_err(|error| VersionControlError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
+        module_info.ok_or_else(|| VersionControlError::ServiceNotFound {
+            service_addr: service_addr.clone(),
             registry_addr: self.address.clone(),
         })
     }
