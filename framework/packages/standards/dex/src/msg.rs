@@ -2,7 +2,7 @@
 //! # Dex Adapter API
 // re-export response types
 use abstract_std::{
-    adapter,
+    adapter::{self, AdapterRequestMsg},
     objects::{
         fee::{Fee, UsageFee},
         pool_id::{PoolAddressBase, UncheckedPoolAddress},
@@ -33,6 +33,14 @@ pub type InstantiateMsg = adapter::InstantiateMsg<DexInstantiateMsg>;
 pub type QueryMsg = adapter::QueryMsg<DexQueryMsg>;
 
 impl adapter::AdapterExecuteMsg for DexExecuteMsg {}
+impl From<DexExecuteMsg> for ExecuteMsg {
+    fn from(request: DexExecuteMsg) -> Self {
+        Self::Module(AdapterRequestMsg {
+            proxy_address: None,
+            request,
+        })
+    }
+}
 impl adapter::AdapterQueryMsg for DexQueryMsg {}
 
 /// Response for simulating a swap.

@@ -3,7 +3,7 @@
 //!
 //! `abstract::cw-staking`
 use abstract_std::{
-    adapter,
+    adapter::{self, AdapterRequestMsg},
     objects::{AnsAsset, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;
@@ -24,6 +24,14 @@ pub type InstantiateMsg = adapter::InstantiateMsg<Empty>;
 pub type QueryMsg = adapter::QueryMsg<StakingQueryMsg>;
 
 impl adapter::AdapterExecuteMsg for StakingExecuteMsg {}
+impl From<StakingExecuteMsg> for ExecuteMsg {
+    fn from(request: StakingExecuteMsg) -> Self {
+        Self::Module(AdapterRequestMsg {
+            proxy_address: None,
+            request,
+        })
+    }
+}
 impl adapter::AdapterQueryMsg for StakingQueryMsg {}
 
 /// A request message that's sent to this staking adapter

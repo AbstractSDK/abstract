@@ -83,8 +83,23 @@ pub struct MockModuleQueryResponse {}
 
 impl abstract_std::adapter::AdapterExecuteMsg for MockModuleExecuteMsg {}
 
+impl From<MockModuleExecuteMsg> for abstract_std::adapter::ExecuteMsg<MockModuleExecuteMsg> {
+    fn from(adapter_msg: MockModuleExecuteMsg) -> Self {
+        Self::Module(abstract_std::adapter::AdapterRequestMsg {
+            proxy_address: None,
+            request: adapter_msg,
+        })
+    }
+}
+
 impl abstract_std::adapter::AdapterQueryMsg for MockModuleQueryMsg {}
 
 impl abstract_std::app::AppExecuteMsg for MockModuleExecuteMsg {}
+
+impl From<MockModuleExecuteMsg> for abstract_std::app::ExecuteMsg<MockModuleExecuteMsg> {
+    fn from(module: MockModuleExecuteMsg) -> Self {
+        Self::Module(module)
+    }
+}
 
 impl abstract_std::app::AppQueryMsg for MockModuleQueryMsg {}

@@ -2,7 +2,7 @@ use abstract_sdk::features::ModuleIdentification;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
-        ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
+        ModuleIbcHandlerFn, QueryHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
     namespaces::BASE_STATE,
     std::version_control::AccountBase,
@@ -44,7 +44,6 @@ pub struct AdapterContract<
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
-    Receive: 'static = Empty,
     SudoMsg: 'static = Empty,
 > where
     Self: Handler,
@@ -58,8 +57,8 @@ pub struct AdapterContract<
 }
 
 /// Constructor
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
+    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
     pub const fn new(
         name: &'static str,
@@ -138,14 +137,6 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_receive(
-        mut self,
-        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
-    ) -> Self {
-        self.contract = self.contract.with_receive(receive_handler);
-        self
-    }
-
     /// add IBC callback handler to contract
     pub const fn with_ibc_callback(mut self, callback: IbcCallbackHandlerFn<Self, Error>) -> Self {
         self.contract = self.contract.with_ibc_callback(callback);
@@ -190,7 +181,6 @@ mod tests {
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
             .with_ibc_callback(|_, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })

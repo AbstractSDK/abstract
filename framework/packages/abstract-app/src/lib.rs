@@ -79,9 +79,6 @@ pub mod mock {
     pub struct MockMigrateMsg;
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockReceiveMsg;
-
-    #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg;
 
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
@@ -122,7 +119,6 @@ pub mod mock {
         MockExecMsg,
         MockQueryMsg,
         MockMigrateMsg,
-        MockReceiveMsg,
         MockSudoMsg,
     >;
 
@@ -151,7 +147,6 @@ pub mod mock {
                 }
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
             .with_ibc_callback(|deps, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
 
@@ -257,14 +252,14 @@ pub mod mock {
     macro_rules! gen_app_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
         use $crate::std::app;
-        use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
+        use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg};
         use ::cw_orch::prelude::*;
         use $crate::sdk::base::Handler;
         use $crate::sdk::features::AccountIdentification;
         use $crate::sdk::{Execution, TransferInterface};
 
 
-        type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Exec = app::ExecuteMsg<MockExecMsg>;
         type Query = app::QueryMsg<MockQueryMsg>;
         type Init = app::InstantiateMsg<MockInitMsg>;
         type Migrate = app::MigrateMsg<MockMigrateMsg>;

@@ -980,7 +980,7 @@ fn configure_old_adapter(
     adapter_address: impl Into<String>,
     message: AdapterBaseMsg,
 ) -> StdResult<CosmosMsg> {
-    type OldAdapterBaseExecuteMsg = abstract_std::base::ExecuteMsg<AdapterBaseMsg, Empty, Empty>;
+    type OldAdapterBaseExecuteMsg = abstract_std::base::ExecuteMsg<AdapterBaseMsg, Empty>;
 
     let adapter_msg = OldAdapterBaseExecuteMsg::Base(message);
     Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())

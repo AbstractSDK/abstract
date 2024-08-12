@@ -4,7 +4,6 @@ pub mod instantiate;
 mod migrate;
 mod module_ibc;
 mod query;
-mod receive;
 mod reply;
 mod sudo;
 

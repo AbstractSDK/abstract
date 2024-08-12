@@ -378,7 +378,7 @@ mod tests {
         assert_that!(actual).is_equal_to(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
             contract_addr: receiver,
             // we can't test the message because the fields in it are private
-            msg: to_json_binary(&ExecuteMsg::<Empty, Empty>::IbcCallback(response_msg)).unwrap(),
+            msg: to_json_binary(&ExecuteMsg::<Empty>::IbcCallback(response_msg)).unwrap(),
             funds: vec![],
         }))
     }

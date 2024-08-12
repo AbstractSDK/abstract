@@ -152,7 +152,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute_on_module(
             module_id,
-            adapter::ExecuteMsg::<Empty, Empty>::Base(adapter::BaseExecuteMsg {
+            adapter::ExecuteMsg::<Empty>::Base(adapter::BaseExecuteMsg {
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
                 proxy_address: None,
             }),

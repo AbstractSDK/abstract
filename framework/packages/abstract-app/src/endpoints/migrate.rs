@@ -15,18 +15,9 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg: Serialize + JsonSchema,
-        ReceiveMsg,
         SudoMsg,
     > MigrateEndpoint
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     type MigrateMsg = MigrateMsg<CustomMigrateMsg>;
 

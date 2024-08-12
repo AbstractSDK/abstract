@@ -7,9 +7,9 @@ use cosmwasm_std::{Addr, Deps};
 
 use crate::{state::ContractError, AdapterContract};
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
     IbcCallbackEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
     fn ibc_client_addr(&self, deps: Deps) -> Result<Addr, Self::Error> {
         let vc_query_result = self

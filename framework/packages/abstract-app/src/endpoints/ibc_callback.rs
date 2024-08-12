@@ -10,18 +10,9 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
         SudoMsg,
     > IbcCallbackEndpoint
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     fn ibc_client_addr(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
         let ibc_client = self.modules(deps).module_address(IBC_CLIENT)?;

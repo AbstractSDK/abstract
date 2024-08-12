@@ -40,6 +40,12 @@ macro_rules! app_msg_types {
         pub type MigrateMsg = <$app_type as $crate::sdk::base::MigrateEndpoint>::MigrateMsg;
 
         impl $crate::std::app::AppExecuteMsg for $app_execute_msg {}
+        impl From<$app_execute_msg> for $crate::std::app::ExecuteMsg<$app_execute_msg> {
+            fn from(module: $app_execute_msg) -> Self {
+                Self::Module(module)
+            }
+        }
+
         impl $crate::std::app::AppQueryMsg for $app_query_msg {}
     };
 }

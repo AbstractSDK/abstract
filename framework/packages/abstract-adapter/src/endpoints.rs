@@ -3,7 +3,6 @@ mod ibc_callback;
 mod instantiate;
 mod module_ibc;
 mod query;
-mod receive;
 mod reply;
 mod sudo;
 

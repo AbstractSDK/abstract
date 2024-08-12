@@ -37,6 +37,15 @@ macro_rules! adapter_msg_types {
         pub type QueryMsg = <$adapter_type as $crate::sdk::base::QueryEndpoint>::QueryMsg;
 
         impl $crate::std::adapter::AdapterExecuteMsg for $adapter_execute_msg {}
+        impl From<$adapter_execute_msg> for $crate::std::adapter::ExecuteMsg<$adapter_execute_msg> {
+            fn from(adapter_msg: $adapter_execute_msg) -> Self {
+                Self::Module($crate::std::adapter::AdapterRequestMsg {
+                    proxy_address: None,
+                    request: adapter_msg,
+                })
+            }
+        }
+
         impl $crate::std::adapter::AdapterQueryMsg for $adapter_query_msg {}
     };
 }

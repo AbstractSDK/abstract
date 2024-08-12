@@ -29,8 +29,7 @@ const SUBSCRIPTION_MODULE: SubscriptionApp =
     SubscriptionApp::new(SUBSCRIPTION_ID, CONTRACT_VERSION, None)
         .with_execute(handlers::execute_handler)
         .with_instantiate(handlers::instantiate_handler)
-        .with_query(handlers::query_handler)
-        .with_receive(handlers::receive_cw20);
+        .with_query(handlers::query_handler);
 
 // export endpoints
 #[cfg(feature = "export")]

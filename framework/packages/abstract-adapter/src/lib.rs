@@ -90,20 +90,11 @@ pub mod mock {
     }
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockReceiveMsg {}
-
-    #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg {}
 
     /// Mock Adapter type
-    pub type MockAdapterContract = AdapterContract<
-        MockError,
-        MockInitMsg,
-        MockExecMsg,
-        MockQueryMsg,
-        MockReceiveMsg,
-        MockSudoMsg,
-    >;
+    pub type MockAdapterContract =
+        AdapterContract<MockError, MockInitMsg, MockExecMsg, MockQueryMsg, MockSudoMsg>;
 
     pub const MOCK_DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
 
@@ -128,7 +119,6 @@ pub mod mock {
                 MockQueryMsg::GetSomething {} => to_json_binary("mock_query").map_err(Into::into),
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
             .with_ibc_callback(|deps, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
@@ -180,7 +170,7 @@ pub mod mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
         use $crate::std::adapter::*;
         use ::cosmwasm_std::Empty;
-        use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
+        use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
@@ -218,7 +208,7 @@ pub mod mock {
             MOCK_ADAPTER.query(deps, env, msg)
         }
 
-        type Exec = $crate::std::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Exec = $crate::std::adapter::ExecuteMsg<MockExecMsg>;
         type Query = $crate::std::adapter::QueryMsg<MockQueryMsg>;
         type Init = $crate::std::adapter::InstantiateMsg<MockInitMsg>;
         #[cw_orch::interface(Init, Exec, Query, Empty)]
@@ -263,7 +253,7 @@ pub mod mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
         use $crate::std::adapter::*;
         use ::cosmwasm_std::Empty;
-        use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
+        use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg,  MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
@@ -284,7 +274,7 @@ pub mod mock {
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: $crate::std::base::ExecuteMsg<$crate::std::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>,
+            msg: $crate::std::base::ExecuteMsg<$crate::std::adapter::AdapterBaseMsg, MockExecMsg>,
         ) -> Result<::cosmwasm_std::Response, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::ExecuteEndpoint;
             Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
@@ -300,7 +290,7 @@ pub mod mock {
             MOCK_ADAPTER.query(deps, env, msg)
         }
 
-        type Exec = $crate::std::base::ExecuteMsg<$crate::std::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>;
+        type Exec = $crate::std::base::ExecuteMsg<$crate::std::adapter::AdapterBaseMsg, MockExecMsg>;
         type Query = $crate::std::adapter::QueryMsg<MockQueryMsg>;
         type Init = $crate::std::adapter::InstantiateMsg<MockInitMsg>;
         #[cw_orch::interface(Init, Exec, Query, Empty)]
