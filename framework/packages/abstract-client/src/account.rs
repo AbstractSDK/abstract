@@ -540,7 +540,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install an service on the account.
-    /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
+    /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account.
     /// Errors if this module already installed
     pub fn install_service<M: InstallConfig + From<Contract<Chain>>>(
         &self,
