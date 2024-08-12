@@ -672,6 +672,19 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "A contract that exposes some service to others.",
+            "type": "object",
+            "required": [
+              "service"
+            ],
+            "properties": {
+              "service": {
+                "$ref": "#/definitions/Addr"
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
@@ -1505,6 +1518,19 @@
                 }
               },
               "additionalProperties": false
+            },
+            {
+              "description": "A contract that exposes some service to others.",
+              "type": "object",
+              "required": [
+                "service"
+              ],
+              "properties": {
+                "service": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
             }
           ]
         },
@@ -1775,6 +1801,19 @@
                   "type": "integer",
                   "format": "uint64",
                   "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "A contract that exposes some service to others.",
+              "type": "object",
+              "required": [
+                "service"
+              ],
+              "properties": {
+                "service": {
+                  "$ref": "#/definitions/Addr"
                 }
               },
               "additionalProperties": false
