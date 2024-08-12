@@ -2,6 +2,7 @@ use crate::IcaAction;
 use abstract_sdk::std::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg};
+use cw_ownable::{cw_ownable_execute, cw_ownable_query};
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
 #[cosmwasm_schema::cw_serde]
@@ -13,18 +14,15 @@ pub struct InstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
+#[cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {}
 
+#[cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
-    /// Queries the ownership of the ibc client contract
-    /// Returns [`cw_ownable::Ownership<Addr>`]
-    #[returns(cw_ownable::Ownership<Addr> )]
-    Ownership {},
-
     /// Returns config
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
