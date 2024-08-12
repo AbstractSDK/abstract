@@ -28,36 +28,6 @@ pub enum IcaClientError {
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),
 
-    #[error("No account for chain {0}")]
-    UnregisteredChain(String),
-
-    #[error("remote account changed from {old} to {addr}")]
-    RemoteAccountChanged { addr: String, old: String },
-
-    #[error("Calling internal actions externally is not allowed")]
-    ForbiddenInternalCall {},
-
-    #[error("A non-module package (native or accounts) cannot execute an ibc module call")]
-    ForbiddenModuleCall {},
-
-    #[error("The host you are trying to connect is already connected")]
-    HostAlreadyExists {},
-
-    #[error("Only authorized ports can connect to the contract on the remote chain")]
-    UnauthorizedConnection {},
-
-    #[error("Unauthorized")]
-    Unauthorized {},
-
-    #[error("IBC Execution Failed, {0:?}")]
-    IbcFailed(CallbackMessage),
-
-    #[error("Chain or host address already registered.")]
-    HostAddressExists {},
-
-    #[error("IBC Client is not installed on {account_id}")]
-    IbcClientNotInstalled { account_id: AccountId },
-
     #[error("chain {chain} has no associated type (evm/cosmos/...)")]
     NoChainType { chain: String },
 

@@ -83,3 +83,196 @@ pub(crate) fn ica_action(
 
     Ok(IcaActionResponse { msgs })
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr as _;
+
+    use super::*;
+
+    use crate::test_common::mock_init;
+    use abstract_std::{
+        objects::{
+            module::{Module, ModuleInfo},
+            module_reference::ModuleReference,
+            ChannelEntry, ContractEntry,
+        },
+        version_control::{self as vc, ModuleConfiguration},
+    };
+    use abstract_testing::prelude::{TEST_VERSION_CONTROL, *};
+    use cosmwasm_std::{
+        from_json,
+        testing::{mock_dependencies, mock_env},
+        Addr,
+    };
+
+    use evm::types;
+    use polytone_evm::EVM_NOTE_ID;
+    use speculoos::prelude::*;
+
+    type IbcClientTestResult = Result<(), IcaClientError>;
+
+    const EVM_CHAIN: &str = "bartio";
+
+    fn env_note_addr() -> Addr {
+        Addr::unchecked("evm_note_addr".to_string())
+    }
+
+    fn ucs_forwarder_addr() -> Addr {
+        Addr::unchecked("ucs_forwarder".to_string())
+    }
+
+    /// setup the querier with the proper responses and state
+    fn state_setup() -> MockQuerierBuilder {
+        let chain_name = TruncatedChainId::from_str(EVM_CHAIN).unwrap();
+
+        mocked_account_querier_builder()
+            .contracts(vec![(
+                &ContractEntry {
+                    contract: types::UCS01_FORWARDER_CONTRACT.to_string(),
+                    protocol: types::UCS01_PROTOCOL.to_string(),
+                },
+                ucs_forwarder_addr(),
+            )])
+            .channels(vec![(
+                &ChannelEntry {
+                    connected_chain: chain_name.clone(),
+                    protocol: types::UCS01_PROTOCOL.to_string(),
+                },
+                "channel-1".into(),
+            )])
+            .builder()
+            .with_smart_handler(TEST_VERSION_CONTROL, |bin| {
+                let msg = from_json::<vc::QueryMsg>(bin).unwrap();
+                match msg {
+                    vc::QueryMsg::Modules { infos } => {
+                        assert_eq!(
+                            infos[0],
+                            ModuleInfo::from_id(
+                                EVM_NOTE_ID,
+                                abstract_ica::POLYTONE_EVM_VERSION.parse().unwrap()
+                            )
+                            .unwrap()
+                        );
+                        to_json_binary(&vc::ModulesResponse {
+                            modules: vec![vc::ModuleResponse {
+                                config: ModuleConfiguration::default(),
+                                module: Module {
+                                    info: ModuleInfo::from_id(
+                                        EVM_NOTE_ID,
+                                        abstract_ica::POLYTONE_EVM_VERSION.parse().unwrap(),
+                                    )
+                                    .unwrap(),
+                                    reference: ModuleReference::Native(Addr::unchecked(
+                                        env_note_addr().to_string(),
+                                    )),
+                                },
+                            }],
+                        })
+                        .map_err(|e| e.to_string())
+                    }
+                    _ => panic!("should only query for Polytone module"),
+                }
+            })
+    }
+
+    mod ica_action {
+        use crate::contract::query;
+
+        use super::*;
+        use std::str::FromStr;
+
+        use abstract_ica::msg::QueryMsg;
+        use abstract_std::objects::TruncatedChainId;
+
+        use cosmwasm_std::{coins, wasm_execute, HexBinary};
+        use evm::types;
+        use evm_note::msg::EvmMsg;
+
+        use types::Ucs01ForwarderExecuteMsg;
+
+        #[test]
+        fn evm_exec_no_callback() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
+
+            deps.querier = state_setup().build();
+
+            mock_init(deps.as_mut())?;
+
+            let msg = QueryMsg::IcaAction {
+                proxy_address: TEST_PROXY.into(),
+                chain: chain_name,
+                actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
+                    msgs: vec![EvmMsg::Call {
+                        to: "to".to_string(),
+                        data: HexBinary::from(vec![0x01]),
+                    }],
+                    callback: None,
+                })],
+            };
+
+            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res: IcaActionResponse = from_json(&res).unwrap();
+
+            assert_that!(res).is_equal_to(IcaActionResponse {
+                msgs: vec![CosmosMsg::Wasm(wasm_execute(
+                    env_note_addr(),
+                    &evm_note::msg::ExecuteMsg::Execute {
+                        callback: None,
+                        msgs: vec![EvmMsg::Call {
+                            to: "to".to_string(),
+                            data: HexBinary::from(vec![0x01]),
+                        }],
+                        timeout_seconds: PACKET_LIFETIME.into(),
+                    },
+                    vec![],
+                )?)],
+            });
+
+            Ok(())
+        }
+
+        #[test]
+        fn evm_fund_no_callback() -> IbcClientTestResult {
+            use super::*;
+
+            let mut deps = mock_dependencies();
+            let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
+
+            deps.querier = state_setup().build();
+
+            mock_init(deps.as_mut())?;
+
+            let receiver = HexBinary::from_hex("123fff").unwrap();
+
+            let msg = QueryMsg::IcaAction {
+                proxy_address: TEST_PROXY.into(),
+                chain: chain_name,
+                actions: vec![IcaAction::Fund {
+                    funds: coins(1, "test"),
+                    receiver: Some(receiver.clone().into()),
+                    memo: None,
+                }],
+            };
+
+            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res: IcaActionResponse = from_json(&res).unwrap();
+
+            assert_that!(res).is_equal_to(IcaActionResponse {
+                msgs: vec![CosmosMsg::Wasm(wasm_execute(
+                    ucs_forwarder_addr(),
+                    &Ucs01ForwarderExecuteMsg::Transfer {
+                        channel: "channel-1".into(),
+                        receiver,
+                        memo: "".to_string(),
+                        timeout: PACKET_LIFETIME.into(),
+                    },
+                    coins(1, "test"),
+                )?)],
+            });
+
+            Ok(())
+        }
+    }
+}

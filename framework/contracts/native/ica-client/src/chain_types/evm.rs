@@ -76,11 +76,12 @@ pub fn send_funds(
     // Construct forward packet on the forwarder
     let forwarder_msg = wasm_execute(
         ucs_forwarder_addr.clone(),
-        &types::Ucs01ForwarderExecuteMsg::transfer(
-            ics20_channel_id.clone(),
-            receiver.clone(),
-            memo.clone(),
-        ),
+        &types::Ucs01ForwarderExecuteMsg::Transfer {
+            channel: ics20_channel_id.clone(),
+            receiver: receiver.clone(),
+            memo: memo.unwrap_or_default(),
+            timeout: Some(3600),
+        },
         funds,
     )?
     .into();
@@ -98,7 +99,7 @@ fn evm_note_addr(vc: &VersionControlContract, querier: &QuerierWrapper) -> IcaCl
         .map_err(Into::into)
 }
 
-mod types {
+pub(crate) mod types {
     use super::*;
 
     pub const UCS01_PROTOCOL: &str = "ucs01";
@@ -112,16 +113,5 @@ mod types {
             memo: String,
             timeout: Option<u64>,
         },
-    }
-
-    impl Ucs01ForwarderExecuteMsg {
-        pub fn transfer(channel: String, receiver: HexBinary, memo: Option<String>) -> Self {
-            Self::Transfer {
-                channel,
-                receiver,
-                memo: memo.unwrap_or_default(),
-                timeout: None,
-            }
-        }
     }
 }
