@@ -15,7 +15,7 @@ pub enum ModuleReference {
     App(u64),
     /// A stand-alone contract
     Standalone(u64),
-    /// Native Organization Contracts
+    /// A contract that exposes some service to others.
     Service(Addr),
 }
 
