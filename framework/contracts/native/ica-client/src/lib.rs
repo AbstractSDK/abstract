@@ -3,6 +3,7 @@ pub mod error;
 pub use abstract_ica::msg;
 mod chain_types;
 mod queries;
+pub(crate) mod state;
 
 #[cfg(test)]
 mod test_common {

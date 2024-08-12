@@ -1,4 +1,5 @@
-use crate::msg::{state::*, *};
+use crate::msg::*;
+use crate::state::{Config, CONFIG};
 use abstract_macros::abstract_response;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{

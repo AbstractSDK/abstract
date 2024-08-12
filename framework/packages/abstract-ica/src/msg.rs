@@ -3,20 +3,6 @@ use abstract_sdk::std::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg};
 
-pub mod state {
-
-    use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
-    use cw_storage_plus::Item;
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct Config {
-        pub version_control: VersionControlContract,
-        pub ans_host: AnsHost,
-    }
-
-    pub const CONFIG: Item<Config> = Item::new("config");
-}
-
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {

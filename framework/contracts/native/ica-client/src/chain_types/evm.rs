@@ -1,4 +1,5 @@
-use abstract_ica::{msg::state::Config, EVM_NOTE_ID};
+use crate::state::Config;
+use abstract_ica::EVM_NOTE_ID;
 use abstract_sdk::{feature_objects::VersionControlContract, Resolve};
 use abstract_std::objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId};
 use cosmwasm_std::{

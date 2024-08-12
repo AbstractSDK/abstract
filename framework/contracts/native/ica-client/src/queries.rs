@@ -1,10 +1,5 @@
-use abstract_ica::{
-    msg::{
-        state::{Config, CONFIG},
-        ConfigResponse,
-    },
-    ChainType, IcaAction, IcaActionResponse,
-};
+use crate::state::{Config, CONFIG};
+use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
 use abstract_std::objects::TruncatedChainId;
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
