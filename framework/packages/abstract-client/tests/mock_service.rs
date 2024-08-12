@@ -49,6 +49,7 @@ impl<T: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable for MockServic
     }
 }
 
+#[allow(unused)]
 impl<Chain: ::cw_orch::environment::CwEnv> MockService<Chain> {
     pub fn new_test(chain: Chain) -> Self {
         Self(::cw_orch::contract::Contract::new(MODULE_ID, chain))
