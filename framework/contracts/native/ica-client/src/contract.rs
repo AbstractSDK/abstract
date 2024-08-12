@@ -25,7 +25,7 @@ pub(crate) struct IbcClientResponse;
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     msg: InstantiateMsg,
 ) -> IcaClientResult {
     cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
@@ -39,7 +39,7 @@ pub fn instantiate(
     };
     CONFIG.save(deps.storage, &cfg)?;
 
-    // cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
     Ok(IbcClientResponse::action("instantiate"))
 }
 
@@ -97,30 +97,8 @@ mod tests {
         Addr,
     };
     use cw2::CONTRACT;
-    use cw_ownable::{Ownership, OwnershipError};
+    use cw_ownable::Ownership;
     use speculoos::prelude::*;
-
-    type IbcClientTestResult = Result<(), IcaClientError>;
-
-    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> IcaClientResult {
-        execute(deps, mock_env(), mock_info(sender, &[]), msg)
-    }
-
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> IcaClientResult {
-        execute_as(deps, OWNER, msg)
-    }
-
-    fn test_only_admin(msg: ExecuteMsg) -> IbcClientTestResult {
-        let mut deps = mock_dependencies();
-        mock_init(deps.as_mut())?;
-
-        let res = execute_as(deps.as_mut(), "not_admin", msg);
-        assert_that!(&res)
-            .is_err()
-            .matches(|e| matches!(e, IcaClientError::Ownership(OwnershipError::NotOwner)));
-
-        Ok(())
-    }
 
     #[test]
     fn instantiate_works() -> IcaClientResult<()> {

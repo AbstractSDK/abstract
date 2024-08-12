@@ -1,7 +1,7 @@
 use crate::IcaAction;
 use abstract_sdk::std::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, CosmosMsg};
+use cosmwasm_std::CosmosMsg;
 use cw_ownable::{cw_ownable_execute, cw_ownable_query};
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
