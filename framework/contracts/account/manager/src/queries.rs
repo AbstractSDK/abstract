@@ -27,13 +27,13 @@ const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 10;
 
 pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
-    let contracts = query_module_addresses(deps, &env.contract.address, &ids)?;
+    let contracts = query_module_addresses(deps, &env.contract.address, ids)?;
     let vector = contracts.into_iter().collect();
     to_json_binary(&ModuleAddressesResponse { modules: vector })
 }
 
 pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
-    let response = query_module_versions(deps, &env.contract.address, &ids)?;
+    let response = query_module_versions(deps, &env.contract.address, ids)?;
     let versions = response.into_values().collect();
     to_json_binary(&ModuleVersionsResponse { versions })
 }
@@ -160,7 +160,7 @@ pub fn query_module_version(
 pub fn query_module_versions(
     deps: Deps,
     manager_addr: &Addr,
-    module_names: &[String],
+    module_names: Vec<String>,
 ) -> StdResult<BTreeMap<String, ContractVersion>> {
     let addresses: BTreeMap<String, Addr> =
         query_module_addresses(deps, manager_addr, module_names)?;
@@ -180,22 +180,18 @@ pub fn query_module_versions(
 pub fn query_module_addresses(
     deps: Deps,
     manager_addr: &Addr,
-    module_names: &[String],
+    module_names: Vec<String>,
 ) -> StdResult<BTreeMap<String, Addr>> {
     let mut modules: BTreeMap<String, Addr> = BTreeMap::new();
 
     // Query over
-    for module in module_names.iter() {
-        let result: StdResult<Addr> = ACCOUNT_MODULES
-            .query(&deps.querier, manager_addr.clone(), module)?
-            .ok_or_else(|| {
-                StdError::generic_err(format!("Module {module} not present in Account"))
-            });
+    for module in module_names {
         // Add to map if present, skip otherwise. Allows version control to check what modules are present.
-        match result {
-            Ok(address) => modules.insert(module.clone(), address),
-            Err(_) => None,
-        };
+        if let Some(address) =
+            ACCOUNT_MODULES.query(&deps.querier, manager_addr.clone(), &module)?
+        {
+            modules.insert(module, address);
+        }
     }
     Ok(modules)
 }
