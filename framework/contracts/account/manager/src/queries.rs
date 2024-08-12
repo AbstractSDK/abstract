@@ -18,7 +18,6 @@ use abstract_std::{
         module::{self, ModuleInfo},
         ownership::nested_admin::query_top_level_owner_addr,
     },
-    AbstractError,
 };
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;
