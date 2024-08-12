@@ -39,6 +39,8 @@ cw-controllers = { workspace = true }
 cw-storage-plus.workspace = true
 thiserror.workspace = true
 base64 = "0.22.1"
-counter-contract = { workspace = true }
+# Testing contract
+counter-contract = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", tag = "v0.24.0" }
+cw_orch_counter = { package = "cw-orch", git = "https://github.com/AbstractSDK/cw-orchestrator.git", tag = "v0.24.0" }
 
 ping-pong = { path = "../../modules/contracts/apps/ping-pong" }

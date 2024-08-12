@@ -88,8 +88,6 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
-# Testing contract
-counter-contract = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", tag = "v0.24.0" }
 # Do not remove, none of interchain packages are deployed
 [patch.crates-io]
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
