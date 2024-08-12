@@ -43,7 +43,7 @@ spec that timestamps should be able to be negative (to go back in time) and the 
 To use the Calendar App Module in your Rust project, add the following dependency to your `Cargo.toml`:
 ```toml
 [dependencies]
-calendar-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.19.0", default-features = false }
+calendar-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="<latest-tag>", default-features = false }
 ```
 
 ## Usage with the Abstract SDK
