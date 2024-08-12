@@ -83,7 +83,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
     + Sized
 {
     /// Deploys the adapter. If the adapter is already deployed, it will return an error.
-    /// Use `DeployStrategy::Try` if you want to deploy the adapter only if it is not already deployed.
+    /// Use [`DeployStrategy::Try`]  if you want to deploy the adapter only if it is not already deployed.
     fn deploy(
         &self,
         version: Version,
@@ -144,7 +144,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
 /// Trait for deploying APPs
 pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
     /// Deploys the app. If the app is already deployed, it will return an error.
-    /// Use `DeployStrategy::Try` if you want to deploy the app only if it is not already deployed.
+    /// Use [`DeployStrategy::Try`]  if you want to deploy the app only if it is not already deployed.
     fn deploy(
         &self,
         version: Version,
@@ -195,7 +195,7 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
 /// Trait for deploying Standalones
 pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
     /// Deploys the app. If the app is already deployed, it will return an error.
-    /// Use `maybe_deploy` if you want to deploy the app only if it is not already deployed.
+    /// Use [`DeployStrategy::Try`] if you want to deploy the app only if it is not already deployed.
     fn deploy(
         &self,
         version: Version,
@@ -248,7 +248,7 @@ pub trait ServiceDeployer<Chain: CwEnv>:
     Sized + Uploadable + ContractInstance<Chain> + CwOrchInstantiate<Chain>
 {
     /// Deploys the module. If the module is already deployed, it will return an error.
-    /// Use `maybe_deploy` if you want to deploy the module only if it is not already deployed.
+    /// Use [`DeployStrategy::Try`] if you want to deploy the module only if it is not already deployed.
     fn deploy(
         &self,
         version: Version,
