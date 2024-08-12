@@ -134,10 +134,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn service<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
     ) -> AbstractClientResult<Service<Chain, M>> {
-        let contract = Contract::new(M::module_id(), self.environment());
-        let module: M = contract.into();
-
-        Service::new(self.version_control(), module)
+        Service::new(self.version_control())
     }
 
     /// Return current block info see [`BlockInfo`].

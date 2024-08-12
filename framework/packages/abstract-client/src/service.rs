@@ -10,7 +10,7 @@ use cw_orch::{contract::Contract, prelude::*};
 
 use crate::client::AbstractClientResult;
 
-/// An service represents a module installed on a (sub)-[`Account`].
+/// An service represents a module registered in version control.
 ///
 /// It implements cw-orch traits of the module itself, so you can call its methods directly from the service struct.
 #[derive(Clone)]
@@ -54,13 +54,10 @@ impl<Chain: CwEnv, M: ContractInstance<Chain>> ContractInstance<Chain> for Servi
     }
 }
 
-impl<Chain: CwEnv, M: RegisteredModule> Service<Chain, M> {
-    /// Get module interface installed on provided account
-    pub(crate) fn new(
-        version_control: &VersionControl<Chain>,
-        module: M,
-    ) -> AbstractClientResult<Self> {
-        // Sanity check: the module must be in version control and service
+impl<Chain: CwEnv, M: RegisteredModule + From<Contract<Chain>>> Service<Chain, M> {
+    /// Get module interface installed from version control
+    pub(crate) fn new(version_control: &VersionControl<Chain>) -> AbstractClientResult<Self> {
+        // The module must be in version control and service
         let module_reference: ModuleReference = version_control
             .module(ModuleInfo::from_id(
                 M::module_id(),
@@ -69,11 +66,16 @@ impl<Chain: CwEnv, M: RegisteredModule> Service<Chain, M> {
                 ),
             )?)?
             .reference;
-        if !matches!(module_reference, ModuleReference::Service(_)) {
+        let ModuleReference::Service(service_addr) = module_reference else {
             return Err(crate::AbstractClientError::ExpectedService {});
-        }
+        };
+
+        // Ensure using correct address
+        let contract = Contract::new(M::module_id(), version_control.environment().clone());
+        contract.set_address(&service_addr);
+
         Ok(Self {
-            module,
+            module: contract.into(),
             chain: PhantomData {},
         })
     }
