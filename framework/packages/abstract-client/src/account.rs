@@ -870,15 +870,8 @@ impl<Chain: CwEnv> Account<Chain> {
                 .manager
                 .install_modules(modules, Some(funds))?;
         }
-        let module_addresses = self.module_addresses(vec![M::module_id().to_owned()])?;
 
-        let contract = Contract::new(
-            M::installed_module_contract_id(&self.id()?),
-            self.environment(),
-        );
-        contract.set_address(&module_addresses.modules[0].1);
-
-        let module: M = contract.into();
+        let module = self.module::<M>()?;
 
         Application::new(
             Account::new(self.abstr_account.clone(), self.install_on_sub_account),
