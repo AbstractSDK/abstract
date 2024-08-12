@@ -88,9 +88,9 @@ impl IbcMemoBuilder for PacketForwardMiddlewareBuilder {
             })
             .collect::<Vec<_>>();
         // Destination have to know receiver
-        forwards
-            .last_mut()
-            .map(|last_hop| last_hop.receiver = Some(receiver));
+        if let Some(last_hop) = forwards.last_mut() {
+            last_hop.receiver = Some(receiver);
+        }
 
         // Building message from behind because it's easier to satisfy borrow checker this way
         let mut head = BTreeMap::new();
