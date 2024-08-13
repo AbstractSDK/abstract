@@ -10,15 +10,11 @@ use abstract_sdk::{
         PROXY,
     },
 };
-use abstract_std::{
-    objects::{
-        module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
-    },
-    ICA_CLIENT,
+use abstract_std::objects::{
+    module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
 };
 use cosmwasm_std::{
-    to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Reply, Response,
-    StdError, SubMsgResult,
+    to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
 };
 use semver::Version;
 
