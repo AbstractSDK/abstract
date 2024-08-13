@@ -54,19 +54,6 @@
         }
       },
       "additionalProperties": false
-    },
-    {
-      "description": "Receive endpoint for CW20 / external service integrations",
-      "type": "object",
-      "required": [
-        "receive"
-      ],
-      "properties": {
-        "receive": {
-          "$ref": "#/definitions/Cw20ReceiveMsg"
-        }
-      },
-      "additionalProperties": false
     }
   ],
   "definitions": {
@@ -360,27 +347,6 @@
               "$ref": "#/definitions/Binary"
             }
           ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "Cw20ReceiveMsg": {
-      "description": "Cw20ReceiveMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
-      "type": "object",
-      "required": [
-        "amount",
-        "msg",
-        "sender"
-      ],
-      "properties": {
-        "amount": {
-          "$ref": "#/definitions/Uint128"
-        },
-        "msg": {
-          "$ref": "#/definitions/Binary"
-        },
-        "sender": {
-          "type": "string"
         }
       },
       "additionalProperties": false

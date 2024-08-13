@@ -54,19 +54,6 @@
         }
       },
       "additionalProperties": false
-    },
-    {
-      "description": "Receive endpoint for CW20 / external service integrations",
-      "type": "object",
-      "required": [
-        "receive"
-      ],
-      "properties": {
-        "receive": {
-          "$ref": "#/definitions/Empty"
-        }
-      },
-      "additionalProperties": false
     }
   ],
   "definitions": {
