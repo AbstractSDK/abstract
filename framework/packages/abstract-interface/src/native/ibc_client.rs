@@ -38,6 +38,10 @@ impl<Chain: CwEnv> RegisteredModule for IbcClient<Chain> {
     fn module_version<'a>() -> &'a str {
         ibc_client::contract::CONTRACT_VERSION
     }
+
+    fn dependencies<'a>() -> &'a [abstract_std::objects::dependency::StaticDependency] {
+        &[]
+    }
 }
 
 impl<Chain: CwEnv> From<Contract<Chain>> for IbcClient<Chain> {

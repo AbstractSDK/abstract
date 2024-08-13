@@ -18,7 +18,6 @@ use abstract_std::{
         module::{self, ModuleInfo},
         ownership::nested_admin::query_top_level_owner_addr,
     },
-    AbstractError,
 };
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;
@@ -28,13 +27,13 @@ const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 10;
 
 pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
-    let contracts = query_module_addresses(deps, &env.contract.address, &ids)?;
+    let contracts = query_module_addresses(deps, &env.contract.address, ids)?;
     let vector = contracts.into_iter().collect();
     to_json_binary(&ModuleAddressesResponse { modules: vector })
 }
 
 pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
-    let response = query_module_versions(deps, &env.contract.address, &ids)?;
+    let response = query_module_versions(deps, &env.contract.address, ids)?;
     let versions = response.into_values().collect();
     to_json_binary(&ModuleVersionsResponse { versions })
 }
@@ -136,21 +135,24 @@ pub fn query_module_version(
     // - failed cw2 query
     // - the query succeeded but the cw2 name doesn't adhere to our formatting standards
     //
-    // Which means this contract is a standalone contract. Hence we need to get its information from VersionControl.
-    let code_id = deps
-        .querier
-        .query_wasm_contract_info(module_addr.to_string())?
-        .code_id;
-    let module_version = version_control
-        .query_standalone_info_raw(code_id, &deps.querier)
-        .map_err(AbstractError::from)
-        .and_then(|module_info| {
-            let version = ContractVersion::try_from(module_info)?;
-            Ok(version)
-        })
-        .map_err(|e| StdError::generic_err(e.to_string()))?;
-
-    Ok(module_version)
+    // Which means this contract is a standalone or service contract. Hence we need to get its information from VersionControl.
+    let module_info = match version_control.query_service_info_raw(&module_addr, &deps.querier) {
+        // We got service
+        Ok(module_info) => module_info,
+        // Didn't got service, let's try to get standalone
+        Err(_) => {
+            let code_id = deps
+                .querier
+                .query_wasm_contract_info(module_addr.to_string())?
+                .code_id;
+            version_control
+                .query_standalone_info_raw(code_id, &deps.querier)
+                .map_err(|e| StdError::generic_err(e.to_string()))?
+        }
+    };
+    let version =
+        ContractVersion::try_from(module_info).map_err(|e| StdError::generic_err(e.to_string()))?;
+    Ok(version)
 }
 
 /// RawQuery the module versions of the modules part of the Account
@@ -158,7 +160,7 @@ pub fn query_module_version(
 pub fn query_module_versions(
     deps: Deps,
     manager_addr: &Addr,
-    module_names: &[String],
+    module_names: Vec<String>,
 ) -> StdResult<BTreeMap<String, ContractVersion>> {
     let addresses: BTreeMap<String, Addr> =
         query_module_addresses(deps, manager_addr, module_names)?;
@@ -178,22 +180,18 @@ pub fn query_module_versions(
 pub fn query_module_addresses(
     deps: Deps,
     manager_addr: &Addr,
-    module_names: &[String],
+    module_names: Vec<String>,
 ) -> StdResult<BTreeMap<String, Addr>> {
     let mut modules: BTreeMap<String, Addr> = BTreeMap::new();
 
     // Query over
-    for module in module_names.iter() {
-        let result: StdResult<Addr> = ACCOUNT_MODULES
-            .query(&deps.querier, manager_addr.clone(), module)?
-            .ok_or_else(|| {
-                StdError::generic_err(format!("Module {module} not present in Account"))
-            });
+    for module in module_names {
         // Add to map if present, skip otherwise. Allows version control to check what modules are present.
-        match result {
-            Ok(address) => modules.insert(module.clone(), address),
-            Err(_) => None,
-        };
+        if let Some(address) =
+            ACCOUNT_MODULES.query(&deps.querier, manager_addr.clone(), &module)?
+        {
+            modules.insert(module, address);
+        }
     }
     Ok(modules)
 }

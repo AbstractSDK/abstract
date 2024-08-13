@@ -135,10 +135,17 @@ pub fn propose_modules(
                 None,
             )?;
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
-            // Save module info of standalone contracts,
-            // helps querying version for cw-2-less or mis-formatted contracts
-            if let ModuleReference::Standalone(id) = mod_ref {
-                STANDALONE_INFOS.save(deps.storage, id, &module)?;
+            // Help querying version for cw-2-less or mis-formatted contracts
+            match mod_ref {
+                // Save module info of standalone contracts,
+                ModuleReference::Standalone(id) => {
+                    STANDALONE_INFOS.save(deps.storage, id, &module)?;
+                }
+                // Save module info of service contracts,
+                ModuleReference::Service(addr) => {
+                    SERVICE_INFOS.save(deps.storage, &addr, &module)?;
+                }
+                _ => (),
             }
         } else {
             PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;

@@ -47,7 +47,7 @@ impl AbstractRegistryAccess for MockModule {
 }
 
 impl Dependencies for MockModule {
-    fn dependencies(&self) -> &[StaticDependency] {
+    fn dependencies(&self) -> &'static [StaticDependency] {
         &[TEST_MODULE_DEP]
     }
 }

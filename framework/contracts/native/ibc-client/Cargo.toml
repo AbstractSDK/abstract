@@ -26,7 +26,7 @@ thiserror = { workspace = true }
 abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
-cw-semver = { workspace = true }
+semver = { workspace = true }
 polytone-note = { workspace = true, features = ["library"] }
 polytone = { workspace = true }
 cw-paginate = "0.2.1"
