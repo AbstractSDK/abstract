@@ -91,6 +91,13 @@ pub enum CustomExecuteMsg {
     Receive(cw20::Cw20ReceiveMsg),
 }
 
+// Enable cw_orch api
+impl From<EtfExecuteMsg> for CustomExecuteMsg {
+    fn from(value: EtfExecuteMsg) -> Self {
+        Self::Module(value)
+    }
+}
+
 /// Query Msg
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]

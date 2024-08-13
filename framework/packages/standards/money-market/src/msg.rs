@@ -2,7 +2,6 @@
 //! # MoneyMarket Adapter API
 // re-export response types
 use crate::{ans_action::MoneyMarketAnsAction, raw_action::MoneyMarketRawAction};
-use abstract_std::adapter::AdapterRequestMsg;
 use abstract_std::objects::AssetEntry;
 use abstract_std::{adapter, objects::fee::UsageFee};
 use cosmwasm_schema::{cw_serde, QueryResponses};
@@ -26,14 +25,6 @@ pub type InstantiateMsg = adapter::InstantiateMsg<MoneyMarketInstantiateMsg>;
 pub type QueryMsg = adapter::QueryMsg<MoneyMarketQueryMsg>;
 
 impl adapter::AdapterExecuteMsg for MoneyMarketExecuteMsg {}
-impl From<MoneyMarketExecuteMsg> for ExecuteMsg {
-    fn from(request: MoneyMarketExecuteMsg) -> Self {
-        Self::Module(AdapterRequestMsg {
-            proxy_address: None,
-            request,
-        })
-    }
-}
 impl adapter::AdapterQueryMsg for MoneyMarketQueryMsg {}
 
 /// Response from GenerateMsgs

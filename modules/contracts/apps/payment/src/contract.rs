@@ -40,6 +40,11 @@ const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
 
 // Export handlers
 #[cfg(feature = "export")]
-abstract_app::export_endpoints!(APP, PaymentApp);
+abstract_app::export_endpoints!(APP, PaymentApp, crate::msg::CustomExecuteMsg);
 
-abstract_app::cw_orch_interface!(APP, PaymentApp, PaymentAppInterface);
+abstract_app::cw_orch_interface!(
+    APP,
+    PaymentApp,
+    PaymentAppInterface,
+    crate::msg::CustomExecuteMsg
+);

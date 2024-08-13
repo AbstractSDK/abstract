@@ -19,6 +19,7 @@ pub trait ExecuteEndpoint: Handler {
     ) -> Result<Response, Self::Error>;
 }
 
+/// Trait for a custom contract Execute entry point
 pub trait CustomExecuteHandler<Module: Handler>: Sized {
     /// Module execute message (`crate::msg::ExecuteMsg` of your module)
     type ExecuteMsg;
@@ -27,7 +28,7 @@ pub trait CustomExecuteHandler<Module: Handler>: Sized {
     /// Convert custom execute message to your module execute message, or if not possible return custom
     fn try_into_base(self) -> Result<Self::ExecuteMsg, Self>;
 
-    /// This method will be used if [`CustomExecuteHandler::into_execute_msg`] returned Error
+    /// This method is used if [`CustomExecuteHandler::into_execute_msg`] returned Error
     fn custom_execute(
         self,
         deps: DepsMut,

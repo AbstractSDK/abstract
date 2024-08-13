@@ -32,6 +32,14 @@ pub type InstantiateMsg<ModuleMsg = Empty> =
 /// in the [`ExecuteMsg`] enum.
 /// It's just a marker trait
 pub trait AdapterExecuteMsg: Serialize {}
+impl<T: AdapterExecuteMsg> From<T> for ExecuteMsg<T> {
+    fn from(request: T) -> Self {
+        Self::Module(AdapterRequestMsg {
+            proxy_address: None,
+            request,
+        })
+    }
+}
 
 impl AdapterExecuteMsg for Empty {}
 

@@ -32,8 +32,13 @@ use serde::Serialize;
 
 /// Trait indicates that the type is used as an app message
 /// in the [`ExecuteMsg`] enum.
-/// It's just a marker trait
+/// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
 pub trait AppExecuteMsg: Serialize {}
+impl<T: AppExecuteMsg> From<T> for ExecuteMsg<T> {
+    fn from(module: T) -> Self {
+        Self::Module(module)
+    }
+}
 
 impl AppExecuteMsg for Empty {}
 

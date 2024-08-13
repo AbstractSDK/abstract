@@ -19,25 +19,15 @@ impl<
         CustomInitMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + AppQueryMsg + QueryResponses,
         CustomMigrateMsg: Serialize + JsonSchema,
-        ReceiveMsg: Serialize + JsonSchema,
         SudoMsg: Serialize + JsonSchema,
-    >
-    AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    > AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         write_api! {
             name: "schema",
             instantiate: app::InstantiateMsg<CustomInitMsg>,
             query: app::QueryMsg<CustomQueryMsg>,
-            execute: app::ExecuteMsg<CustomExecMsg, ReceiveMsg>,
+            execute: app::ExecuteMsg<CustomExecMsg>,
             migrate: app::MigrateMsg<CustomMigrateMsg>,
         };
 

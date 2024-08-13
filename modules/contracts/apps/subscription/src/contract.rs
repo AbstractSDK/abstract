@@ -33,9 +33,18 @@ const SUBSCRIPTION_MODULE: SubscriptionApp =
 
 // export endpoints
 #[cfg(feature = "export")]
-abstract_app::export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
+abstract_app::export_endpoints!(
+    SUBSCRIPTION_MODULE,
+    SubscriptionApp,
+    crate::msg::CustomExecuteMsg
+);
 
-abstract_app::cw_orch_interface!(SUBSCRIPTION_MODULE, SubscriptionApp, SubscriptionInterface);
+abstract_app::cw_orch_interface!(
+    SUBSCRIPTION_MODULE,
+    SubscriptionApp,
+    SubscriptionInterface,
+    crate::msg::CustomExecuteMsg
+);
 
 #[cfg(not(target_arch = "wasm32"))]
 impl<Chain: cw_orch::prelude::CwEnv> abstract_app::abstract_interface::DependencyCreation
