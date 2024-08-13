@@ -106,7 +106,7 @@ macro_rules! cw_orch_interface {
             ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error>
             {
                 use $crate::sdk::base::{CustomExecuteHandler, ExecuteEndpoint};
-                match msg.try_into_base() {
+                match CustomExecuteHandler::try_into_base(msg) {
                     Ok(default) => $app_const.execute(deps, env, info, default),
                     Err(custom) => custom.custom_execute(deps, env, info, $app_const),
                 }
