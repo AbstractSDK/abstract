@@ -26,6 +26,8 @@
 
 ### Removed
 
+- Value calculation logic from proxy contract.
+
 ### Fixed
 
 - Abstract Client: If Account Builder retrieves account now it will install missing modules from the builder instead of ignoring them
