@@ -13,7 +13,7 @@ pub use contract_base::{
     SudoHandlerFn, VersionString,
 };
 pub use endpoints::{
-    ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint, MigrateEndpoint, ModuleIbcEndpoint,
-    QueryEndpoint, ReplyEndpoint, SudoEndpoint,
+    CustomExecuteHandler, ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint,
+    MigrateEndpoint, ModuleIbcEndpoint, QueryEndpoint, ReplyEndpoint, SudoEndpoint,
 };
 pub use handler::Handler;

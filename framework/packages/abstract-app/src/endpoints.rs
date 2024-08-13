@@ -26,17 +26,7 @@ mod sudo;
 /// ```
 macro_rules! export_endpoints {
     ($app_const:expr, $app_type:ty) => {
-        /// Instantiate entrypoint
-        #[::cosmwasm_std::entry_point]
-        pub fn instantiate(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            info: ::cosmwasm_std::MessageInfo,
-            msg: <$app_type as $crate::sdk::base::InstantiateEndpoint>::InstantiateMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
-            use $crate::sdk::base::InstantiateEndpoint;
-            $app_const.instantiate(deps, env, info, msg)
-        }
+        $crate::__endpoints_without_custom__!($app_const, $app_type);
 
         /// Execute entrypoint
         #[::cosmwasm_std::entry_point]
@@ -48,6 +38,42 @@ macro_rules! export_endpoints {
         ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
             use $crate::sdk::base::ExecuteEndpoint;
             $app_const.execute(deps, env, info, msg)
+        }
+    };
+    ($app_const:expr, $app_type:ty, $custom_exec:ty) => {
+        $crate::__endpoints_without_custom__!($app_const, $app_type);
+
+        /// Execute entrypoint
+        #[::cosmwasm_std::entry_point]
+        pub fn execute(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            info: ::cosmwasm_std::MessageInfo,
+            msg: $custom_exec,
+        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
+            use $crate::sdk::base::{CustomExecuteHandler, ExecuteEndpoint};
+            match msg.try_into_base() {
+                Ok(default) => $app_const.execute(deps, env, info, default),
+                Err(custom) => custom.custom_execute(deps, env, info, $app_const),
+            }
+        }
+    };
+}
+
+#[macro_export]
+#[doc(hidden)]
+macro_rules! __endpoints_without_custom__ {
+    ($app_const:expr, $app_type:ty) => {
+        /// Instantiate entrypoint
+        #[::cosmwasm_std::entry_point]
+        pub fn instantiate(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            info: ::cosmwasm_std::MessageInfo,
+            msg: <$app_type as $crate::sdk::base::InstantiateEndpoint>::InstantiateMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
+            use $crate::sdk::base::InstantiateEndpoint;
+            $app_const.instantiate(deps, env, info, msg)
         }
 
         /// Query entrypoint
