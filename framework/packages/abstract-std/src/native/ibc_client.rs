@@ -9,7 +9,7 @@ use crate::{
     manager::{self, ModuleInstallConfig},
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
-        version_control::VersionControlContract, AssetEntry, TruncatedChainId,
+        version_control::VersionControlContract, TruncatedChainId,
     },
     AbstractError,
 };
@@ -106,7 +106,6 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: TruncatedChainId,
-        base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },

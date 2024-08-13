@@ -9,14 +9,11 @@ use abstract_std::{
     account_factory,
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
-        AssetEntry,
     },
-    proxy::BaseAssetResponse,
     version_control::{AccountBase, NamespaceInfo, NamespaceResponse},
     ABSTRACT_EVENT_TYPE,
 };
 use abstract_testing::prelude::*;
-use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
@@ -55,7 +52,6 @@ fn create_one_account() -> AResult {
         },
         vec![],
         String::from("first_account"),
-        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
@@ -111,7 +107,6 @@ fn create_two_account_s() -> AResult {
         vec![],
         String::from("first_os"),
         None,
-        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -124,7 +119,6 @@ fn create_two_account_s() -> AResult {
         },
         vec![],
         String::from("second_os"),
-        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
@@ -190,7 +184,6 @@ fn sender_is_not_admin_monarchy() -> AResult {
         vec![],
         String::from("first_os"),
         None,
-        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -243,7 +236,6 @@ fn sender_is_not_admin_external() -> AResult {
         vec![],
         String::from("first_os"),
         None,
-        None,
         Some(String::from("account_description")),
         Some(String::from("http://account_link_of_at_least_11_char")),
         None,
@@ -258,46 +250,6 @@ fn sender_is_not_admin_external() -> AResult {
         is_suspended: false,
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-    });
-
-    Ok(())
-}
-
-#[test]
-fn create_one_account_with_base_asset() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-
-    let factory = &deployment.account_factory;
-    let ans_host = &deployment.ans_host;
-
-    // Register the "juno", test asset for usage with the account
-    let asset_name = "juno";
-    let asset = AssetInfoBase::Native("ujuno".to_string());
-    let checked_asset = AssetInfo::Native("ujuno".to_string());
-    ans_host.update_asset_addresses(vec![(asset_name.to_string(), asset)], vec![])?;
-
-    let account = factory.create_new_account(
-        AccountDetails {
-            name: String::from("first_account"),
-            description: Some(String::from("account_description")),
-            link: Some(String::from("https://account_link_of_at_least_11_char")),
-            namespace: None,
-            base_asset: Some(AssetEntry::new(asset_name)),
-            install_modules: vec![],
-            account_id: None,
-        },
-        GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
-        },
-        None,
-    )?;
-
-    let base_asset = account.proxy.base_asset()?;
-
-    assert_that!(&base_asset).is_equal_to(&BaseAssetResponse {
-        base_asset: checked_asset,
     });
 
     Ok(())
@@ -320,7 +272,6 @@ fn create_one_account_with_namespace() -> AResult {
         },
         vec![],
         String::from("first_account"),
-        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),

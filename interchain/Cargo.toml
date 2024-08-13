@@ -77,7 +77,6 @@ abstract-client = { version = "0.23.0", path = "../framework/packages/abstract-c
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }
-etf-app = { path = "../modules/contracts/apps/etf" }
 dca-app = { path = "../modules/contracts/apps/dca" }
 abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking" }
 abstract-dex-adapter = { path = "../modules/contracts/adapters/dex" }

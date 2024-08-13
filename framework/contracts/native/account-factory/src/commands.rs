@@ -17,7 +17,7 @@ use abstract_std::{
     module_factory::SimulateInstallModulesResponse,
     objects::{
         account::AccountTrace, module::assert_module_data_validity,
-        salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
+        salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError, IBC_HOST,
 };
@@ -47,7 +47,6 @@ pub fn execute_create_account(
     description: Option<String>,
     link: Option<String>,
     namespace: Option<String>,
-    base_asset: Option<AssetEntry>,
     install_modules: Vec<ModuleInstallConfig>,
     account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
@@ -212,7 +211,6 @@ pub fn execute_create_account(
         account_id: context.account_id,
         ans_host_address: config.ans_host_contract.to_string(),
         manager_addr: context.account_base.manager.to_string(),
-        base_asset: base_asset.clone(),
     };
 
     // Add Account base to version_control
@@ -239,9 +237,6 @@ pub fn execute_create_account(
     }
     if let Some(namespace) = namespace {
         metadata_attributes.push(("namespace", namespace))
-    }
-    if let Some(base_asset) = base_asset {
-        metadata_attributes.push(("base_asset", base_asset.to_string()))
     }
 
     // The execution order here is important.

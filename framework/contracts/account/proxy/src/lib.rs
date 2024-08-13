@@ -21,7 +21,6 @@ mod test_common {
             account_id: TEST_ACCOUNT_ID,
             ans_host_address: MOCK_CONTRACT_ADDR.to_string(),
             manager_addr: TEST_MANAGER.to_string(),
-            base_asset: None,
         };
         let _res = contract::instantiate(deps, mock_env(), info, msg).unwrap();
     }

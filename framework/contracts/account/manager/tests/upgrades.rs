@@ -400,7 +400,6 @@ fn create_account_with_installed_module() -> AResult {
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
             install_modules: vec![],
             account_id: None,
         },
@@ -418,7 +417,6 @@ fn create_account_with_installed_module() -> AResult {
                 description: Some(String::from("account_description")),
                 link: Some(String::from("https://account_link_of_at_least_11_char")),
                 namespace: None,
-                base_asset: None,
                 install_modules: vec![
                     ModuleInstallConfig::new(
                         ModuleInfo::from_id(
@@ -503,7 +501,6 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
             install_modules: vec![],
             account_id: None,
         },
@@ -570,7 +567,6 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
                 description: None,
                 link: None,
                 namespace: None,
-                base_asset: None,
                 install_modules: vec![
                     ModuleInstallConfig::new(
                         ModuleInfo::from_id(
@@ -649,7 +645,6 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
             install_modules: vec![],
             account_id: None,
         },
@@ -708,7 +703,6 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             description: None,
             link: None,
             namespace: None,
-            base_asset: None,
             install_modules: vec![
                 ModuleInstallConfig::new(
                     ModuleInfo::from_id(
@@ -766,7 +760,6 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
             install_modules: vec![],
             account_id: None,
         },
@@ -848,7 +841,6 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                 description: None,
                 link: None,
                 namespace: None,
-                base_asset: None,
                 install_modules: vec![
                     ModuleInstallConfig::new(
                         ModuleInfo::from_id(

@@ -5,14 +5,12 @@ use abstract_sdk::{
         objects::account::ACCOUNT_ID,
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},
-            AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+            ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
         },
         PROXY,
     },
 };
-use abstract_std::objects::{
-    module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
-};
+use abstract_std::objects::module_version::assert_contract_upgrade;
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
 };
@@ -59,15 +57,6 @@ pub fn instantiate(
     let admin_addr = Some(manager_addr);
     ADMIN.set(deps.branch(), admin_addr)?;
 
-    if let Some(base_asset) = msg.base_asset {
-        let oracle = Oracle::new();
-        oracle.update_assets(
-            deps,
-            &ans_host,
-            vec![(base_asset, UncheckedPriceSource::None)],
-            vec![],
-        )?;
-    }
     Ok(Response::default())
 }
 
@@ -80,9 +69,6 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
-        ExecuteMsg::UpdateAssets { to_add, to_remove } => {
-            update_assets(deps, info, to_add, to_remove)
-        }
     }
 }
 
@@ -99,23 +85,9 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
-        QueryMsg::TotalValue {} => to_json_binary(&query_total_value(deps, env)?),
         QueryMsg::HoldingAmount { identifier } => {
             to_json_binary(&query_holding_amount(deps, env, identifier)?)
         }
-        QueryMsg::TokenValue { identifier } => {
-            to_json_binary(&query_token_value(deps, env, identifier)?)
-        }
-        QueryMsg::AssetConfig { identifier } => to_json_binary(&AssetConfigResponse {
-            price_source: Oracle::new().asset_config(deps, &identifier)?,
-        }),
-        QueryMsg::AssetsConfig { start_after, limit } => {
-            to_json_binary(&query_oracle_asset_config(deps, start_after, limit)?)
-        }
-        QueryMsg::AssetsInfo { start_after, limit } => {
-            to_json_binary(&query_oracle_asset_info(deps, start_after, limit)?)
-        }
-        QueryMsg::BaseAsset {} => to_json_binary(&query_base_asset(deps)?),
     }
     .map_err(Into::into)
 }

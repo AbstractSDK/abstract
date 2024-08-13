@@ -227,7 +227,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     {
         let AccountDetails {
             namespace,
-            base_asset,
             install_modules,
             // Unused fields
             name: _,
@@ -241,7 +240,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
-                    base_asset,
                     namespace,
                     install_modules,
                 },
@@ -259,7 +257,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             description,
             link,
             namespace,
-            base_asset,
             install_modules,
             account_id,
         } = account_details;
@@ -269,7 +266,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 name,
                 description,
                 link,
-                base_asset,
                 namespace,
                 install_modules,
                 account_id,
