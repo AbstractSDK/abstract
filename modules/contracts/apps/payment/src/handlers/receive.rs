@@ -4,7 +4,6 @@ use cw_asset::Asset;
 
 use crate::contract::{AppResult, PaymentApp};
 
-// TODO: custom execute msg
 pub fn receive_handler(
     deps: DepsMut,
     env: Env,

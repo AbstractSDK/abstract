@@ -27,9 +27,6 @@ use cosmwasm_std::{Addr, Empty};
 use cw_controllers::AdminResponse;
 use serde::Serialize;
 
-// TODO: Current implementation don't work with CustomMessages
-// Because if we do some `impl From<T> for X where T: SomeTrait`, we don't allow to implement ANY `From<T> for Y` outside of this crate
-
 /// Trait indicates that the type is used as an app message
 /// in the [`ExecuteMsg`] enum.
 /// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.

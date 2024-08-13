@@ -8,7 +8,6 @@ use crate::{
     msg::DepositHookMsg,
 };
 
-// TODO: custom execute msg
 pub fn receive_cw20(
     deps: DepsMut,
     env: Env,

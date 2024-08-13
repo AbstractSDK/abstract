@@ -30,7 +30,7 @@ pub type InstantiateMsg<ModuleMsg = Empty> =
 
 /// Trait indicates that the type is used as an app message
 /// in the [`ExecuteMsg`] enum.
-/// It's just a marker trait
+/// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
 pub trait AdapterExecuteMsg: Serialize {}
 impl<T: AdapterExecuteMsg> From<T> for ExecuteMsg<T> {
     fn from(request: T) -> Self {
