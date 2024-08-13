@@ -22,7 +22,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{from_json, to_json_binary};
 use cw2::{ContractVersion, CONTRACT};
-use cw_semver::{Version, VersionReq};
+use semver::{Version, VersionReq};
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
