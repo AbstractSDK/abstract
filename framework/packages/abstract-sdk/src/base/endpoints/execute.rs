@@ -23,7 +23,7 @@ pub trait ExecuteEndpoint: Handler {
 ///
 /// To use it:
 /// - create a custom execute enum, with your custom methods
-/// - copy all desired endpoints of App [abstract_std::app::ExecuteMsg] or Adapter [abstract_std::adapter::ExecuteMsg]
+/// - copy all desired endpoints of App [`abstract_std::app::ExecuteMsg`] or Adapter [`abstract_std::adapter::ExecuteMsg`]
 /// - Add your custom type to the end of export_endpoints!() and cw_orch_interface!() macros
 pub trait CustomExecuteHandler<Module: Handler>: Sized {
     /// Module execute message (`crate::msg::ExecuteMsg` of your module)
