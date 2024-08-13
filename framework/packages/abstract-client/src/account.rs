@@ -196,6 +196,24 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(self)
     }
 
+    /// Install an standalone on current account.
+    pub fn install_standalone<M: InstallConfig>(
+        &mut self,
+        configuration: &M::InitMsg,
+    ) -> AbstractClientResult<&mut Self> {
+        self.install_modules.push(M::install_config(configuration)?);
+        Ok(self)
+    }
+
+    /// Install an service on current account.
+    pub fn install_service<M: InstallConfig>(
+        &mut self,
+        configuration: &M::InitMsg,
+    ) -> AbstractClientResult<&mut Self> {
+        self.install_modules.push(M::install_config(configuration)?);
+        Ok(self)
+    }
+
     /// Install an application with dependencies on current account.
     pub fn install_app_with_dependencies<M: DependencyCreation + InstallConfig>(
         &mut self,
@@ -521,6 +539,22 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
+    /// Install an service on the account.
+    /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account.
+    /// Errors if this module already installed
+    pub fn install_service<M: InstallConfig + From<Contract<Chain>>>(
+        &self,
+        configuration: &M::InitMsg,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let modules = vec![M::install_config(configuration)?];
+
+        match self.install_on_sub_account {
+            true => self.install_module_sub_internal(modules, funds),
+            false => self.install_module_current_internal(modules, funds),
+        }
+    }
+
     /// Install an adapter on current account.
     /// Errors if this module already installed
     pub fn install_adapter<M: InstallConfig<InitMsg = Empty> + From<Contract<Chain>>>(
@@ -831,24 +865,17 @@ impl<Chain: CwEnv> Account<Chain> {
                 .iter()
                 .any(|module_info| module_info.id == m.module.id())
         });
+        if !modules.is_empty() {
+            self.abstr_account
+                .manager
+                .install_modules(modules, Some(funds))?;
+        }
 
-        let install_module_response = self
-            .abstr_account
-            .manager
-            .install_modules(modules, Some(funds))?;
-
-        let module_addr = Self::parse_modules_installing_response(install_module_response);
-        let contract = Contract::new(
-            M::installed_module_contract_id(&self.id()?),
-            self.environment(),
-        );
-        contract.set_address(&module_addr);
-
-        let adapter: M = contract.into();
+        let module = self.module::<M>()?;
 
         Application::new(
             Account::new(self.abstr_account.clone(), self.install_on_sub_account),
-            adapter,
+            module,
         )
     }
 
@@ -925,30 +952,6 @@ impl<Chain: CwEnv> Account<Chain> {
             sub_account_id: sub_account_id.unwrap(),
             module_address,
         }
-    }
-
-    fn parse_modules_installing_response(response: Chain::Response) -> Addr {
-        let wasm_abstract_attributes: Vec<Attribute> = response
-            .events()
-            .into_iter()
-            .filter(|e| e.ty == "wasm-abstract")
-            .flat_map(|e| e.attributes)
-            .collect();
-
-        let module_addresses: String = wasm_abstract_attributes
-            .iter()
-            .find(|a| a.key == "new_modules")
-            .map(|a| a.value.parse().unwrap())
-            .unwrap();
-
-        // When there are multiple modules registered the addresses are returned in a common
-        // separated list. We want the last one as that is the "top-level" module while the rest
-        // are dependencies, since in the sub-account creation call, we pass in the top-level
-        // module last.
-        let module_address = module_addresses.split(',').last().unwrap();
-
-        // We install only one module
-        Addr::unchecked(module_address)
     }
 
     pub(crate) fn module<T: RegisteredModule + From<Contract<Chain>>>(

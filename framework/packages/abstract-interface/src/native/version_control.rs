@@ -179,6 +179,18 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         Ok(())
     }
 
+    /// Register services modules
+    pub fn register_services(
+        &self,
+        services: Vec<(&Contract<Chain>, VersionString)>,
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        let to_register = self.contracts_into_module_entries(services, |c| {
+            ModuleReference::Service(c.address().unwrap())
+        })?;
+        self.propose_modules(to_register)?;
+        Ok(())
+    }
+
     pub fn register_apps(
         &self,
         apps: Vec<(&Contract<Chain>, VersionString)>,
