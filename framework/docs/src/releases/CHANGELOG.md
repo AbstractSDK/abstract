@@ -23,10 +23,13 @@
 - `enable_ibc` added to Account builder.
 - `module_status` on AbstractClient that returns current status of the module.
 - `install_on_sub_account` now defaults to `false` in Account Builder
+- `Publisher` will check if dependencies of the module is registered in version control to the chain before publishing.
 
 ### Removed
 
 - Value calculation logic from proxy contract.
+- `cw-semver` dependency removed
+
 
 ### Fixed
 

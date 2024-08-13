@@ -26,12 +26,14 @@ pub mod interface {
     use abstract_adapter::abstract_interface::ClientResolve;
     use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError, AnsHost};
     use abstract_adapter::abstract_interface::{AdapterDeployer, RegisteredModule};
+    use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::sdk::features::ModuleIdentification;
     use abstract_adapter::std::{
         adapter,
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
 
+    use abstract_adapter::traits::Dependencies;
     use abstract_dex_standard::ans_action::{DexAnsAction, WholeDexAction};
     use cosmwasm_std::Decimal;
     use cw_asset::{AssetBase, AssetInfoBase};
@@ -185,6 +187,10 @@ pub mod interface {
 
         fn module_version<'a>() -> &'a str {
             DEX_ADAPTER.version()
+        }
+
+        fn dependencies<'a>() -> &'a [StaticDependency] {
+            DEX_ADAPTER.dependencies()
         }
     }
 

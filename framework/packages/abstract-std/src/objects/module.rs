@@ -2,8 +2,8 @@ use std::fmt::{self, Display};
 
 use cosmwasm_std::{ensure_eq, to_json_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
-use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
+use semver::Version;
 
 use super::module_reference::ModuleReference;
 use crate::{

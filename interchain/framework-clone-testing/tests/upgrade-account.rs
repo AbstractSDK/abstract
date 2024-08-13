@@ -10,7 +10,7 @@ use abstract_testing::addresses::TEST_VERSION;
 use anyhow::{bail, Ok};
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
-use cw_semver::Version;
+use semver::Version;
 // owner of the abstract infra
 const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
 

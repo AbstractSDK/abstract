@@ -1493,6 +1493,35 @@ fn module_status() -> anyhow::Result<()> {
 }
 
 #[test]
+fn cant_upload_module_with_non_deployed_deps() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?;
+
+    let app_dependency_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    // Matching dep not uploaded - can't upload app
+    let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
+    assert!(matches!(
+        res,
+        Err(AbstractClientError::Interface(
+            abstract_interface::AbstractInterfaceError::NoMatchingModule(_)
+        ))
+    ));
+
+    // Now publish dep and we can upload app then
+    app_dependency_publisher.publish_app::<MockAppI<_>>()?;
+    let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
+    assert!(res.is_ok());
+    Ok(())
+}
+
+#[test]
 fn register_service() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain).build()?;
