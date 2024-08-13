@@ -38,6 +38,9 @@ use abstract_testing::{
 use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;
+use mock_service::{MockMsg, MockService};
+
+mod mock_service;
 
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
@@ -1519,5 +1522,34 @@ fn cant_upload_module_with_non_deployed_deps() -> anyhow::Result<()> {
     app_dependency_publisher.publish_app::<MockAppI<_>>()?;
     let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
     assert!(res.is_ok());
+    Ok(())
+}
+
+#[test]
+fn register_service() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let service_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    service_publisher.publish_service::<MockService<MockBech32>>(&MockMsg {})?;
+
+    // Can get service without account
+    let service = client.service::<MockService<MockBech32>>()?;
+    let res: String = service.query(&MockMsg {})?;
+    assert_eq!(res, "test");
+
+    // Or from an account with Application if installed
+    let account = client
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .install_service::<MockService<MockBech32>>(&MockMsg {})?
+        .build()?;
+
+    let service = account.application::<MockService<MockBech32>>()?;
+    let res: String = service.query(&MockMsg {})?;
+    assert_eq!(res, "test");
     Ok(())
 }

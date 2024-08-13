@@ -22,7 +22,7 @@ To use the DCA in your Rust project, add the following dependency to your `Cargo
 
 ```toml
 [dependencies]
-dca-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.19.0", default-features = false }
+dca-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="<latest-tag>", default-features = false }
 ```
 
 ## Documentation
