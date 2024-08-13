@@ -21,7 +21,7 @@ impl Identify for Osmosis {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
+    abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread, SwapNode},
     abstract_sdk::{
         feature_objects::AnsHost, features::AbstractRegistryAccess, std::objects::PoolAddress,
         AbstractSdkError,
@@ -91,6 +91,49 @@ impl DexCommand for Osmosis {
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             token_out_denom,
         }];
+
+        let token_in = Coin::try_from(offer_asset)?;
+
+        let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
+            sender: self
+                .addr_as_sender
+                .as_ref()
+                .expect("no local proxy")
+                .to_string(),
+            routes,
+            token_in: Some(token_in.into()),
+            token_out_min_amount: Uint128::one().to_string(),
+        }
+        .into();
+
+        Ok(vec![swap_msg])
+    }
+
+    fn swap_route(
+        &self,
+        _deps: Deps,
+        swap_route: Vec<SwapNode<Addr>>,
+        offer_asset: Asset,
+        _belief_price: Option<Decimal>,
+        _max_spread: Option<Decimal>,
+    ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
+        let routes = swap_route
+            .into_iter()
+            .map(|swap_node| {
+                let pair_address = swap_node.pool_id.expect_id()?;
+                let token_out_denom = match swap_node.ask_asset {
+                    AssetInfo::Native(denom) => Ok(denom),
+                    // TODO: cw20? on osmosis?
+                    _ => Err(DexError::UnsupportedAssetType(
+                        swap_node.ask_asset.to_string(),
+                    )),
+                }?;
+                Ok(SwapAmountInRoute {
+                    pool_id: pair_address,
+                    token_out_denom,
+                })
+            })
+            .collect::<Result<_, DexError>>()?;
 
         let token_in = Coin::try_from(offer_asset)?;
 
@@ -224,87 +267,6 @@ impl DexCommand for Osmosis {
         msgs.push(osmo_msg);
 
         Ok(msgs)
-    }
-
-    fn provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-        let pool_id = pool_id.expect_id()?;
-
-        if paired_assets.len() > 1 {
-            return Err(DexError::TooManyAssets(1));
-        }
-
-        // Get pair info
-        let pool = query_pool_data(deps, pool_id)?;
-        // check for symmetric pools
-        if pool.pool_assets[0].weight != pool.pool_assets[1].weight {
-            return Err(DexError::BalancerNotSupported(OSMOSIS.to_string()));
-        }
-
-        let pool_assets: Vec<OsmoCoin> = pool
-            .pool_assets
-            .into_iter()
-            .map(|asset| asset.token.unwrap())
-            .collect();
-        let pool_cw_assets: Vec<Coin> = pool_assets
-            .iter()
-            .map(|asset| Coin {
-                denom: asset.denom.clone(),
-                amount: asset.amount.parse().unwrap(),
-            })
-            .collect();
-        let offer_asset: Coin = Coin::try_from(offer_asset).unwrap();
-
-        let other_asset = if pool_assets[0].denom == offer_asset.denom {
-            let price = Decimal::from_ratio(pool_cw_assets[0].amount, pool_cw_assets[1].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Coin {
-                amount: other_token_amount,
-                denom: pool_assets[1].denom.clone(),
-            }
-        } else if pool_assets[1].denom == offer_asset.denom {
-            let price = Decimal::from_ratio(pool_cw_assets[1].amount, pool_cw_assets[0].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Coin {
-                amount: other_token_amount,
-                denom: pool_assets[0].denom.clone(),
-            }
-        } else {
-            return Err(DexError::ArgumentMismatch(
-                offer_asset.to_string(),
-                pool_assets.iter().map(|e| e.denom.clone()).collect(),
-            ));
-        };
-
-        let mut offer_assets = [offer_asset, other_asset];
-        offer_assets.sort_by(|a, b| a.denom.cmp(&b.denom));
-
-        let deposits = [offer_assets[0].amount, offer_assets[1].amount];
-        let token_in_maxs = offer_assets.into_iter().map(Into::into).collect();
-
-        let total_share = pool
-            .total_shares
-            .unwrap()
-            .amount
-            .parse::<Uint128>()
-            .unwrap();
-
-        let share_out_amount =
-            compute_osmo_share_out_amount(&pool_assets, &deposits, total_share)?.to_string();
-
-        let osmo_msg: CosmosMsg = MsgJoinPool {
-            sender: self.addr_as_sender.as_ref().unwrap().to_string(),
-            pool_id,
-            share_out_amount,
-            token_in_maxs,
-        }
-        .into();
-        Ok(vec![osmo_msg])
     }
 
     fn withdraw_liquidity(

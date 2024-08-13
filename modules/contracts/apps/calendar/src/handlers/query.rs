@@ -9,7 +9,7 @@ use crate::{
 pub fn query_handler(
     deps: Deps,
     _env: Env,
-    _app: &CalendarApp,
+    _module: &CalendarApp,
     msg: CalendarQueryMsg,
 ) -> CalendarAppResult<Binary> {
     match msg {

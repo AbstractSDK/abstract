@@ -33,20 +33,20 @@ use abstract_interface::{
     VersionControl,
 };
 use abstract_std::objects::{
-    module::{ModuleInfo, ModuleVersion},
+    module::{ModuleInfo, ModuleStatus, ModuleVersion},
     module_reference::ModuleReference,
     namespace::Namespace,
     salt::generate_instantiate_salt,
     AccountId,
 };
 use cosmwasm_std::{BlockInfo, Uint128};
-use cw_orch::{environment::Environment as _, prelude::*};
+use cw_orch::{contract::Contract, environment::Environment as _, prelude::*};
 use rand::Rng;
 
 use crate::{
     account::{Account, AccountBuilder},
     source::AccountSource,
-    AbstractClientError, Environment, PublisherBuilder,
+    AbstractClientError, Environment, PublisherBuilder, Service,
 };
 
 /// Client to interact with Abstract accounts and modules
@@ -128,6 +128,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Abstract Ibc Client contract allows users to create and use Interchain Abstract Accounts
     pub fn ibc_client(&self) -> &IbcClient<Chain> {
         &self.abstr.ibc.client
+    }
+
+    /// Service contract API
+    pub fn service<M: RegisteredModule + From<Contract<Chain>>>(
+        &self,
+    ) -> AbstractClientResult<Service<Chain, M>> {
+        Service::new(self.version_control())
     }
 
     /// Return current block info see [`BlockInfo`].
@@ -354,6 +361,16 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .instantiate2_addr(code_id, creator, salt)
             .map_err(Into::into)?;
         Ok(Addr::unchecked(addr))
+    }
+
+    /// Retrieves the status of a specified module.
+    ///
+    /// This function checks the status of a module within the version control contract.
+    /// and returns appropriate `Some(ModuleStatus)`. If the module is not deployed, it returns `None`.
+    pub fn module_status(&self, module: ModuleInfo) -> AbstractClientResult<Option<ModuleStatus>> {
+        self.version_control()
+            .module_status(module)
+            .map_err(Into::into)
     }
 
     #[cfg(feature = "interchain")]

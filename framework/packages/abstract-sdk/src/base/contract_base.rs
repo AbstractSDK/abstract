@@ -226,6 +226,7 @@ where
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::Empty;
     use speculoos::{assert_that, option::OptionAssertions};
 

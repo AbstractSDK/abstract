@@ -4,13 +4,35 @@
 
 ### Added
 
+- `execute_with_funds` to Executor to attach funds to execution.
+- New module type: `Service`, behaves the same as Native, but can be registered by any namespace.
+- `AbstractClient`: `service` to get api of Service module
+
 ### Changed
 
 - Ibc related renaming to add more consistency in namings
+- Account action on executor takes `impl IntoIter<Item = impl Into<AccountAction>>` instead of `Vec<AccountAction>`
+
+#### Abstract Client
+
+- `with_modules` method for Account Builder to add list of modules to install (`ModuleInstallConfig`)
+- `query_ans_balance` method for Account to query balance of `AssetEntry`
+- `query_module` method for Account to query given module on account without retrieving `Application` object
+- `module_installed` method for Account that returns `true` if module installed on account
+- `module_version_installed` method for Account that returns `true` if module of this version installed on account
+- `address` method for Account to get address of account. Result of this method is the same as calling `proxy`
+- `enable_ibc` added to Account builder.
+- `module_status` on AbstractClient that returns current status of the module.
+- `install_on_sub_account` now defaults to `false` in Account Builder
+- `Publisher` will check if dependencies of the module is registered in version control to the chain before publishing.
 
 ### Removed
 
+- `cw-semver` dependency removed
+
 ### Fixed
+
+- Abstract Client: If Account Builder retrieves account now it will install missing modules from the builder instead of ignoring them
 
 ## [0.23.0] - 2024-07-16
 

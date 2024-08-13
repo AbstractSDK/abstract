@@ -16,7 +16,9 @@ use abstract_client::{
     AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
     Publisher,
 };
-use abstract_interface::{ClientResolve, IbcClient, RegisteredModule, VCExecFns, VCQueryFns};
+use abstract_interface::{
+    ClientResolve, IbcClient, InstallConfig, RegisteredModule, VCExecFns, VCQueryFns,
+};
 use abstract_std::{
     adapter::AuthorizedAddressesResponse,
     ans_host::QueryMsgFns,
@@ -36,6 +38,9 @@ use abstract_testing::{
 use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;
+use mock_service::{MockMsg, MockService};
+
+mod mock_service;
 
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
@@ -251,6 +256,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .install_on_sub_account(true)
         .build()?;
 
     let publisher_account = publisher.account();
@@ -299,7 +305,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     // Install app on current account
     let publisher = client
-        .publisher_builder(Namespace::new("tester")?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .install_on_sub_account(false)
         .build()?;
     let my_adapter: Application<_, MockAppI<_>> =
@@ -337,7 +343,8 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain).build()?;
 
     let publisher: Publisher<_> = client
-        .publisher_builder(Namespace::new("tester")?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .install_on_sub_account(true)
         .build()?;
 
     let publisher_manager = publisher.account().manager()?;
@@ -376,7 +383,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
     // Install adapter on current account
     let publisher = client
-        .publisher_builder(Namespace::new("tester")?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .install_on_sub_account(false)
         .build()?;
     let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
@@ -1378,5 +1385,171 @@ fn install_ibc_client_on_creation() -> anyhow::Result<()> {
         .build()?;
     let ibc_module_addr = account.module_addresses(vec![IBC_CLIENT.to_owned()])?;
     assert_eq!(ibc_module_addr.modules[0].0, IBC_CLIENT);
+    Ok(())
+}
+
+#[test]
+fn module_installed() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let account = client
+        .account_builder()
+        .install_adapter::<IbcClient<MockBech32>>()?
+        .build()?;
+    let installed = account.module_installed(IBC_CLIENT)?;
+    assert!(installed);
+    let installed = account.module_installed(TEST_MODULE_ID)?;
+    assert!(!installed);
+    Ok(())
+}
+
+#[test]
+fn module_version_installed() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let account = client
+        .account_builder()
+        .install_adapter::<IbcClient<MockBech32>>()?
+        .build()?;
+
+    let installed = account.module_version_installed(ModuleInfo::from_id_latest(IBC_CLIENT)?)?;
+    assert!(installed);
+    let installed = account.module_version_installed(ModuleInfo::from_id(
+        IBC_CLIENT,
+        abstract_std::objects::module::ModuleVersion::Version(TEST_VERSION.to_string()),
+    )?)?;
+    assert!(installed);
+    let installed =
+        account.module_version_installed(ModuleInfo::from_id_latest(TEST_MODULE_ID)?)?;
+    assert!(!installed);
+    let installed = account.module_version_installed(ModuleInfo::from_id(
+        IBC_CLIENT,
+        abstract_std::objects::module::ModuleVersion::Version("0.1.0".to_string()),
+    )?)?;
+    assert!(!installed);
+    Ok(())
+}
+
+#[test]
+fn retrieve_account_builder_install_missing_modules() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    app_publisher.publish_app::<MockAppI<MockBech32>>()?;
+
+    let account = client
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+    // Same account
+    assert_eq!(app_publisher.account().id()?, account.id()?);
+    // Installed from builder after account was created
+    assert!(account.module_installed(TEST_MODULE_ID)?);
+    Ok(())
+}
+
+#[test]
+fn module_status() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+    client
+        .version_control()
+        .update_config(None, None, Some(false))?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    let module_info = MockAppI::<MockBech32>::module_info().unwrap();
+    let module_status = client.module_status(module_info.clone())?;
+    assert!(module_status.is_none());
+
+    app_publisher.publish_app::<MockAppI<MockBech32>>()?;
+    let module_status = client.module_status(module_info.clone())?;
+    assert_eq!(
+        module_status,
+        Some(abstract_std::objects::module::ModuleStatus::Pending)
+    );
+
+    client
+        .version_control()
+        .approve_or_reject_modules(vec![module_info.clone()], vec![])?;
+    let module_status = client.module_status(module_info.clone())?;
+    assert_eq!(
+        module_status,
+        Some(abstract_std::objects::module::ModuleStatus::Registered)
+    );
+
+    client.version_control().yank_module(module_info.clone())?;
+    let module_status = client.module_status(module_info)?;
+    assert_eq!(
+        module_status,
+        Some(abstract_std::objects::module::ModuleStatus::Yanked)
+    );
+    Ok(())
+}
+
+#[test]
+fn cant_upload_module_with_non_deployed_deps() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?;
+
+    let app_dependency_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    // Matching dep not uploaded - can't upload app
+    let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
+    assert!(matches!(
+        res,
+        Err(AbstractClientError::Interface(
+            abstract_interface::AbstractInterfaceError::NoMatchingModule(_)
+        ))
+    ));
+
+    // Now publish dep and we can upload app then
+    app_dependency_publisher.publish_app::<MockAppI<_>>()?;
+    let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
+    assert!(res.is_ok());
+    Ok(())
+}
+
+#[test]
+fn register_service() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let service_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    service_publisher.publish_service::<MockService<MockBech32>>(&MockMsg {})?;
+
+    // Can get service without account
+    let service = client.service::<MockService<MockBech32>>()?;
+    let res: String = service.query(&MockMsg {})?;
+    assert_eq!(res, "test");
+
+    // Or from an account with Application if installed
+    let account = client
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .install_service::<MockService<MockBech32>>(&MockMsg {})?
+        .build()?;
+
+    let service = account.application::<MockService<MockBech32>>()?;
+    let res: String = service.query(&MockMsg {})?;
+    assert_eq!(res, "test");
     Ok(())
 }

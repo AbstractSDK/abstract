@@ -17,7 +17,7 @@ pub fn receive_cw20(
     deps: DepsMut,
     env: Env,
     msg_info: MessageInfo,
-    dapp: EtfApp,
+    module: EtfApp,
     cw20_msg: Cw20ReceiveMsg,
 ) -> EtfResult {
     match from_json(&cw20_msg.msg)? {
@@ -29,7 +29,7 @@ pub fn receive_cw20(
                 });
             }
             let sender = deps.as_ref().api.addr_validate(&cw20_msg.sender)?;
-            execute::try_withdraw_liquidity(deps, env, dapp, sender, cw20_msg.amount)
+            execute::try_withdraw_liquidity(deps, env, module, sender, cw20_msg.amount)
         }
         Cw20HookMsg::Deposit {} => {
             // Construct deposit asset
@@ -37,7 +37,7 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender.clone()),
                 amount: cw20_msg.amount,
             };
-            execute::try_provide_liquidity(deps, msg_info, dapp, asset, Some(cw20_msg.sender))
+            execute::try_provide_liquidity(deps, msg_info, module, asset, Some(cw20_msg.sender))
         }
     }
 }

@@ -30,7 +30,7 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: PaymentApp,
+    module: PaymentApp,
     msg: AppExecuteMsg,
 ) -> AppResult {
     match msg {
@@ -38,8 +38,8 @@ pub fn execute_handler(
             desired_asset,
             denom_asset,
             exchanges,
-        } => update_config(deps, info, app, desired_asset, denom_asset, exchanges),
-        AppExecuteMsg::Tip {} => tip(deps, env, info, app, None),
+        } => update_config(deps, info, module, desired_asset, denom_asset, exchanges),
+        AppExecuteMsg::Tip {} => tip(deps, env, info, module, None),
     }
 }
 
@@ -48,7 +48,7 @@ pub fn tip(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: PaymentApp,
+    module: PaymentApp,
     cw20_receipt: Option<Asset>,
 ) -> Result<Response, crate::error::AppError> {
     let mut deposited_assets = AssetList::from(info.funds);
@@ -58,10 +58,12 @@ pub fn tip(
     }
 
     // forward payment to the proxy contract
-    let forward_payment_msgs = app.bank(deps.as_ref()).deposit(deposited_assets.to_vec())?;
+    let forward_payment_msgs = module
+        .bank(deps.as_ref())
+        .deposit(deposited_assets.to_vec())?;
 
     // resp
-    let app_resp = app
+    let app_resp = module
         .response("receive_tip")
         .add_messages(forward_payment_msgs);
 
@@ -69,7 +71,7 @@ pub fn tip(
     let config = CONFIG.load(deps.storage)?;
 
     // Reverse query the deposited assets
-    let ans = app.name_service(deps.as_ref());
+    let ans = module.name_service(deps.as_ref());
     let asset_entries = ans.query(&deposited_assets.to_vec())?;
 
     // If there is no desired asset specified, just forward the payment.
@@ -110,7 +112,7 @@ pub fn tip(
             .into_iter()
             .find(|(pair, refs)| !refs.is_empty() && exchange_strs.contains(&pair.dex()))
         {
-            let dex = app.ans_dex(deps.as_ref(), pair.dex().to_owned());
+            let dex = module.ans_dex(deps.as_ref(), pair.dex().to_owned());
             let trigger_swap_msg = dex.swap(
                 pay_asset.clone(),
                 desired_asset.clone(),
@@ -175,14 +177,14 @@ fn update_tipper_history(
 fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
-    app: PaymentApp,
+    module: PaymentApp,
     desired_asset: Option<Clearable<AssetEntry>>,
     denom_asset: Option<String>,
     exchanges: Option<Vec<DexName>>,
 ) -> AppResult {
     // Only the admin should be able to call this
-    app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let name_service = app.name_service(deps.as_ref());
+    module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    let name_service = module.name_service(deps.as_ref());
 
     let mut config = CONFIG.load(deps.storage)?;
     if let Some(desired_asset) = desired_asset {
@@ -208,5 +210,5 @@ fn update_config(
 
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(app.response("update_config"))
+    Ok(module.response("update_config"))
 }

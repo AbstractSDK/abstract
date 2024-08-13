@@ -12,10 +12,10 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: MoneyMarketAdapter,
+    module: MoneyMarketAdapter,
     msg: MoneyMarketInstantiateMsg,
 ) -> MoneyMarketResult {
-    let recipient = adapter
+    let recipient = module
         .account_registry(deps.as_ref())?
         .proxy_address(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
     let money_market_fees = UsageFee::new(msg.fee, recipient)?;

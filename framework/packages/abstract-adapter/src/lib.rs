@@ -157,7 +157,7 @@ pub mod mock {
 
     pub fn mock_init_custom(
         deps: DepsMut,
-        adapter: MockAdapterContract,
+        module: MockAdapterContract,
     ) -> Result<Response, MockError> {
         let info = mock_info(OWNER, &[]);
         let init_msg = InstantiateMsg {
@@ -167,7 +167,7 @@ pub mod mock {
             },
             module: MockInitMsg {},
         };
-        adapter.instantiate(deps, mock_env(), info, init_msg)
+        module.instantiate(deps, mock_env(), info, init_msg)
     }
 
     /// Generate a BOOT instance for a mock adapter
@@ -179,6 +179,7 @@ pub mod mock {
     macro_rules! gen_adapter_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
         use $crate::std::adapter::*;
+        use $crate::sdk::base::Handler;
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
@@ -226,6 +227,22 @@ pub mod mock {
 
         impl <T: ::cw_orch::prelude::CwEnv> ::abstract_interface::AdapterDeployer<T, MockInitMsg> for $name <T> {}
 
+        impl<Chain> $crate::abstract_interface::RegisteredModule for $name<Chain> {
+            type InitMsg = MockInitMsg;
+
+            fn module_id<'a>() -> &'a str {
+                $crate::traits::ModuleIdentification::module_id(&MOCK_ADAPTER)
+            }
+
+            fn module_version<'a>() -> &'a str {
+                MOCK_ADAPTER.version()
+            }
+
+            fn dependencies<'a>() -> &'a [$crate::objects::dependency::StaticDependency] {
+                MOCK_ADAPTER.dependencies()
+            }
+        }
+
         impl<T: ::cw_orch::prelude::CwEnv> Uploadable for $name<T> {
             fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
@@ -262,6 +279,7 @@ pub mod mock {
     macro_rules! gen_adapter_old_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
         use $crate::std::adapter::*;
+        use $crate::sdk::base::Handler;
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
@@ -307,6 +325,22 @@ pub mod mock {
         pub struct $name ;
 
         impl ::abstract_interface::AdapterDeployer<::cw_orch::prelude::MockBech32, MockInitMsg> for $name <::cw_orch::prelude::MockBech32> {}
+
+        impl ::abstract_interface::RegisteredModule for $name<::cw_orch::prelude::MockBech32> {
+            type InitMsg = MockInitMsg;
+
+            fn module_id<'a>() -> &'a str {
+                $crate::traits::ModuleIdentification::module_id(&MOCK_ADAPTER)
+            }
+
+            fn module_version<'a>() -> &'a str {
+                MOCK_ADAPTER.version()
+            }
+
+            fn dependencies<'a>() -> &'a [$crate::objects::dependency::StaticDependency] {
+                MOCK_ADAPTER.dependencies()
+            }
+        }
 
         impl Uploadable for $name<::cw_orch::prelude::MockBech32> {
             fn wrapper() -> <MockBech32 as ::cw_orch::environment::TxHandler>::ContractSource {

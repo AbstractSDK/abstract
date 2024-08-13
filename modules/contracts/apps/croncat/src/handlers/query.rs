@@ -48,7 +48,7 @@ fn check_if_task_exists(
 pub fn query_handler(
     deps: Deps,
     _env: Env,
-    app: &CroncatApp,
+    module: &CroncatApp,
     msg: AppQueryMsg,
 ) -> CroncatResult<Binary> {
     match msg {
@@ -57,7 +57,13 @@ pub fn query_handler(
             start_after,
             limit,
             checked,
-        } => to_json_binary(&query_active_tasks(deps, app, start_after, limit, checked)?),
+        } => to_json_binary(&query_active_tasks(
+            deps,
+            module,
+            start_after,
+            limit,
+            checked,
+        )?),
         AppQueryMsg::ActiveTasksByCreator {
             creator_addr,
             start_after,
@@ -65,7 +71,7 @@ pub fn query_handler(
             checked,
         } => to_json_binary(&query_active_tasks_by_creator(
             deps,
-            app,
+            module,
             creator_addr,
             start_after,
             limit,
@@ -74,15 +80,15 @@ pub fn query_handler(
         AppQueryMsg::TaskInfo {
             creator_addr,
             task_tag,
-        } => to_json_binary(&query_task_info(deps, app, creator_addr, task_tag)?),
+        } => to_json_binary(&query_task_info(deps, module, creator_addr, task_tag)?),
         AppQueryMsg::TaskBalance {
             creator_addr,
             task_tag,
-        } => to_json_binary(&query_task_balance(deps, app, creator_addr, task_tag)?),
+        } => to_json_binary(&query_task_balance(deps, module, creator_addr, task_tag)?),
         AppQueryMsg::ManagerAddr {
             creator_addr,
             task_tag,
-        } => to_json_binary(&query_manager_addr(deps, app, creator_addr, task_tag)?),
+        } => to_json_binary(&query_manager_addr(deps, module, creator_addr, task_tag)?),
     }
     .map_err(Into::into)
 }
@@ -94,7 +100,7 @@ fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 fn query_active_tasks(
     deps: Deps,
-    app: &CroncatApp,
+    module: &CroncatApp,
     start_after: Option<(String, String)>,
     limit: Option<u32>,
     checked: Option<bool>,
@@ -115,7 +121,7 @@ fn query_active_tasks(
 
     let response = match check {
         true => {
-            let name_service = app.name_service(deps);
+            let name_service = module.name_service(deps);
             let factory_addr = factory_addr(&name_service)?;
             let mut manager_addrs = HashMap::new();
             let mut removed_tasks = Vec::new();
@@ -159,7 +165,7 @@ fn query_active_tasks(
 
 fn query_active_tasks_by_creator(
     deps: Deps,
-    app: &CroncatApp,
+    module: &CroncatApp,
     creator: String,
     start_after: Option<String>,
     limit: Option<u32>,
@@ -178,7 +184,7 @@ fn query_active_tasks_by_creator(
 
     match check {
         true => {
-            let name_service = app.name_service(deps);
+            let name_service = module.name_service(deps);
             let factory_addr = factory_addr(&name_service)?;
             let mut manager_addrs = HashMap::new();
             let mut removed_tasks = Vec::new();
@@ -219,14 +225,14 @@ fn query_active_tasks_by_creator(
 
 fn query_task_info(
     deps: Deps,
-    app: &CroncatApp,
+    module: &CroncatApp,
     creator_addr: String,
     task_tag: String,
 ) -> CroncatResult<TaskResponse> {
     let creator_addr = deps.api.addr_validate(&creator_addr)?;
     let (task_hash, task_version) = ACTIVE_TASKS.load(deps.storage, (creator_addr, task_tag))?;
 
-    let name_service = app.name_service(deps);
+    let name_service = module.name_service(deps);
     let factory_addr = factory_addr(&name_service)?;
     let tasks_addr = get_croncat_contract(
         &deps.querier,
@@ -243,14 +249,14 @@ fn query_task_info(
 
 fn query_task_balance(
     deps: Deps,
-    app: &CroncatApp,
+    module: &CroncatApp,
     creator_addr: String,
     task_tag: String,
 ) -> CroncatResult<TaskBalanceResponse> {
     let creator_addr = deps.api.addr_validate(&creator_addr)?;
     let (task_hash, task_version) = ACTIVE_TASKS.load(deps.storage, (creator_addr, task_tag))?;
 
-    let name_service = app.name_service(deps);
+    let name_service = module.name_service(deps);
     let factory_addr = factory_addr(&name_service)?;
     let manager_addr = get_croncat_contract(
         &deps.querier,
@@ -267,14 +273,14 @@ fn query_task_balance(
 
 fn query_manager_addr(
     deps: Deps,
-    app: &CroncatApp,
+    module: &CroncatApp,
     creator_addr: String,
     task_tag: String,
 ) -> CroncatResult<Addr> {
     let creator_addr = deps.api.addr_validate(&creator_addr)?;
     let (_, task_version) = ACTIVE_TASKS.load(deps.storage, (creator_addr, task_tag))?;
 
-    let name_service = app.name_service(deps);
+    let name_service = module.name_service(deps);
     let factory_addr = factory_addr(&name_service)?;
     let manager_addr = get_croncat_contract(
         &deps.querier,

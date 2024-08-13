@@ -4,7 +4,7 @@ use abstract_std::objects::{AssetEntry, DexAssetPairing, PoolAddress, PoolRefere
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
-use crate::error::DexError;
+use crate::{error::DexError, msg::SwapNode};
 
 pub type Return = Uint128;
 pub type Spread = Uint128;
@@ -54,6 +54,21 @@ pub trait DexCommand: Identify {
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
 
+    /// Execute a swap on the given DEX using the swap in question custom logic
+    #[allow(clippy::too_many_arguments)]
+    #[allow(unused)]
+    // TODO: do we need normal swap or should every integration be swap_route?
+    fn swap_route(
+        &self,
+        deps: Deps,
+        swap_route: Vec<SwapNode<Addr>>,
+        offer_asset: Asset,
+        belief_price: Option<Decimal>,
+        max_spread: Option<Decimal>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        unimplemented!();
+    }
+
     /// Provides liquidity on the the DEX
     fn provide_liquidity(
         &self,
@@ -61,15 +76,6 @@ pub trait DexCommand: Identify {
         pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
-    ) -> Result<Vec<CosmosMsg>, DexError>;
-
-    /// Provide symmetric liquidity where available depending on the DEX
-    fn provide_liquidity_symmetric(
-        &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
 
     /// Withdraw liquidity from DEX
@@ -100,9 +106,4 @@ pub trait DexCommand: Identify {
         // Dummy implementation, since most of dexes does not require this method
         Ok(())
     }
-    // fn raw_swap();
-    // fn raw_provide_liquidity();
-    // fn raw_withdraw_liquidity();
-    // fn route_swap();
-    // fn raw_route_swap();
 }

@@ -23,14 +23,18 @@ pub mod dex_tester;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
-    use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError};
+    use abstract_adapter::abstract_interface::ClientResolve;
+    use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError, AnsHost};
     use abstract_adapter::abstract_interface::{AdapterDeployer, RegisteredModule};
+    use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::sdk::features::ModuleIdentification;
     use abstract_adapter::std::{
         adapter,
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
 
+    use abstract_adapter::traits::Dependencies;
+    use abstract_dex_standard::ans_action::{DexAnsAction, WholeDexAction};
     use cosmwasm_std::Decimal;
     use cw_asset::{AssetBase, AssetInfoBase};
     use cw_orch::{build::BuildPostfix, interface};
@@ -68,11 +72,13 @@ pub mod interface {
             dex: String,
             action: DexAnsAction,
             account: impl AsRef<AbstractAccount<Chain>>,
+            ans_host: &AnsHost<Chain>,
         ) -> Result<<Chain as TxHandler>::Response, AbstractInterfaceError> {
             let account = account.as_ref();
+            let request = WholeDexAction(dex, action).resolve(ans_host)?;
             let msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: Some(account.proxy.addr_str()?),
-                request: DexExecuteMsg::AnsAction { dex, action },
+                request,
             });
             self.execute(&msg, None).map_err(Into::into)
         }
@@ -81,13 +87,13 @@ pub mod interface {
         pub fn raw_action(
             &self,
             dex: String,
-            action: DexRawAction,
+            action: DexAction,
             account: impl AsRef<AbstractAccount<Chain>>,
         ) -> Result<<Chain as TxHandler>::Response, AbstractInterfaceError> {
             let account = account.as_ref();
             let msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: Some(account.proxy.addr_str()?),
-                request: DexExecuteMsg::RawAction { dex, action },
+                request: DexExecuteMsg::Action { dex, action },
             });
             self.execute(&msg, None).map_err(Into::into)
         }
@@ -99,6 +105,7 @@ pub mod interface {
             ask_asset: &str,
             dex: String,
             account: impl AsRef<AbstractAccount<Chain>>,
+            ans_host: &AnsHost<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);
@@ -109,7 +116,7 @@ pub mod interface {
                 max_spread: Some(Decimal::percent(30)),
                 belief_price: None,
             };
-            self.ans_action(dex, action, account)?;
+            self.ans_action(dex, action, account, ans_host)?;
             Ok(())
         }
 
@@ -122,7 +129,7 @@ pub mod interface {
             account: impl AsRef<AbstractAccount<Chain>>,
             pool: PoolAddressBase<String>,
         ) -> Result<(), AbstractInterfaceError> {
-            let action = DexRawAction::Swap {
+            let action = DexAction::Swap {
                 offer_asset: AssetBase::native(offer_asset.0, offer_asset.1),
                 ask_asset: AssetInfoBase::native(ask_asset),
                 pool,
@@ -139,6 +146,7 @@ pub mod interface {
             assets: Vec<(&str, u128)>,
             dex: String,
             account: impl AsRef<AbstractAccount<Chain>>,
+            ans_host: &AnsHost<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let assets = assets.iter().map(|a| AnsAsset::new(a.0, a.1)).collect();
 
@@ -146,7 +154,7 @@ pub mod interface {
                 assets,
                 max_spread: Some(Decimal::percent(30)),
             };
-            self.ans_action(dex, action, account)?;
+            self.ans_action(dex, action, account, ans_host)?;
             Ok(())
         }
 
@@ -160,7 +168,7 @@ pub mod interface {
         ) -> Result<(), AbstractInterfaceError> {
             let assets = assets.iter().map(|a| AssetBase::native(a.0, a.1)).collect();
 
-            let action = DexRawAction::ProvideLiquidity {
+            let action = DexAction::ProvideLiquidity {
                 assets,
                 pool,
                 max_spread: Some(Decimal::percent(30)),
@@ -179,6 +187,10 @@ pub mod interface {
 
         fn module_version<'a>() -> &'a str {
             DEX_ADAPTER.version()
+        }
+
+        fn dependencies<'a>() -> &'a [StaticDependency] {
+            DEX_ADAPTER.dependencies()
         }
     }
 

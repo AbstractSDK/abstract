@@ -29,13 +29,14 @@ impl AccountIdentification for StandaloneContract {
 }
 
 impl Dependencies for StandaloneContract {
-    fn dependencies(&self) -> &[abstract_std::objects::dependency::StaticDependency] {
+    fn dependencies(&self) -> &'static [abstract_std::objects::dependency::StaticDependency] {
         self.dependencies
     }
 }
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
     use abstract_std::version_control::AccountBase;
     use abstract_testing::{

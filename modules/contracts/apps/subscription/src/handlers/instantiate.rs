@@ -13,7 +13,7 @@ pub fn instantiate_handler(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    _app: SubscriptionApp,
+    _module: SubscriptionApp,
     msg: SubscriptionInstantiateMsg,
 ) -> SubscriptionResult {
     let subscription_config: SubscriptionConfig = SubscriptionConfig {

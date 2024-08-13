@@ -6,7 +6,7 @@ use abstract_std::{
     },
 };
 use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
-use cw_semver::{Comparator, Version};
+use semver::{Comparator, Version};
 
 use crate::{commands::MIGRATE_CONTEXT, contract::ManagerResult, error::ManagerError};
 
@@ -200,6 +200,7 @@ pub fn maybe_add_new_deps(
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use std::collections::HashSet;
 
     use cosmwasm_std::testing::mock_dependencies;

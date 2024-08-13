@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Router swaps for `Osmosis` and `Astroport`
+
 ### Changed
 
+- Dex Raw Action renamed to Dex Action
+
 ### Removed
+
+- Dex Ans Action from Dex Adapters, now resolve should be done by the caller of the Dex Adapter
+- Provide liquidity symmetric no longer supported on Dex Adapters
 
 ### Fixed
 

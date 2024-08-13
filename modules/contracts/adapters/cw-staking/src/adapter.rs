@@ -48,7 +48,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         };
 
         self.executor(deps.as_ref())
-            .execute(msgs.into_iter().map(Into::into).collect())
+            .execute(msgs)
             .map(SubMsg::new)
             .map_err(Into::into)
     }

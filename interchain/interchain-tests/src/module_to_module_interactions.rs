@@ -316,18 +316,20 @@ pub mod remote_app {
 pub mod test {
 
     fn assert_remote_module_call_status(
-        app: &MockAppRemoteI<MockBech32>,
+        module: &MockAppRemoteI<MockBech32>,
         source_module_expected: Option<ModuleInfo>,
     ) -> AnyResult<()> {
-        let source_module = app.get_received_ibc_module_status().map(|s| s.received)?;
+        let source_module = module
+            .get_received_ibc_module_status()
+            .map(|s| s.received)?;
 
         assert_eq!(source_module, source_module_expected);
         Ok(())
     }
 
-    fn assert_callback_status(app: &MockAppOriginI<MockBech32>, status: bool) -> AnyResult<()> {
+    fn assert_callback_status(module: &MockAppOriginI<MockBech32>, status: bool) -> AnyResult<()> {
         let get_received_ibc_callback_status_res: ReceivedIbcCallbackStatus =
-            app.get_received_ibc_callback_status()?;
+            module.get_received_ibc_callback_status()?;
 
         assert_eq!(
             ReceivedIbcCallbackStatus { received: status },

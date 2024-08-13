@@ -15,16 +15,17 @@ pub enum ModuleReference {
     App(u64),
     /// A stand-alone contract
     Standalone(u64),
+    /// A contract that exposes some service to others.
+    Service(Addr),
 }
 
 impl ModuleReference {
     /// Validates that addresses are valid
     pub fn validate(&self, deps: Deps) -> AbstractResult<()> {
         match self {
-            ModuleReference::Native(addr) => {
-                deps.api.addr_validate(addr.as_str())?;
-            }
-            ModuleReference::Adapter(addr) => {
+            ModuleReference::Native(addr)
+            | ModuleReference::Adapter(addr)
+            | ModuleReference::Service(addr) => {
                 deps.api.addr_validate(addr.as_str())?;
             }
             _ => (),
@@ -77,12 +78,22 @@ impl ModuleReference {
         }
     }
 
+    pub fn unwrap_service(&self) -> AbstractResult<Addr> {
+        match self {
+            ModuleReference::Service(addr) => Ok(addr.clone()),
+            _ => Err(AbstractError::Assert(
+                "module reference not a service module.".to_string(),
+            )),
+        }
+    }
+
     /// Unwraps the module reference and returns the address of the module.
     /// Throws an error if the module reference is not an address.
     pub fn unwrap_addr(&self) -> AbstractResult<Addr> {
         match self {
-            ModuleReference::Native(addr) => Ok(addr.clone()),
-            ModuleReference::Adapter(addr) => Ok(addr.clone()),
+            ModuleReference::Native(addr)
+            | ModuleReference::Adapter(addr)
+            | ModuleReference::Service(addr) => Ok(addr.clone()),
             _ => Err(AbstractError::Assert(
                 "module reference not a native or api module.".to_string(),
             )),
@@ -105,6 +116,7 @@ impl ModuleReference {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 
@@ -118,7 +130,9 @@ mod test {
         assert!(account_base.unwrap_adapter().is_err());
         assert!(account_base.unwrap_app().is_err());
         assert!(account_base.unwrap_standalone().is_err());
+        assert!(account_base.unwrap_service().is_err());
     }
+
     #[test]
     fn native() {
         let native = ModuleReference::Native(Addr::unchecked("addr"));
@@ -127,6 +141,18 @@ mod test {
         assert!(native.unwrap_adapter().is_err());
         assert!(native.unwrap_app().is_err());
         assert!(native.unwrap_standalone().is_err());
+        assert!(native.unwrap_service().is_err());
+    }
+
+    #[test]
+    fn service() {
+        let service = ModuleReference::Service(Addr::unchecked("addr"));
+        assert!(service.unwrap_account().is_err());
+        assert!(service.unwrap_native().is_err());
+        assert!(service.unwrap_adapter().is_err());
+        assert!(service.unwrap_app().is_err());
+        assert!(service.unwrap_standalone().is_err());
+        assert_eq!(service.unwrap_service().unwrap(), Addr::unchecked("addr"));
     }
 
     #[test]
@@ -137,6 +163,7 @@ mod test {
         assert_eq!(adapter.unwrap_adapter().unwrap(), Addr::unchecked("addr"));
         assert!(adapter.unwrap_app().is_err());
         assert!(adapter.unwrap_standalone().is_err());
+        assert!(adapter.unwrap_service().is_err());
     }
 
     #[test]
@@ -147,6 +174,7 @@ mod test {
         assert!(app.unwrap_adapter().is_err());
         assert_eq!(app.unwrap_app().unwrap(), 1);
         assert!(app.unwrap_standalone().is_err());
+        assert!(app.unwrap_service().is_err());
     }
 
     #[test]
@@ -157,6 +185,7 @@ mod test {
         assert!(standalone.unwrap_adapter().is_err());
         assert!(standalone.unwrap_app().is_err());
         assert_eq!(standalone.unwrap_standalone().unwrap(), 1);
+        assert!(standalone.unwrap_service().is_err());
     }
 
     #[test]
@@ -165,6 +194,8 @@ mod test {
         assert_eq!(native.unwrap_addr().unwrap(), Addr::unchecked("addr"));
         let api = ModuleReference::Adapter(Addr::unchecked("addr"));
         assert_eq!(api.unwrap_addr().unwrap(), Addr::unchecked("addr"));
+        let service = ModuleReference::Service(Addr::unchecked("addr"));
+        assert_eq!(service.unwrap_addr().unwrap(), Addr::unchecked("addr"));
 
         let account_base = ModuleReference::AccountBase(1);
         assert!(account_base.unwrap_addr().is_err());
@@ -179,6 +210,9 @@ mod test {
 
         let api = ModuleReference::Adapter(Addr::unchecked("addr"));
         assert_that!(api.validate(deps.as_ref())).is_ok();
+
+        let service = ModuleReference::Service(Addr::unchecked("addr"));
+        assert_that!(service.validate(deps.as_ref())).is_ok();
 
         let account_base = ModuleReference::AccountBase(1);
         assert_that!(account_base.validate(deps.as_ref())).is_ok();
@@ -199,5 +233,8 @@ mod test {
 
         let api = ModuleReference::Adapter(Addr::unchecked(""));
         assert_that!(api.validate(deps.as_ref())).is_err();
+
+        let service = ModuleReference::Service(Addr::unchecked(""));
+        assert_that!(service.validate(deps.as_ref())).is_err();
     }
 }

@@ -124,8 +124,8 @@ pub fn execute_create_modules(
                 modules_to_register.push(module_address);
                 module_instantiate_messages.push(init_msg);
             }
-            // Adapter is not installed but registered instead, so we don't push to the `installed_modules`
-            ModuleReference::Adapter(addr) => {
+            // Adapter or services is not installed but registered instead, so we don't push to the `installed_modules`
+            ModuleReference::Adapter(addr) | ModuleReference::Service(addr) => {
                 modules_to_register.push(addr.clone());
             }
             ModuleReference::Standalone(code_id) => {
@@ -257,6 +257,7 @@ pub fn execute_update_config(
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
     use abstract_testing::OWNER;
     use cosmwasm_std::{

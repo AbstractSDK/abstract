@@ -1,5 +1,5 @@
 //! Dependency definitions for Abstract Modules
-use cw_semver::{Comparator, Version};
+use semver::{Comparator, Version};
 use serde::{Deserialize, Serialize};
 
 use super::module::ModuleId;
@@ -23,7 +23,7 @@ impl StaticDependency {
     }
 
     /// Iterate through the (statically provided) version requirements and ensure that they are valid.
-    pub fn check(&self) -> Result<(), cw_semver::Error> {
+    pub fn check(&self) -> Result<(), semver::Error> {
         for req in self.version_req {
             Comparator::parse(req)?;
         }
@@ -75,6 +75,7 @@ impl From<Dependency> for DependencyResponse {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
     use speculoos::prelude::*;
 
     use super::*;

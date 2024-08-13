@@ -11,10 +11,10 @@ use crate::{contract::CroncatApp, error::AppError, CRON_CAT_FACTORY};
 pub(crate) fn assert_module_installed(
     deps: Deps,
     contract_addr: &Addr,
-    app: &CroncatApp,
+    module: &CroncatApp,
 ) -> AbstractSdkResult<()> {
     let contract_version = cw2::query_contract_info(&deps.querier, contract_addr)?;
-    let modules = app.modules(deps);
+    let modules = module.modules(deps);
     let module_addr = modules.module_address(&contract_version.contract)?;
     if module_addr != contract_addr {
         Err(abstract_app::std::AbstractError::AppNotInstalled(contract_version.contract).into())

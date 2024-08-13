@@ -15,18 +15,18 @@ use crate::{
 pub fn query_handler(
     deps: Deps,
     env: Env,
-    app: &ChallengeApp,
+    module: &ChallengeApp,
     msg: ChallengeQueryMsg,
 ) -> AppResult<Binary> {
     match msg {
         ChallengeQueryMsg::Challenge { challenge_id } => {
-            to_json_binary(&query_challenge(deps, env, app, challenge_id)?)
+            to_json_binary(&query_challenge(deps, env, module, challenge_id)?)
         }
         ChallengeQueryMsg::Challenges { start_after, limit } => {
             to_json_binary(&query_challenges(deps, env, start_after, limit)?)
         }
         ChallengeQueryMsg::Friends { challenge_id } => {
-            to_json_binary(&query_friends(deps, app, challenge_id)?)
+            to_json_binary(&query_friends(deps, module, challenge_id)?)
         }
         ChallengeQueryMsg::Vote {
             voter_addr,
@@ -34,7 +34,7 @@ pub fn query_handler(
             proposal_id,
         } => to_json_binary(&query_vote(
             deps,
-            app,
+            module,
             voter_addr,
             challenge_id,
             proposal_id,
@@ -46,7 +46,7 @@ pub fn query_handler(
         } => to_json_binary(&query_proposals(
             deps,
             env,
-            app,
+            module,
             challenge_id,
             start_after,
             limit,
@@ -58,7 +58,7 @@ pub fn query_handler(
             limit,
         } => to_json_binary(&query_votes(
             deps,
-            app,
+            module,
             challenge_id,
             proposal_id,
             start_after,
@@ -71,7 +71,7 @@ pub fn query_handler(
 fn query_challenge(
     deps: Deps,
     env: Env,
-    _app: &ChallengeApp,
+    _module: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult<ChallengeResponse> {
     let challenge = CHALLENGES.may_load(deps.storage, challenge_id)?;
@@ -128,7 +128,11 @@ fn query_challenges(
     Ok(ChallengesResponse { challenges })
 }
 
-fn query_friends(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<FriendsResponse> {
+fn query_friends(
+    deps: Deps,
+    _module: &ChallengeApp,
+    challenge_id: u64,
+) -> AppResult<FriendsResponse> {
     let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
     Ok(FriendsResponse {
         friends: friends.unwrap_or_default(),
@@ -137,7 +141,7 @@ fn query_friends(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResul
 
 fn query_vote(
     deps: Deps,
-    _app: &ChallengeApp,
+    _module: &ChallengeApp,
     voter_addr: String,
     challenge_id: u64,
     proposal_id: Option<u64>,
@@ -162,7 +166,7 @@ fn query_vote(
 fn query_proposals(
     deps: Deps,
     env: Env,
-    _app: &ChallengeApp,
+    _moodule: &ChallengeApp,
     challenge_id: u64,
     start_after: Option<ProposalId>,
     limit: Option<u64>,
@@ -188,7 +192,7 @@ fn query_proposals(
 
 fn query_votes(
     deps: Deps,
-    _app: &ChallengeApp,
+    _module: &ChallengeApp,
     challenge_id: u64,
     proposal_id: Option<u64>,
     start_after: Option<cosmwasm_std::Addr>,

@@ -10,7 +10,7 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _app: App,
+    _module: App,
     _msg: AppInstantiateMsg,
 ) -> AppResult {
     WINS.save(deps.storage, &0)?;

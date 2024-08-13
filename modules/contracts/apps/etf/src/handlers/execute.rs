@@ -24,16 +24,16 @@ pub fn execute_handler(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    app: EtfApp,
+    module: EtfApp,
     msg: EtfExecuteMsg,
 ) -> EtfResult {
     match msg {
         EtfExecuteMsg::Deposit { asset } => {
             // Check asset
             let asset = asset.check(deps.api, None)?;
-            try_provide_liquidity(deps, info, app, asset, None)
+            try_provide_liquidity(deps, info, module, asset, None)
         }
-        EtfExecuteMsg::SetFee { fee } => set_fee(deps, info, app, fee),
+        EtfExecuteMsg::SetFee { fee } => set_fee(deps, info, module, fee),
     }
 }
 
@@ -42,7 +42,7 @@ pub fn execute_handler(
 pub fn try_provide_liquidity(
     deps: DepsMut,
     msg_info: MessageInfo,
-    app: EtfApp,
+    module: EtfApp,
     asset: Asset,
     // optional sender address
     // set if called from CW20 hook
@@ -74,7 +74,7 @@ pub fn try_provide_liquidity(
         }
     };
     // Get vault API for the account
-    let vault = app.accountant(deps.as_ref());
+    let vault = module.accountant(deps.as_ref());
     // Construct deposit info
     let deposit_info = DepositInfo {
         asset_info: vault.base_asset()?.base_asset,
@@ -121,9 +121,9 @@ pub fn try_provide_liquidity(
     });
 
     // Send received asset to the vault.
-    let send_to_vault = app.bank(deps.as_ref()).deposit(vec![asset])?;
+    let send_to_vault = module.bank(deps.as_ref()).deposit(vec![asset])?;
 
-    let response = app
+    let response = module
         .custom_response("provide_liquidity", attrs)
         .add_message(mint_lp)
         .add_messages(send_to_vault);
@@ -136,16 +136,16 @@ pub fn try_provide_liquidity(
 pub fn try_withdraw_liquidity(
     deps: DepsMut,
     _env: Env,
-    app: EtfApp,
+    module: EtfApp,
     sender: Addr,
     amount: Uint128,
 ) -> EtfResult {
     let state: State = STATE.load(deps.storage)?;
-    let base_state: AppState = app.load_state(deps.storage)?;
+    let base_state: AppState = module.load_state(deps.storage)?;
     let fee: Fee = FEE.load(deps.storage)?;
-    let bank = app.bank(deps.as_ref());
+    let bank = module.bank(deps.as_ref());
     // Get assets
-    let assets: AssetsInfoResponse = app.accountant(deps.as_ref()).assets_list()?;
+    let assets: AssetsInfoResponse = module.accountant(deps.as_ref()).assets_list()?;
 
     // Logging var
     let mut attrs = vec![("liquidity_tokens", amount.to_string())];
@@ -186,7 +186,7 @@ pub fn try_withdraw_liquidity(
     }
 
     // Construct repay msg by transferring the assets back to the sender
-    let refund_msg = app
+    let refund_msg = module
         .executor(deps.as_ref())
         .execute(vec![bank.transfer(shares_assets, &sender)?])?
         .into();
@@ -204,18 +204,18 @@ pub fn try_withdraw_liquidity(
     .into();
     msgs.push(burn_msg);
 
-    Ok(app
+    Ok(module
         .custom_response("withdraw_liquidity", attrs)
         .add_messages(msgs))
 }
 
-fn set_fee(deps: DepsMut, msg_info: MessageInfo, app: EtfApp, new_fee: Decimal) -> EtfResult {
+fn set_fee(deps: DepsMut, msg_info: MessageInfo, module: EtfApp, new_fee: Decimal) -> EtfResult {
     // Only the admin should be able to call this
-    app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let fee = Fee::new(new_fee)?;
 
     FEE.save(deps.storage, &fee)?;
-    Ok(app.custom_response("set_fee", vec![("fee", new_fee.to_string())]))
+    Ok(module.custom_response("set_fee", vec![("fee", new_fee.to_string())]))
 }
 
 /// helper for CW20 supply query
