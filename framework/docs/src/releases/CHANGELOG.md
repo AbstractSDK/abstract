@@ -5,6 +5,7 @@
 ### Added
 
 - `execute_with_funds` to Executor to attach funds to execution.
+- `CustomExecuteHandler` To improve support for fully custom execute messages on Apps or Adapters
 
 ### Changed
 
@@ -23,6 +24,8 @@
 - `install_on_sub_account` now defaults to `false` in Account Builder
 
 ### Removed
+
+- Receive endpoints from abstract Modules
 
 ### Fixed
 
