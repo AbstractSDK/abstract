@@ -17,7 +17,7 @@ use abstract_std::{
     objects::{
         module::{ModuleId, ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        ownership, AccountId, AssetEntry, TruncatedChainId,
+        ownership, AccountId, TruncatedChainId,
     },
     proxy, IBC_CLIENT, PROXY,
 };
@@ -291,22 +291,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             .balance(self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
-    }
-
-    /// Query account balance of a given denom
-    pub fn query_ans_balance(&self, ans_asset: AssetEntry) -> AbstractClientResult<Uint128> {
-        let proxy_addr = self.proxy()?;
-        let holding_ammount: proxy::HoldingAmountResponse = self
-            .remote_chain
-            .query(
-                &proxy::QueryMsg::HoldingAmount {
-                    identifier: ans_asset,
-                },
-                &proxy_addr,
-            )
-            .map_err(Into::into)?;
-
-        Ok(holding_ammount.amount)
     }
 
     /// Query account info

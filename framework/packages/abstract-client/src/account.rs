@@ -23,8 +23,8 @@ use std::fmt::{Debug, Display};
 
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    IbcClient, InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, ProxyQueryFns,
-    RegisteredModule, VCQueryFns,
+    IbcClient, InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule,
+    VCQueryFns,
 };
 use abstract_std::{
     manager::{
@@ -37,7 +37,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership,
         validation::verifiers,
-        AccountId, AssetEntry,
+        AccountId,
     },
     version_control::{self, NamespaceResponse},
     IBC_CLIENT, PROXY,
@@ -485,11 +485,6 @@ impl<Chain: CwEnv> Account<Chain> {
             .balance(self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
-    }
-
-    /// Query account balance of a given denom
-    pub fn query_ans_balance(&self, ans_asset: AssetEntry) -> AbstractClientResult<Uint128> {
-        Ok(self.abstr_account.proxy.holding_amount(ans_asset)?.amount)
     }
 
     /// Query account info

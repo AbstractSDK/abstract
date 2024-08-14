@@ -1549,3 +1549,22 @@ fn register_service() -> anyhow::Result<()> {
     assert_eq!(res, "test");
     Ok(())
 }
+
+#[test]
+fn ans_balance() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone())
+        .asset(
+            "mock",
+            cw_asset::AssetInfoBase::Native("mockdenom".to_owned()),
+        )
+        .build()?;
+
+    chain.add_balance(&chain.sender_addr(), coins(101, "mockdenom"))?;
+
+    let balance = client
+        .name_service()
+        .balance(&chain.sender_addr(), &AssetEntry::new("mock"))?;
+    assert_eq!(balance, Uint128::new(101));
+    Ok(())
+}
