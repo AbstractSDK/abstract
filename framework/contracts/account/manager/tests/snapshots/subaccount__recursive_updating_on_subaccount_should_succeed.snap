@@ -118,8 +118,6 @@ expression: all_storage
 "abstract:proxy-local-0":
   - - "\u0000{5}state"
     - "{\"modules\":[\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\"]}"
-  - - "\u0000{6}ans_host"
-    - "{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - acc_id
     - "{\"trace\":\"local\",\"seq\":0}"
   - - admin
@@ -129,8 +127,6 @@ expression: all_storage
 "abstract:proxy-local-1":
   - - "\u0000{5}state"
     - "{\"modules\":[\"mock1ps47cz26ugmzp2emuqap8jmvjrkwyzgh4uupechr9et6w0a3ar6sv5ag3c\"]}"
-  - - "\u0000{6}ans_host"
-    - "{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - acc_id
     - "{\"trace\":\"local\",\"seq\":1}"
   - - admin
@@ -140,8 +136,6 @@ expression: all_storage
 "abstract:proxy-local-2":
   - - "\u0000{5}state"
     - "{\"modules\":[\"mock13cahl7h567qy5pal82h4qztgg6yp0dum7h0rx26lkvyednndhh8qcfqqvj\"]}"
-  - - "\u0000{6}ans_host"
-    - "{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - acc_id
     - "{\"trace\":\"local\",\"seq\":2}"
   - - admin
@@ -151,8 +145,6 @@ expression: all_storage
 "abstract:proxy-local-3":
   - - "\u0000{5}state"
     - "{\"modules\":[\"mock19yh6uk2hsnsglg6fyuwv29p7g0s30a70vl9aj5sc90fda9xu4dgsmq42x3\"]}"
-  - - "\u0000{6}ans_host"
-    - "{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - acc_id
     - "{\"trace\":\"local\",\"seq\":3}"
   - - admin
