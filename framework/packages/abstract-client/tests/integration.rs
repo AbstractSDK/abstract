@@ -83,7 +83,6 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         monarch: chain.addr_make("monarch").to_string(),
     };
     let namespace = Namespace::new("test-namespace")?;
-    let base_asset = AssetEntry::new(asset);
     let account: Account<MockBech32> = client
         .account_builder()
         .name(name)
@@ -91,7 +90,6 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .description(description)
         .ownership(governance_details.clone())
         .namespace(namespace.clone())
-        .base_asset(base_asset)
         .build()?;
 
     let account_info = account.info()?;
@@ -195,14 +193,12 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
         monarch: chain.addr_make("monarch").to_string(),
     };
     let namespace = Namespace::new("test-namespace")?;
-    let base_asset = AssetEntry::new(asset);
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(namespace.clone())
         .name(name)
         .link(link)
         .description(description)
         .ownership(governance_details.clone())
-        .base_asset(base_asset)
         .build()?;
 
     let account_info = publisher.account().info()?;
@@ -1551,5 +1547,24 @@ fn register_service() -> anyhow::Result<()> {
     let service = account.application::<MockService<MockBech32>>()?;
     let res: String = service.query(&MockMsg {})?;
     assert_eq!(res, "test");
+    Ok(())
+}
+
+#[test]
+fn ans_balance() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone())
+        .asset(
+            "mock",
+            cw_asset::AssetInfoBase::Native("mockdenom".to_owned()),
+        )
+        .build()?;
+
+    chain.add_balance(&chain.sender_addr(), coins(101, "mockdenom"))?;
+
+    let balance = client
+        .name_service()
+        .balance(&chain.sender_addr(), &AssetEntry::new("mock"))?;
+    assert_eq!(balance, Uint128::new(101));
     Ok(())
 }

@@ -23,8 +23,8 @@ use std::fmt::{Debug, Display};
 
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    IbcClient, InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, ProxyQueryFns,
-    RegisteredModule, VCQueryFns,
+    IbcClient, InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule,
+    VCQueryFns,
 };
 use abstract_std::{
     manager::{
@@ -37,7 +37,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership,
         validation::verifiers,
-        AccountId, AssetEntry,
+        AccountId,
     },
     version_control::{self, NamespaceResponse},
     IBC_CLIENT, PROXY,
@@ -80,7 +80,6 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     description: Option<String>,
     link: Option<String>,
     namespace: Option<Namespace>,
-    base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
@@ -107,7 +106,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             description: None,
             link: None,
             namespace: None,
-            base_asset: None,
             ownership: None,
             owner_account: None,
             install_modules: vec![],
@@ -142,12 +140,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     /// Setting this will claim the namespace for the account on construction.
     pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
         self.namespace = Some(namespace);
-        self
-    }
-
-    /// Base Asset for the account
-    pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
-        self.base_asset = Some(base_asset);
         self
     }
 
@@ -348,7 +340,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             description: self.description.clone(),
             link: self.link.clone(),
             namespace: self.namespace.as_ref().map(ToString::to_string),
-            base_asset: self.base_asset.clone(),
             install_modules,
             account_id: self.expected_local_account_id,
         };
@@ -494,11 +485,6 @@ impl<Chain: CwEnv> Account<Chain> {
             .balance(self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
-    }
-
-    /// Query account balance of a given denom
-    pub fn query_ans_balance(&self, ans_asset: AssetEntry) -> AbstractClientResult<Uint128> {
-        Ok(self.abstr_account.proxy.holding_amount(ans_asset)?.amount)
     }
 
     /// Query account info
@@ -889,7 +875,6 @@ impl<Chain: CwEnv> Account<Chain> {
         let sub_account_response = self.abstr_account.manager.create_sub_account(
             modules,
             "Sub Account".to_owned(),
-            None,
             None,
             None,
             None,

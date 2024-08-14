@@ -8,7 +8,6 @@ use clap::Parser;
 use cosmwasm_std::Decimal;
 use cw_orch::{daemon::networks::parse_network, prelude::*};
 use dca_app::{contract::DCA_APP_ID, DCA};
-use etf_app::{contract::interface::Etf, ETF_APP_ID};
 use reqwest::Url;
 use tokio::runtime::Runtime;
 
@@ -45,11 +44,6 @@ fn full_deploy() -> anyhow::Result<()> {
         )?;
 
         // Deploy apps
-        Etf::new(ETF_APP_ID, chain.clone()).deploy(
-            etf_app::contract::CONTRACT_VERSION.parse()?,
-            DeployStrategy::Try,
-        )?;
-
         DCA::new(DCA_APP_ID, chain.clone()).deploy(
             dca_app::contract::DCA_APP_VERSION.parse()?,
             DeployStrategy::Try,

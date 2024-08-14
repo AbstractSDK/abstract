@@ -28,7 +28,6 @@ fn main() -> anyhow::Result<()> {
             name: "Default Abstract Account".to_string(),
             description: None,
             link: None,
-            base_asset: None,
             namespace: None,
             install_modules: vec![],
         }),
