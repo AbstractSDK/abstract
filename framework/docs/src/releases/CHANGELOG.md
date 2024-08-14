@@ -12,6 +12,7 @@
 
 ### Changed
 
+- Ibc related renaming to add more consistency in namings
 - Account action on executor takes `impl IntoIter<Item = impl Into<AccountAction>>` instead of `Vec<AccountAction>`
 
 #### Abstract Client

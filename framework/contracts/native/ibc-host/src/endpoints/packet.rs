@@ -24,11 +24,11 @@ use crate::{
 
 /// Handle actions that are passed to the IBC host contract
 /// This function is not permissioned and access control needs to be handled outside of it
-/// Usually the `client_chain` argument needs to be derived from the message sender
+/// Usually the `src_chain` argument needs to be derived from the message sender
 pub fn handle_host_action(
     deps: DepsMut,
     env: Env,
-    client_chain: TruncatedChainId,
+    src_chain: TruncatedChainId,
     proxy_address: String,
     received_account_id: AccountId,
     host_action: HostAction,
@@ -36,7 +36,7 @@ pub fn handle_host_action(
     // Push the client chain to the account trace
     let account_id = {
         let mut account_id = received_account_id.clone();
-        account_id.push_chain(client_chain.clone());
+        account_id.push_chain(src_chain.clone());
         account_id
     };
 
@@ -69,7 +69,7 @@ pub fn handle_host_action(
                     }
                     HostAction::Helpers(helper_action) => match helper_action {
                         HelperAction::SendAllBack => {
-                            receive_send_all_back(deps, env, account, proxy_address, client_chain)
+                            receive_send_all_back(deps, env, account, proxy_address, src_chain)
                         }
                         _ => unimplemented!(""),
                     },
@@ -84,7 +84,7 @@ pub fn handle_host_action(
                 // One will have to change them at a later point if they decide to
                 let name = format!(
                     "Remote Abstract Account for {}/{}",
-                    client_chain.as_str(),
+                    src_chain.as_str(),
                     account_id
                 );
 
@@ -95,7 +95,7 @@ pub fn handle_host_action(
                         action,
                         client_proxy_address: proxy_address,
                         account_id: received_account_id,
-                        chain_name: client_chain,
+                        chain_name: src_chain,
                     },
                 )?;
                 receive_register(deps, env, account_id, name, None, None, None, vec![], true)
@@ -120,7 +120,7 @@ pub fn handle_module_execute(
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
         // Account can only call modules that are installed on its ICAA.
-        // If the calling module is account-specific then we map the calling account-id to the destination.
+        // If the calling module is account-specific then we map the calling account-id to the host.
         account_id: source_module
             .account_id
             .map(|a| client_to_host_module_account_id(&env, src_chain.clone(), a)),

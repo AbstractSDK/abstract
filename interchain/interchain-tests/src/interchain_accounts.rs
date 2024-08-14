@@ -51,7 +51,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     origin_account.manager.set_ibc_status(true)?;
 
     // Now we send a message to the client saying that we want to create an account on the
-    // destination chain
+    // host chain
     let register_tx = origin_account.register_remote_account(remote_name)?;
 
     interchain.await_and_check_packets(origin_id, register_tx)?;
@@ -246,12 +246,12 @@ mod test {
         let abstr_origin = Abstract::deploy_on(chain1.clone(), chain1.sender_addr().to_string())?;
         let abstr_intermediate_remote =
             Abstract::deploy_on(chain2.clone(), chain2.sender_addr().to_string())?;
-        let abstr_destination_remote =
+        let abstr_host_remote =
             Abstract::deploy_on(chain3.clone(), chain3.sender_addr().to_string())?;
 
         // Creating a connection between 2 abstract deployments
         abstr_origin.connect_to(&abstr_intermediate_remote, &mock_interchain)?;
-        abstr_intermediate_remote.connect_to(&abstr_destination_remote, &mock_interchain)?;
+        abstr_intermediate_remote.connect_to(&abstr_host_remote, &mock_interchain)?;
         // END SETUP
 
         // Create a local account for testing
@@ -311,10 +311,8 @@ mod test {
             ]),
         )?;
 
-        let destination_remote_account = AbstractAccount::new(
-            &abstr_destination_remote,
-            destination_remote_account_id.clone(),
-        );
+        let destination_remote_account =
+            AbstractAccount::new(&abstr_host_remote, destination_remote_account_id.clone());
 
         let manager_config = destination_remote_account.manager.config()?;
         assert_eq!(
@@ -322,8 +320,8 @@ mod test {
             ConfigResponse {
                 account_id: destination_remote_account_id,
                 is_suspended: false,
-                module_factory_address: abstr_destination_remote.module_factory.address()?,
-                version_control_address: abstr_destination_remote.version_control.address()?,
+                module_factory_address: abstr_host_remote.module_factory.address()?,
+                version_control_address: abstr_host_remote.version_control.address()?,
             }
         );
 
