@@ -302,7 +302,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn query_ans_balance(&self, ans_asset: AssetEntry) -> AbstractClientResult<Uint128> {
         let proxy_addr = self.proxy()?;
         let holding_ammount: proxy::HoldingAmountResponse = self
-            .remote_chain
+            .host_chain()
             .query(
                 &proxy::QueryMsg::HoldingAmount {
                     identifier: ans_asset,
@@ -458,7 +458,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         let mut module_address_response = self.module_addresses(vec![module_id.to_owned()])?;
         let (_, module_addr) = module_address_response.modules.pop().unwrap();
         let response = self
-            .remote_chain()
+            .host_chain()
             .query(msg, &module_addr)
             .map_err(Into::into)?;
         Ok(response)
@@ -471,7 +471,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         memo: Option<String>,
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         self.ibc_client_execute(ibc_client::ExecuteMsg::SendFunds {
-            host_chain: self.host_chain(),
+            host_chain: self.host_chain_id(),
             funds,
             memo,
         })
@@ -523,7 +523,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
 
         let key = manager::state::ACCOUNT_MODULES.key(id).to_vec();
         let maybe_module_addr = self
-            .remote_chain()
+            .host_chain()
             .wasm_querier()
             .raw_query(manager, key)
             .map_err(Into::into)?;
