@@ -69,6 +69,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
+    deps.storage.remove("\u{0}{6}ans_host".as_bytes());
     assert_contract_upgrade(deps.storage, PROXY, version)?;
     cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     Ok(Response::default())
