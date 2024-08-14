@@ -8,6 +8,7 @@
 - `stargate` feature for abstract-app, abstract-standalone and abstract-adapter packages.
 - New module type: `Service`, behaves the same as Native, but can be registered by any namespace.
 - `AbstractClient`: `service` to get api of Service module
+- `balance` method for `AnsHost` to query balance of `AssetEntry`
 
 ### Changed
 
@@ -16,7 +17,6 @@
 #### Abstract Client
 
 - `with_modules` method for Account Builder to add list of modules to install (`ModuleInstallConfig`)
-- `query_ans_balance` method for Account to query balance of `AssetEntry`
 - `query_module` method for Account to query given module on account without retrieving `Application` object
 - `module_installed` method for Account that returns `true` if module installed on account
 - `module_version_installed` method for Account that returns `true` if module of this version installed on account
