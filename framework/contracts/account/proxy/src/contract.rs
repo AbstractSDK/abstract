@@ -1,14 +1,11 @@
 use abstract_macros::abstract_response;
-use abstract_sdk::{
-    feature_objects::AnsHost,
-    std::{
-        objects::account::ACCOUNT_ID,
-        proxy::{
-            state::{State, ADMIN, ANS_HOST, STATE},
-            ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-        },
-        PROXY,
+use abstract_sdk::std::{
+    objects::account::ACCOUNT_ID,
+    proxy::{
+        state::{State, ADMIN, STATE},
+        ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
+    PROXY,
 };
 use abstract_std::objects::module_version::assert_contract_upgrade;
 use cosmwasm_std::{
@@ -50,10 +47,6 @@ pub fn instantiate(
             modules: vec![manager_addr.clone()],
         },
     )?;
-    let ans_host = AnsHost {
-        address: deps.api.addr_validate(&msg.ans_host_address)?,
-    };
-    ANS_HOST.save(deps.storage, &ans_host)?;
     let admin_addr = Some(manager_addr);
     ADMIN.set(deps.branch(), admin_addr)?;
 
@@ -82,12 +75,9 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
-        QueryMsg::HoldingAmount { identifier } => {
-            to_json_binary(&query_holding_amount(deps, env, identifier)?)
-        }
     }
     .map_err(Into::into)
 }

@@ -1,17 +1,5 @@
-use abstract_sdk::{
-    std::{
-        objects::AssetEntry,
-        proxy::{
-            state::{ANS_HOST, STATE},
-            ConfigResponse,
-        },
-    },
-    Resolve,
-};
-use abstract_std::proxy::HoldingAmountResponse;
-use cosmwasm_std::{Addr, Deps, Env, StdResult};
-
-use crate::contract::ProxyResult;
+use abstract_sdk::std::proxy::{state::STATE, ConfigResponse};
+use cosmwasm_std::{Addr, Deps, StdResult};
 
 /// Returns the whitelisted modules
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
@@ -26,24 +14,12 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     Ok(resp)
 }
 
-pub fn query_holding_amount(
-    deps: Deps,
-    env: Env,
-    identifier: AssetEntry,
-) -> ProxyResult<HoldingAmountResponse> {
-    let ans_host = ANS_HOST.load(deps.storage)?;
-    let asset_info = identifier.resolve(&deps.querier, &ans_host)?;
-    Ok(HoldingAmountResponse {
-        amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
-    })
-}
-
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
 
-    use crate::contract::{execute, instantiate, query};
+    use crate::contract::{execute, instantiate, query, ProxyResult};
     use abstract_std::proxy::{ExecuteMsg, InstantiateMsg};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{

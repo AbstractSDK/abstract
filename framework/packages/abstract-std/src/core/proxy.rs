@@ -15,10 +15,7 @@ use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 #[allow(unused_imports)]
-use crate::{
-    ibc_client::ExecuteMsg as IbcClientMsg,
-    objects::{account::AccountId, AssetEntry},
-};
+use crate::{ibc_client::ExecuteMsg as IbcClientMsg, objects::account::AccountId};
 
 pub mod state {
     use cosmwasm_std::Addr;
@@ -26,12 +23,11 @@ pub mod state {
     use cw_storage_plus::Item;
 
     pub use crate::objects::account::ACCOUNT_ID;
-    use crate::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
+    use crate::objects::common_namespace::ADMIN_NAMESPACE;
     #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,
     }
-    pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 }
@@ -69,10 +65,6 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-    /// Returns the amount of specified tokens this contract holds
-    /// [`HoldingAmountResponse`]
-    #[returns(HoldingAmountResponse)]
-    HoldingAmount { identifier: AssetEntry },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -88,11 +80,6 @@ pub struct TokenValueResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct BaseAssetResponse {
     pub base_asset: AssetInfo,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct HoldingAmountResponse {
-    pub amount: Uint128,
 }
 
 /// Query message to external contract to get asset value
