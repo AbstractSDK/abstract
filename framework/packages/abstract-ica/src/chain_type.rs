@@ -26,6 +26,8 @@ impl CastChainType for TruncatedChainId {
     // Return the type of chain based on the chain-id.
     // Note: chain-ids for EVM chains are numbers!
     fn chain_type(&self) -> Option<ChainType> {
+        // TODO: Should be a better way to have lookup table, maybe this will be nice:
+        // https://crates.io/crates/phf
         let chains = map_macro::hash_map! {
             ARCHWAY[0] => ChainType::Cosmos,
             ARCHWAY[1] => ChainType::Cosmos,
