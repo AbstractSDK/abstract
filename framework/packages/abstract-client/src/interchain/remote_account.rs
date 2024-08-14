@@ -17,7 +17,7 @@ use abstract_std::{
     objects::{
         module::{ModuleId, ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        ownership, AccountId, AssetEntry, TruncatedChainId,
+        ownership, AccountId, TruncatedChainId,
     },
     proxy, IBC_CLIENT, PROXY,
 };
@@ -42,7 +42,6 @@ pub struct RemoteAccountBuilder<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<C
     pub(crate) ibc_env: &'a IBC,
     pub(crate) host_chain: Chain,
     namespace: Option<Namespace>,
-    base_asset: Option<AssetEntry>,
     owner_account: Account<Chain>,
     install_modules: Vec<ModuleInstallConfig>,
     // TODO: how we want to manage funds ibc-wise?
@@ -107,7 +106,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
             ibc_env,
             host_chain,
             namespace: None,
-            base_asset: None,
             owner_account,
             install_modules: vec![],
         }
@@ -117,12 +115,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
     /// Setting this will claim the namespace for the account on construction.
     pub fn namespace(mut self, namespace: Namespace) -> Self {
         self.namespace = Some(namespace);
-        self
-    }
-
-    /// Base Asset for the account
-    pub fn base_asset(mut self, base_asset: AssetEntry) -> Self {
-        self.base_asset = Some(base_asset);
         self
     }
 
@@ -177,7 +169,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
 
         let account_details = AccountDetails {
             namespace: self.namespace.as_ref().map(ToString::to_string),
-            base_asset: self.base_asset.clone(),
             install_modules,
             ..Default::default()
         };
@@ -296,22 +287,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             .balance(self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
-    }
-
-    /// Query account balance of a given denom
-    pub fn query_ans_balance(&self, ans_asset: AssetEntry) -> AbstractClientResult<Uint128> {
-        let proxy_addr = self.proxy()?;
-        let holding_ammount: proxy::HoldingAmountResponse = self
-            .host_chain()
-            .query(
-                &proxy::QueryMsg::HoldingAmount {
-                    identifier: ans_asset,
-                },
-                &proxy_addr,
-            )
-            .map_err(Into::into)?;
-
-        Ok(holding_ammount.amount)
     }
 
     /// Query account info

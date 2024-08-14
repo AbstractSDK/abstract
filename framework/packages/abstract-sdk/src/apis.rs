@@ -1,4 +1,3 @@
-pub mod accounting;
 pub mod adapter;
 pub mod app;
 pub mod bank;

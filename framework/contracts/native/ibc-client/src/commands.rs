@@ -14,7 +14,7 @@ use abstract_std::{
     ibc_host::{self, HostAction, InternalAction},
     manager::{self, ModuleInstallConfig},
     objects::{
-        module::ModuleInfo, module_reference::ModuleReference, AccountId, AssetEntry, ChannelEntry,
+        module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
     },
     version_control::AccountBase,
@@ -369,7 +369,6 @@ pub fn execute_register_account(
     info: MessageInfo,
     env: Env,
     host_chain: TruncatedChainId,
-    base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
@@ -399,7 +398,6 @@ pub fn execute_register_account(
             description: account_info.description,
             link: account_info.link,
             name: account_info.name,
-            base_asset,
             namespace,
             install_modules,
         }),
