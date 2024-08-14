@@ -55,15 +55,15 @@ fn query_and_ping(
     opponent_chain: TruncatedChainId,
     module: App,
 ) -> AppResult {
-    let ibc_client = app.ibc_client(deps.as_ref());
-    let remote_account_id = app
+    let ibc_client = module.ibc_client(deps.as_ref());
+    let remote_account_id = module
         .account_id(deps.as_ref())?
         .into_remote_account_id(TruncatedChainId::new(env), opponent_chain.clone());
 
     let module_query = ibc_client.module_ibc_query(
         opponent_chain.clone(),
         InstalledModuleIdentification {
-            module_info: app.module_info()?,
+            module_info: module.module_info()?,
             account_id: Some(remote_account_id),
         },
         &crate::msg::QueryMsg::from(AppQueryMsg::BlockHeight {}),
