@@ -5,6 +5,7 @@
 ### Added
 
 - `execute_with_funds` to Executor to attach funds to execution.
+- `stargate` feature for abstract-app, abstract-standalone and abstract-adapter packages.
 - New module type: `Service`, behaves the same as Native, but can be registered by any namespace.
 - `AbstractClient`: `service` to get api of Service module
 
