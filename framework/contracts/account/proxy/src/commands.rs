@@ -5,7 +5,7 @@ use abstract_sdk::std::{
 };
 use abstract_std::ICA_CLIENT;
 use cosmwasm_std::{
-    wasm_execute, Binary, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg,
+    wasm_execute, Binary, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg, WasmQuery,
 };
 
 use crate::{
@@ -95,9 +95,13 @@ pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) ->
             ))
         })?;
 
-    let res: abstract_ica::msg::IcaActionResult = deps
-        .querier
-        .query_wasm_smart(ica_client_address, &action_query)?;
+    let res: abstract_ica::msg::IcaActionResult = deps.querier.query(
+        &WasmQuery::Smart {
+            contract_addr: ica_client_address.into(),
+            msg: action_query,
+        }
+        .into(),
+    )?;
 
     Ok(ProxyResponse::action("ica_action").add_messages(res.msgs))
 }
@@ -430,7 +434,7 @@ mod test {
                 },
             };
 
-            let not_whitelisted_info = mock_info(TEST_MANAGER, &[]);
+            let not_whitelisted_info = mock_info("not_whitelisted", &[]);
             execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
             let manager_info = mock_info(TEST_MANAGER, &[]);
@@ -513,6 +517,62 @@ mod test {
                     funds,
                 },
             )));
+        }
+    }
+
+    mod ica_action {
+        use abstract_ica::msg::IcaActionResult;
+        use abstract_std::{manager, proxy::state::State};
+
+        use super::*;
+
+        #[test]
+        fn ica_action() {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+            // whitelist creator
+            STATE
+                .save(
+                    &mut deps.storage,
+                    &State {
+                        modules: vec![Addr::unchecked(TEST_MANAGER)],
+                    },
+                )
+                .unwrap();
+
+            let action = Binary::from(b"some_action");
+            let msg = ExecuteMsg::IcaAction {
+                action_query_msg: action.clone(),
+            };
+
+            let not_whitelisted_info = mock_info("not_whitelisted", &[]);
+            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+
+            let manager_info = mock_info(TEST_MANAGER, &[]);
+            // ibc not enabled
+            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            // mock enabling ibc
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_map_entry(
+                    TEST_MANAGER,
+                    manager::state::ACCOUNT_MODULES,
+                    (ICA_CLIENT, Addr::unchecked("ica_client_addr")),
+                )
+                .with_smart_handler("ica_client_addr", move |bin| {
+                    if bin.eq(&action) {
+                        Ok(to_json_binary(&IcaActionResult {
+                            msgs: vec![CosmosMsg::Custom(Empty {})],
+                        })
+                        .unwrap())
+                    } else {
+                        Err("Unexpected action query".to_owned())
+                    }
+                })
+                .build();
+
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            assert_that(&res.messages).has_length(1);
+            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Custom(Empty {})));
         }
     }
 }
