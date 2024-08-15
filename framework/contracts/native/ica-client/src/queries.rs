@@ -43,6 +43,8 @@ pub(crate) fn ica_action(
 
     let cfg = CONFIG.load(deps.storage)?;
 
+    // TODO: should we match ChainType first, so it doesn't get so nested?
+
     let process_action = |action: IcaAction| -> IcaClientResult<Vec<CosmosMsg>> {
         match action {
             IcaAction::Execute(ica_exec) => match ica_exec {
