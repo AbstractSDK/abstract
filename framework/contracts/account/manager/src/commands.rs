@@ -22,7 +22,7 @@ use abstract_std::{
         salt::generate_instantiate_salt,
         validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
-        AccountId, AssetEntry,
+        AccountId,
     },
     proxy::{state::ACCOUNT_ID, ExecuteMsg as ProxyMsg},
     version_control::ModuleResponse,
@@ -148,7 +148,9 @@ pub(crate) fn _install_modules(
         installed_modules.push(module.info.id_with_version());
 
         let init_msg_salt = match &module.reference {
-            ModuleReference::Adapter(module_address) | ModuleReference::Native(module_address) => {
+            ModuleReference::Adapter(module_address)
+            | ModuleReference::Native(module_address)
+            | ModuleReference::Service(module_address) => {
                 if module.should_be_whitelisted() {
                     add_to_proxy.push(module_address.to_string());
                 }
@@ -288,7 +290,6 @@ pub fn create_sub_account(
     name: String,
     description: Option<String>,
     link: Option<String>,
-    base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
     account_id: Option<u32>,
@@ -305,7 +306,6 @@ pub fn create_sub_account(
         name,
         description,
         link,
-        base_asset,
         namespace,
         install_modules,
         account_id: account_id.map(AccountId::local),

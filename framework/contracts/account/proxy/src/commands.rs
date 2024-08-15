@@ -1,12 +1,9 @@
 use abstract_sdk::std::{
     ibc_client::ExecuteMsg as IbcClientMsg,
-    proxy::state::{ADMIN, ANS_HOST, STATE},
+    proxy::state::{ADMIN, STATE},
     IBC_CLIENT,
 };
-use abstract_std::{
-    objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry},
-    ICA_CLIENT,
-};
+use abstract_std::ICA_CLIENT;
 use cosmwasm_std::{
     wasm_execute, Binary, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg,
 };
@@ -103,22 +100,6 @@ pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) ->
         .query_wasm_smart(ica_client_address, &action_query)?;
 
     Ok(ProxyResponse::action("ica_action").add_messages(res.msgs))
-}
-
-/// Update the stored vault asset information
-pub fn update_assets(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
-    to_remove: Vec<AssetEntry>,
-) -> ProxyResult {
-    // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let ans_host = &ANS_HOST.load(deps.storage)?;
-
-    let oracle = Oracle::new();
-    oracle.update_assets(deps, ans_host, to_add, to_remove)?;
-    Ok(ProxyResponse::action("update_proxy_assets"))
 }
 
 /// Add a contract to the whitelist
@@ -444,7 +425,6 @@ mod test {
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".parse().unwrap(),
-                    base_asset: None,
                     namespace: None,
                     install_modules: vec![],
                 },
@@ -472,7 +452,6 @@ mod test {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".parse().unwrap(),
-                        base_asset: None,
                         namespace: None,
                         install_modules: vec![],
                     })

@@ -1,3 +1,5 @@
+use abstract_standalone::objects::dependency::StaticDependency;
+use abstract_standalone::traits::Dependencies;
 use cw_orch::contract::{interface_traits::InstantiableContract, Contract};
 use cw_orch::prelude::*;
 
@@ -28,6 +30,10 @@ impl<Chain: cw_orch::environment::CwEnv> abstract_interface::RegisteredModule
 
     fn module_version<'a>() -> &'a str {
         MY_STANDALONE.version()
+    }
+
+    fn dependencies<'a>() -> &'a [StaticDependency] {
+        MY_STANDALONE.dependencies()
     }
 }
 

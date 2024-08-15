@@ -71,8 +71,6 @@ expression: all_storage
 "abstract:proxy-local-0":
   - - "\u0000{5}state"
     - "{\"modules\":[\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\"]}"
-  - - "\u0000{6}ans_host"
-    - "{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - acc_id
     - "{\"trace\":\"local\",\"seq\":0}"
   - - admin

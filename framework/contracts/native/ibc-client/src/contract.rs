@@ -9,7 +9,7 @@ use abstract_std::{
     IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
-use cw_semver::Version;
+use semver::Version;
 
 use crate::{commands, error::IbcClientError, ibc, queries};
 
@@ -75,7 +75,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             .map_err(Into::into),
         ExecuteMsg::Register {
             host_chain,
-            base_asset,
             namespace,
             install_modules,
         } => commands::execute_register_account(
@@ -83,7 +82,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             info,
             env,
             host_chain,
-            base_asset,
             namespace,
             install_modules,
         ),
@@ -523,7 +521,6 @@ mod tests {
                     name: String::from("name"),
                     description: None,
                     link: None,
-                    base_asset: None,
                     namespace: None,
                     install_modules: vec![],
                 }),
@@ -757,7 +754,6 @@ mod tests {
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name,
-                base_asset: None,
                 namespace: None,
                 install_modules: vec![],
             };
@@ -811,7 +807,6 @@ mod tests {
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name,
-                base_asset: None,
                 namespace: None,
                 install_modules: vec![],
             };
@@ -831,7 +826,6 @@ mod tests {
                                 description: None,
                                 link: None,
                                 name: String::from("name"),
-                                base_asset: None,
                                 namespace: None,
                                 install_modules: vec![],
                             }),

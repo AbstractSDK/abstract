@@ -3,7 +3,7 @@
 command -v shellcheck >/dev/null && shellcheck "$0"
 
 function print_usage() {
-  echo "Usage: ABSTRACT_TOKEN=[TOKEN] $0 [-h|--help]"
+  echo "Usage: [-h|--help]"
   echo -e "\tPublishes crates to crates.io."
   echo -e "\t- Set ABSTRACT_TOKEN variable for crates.io publisher token."
   echo -e "\t- Use it from the root of the monorepo."
@@ -13,7 +13,7 @@ function print_usage() {
 publish_crate() {
   # Run the cargo publish command, capturing both stdout and stderr
   # Check if the command was successful
-  if output=$(cargo publish --token $ABSTRACT_TOKEN 2>&1); then
+  if output=$(cargo publish 2>&1); then
     echo "Successfully published crate. 🎉"
   else
     # Check for the specific error message
@@ -40,12 +40,6 @@ fi
 if [[ ! -f ".gitignore" ]]; then
   echo ".gitignore not found, make sure you are in the root of monorepo."
   exit 1
-fi
-
-# Check that crates.io token is set
-if [ -z "${ABSTRACT_TOKEN}" ]; then
-    echo "Must provide ABSTRACT_TOKEN for crates.io in environment" 1>&2
-    exit 1
 fi
 
 # Make it stop if something goes wrong

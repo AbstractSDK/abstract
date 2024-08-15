@@ -10,7 +10,7 @@ use abstract_std::{
     IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
-use cw_semver::Version;
+use semver::Version;
 
 use crate::{error::IcaClientError, queries};
 

@@ -33,7 +33,7 @@ To use the Dex Adapter Module in your Rust project, add the following dependency
 
 ```toml
 [dependencies]
-abstract-dex-adapter = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.18.0", default-features = false }
+abstract-dex-adapter = { git = "https://github.com/AbstractSDK/abstract.git", tag="<latest-tag>", default-features = false }
 ```
 
 ## Usage with the Abstract SDK
