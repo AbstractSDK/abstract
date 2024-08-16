@@ -4,7 +4,7 @@ pub use abstract_std::account_factory::{
 use abstract_std::{
     account_factory::*,
     manager::ModuleInstallConfig,
-    objects::{gov_type::GovernanceDetails, AccountId, AssetEntry},
+    objects::{gov_type::GovernanceDetails, AccountId},
 };
 use cw_orch::{environment::Environment, interface, prelude::*};
 
@@ -17,7 +17,6 @@ pub struct AccountDetails {
     pub description: Option<String>,
     pub link: Option<String>,
     pub namespace: Option<String>,
-    pub base_asset: Option<AssetEntry>,
     pub install_modules: Vec<ModuleInstallConfig>,
     pub account_id: Option<u32>,
 }
@@ -59,7 +58,6 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             link,
             description,
             namespace,
-            base_asset,
             install_modules,
             account_id,
         } = account_details;
@@ -72,7 +70,6 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 description,
                 account_id: account_id.map(AccountId::local),
                 namespace,
-                base_asset,
                 install_modules,
             },
             funds,

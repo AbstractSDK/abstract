@@ -15,15 +15,7 @@ use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 #[allow(unused_imports)]
-use crate::{
-    ibc_client::ExecuteMsg as IbcClientMsg,
-    objects::{
-        account::AccountId,
-        oracle::{AccountValue, Complexity},
-        price_source::{PriceSource, UncheckedPriceSource},
-        AssetEntry,
-    },
-};
+use crate::{ibc_client::ExecuteMsg as IbcClientMsg, objects::account::AccountId};
 
 pub mod state {
     use cosmwasm_std::Addr;
@@ -31,12 +23,11 @@ pub mod state {
     use cw_storage_plus::Item;
 
     pub use crate::objects::account::ACCOUNT_ID;
-    use crate::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
+    use crate::objects::common_namespace::ADMIN_NAMESPACE;
     #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,
     }
-    pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 }
@@ -46,7 +37,6 @@ pub struct InstantiateMsg {
     pub account_id: AccountId,
     pub ans_host_address: String,
     pub manager_addr: String,
-    pub base_asset: Option<AssetEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -64,11 +54,6 @@ pub enum ExecuteMsg {
     AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps
     RemoveModule { module: String },
-    /// Updates the VAULT_ASSETS map
-    UpdateAssets {
-        to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
-        to_remove: Vec<AssetEntry>,
-    },
 }
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
@@ -80,40 +65,6 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-    /// Returns the total value of the assets held by this account
-    /// [`AccountValue`]
-    #[returns(AccountValue)]
-    TotalValue {},
-    /// Returns the value of one token with an optional amount set.
-    /// If amount is not set, the account's balance of the token is used.
-    /// [`TokenValueResponse`]
-    #[returns(TokenValueResponse)]
-    TokenValue { identifier: AssetEntry },
-    /// Returns the amount of specified tokens this contract holds
-    /// [`HoldingAmountResponse`]
-    #[returns(HoldingAmountResponse)]
-    HoldingAmount { identifier: AssetEntry },
-    /// Returns the oracle configuration value for the specified key
-    /// [`AssetConfigResponse`]
-    #[returns(AssetConfigResponse)]
-    AssetConfig { identifier: AssetEntry },
-    /// Returns [`AssetsConfigResponse`]
-    /// Human readable
-    #[returns(AssetsConfigResponse)]
-    AssetsConfig {
-        start_after: Option<AssetEntry>,
-        limit: Option<u8>,
-    },
-    /// Returns [`AssetsInfoResponse`]
-    /// Not human readable
-    #[returns(AssetsInfoResponse)]
-    AssetsInfo {
-        start_after: Option<AssetInfo>,
-        limit: Option<u8>,
-    },
-    /// Returns [`BaseAssetResponse`]
-    #[returns(BaseAssetResponse)]
-    BaseAsset {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -131,34 +82,6 @@ pub struct BaseAssetResponse {
     pub base_asset: AssetInfo,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct HoldingAmountResponse {
-    pub amount: Uint128,
-}
-
-/// Human readable config for a single asset
-#[cosmwasm_schema::cw_serde]
-pub struct AssetConfigResponse {
-    pub price_source: UncheckedPriceSource,
-}
-
-/// non-human readable asset configuration
-#[cosmwasm_schema::cw_serde]
-pub struct AssetsInfoResponse {
-    pub assets: Vec<(AssetInfo, OracleAsset)>,
-}
-
-/// Human readable asset configuration
-#[cosmwasm_schema::cw_serde]
-pub struct AssetsConfigResponse {
-    pub assets: Vec<(AssetEntry, UncheckedPriceSource)>,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct OracleAsset {
-    pub price_source: PriceSource,
-    pub complexity: Complexity,
-}
 /// Query message to external contract to get asset value
 #[cosmwasm_schema::cw_serde]
 pub struct ValueQueryMsg {

@@ -1,6 +1,7 @@
 use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{
+        dependency::StaticDependency,
         module::{ModuleInfo, ModuleVersion},
         AccountId,
     },
@@ -27,6 +28,8 @@ pub trait RegisteredModule {
     fn installed_module_contract_id(account_id: &AccountId) -> String {
         format!("{}-{}", Self::module_id(), account_id)
     }
+    /// Dependencies of the module
+    fn dependencies<'a>() -> &'a [StaticDependency];
 }
 
 /// Trait to access module dependency information tied directly to the type.
@@ -81,6 +84,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
     + CwOrchInstantiate<Chain, InstantiateMsg = abstract_std::adapter::InstantiateMsg<CustomInitMsg>>
     + Uploadable
     + Sized
+    + RegisteredModule
 {
     /// Deploys the adapter. If the adapter is already deployed, it will return an error.
     /// Use [`DeployStrategy::Try`]  if you want to deploy the adapter only if it is not already deployed.
@@ -92,6 +96,10 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.environment().to_owned())?;
+
+        abstr
+            .version_control
+            .assert_dependencies_deployed(Self::dependencies())?;
 
         // check for existing version, if not force strategy
         let vc_has_module = || {
@@ -142,7 +150,9 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
 }
 
 /// Trait for deploying APPs
-pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
+pub trait AppDeployer<Chain: CwEnv>:
+    Sized + Uploadable + ContractInstance<Chain> + RegisteredModule
+{
     /// Deploys the app. If the app is already deployed, it will return an error.
     /// Use [`DeployStrategy::Try`]  if you want to deploy the app only if it is not already deployed.
     fn deploy(
@@ -152,6 +162,10 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
+
+        abstr
+            .version_control
+            .assert_dependencies_deployed(Self::dependencies())?;
 
         // check for existing version
         let vc_has_module = || {
@@ -193,7 +207,9 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
 }
 
 /// Trait for deploying Standalones
-pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
+pub trait StandaloneDeployer<Chain: CwEnv>:
+    Sized + Uploadable + ContractInstance<Chain> + RegisteredModule
+{
     /// Deploys the app. If the app is already deployed, it will return an error.
     /// Use [`DeployStrategy::Try`] if you want to deploy the app only if it is not already deployed.
     fn deploy(
@@ -203,6 +219,10 @@ pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstanc
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
+
+        abstr
+            .version_control
+            .assert_dependencies_deployed(Self::dependencies())?;
 
         // check for existing version
         let vc_has_module = || {

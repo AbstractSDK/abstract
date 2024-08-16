@@ -13,6 +13,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
 schema = []
+stargate = ["abstract-sdk/stargate"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }

@@ -12,7 +12,6 @@ use cw_orch::prelude::{
     *,
 };
 use dca_app::{contract::DCA_APP_ID, DCA};
-use etf_app::{contract::interface::Etf, ETF_APP_ID};
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -51,10 +50,6 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         )?;
 
         // Deploy apps
-        Etf::new(ETF_APP_ID, chain.clone()).deploy(
-            etf_app::contract::CONTRACT_VERSION.parse()?,
-            DeployStrategy::Try,
-        )?;
 
         DCA::new(DCA_APP_ID, chain.clone()).deploy(
             dca_app::contract::DCA_APP_VERSION.parse()?,

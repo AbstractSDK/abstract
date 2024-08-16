@@ -7,12 +7,38 @@ use abstract_std::{
     },
     ANS_HOST,
 };
+use cosmwasm_std::Uint128;
 use cw_address_like::AddressLike;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase, AssetInfoUnchecked, AssetUnchecked};
 use cw_orch::{interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
+
+impl<Chain: CwEnv> AnsHost<Chain> {
+    pub fn balance(&self, addr: &Addr, asset: &AssetEntry) -> Result<Uint128, CwOrchError> {
+        let asset: AssetInfo = self.resolve(asset)?;
+        let chain = self.environment();
+        match asset {
+            AssetInfoBase::Native(denom) => chain
+                .balance(addr, Some(denom))
+                .map(|coins| coins[0].amount)
+                .map_err(Into::into),
+            AssetInfoBase::Cw20(cw20_addr) => {
+                let res: cw20::BalanceResponse = chain
+                    .query(
+                        &cw20::Cw20QueryMsg::Balance {
+                            address: addr.to_string(),
+                        },
+                        &cw20_addr,
+                    )
+                    .map_err(Into::into)?;
+                Ok(res.balance)
+            }
+            _ => unimplemented!(),
+        }
+    }
+}
 
 impl<Chain: CwEnv> AnsHost<Chain> {
     pub fn resolve<R: ClientResolve<Chain>>(&self, item: &R) -> Result<R::Output, CwOrchError> {

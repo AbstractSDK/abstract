@@ -53,7 +53,6 @@ protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-cw-semver = { version = "1.0" }
 tokio = { version = "1.33.0", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "1.0.5" }
@@ -77,7 +76,6 @@ abstract-client = { version = "0.23.0", path = "../framework/packages/abstract-c
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }
-etf-app = { path = "../modules/contracts/apps/etf" }
 dca-app = { path = "../modules/contracts/apps/dca" }
 abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking" }
 abstract-dex-adapter = { path = "../modules/contracts/adapters/dex" }

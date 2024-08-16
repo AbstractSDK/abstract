@@ -6,7 +6,7 @@ use abstract_std::{
     },
 };
 use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
-use cw_semver::{Comparator, Version};
+use semver::{Comparator, Version};
 
 use crate::{commands::MIGRATE_CONTEXT, contract::ManagerResult, error::ManagerError};
 

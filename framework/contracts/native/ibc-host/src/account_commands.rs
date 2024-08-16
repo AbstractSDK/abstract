@@ -6,7 +6,7 @@ use abstract_std::{
     account_factory,
     ibc_host::state::CONFIG,
     manager::{self, ModuleInstallConfig},
-    objects::{AccountId, AssetEntry, TruncatedChainId},
+    objects::{AccountId, TruncatedChainId},
     proxy,
     version_control::AccountBase,
     PROXY,
@@ -33,7 +33,6 @@ pub fn receive_register(
     name: String,
     description: Option<String>,
     link: Option<String>,
-    base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
@@ -56,8 +55,6 @@ pub fn receive_register(
             link,
             // provide the origin chain id
             account_id: Some(account_id.clone()),
-
-            base_asset,
             install_modules,
             namespace,
         },
@@ -106,15 +103,9 @@ pub fn receive_send_all_back(
     env: Env,
     account: AccountBase,
     client_proxy_address: String,
-    client_chain: TruncatedChainId,
+    src_chain: TruncatedChainId,
 ) -> HostResult {
-    let wasm_msg = send_all_back(
-        deps.as_ref(),
-        env,
-        account,
-        client_proxy_address,
-        client_chain,
-    )?;
+    let wasm_msg = send_all_back(deps.as_ref(), env, account, client_proxy_address, src_chain)?;
 
     Ok(HostResponse::action("receive_dispatch").add_message(wasm_msg))
 }
@@ -125,12 +116,12 @@ pub fn send_all_back(
     env: Env,
     account: AccountBase,
     client_proxy_address: String,
-    client_chain: TruncatedChainId,
+    src_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
     // get the ICS20 channel information
     let ans = CONFIG.load(deps.storage)?.ans_host;
     let ics20_channel_entry = ChannelEntry {
-        connected_chain: client_chain,
+        connected_chain: src_chain,
         protocol: ICS20.to_string(),
     };
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;

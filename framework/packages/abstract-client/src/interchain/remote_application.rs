@@ -48,7 +48,7 @@ impl<
     pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         self.remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: self.remote_account.host_chain(),
+                host_chain: self.remote_account.host_chain_id(),
                 action: ibc_host::HostAction::Dispatch {
                     manager_msgs: vec![manager::ExecuteMsg::ExecOnModule {
                         module_id: M::module_id().to_owned(),
@@ -103,7 +103,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<
         let _ = self
             .remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: self.remote_account.host_chain(),
+                host_chain: self.remote_account.host_chain_id(),
                 action: ibc_host::HostAction::Dispatch { manager_msgs },
             })?;
         Ok(())

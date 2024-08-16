@@ -310,9 +310,8 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             .expect("IBC host wasm might be outdated");
 
         // Check if version is breaking
-        let version_req = cw_semver::VersionReq::parse(&ibc_client_cw2_version).unwrap();
-        let new_version =
-            cw_semver::Version::parse(::ibc_client::contract::CONTRACT_VERSION).unwrap();
+        let version_req = semver::VersionReq::parse(&ibc_client_cw2_version).unwrap();
+        let new_version = semver::Version::parse(::ibc_client::contract::CONTRACT_VERSION).unwrap();
         if version_req.matches(&new_version) {
             // If version is not breaking, simply migrate
             self.client
