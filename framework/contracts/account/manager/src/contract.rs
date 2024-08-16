@@ -248,9 +248,6 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
         commands::REGISTER_MODULES_DEPENDENCIES => {
             commands::register_dependencies(deps, msg.result)
         }
-        commands::HANDLE_ADAPTER_AUTHORIZED_REMOVE => {
-            commands::adapter_authorized_remove(deps, msg.result)
-        }
         _ => Err(ManagerError::UnexpectedReply {}),
     }
 }
