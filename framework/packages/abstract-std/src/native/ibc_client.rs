@@ -9,7 +9,7 @@ use crate::{
     manager::{self, ModuleInstallConfig},
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
-        version_control::VersionControlContract, AssetEntry, TruncatedChainId,
+        version_control::VersionControlContract, TruncatedChainId,
     },
     AbstractError,
 };
@@ -106,7 +106,6 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: TruncatedChainId,
-        base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },
@@ -221,8 +220,9 @@ impl InstalledModuleIdentification {
                     ))?
                 }
             }
-            ModuleReference::Native(addr) => addr.clone(),
-            ModuleReference::Adapter(addr) => addr.clone(),
+            ModuleReference::Native(addr)
+            | ModuleReference::Adapter(addr)
+            | ModuleReference::Service(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
                 let account_base = vc.account_base(&target_account_id, &deps.querier)?;

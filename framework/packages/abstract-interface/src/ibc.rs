@@ -106,15 +106,15 @@ pub mod connection {
     }
 
     pub fn connect_one_way_to<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
-        abstr: &Abstract<Chain>,
-        dest: &Abstract<Chain>,
+        abstr_client: &Abstract<Chain>,
+        abstr_host: &Abstract<Chain>,
         interchain: &IBC,
     ) -> Result<(), AbstractInterfaceError> {
         // First we register client and host respectively
-        let chain1_id = abstr.ibc.client.environment().chain_id();
+        let chain1_id = abstr_client.ibc.client.environment().chain_id();
         let chain1_name = TruncatedChainId::from_chain_id(&chain1_id);
 
-        let chain2_id = dest.ibc.client.environment().chain_id();
+        let chain2_id = abstr_host.ibc.client.environment().chain_id();
         let chain2_name = TruncatedChainId::from_chain_id(&chain2_id);
 
         // We get the polytone connection
@@ -124,18 +124,19 @@ pub mod connection {
         // First, we register the host with the client.
         // We register the polytone note with it because they are linked
         // This triggers an IBC message that is used to get back the proxy address
-        let proxy_tx_result = abstr.ibc.client.register_infrastructure(
+        let proxy_tx_result = abstr_client.ibc.client.register_infrastructure(
             chain2_name.clone(),
-            dest.ibc.host.address()?.to_string(),
+            abstr_host.ibc.host.address()?.to_string(),
             polytone_connection.note.address()?.to_string(),
         )?;
         // We make sure the IBC execution is done so that the proxy address is saved inside the Abstract contract
         interchain.await_and_check_packets(&chain1_id, proxy_tx_result)?;
 
-        // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
-        let proxy_address = abstr.ibc.client.host(chain2_name)?;
+        // Finally, we get the proxy address and register the proxy with the ibc host for the host chain
+        let proxy_address = abstr_client.ibc.client.host(chain2_name)?;
 
-        dest.ibc
+        abstr_host
+            .ibc
             .host
             .register_chain_proxy(chain1_name, proxy_address.remote_polytone_proxy.unwrap())?;
 

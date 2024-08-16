@@ -3,13 +3,11 @@
 //! [`Publisher`] is an Account with helpers for publishing and maintaining Abstract Applications and Adapters
 
 use abstract_interface::{
-    AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule, StandaloneDeployer,
+    AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule, ServiceDeployer,
+    StandaloneDeployer,
 };
-use abstract_std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
-use cw_orch::{
-    contract::Contract,
-    prelude::{ContractInstance, CwEnv},
-};
+use abstract_std::objects::{gov_type::GovernanceDetails, namespace::Namespace};
+use cw_orch::{contract::Contract, prelude::*};
 use serde::Serialize;
 
 use crate::{
@@ -77,12 +75,6 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         self
     }
 
-    /// Base Asset for the account
-    pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
-        self.account_builder.base_asset(base_asset);
-        self
-    }
-
     /// Governance of the account.
     /// Defaults to the [`GovernanceDetails::Monarchy`] variant, owned by the sender
     pub fn ownership(&mut self, ownership: GovernanceDetails<String>) -> &mut Self {
@@ -133,8 +125,9 @@ impl<Chain: CwEnv> Publisher<Chain> {
         &self,
     ) -> AbstractClientResult<()> {
         let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
-        let app: M = contract.into();
-        app.deploy(M::module_version().parse()?, DeployStrategy::Try)
+        let standalone: M = contract.into();
+        standalone
+            .deploy(M::module_version().parse()?, DeployStrategy::Try)
             .map_err(Into::into)
     }
 
@@ -153,6 +146,20 @@ impl<Chain: CwEnv> Publisher<Chain> {
         let adapter: M = contract.into();
         adapter.deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)?;
         Ok(adapter)
+    }
+
+    /// Publish an Abstract Service
+    pub fn publish_service<
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + ServiceDeployer<Chain>,
+    >(
+        &self,
+        init_msg: &<M as InstantiableContract>::InstantiateMsg,
+    ) -> AbstractClientResult<()> {
+        let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
+        let service: M = contract.into();
+        service
+            .deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)
+            .map_err(Into::into)
     }
 
     /// Abstract Account of the publisher

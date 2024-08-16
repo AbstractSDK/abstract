@@ -18,11 +18,11 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 semver = { workspace = true }
-cw-semver = { workspace = true }
 schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
+cw20 = { workspace = true }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
 abstract-std = { workspace = true }

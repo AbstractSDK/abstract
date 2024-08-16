@@ -50,7 +50,6 @@ use crate::{
     objects::{
         account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,
-        AssetEntry,
     },
 };
 
@@ -89,8 +88,6 @@ pub enum ExecuteMsg {
         governance: GovernanceDetails<String>,
         // Account name
         name: String,
-        // Optionally specify a base asset for the account
-        base_asset: Option<AssetEntry>,
         // Account description
         description: Option<String>,
         // Account link

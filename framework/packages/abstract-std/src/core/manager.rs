@@ -71,7 +71,6 @@ use crate::{
         gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
         module::ModuleInfo,
         ownership::Ownership,
-        AssetEntry,
     },
 };
 
@@ -170,8 +169,6 @@ pub enum ExecuteMsg {
         description: Option<String>,
         // URL linked to the account
         link: Option<String>,
-        // Optionally specify a base asset for the sub-account
-        base_asset: Option<AssetEntry>,
         // optionally specify a namespace for the sub-account
         namespace: Option<String>,
         // Provide list of module to install after sub-account creation

@@ -30,7 +30,7 @@ To use the Lending Market Adapter Module in your Rust project, add the following
 
 ```toml
 [dependencies]
-abstract-money-market-adapter = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.21.1", default-features = false }
+abstract-money-market-adapter = { git = "https://github.com/AbstractSDK/abstract.git", tag="<latest-tag>", default-features = false }
 ```
 
 ## Usage with the Abstract SDK
