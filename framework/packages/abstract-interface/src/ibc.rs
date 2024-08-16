@@ -1,8 +1,5 @@
 use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, VersionControl};
-use abstract_std::{
-    ibc_client::{ExecuteMsgFns, ListIbcInfrastructureResponse},
-    IBC_CLIENT, IBC_HOST,
-};
+use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
 pub struct AbstractIbc<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
@@ -25,12 +22,11 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         Ok(())
     }
 
-    pub fn instantiate(
-        &self,
-        abstr: &Abstract<Chain>,
-        admin: &Addr,
-        register_infrastractures: ListIbcInfrastructureResponse,
-    ) -> Result<(), CwOrchError> {
+    pub fn instantiate(&self, abstr: &Abstract<Chain>, admin: &Addr) -> Result<(), CwOrchError> {
+        #[cfg(feature = "interchain")]
+        let register_infrastructures =
+            connection::list_ibc_infrastructures(self.host.environment().clone());
+
         self.client.instantiate(
             &abstract_std::ibc_client::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
@@ -40,11 +36,14 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             None,
         )?;
 
-        for (chain, ibc_infrastracture) in register_infrastractures.counterparts {
+        #[cfg(feature = "interchain")]
+        for (chain, ibc_infrastructure) in register_infrastructures.counterparts {
+            use abstract_std::ibc_client::ExecuteMsgFns;
+
             self.client.register_infrastructure(
                 chain,
-                ibc_infrastracture.remote_abstract_host,
-                ibc_infrastracture.polytone_note,
+                ibc_infrastructure.remote_abstract_host,
+                ibc_infrastructure.polytone_note,
             )?;
         }
 
@@ -81,7 +80,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 // Helpers to create connection with another chain
 pub mod connection {
     use super::*;
-    use abstract_std::ibc_client::QueryMsgFns;
+    use abstract_std::ibc_client::{ExecuteMsgFns, QueryMsgFns};
     use abstract_std::ibc_host::ExecuteMsgFns as _;
     use abstract_std::objects::TruncatedChainId;
     use cw_orch::environment::Environment;
@@ -141,5 +140,45 @@ pub mod connection {
             .register_chain_proxy(chain1_name, proxy_address.remote_polytone_proxy.unwrap())?;
 
         Ok(())
+    }
+
+    pub fn list_ibc_infrastructures<Chain: CwEnv>(
+        chain: Chain,
+    ) -> abstract_std::ibc_client::ListIbcInfrastructureResponse {
+        let Ok(polytone) = cw_orch_polytone::Polytone::load_from(chain) else {
+            return abstract_std::ibc_client::ListIbcInfrastructureResponse {
+                counterparts: vec![],
+            };
+        };
+        let abstract_state = crate::AbstractDaemonState::default();
+        let deployment_id = "default".to_owned();
+
+        let mut counterparts = vec![];
+        for connected_polytone in polytone.connected_polytones() {
+            // TODO: It's crappy to rely on parse_network to get chain_name, but is there any other option?
+            // Perhaps we should store daemon states in just `.chain_id`, instead of `.chain_name.chain_id`
+            let Ok(chain_info) = networks::parse_network(&connected_polytone.chain_id) else {
+                continue;
+            };
+            let chain_name = chain_info.network_info.chain_name.to_owned();
+            let env_info = EnvironmentInfo {
+                chain_id: connected_polytone.chain_id.clone(),
+                chain_name,
+                deployment_id: deployment_id.clone(),
+            };
+            if let Some(remote_abstract_host) = abstract_state.contract_addr(&env_info, IBC_HOST) {
+                let truncated_chain_id =
+                    abstract_std::objects::TruncatedChainId::from_chain_id(&env_info.chain_id);
+                counterparts.push((
+                    truncated_chain_id,
+                    abstract_std::ibc_client::state::IbcInfrastructure {
+                        polytone_note: connected_polytone.note,
+                        remote_abstract_host: remote_abstract_host.into(),
+                        remote_proxy: None,
+                    },
+                ))
+            }
+        }
+        abstract_std::ibc_client::ListIbcInfrastructureResponse { counterparts }
     }
 }

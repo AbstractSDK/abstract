@@ -1,5 +1,4 @@
 use crate::{Abstract, AbstractIbc};
-use abstract_std::ibc_client::QueryMsgFns as _;
 use abstract_std::version_control::QueryMsgFns;
 use abstract_std::{
     account_factory, ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo,
@@ -322,14 +321,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 .migrate_if_needed(&ibc_host::MigrateMsg {})?
                 .expect("IBC host supposed to be migrated, but skipped instead");
         } else {
-            // Version change is breaking, need to deploy new version
-            let infrastructures = self.client.list_ibc_infrastructures()?;
-            self.instantiate(
-                abstr,
-                &self.client.environment().sender_addr(),
-                // Copy previous polytone connections
-                infrastructures,
-            )?;
+            self.instantiate(abstr, &self.client.environment().sender_addr())?;
         }
 
         Ok(true)

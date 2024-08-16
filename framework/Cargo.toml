@@ -111,3 +111,8 @@ debug-assertions = false
 codegen-units = 1
 panic = 'abort'
 incremental = false
+
+[patch.crates-io]
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "abstract/deployment" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "abstract/deployment" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "abstract/deployment" }
