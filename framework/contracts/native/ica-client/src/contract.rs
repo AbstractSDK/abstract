@@ -7,7 +7,7 @@ use abstract_std::{
         ans_host::AnsHost,
         module_version::{assert_cw_contract_upgrade, migrate_module_data},
     },
-    IBC_CLIENT,
+    ICA_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use semver::Version;
@@ -18,7 +18,7 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub(crate) type IcaClientResult<T = Response> = Result<T, IcaClientError>;
 
-#[abstract_response(IBC_CLIENT)]
+#[abstract_response(ICA_CLIENT)]
 pub(crate) struct IbcClientResponse;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -28,7 +28,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> IcaClientResult {
-    cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+    cw2::set_contract_version(deps.storage, ICA_CLIENT, CONTRACT_VERSION)?;
     let cfg = Config {
         version_control: VersionControlContract::new(
             deps.api.addr_validate(&msg.version_control_address)?,
@@ -79,9 +79,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> IcaClientResult<QueryRespon
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IcaClientResult {
     let to_version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
-    cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
-    migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
+    assert_cw_contract_upgrade(deps.storage, ICA_CLIENT, to_version)?;
+    cw2::set_contract_version(deps.storage, ICA_CLIENT, CONTRACT_VERSION)?;
+    migrate_module_data(deps.storage, ICA_CLIENT, CONTRACT_VERSION, None::<String>)?;
     Ok(IbcClientResponse::action("migrate"))
 }
 
@@ -131,7 +131,7 @@ mod tests {
         // CW2
         let cw2_info = CONTRACT.load(&deps.storage).unwrap();
         assert_that!(cw2_info.version).is_equal_to(CONTRACT_VERSION.to_string());
-        assert_that!(cw2_info.contract).is_equal_to(IBC_CLIENT.to_string());
+        assert_that!(cw2_info.contract).is_equal_to(ICA_CLIENT.to_string());
 
         Ok(())
     }
@@ -155,7 +155,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(IcaClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
-                        contract: IBC_CLIENT.to_string(),
+                        contract: ICA_CLIENT.to_string(),
                         from: version.to_string().parse().unwrap(),
                         to: version.to_string().parse().unwrap(),
                     },
@@ -170,7 +170,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let big_version = "999.999.999";
-            cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, big_version)?;
+            cw2::set_contract_version(deps.as_mut().storage, ICA_CLIENT, big_version)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -180,7 +180,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(IcaClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
-                        contract: IBC_CLIENT.to_string(),
+                        contract: ICA_CLIENT.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version.to_string().parse().unwrap(),
                     },
@@ -205,7 +205,7 @@ mod tests {
                 .is_equal_to(IcaClientError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
-                        to: IBC_CLIENT.parse().unwrap(),
+                        to: ICA_CLIENT.parse().unwrap(),
                     },
                 ));
 
@@ -224,7 +224,7 @@ mod tests {
                 ..version.clone()
             }
             .to_string();
-            cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, small_version)?;
+            cw2::set_contract_version(deps.as_mut().storage, ICA_CLIENT, small_version)?;
 
             let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);
