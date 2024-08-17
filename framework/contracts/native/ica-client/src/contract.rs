@@ -19,7 +19,7 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) type IcaClientResult<T = Response> = Result<T, IcaClientError>;
 
 #[abstract_response(ICA_CLIENT)]
-pub(crate) struct IbcClientResponse;
+pub(crate) struct IcaClientResponse;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -40,7 +40,7 @@ pub fn instantiate(
     CONFIG.save(deps.storage, &cfg)?;
 
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
-    Ok(IbcClientResponse::action("instantiate"))
+    Ok(IcaClientResponse::action("instantiate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -48,7 +48,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
     match msg {
         ExecuteMsg::UpdateOwnership(action) => {
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
-            Ok(IbcClientResponse::action("update_ownership"))
+            Ok(IcaClientResponse::action("update_ownership"))
         }
     }
 }
@@ -82,7 +82,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IcaClientResult {
     assert_cw_contract_upgrade(deps.storage, ICA_CLIENT, to_version)?;
     cw2::set_contract_version(deps.storage, ICA_CLIENT, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, ICA_CLIENT, CONTRACT_VERSION, None::<String>)?;
-    Ok(IbcClientResponse::action("migrate"))
+    Ok(IcaClientResponse::action("migrate"))
 }
 
 #[cfg(test)]
