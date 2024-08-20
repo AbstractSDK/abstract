@@ -24,7 +24,7 @@ pub(crate) fn ica_action(
     env: Env,
     _proxy_address: String,
     chain: TruncatedChainId,
-    mut actions: Vec<IcaAction>,
+    actions: Vec<IcaAction>,
 ) -> IcaClientResult<IcaActionResponse> {
     // match chain-id with cosmos or EVM
     use abstract_ica::CastChainType;
@@ -32,18 +32,7 @@ pub(crate) fn ica_action(
         chain: chain.to_string(),
     })?;
 
-    // todo: what do we do for msgs that contain both cosmos and EVM messages?
-    // Best to err if there's conflict.
-
-    // sort actions
-    // 1) Transfers
-    // 2) Calls
-    // 3) Queries
-    actions.sort_unstable();
-
     let cfg = CONFIG.load(deps.storage)?;
-
-    // TODO: should we match ChainType first, so it doesn't get so nested?
 
     let process_action = |action: IcaAction| -> IcaClientResult<Vec<CosmosMsg>> {
         match action {

@@ -21,34 +21,6 @@ pub enum IcaAction {
     // ... other actions?
 }
 
-impl IcaAction {
-    // Used to set ordering
-    pub fn discriminant(&self) -> u8 {
-        match self {
-            IcaAction::Execute(_) => 0,
-            IcaAction::Fund { .. } => 1,
-            // IcaAction::Query(_) => 2,
-        }
-    }
-}
-
-/// Queries first
-/// Execute second
-/// Funds transfers last
-impl PartialOrd for IcaAction {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for IcaAction {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-
-impl Eq for IcaAction {}
-
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
 pub enum IcaExecute {
