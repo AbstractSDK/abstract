@@ -2,6 +2,7 @@
 //! This module provides functionality to interact with the authz module of CosmosSDK Chains.
 //! It allows for granting authorizations to perform actions on behalf of an account to other accounts.
 
+use cosmos_sdk_proto::Any;
 use cosmos_sdk_proto::{
     cosmos::{
         authz,
@@ -14,18 +15,17 @@ use cosmos_sdk_proto::{
         MsgClearAdmin, MsgExecuteContract, MsgInstantiateContract, MsgInstantiateContract2,
         MsgMigrateContract, MsgUpdateAdmin,
     },
-    ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height},
     traits::{Message, Name},
 };
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
-use prost_types::Any;
+use ibc_proto::ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height};
 
 use super::stargate::{
     authz::{
         AuthZAuthorization, AuthorizationType, GenericAuthorization, Policy, SendAuthorization,
         StakeAuthorization,
     },
-    convert_coin, convert_coins,
+    convert_coin, convert_coins, convert_ibc_coin,
     gov::vote_to_option,
 };
 
@@ -99,7 +99,7 @@ impl AuthZ {
             // TODO: `Name` implementation is missing for authz
             // type_url: authz::v1beta1::MsgRevoke::type_url(),
             type_url: "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
-            value: Binary(msg),
+            value: Binary::new(msg),
         }
     }
 
@@ -119,7 +119,7 @@ impl AuthZ {
 
         CosmosMsg::Stargate {
             type_url: "/cosmos.authz.v1beta1.MsgGrant".to_string(),
-            value: Binary(msg),
+            value: Binary::new(msg),
         }
     }
 
@@ -370,19 +370,21 @@ impl AuthZ {
                         to_address,
                         amount,
                         timeout,
+                        memo
                     } => (
                         MsgTransfer::type_url(),
                         MsgTransfer{
                             source_port: "transfer".to_string(),
                             source_channel: channel_id,
-                            token: Some(convert_coin(amount)),
+                            token: Some(convert_ibc_coin(amount)),
                             sender: self.granter.to_string(),
                             receiver: to_address,
                             timeout_height: timeout.block().map(|b| Height{
                                 revision_number: b.revision,
                                 revision_height: b.height,
                             }),
-                            timeout_timestamp: timeout.timestamp().map(|t| t.nanos()).unwrap_or_default()
+                            timeout_timestamp: timeout.timestamp().map(|t| t.nanos()).unwrap_or_default(),
+                            memo: memo.unwrap_or_default(),
                         }.encode_to_vec()
                     ),
                     // This is there because there is a priori no port associated with the sender
@@ -390,12 +392,15 @@ impl AuthZ {
                 }
             }
             CosmosMsg::Gov(gov_msg) => match gov_msg {
-                cosmwasm_std::GovMsg::Vote { proposal_id, vote } => (
+                cosmwasm_std::GovMsg::Vote {
+                    proposal_id,
+                    option,
+                } => (
                     "/cosmos.gov.v1beta1.MsgVote".to_string(),
                     MsgVote {
                         proposal_id,
                         voter: self.granter.to_string(),
-                        option: vote_to_option(vote),
+                        option: vote_to_option(option),
                     }
                     .encode_to_vec(),
                 ),
@@ -450,7 +455,7 @@ impl AuthZ {
             // TODO: `Name` implementation is missing for authz
             // type_url: authz::v1beta1::MsgExec::type_url(),
             type_url: "/cosmos.authz.v1beta1.MsgExec".to_string(),
-            value: Binary(msg),
+            value: Binary::new(msg),
         }
     }
 }
@@ -481,7 +486,7 @@ mod tests {
 
         let expected_msg = CosmosMsg::Stargate {
             type_url: "/cosmos.authz.v1beta1.MsgGrant".to_string(),
-            value: Binary(
+            value: Binary::new(
                 authz::v1beta1::MsgGrant {
                     granter: granter.into_string(),
                     grantee: grantee.into_string(),
@@ -518,7 +523,7 @@ mod tests {
 
         let expected_msg = CosmosMsg::Stargate {
             type_url: "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
-            value: Binary(
+            value: Binary::new(
                 authz::v1beta1::MsgRevoke {
                     granter: granter.into_string(),
                     grantee: grantee.into_string(),

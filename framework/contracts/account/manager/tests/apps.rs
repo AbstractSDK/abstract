@@ -30,9 +30,12 @@ fn execute_on_proxy_through_manager() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address
-    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
+    chain.set_balance(
+        &account.proxy.address()?,
+        vec![Coin::new(100_000_u128, TTOKEN)],
+    )?;
     // mint other coins to owner
-    chain.set_balance(&sender, vec![Coin::new(100, "other_coin")])?;
+    chain.set_balance(&sender, vec![Coin::new(100u128, "other_coin")])?;
 
     // burn coins from proxy
     let proxy_balance = chain
@@ -40,9 +43,9 @@ fn execute_on_proxy_through_manager() -> AResult {
         .borrow()
         .wrap()
         .query_all_balances(account.proxy.address()?)?;
-    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TTOKEN)]);
+    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000_u128, TTOKEN)]);
 
-    let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TTOKEN)];
+    let burn_amount: Vec<Coin> = vec![Coin::new(10_000_u128, TTOKEN)];
     let forwarded_coin: Coin = coin(100, "other_coin");
 
     account.manager.exec_on_module(
@@ -60,8 +63,10 @@ fn execute_on_proxy_through_manager() -> AResult {
         .borrow()
         .wrap()
         .query_all_balances(account.proxy.address()?)?;
-    assert_that!(proxy_balance)
-        .is_equal_to(vec![forwarded_coin, Coin::new(100_000 - 10_000, TTOKEN)]);
+    assert_that!(proxy_balance).is_equal_to(vec![
+        forwarded_coin,
+        Coin::new(100_000_u128 - 10_000, TTOKEN),
+    ]);
 
     take_storage_snapshot!(chain, "execute_on_proxy_through_manager");
 
@@ -91,20 +96,20 @@ fn account_app_ownership() -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    account.install_app(&app, &MockInitMsg {}, None)?;
+    account.install_app(&app, &MockInitMsg {}, &[])?;
 
     let admin_res: AdminResponse =
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;
-    assert_eq!(admin_res.admin.unwrap(), account.manager.address()?);
+    assert_eq!(admin_res.admin.unwrap(), account.manager.addr_str()?);
 
     // Can call either by account owner or manager
     app.call_as(&sender).execute(
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
-        None,
+        &[],
     )?;
     app.call_as(&account.manager.address()?).execute(
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
-        None,
+        &[],
     )?;
 
     // Not admin or manager
@@ -112,7 +117,7 @@ fn account_app_ownership() -> AResult {
         .call_as(&Addr::unchecked("who"))
         .execute(
             &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
-            None,
+            &[],
         )
         .unwrap_err()
         .downcast()
@@ -159,10 +164,10 @@ fn subaccount_app_ownership() -> AResult {
 
     let admin_res: AdminResponse =
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;
-    assert_eq!(admin_res.admin.unwrap(), sub_account.manager.address()?);
+    assert_eq!(admin_res.admin.unwrap(), sub_account.manager.addr_str()?);
     app.call_as(&sender).execute(
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
-        None,
+        &[],
     )?;
     Ok(())
 }
@@ -180,11 +185,11 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    account.install_app(&app, &MockInitMsg {}, None)?;
+    account.install_app(&app, &MockInitMsg {}, &[])?;
 
     // Reinstall
     account.manager.uninstall_module(APP_ID.to_owned())?;
-    let Err(AbstractInterfaceError::Orch(err)) = account.install_app(&app, &MockInitMsg {}, None)
+    let Err(AbstractInterfaceError::Orch(err)) = account.install_app(&app, &MockInitMsg {}, &[])
     else {
         panic!("Expected error");
     };

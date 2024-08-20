@@ -66,6 +66,8 @@ fn associated_client(deps: Deps, chain: String) -> HostResult<ClientProxyRespons
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
 
+    use cosmwasm_std::Addr;
+
     #[test]
     fn test_registered_client() {
         use abstract_std::ibc_host::{ClientProxyResponse, InstantiateMsg, QueryMsg};
@@ -112,6 +114,6 @@ mod test {
         )
         .unwrap();
         let queried_client_name: ClientProxyResponse = from_json(client_name).unwrap();
-        assert_eq!(queried_client_name.proxy, "juno-proxy");
+        assert_eq!(queried_client_name.proxy, Addr::unchecked("juno-proxy"));
     }
 }

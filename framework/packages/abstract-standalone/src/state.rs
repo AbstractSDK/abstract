@@ -15,8 +15,8 @@ use cw_storage_plus::Item;
 
 /// The state variables for our StandaloneContract.
 pub struct StandaloneContract {
-    pub admin: NestedAdmin<'static>,
-    pub(crate) base_state: Item<'static, StandaloneState>,
+    pub admin: NestedAdmin,
+    pub(crate) base_state: Item<StandaloneState>,
     /// Static info about the contract, used for migration
     pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
     /// Modules that this contract depends on.
@@ -44,11 +44,11 @@ impl StandaloneContract {
         }
     }
 
-    pub fn module_id(&self) -> &str {
+    pub fn module_id(&self) -> &'static str {
         self.info.0
     }
 
-    pub fn version(&self) -> &str {
+    pub fn version(&self) -> &'static str {
         self.info.1
     }
 

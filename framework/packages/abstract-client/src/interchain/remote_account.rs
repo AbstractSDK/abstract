@@ -273,7 +273,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         let coins = self
             .host_chain()
             .bank_querier()
-            .balance(self.proxy()?, Some(denom.into()))
+            .balance(&self.proxy()?, Some(denom.into()))
             .map_err(Into::into)?;
 
         // There will always be a single element in this case.
@@ -284,7 +284,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.host_chain()
             .bank_querier()
-            .balance(self.proxy()?, None)
+            .balance(&self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
     }
@@ -500,7 +500,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         let maybe_module_addr = self
             .host_chain()
             .wasm_querier()
-            .raw_query(manager, key)
+            .raw_query(&manager, key)
             .map_err(Into::into)?;
         Ok(!maybe_module_addr.is_empty())
     }

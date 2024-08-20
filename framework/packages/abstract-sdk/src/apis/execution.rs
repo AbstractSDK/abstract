@@ -4,7 +4,7 @@
 
 use abstract_macros::with_abstract_event;
 use abstract_std::proxy::ExecuteMsg;
-use cosmwasm_std::{Coin, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use cosmwasm_std::{Binary, Coin, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
@@ -129,6 +129,7 @@ impl<'a, T: Execution> Executor<'a, T> {
             msg: msg.into(),
             gas_limit: None,
             reply_on,
+            payload: Binary::default(),
         };
         Ok(sub_msg)
     }
@@ -148,6 +149,7 @@ impl<'a, T: Execution> Executor<'a, T> {
             msg: msg.into(),
             gas_limit: None,
             reply_on,
+            payload: Binary::default(),
         };
         Ok(sub_msg)
     }
@@ -284,6 +286,7 @@ mod test {
                 }),
                 gas_limit: None,
                 reply_on: expected_reply_on,
+                payload: Binary::default(),
             };
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }
@@ -320,6 +323,7 @@ mod test {
                 }),
                 gas_limit: None,
                 reply_on: expected_reply_on,
+                payload: Binary::default(),
             };
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }

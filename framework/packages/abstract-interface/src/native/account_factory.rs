@@ -51,7 +51,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
         &self,
         account_details: AccountDetails,
         governance_details: GovernanceDetails<String>,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
         let AccountDetails {
             name,
@@ -88,7 +88,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 ..Default::default()
             },
             governance_details,
-            None,
+            &[],
         )
     }
 }

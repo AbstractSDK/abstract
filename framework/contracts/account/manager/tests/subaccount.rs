@@ -262,7 +262,7 @@ fn sub_account_move_ownership() -> AResult {
     // Claim ownership
     sub_account.manager.call_as(&new_owner).execute(
         &abstract_std::manager::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
-        None,
+        &[],
     )?;
     let account = AbstractAccount::new(&deployment, AccountId::local(1));
 
@@ -640,7 +640,7 @@ fn sub_account_to_regular_account_without_recursion() -> AResult {
             name: "sub_account".to_owned(),
             ..Default::default()
         },
-        None,
+        &[],
     )?;
 
     account.manager.execute_on_module(

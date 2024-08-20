@@ -50,9 +50,9 @@ pub struct AdapterContract<
     Self: Handler,
 {
     pub(crate) contract: AbstractContract<Self, Error>,
-    pub(crate) base_state: Item<'static, AdapterState>,
+    pub(crate) base_state: Item<AdapterState>,
     /// Map ProxyAddr -> AuthorizedAddrs
-    pub authorized_addresses: Map<'static, Addr, Vec<Addr>>,
+    pub authorized_addresses: Map<Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
     pub target_account: Option<AccountBase>,
 }

@@ -503,6 +503,7 @@ fn _ics_20_send_msg(
             to_address: receiver,
             amount: coin,
             timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+            memo,
         }
         .into(),
     }

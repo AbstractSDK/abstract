@@ -122,6 +122,7 @@ impl<'a> Prefixer<'a> for &TruncatedChainId {
 
 impl KeyDeserialize for &TruncatedChainId {
     type Output = TruncatedChainId;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {

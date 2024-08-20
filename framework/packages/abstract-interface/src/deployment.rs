@@ -1,3 +1,6 @@
+#[cfg(feature = "daemon")]
+use cw_orch::daemon::DeployedChains;
+
 use std::path::PathBuf;
 
 use cw_orch::prelude::*;
@@ -83,7 +86,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 namespace_registration_fee: None,
                 security_disabled: None,
             },
-            None,
+            &[],
         )?;
 
         // ########### upload modules and token ##############
@@ -124,6 +127,24 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         ]
     }
 
+    fn load_from(chain: Chain) -> Result<Self, Self::Error> {
+        let mut abstr = Self::new(chain);
+        // We register all the contracts default state
+        let state = State::load_state();
+
+        #[cfg(feature = "daemon")]
+        abstr.set_contracts_state(Some(state));
+
+        // Check if abstract deployed, for successful load
+        if let Err(CwOrchError::AddrNotInStore(_)) = abstr.version_control.address() {
+            return Err(AbstractInterfaceError::NotDeployed {});
+        }
+        Ok(abstr)
+    }
+}
+
+#[cfg(feature = "daemon")]
+impl<Chain: CwEnv> DeployedChains<Chain> for Abstract<Chain> {
     fn deployed_state_file_path() -> Option<String> {
         let crate_path = env!("CARGO_MANIFEST_DIR");
 
@@ -133,19 +154,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 .display()
                 .to_string(),
         )
-    }
-
-    fn load_from(chain: Chain) -> Result<Self, Self::Error> {
-        let mut abstr = Self::new(chain);
-        // We register all the contracts default state
-        let state = State::load_state();
-        abstr.set_contracts_state(Some(state));
-
-        // Check if abstract deployed, for successful load
-        if let Err(CwOrchError::AddrNotInStore(_)) = abstr.version_control.address() {
-            return Err(AbstractInterfaceError::NotDeployed {});
-        }
-        Ok(abstr)
     }
 }
 
@@ -177,7 +185,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 admin: admin.to_string(),
             },
             Some(&admin),
-            None,
+            &[],
         )?;
 
         self.version_control.instantiate(
@@ -190,7 +198,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 namespace_registration_fee: None,
             },
             Some(&admin),
-            None,
+            &[],
         )?;
 
         self.module_factory.instantiate(
@@ -200,7 +208,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 ans_host_address: self.ans_host.address()?.into_string(),
             },
             Some(&admin),
-            None,
+            &[],
         )?;
 
         self.account_factory.instantiate(
@@ -211,7 +219,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 module_factory_address: self.module_factory.address()?.into_string(),
             },
             Some(&admin),
-            None,
+            &[],
         )?;
 
         // We also instantiate ibc contracts

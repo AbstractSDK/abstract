@@ -57,13 +57,13 @@ impl Default for MockQuerierBuilder {
     /// Create a default
     fn default() -> Self {
         let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
-            let str_key = std::str::from_utf8(&key.0).unwrap();
+            let str_key = std::str::from_utf8(key.as_slice()).unwrap();
             Err(format!(
                 "No raw query handler for {addr:?} with key {str_key:?}"
             ))
         };
         let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
-            let str_key = std::str::from_utf8(&key.0).unwrap();
+            let str_key = std::str::from_utf8(key.as_slice()).unwrap();
             Err(format!(
                 "unexpected smart-query on contract: {addr:?} {str_key:?}"
             ))
@@ -81,7 +81,7 @@ impl Default for MockQuerierBuilder {
     }
 }
 
-pub fn map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> String
+pub fn map_key<'a, K, V>(map: &Map<K, V>, key: K) -> String
 where
     V: Serialize + DeserializeOwned,
     K: PrimaryKey<'a>,
@@ -89,7 +89,7 @@ where
     String::from_utf8(raw_map_key(map, key)).unwrap()
 }
 
-pub fn raw_map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> Vec<u8>
+pub fn raw_map_key<'a, K, V>(map: &Map<K, V>, key: K) -> Vec<u8>
 where
     V: Serialize + DeserializeOwned,
     K: PrimaryKey<'a>,
@@ -171,7 +171,7 @@ impl MockQuerierBuilder {
 
     fn insert_contract_key_value(&mut self, contract: &str, key: Vec<u8>, value: Binary) {
         let raw_map = self.raw_mappings.entry(contract.to_string()).or_default();
-        raw_map.insert(Binary(key), value);
+        raw_map.insert(Binary::new(key), value);
     }
 
     /// Add a map entry to the querier for the given contract.
@@ -190,7 +190,7 @@ impl MockQuerierBuilder {
     pub fn with_contract_map_entry<'a, K, V>(
         self,
         contract: &str,
-        cw_map: Map<'a, K, V>,
+        cw_map: Map<K, V>,
         entry: (K, V),
     ) -> Self
     where
@@ -203,7 +203,7 @@ impl MockQuerierBuilder {
     pub fn with_contract_map_entries<'a, K, V>(
         mut self,
         contract: &str,
-        cw_map: Map<'a, K, V>,
+        cw_map: Map<K, V>,
         entries: Vec<(K, V)>,
     ) -> Self
     where
@@ -226,14 +226,14 @@ impl MockQuerierBuilder {
     pub fn with_contract_map_key<'a, K, V>(
         mut self,
         contract: &str,
-        cw_map: Map<'a, K, V>,
+        cw_map: Map<K, V>,
         key: K,
     ) -> Self
     where
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
     {
-        self.insert_contract_key_value(contract, raw_map_key(&cw_map, key), Binary(vec![]));
+        self.insert_contract_key_value(contract, raw_map_key(&cw_map, key), Binary::default());
 
         self
     }
@@ -244,7 +244,7 @@ impl MockQuerierBuilder {
     where
         T: Serialize + DeserializeOwned,
     {
-        self.insert_contract_key_value(contract, cw_item.as_slice().to_vec(), Binary(vec![]));
+        self.insert_contract_key_value(contract, cw_item.as_slice().to_vec(), Binary::default());
 
         self
     }
@@ -305,7 +305,7 @@ impl MockQuerierBuilder {
         self.base.update_wasm(move |wasm| {
             let res = match wasm {
                 WasmQuery::Raw { contract_addr, key } => {
-                    let str_key = std::str::from_utf8(&key.0).unwrap();
+                    let str_key = std::str::from_utf8(key.as_slice()).unwrap();
 
                     // First check for raw mappings
                     if let Some(raw_map) = self.raw_mappings.get(contract_addr.as_str()) {
@@ -332,8 +332,13 @@ impl MockQuerierBuilder {
                     res
                 }
                 WasmQuery::ContractInfo { contract_addr } => {
-                    let mut info = ContractInfoResponse::default();
-                    info.admin = self.contract_admin.get(contract_addr).cloned();
+                    let info = ContractInfoResponse::new(
+                        1,
+                        Addr::unchecked(""),
+                        self.contract_admin.get(contract_addr).map(Addr::unchecked),
+                        false,
+                        None,
+                    );
                     Ok(to_json_binary(&info).unwrap())
                 }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
@@ -385,16 +390,16 @@ impl MockQuerierOwnership for MockQuerierBuilder {
 ///   - "account" -> { TEST_PROXY, TEST_MANAGER }
 pub fn mock_querier() -> MockQuerier {
     let raw_handler = |contract: &str, key: &Binary| {
-        let _str_key = std::str::from_utf8(&key.0).unwrap();
+        let _str_key = std::str::from_utf8(key.as_slice()).unwrap();
         match contract {
             TEST_PROXY => Err("unexpected key".to_string()),
             TEST_MANAGER => {
                 // Return the default value
-                Ok(Binary(vec![]))
+                Ok(Binary::default())
             }
             TEST_VERSION_CONTROL => {
                 // Default value
-                Ok(Binary(vec![]))
+                Ok(Binary::default())
             }
             _ => Err("unexpected contract".to_string()),
         }

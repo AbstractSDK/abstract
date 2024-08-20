@@ -85,18 +85,18 @@ pub type ProposalId = u64;
 
 /// Simple voting helper
 pub struct SimpleVoting<'a> {
-    next_proposal_id: Item<'a, ProposalId>,
-    proposals: Map<'a, (ProposalId, &'a Addr), Option<Vote>>,
-    proposals_info: Map<'a, ProposalId, ProposalInfo>,
-    vote_config: Item<'a, VoteConfig>,
+    next_proposal_id: Item<ProposalId>,
+    proposals: Map<(ProposalId, &'a Addr), Option<Vote>>,
+    proposals_info: Map<ProposalId, ProposalInfo>,
+    vote_config: Item<VoteConfig>,
 }
 
 impl<'a> SimpleVoting<'a> {
     pub const fn new(
-        proposals_key: &'a str,
-        id_key: &'a str,
-        proposals_info_key: &'a str,
-        vote_config_key: &'a str,
+        proposals_key: &'static str,
+        id_key: &'static str,
+        proposals_info_key: &'static str,
+        vote_config_key: &'static str,
     ) -> Self {
         Self {
             next_proposal_id: Item::new(id_key),
@@ -221,7 +221,9 @@ impl<'a> SimpleVoting<'a> {
         let threshold = match vote_config.threshold {
             // 50% + 1 voter
             Threshold::Majority {} => Uint128::from(proposal_info.total_voters / 2 + 1),
-            Threshold::Percentage(decimal) => decimal * Uint128::from(proposal_info.total_voters),
+            Threshold::Percentage(decimal) => {
+                Uint128::from(proposal_info.total_voters).mul_floor(decimal)
+            }
         };
 
         let proposal_outcome = if Uint128::from(proposal_info.votes_for) >= threshold {

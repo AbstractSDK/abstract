@@ -673,6 +673,7 @@ mod tests {
                         to_address: remote_addr.clone(),
                         amount,
                         timeout: mock_env().block.time.plus_seconds(PACKET_LIFETIME).into(),
+                        memo: None,
                     }
                     .into()
                 })
@@ -1024,7 +1025,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
                 initiator: Addr::unchecked("invalid_initiator"),
-                initiator_msg: Binary(vec![]),
+                initiator_msg: Binary::default(),
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: String::from("addr"),
                     result: vec![],
@@ -1051,7 +1052,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
                 initiator: Addr::unchecked("invalid_initiator"),
-                initiator_msg: Binary(vec![]),
+                initiator_msg: Binary::default(),
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: String::from("addr"),
                     result: vec![],
@@ -1236,6 +1237,7 @@ mod tests {
                     result: vec![SubMsgResponse {
                         events: vec![],
                         data: None,
+                        msg_responses: vec![],
                     }],
                 })),
             };
@@ -1272,6 +1274,7 @@ mod tests {
                     result: vec![SubMsgResponse {
                         events: vec![Event::new(String::from("wasm"))],
                         data: None,
+                        msg_responses: vec![],
                     }],
                 })),
             };
@@ -1310,6 +1313,7 @@ mod tests {
                             .add_attribute("action", "create_proxy")
                             .add_attribute("proxy_address", remote_proxy.clone())],
                         data: None,
+                        msg_responses: vec![],
                     }],
                 })),
             };

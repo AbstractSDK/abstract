@@ -182,13 +182,13 @@ pub fn execute_create_account(
     let manager_checksum = deps.querier.query_wasm_code_info(manager_code_id)?.checksum;
 
     let proxy_addr = instantiate2_address(
-        &proxy_checksum,
+        proxy_checksum.as_slice(),
         &deps.api.addr_canonicalize(env.contract.address.as_str())?,
         salt.as_slice(),
     )?;
     let proxy_addr_human = deps.api.addr_humanize(&proxy_addr)?;
     let manager_addr = instantiate2_address(
-        &manager_checksum,
+        manager_checksum.as_slice(),
         &deps.api.addr_canonicalize(env.contract.address.as_str())?,
         salt.as_slice(),
     )?;
@@ -389,10 +389,11 @@ fn verify_nft_ownership(
             include_expired: None,
         },
     )?;
+    let owner = deps.api.addr_validate(&owner.owner)?;
     // verify owner
     ensure_eq!(
         sender,
-        owner.owner,
+        owner,
         AccountFactoryError::Ownership(OwnershipError::NotOwner)
     );
 

@@ -201,8 +201,11 @@ fn instantiate2_contract(
 ) -> ModuleFactoryResult<(CanonicalAddr, CosmosMsg)> {
     let wasm_info = deps.querier.query_wasm_code_info(code_id)?;
 
-    let addr =
-        cosmwasm_std::instantiate2_address(&wasm_info.checksum, &creator_addr, salt.as_slice())?;
+    let addr = cosmwasm_std::instantiate2_address(
+        wasm_info.checksum.as_slice(),
+        &creator_addr,
+        salt.as_slice(),
+    )?;
 
     Ok((
         addr,
@@ -339,7 +342,9 @@ mod test {
         use super::*;
 
         use abstract_std::objects::{module::ModuleVersion, AccountId};
-        use cosmwasm_std::{coin, Api, CodeInfoResponse, Empty, HexBinary, QuerierResult};
+        use cosmwasm_std::{
+            coin, Api, Checksum, CodeInfoResponse, Empty, HexBinary, QuerierResult,
+        };
 
         #[test]
         fn should_create_msg_with_instantiate2_msg() -> ModuleFactoryTestResult {
@@ -349,16 +354,12 @@ mod test {
                     let deps_v2 = mock_dependencies();
                     let new_addr = deps_v2.api.addr_make("aloha");
                     let canonical = deps_v2.api.addr_canonicalize(new_addr.as_str()).unwrap();
-                    let creator = mock_dependencies()
-                        .api
-                        .addr_humanize(&canonical)
-                        .unwrap()
-                        .into_string();
+                    let creator = mock_dependencies().api.addr_humanize(&canonical).unwrap();
                     QuerierResult::Ok(cosmwasm_std::ContractResult::Ok(
                         to_json_binary(&CodeInfoResponse::new(
                             *code_id,
                             creator.clone(),
-                            HexBinary::from_hex(
+                            Checksum::from_hex(
                                 "13a1fc994cc6d1c81b746ee0c0ff6f90043875e0bf1d9be6b7d779fc978dc2a5",
                             )
                             .unwrap(),

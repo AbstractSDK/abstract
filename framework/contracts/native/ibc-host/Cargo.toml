@@ -20,7 +20,7 @@ schema = []
 
 
 [dependencies]
-cosmwasm-std = { workspace = true, features = ["ibc3", "stargate"] }
+cosmwasm-std = { workspace = true, features = ["stargate"] }
 cosmwasm-schema = { workspace = true }
 cw-utils = { workspace = true }
 cw-controllers = { workspace = true }
@@ -35,7 +35,7 @@ abstract-std = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
 cw-orch = { workspace = true }
-cw-paginate = "0.2.1"
+cw-paginate = "2.0.0"
 
 [dev-dependencies]
 abstract-interface = { workspace = true }

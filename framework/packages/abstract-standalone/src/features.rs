@@ -87,9 +87,9 @@ mod test {
         assert_eq!(host, AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
 
         // AccountRegistry
-        let account_registry = BASIC_MOCK_STANDALONE
-            .account_registry(deps.as_ref())
-            .unwrap();
+        // TODO: Why rust forces binding on static object what
+        let binding = BASIC_MOCK_STANDALONE;
+        let account_registry = binding.account_registry(deps.as_ref()).unwrap();
         let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account_base);
 

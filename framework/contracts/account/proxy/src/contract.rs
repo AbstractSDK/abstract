@@ -90,6 +90,8 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> ProxyResult {
         Reply {
             id: RESPONSE_REPLY_ID,
             result: SubMsgResult::Ok(_),
+            payload: _,
+            gas_used: _,
         } => reply::forward_response_data(msg),
         _ => Err(ProxyError::UnexpectedReply {}),
     }

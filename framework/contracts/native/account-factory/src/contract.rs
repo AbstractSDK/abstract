@@ -89,6 +89,8 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
         Reply {
             id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,
             result,
+            payload: _,
+            gas_used: _,
         } => commands::validate_instantiated_account(deps, result),
         _ => Err(AccountFactoryError::UnexpectedReply {}),
     }

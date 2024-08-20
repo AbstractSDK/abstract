@@ -83,6 +83,7 @@ impl<'a> Prefixer<'a> for &ChannelEntry {
 
 impl KeyDeserialize for &ChannelEntry {
     type Output = ChannelEntry;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {

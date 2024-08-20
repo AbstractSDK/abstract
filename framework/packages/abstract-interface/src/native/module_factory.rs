@@ -35,7 +35,7 @@ impl<Chain: CwEnv> ModuleFactory<Chain> {
                 ans_host_address: Some(mem_addr),
                 version_control_address: None,
             },
-            None,
+            &[],
         )
         .map_err(Into::into)
     }

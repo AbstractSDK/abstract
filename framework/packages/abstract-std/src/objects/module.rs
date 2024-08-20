@@ -187,6 +187,7 @@ impl<'a> Prefixer<'a> for ModuleVersion {
 
 impl KeyDeserialize for &ModuleInfo {
     type Output = ModuleInfo;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -210,6 +211,7 @@ impl KeyDeserialize for &ModuleInfo {
 
 impl KeyDeserialize for ModuleVersion {
     type Output = ModuleVersion;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {

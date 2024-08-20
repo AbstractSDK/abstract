@@ -56,7 +56,7 @@ impl<Chain: CwEnv> Manager<Chain> {
                     Some(to_json_binary(migrate_msg).unwrap()),
                 )],
             },
-            None,
+            &[],
         )?;
         Ok(())
     }
@@ -64,7 +64,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     pub fn replace_api(
         &self,
         module_id: &str,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<(), crate::AbstractInterfaceError> {
         // this should check if installed?
         self.uninstall_module(module_id.to_string())?;
@@ -76,7 +76,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     pub fn install_modules(
         &self,
         modules: Vec<ModuleInstallConfig>,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(&ExecuteMsg::InstallModules { modules }, funds)
             .map_err(Into::into)
@@ -97,14 +97,14 @@ impl<Chain: CwEnv> Manager<Chain> {
                 &config.module_factory_address,
             )
             .map_err(Into::into)?;
-        self.install_modules(modules, Some(sim_response.total_required_funds.as_ref()))
+        self.install_modules(modules, sim_response.total_required_funds.as_ref())
     }
 
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
         init_msg: Option<&TInitMsg>,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg, funds)
     }
@@ -114,7 +114,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         module_id: &str,
         version: ModuleVersion,
         init_msg: Option<&M>,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModules {
@@ -139,7 +139,7 @@ impl<Chain: CwEnv> Manager<Chain> {
                 module_id: module.into(),
                 exec_msg: to_json_binary(&msg).unwrap(),
             },
-            None,
+            &[],
         )
         .map_err(Into::into)
     }
@@ -221,7 +221,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         enabled: bool,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         let response = if enabled {
-            self.install_module::<Empty>(IBC_CLIENT, None, None)?
+            self.install_module::<Empty>(IBC_CLIENT, None, &[])?
         } else {
             self.uninstall_module(IBC_CLIENT.to_string())?
         };

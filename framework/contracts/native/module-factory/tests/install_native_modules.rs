@@ -33,14 +33,14 @@ fn can_install_and_uninstall_ibc_client() -> AResult {
                 None,
             )],
         },
-        None,
+        &[],
     )?;
     ibc_client_installed(manager)?;
     manager.execute(
         &ManagerMsg::UninstallModule {
             module_id: IBC_CLIENT.to_string(),
         },
-        None,
+        &[],
     )?;
     ibc_client_installed(manager).unwrap_err();
 

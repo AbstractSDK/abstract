@@ -139,7 +139,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
                 version_control_address: abstr.version_control.address()?.into(),
             },
         };
-        self.instantiate(&init_msg, None, None)?;
+        self.instantiate(&init_msg, None, &[])?;
 
         abstr
             .version_control
@@ -309,7 +309,7 @@ pub trait ServiceDeployer<Chain: CwEnv>:
         }
 
         self.upload_if_needed()?;
-        self.instantiate(custom_init_msg, None, None)?;
+        self.instantiate(custom_init_msg, None, &[])?;
         abstr
             .version_control
             .register_services(vec![(self.as_instance(), version.to_string())])?;

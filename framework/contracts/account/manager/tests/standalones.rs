@@ -34,7 +34,7 @@ fn account_install_standalone() -> AResult {
             },
             random_field: "LMAO".to_owned(),
         },
-        None,
+        &[],
     )?;
     // Check some actions
     let r = standalone.do_something()?;
@@ -66,7 +66,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
             },
             random_field: "foo".to_owned(),
         },
-        None,
+        &[],
     )?;
 
     // Reinstall
@@ -80,7 +80,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
             },
             random_field: "foo".to_owned(),
         },
-        None,
+        &[],
     ) else {
         panic!("Expected error");
     };

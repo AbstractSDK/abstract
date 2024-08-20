@@ -576,7 +576,6 @@ mod test {
         }
 
         fn setup_map_tester<'a>() -> CwMapTester<
-            'a,
             ExecuteMsg,
             AnsHostError,
             &'a ContractEntry,
@@ -760,7 +759,6 @@ mod test {
         }
 
         fn setup_map_tester<'a>() -> CwMapTester<
-            'a,
             ExecuteMsg,
             AnsHostError,
             &'a AssetEntry,
@@ -960,7 +958,6 @@ mod test {
         }
 
         fn setup_map_tester<'a>() -> CwMapTester<
-            'a,
             ExecuteMsg,
             AnsHostError,
             &'a ChannelEntry,

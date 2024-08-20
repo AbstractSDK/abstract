@@ -17,9 +17,9 @@ pub type PaginationFunction<T, C, FuncResult> =
 /// Allows for multi-transaction computation on a dataset. Required for large datasets due to gas constraints.
 pub struct PagedMap<'a, T, Acum> {
     /// Actual data store
-    data: Map<'a, &'a [u8], T>,
+    data: Map<&'a [u8], T>,
     /// Pagination progress status
-    pub status: Item<'a, PaginationInfo<Acum>>,
+    pub status: Item<PaginationInfo<Acum>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -33,7 +33,7 @@ pub struct PaginationInfo<Acum> {
 }
 
 impl<'a, T, Acum> PagedMap<'a, T, Acum> {
-    pub const fn new(namespace: &'a str, status_namespace: &'a str) -> Self {
+    pub const fn new(namespace: &'static str, status_namespace: &'static str) -> Self {
         PagedMap {
             data: Map::new(namespace),
             status: Item::new(status_namespace),

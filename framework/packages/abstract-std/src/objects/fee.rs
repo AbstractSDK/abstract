@@ -27,7 +27,7 @@ impl UsageFee {
     }
 
     pub fn compute(&self, amount: Uint128) -> Uint128 {
-        amount * self.share()
+        amount.mul_floor(self.share())
     }
 
     pub fn recipient(&self) -> Addr {
@@ -58,7 +58,7 @@ impl Fee {
     }
 
     pub fn compute(&self, amount: Uint128) -> Uint128 {
-        amount * self.share
+        amount.mul_floor(self.share)
     }
 
     pub fn msg(&self, asset: Asset, recipient: Addr) -> AbstractResult<CosmosMsg> {

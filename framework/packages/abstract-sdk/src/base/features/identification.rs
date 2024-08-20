@@ -9,7 +9,7 @@ use crate::std::objects::AccountId;
 // see std::proxy::state::ADMIN
 use crate::{AbstractSdkError, AbstractSdkResult};
 
-const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
+const MANAGER: Item<Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
 /// Retrieve identifying information about an Account.
 /// This includes the manager, proxy, core and account_id.

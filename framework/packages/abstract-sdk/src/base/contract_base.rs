@@ -75,8 +75,6 @@ const MAX_REPLY_COUNT: usize = 2;
 pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> {
     /// Static info about the contract, used for migration
     pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
-    /// On-chain storage of the same info.
-    pub(crate) version: Item<'static, ContractVersion>,
     /// Modules that this contract depends on.
     pub(crate) dependencies: &'static [StaticDependency],
     /// Handler of instantiate messages.
@@ -112,7 +110,6 @@ where
     pub const fn new(name: ModuleId, version: VersionString, metadata: ModuleMetadata) -> Self {
         Self {
             info: (name, version, metadata),
-            version: CONTRACT,
             ibc_callback_handler: None,
             reply_handlers: [&[], &[]],
             dependencies: &[],
@@ -127,7 +124,7 @@ where
     }
     /// Gets the cw2 version of the contract.
     pub fn version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
-        self.version.load(store).map_err(Into::into)
+        CONTRACT.load(store).map_err(Into::into)
     }
     /// Gets the static info of the contract.
     pub fn info(&self) -> (ModuleId, VersionString, ModuleMetadata) {

@@ -47,8 +47,8 @@ pub struct AppContract<
     SudoMsg: 'static = Empty,
 > {
     // Custom state for every App
-    pub admin: NestedAdmin<'static>,
-    pub(crate) base_state: Item<'static, AppState>,
+    pub admin: NestedAdmin,
+    pub(crate) base_state: Item<AppState>,
 
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,
@@ -86,11 +86,11 @@ impl<
         }
     }
 
-    pub fn module_id(&self) -> &str {
+    pub fn module_id(&self) -> &'static str {
         self.contract.info().0
     }
 
-    pub fn version(&self) -> &str {
+    pub fn version(&self) -> &'static str {
         self.contract.info().1
     }
 

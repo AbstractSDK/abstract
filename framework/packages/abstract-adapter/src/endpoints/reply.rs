@@ -14,7 +14,7 @@ mod test {
     use abstract_sdk::AbstractSdkError;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env},
-        Reply, SubMsgResponse,
+        Binary, Reply, SubMsgResponse,
     };
     use speculoos::prelude::*;
 
@@ -30,7 +30,10 @@ mod test {
             result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
                 events: vec![],
                 data: Some("test_reply".as_bytes().into()),
+                msg_responses: vec![],
             }),
+            payload: Binary::default(),
+            gas_used: 0,
         };
         let res = reply(deps.as_mut(), env, reply_msg)?;
         assert_that!(&res.messages.len()).is_equal_to(0);
@@ -49,7 +52,10 @@ mod test {
             result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
                 events: vec![],
                 data: Some("test_reply".as_bytes().into()),
+                msg_responses: vec![],
             }),
+            payload: Binary::default(),
+            gas_used: 0,
         };
         let res = reply(deps.as_mut(), env, reply_msg);
         assert_that!(res).is_err().is_equal_to(

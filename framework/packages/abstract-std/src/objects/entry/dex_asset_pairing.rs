@@ -83,6 +83,7 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
 /// @todo: use existing method for triple tuple
 impl KeyDeserialize for &DexAssetPairing {
     type Output = DexAssetPairing;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {

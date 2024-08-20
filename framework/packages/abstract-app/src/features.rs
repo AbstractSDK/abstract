@@ -157,7 +157,9 @@ mod test {
         assert_eq!(host, AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
 
         // AccountRegistry
-        let account_registry = MOCK_APP_WITH_DEP.account_registry(deps.as_ref()).unwrap();
+        // TODO: really rust?
+        let binding = MOCK_APP_WITH_DEP;
+        let account_registry = binding.account_registry(deps.as_ref()).unwrap();
         let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account_base);
 

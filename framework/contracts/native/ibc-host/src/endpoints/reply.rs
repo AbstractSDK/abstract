@@ -29,23 +29,22 @@ pub fn reply_execute_action(deps: DepsMut, env: Env, _reply: Reply) -> Result<Re
 }
 
 /// Add the message's data to the response, if any
-pub fn reply_forward_response_data(result: Reply) -> HostResult {
+pub fn reply_forward_response_data(reply: Reply) -> HostResult {
     // get the result from the reply
-    let resp = cw_utils::parse_reply_execute_data(result);
+    if let cosmwasm_std::SubMsgResult::Ok(response) = reply.result {
+        if let Ok(MsgExecuteContractResponse { data: Some(data) }) =
+            cw_utils::parse_execute_response_data(response.data.unwrap().as_slice())
+        {
+            return Ok(HostResponse::new(
+                "forward_response_data_reply",
+                vec![("response_data", "true")],
+            )
+            .set_data(data));
+        }
+    }
 
-    // log and add data if needed
-    let resp = if let Ok(MsgExecuteContractResponse { data: Some(data) }) = resp {
-        HostResponse::new(
-            "forward_response_data_reply",
-            vec![("response_data", "true")],
-        )
-        .set_data(data)
-    } else {
-        HostResponse::new(
-            "forward_response_data_reply",
-            vec![("response_data", "false")],
-        )
-    };
-
-    Ok(resp)
+    Ok(HostResponse::new(
+        "forward_response_data_reply",
+        vec![("response_data", "false")],
+    ))
 }

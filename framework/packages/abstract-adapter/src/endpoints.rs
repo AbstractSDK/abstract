@@ -79,7 +79,7 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        SubMsgResult,
+        Binary, SubMsgResult,
     };
     use speculoos::prelude::*;
 
@@ -137,6 +137,8 @@ mod test {
         let reply_msg = ::cosmwasm_std::Reply {
             id: 0,
             result: SubMsgResult::Err("test".into()),
+            payload: Binary::default(),
+            gas_used: 0,
         };
         let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
         let expected_reply = MOCK_ADAPTER.reply(deps.as_mut(), mock_env(), reply_msg);

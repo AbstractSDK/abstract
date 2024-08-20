@@ -18,6 +18,8 @@ pub enum AccountTrace {
 
 impl KeyDeserialize for &AccountTrace {
     type Output = AccountTrace;
+    const KEY_ELEMS: u16 = 1;
+
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
         Ok(AccountTrace::from_string(String::from_vec(value)?))
@@ -54,6 +56,8 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
 
 impl KeyDeserialize for AccountTrace {
     type Output = AccountTrace;
+    const KEY_ELEMS: u16 = 1;
+
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
         Ok(AccountTrace::from_string(String::from_vec(value)?))

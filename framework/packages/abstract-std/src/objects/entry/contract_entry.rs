@@ -107,6 +107,7 @@ impl<'a> Prefixer<'a> for &ContractEntry {
 
 impl KeyDeserialize for &ContractEntry {
     type Output = ContractEntry;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {

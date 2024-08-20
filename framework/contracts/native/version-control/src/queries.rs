@@ -53,8 +53,8 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                 .collect();
             let (latest_version, id) = versions?
                 .first()
-                .ok_or_else(|| StdError::GenericErr {
-                    msg: VCError::ModuleNotFound(module.clone()).to_string(),
+                .ok_or_else(|| {
+                    StdError::generic_err(VCError::ModuleNotFound(module.clone()).to_string())
                 })?
                 .clone();
             module.version = ModuleVersion::Version(latest_version);

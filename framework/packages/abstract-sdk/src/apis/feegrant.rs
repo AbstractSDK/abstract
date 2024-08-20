@@ -82,7 +82,7 @@ impl FeeGranter {
 
         CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
-            value: Binary(msg),
+            value: Binary::new(msg),
         }
     }
 
@@ -102,7 +102,7 @@ impl FeeGranter {
 
         CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
-            value: Binary(msg),
+            value: Binary::new(msg),
         }
     }
 
@@ -184,7 +184,7 @@ mod test {
     ) -> CosmosMsg {
         CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
-            value: Binary(
+            value: Binary::new(
                 feegrant::v1beta1::MsgGrantAllowance {
                     granter: granter.to_string(),
                     grantee: grantee.to_string(),
@@ -291,7 +291,7 @@ mod test {
 
             let expected_msg = CosmosMsg::Stargate {
                 type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
-                value: Binary(
+                value: Binary::new(
                     feegrant::v1beta1::MsgRevokeAllowance {
                         granter: granter.to_string(),
                         grantee: grantee.to_string(),

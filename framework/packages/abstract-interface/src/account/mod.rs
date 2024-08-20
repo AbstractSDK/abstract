@@ -79,7 +79,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
         init_msg: Option<&TInitMsg>,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager.install_module(module_id, init_msg, funds)
     }
@@ -87,7 +87,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn install_modules(
         &self,
         modules: Vec<ModuleInstallConfig>,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager
             .install_modules(modules, funds)
@@ -170,7 +170,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn install_adapter<CustomInitMsg: Serialize, T: AdapterDeployer<Chain, CustomInitMsg>>(
         &self,
         module: &T,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         self.install_module_parse_addr::<Empty, _>(module, None, funds)
     }
@@ -180,7 +180,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module: &T,
         custom_init_msg: &CustomInitMsg,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
         self.install_module_parse_addr(module, Some(&custom_init_msg), funds)
@@ -191,7 +191,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         standalone: &T,
         custom_init_msg: &CustomInitMsg,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
         self.install_module_parse_addr(standalone, Some(&custom_init_msg), funds)
@@ -201,7 +201,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module: &T,
         init_msg: Option<&InitMsg>,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         let resp = self.install_module(&module.id(), init_msg, funds)?;
         let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_modules")?;
@@ -250,7 +250,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn create_sub_account(
         &self,
         account_details: AccountDetails,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
         let AccountDetails {
             name,
@@ -396,7 +396,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         let current_cw2_module_version: ContractVersion = if module_id == MANAGER {
             let current_manager_version = chain
                 .wasm_querier()
-                .raw_query(self.manager.address()?, CONTRACT.as_slice().to_vec())
+                .raw_query(&self.manager.address()?, CONTRACT.as_slice().to_vec())
                 .unwrap();
             from_json(current_manager_version)?
         } else {

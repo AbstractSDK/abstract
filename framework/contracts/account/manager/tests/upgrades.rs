@@ -406,7 +406,7 @@ fn create_account_with_installed_module() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
 
@@ -445,7 +445,7 @@ fn create_account_with_installed_module() -> AResult {
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            None,
+            &[],
         )
         .unwrap();
 
@@ -507,7 +507,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
     // Add monetization
@@ -596,7 +596,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
                 monarch: sender.to_string(),
             },
             // we attach 5 extra coin2, rest should go to proxy
-            Some(&[coin(10, "coin1"), coin(10, "coin2")]),
+            &[coin(10, "coin1"), coin(10, "coin2")],
         )
         .unwrap();
     let balances = chain.query_all_balances(&account.proxy.address()?)?;
@@ -651,7 +651,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
     // Add monetization
@@ -729,7 +729,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             monarch: sender.to_string(),
         },
         // we attach 1 less coin1
-        Some(&[coin(9, "coin1"), coin(10, "coin2")]),
+        &[coin(9, "coin1"), coin(10, "coin2")],
     );
     // Mock doesn't implement debug so we can't .unwrap_err, LOL
     let Err(AbstractInterfaceError::Orch(e)) = result else {
@@ -766,7 +766,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
 
@@ -878,7 +878,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                 monarch: sender.to_string(),
             },
             // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
-            Some(&[coin(10, "coin1"), coin(10, "coin2")]),
+            &[coin(10, "coin1"), coin(10, "coin2")],
         )
         .unwrap();
     let balances = chain.query_all_balances(&account.proxy.address()?)?;
@@ -910,7 +910,7 @@ fn native_not_migratable() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let abstr_account = AbstractAccount::new(&abstr, AccountId::local(0));
-    abstr_account.install_module::<ibc_client::InstantiateMsg>(IBC_CLIENT, None, None)?;
+    abstr_account.install_module::<ibc_client::InstantiateMsg>(IBC_CLIENT, None, &[])?;
 
     let latest_ibc_client = ModuleInfo::from_id_latest(IBC_CLIENT).unwrap();
 

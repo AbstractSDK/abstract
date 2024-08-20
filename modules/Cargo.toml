@@ -50,7 +50,7 @@ clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-orch = { version = "0.24.0" }
 cw-orch-interchain = { version = "0.3.0" }
-cw-orch-osmosis-test-tube = { version = "0.2.0" }
+# cw-orch-osmosis-test-tube = { version = "0.2.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -105,6 +105,11 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
+
+# TODO: remove after cw-orch release
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "misha/orc-154-remove-chain-name-from-top-level-in-statejson" }
+cw-orch-interchain = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "misha/orc-154-remove-chain-name-from-top-level-in-statejson" }
+# cw-orch-osmosis-test-tube = { git = "https://github.com/AbstractSDK/cw-orchestrator.git" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

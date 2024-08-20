@@ -29,7 +29,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 version_control_address: abstr.version_control.addr_str()?,
             },
             Some(admin),
-            None,
+            &[],
         )?;
 
         self.host.instantiate(
@@ -39,7 +39,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 version_control_address: abstr.version_control.addr_str()?,
             },
             Some(admin),
-            None,
+            &[],
         )?;
         Ok(())
     }

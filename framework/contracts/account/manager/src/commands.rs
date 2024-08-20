@@ -161,7 +161,7 @@ pub(crate) fn _install_modules(
             ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
                 let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
                 let module_address = cosmwasm_std::instantiate2_address(
-                    &checksum,
+                    checksum.as_slice(),
                     &canonical_module_factory,
                     &salt,
                 )?;
@@ -1800,16 +1800,15 @@ mod tests {
         #[test]
         fn allows_ownership_acceptance() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let owner = deps.api.addr_make("owner");
             mock_init(deps.as_mut())?;
 
-            let pending_owner = "not_owner";
+            let pending_owner = deps.api.addr_make("not_owner");
             // mock pending owner
             Item::new("ownership").save(
                 deps.as_mut().storage,
                 &ownership::Ownership {
-                    owner: GovernanceDetails::Monarchy {
-                        monarch: Addr::unchecked("owner"),
-                    },
+                    owner: GovernanceDetails::Monarchy { monarch: owner },
                     pending_expiry: None,
                     pending_owner: Some(GovernanceDetails::Monarchy {
                         monarch: Addr::unchecked(pending_owner),

@@ -11,13 +11,13 @@ use crate::MockDeps;
 
 #[derive(Builder)]
 #[builder(pattern = "owned")]
-pub struct CwMapTester<'a, ExecMsg, TError, K, V, UncheckedK, UncheckedV>
+pub struct CwMapTester<ExecMsg, TError, K, V, UncheckedK, UncheckedV>
 where
-    K: PrimaryKey<'a> + KeyDeserialize + Debug,
+    K: KeyDeserialize + Debug,
     K::Output: 'static,
 {
     info: MessageInfo,
-    map: Map<'a, K, V>,
+    map: Map<K, V>,
     execute:
         fn(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecMsg) -> Result<Response, TError>,
     msg_builder: fn(to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecMsg,
@@ -48,7 +48,7 @@ where
 }
 
 impl<'a, ExecMsg, TError, K, V, UncheckedK, UncheckedV>
-    CwMapTester<'a, ExecMsg, TError, K, V, UncheckedK, UncheckedV>
+    CwMapTester<ExecMsg, TError, K, V, UncheckedK, UncheckedV>
 where
     V: Serialize + DeserializeOwned + Clone + Debug,
     K: PrimaryKey<'a> + KeyDeserialize + Debug,
@@ -60,7 +60,7 @@ where
 {
     pub fn new(
         info: MessageInfo,
-        map: Map<'a, K, V>,
+        map: Map<K, V>,
         execute: fn(
             deps: DepsMut,
             env: Env,

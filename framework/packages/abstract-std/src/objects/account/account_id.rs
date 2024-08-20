@@ -160,6 +160,7 @@ impl<'a> Prefixer<'a> for AccountId {
 
 impl KeyDeserialize for &AccountId {
     type Output = AccountId;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -176,6 +177,7 @@ impl KeyDeserialize for &AccountId {
 
 impl KeyDeserialize for AccountId {
     type Output = AccountId;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {

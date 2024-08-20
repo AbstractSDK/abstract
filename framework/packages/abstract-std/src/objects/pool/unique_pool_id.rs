@@ -55,6 +55,8 @@ impl<'a> Prefixer<'a> for UniquePoolId {
 
 impl KeyDeserialize for UniquePoolId {
     type Output = Self;
+    const KEY_ELEMS: u16 = 1;
+
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
         Ok(Self::from_cw_bytes(value.as_slice().try_into().map_err(

@@ -87,7 +87,8 @@ impl GovernanceDetails<String> {
             }
             GovernanceDetails::SubAccount { manager, proxy } => {
                 let manager_addr = deps.api.addr_validate(&manager)?;
-                let account_id = account::ACCOUNT_ID.query(&deps.querier, manager_addr)?;
+                let proxy_addr = deps.api.addr_validate(&proxy)?;
+                let account_id = account::ACCOUNT_ID.query(&deps.querier, manager_addr.clone())?;
                 let base = version_control::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
                     version_control_addr,
@@ -98,7 +99,7 @@ impl GovernanceDetails<String> {
                         format!("Version control does not have account id of manager {manager}"),
                     )));
                 };
-                if b.manager == manager && b.proxy == proxy {
+                if b.manager == manager_addr && b.proxy == proxy_addr {
                     Ok(GovernanceDetails::SubAccount {
                         manager: b.manager,
                         proxy: b.proxy,

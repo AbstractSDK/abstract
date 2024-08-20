@@ -23,10 +23,11 @@ cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
-cosmos-sdk-proto = { version = "0.20.0", optional = true, default-features = false, features = [
+cosmos-sdk-proto = { version = "0.24.0", optional = true, default-features = false, features = [
   "cosmwasm",
 ] }
-prost-types = { version = "0.12.1", optional = true }
+prost-types = { version = "0.13.1", optional = true }
+ibc-proto = { version = "0.47.0" }
 schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }

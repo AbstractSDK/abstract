@@ -39,7 +39,7 @@ pub fn install_module_version<T: CwEnv>(
         module,
         ModuleVersion::Version(version.to_string()),
         Some(&MockInitMsg {}),
-        None,
+        &[],
     )?;
 
     Ok(manager.module_info(module)?.unwrap().address.to_string())
@@ -86,7 +86,7 @@ pub fn install_adapter_with_funds<T: CwEnv>(
     adapter_id: &str,
     funds: &[Coin],
 ) -> AResult {
-    manager.install_module::<Empty>(adapter_id, None, Some(funds))?;
+    manager.install_module::<Empty>(adapter_id, None, funds)?;
     Ok(())
 }
 
