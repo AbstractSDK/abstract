@@ -39,10 +39,7 @@ pub mod mock {
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_std::{adapter::*, objects::dependency::StaticDependency};
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_env, mock_info},
-        DepsMut, Response, StdError,
-    };
+    use cosmwasm_std::{testing::*, DepsMut, Response, StdError};
     use cw_storage_plus::Item;
     use thiserror::Error;
 
@@ -144,11 +141,16 @@ pub mod mock {
     crate::cw_orch_interface!(MOCK_ADAPTER, MockAdapterContract, MockInitMsg, MockAdapterI);
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let adapter = MOCK_ADAPTER;
-        let info = mock_info(OWNER, &[]);
+        let mock_api = MockApi::default();
+        let owner = mock_api.addr_make(OWNER);
+        let ans_host = mock_api.addr_make(TEST_ANS_HOST);
+        let vc = mock_api.addr_make(TEST_VERSION_CONTROL);
+
+        let info = message_info(&owner, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address: TEST_VERSION_CONTROL.into(),
+                ans_host_address: ans_host.to_string(),
+                version_control_address: vc.to_string(),
             },
             module: MockInitMsg {},
         };
@@ -159,11 +161,16 @@ pub mod mock {
         deps: DepsMut,
         module: MockAdapterContract,
     ) -> Result<Response, MockError> {
-        let info = mock_info(OWNER, &[]);
+        let mock_api = MockApi::default();
+        let owner = mock_api.addr_make(OWNER);
+        let ans_host = mock_api.addr_make(TEST_ANS_HOST);
+        let vc = mock_api.addr_make(TEST_VERSION_CONTROL);
+
+        let info = message_info(&owner, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address: TEST_VERSION_CONTROL.into(),
+                ans_host_address: ans_host.to_string(),
+                version_control_address: vc.to_string(),
             },
             module: MockInitMsg {},
         };

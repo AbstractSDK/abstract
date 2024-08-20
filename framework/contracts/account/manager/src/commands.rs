@@ -1039,7 +1039,7 @@ mod tests {
     use crate::{contract, test_common::mock_init};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage},
+        testing::{message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage},
         Order, OwnedDeps, StdError,
     };
     use speculoos::prelude::*;
@@ -1048,26 +1048,23 @@ mod tests {
 
     const TEST_PROXY_ADDR: &str = "proxy";
 
-    fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
-        let _info = mock_info(OWNER, &[]);
-        ACCOUNT_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY_ADDR))
+    fn mock_installed_proxy(deps: &mut MockDeps) -> StdResult<()> {
+        let owner = deps.api.addr_make(OWNER);
+        let _info = message_info(&owner, &[]);
+        ACCOUNT_MODULES.save(
+            deps.as_mut().storage,
+            PROXY,
+            &Addr::unchecked(TEST_PROXY_ADDR),
+        )
     }
 
-    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> ManagerResult {
-        contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
-    }
-
-    fn _execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-        execute_as(deps, TEST_ACCOUNT_FACTORY, msg)
-    }
-
-    fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-        execute_as(deps, OWNER, msg)
+    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ManagerResult {
+        contract::execute(deps, mock_env(), message_info(sender, &[]), msg)
     }
 
     fn init_with_proxy(deps: &mut MockDeps) {
-        mock_init(deps.as_mut()).unwrap();
-        mock_installed_proxy(deps.as_mut()).unwrap();
+        mock_init(deps).unwrap();
+        mock_installed_proxy(deps).unwrap();
     }
 
     fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
@@ -1078,11 +1075,10 @@ mod tests {
 
     fn test_only_owner(msg: ExecuteMsg) -> ManagerTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut())?;
+        let not_owner = deps.api.addr_make("not_owner");
+        mock_init(&mut deps)?;
 
-        let _info = mock_info("not_owner", &[]);
-
-        let res = execute_as(deps.as_mut(), "not_owner", msg);
+        let res = execute_as(deps.as_mut(), &not_owner, msg);
         assert_that!(&res)
             .is_err()
             .is_equal_to(ManagerError::Ownership(
@@ -1101,9 +1097,12 @@ mod tests {
 
         #[test]
         fn only_owner() -> ManagerTestResult {
+            let deps = mock_dependencies();
+            let test_owner = deps.api.addr_make("test_owner");
+
             let msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
                 new_owner: GovernanceDetails::Monarchy {
-                    monarch: "test_owner".to_string(),
+                    monarch: test_owner.to_string(),
                 },
                 expiry: None,
             });
@@ -1114,7 +1113,8 @@ mod tests {
         #[test]
         fn validates_new_owner_address() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
                 new_owner: GovernanceDetails::Monarchy {
@@ -1123,7 +1123,7 @@ mod tests {
                 expiry: None,
             });
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(res).is_err().matches(|err| {
                 matches!(
                     err,
@@ -1138,9 +1138,10 @@ mod tests {
         #[test]
         fn updates_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+            let new_owner = deps.api.addr_make("new_owner");
+            mock_init(&mut deps)?;
 
-            let new_owner = "new_owner";
             let set_owner_msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
                 new_owner: GovernanceDetails::Monarchy {
                     monarch: new_owner.to_string(),
@@ -1148,11 +1149,11 @@ mod tests {
                 expiry: None,
             });
 
-            let res = execute_as_owner(deps.as_mut(), set_owner_msg);
+            let res = execute_as(deps.as_mut(), &owner, set_owner_msg);
             assert_that!(&res).is_ok();
 
             let accept_msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
-            execute_as(deps.as_mut(), new_owner, accept_msg)?;
+            execute_as(deps.as_mut(), &new_owner, accept_msg)?;
 
             let actual_owner = ownership::get_ownership(&deps.storage)?.owner;
 
@@ -1166,18 +1167,19 @@ mod tests {
         #[test]
         fn updates_governance_type() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+            let new_gov = deps.api.addr_make("new_gov");
 
-            let new_gov = "new_gov".to_string();
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
                 new_owner: GovernanceDetails::Monarchy {
-                    monarch: new_gov.clone(),
+                    monarch: new_gov.to_string(),
                 },
                 expiry: None,
             });
 
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as(deps.as_mut(), &owner, msg)?;
 
             let ownership = ownership::get_ownership(deps.as_ref().storage)?;
             assert_that!(ownership
@@ -1185,7 +1187,7 @@ mod tests {
                 .owner_address(&deps.as_ref().querier)
                 .unwrap()
                 .to_string())
-            .is_equal_to("owner".to_string());
+            .is_equal_to(owner.to_string());
 
             let accept_msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
             execute_as(deps.as_mut(), &new_gov, accept_msg)?;
@@ -1196,7 +1198,7 @@ mod tests {
                 .owner_address(&deps.as_ref().querier)
                 .unwrap()
                 .to_string())
-            .is_equal_to("new_gov".to_string());
+            .is_equal_to(new_gov.to_string());
 
             Ok(())
         }
@@ -1208,11 +1210,14 @@ mod tests {
         #[test]
         fn manual_adds_module_to_account_modules() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            let module1_addr = deps.api.addr_make("module1");
+            let module2_addr = deps.api.addr_make("module2");
+
+            mock_init(&mut deps).unwrap();
 
             let to_add: Vec<(String, String)> = vec![
-                ("test:module1".to_string(), "module1_addr".to_string()),
-                ("test:module2".to_string(), "module2_addr".to_string()),
+                ("test:module1".to_string(), module1_addr.to_string()),
+                ("test:module2".to_string(), module2_addr.to_string()),
             ];
 
             let res = update_module_addresses(deps.as_mut(), Some(to_add.clone()), Some(vec![]));
@@ -1238,7 +1243,8 @@ mod tests {
         #[test]
         fn missing_id() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+
+            mock_init(&mut deps).unwrap();
 
             let to_add: Vec<(String, String)> = vec![("".to_string(), "module1_addr".to_string())];
 
@@ -1253,7 +1259,7 @@ mod tests {
         #[test]
         fn manual_removes_module_from_account_modules() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             // manually add module
             ACCOUNT_MODULES.save(
@@ -1293,27 +1299,28 @@ mod tests {
         #[test]
         fn only_account_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+            let account_factory = deps.api.addr_make(TEST_ACCOUNT_FACTORY);
+            let not_account_factory = deps.api.addr_make("not_account_factory");
+            let module_addr = deps.api.addr_make("module_addr");
+            mock_init(&mut deps)?;
 
             // add some thing
             let action_add = InternalConfigAction::UpdateModuleAddresses {
-                to_add: Some(vec![(
-                    "module:other".to_string(),
-                    "module_addr".to_string(),
-                )]),
+                to_add: Some(vec![("module:other".to_string(), module_addr.to_string())]),
                 to_remove: None,
             };
             let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&action_add).unwrap());
 
             // the factory can not call this
-            let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
+            let res = execute_as(deps.as_mut(), &account_factory, msg.clone());
             assert_that!(&res).is_err();
 
             // only the owner can
-            let res = execute_as_owner(deps.as_mut(), msg.clone());
+            let res = execute_as(deps.as_mut(), &owner, msg.clone());
             assert_that!(&res).is_ok();
 
-            let res = execute_as(deps.as_mut(), "not_account_factory", msg);
+            let res = execute_as(deps.as_mut(), &not_account_factory, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
@@ -1329,7 +1336,8 @@ mod tests {
         #[test]
         fn only_account_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let not_owner = deps.api.addr_make("not_owner");
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
@@ -1338,7 +1346,7 @@ mod tests {
                 )],
             };
 
-            let res = execute_as(deps.as_mut(), "not_owner", msg);
+            let res = execute_as(deps.as_mut(), &not_owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
@@ -1364,6 +1372,7 @@ mod tests {
         #[test]
         fn errors_with_existing_dependents() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let owner = deps.api.addr_make(OWNER);
             init_with_proxy(&mut deps);
 
             let test_module = "test:module";
@@ -1375,7 +1384,7 @@ mod tests {
             let dependents = HashSet::from_iter(vec!["test:dependent".to_string()]);
             DEPENDENTS.save(&mut deps.storage, test_module, &dependents)?;
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::ModuleHasDependents(Vec::from_iter(
@@ -1388,13 +1397,14 @@ mod tests {
         #[test]
         fn disallows_removing_proxy() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let owner = deps.api.addr_make(OWNER);
             init_with_proxy(&mut deps);
 
             let msg = ExecuteMsg::UninstallModule {
                 module_id: PROXY.to_string(),
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::CannotRemoveProxy {});
@@ -1421,7 +1431,9 @@ mod tests {
         #[test]
         fn fails_with_nonexistent_module() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+
+            mock_init(&mut deps)?;
 
             let missing_module = "test:module".to_string();
             let msg = ExecuteMsg::ExecOnModule {
@@ -1429,7 +1441,7 @@ mod tests {
                 exec_msg: to_json_binary(&"some msg")?,
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::ModuleNotFound(missing_module));
@@ -1440,6 +1452,8 @@ mod tests {
         #[test]
         fn forwards_exec_to_module() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let owner = deps.api.addr_make(OWNER);
+
             init_with_proxy(&mut deps);
 
             let exec_msg = &"some msg";
@@ -1449,7 +1463,7 @@ mod tests {
                 exec_msg: to_json_binary(&exec_msg)?,
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res).is_ok();
 
             let msgs = res.unwrap().messages;
@@ -1484,6 +1498,7 @@ mod tests {
         #[test]
         fn updates() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let owner = deps.api.addr_make(OWNER);
             init_with_proxy(&mut deps);
 
             let name = "new name";
@@ -1496,7 +1511,7 @@ mod tests {
                 link: Some(link.to_string()),
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res).is_ok();
 
             let info = INFO.load(deps.as_ref().storage)?;
@@ -1511,6 +1526,7 @@ mod tests {
         #[test]
         fn removals() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let owner = deps.api.addr_make(OWNER);
             init_with_proxy(&mut deps);
 
             let prev_name = "name".to_string();
@@ -1530,7 +1546,7 @@ mod tests {
                 link: None,
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res).is_ok();
 
             let info = INFO.load(deps.as_ref().storage)?;
@@ -1545,6 +1561,7 @@ mod tests {
         #[test]
         fn validates_name() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let owner = deps.api.addr_make(OWNER);
             init_with_proxy(&mut deps);
 
             let msg = ExecuteMsg::UpdateInfo {
@@ -1553,7 +1570,7 @@ mod tests {
                 link: None,
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -1567,7 +1584,7 @@ mod tests {
                 link: None,
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -1581,6 +1598,8 @@ mod tests {
         #[test]
         fn validates_link() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let owner = deps.api.addr_make(OWNER);
+
             init_with_proxy(&mut deps);
 
             let msg = ExecuteMsg::UpdateInfo {
@@ -1589,7 +1608,7 @@ mod tests {
                 link: Some("aoeu".to_string()),
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -1603,7 +1622,7 @@ mod tests {
                 link: Some("a".repeat(129)),
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -1621,7 +1640,8 @@ mod tests {
         #[test]
         fn only_by_contract() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let not_contract = deps.api.addr_make("not_contract");
+            mock_init(&mut deps)?;
             let callback = CallbackMsg {};
 
             let msg = ExecuteMsg::Callback(callback);
@@ -1629,7 +1649,7 @@ mod tests {
             let res = contract::execute(
                 deps.as_mut(),
                 mock_env(),
-                mock_info("not_contract", &[]),
+                message_info(&not_contract, &[]),
                 msg,
             );
 
@@ -1647,7 +1667,7 @@ mod tests {
         #[test]
         fn only_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateStatus {
                 is_suspended: Some(true),
@@ -1659,13 +1679,14 @@ mod tests {
         #[test]
         fn exec_fails_when_suspended() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateStatus {
                 is_suspended: Some(true),
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(res).is_ok();
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
             assert_that!(&actual_is_suspended).is_true();
@@ -1676,7 +1697,7 @@ mod tests {
                 link: None,
             };
 
-            let res = execute_as_owner(deps.as_mut(), update_info_msg);
+            let res = execute_as(deps.as_mut(), &owner, update_info_msg);
 
             assert_that!(&res)
                 .is_err()
@@ -1688,13 +1709,14 @@ mod tests {
         #[test]
         fn suspend_account() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateStatus {
                 is_suspended: Some(true),
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
 
             assert_that!(&res).is_ok();
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
@@ -1705,13 +1727,14 @@ mod tests {
         #[test]
         fn unsuspend_account() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateStatus {
                 is_suspended: Some(false),
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), &owner, msg);
 
             assert_that!(&res).is_ok();
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
@@ -1728,7 +1751,9 @@ mod tests {
         #[test]
         fn only_account_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateInternalConfig(
                 to_json_binary(&UpdateModuleAddresses {
@@ -1738,17 +1763,18 @@ mod tests {
                 .unwrap(),
             );
 
-            let bad_sender = "not_account_owner";
-            let res = execute_as(deps.as_mut(), bad_sender, msg.clone());
+            let bad_sender = deps.api.addr_make("not_account_owner");
+            let res = execute_as(deps.as_mut(), &bad_sender, msg.clone());
 
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
 
-            let factory_res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
+            let factory_addr = deps.api.addr_make(TEST_ACCOUNT_FACTORY);
+            let factory_res = execute_as(deps.as_mut(), &factory_addr, msg.clone());
             assert_that!(&factory_res).is_err();
 
-            let owner_res = execute_as_owner(deps.as_mut(), msg);
+            let owner_res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&owner_res).is_ok();
 
             Ok(())
@@ -1757,12 +1783,13 @@ mod tests {
         #[test]
         fn should_return_err_unrecognized_action() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let msg =
                 ExecuteMsg::UpdateInternalConfig(to_json_binary(&QueryMsg::Config {}).unwrap());
 
-            let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
+            let factory_addr = deps.api.addr_make(TEST_ACCOUNT_FACTORY);
+            let res = execute_as(deps.as_mut(), &factory_addr, msg);
 
             assert_that!(&res)
                 .is_err()
@@ -1778,7 +1805,7 @@ mod tests {
         #[test]
         fn should_allow_migrate_msg() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
             let storage = deps.as_mut().storage;
 
             let result = add_module_upgrade_to_context(storage, TEST_MODULE_ID, vec![]);
@@ -1800,8 +1827,8 @@ mod tests {
         #[test]
         fn allows_ownership_acceptance() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make("owner");
-            mock_init(deps.as_mut())?;
+            let owner = deps.api.addr_make(OWNER);
+            mock_init(&mut deps)?;
 
             let pending_owner = deps.api.addr_make("not_owner");
             // mock pending owner
@@ -1811,14 +1838,14 @@ mod tests {
                     owner: GovernanceDetails::Monarchy { monarch: owner },
                     pending_expiry: None,
                     pending_owner: Some(GovernanceDetails::Monarchy {
-                        monarch: Addr::unchecked(pending_owner),
+                        monarch: pending_owner.clone(),
                     }),
                 },
             )?;
 
             let msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership {});
 
-            execute_as(deps.as_mut(), pending_owner, msg)?;
+            execute_as(deps.as_mut(), &pending_owner, msg)?;
 
             Ok(())
         }

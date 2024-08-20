@@ -75,7 +75,7 @@ mod tests {
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
+        testing::{message_info, mock_dependencies, mock_env},
         DepsMut, Env, MessageInfo, Response,
     };
     use speculoos::prelude::*;
@@ -123,6 +123,7 @@ mod tests {
     #[test]
     fn custom_exec() {
         let mut deps = mock_dependencies();
+        let manager = deps.api.addr_make(TEST_MANAGER);
         deps.querier = mocked_account_querier_builder().build();
 
         mock_init_custom(deps.as_mut(), featured_adapter()).unwrap();
@@ -132,12 +133,8 @@ mod tests {
             request: MockExecMsg {},
         });
 
-        let res = featured_adapter().execute(
-            deps.as_mut(),
-            mock_env(),
-            mock_info(TEST_MANAGER, &[]),
-            msg,
-        );
+        let res =
+            featured_adapter().execute(deps.as_mut(), mock_env(), message_info(&manager, &[]), msg);
 
         assert_that!(res).is_ok();
     }
