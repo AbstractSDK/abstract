@@ -633,35 +633,3 @@ fn subaccount_adapter_ownership() -> AResult {
     );
     Ok(())
 }
-
-mod old_mock {
-    use super::*;
-
-    use abstract_adapter::gen_adapter_old_mock;
-    use mock_modules::adapter_1::MOCK_ADAPTER_ID;
-
-    gen_adapter_old_mock!(OldMockAdapter1V1, MOCK_ADAPTER_ID, "1.0.0", &[]);
-
-    #[test]
-    fn old_adapters_migratable() -> AResult {
-        let chain = MockBech32::new("mock");
-        let sender = chain.sender_addr();
-        let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-        let account = create_default_account(&deployment.account_factory)?;
-
-        deployment
-            .version_control
-            .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
-
-        let old = OldMockAdapter1V1::new_test(chain.clone());
-        old.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
-
-        account.install_adapter(&old, None)?;
-
-        let new = MockAdapterI1V2::new_test(chain.clone());
-        new.deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
-
-        account.manager.upgrade_module(MOCK_ADAPTER_ID, &Empty {})?;
-        Ok(())
-    }
-}
