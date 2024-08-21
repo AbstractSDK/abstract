@@ -33,7 +33,7 @@ pub fn reply_forward_response_data(reply: Reply) -> HostResult {
     // get the result from the reply
     if let cosmwasm_std::SubMsgResult::Ok(response) = reply.result {
         if let Ok(MsgExecuteContractResponse { data: Some(data) }) =
-            cw_utils::parse_execute_response_data(response.data.unwrap().as_slice())
+            cw_utils::parse_execute_response_data(response.data.unwrap_or_default().as_slice())
         {
             return Ok(HostResponse::new(
                 "forward_response_data_reply",
