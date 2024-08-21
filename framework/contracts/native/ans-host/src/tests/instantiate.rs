@@ -1,9 +1,6 @@
 use abstract_std::ans_host::*;
 use abstract_testing::OWNER;
-use cosmwasm_std::{
-    testing::{mock_env, mock_info},
-    Addr, DepsMut, MessageInfo,
-};
+use cosmwasm_std::{testing::*, Addr, DepsMut, MessageInfo};
 use speculoos::prelude::*;
 
 use crate::{
@@ -21,7 +18,7 @@ pub(crate) fn instantiate_msg(info: &MessageInfo) -> InstantiateMsg {
  * Mocks instantiation.
  */
 pub fn mock_instantiate(deps: DepsMut) {
-    let info = mock_info(OWNER, &[]);
+    let info = message_info(&MockApi::default().addr_make(OWNER), &[]);
     let msg = InstantiateMsg {
         admin: info.sender.to_string(),
     };
@@ -37,7 +34,7 @@ pub fn mock_instantiate(deps: DepsMut) {
 fn successful_initialization() {
     let mut deps = mock_dependencies(&[]);
 
-    let info = mock_info(OWNER, &[]);
+    let info = message_info(&MockApi::default().addr_make(OWNER), &[]);
     let msg = instantiate_msg(&info);
     let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
     assert_eq!(0, res.messages.len());
@@ -48,7 +45,7 @@ fn successful_update_ownership() {
     let mut deps = mock_dependencies(&[]);
     mock_instantiate(deps.as_mut());
 
-    let new_admin = "new_admin";
+    let new_admin = deps.api.addr_make("new_admin");
     // First update to transfer
     let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
         new_owner: new_admin.to_string(),
@@ -60,7 +57,7 @@ fn successful_update_ownership() {
 
     // Then update and accept as the new owner
     let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
-    let accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
+    let accept_res = execute_as(deps.as_mut(), "new_admin", accept_msg).unwrap();
     assert_eq!(0, accept_res.messages.len());
 
     assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)

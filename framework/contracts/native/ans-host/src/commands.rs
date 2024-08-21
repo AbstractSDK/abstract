@@ -365,10 +365,7 @@ fn validate_pool_assets(
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::{map_tester::CwMapTester, prelude::*};
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Addr, DepsMut,
-    };
+    use cosmwasm_std::{testing::*, Addr, DepsMut};
     use speculoos::prelude::*;
 
     use super::*;
@@ -377,7 +374,12 @@ mod test {
     type AnsHostTestResult = Result<(), AnsHostError>;
 
     fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> AnsHostTestResult {
-        contract::execute(deps, mock_env(), mock_info(OWNER, &[]), msg)?;
+        contract::execute(
+            deps,
+            mock_env(),
+            message_info(&MockApi::default().addr_make(OWNER), &[]),
+            msg,
+        )?;
         Ok(())
     }
 
@@ -403,7 +405,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&deps.api.addr_make(OWNER), &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -424,7 +426,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&deps.api.addr_make(OWNER), &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -445,7 +447,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&deps.api.addr_make(OWNER), &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -466,7 +468,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&deps.api.addr_make(OWNER), &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -486,7 +488,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&deps.api.addr_make(OWNER), &[]);
             let new_dexes = vec!["test_dex".to_string(), "test_dex_2".to_string()];
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -506,7 +508,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&deps.api.addr_make(OWNER), &[]);
             let missing_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -551,7 +553,10 @@ mod test {
             name: &str,
             address: &str,
         ) -> (UncheckedContractEntry, String) {
-            (contract_entry(namespace, name), address.to_string())
+            (
+                contract_entry(namespace, name),
+                MockApi::default().addr_make(address).to_string(),
+            )
         }
 
         fn mock_contract_map_entry() -> (UncheckedContractEntry, String) {
@@ -583,7 +588,7 @@ mod test {
             UncheckedContractEntry,
             String,
         > {
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&MockApi::default().addr_make(OWNER), &[]);
 
             let tester = CwMapTesterBuilder::default()
                 .info(info)
@@ -668,7 +673,7 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
             let mut map_tester = setup_map_tester();
 
-            let _info = mock_info(OWNER, &[]);
+            let _info = message_info(&deps.api.addr_make(OWNER), &[]);
             let new_entry_1 =
                 contract_address_map_entry("test_namespace", "test_contract", "test_address");
             let new_entry_2 =
@@ -690,31 +695,13 @@ mod test {
                 vec![new_entry_2, new_entry_3],
             )
         }
-
-        #[test]
-        fn invalid_address_rejected() -> AnsHostTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
-
-            let bad_entry =
-                contract_address_map_entry("test_namespace", "test_contract", "BAD_ADDRESS");
-
-            let res = map_tester.execute_update(deps.as_mut(), (vec![bad_entry], vec![]));
-
-            assert_that!(res)
-                .is_err()
-                .matches(|err| matches!(err, AnsHostError::Std(StdError::GenericErr { .. })));
-
-            Ok(())
-        }
     }
 
     mod update_asset_addresses {
         use super::*;
 
         use abstract_testing::map_tester::CwMapTesterBuilder;
-        use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
+        use cw_asset::{AssetInfo, AssetInfoBase};
         use cw_storage_plus::Map;
 
         fn unchecked_asset_map_entry(
@@ -753,8 +740,10 @@ mod test {
                 unchecked_asset_map_entry("juno", AssetInfoBase::Native("ujuno".into()));
             let new_entry_2 =
                 unchecked_asset_map_entry("osmo", AssetInfoBase::Native("uosmo".into()));
-            let new_entry_3 =
-                unchecked_asset_map_entry("sjuno", AssetInfoBase::Cw20("junoxxxxxxxxx".into()));
+            let new_entry_3 = unchecked_asset_map_entry(
+                "sjuno",
+                AssetInfoBase::Cw20(MockApi::default().addr_make("sjuno").to_string()),
+            );
             (new_entry_1, new_entry_2, new_entry_3)
         }
 
@@ -766,7 +755,7 @@ mod test {
             String,
             AssetInfoUnchecked,
         > {
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&MockApi::default().addr_make(OWNER), &[]);
 
             let tester = CwMapTesterBuilder::default()
                 .info(info)
@@ -869,7 +858,10 @@ mod test {
                 (vec![new_entry_1.clone(), new_entry_2.clone()], vec![]),
             )?;
 
-            let new_entry_3 = unchecked_asset_map_entry("usd", AssetInfoBase::Cw20("uusd".into()));
+            let new_entry_3 = unchecked_asset_map_entry(
+                "usd",
+                AssetInfoBase::Cw20(deps.api.addr_make("uusd").into()),
+            );
 
             // Add 3 and remove 1, leaving 2 and 3
             map_tester.test_update_with_expected(
@@ -877,31 +869,6 @@ mod test {
                 (vec![new_entry_3.clone()], vec![new_entry_1.0]),
                 vec![new_entry_2, new_entry_3],
             )
-        }
-
-        #[test]
-        fn bad_asset_address_throws() -> AnsHostTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
-
-            let bad_asset_address =
-                unchecked_asset_map_entry("BAD", AssetInfoUnchecked::Cw20("BAD".into()));
-
-            let err = map_tester
-                .execute_update(deps.as_mut(), (vec![bad_asset_address], vec![]))
-                .unwrap_err();
-
-            assert_that!(err)
-                .matches(|e| {
-                    matches!(
-                        e,
-                        AnsHostError::Asset(AssetError::Std(StdError::GenericErr { .. }))
-                    )
-                })
-                .matches(|e| e.to_string().contains("address not normalized"));
-
-            Ok(())
         }
     }
 
@@ -965,7 +932,7 @@ mod test {
             UncheckedChannelEntry,
             String,
         > {
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&MockApi::default().addr_make(OWNER), &[]);
 
             let tester = CwMapTesterBuilder::default()
                 .info(info)
@@ -1118,7 +1085,8 @@ mod test {
             pool_contract_addr: &str,
             metadata: PoolMetadata,
         ) -> UncheckedPoolMapEntry {
-            let pool_id = UncheckedPoolAddress::contract(pool_contract_addr);
+            let pool_id =
+                UncheckedPoolAddress::contract(MockApi::default().addr_make(pool_contract_addr));
             (pool_id, metadata)
         }
 

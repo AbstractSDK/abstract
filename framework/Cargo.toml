@@ -114,10 +114,7 @@ incremental = false
 
 [patch.crates-io]
 
-# TODO: remove after cw-orch release
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "misha/orc-154-remove-chain-name-from-top-level-in-statejson" }
-cw-orch-interchain = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "misha/orc-154-remove-chain-name-from-top-level-in-statejson" }
-
+# TODO: remove after polytone release
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "update/cosmwasm2.0" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "update/cosmwasm2.0" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "update/cosmwasm2.0" }
