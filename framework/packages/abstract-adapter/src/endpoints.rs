@@ -78,7 +78,7 @@ mod test {
     use abstract_std::adapter::{self, AdapterRequestMsg};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
+        testing::{message_info, mock_dependencies, mock_env},
         Binary, SubMsgResult,
     };
     use speculoos::prelude::*;
@@ -90,6 +90,7 @@ mod test {
         export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
 
         let mut deps = mock_dependencies();
+        let owner = deps.api.addr_make(OWNER);
 
         // init
         let init_msg = adapter::InstantiateMsg {
@@ -102,11 +103,15 @@ mod test {
         let actual_init = instantiate(
             deps.as_mut(),
             mock_env(),
-            mock_info(OWNER, &[]),
+            message_info(&owner, &[]),
             init_msg.clone(),
         );
-        let expected_init =
-            MOCK_ADAPTER.instantiate(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), init_msg);
+        let expected_init = MOCK_ADAPTER.instantiate(
+            deps.as_mut(),
+            mock_env(),
+            message_info(&owner, &[]),
+            init_msg,
+        );
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
@@ -114,11 +119,15 @@ mod test {
         let actual_exec = execute(
             deps.as_mut(),
             mock_env(),
-            mock_info(OWNER, &[]),
+            message_info(&owner, &[]),
             exec_msg.clone(),
         );
-        let expected_exec =
-            MOCK_ADAPTER.execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
+        let expected_exec = MOCK_ADAPTER.execute(
+            deps.as_mut(),
+            mock_env(),
+            message_info(&owner, &[]),
+            exec_msg,
+        );
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query

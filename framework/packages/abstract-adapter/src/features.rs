@@ -74,10 +74,7 @@ mod tests {
         version_control::AccountBase,
     };
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env},
-        DepsMut, Env, MessageInfo, Response,
-    };
+    use cosmwasm_std::{testing::*, DepsMut, Env, MessageInfo, Response};
     use speculoos::prelude::*;
 
     use super::*;
@@ -93,22 +90,25 @@ mod tests {
         module: MockAdapterContract,
         _msg: MockExecMsg,
     ) -> Result<Response, MockError> {
-        let proxy = module.proxy_address(deps.as_ref())?;
+        let mock_api = MockApi::default();
+        let expected_proxy = mock_api.addr_make(TEST_PROXY);
+        let expected_manager = mock_api.addr_make(TEST_MANAGER);
+        let expected_ans = mock_api.addr_make(TEST_ANS_HOST);
+        let expected_vc = mock_api.addr_make(TEST_VERSION_CONTROL);
         // assert with test values
-        assert_that!(proxy.as_str()).is_equal_to(TEST_PROXY);
+        let proxy = module.proxy_address(deps.as_ref())?;
+        assert_that!(proxy).is_equal_to(&expected_proxy);
         let manager = module.manager_address(deps.as_ref())?;
-        assert_that!(manager.as_str()).is_equal_to(TEST_MANAGER);
+        assert_that!(manager).is_equal_to(&expected_manager);
         let account = module.account_base(deps.as_ref())?;
         assert_that!(account).is_equal_to(AccountBase {
-            manager: Addr::unchecked(TEST_MANAGER),
-            proxy: Addr::unchecked(TEST_PROXY),
+            manager: expected_manager,
+            proxy: expected_proxy,
         });
         let ans = module.ans_host(deps.as_ref())?;
-        assert_that!(ans).is_equal_to(AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
+        assert_that!(ans).is_equal_to(AnsHost::new(expected_ans));
         let regist = module.abstract_registry(deps.as_ref())?;
-        assert_that!(regist).is_equal_to(VersionControlContract::new(Addr::unchecked(
-            TEST_VERSION_CONTROL,
-        )));
+        assert_that!(regist).is_equal_to(VersionControlContract::new(expected_vc));
 
         module.target()?;
 

@@ -245,10 +245,7 @@ fn get_addr_from_module_id_or_addr(
 mod tests {
     use abstract_std::adapter;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Storage,
-    };
+    use cosmwasm_std::{testing::*, Addr, Storage};
     use speculoos::prelude::*;
 
     use super::*;
@@ -261,7 +258,8 @@ mod tests {
         sender: &str,
         msg: ExecuteMsg<MockExecMsg, MockReceiveMsg>,
     ) -> Result<Response, MockError> {
-        MOCK_ADAPTER.execute(deps, mock_env(), mock_info(sender, &[]), msg)
+        let sender = MockApi::default().addr_make(sender);
+        MOCK_ADAPTER.execute(deps, mock_env(), message_info(&sender, &[]), msg)
     }
 
     fn base_execute_as(
@@ -277,9 +275,10 @@ mod tests {
         use crate::mock::TEST_AUTHORIZED_ADDRESS;
 
         fn load_test_proxy_authorized_addresses(storage: &dyn Storage) -> Vec<Addr> {
+            let proxy = MockApi::default().addr_make(TEST_PROXY);
             MOCK_ADAPTER
                 .authorized_addresses
-                .load(storage, Addr::unchecked(TEST_PROXY))
+                .load(storage, proxy)
                 .unwrap()
         }
 
@@ -290,10 +289,9 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDRESS).to_string()],
                     to_remove: vec![],
                 },
                 proxy_address: None,
@@ -308,7 +306,7 @@ mod tests {
 
             assert_that!(test_proxy_authorized_addrs.len()).is_equal_to(1);
             assert_that!(test_proxy_authorized_addrs)
-                .contains(Addr::unchecked(TEST_AUTHORIZED_ADDRESS));
+                .contains(deps.api.addr_make(TEST_AUTHORIZED_ADDRESS));
             Ok(())
         }
 
@@ -323,7 +321,7 @@ mod tests {
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDRESS).to_string()],
                     to_remove: vec![],
                 },
             };
@@ -337,7 +335,7 @@ mod tests {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![],
-                    to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_remove: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDRESS).to_string()],
                 },
             };
 
@@ -358,7 +356,7 @@ mod tests {
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDRESS).to_string()],
                     to_remove: vec![],
                 },
             };
@@ -368,14 +366,13 @@ mod tests {
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDRESS).to_string()],
                     to_remove: vec![],
                 },
             };
 
             let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
 
-            let _test_authorized_address_string = TEST_AUTHORIZED_ADDRESS.to_string();
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -409,7 +406,7 @@ mod tests {
             let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
             assert_that!(authorized_addrs.len()).is_equal_to(1);
             assert_that!(authorized_addrs[0].to_string())
-                .is_equal_to(TEST_MODULE_ADDRESS.to_string());
+                .is_equal_to(deps.api.addr_make(TEST_MODULE_ADDRESS).to_string());
 
             Ok(())
         }
@@ -426,12 +423,13 @@ mod tests {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![],
-                    to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_remove: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDRESS).into()],
                 },
             };
 
             let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
 
+            dbg!(&res);
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -458,13 +456,17 @@ mod tests {
         /// Note that the querier needs to mock the Account base, as the proxy will
         /// query the Account base to get the list of authorized addresses.
         fn setup_with_authorized_addresses(mut deps: DepsMut, authorized: Vec<&str>) {
+            let mock_api = MockApi::default();
             mock_init(deps.branch()).unwrap();
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: authorized.into_iter().map(Into::into).collect(),
+                    to_add: authorized
+                        .into_iter()
+                        .map(|addr| mock_api.addr_make(addr).to_string())
+                        .collect(),
                     to_remove: vec![],
                 },
             };
@@ -487,10 +489,10 @@ mod tests {
             let unauthorized: String = "someoone".into();
             let res = execute_as(deps.as_mut(), &unauthorized, msg);
 
-            assert_unauthorized(res, unauthorized);
+            assert_unauthorized(res);
         }
 
-        fn assert_unauthorized(res: Result<Response, MockError>, _unauthorized: String) {
+        fn assert_unauthorized(res: Result<Response, MockError>) {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -533,7 +535,7 @@ mod tests {
 
             let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
 
-            assert_unauthorized(res, TEST_AUTHORIZED_ADDRESS.into());
+            assert_unauthorized(res);
         }
 
         #[test]
@@ -544,7 +546,7 @@ mod tests {
             setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: Some(TEST_PROXY.into()),
+                proxy_address: Some(deps.api.addr_make(TEST_PROXY).into()),
                 request: MockExecMsg {},
             });
 
@@ -568,13 +570,13 @@ mod tests {
             setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: Some(other_proxy.into()),
+                proxy_address: Some(deps.api.addr_make(other_proxy).to_string()),
                 request: MockExecMsg {},
             });
 
             let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
 
-            assert_unauthorized(res, TEST_AUTHORIZED_ADDRESS.into());
+            assert_unauthorized(res);
         }
     }
 }

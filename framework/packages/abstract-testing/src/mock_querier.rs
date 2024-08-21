@@ -391,41 +391,50 @@ impl MockQuerierOwnership for MockQuerierBuilder {
 pub fn mock_querier() -> MockQuerier {
     let raw_handler = |contract: &str, key: &Binary| {
         let _str_key = std::str::from_utf8(key.as_slice()).unwrap();
-        match contract {
-            TEST_PROXY => Err("unexpected key".to_string()),
-            TEST_MANAGER => {
-                // Return the default value
-                Ok(Binary::default())
-            }
-            TEST_VERSION_CONTROL => {
-                // Default value
-                Ok(Binary::default())
-            }
-            _ => Err("unexpected contract".to_string()),
+        let mock_api = cosmwasm_std::testing::MockApi::default();
+        let proxy_addr = mock_api.addr_make(TEST_PROXY);
+        let manager_addr = mock_api.addr_make(TEST_MANAGER);
+        let vc_addr = mock_api.addr_make(TEST_VERSION_CONTROL);
+
+        if contract == proxy_addr.clone().as_str() {
+            Err("unexpected key".to_string())
+        } else if contract == manager_addr.clone().as_str() {
+            // Return the default value
+            Ok(Binary::default())
+        } else if contract == vc_addr.clone().as_str() {
+            // Default value
+            Ok(Binary::default())
+        } else {
+            Err("unexpected contract".to_string())
         }
     };
+    let mock_api = cosmwasm_std::testing::MockApi::default();
+    let proxy_addr = mock_api.addr_make(TEST_PROXY);
+    let manager_addr = mock_api.addr_make(TEST_MANAGER);
+    let vc_addr = mock_api.addr_make(TEST_VERSION_CONTROL);
+    let test_module_addr = mock_api.addr_make(TEST_MODULE_ADDRESS);
 
     MockQuerierBuilder::default()
         .with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
-            TEST_VERSION_CONTROL,
+            vc_addr.as_str(),
             ACCOUNT_ADDRESSES,
             (&TEST_ACCOUNT_ID, test_account_base()),
         )
         .with_contract_item(
-            TEST_PROXY,
+            proxy_addr.as_str(),
             Item::new("admin"),
-            &Some(Addr::unchecked(TEST_MANAGER)),
+            &Some(manager_addr.clone()),
         )
-        .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-        .with_smart_handler(TEST_MODULE_ADDRESS, |msg| {
+        .with_contract_item(manager_addr.as_str(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
+        .with_smart_handler(test_module_addr.as_str(), |msg| {
             let Empty {} = from_json(msg).unwrap();
             Ok(to_json_binary(TEST_MODULE_RESPONSE).unwrap())
         })
         .with_contract_map_entry(
-            TEST_MANAGER,
+            manager_addr.as_str(),
             ACCOUNT_MODULES,
-            (TEST_MODULE_ID, Addr::unchecked(TEST_MODULE_ADDRESS)),
+            (TEST_MODULE_ID, test_module_addr),
         )
         .build()
 }
@@ -440,7 +449,7 @@ mod tests {
         manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
-    use cosmwasm_std::testing::mock_dependencies;
+    use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
     use super::*;
