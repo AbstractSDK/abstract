@@ -156,7 +156,7 @@ mod tests {
     use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL, *};
     use cosmwasm_std::{
         from_json,
-        testing::{mock_dependencies, mock_env, mock_info},
+        testing::{message_info, mock_dependencies, mock_env, MockApi},
         Addr,
     };
     use cw2::CONTRACT;
@@ -166,7 +166,12 @@ mod tests {
     type IbcClientTestResult = Result<(), IbcClientError>;
 
     fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> IbcClientResult {
-        execute(deps, mock_env(), mock_info(sender, &[]), msg)
+        execute(
+            deps,
+            mock_env(),
+            message_info(&MockApi::default().addr_make(sender), &[]),
+            msg,
+        )
     }
 
     fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> IbcClientResult {
@@ -188,27 +193,28 @@ mod tests {
     #[test]
     fn instantiate_works() -> IbcClientResult<()> {
         let mut deps = mock_dependencies();
+        let owner = deps.api.addr_make(OWNER);
+        let ans_host = deps.api.addr_make(TEST_ANS_HOST);
+        let vc = deps.api.addr_make(TEST_VERSION_CONTROL);
+
         let msg = InstantiateMsg {
-            ans_host_address: TEST_ANS_HOST.into(),
-            version_control_address: TEST_VERSION_CONTROL.into(),
+            ans_host_address: ans_host.to_string(),
+            version_control_address: vc.to_string(),
         };
-        let info = mock_info(OWNER, &[]);
+        let info = message_info(&owner, &[]);
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_that!(res.messages).is_empty();
 
         // config
         let expected_config = Config {
-            version_control: VersionControlContract::new(Addr::unchecked(TEST_VERSION_CONTROL)),
-            ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
+            version_control: VersionControlContract::new(vc),
+            ans_host: AnsHost::new(ans_host),
         };
 
         let ownership_resp: Ownership<Addr> =
             from_json(query(deps.as_ref(), mock_env(), QueryMsg::Ownership {})?)?;
 
-        assert_eq!(
-            ownership_resp.owner,
-            Some(Addr::unchecked(OWNER.to_owned()))
-        );
+        assert_eq!(ownership_resp.owner, Some(owner));
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
         assert_that!(actual_config).is_equal_to(expected_config);
@@ -343,12 +349,14 @@ mod tests {
         fn cannot_register_if_already_exists() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
 
             IBC_INFRA.save(
                 deps.as_mut().storage,
                 &TruncatedChainId::from_str(TEST_CHAIN)?,
                 &IbcInfrastructure {
-                    polytone_note: Addr::unchecked("note"),
+                    polytone_note: note_addr.clone(),
                     remote_abstract_host: "test_remote_host".into(),
                     remote_proxy: None,
                 },
@@ -356,7 +364,7 @@ mod tests {
 
             let msg = ExecuteMsg::RegisterInfrastructure {
                 chain: TEST_CHAIN.parse().unwrap(),
-                note: String::from("note"),
+                note: note_addr.to_string(),
                 host: String::from("test_remote_host"),
             };
 
@@ -374,17 +382,18 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note = String::from("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let host = String::from("test_remote_host");
 
             let msg = ExecuteMsg::RegisterInfrastructure {
                 chain: chain_name.clone(),
-                note: note.clone(),
+                note: note_addr.to_string(),
                 host: host.clone(),
             };
 
             let note_proxy_msg = wasm_execute(
-                note.clone(),
+                note_addr.to_string(),
                 &polytone_note::msg::ExecuteMsg::Execute {
                     msgs: vec![],
                     callback: Some(CallbackRequest {
@@ -406,7 +415,7 @@ mod tests {
             // Verify IBC_INFRA
             let ibc_infra = IBC_INFRA.load(deps.as_ref().storage, &chain_name)?;
             let expected_ibc_infra = IbcInfrastructure {
-                polytone_note: Addr::unchecked(note.clone()),
+                polytone_note: note_addr.clone(),
                 remote_abstract_host: host.clone(),
                 remote_proxy: None,
             };
@@ -414,8 +423,7 @@ mod tests {
             assert_eq!(expected_ibc_infra, ibc_infra);
 
             // Verify REVERSE_POLYTONE_NOTE
-            let reverse_note =
-                REVERSE_POLYTONE_NOTE.load(deps.as_ref().storage, &Addr::unchecked(note))?;
+            let reverse_note = REVERSE_POLYTONE_NOTE.load(deps.as_ref().storage, &note_addr)?;
 
             assert_eq!(chain_name, reverse_note);
 
@@ -541,14 +549,15 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note_contract = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let remote_ibc_host = String::from("test_remote_host");
 
             IBC_INFRA.save(
                 deps.as_mut().storage,
                 &chain_name,
                 &IbcInfrastructure {
-                    polytone_note: note_contract.clone(),
+                    polytone_note: note_addr.clone(),
                     remote_abstract_host: remote_ibc_host.clone(),
                     remote_proxy: None,
                 },
@@ -570,13 +579,13 @@ mod tests {
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
 
             let note_message = wasm_execute(
-                note_contract.to_string(),
+                note_addr.to_string(),
                 &polytone_note::msg::ExecuteMsg::Execute {
                     msgs: vec![wasm_execute(
                         // The note's remote proxy will call the ibc host
                         remote_ibc_host,
                         &ibc_host::ExecuteMsg::Execute {
-                            proxy_address: TEST_PROXY.to_owned(),
+                            proxy_address: deps.api.addr_make(TEST_PROXY).to_string(),
                             account_id: TEST_ACCOUNT_ID,
                             action,
                         },
@@ -775,7 +784,7 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder()
                 .builder()
-                .with_smart_handler(TEST_MANAGER, |msg| {
+                .with_smart_handler(deps.api.addr_make(TEST_MANAGER).as_str(), |msg| {
                     match from_json::<manager::QueryMsg>(msg).unwrap() {
                         manager::QueryMsg::Info {} => to_json_binary(&manager::InfoResponse {
                             info: manager::state::AccountInfo {
@@ -793,7 +802,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note_contract = Addr::unchecked("note");
+            let note_contract = deps.api.addr_make("note");
             let remote_ibc_host = String::from("test_remote_host");
 
             IBC_INFRA.save(
@@ -821,7 +830,7 @@ mod tests {
                         // The note's remote proxy will call the ibc host
                         remote_ibc_host,
                         &ibc_host::ExecuteMsg::Execute {
-                            proxy_address: TEST_PROXY.to_string(),
+                            proxy_address: deps.api.addr_make(TEST_PROXY).to_string(),
                             account_id: TEST_ACCOUNT_ID,
                             action: HostAction::Internal(InternalAction::Register {
                                 description: None,
@@ -874,15 +883,17 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
             let cfg = Config {
-                version_control: VersionControlContract::new(Addr::unchecked(TEST_VERSION_CONTROL)),
-                ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
+                version_control: VersionControlContract::new(
+                    deps.api.addr_make(TEST_VERSION_CONTROL),
+                ),
+                ans_host: AnsHost::new(deps.api.addr_make(TEST_ANS_HOST)),
             };
             CONFIG.save(deps.as_mut().storage, &cfg)?;
 
-            let new_ans_host = "new_ans_host".to_string();
+            let new_ans_host = deps.api.addr_make("new_ans_host");
 
             let msg = ExecuteMsg::UpdateConfig {
-                ans_host: Some(new_ans_host.clone()),
+                ans_host: Some(new_ans_host.to_string()),
                 version_control: None,
             };
 
@@ -890,7 +901,7 @@ mod tests {
             assert_that!(res.messages).is_empty();
 
             let actual = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(actual.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
+            assert_that!(actual.ans_host.address).is_equal_to(new_ans_host);
 
             Ok(())
         }
@@ -900,19 +911,18 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let new_version_control = "new_version_control".to_string();
+            let new_version_control = deps.api.addr_make("new_version_control");
 
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host: None,
-                version_control: Some(new_version_control.clone()),
+                version_control: Some(new_version_control.to_string()),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;
             assert_that!(res.messages).is_empty();
 
             let cfg = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(cfg.version_control.address)
-                .is_equal_to(Addr::unchecked(new_version_control));
+            assert_that!(cfg.version_control.address).is_equal_to(new_version_control);
 
             Ok(())
         }
@@ -929,10 +939,10 @@ mod tests {
                     TEST_ACCOUNT_ID.seq(),
                     &TruncatedChainId::from_str("channel")?,
                 ),
-                &"Some-remote-account".to_string(),
+                &"some-remote-account".to_string(),
             )?;
 
-            let new_version_control = "new_version_control".to_string();
+            let new_version_control = deps.api.addr_make("new_version_control").to_string();
 
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host: None,
@@ -966,12 +976,13 @@ mod tests {
         fn remove_existing_host() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
+            let note = deps.api.addr_make("note");
 
             IBC_INFRA.save(
                 deps.as_mut().storage,
                 &TruncatedChainId::from_str(TEST_CHAIN)?,
                 &IbcInfrastructure {
-                    polytone_note: Addr::unchecked("note"),
+                    polytone_note: note,
                     remote_abstract_host: "test_remote_host".into(),
                     remote_proxy: None,
                 },
@@ -1019,9 +1030,10 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let note = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
                 initiator: Addr::unchecked("invalid_initiator"),
@@ -1046,9 +1058,10 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let note = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
                 initiator: Addr::unchecked("invalid_initiator"),
@@ -1074,9 +1087,10 @@ mod tests {
             mock_init(deps.as_mut())?;
             let env = mock_env();
 
-            let note = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
                 initiator: env.contract.address,
@@ -1103,19 +1117,20 @@ mod tests {
             let env = mock_env();
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let remote_ibc_host = String::from("test_remote_host");
 
             IBC_INFRA.save(
                 deps.as_mut().storage,
                 &chain_name,
                 &IbcInfrastructure {
-                    polytone_note: note.clone(),
+                    polytone_note: note_addr.clone(),
                     remote_abstract_host: remote_ibc_host.clone(),
                     remote_proxy: None,
                 },
             )?;
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
                 initiator_msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
@@ -1124,7 +1139,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(callback_msg.clone());
 
-            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+            let res = execute_as(deps.as_mut(), note, msg);
 
             assert_that!(&res)
                 .is_err()
@@ -1140,19 +1155,20 @@ mod tests {
             let env = mock_env();
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let remote_ibc_host = String::from("test_remote_host");
 
             IBC_INFRA.save(
                 deps.as_mut().storage,
                 &chain_name,
                 &IbcInfrastructure {
-                    polytone_note: note.clone(),
+                    polytone_note: note_addr.clone(),
                     remote_abstract_host: remote_ibc_host.clone(),
                     remote_proxy: None,
                 },
             )?;
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
 
             let remote_proxy = String::from("remote_proxy");
 
@@ -1165,7 +1181,7 @@ mod tests {
                 })),
             });
 
-            let res = execute_as(deps.as_mut(), note.as_ref(), msg)?;
+            let res = execute_as(deps.as_mut(), note, msg)?;
 
             assert_eq!(
                 IbcClientResponse::action("register_remote_proxy")
@@ -1177,7 +1193,7 @@ mod tests {
 
             assert_eq!(
                 IbcInfrastructure {
-                    polytone_note: note.clone(),
+                    polytone_note: note_addr.clone(),
                     remote_abstract_host: remote_ibc_host.clone(),
                     remote_proxy: Some(remote_proxy),
                 },
@@ -1194,9 +1210,10 @@ mod tests {
             let env = mock_env();
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
 
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
                 initiator_msg: to_json_binary(&IbcClientCallback::CreateAccount {
@@ -1207,7 +1224,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(callback_msg.clone());
 
-            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+            let res = execute_as(deps.as_mut(), note, msg);
 
             assert_that!(&res)
                 .is_err()
@@ -1223,10 +1240,11 @@ mod tests {
             let env = mock_env();
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let remote_proxy = String::from("remote_proxy");
 
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
                 initiator_msg: to_json_binary(&IbcClientCallback::CreateAccount {
@@ -1244,7 +1262,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(callback_msg.clone());
 
-            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+            let res = execute_as(deps.as_mut(), note, msg);
 
             assert_that!(&res)
                 .is_err()
@@ -1260,10 +1278,11 @@ mod tests {
             let env = mock_env();
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note = Addr::unchecked("note");
+            let note = "note";
+            let note_addr = deps.api.addr_make(note);
             let remote_proxy = String::from("remote_proxy");
 
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
                 initiator_msg: to_json_binary(&IbcClientCallback::CreateAccount {
@@ -1281,7 +1300,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(callback_msg.clone());
 
-            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+            let res = execute_as(deps.as_mut(), note, msg);
 
             assert_that!(&res)
                 .is_err()
@@ -1297,7 +1316,7 @@ mod tests {
             let env = mock_env();
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
-            let note = Addr::unchecked("note");
+            let note = deps.api.addr_make("note");
             let remote_proxy = String::from("remote_proxy");
 
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
@@ -1320,7 +1339,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(callback_msg.clone());
 
-            let res = execute_as(deps.as_mut(), note.as_ref(), msg)?;
+            let res = execute_as(deps.as_mut(), "note", msg)?;
 
             assert_eq!(
                 IbcClientResponse::action("acknowledge_remote_account_registration")
