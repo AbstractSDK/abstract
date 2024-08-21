@@ -37,7 +37,7 @@ pub mod mock {
         IBC_CLIENT,
     };
     use cosmwasm_schema::QueryResponses;
-    pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    pub use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env, MockApi};
     use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
@@ -214,14 +214,17 @@ pub mod mock {
     /// This will set the [`abstract_testing::addresses::TEST_MANAGER`] as the admin.
     pub fn mock_init() -> MockDeps {
         let mut deps = mock_dependencies();
-        let info = mock_info(TEST_MODULE_FACTORY, &[]);
+        let module_factory = deps.api.addr_make(TEST_MODULE_FACTORY);
+        let ans_host = deps.api.addr_make(TEST_ANS_HOST);
+        let version_control = deps.api.addr_make(TEST_VERSION_CONTROL);
+        let info = message_info(&module_factory, &[]);
 
         deps.querier = app_base_mock_querier().build();
 
         let msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
+                ans_host_address: ans_host.to_string(),
+                version_control_address: version_control.to_string(),
                 account_base: test_account_base(),
             },
             module: MockInitMsg {},

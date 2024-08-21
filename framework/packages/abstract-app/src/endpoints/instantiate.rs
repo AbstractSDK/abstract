@@ -90,14 +90,18 @@ mod test {
     #[test]
     fn test_instantiate() {
         let mut deps = mock_dependencies();
-        let info = mock_info(TEST_MODULE_FACTORY, &[]);
+        let module_factory = deps.api.addr_make(TEST_MODULE_FACTORY);
+        let ans_host = deps.api.addr_make(TEST_ANS_HOST);
+        let vc = deps.api.addr_make(TEST_VERSION_CONTROL);
+
+        let info = message_info(&module_factory, &[]);
 
         deps.querier = app_base_mock_querier().build();
 
         let msg = SuperInstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
+                ans_host_address: ans_host.to_string(),
+                version_control_address: vc.to_string(),
                 account_base: test_account_base(),
             },
             module: MockInitMsg {},

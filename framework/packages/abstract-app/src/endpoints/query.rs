@@ -176,7 +176,6 @@ mod test {
 
         use abstract_std::app::{AppConfigResponse, BaseQueryMsg};
         use abstract_testing::prelude::*;
-        use cosmwasm_std::Addr;
         use cw_controllers::AdminResponse;
 
         #[test]
@@ -187,9 +186,9 @@ mod test {
             let res = query_helper(deps.as_ref(), config_query)?;
 
             assert_that!(from_json(res).unwrap()).is_equal_to(AppConfigResponse {
-                proxy_address: Addr::unchecked(TEST_PROXY),
-                ans_host_address: Addr::unchecked(TEST_ANS_HOST),
-                manager_address: Addr::unchecked(TEST_MANAGER),
+                proxy_address: deps.api.addr_make(TEST_PROXY),
+                ans_host_address: deps.api.addr_make(TEST_ANS_HOST),
+                manager_address: deps.api.addr_make(TEST_MANAGER),
             });
 
             Ok(())
@@ -203,7 +202,7 @@ mod test {
             let res = query_helper(deps.as_ref(), admin_query)?;
 
             assert_that!(from_json(res).unwrap()).is_equal_to(AdminResponse {
-                admin: Some(TEST_MANAGER.to_string()),
+                admin: Some(deps.api.addr_make(TEST_MANAGER).to_string()),
             });
 
             Ok(())

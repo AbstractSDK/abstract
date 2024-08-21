@@ -126,7 +126,7 @@ mod test {
 
         let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref())?;
 
-        assert_that!(ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
+        assert_that!(ans_host.address).is_equal_to(deps.api.addr_make(TEST_ANS_HOST));
         Ok(())
     }
 
@@ -136,7 +136,8 @@ mod test {
 
         let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref())?;
 
-        assert_that!(abstract_registry.address).is_equal_to(Addr::unchecked(TEST_VERSION_CONTROL));
+        assert_that!(abstract_registry.address)
+            .is_equal_to(deps.api.addr_make(TEST_VERSION_CONTROL));
         Ok(())
     }
 
@@ -145,8 +146,8 @@ mod test {
         let mut deps = mock_init();
         deps.querier = mock_querier();
         let test_account_base = AccountBase {
-            manager: Addr::unchecked(TEST_MANAGER),
-            proxy: Addr::unchecked(TEST_PROXY),
+            manager: deps.api.addr_make(TEST_MANAGER),
+            proxy: deps.api.addr_make(TEST_PROXY),
         };
         // Account identification
         let base = MOCK_APP_WITH_DEP.account_base(deps.as_ref())?;
@@ -154,7 +155,7 @@ mod test {
 
         // AbstractNameService
         let host = MOCK_APP_WITH_DEP.name_service(deps.as_ref()).host().clone();
-        assert_eq!(host, AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
+        assert_eq!(host, AnsHost::new(deps.api.addr_make(TEST_ANS_HOST)));
 
         // AccountRegistry
         // TODO: really rust?
@@ -176,7 +177,7 @@ mod test {
 
         let proxy_address = MOCK_APP_WITH_DEP.proxy_address(deps.as_ref())?;
 
-        assert_that!(proxy_address).is_equal_to(Addr::unchecked(TEST_PROXY));
+        assert_that!(proxy_address).is_equal_to(deps.api.addr_make(TEST_PROXY));
 
         Ok(())
     }

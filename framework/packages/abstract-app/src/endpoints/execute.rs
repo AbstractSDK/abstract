@@ -126,14 +126,15 @@ mod test {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::app::BaseExecuteMsg;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{Addr, DepsMut, Response};
+    use cosmwasm_std::{testing::*, DepsMut, Response};
     use cw_controllers::AdminError;
     use speculoos::prelude::*;
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg, MockReceiveMsg>;
 
     fn execute_as(deps: DepsMut, sender: &str, msg: AppExecuteMsg) -> Result<Response, MockError> {
-        let info = mock_info(sender, &[]);
+        let mock_api = MockApi::default();
+        let info = message_info(&mock_api.addr_make(sender), &[]);
         MOCK_APP_WITH_DEP.execute(deps, mock_env(), info, msg)
     }
 
@@ -175,8 +176,8 @@ mod test {
         fn update_config_should_update_config() -> AppTestResult {
             let mut deps = mock_init();
 
-            let new_ans_host = "new_ans_host";
-            let new_version_control = "new_version_control";
+            let new_ans_host = deps.api.addr_make("new_ans_host");
+            let new_version_control = deps.api.addr_make("new_version_control");
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: Some(new_ans_host.to_string()),
                 version_control_address: Some(new_version_control.to_string()),
@@ -191,9 +192,8 @@ mod test {
 
             let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
-            assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
-            assert_that!(state.version_control.address)
-                .is_equal_to(Addr::unchecked(new_version_control));
+            assert_that!(state.ans_host.address).is_equal_to(new_ans_host);
+            assert_that!(state.version_control.address).is_equal_to(new_version_control);
 
             Ok(())
         }
@@ -216,9 +216,9 @@ mod test {
 
             let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
-            assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
+            assert_that!(state.ans_host.address).is_equal_to(deps.api.addr_make(TEST_ANS_HOST));
             assert_that!(state.version_control.address)
-                .is_equal_to(Addr::unchecked(TEST_VERSION_CONTROL));
+                .is_equal_to(deps.api.addr_make(TEST_VERSION_CONTROL));
 
             Ok(())
         }

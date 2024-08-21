@@ -114,12 +114,15 @@ mod test {
         export_endpoints!(MOCK_APP_WITH_DEP, MockAppContract);
 
         let mut deps = mock_dependencies();
+        let owner = deps.api.addr_make(OWNER);
+        let ans_host = deps.api.addr_make(TEST_ANS_HOST);
+        let vc = deps.api.addr_make(TEST_VERSION_CONTROL);
 
         // init
         let init_msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
+                ans_host_address: ans_host.to_string(),
+                version_control_address: vc.to_string(),
                 account_base: test_account_base(),
             },
             module: MockInitMsg {},
@@ -127,13 +130,13 @@ mod test {
         let actual_init = instantiate(
             deps.as_mut(),
             mock_env(),
-            mock_info(OWNER, &[]),
+            message_info(&owner, &[]),
             init_msg.clone(),
         );
         let expected_init = MOCK_APP_WITH_DEP.instantiate(
             deps.as_mut(),
             mock_env(),
-            mock_info(OWNER, &[]),
+            message_info(&owner, &[]),
             init_msg,
         );
         assert_that!(actual_init).is_equal_to(expected_init);
@@ -143,11 +146,15 @@ mod test {
         let actual_exec = execute(
             deps.as_mut(),
             mock_env(),
-            mock_info(OWNER, &[]),
+            message_info(&owner, &[]),
             exec_msg.clone(),
         );
-        let expected_exec =
-            MOCK_APP_WITH_DEP.execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
+        let expected_exec = MOCK_APP_WITH_DEP.execute(
+            deps.as_mut(),
+            mock_env(),
+            message_info(&owner, &[]),
+            exec_msg,
+        );
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query
