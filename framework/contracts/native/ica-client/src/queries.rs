@@ -138,10 +138,7 @@ mod tests {
                 let msg = from_json::<evm_note::msg::QueryMsg>(bin).unwrap();
                 match msg {
                     evm_note::msg::QueryMsg::RemoteAddress { .. } => {
-                        to_json_binary(&evm_note::msg::RemoteAddressResponse {
-                            remote_address: Some("123fff".to_owned()),
-                        })
-                        .map_err(|e| e.to_string())
+                        to_json_binary(&Some("123fff".to_owned())).map_err(|e| e.to_string())
                     }
                     _ => panic!("should only query for RemoteAddress"),
                 }
