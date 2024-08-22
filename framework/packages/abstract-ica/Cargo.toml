@@ -30,8 +30,7 @@ abstract-sdk = {workspace = true}
 cw-ica-controller = "0.6.1"
 
 # EMV
-# TODO: move the used types into this crate
-polytone-evm = { git = "https://github.com/AbstractSDK/evm-ibc", branch = "ica-client-changes" }
+polytone-evm = { version = "0.0.2" }
 alloy = { version = "0.2.1", default-features = false }
 alloy-sol-types = { version = "0.7.7", default-features = false }
 

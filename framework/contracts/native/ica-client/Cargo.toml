@@ -35,8 +35,8 @@ prost = { version = "0.12.3", default-features = false }
 abstract-ica = { workspace = true }
 cw-orch = { workspace = true }
 
-evm-note = { git = "https://github.com/AbstractSDK/evm-ibc", branch = "ica-client-changes" }
-polytone-evm = { git = "https://github.com/AbstractSDK/evm-ibc", branch = "ica-client-changes" }
+evm-note = "0.0.2"
+polytone-evm = "0.0.2"
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true }

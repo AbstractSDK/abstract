@@ -46,14 +46,14 @@ pub fn send_funds(
 
             // TODO: could be turned into raw query!
             // If state objects will be public on evm_note
-            let remote_acc: evm_note::msg::RemoteAddressResponse = deps.querier.query_wasm_smart(
+            let remote_acc: Option<String> = deps.querier.query_wasm_smart(
                 &note_addr,
                 &evm_note::msg::QueryMsg::RemoteAddress {
                     local_address: env.contract.address.to_string(),
                 },
             )?;
 
-            match remote_acc.remote_address {
+            match remote_acc {
                 Some(remote) => HexBinary::from_hex(&remote)?,
                 None => return Err(IcaClientError::NoRecipient {}),
             }
