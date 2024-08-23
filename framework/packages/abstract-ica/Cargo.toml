@@ -26,9 +26,6 @@ map-macro = "0.3.0"
 cw-orch = {workspace = true}
 abstract-sdk = {workspace = true}
 
-# Cosmos
-cw-ica-controller = "0.6.1"
-
 # EMV
 polytone-evm = { version = "0.0.2" }
 alloy = { version = "0.2.1", default-features = false }
