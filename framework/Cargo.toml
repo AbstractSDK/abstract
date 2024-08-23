@@ -100,6 +100,11 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+[profile.dev]
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 3
+
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
