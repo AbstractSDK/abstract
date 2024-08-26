@@ -34,6 +34,7 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 cw-ownable = { workspace = true }
 cw721 = "0.18"
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 abstract-interface = { workspace = true }

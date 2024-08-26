@@ -28,6 +28,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -51,6 +52,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -60,6 +62,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-asset",
  "cw20",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -83,6 +86,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -108,6 +112,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -140,6 +145,7 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -449,6 +455,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -474,6 +481,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -500,6 +508,7 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -523,6 +532,7 @@ dependencies = [
  "log",
  "semver",
  "speculoos",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -562,6 +572,7 @@ dependencies = [
  "serde_json",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -573,6 +584,7 @@ dependencies = [
  "quote",
  "speculoos",
  "syn 1.0.109",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -610,6 +622,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -636,6 +649,7 @@ dependencies = [
  "serde-cw-value",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -655,6 +669,7 @@ dependencies = [
  "schemars",
  "serde",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -741,6 +756,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -769,6 +785,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -797,6 +814,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -821,6 +839,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -852,6 +871,7 @@ dependencies = [
  "sha2 0.10.8",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -871,6 +891,7 @@ dependencies = [
  "serde",
  "serde_json",
  "speculoos",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -893,6 +914,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -5926,6 +5948,68 @@ dependencies = [
 [[package]]
 name = "workspace-hack"
 version = "0.1.0"
+dependencies = [
+ "abstract-polytone-note",
+ "aho-corasick",
+ "anstream",
+ "anyhow",
+ "base64 0.13.1",
+ "base64 0.22.1",
+ "bitflags 2.6.0",
+ "byteorder",
+ "bytes",
+ "console",
+ "cosmos-sdk-proto 0.20.0",
+ "cosmrs",
+ "cosmwasm-std",
+ "cw-orch",
+ "cw-orch-interchain",
+ "cw-orch-interchain-core",
+ "cw721-base 0.18.0",
+ "deranged",
+ "digest 0.10.7",
+ "ecdsa",
+ "ed25519",
+ "either",
+ "flex-error",
+ "futures",
+ "futures-channel",
+ "futures-core",
+ "futures-io",
+ "futures-sink",
+ "futures-task",
+ "futures-util",
+ "generic-array",
+ "getrandom",
+ "hashbrown 0.12.3",
+ "itertools 0.10.5",
+ "itertools 0.12.1",
+ "libc",
+ "log",
+ "memchr",
+ "num-rational",
+ "num-traits",
+ "once_cell",
+ "prost 0.12.6",
+ "prost-types 0.12.6",
+ "rand",
+ "regex",
+ "regex-automata",
+ "regex-syntax",
+ "reqwest",
+ "ripemd",
+ "rustls 0.21.12",
+ "security-framework-sys",
+ "semver",
+ "serde",
+ "serde_json",
+ "subtle-encoding",
+ "syn 1.0.109",
+ "syn 2.0.75",
+ "time",
+ "tokio",
+ "zeroize",
+]
 
 [[package]]
 name = "zerocopy"
