@@ -143,6 +143,10 @@ macro_rules! cw_orch_interface {
                 fn module_version<'a>() -> &'a str {
                     $app_const.version()
                 }
+
+                fn dependencies<'a>() -> &'a [$crate::std::objects::dependency::StaticDependency] {
+                    $crate::sdk::base::Handler::dependencies(&$app_const)
+                }
             }
         }
     };
