@@ -117,3 +117,7 @@ debug-assertions = false
 codegen-units = 1
 panic = 'abort'
 incremental = false
+
+[workspace.metadata.cargo-udeps.ignore]
+# ensures CI doens't flag workspace-hack as unused dep
+normal = ["workspace-hack"]
