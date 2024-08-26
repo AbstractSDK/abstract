@@ -11,7 +11,7 @@
 //! After configuring the price sources [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{Binary, CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 #[allow(unused_imports)]
@@ -50,6 +50,12 @@ pub enum ExecuteMsg {
     ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
     IbcAction { msg: IbcClientMsg },
+    /// Queries the Abstract Ica Client with the provided action query.
+    /// Provides access to different ICA implementations for different ecosystems.
+    IcaAction {
+        /// Query of type `abstract-ica-client::msg::QueryMsg`
+        action_query_msg: Binary,
+    },
     /// Adds the provided address to whitelisted dapps
     AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps
