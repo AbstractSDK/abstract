@@ -8,6 +8,7 @@
 - `stargate` feature for abstract-app, abstract-standalone and abstract-adapter packages.
 - New module type: `Service`, behaves the same as Native, but can be registered by any namespace.
 - `AbstractClient`: `service` to get api of Service module
+- `CustomExecuteHandler` To improve support for fully custom execute messages on Apps or Adapters
 - `balance` method for `AnsHost` to query balance of `AssetEntry`
 
 ### Changed
@@ -29,6 +30,7 @@
 
 ### Removed
 
+- Receive endpoints from abstract Modules
 - Value calculation logic from proxy contract.
 - `cw-semver` dependency removed
 - Manager no longer able to migrate pre `0.19` abstract adapters

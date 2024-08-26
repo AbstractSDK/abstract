@@ -36,11 +36,15 @@ const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
     .with_migrate(handlers::migrate_handler)
-    .with_receive(handlers::receive_handler)
     .with_dependencies(&[DEX_DEPENDENCY]);
 
 // Export handlers
 #[cfg(feature = "export")]
-abstract_app::export_endpoints!(APP, PaymentApp);
+abstract_app::export_endpoints!(APP, PaymentApp, crate::msg::CustomExecuteMsg);
 
-abstract_app::cw_orch_interface!(APP, PaymentApp, PaymentAppInterface);
+abstract_app::cw_orch_interface!(
+    APP,
+    PaymentApp,
+    PaymentAppInterface,
+    crate::msg::CustomExecuteMsg
+);

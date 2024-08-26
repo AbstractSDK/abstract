@@ -90,20 +90,11 @@ pub mod mock {
     }
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockReceiveMsg {}
-
-    #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg {}
 
     /// Mock Adapter type
-    pub type MockAdapterContract = AdapterContract<
-        MockError,
-        MockInitMsg,
-        MockExecMsg,
-        MockQueryMsg,
-        MockReceiveMsg,
-        MockSudoMsg,
-    >;
+    pub type MockAdapterContract =
+        AdapterContract<MockError, MockInitMsg, MockExecMsg, MockQueryMsg, MockSudoMsg>;
 
     pub const MOCK_DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
 
@@ -128,7 +119,6 @@ pub mod mock {
                 MockQueryMsg::GetSomething {} => to_json_binary("mock_query").map_err(Into::into),
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
             .with_ibc_callback(|deps, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
@@ -170,7 +160,7 @@ pub mod mock {
         module.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    /// Generate a BOOT instance for a mock adapter
+    /// Generate a cw-orch instance for a mock adapter
     /// - $name: name of the contract (&str)
     /// - $id: id of the contract (&str)
     /// - $version: version of the contract (&str)
@@ -181,7 +171,7 @@ pub mod mock {
         use $crate::std::adapter::*;
         use $crate::sdk::base::Handler;
         use ::cosmwasm_std::Empty;
-        use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
+        use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
@@ -219,7 +209,7 @@ pub mod mock {
             MOCK_ADAPTER.query(deps, env, msg)
         }
 
-        type Exec = $crate::std::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Exec = $crate::std::adapter::ExecuteMsg<MockExecMsg>;
         type Query = $crate::std::adapter::QueryMsg<MockQueryMsg>;
         type Init = $crate::std::adapter::InstantiateMsg<MockInitMsg>;
         #[cw_orch::interface(Init, Exec, Query, Empty)]

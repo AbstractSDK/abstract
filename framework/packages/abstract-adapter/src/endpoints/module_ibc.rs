@@ -6,9 +6,8 @@ use abstract_std::{
 };
 use cosmwasm_std::Addr;
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    ModuleIbcEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg> ModuleIbcEndpoint
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
     fn ibc_host(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
         let vc_query_result = self
