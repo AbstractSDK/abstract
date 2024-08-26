@@ -34,6 +34,7 @@ abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 cw20 = { workspace = true }

@@ -40,6 +40,7 @@ cw-clearable = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
 polytone = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 
 [dev-dependencies]
