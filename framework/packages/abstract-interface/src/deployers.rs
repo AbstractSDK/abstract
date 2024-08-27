@@ -264,15 +264,12 @@ pub trait StandaloneDeployer<Chain: CwEnv>:
 }
 
 /// Trait for deploying Services
-pub trait ServiceDeployer<Chain: CwEnv>:
-    Sized + Uploadable + ContractInstance<Chain> + CwOrchInstantiate<Chain>
-{
+pub trait ServiceDeployer<Chain: CwEnv>: Sized + ContractInstance<Chain> {
     /// Deploys the module. If the module is already deployed, it will return an error.
     /// Use [`DeployStrategy::Try`] if you want to deploy the module only if it is not already deployed.
     fn deploy(
         &self,
         version: Version,
-        custom_init_msg: &<Self as InstantiableContract>::InstantiateMsg,
         strategy: DeployStrategy,
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
@@ -308,8 +305,6 @@ pub trait ServiceDeployer<Chain: CwEnv>:
             DeployStrategy::Force => {}
         }
 
-        self.upload_if_needed()?;
-        self.instantiate(custom_init_msg, None, None)?;
         abstr
             .version_control
             .register_services(vec![(self.as_instance(), version.to_string())])?;

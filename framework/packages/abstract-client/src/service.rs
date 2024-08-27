@@ -8,11 +8,14 @@ use abstract_interface::{RegisteredModule, VersionControl};
 use abstract_std::objects::{module::ModuleInfo, module_reference::ModuleReference};
 use cw_orch::{contract::Contract, prelude::*};
 
-use crate::client::AbstractClientResult;
+use crate::{client::AbstractClientResult, Application};
 
-/// An service represents a module registered in version control.
-///
-/// It implements cw-orch traits of the module itself, so you can call its methods directly from the service struct.
+/// A `Service` represents a contract registered in version control.
+/// 
+/// `Service`s should be created from [`Application`]s using the `into_service` method.
+/// They can then be registered using the `service.deploy()` method.
+//
+// It implements cw-orch traits of the module itself, so you can call its methods directly from the service struct.
 #[derive(Clone)]
 pub struct Service<T: CwEnv, M> {
     module: M,
@@ -36,12 +39,6 @@ impl<Chain: CwEnv, M: ExecutableContract + ContractInstance<Chain>> ExecutableCo
     for Service<Chain, M>
 {
     type ExecuteMsg = M::ExecuteMsg;
-}
-
-impl<Chain: CwEnv, M: MigratableContract + ContractInstance<Chain>> MigratableContract
-    for Service<Chain, M>
-{
-    type MigrateMsg = M::MigrateMsg;
 }
 
 impl<Chain: CwEnv, M: ContractInstance<Chain>> ContractInstance<Chain> for Service<Chain, M> {
@@ -78,5 +75,14 @@ impl<Chain: CwEnv, M: RegisteredModule + From<Contract<Chain>>> Service<Chain, M
             module: contract.into(),
             chain: PhantomData {},
         })
+    }
+}
+
+impl<T: CwEnv, M> From<Application<T, M>> for Service<T, M> {
+    fn from(value: Application<T, M>) -> Self {
+        Self {
+            module: value.module,
+            chain: PhantomData::<T> {},
+        }
     }
 }
