@@ -1,7 +1,5 @@
 use abstract_sdk::std::{
-    merged::{
-        ExecMsg, InitMsg, QueryMsg,
-    },
+    merged::{ExecMsg, InitMsg, QueryMsg},
     objects::validation::{validate_description, validate_link, validate_name},
     proxy::state::ACCOUNT_ID,
     MANAGER,
@@ -17,30 +15,26 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 
-use crate::{
-    error::ManagerError,
-};
+use crate::error::ManagerError;
 
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn instantiate(
-    mut deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: InitMsg,
-) -> ManagerResult {
-    let a = proxy::contract::instantiate(deps.branch(), env.clone(), info.clone(), msg.proxy).unwrap();
-    let b  = manager::contract::instantiate(deps.branch(), env, info, msg.manager).unwrap();
+pub fn instantiate(mut deps: DepsMut, env: Env, info: MessageInfo, msg: InitMsg) -> ManagerResult {
+    let a =
+        proxy::contract::instantiate(deps.branch(), env.clone(), info.clone(), msg.proxy).unwrap();
+    let b = manager::contract::instantiate(deps.branch(), env, info, msg.manager).unwrap();
     Ok(a)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute( deps: DepsMut, env: Env, info: MessageInfo, msg: ExecMsg) -> ManagerResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecMsg) -> ManagerResult {
     match msg {
-        ExecMsg::Manager(manager_msg) => manager::contract::execute(deps, env, info, manager_msg).unwrap(),
+        ExecMsg::Manager(manager_msg) => {
+            manager::contract::execute(deps, env, info, manager_msg).unwrap()
+        }
         ExecMsg::Proxy(proxy_msg) => proxy::contract::execute(deps, env, info, proxy_msg).unwrap(),
     };
     Ok(Response::new())
