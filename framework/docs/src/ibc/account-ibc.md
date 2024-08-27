@@ -2,7 +2,7 @@
 
 ## Introduction
 
-[Abstract Accounts](../3_framework/3_architecture.md) have the capability to control Accounts on any chain supporting Abstract over
+[Abstract Accounts](../framework/architecture.md) have the capability to control Accounts on any chain supporting Abstract over
 the <a href="https://ibcprotocol.org/" target="_blank">Inter-Blockchain Communication (IBC) protocol</a> through
 Interchain Abstract Accounts (ICAAs). ICAAs allow for any Abstract Account to control Accounts, contracts, and liquidity on any chain,
 offering a chain-abstracted experience users and developers in the Interchain ecosystem.
@@ -177,7 +177,7 @@ You see that an Abstract Interchain connection is uni-directional. You need 2 co
 
 ##### Account creation
 
-Interchain Abstract Accounts are traditional Abstract Accounts controlled by the ibc-host. The ibc-host is the admin of the account and routes any packet sent by a remote account on the corresponding local account. When creating an abstract account, it is simply registered by the `ibc-host` using the [`account-factory`](../5_platform/3_account_factory.md) just like any other account.
+Interchain Abstract Accounts are traditional Abstract Accounts controlled by the ibc-host. The ibc-host is the admin of the account and routes any packet sent by a remote account on the corresponding local account. When creating an abstract account, it is simply registered by the `ibc-host` using the [`account-factory`](../platform/account_factory.md) just like any other account.
 
 When an action is triggered by a remote account, the `ibc-host` does the following verifications:
 

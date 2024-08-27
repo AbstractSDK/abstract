@@ -21,7 +21,7 @@ TBD
 
 ## Documentation
 
-- **Adapters Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/6_module_types.html#adapters).
+- **Adapters Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/framework/module_types.html#adapters).
 
 ## Contributing
 

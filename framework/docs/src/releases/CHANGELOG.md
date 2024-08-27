@@ -97,7 +97,7 @@
 ### Added
 
 - `state.json` now included in binary in release mode, allowing using binaries on a different environment than it's been built.
-- `module_instantiate2_address_raw` for `AbstractClient`, allowing to install a different version than the dependency version.
+- `module_instantiateaddress_raw` for `AbstractClient`, allowing to install a different version than the dependency version.
 - Added helper functions `assert_registered` and `is_registered` to the ANS client API.
 - Added method `module_info` for querying and verifying wether an address is a module to the ModuleRegistry API.
 - Added default IBC-Client installation on remote modules inside Client and Account interfaces
@@ -138,7 +138,7 @@
 - `.authorize_on_adapters` method on `Application` for authorizing application on adapters
 - Added method to assign expected `.account_id` for Abstract Client Account builder
 - `.next_local_account_id` for `AbstractClient` to query next local account sequence
-- `.module_instantiate2_address` for `AbstractClient` to get predicted address
+- `.module_instantiateaddress` for `AbstractClient` to get predicted address
 
 ### Changed
 

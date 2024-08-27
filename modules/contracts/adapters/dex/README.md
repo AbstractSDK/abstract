@@ -72,7 +72,7 @@ The Dex Adapter ensures that your application remains flexible. If a new dex eme
 ## Documentation
 
 - **Dex Interface**: For a detailed look at the dex interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/blob/bcf26f2f446478fd2825de5b187321dc9a626341/modules/contracts/adapters/dex/src/api.rs#L43).
-- **Adapters Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/6_module_types.html#adapters).
+- **Adapters Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/framework/module_types.html#adapters).
 
 ## Contributing
 

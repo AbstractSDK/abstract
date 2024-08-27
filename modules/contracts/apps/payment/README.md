@@ -19,7 +19,7 @@ Furthermore, our platform is built with the utmost security measures and state-o
 
 ## Documentation
 
-- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/6_module_types.html#apps).
+- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/framework/module_types.html#apps).
 
 ## Contributing
 

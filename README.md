@@ -19,9 +19,9 @@ Abstract is available on every major CosmWasm chain including Osmosis, Neutron, 
 
 ## Quick Start
 
-Check out [this tutorial](https://docs.abstract.money/4_get_started/1_index.html) to quickly get started with Abstract SDK. Dive into our [Frequently Asked Questions](https://docs.abstract.money/video_and_content/faq.html) for everything Abstract related.
+Check out [this tutorial](https://docs.abstract.money/get_started/index.html) to quickly get started with Abstract SDK. Dive into our [Frequently Asked Questions](https://docs.abstract.money/video_and_content/faq.html) for everything Abstract related.
 
-You can find [Prerequisites](https://docs.abstract.money/3_framework/0_technologies.html) that you need to get started with Abstract.
+You can find [Prerequisites](https://docs.abstract.money/framework/0_technologies.html) that you need to get started with Abstract.
 
 Read [the complete documentation](https://docs.abstract.money/) for more information on each product and how to integrate them.
 
@@ -30,7 +30,7 @@ Read [the complete documentation](https://docs.abstract.money/) for more informa
 The repository is structured as follows:
 
 - **app-template:** A template for creating new Abstract apps. See [app-template repo](https://github.com/AbstractSDK/app-template) for a cloneable version.
-- **framework:** The Abstract framework. This is the core of the Abstract project and contains the smart-contracts and packages related to the on-chain abstract accounts and surrounding infrastructure. Have a look at the [Abstract SDK documentation](https://docs.abstract.money/3_framework/1_abstract_sdk.html) if you're interested in building with Abstract!
+- **framework:** The Abstract framework. This is the core of the Abstract project and contains the smart-contracts and packages related to the on-chain abstract accounts and surrounding infrastructure. Have a look at the [Abstract SDK documentation](https://docs.abstract.money/framework/abstract_sdk.html) if you're interested in building with Abstract!
 - **modules:** The Abstract-maintained modules. These are a set of example apps that are built on top of the Abstract framework. They can be used as standalone applications or as building blocks for creating more complex applications.
 - **integrations:** Integrations with other projects, particularly dexes.
 - **scripts:** Scripts for CI.

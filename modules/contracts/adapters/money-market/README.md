@@ -81,7 +81,7 @@ The Lending Market Adapter ensures that your application remains flexible. If a 
 
 - **Lending Market Interface**: For a detailed look at the lending market interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/tree/main/modules/contracts/adapters/moneymarket/src/api.rs#L43). #TODO, fix this will be broken
 
-- **Adapters Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/7_module_types.html#adapters).
+- **Adapters Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/framework/module_types.html#adapters).
 
 ## Contributing
 

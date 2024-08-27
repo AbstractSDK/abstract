@@ -1,6 +1,6 @@
 # Modules
 
-The following modules are offered by Abstract and can be used in your applications to add additional functionality. Before you continue, make sure to learn about [what modules are](../3_framework/5_modules.md).
+The following modules are offered by Abstract and can be used in your applications to add additional functionality. Before you continue, make sure to learn about [what modules are](../framework/modules.md).
 
 <img src="../assets/modules.svg" alt="drawing" width="320" style="vertical-align:middle"/>
 

@@ -46,7 +46,7 @@ When sending an IBC message, the call on the remote chain might fail. If you wan
 
 ### Receiving a message
 
-In order for a module to receive a message coming from a remote Module, it needs to implement the [`module-ibc`](../4_get_started/3_module_builder.md#module-ibc) endpoint. The function signature for this endpoint is:
+In order for a module to receive a message coming from a remote Module, it needs to implement the [`module-ibc`](../get_started/module_builder.md#module-ibc) endpoint. The function signature for this endpoint is:
 
 ```rust
 pub fn module_ibc(deps: DepsMut, env: Env, module: Module, source_module: ModuleIbcInfo, msg: Binary) -> Result<Response, Error>;
@@ -55,7 +55,7 @@ pub fn module_ibc(deps: DepsMut, env: Env, module: Module, source_module: Module
 The `deps`, `env` and `module` variables are identical to the `execute` endpoint and should be clear to you by now. If not here are some links to more documentation:
 
 - `deps` and `env` are described in the <a target="blank" href="https://docs.cosmwasm.com/docs/smart-contracts/contract-semantics">CosmWasm documentation</a>
-- `module` (or `App` or `Adapter` usually) are described in the [Abstract SDK](../4_get_started/4_sdk.md) section of our docs
+- `module` (or `App` or `Adapter` usually) are described in the [Abstract SDK](../get_started/sdk.md) section of our docs
 
 The `msg` variable contains the msg constructed by the module on the source chain. In this case the `PingPongIbcMsg`.
 
@@ -73,7 +73,7 @@ As mentioned callbacks can be added to the IBC flow progress or revert your cont
 
 #### Callback Execution
 
-If a callback was requested when sending a module IBC message, the callback will be executed wether the execution was successful or not. A callback message will be executed on the ̀[`ibc_callback`](../4_get_started/3_module_builder.md#ibc-callback) endpoint of the calling module. The function signature for this endpoint is:
+If a callback was requested when sending a module IBC message, the callback will be executed wether the execution was successful or not. A callback message will be executed on the ̀[`ibc_callback`](../get_started/module_builder.md#ibc-callback) endpoint of the calling module. The function signature for this endpoint is:
 
 ```rust
 pub fn ibc_callback(deps: DepsMut, env: Env, module: Module, callback: Callback, result: IbcResult,) -> Result<Response, Error>;

@@ -10,9 +10,9 @@ process and catalyzing the innovation of solutions in the blockchain space.
 
 There are a few faces to Abstract:
 
-- For users to interact with applications, accounts, and liquidity on any chain via [Abstract Accounts](../3_framework/3_architecture.md).
-- For developers and protocols looking to build composable and scalable CosmWasm applications quickly using the [Abstract SDK](../3_framework/1_abstract_sdk.md)
-- For chains looking to offer their users interoperability with other chains and protocols. See [chain abstraction](../3_framework/2_chain_abstraction.md).
+- For users to interact with applications, accounts, and liquidity on any chain via [Abstract Accounts](../framework/architecture.md).
+- For developers and protocols looking to build composable and scalable CosmWasm applications quickly using the [Abstract SDK](../framework/abstract_sdk.md)
+- For chains looking to offer their users interoperability with other chains and protocols. See [chain abstraction](../framework/chain_abstraction.md).
 
 3. **How does Abstract differ from other platforms?**
 
@@ -20,7 +20,7 @@ Abstract was built from the ground up by developers, for developers. We started 
 
 4. **How can I get started with Abstract?**
 
-To get started with Abstract, check out [getting started](../4_get_started/1_index.md)! You will find comprehensive
+To get started with Abstract, check out [getting started](../get_started/index.md)! You will find comprehensive
 guides, tutorials, and resources to help you understand the platform's features and functionality. Additionally, you can
 join our <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">developer community on Discord</a> to connect
 with like-minded developers and seek assistance if needed.
@@ -28,13 +28,13 @@ with like-minded developers and seek assistance if needed.
 5. **Can I contribute to the Abstract ecosystem?**
 
 Absolutely! Abstract values community contributions and welcomes developers to contribute to the growth of CosmWasm. The
-best ways for you to contribute are by creating modules (see the [getting started docs](../4_get_started/1_index.md)),
+best ways for you to contribute are by creating modules (see the [getting started docs](../get_started/index.md)),
 sharing your insights and knowledge, participating in discussions, and collaborating on some of our open-source
 projects. Check out the [Contributing page](../contributing.md) to learn more about how you can get involved.
 
 6. **What are the costs associated with using Abstract?**
 
-Abstract's SDKs are free to use, though we offer paid plans for chains wishing to offer the more advanced capabilites of our platform, such as [account abstraction](../3_framework/2_account_abstraction.md) or [chain abstraction](../3_framework/2_chain_abstraction.md). Please [contact us](../11_contact.md) if you're a chain or protocol looking to offer these capabilities to your users.
+Abstract's SDKs are free to use, though we offer paid plans for chains wishing to offer the more advanced capabilites of our platform, such as [account abstraction](../framework/account_abstraction.md) or [chain abstraction](../framework/chain_abstraction.md). Please [contact us](../contact.md) if you're a chain or protocol looking to offer these capabilities to your users.
 
 7. **How does Abstract ensure the security of financial applications?**
 

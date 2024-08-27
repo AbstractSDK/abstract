@@ -35,7 +35,7 @@ challenge-app = { git = "https://github.com/AbstractSDK/abstract.git", tag = "v0
 
 ## Documentation
 
-- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/6_module_types.html#apps).
+- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/framework/module_types.html#apps).
 
 ## Contributing
 
