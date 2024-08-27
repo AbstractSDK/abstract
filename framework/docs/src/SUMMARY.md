@@ -40,6 +40,7 @@
 - [Introduction](./4_get_started/1_index.md)
 - [Setup](./4_get_started/2_installation.md)
 - [Module Builder](./4_get_started/3_module_builder.md)
+- [Custom Endpoints](./4_get_started/custom_endpoints.md)
 - [Account SDK](./4_get_started/4_sdk.md)
 - [Abstract Client](./4_get_started/5_abstract_client.md)
 - [Testing](./4_get_started/6_module_testing.md)
