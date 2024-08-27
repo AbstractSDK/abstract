@@ -469,11 +469,11 @@ mod tests {
 
     #[test]
     fn generic_authorization() {
-        let app = MockModule::new();
         let deps = mock_dependencies();
+        let app = MockModule::new(deps.api);
 
-        let granter = Addr::unchecked("granter");
-        let grantee = Addr::unchecked("grantee");
+        let granter = deps.api.addr_make("granter");
+        let grantee = deps.api.addr_make("grantee");
 
         let auth_z = app.auth_z(deps.as_ref(), Some(granter.clone())).unwrap();
         let expiration = Some(Timestamp::from_seconds(10));
@@ -510,11 +510,11 @@ mod tests {
 
     #[test]
     fn revoke_authorization() {
-        let app = MockModule::new();
         let deps = mock_dependencies();
+        let app = MockModule::new(deps.api);
 
-        let granter = Addr::unchecked("granter");
-        let grantee = Addr::unchecked("grantee");
+        let granter = deps.api.addr_make("granter");
+        let grantee = deps.api.addr_make("grantee");
 
         let auth_z = app.auth_z(deps.as_ref(), Some(granter.clone())).unwrap();
 

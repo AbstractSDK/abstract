@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use cosmwasm_std::{testing::mock_env, DepsMut, Env, MessageInfo, Order, Response, Storage};
+use cosmwasm_std::{testing::mock_env, Addr, DepsMut, Env, MessageInfo, Order, Response, Storage};
 use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
 use derive_builder::Builder;
 use serde::{de::DeserializeOwned, Serialize};
@@ -21,7 +21,7 @@ where
     execute:
         fn(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecMsg) -> Result<Response, TError>,
     msg_builder: fn(to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecMsg,
-    mock_entry_builder: fn() -> (UncheckedK, UncheckedV),
+    mock_entry: (UncheckedK, UncheckedV),
     from_checked_entry: fn((K::Output, V)) -> (UncheckedK, UncheckedV),
 }
 
@@ -71,7 +71,7 @@ where
             to_add: Vec<(UncheckedK, UncheckedV)>,
             to_remove: Vec<UncheckedK>,
         ) -> ExecMsg,
-        mock_entry_builder: fn() -> (UncheckedK, UncheckedV),
+        mock_entry: (UncheckedK, UncheckedV),
         from_checked_entry: fn((K::Output, V)) -> (UncheckedK, UncheckedV),
     ) -> Self {
         Self {
@@ -79,7 +79,7 @@ where
             map,
             execute,
             msg_builder,
-            mock_entry_builder,
+            mock_entry,
             from_checked_entry,
         }
     }
@@ -93,7 +93,7 @@ where
     }
 
     fn mock_entry_builder(&self) -> (UncheckedK, UncheckedV) {
-        (self.mock_entry_builder)()
+        self.mock_entry.clone()
     }
 
     /// Execute the msg with the mock env

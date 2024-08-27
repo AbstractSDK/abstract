@@ -477,7 +477,7 @@ mod tests {
         #[test]
         fn unauthorized_addresses_are_unauthorized() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID).build();
 
             setup_with_authorized_addresses(deps.as_mut(), vec![]);
 
@@ -507,7 +507,7 @@ mod tests {
         #[test]
         fn executing_as_account_manager_is_allowed() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID).build();
 
             setup_with_authorized_addresses(deps.as_mut(), vec![]);
 
@@ -524,7 +524,7 @@ mod tests {
         #[test]
         fn executing_as_authorized_address_not_allowed_without_proxy() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID).build();
 
             setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
@@ -541,7 +541,7 @@ mod tests {
         #[test]
         fn executing_as_authorized_address_is_allowed_via_proxy() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID).build();
 
             setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
@@ -559,7 +559,7 @@ mod tests {
         fn executing_as_authorized_address_on_diff_proxy_should_err() {
             let other_proxy = "some_other_proxy";
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder()
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
                 .account(
                     "some_other_manager",
                     other_proxy,

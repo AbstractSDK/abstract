@@ -141,13 +141,14 @@ mod test {
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
-    struct MockBinding;
+    struct MockBinding{
+        mock_api: MockApi,
+    }
 
     impl AbstractRegistryAccess for MockBinding {
         fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-            Ok(VersionControlContract::new(Addr::unchecked(
-                TEST_VERSION_CONTROL,
-            )))
+            let abstr = AbstractMockAddrs::new(self.mock_api);
+            Ok(VersionControlContract::new(abstr.version_control))
         }
     }
 
@@ -166,21 +167,24 @@ mod test {
         #[test]
         fn not_proxy_fails() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder()
+            let not_base = AccountBase{ manager: deps.api.addr_make("not_manager"), proxy: deps.api.addr_make("not_proxy") };
+            let base = test_account_base(deps.api);
+            
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 // Setup the addresses as if the Account was registered
-                .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
+                .account(&not_base, TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, SECOND_TEST_ACCOUNT_ID)
+                .account(&base, SECOND_TEST_ACCOUNT_ID)
                 .builder()
-                .with_contract_item("not_proxy", ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
+                .with_contract_item(&not_base.proxy, ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding{ mock_api: deps.api};
 
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_proxy(&Addr::unchecked("not_proxy"));
+                .assert_proxy(&not_base.proxy);
 
             assert_that!(res)
                 .is_err()
@@ -191,18 +195,20 @@ mod test {
         #[test]
         fn inactive_account_fails() {
             let mut deps = mock_dependencies();
+            let base = test_account_base(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
+                .with_contract_item(&base.proxy, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_map_key(&abstr.version_control, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding{ mock_api: deps.api};
 
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_proxy(&Addr::unchecked(TEST_PROXY));
+                .assert_proxy(&base.proxy);
 
             assert_that!(res)
                 .is_err()
@@ -211,7 +217,7 @@ mod test {
                     e.to_string().contains(
                         &VersionControlError::UnknownAccountId {
                             account_id: TEST_ACCOUNT_ID,
-                            registry_addr: Addr::unchecked(TEST_VERSION_CONTROL),
+                            registry_addr: abstr.version_control.clone(),
                         }
                         .to_string(),
                     )
@@ -221,51 +227,55 @@ mod test {
         #[test]
         fn returns_core() {
             let mut deps = mock_dependencies();
+            let base = test_account_base(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_item(&base.proxy, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
-                    TEST_VERSION_CONTROL,
+                    &abstr.version_control,
                     ACCOUNT_ADDRESSES,
-                    (&TEST_ACCOUNT_ID, test_account_base()),
+                    (&TEST_ACCOUNT_ID, base.clone()),
                 )
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding{ mock_api: deps.api };
 
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_proxy(&Addr::unchecked(TEST_PROXY));
+                .assert_proxy(&base.proxy);
 
-            assert_that!(res).is_ok().is_equal_to(test_account_base());
+            assert_that!(res).is_ok().is_equal_to(base);
         }
 
         #[test]
         fn errors_when_not_manager_of_returned_os() {
             let mut deps = mock_dependencies();
+            let base = test_account_base(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_item(&base.proxy, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
-                    TEST_VERSION_CONTROL,
+                    &abstr.version_control,
                     ACCOUNT_ADDRESSES,
                     (
                         &TEST_ACCOUNT_ID,
                         AccountBase {
-                            manager: Addr::unchecked(TEST_MANAGER),
-                            proxy: Addr::unchecked("not_poxry"),
+                            manager: base.manager,
+                            proxy: deps.api.addr_make("not_proxy"),
                         },
                     ),
                 )
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding{ mock_api: deps.api };
 
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_proxy(&Addr::unchecked(TEST_PROXY));
+                .assert_proxy(&base.proxy);
 
             assert_that!(res)
                 .is_err()
@@ -280,16 +290,19 @@ mod test {
         #[test]
         fn not_manager_fails() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder()
+            let not_base = AccountBase{ manager: deps.api.addr_make("not_manager"), proxy: deps.api.addr_make("not_proxy") };
+            let base = test_account_base(deps.api);
+
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 // Setup the addresses as if the Account was registered
-                .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
+                .account(&not_base, TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, SECOND_TEST_ACCOUNT_ID)
+                .account(&base, SECOND_TEST_ACCOUNT_ID)
                 .builder()
-                .with_contract_item("not_manager", ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
+                .with_contract_item(&not_base.manager, ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding{ mock_api: deps.api };
 
             let res = binding
                 .account_registry(deps.as_ref())
@@ -305,18 +318,20 @@ mod test {
         #[test]
         fn inactive_account_fails() {
             let mut deps = mock_dependencies();
+            let base = test_account_base(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
+                .with_contract_item(&base.manager, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_map_key(&abstr.version_control, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding{ mock_api: deps.api };
 
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+                .assert_manager(&base.manager);
 
             assert_that!(res)
                 .is_err()
@@ -325,7 +340,7 @@ mod test {
                     e.to_string().contains(
                         &VersionControlError::UnknownAccountId {
                             account_id: TEST_ACCOUNT_ID,
-                            registry_addr: Addr::unchecked(TEST_VERSION_CONTROL),
+                            registry_addr: abstr.version_control.clone(),
                         }
                         .to_string(),
                     )
@@ -335,51 +350,55 @@ mod test {
         #[test]
         fn returns_core() {
             let mut deps = mock_dependencies();
+            let base = test_account_base(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_item(&base.manager, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
-                    TEST_VERSION_CONTROL,
+                    &abstr.version_control,
                     ACCOUNT_ADDRESSES,
-                    (&TEST_ACCOUNT_ID, test_account_base()),
+                    (&TEST_ACCOUNT_ID, base.clone()),
                 )
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding{ mock_api: deps.api };
 
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+                .assert_manager(&base.manager);
 
-            assert_that!(res).is_ok().is_equal_to(test_account_base());
+            assert_that!(res).is_ok().is_equal_to(base);
         }
 
         #[test]
         fn errors_when_not_manager_of_returned_os() {
             let mut deps = mock_dependencies();
+            let base = test_account_base(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_item(&base.manager, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
-                    TEST_VERSION_CONTROL,
+                    &abstr.version_control,
                     ACCOUNT_ADDRESSES,
                     (
                         &TEST_ACCOUNT_ID,
                         AccountBase {
-                            manager: Addr::unchecked("not_manager"),
-                            proxy: Addr::unchecked(TEST_PROXY),
+                            manager: deps.api.addr_make("not_manager"),
+                            proxy: base.proxy,
                         },
                     ),
                 )
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding{ mock_api: deps.api };
 
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+                .assert_manager(&base.manager);
 
             assert_that!(res)
                 .is_err()
@@ -387,7 +406,7 @@ mod test {
                 .matches(|e| {
                     e.to_string().contains(
                         &VersionControlError::NotManager(
-                            Addr::unchecked(TEST_MANAGER),
+                            base.manager.clone(),
                             TEST_ACCOUNT_ID,
                         )
                         .to_string(),

@@ -308,19 +308,20 @@ mod test {
         ans_host::*,
         objects::{pool_id::PoolAddressBase, PoolType, TruncatedChainId},
     };
-    use abstract_testing::OWNER;
-    use cosmwasm_std::{from_json, testing::*, Addr, DepsMut};
+    use abstract_testing::addresses::AbstractMockAddrs;
+    use cosmwasm_std::{from_json, testing::*, Addr, DepsMut, OwnedDeps};
     use cw_asset::AssetInfo;
     use speculoos::prelude::*;
     use std::str::FromStr;
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 
-    fn mock_init(mut deps: DepsMut) -> AnsHostResult {
-        let info = message_info(&MockApi::default().addr_make(OWNER), &[]);
+    fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> AnsHostResult {
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
 
-        instantiate(deps.branch(), mock_env(), info, InstantiateMsg { admin })
+        instantiate(deps.as_mut(), mock_env(), info, InstantiateMsg { admin })
     }
 
     fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
@@ -564,7 +565,7 @@ mod test {
     fn create_option_pool_ref(id: u64, pool_id: &str, api: MockApi) -> Option<Vec<PoolReference>> {
         Some(vec![PoolReference {
             unique_id: UniquePoolId::new(id),
-            pool_address: PoolAddressBase::contract(MockApi::default().addr_make(pool_id))
+            pool_address: PoolAddressBase::contract(api.addr_make(pool_id))
                 .check(&api)
                 .unwrap(),
         }])
@@ -582,7 +583,7 @@ mod test {
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create test query data
@@ -619,7 +620,7 @@ mod test {
     fn test_query_contract() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // create test query data
         let to_add =
@@ -652,7 +653,7 @@ mod test {
     #[test]
     fn test_query_channels() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // create test query data
         let to_add = create_channel_entry_and_string(vec![("foo", "foo", "foo")]);
@@ -680,7 +681,7 @@ mod test {
     fn test_query_asset_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create test query data
@@ -743,7 +744,7 @@ mod test {
     fn test_query_asset_list_above_max() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create test query data
@@ -781,7 +782,7 @@ mod test {
     fn test_query_contract_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // create test query data
         let to_add =
@@ -851,7 +852,7 @@ mod test {
     fn test_query_channel_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // create test query data
         let to_add =
@@ -920,7 +921,7 @@ mod test {
     #[test]
     fn test_query_registered_dexes() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // Create test data
         let to_add: Vec<String> = vec!["foo".to_string(), "bar".to_string()];
@@ -950,7 +951,7 @@ mod test {
     #[test]
     fn test_query_pools() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create DexAssetPairing
@@ -980,7 +981,7 @@ mod test {
     #[test]
     fn test_query_pool_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create first pool entry
@@ -1062,7 +1063,7 @@ mod test {
     #[test]
     fn test_query_pool_metadata() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         // create metadata entries
         let bar_key = UniquePoolId::new(42);
         let bar_metadata = create_pool_metadata("bar", "btc", "eth");
@@ -1116,7 +1117,7 @@ mod test {
     #[test]
     fn test_query_pool_metadata_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         // create metadata entries
         let bar_key = UniquePoolId::new(42);
         let bar_metadata = create_pool_metadata("bar", "btc", "eth");

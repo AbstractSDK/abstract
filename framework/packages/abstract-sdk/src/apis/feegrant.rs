@@ -201,11 +201,11 @@ mod test {
 
         #[test]
         fn basic_allowance() {
-            let app = MockModule::new();
             let deps = mock_dependencies();
+            let app = MockModule::new(deps.api);
 
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
+            let granter = deps.api.addr_make("granter");
+            let grantee = deps.api.addr_make("grantee");
 
             let fee_granter = app
                 .fee_granter(deps.as_ref(), Some(granter.clone()))
@@ -234,11 +234,11 @@ mod test {
 
         #[test]
         fn periodic_allowance() {
-            let app = MockModule::new();
             let deps = mock_dependencies();
+            let app = MockModule::new(deps.api);
 
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
+            let granter = deps.api.addr_make("granter");
+            let grantee = deps.api.addr_make("grantee");
             let fee_granter = app
                 .fee_granter(deps.as_ref(), Some(granter.clone()))
                 .unwrap();
@@ -278,11 +278,11 @@ mod test {
 
         #[test]
         fn revoke_all() {
-            let app = MockModule::new();
             let deps = mock_dependencies();
+            let app = MockModule::new(deps.api);
 
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
+            let granter = deps.api.addr_make("granter");
+            let grantee = deps.api.addr_make("grantee");
             let fee_granter = app
                 .fee_granter(deps.as_ref(), Some(granter.clone()))
                 .unwrap();

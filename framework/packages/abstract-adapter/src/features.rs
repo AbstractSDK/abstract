@@ -124,7 +124,7 @@ mod tests {
     fn custom_exec() {
         let mut deps = mock_dependencies();
         let manager = deps.api.addr_make(TEST_MANAGER);
-        deps.querier = mocked_account_querier_builder().build();
+        deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID).build();
 
         mock_init_custom(deps.as_mut(), featured_adapter()).unwrap();
 
@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn targets_not_set() {
         let mut deps = mock_dependencies();
-        deps.querier = mocked_account_querier_builder().build();
+        deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID).build();
 
         mock_init(deps.as_mut()).unwrap();
 

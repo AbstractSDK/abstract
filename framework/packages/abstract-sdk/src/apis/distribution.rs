@@ -142,18 +142,20 @@ mod test {
 
     use super::*;
     use crate::mock_module::*;
+    use cosmwasm_std::testing::MockApi;
 
     mod set_withdraw_address {
         use super::*;
 
         #[test]
         fn set_withdraw_address() {
-            let app = MockModule::new();
+            let mock_api = MockApi::default();
+            let app = MockModule::new(mock_api);
 
             let distribution = app.distribution();
 
-            let delegator = Addr::unchecked("delegator");
-            let withdraw = Addr::unchecked("withdraw");
+            let delegator = mock_api.addr_make("delegator");
+            let withdraw = mock_api.addr_make("withdraw");
 
             let res = distribution.set_withdraw_address(&delegator, &withdraw);
 
@@ -166,12 +168,13 @@ mod test {
 
         #[test]
         fn withdraw_delegator_reward() {
-            let app = MockModule::new();
+            let mock_api = MockApi::default();
+            let app = MockModule::new(mock_api);
 
             let distribution = app.distribution();
 
-            let validator = Addr::unchecked("validator");
-            let delegator = Addr::unchecked("delegator");
+            let validator = mock_api.addr_make("validator");
+            let delegator = mock_api.addr_make("delegator");
 
             let res = distribution.withdraw_delegator_reward(&validator, &delegator);
 
@@ -184,11 +187,12 @@ mod test {
 
         #[test]
         fn withdraw_delegator_comission() {
-            let app = MockModule::new();
+            let mock_api = MockApi::default();
+            let app = MockModule::new(mock_api);
 
             let distribution = app.distribution();
 
-            let validator = Addr::unchecked("validator");
+            let validator = mock_api.addr_make("validator");
 
             let res = distribution.withdraw_delegator_commission(&validator);
 
@@ -203,11 +207,12 @@ mod test {
 
         #[test]
         fn fund_community_pool() {
-            let app = MockModule::new();
+            let mock_api = MockApi::default();
+            let app = MockModule::new(mock_api);
 
             let distribution = app.distribution();
 
-            let depositor = Addr::unchecked("depositor");
+            let depositor = mock_api.addr_make("depositor");
             let amount = coins(1000, "coin");
 
             let res = distribution.fund_community_pool(&amount, &depositor);

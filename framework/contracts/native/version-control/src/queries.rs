@@ -97,10 +97,10 @@ pub fn handle_module_list_query(
     } = filter.unwrap_or_default();
 
     let mod_lib = match status {
-        Some(ModuleStatus::Registered) => &REGISTERED_MODULES,
-        Some(ModuleStatus::Pending) => &PENDING_MODULES,
-        Some(ModuleStatus::Yanked) => &YANKED_MODULES,
-        None => &REGISTERED_MODULES,
+        Some(ModuleStatus::Registered) => REGISTERED_MODULES,
+        Some(ModuleStatus::Pending) => PENDING_MODULES,
+        Some(ModuleStatus::Yanked) => YANKED_MODULES,
+        None => REGISTERED_MODULES,
     };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
@@ -206,7 +206,7 @@ fn filter_modules_by_namespace(
     limit: usize,
     namespace: Namespace,
     name: &Option<String>,
-    mod_lib: &Map<&ModuleInfo, ModuleReference>,
+    mod_lib: Map<&ModuleInfo, ModuleReference>,
 ) -> StdResult<Vec<(ModuleInfo, ModuleReference)>> {
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
@@ -269,8 +269,7 @@ mod test {
     use abstract_std::{manager, objects::account::AccountTrace, version_control::*};
     use abstract_testing::{prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Binary, DepsMut, StdError,
+        testing::{mock_dependencies, mock_env, mock_info}, Addr, Binary, DepsMut, OwnedDeps, StdError
     };
     use speculoos::prelude::*;
 
@@ -342,25 +341,25 @@ mod test {
     }
 
     /// Initialize the version_control with admin as creator and test account
-    fn mock_init_with_account(mut deps: DepsMut) -> VCResult {
-        mock_init(deps.branch())?;
+    fn mock_init_with_account(deps:&mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> VCResult {
+        mock_init(deps.as_mut())?;
         execute_as(
             deps.branch(),
             TEST_ACCOUNT_FACTORY,
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
-                account_base: test_account_base(),
+                account_base: test_account_base(deps.api),
                 namespace: None,
             },
         )?;
         execute_as(
-            deps.branch(),
+            deps.as_mut(),
             TEST_ACCOUNT_FACTORY,
             ExecuteMsg::AddAccount {
                 account_id: TEST_OTHER_ACCOUNT_ID,
                 account_base: AccountBase {
-                    manager: Addr::unchecked(TEST_OTHER_MANAGER_ADDR),
-                    proxy: Addr::unchecked(TEST_OTHER_PROXY_ADDR),
+                    manager: deps.api.addr_make(TEST_OTHER_MANAGER_ADDR),
+                    proxy: deps.api.addr_make(TEST_OTHER_PROXY_ADDR),
                 },
                 namespace: None,
             },
@@ -1054,7 +1053,7 @@ mod test {
 
             assert_that!(res).is_ok().map(|res| {
                 let AccountBaseResponse { account_base } = from_json(res).unwrap();
-                assert_that!(account_base).is_equal_to(test_account_base());
+                assert_that!(account_base).is_equal_to(test_account_base(deps.api));
                 res
             });
 
