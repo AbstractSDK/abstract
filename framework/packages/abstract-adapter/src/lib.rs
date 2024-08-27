@@ -38,8 +38,8 @@ pub mod state;
 pub mod mock {
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_std::{adapter::*, objects::dependency::StaticDependency};
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, DepsMut, Response, StdError};
+    use abstract_testing::{prelude::*, TEST_VERSION};
+    use cosmwasm_std::{testing::*, OwnedDeps, Response, StdError};
     use cw_storage_plus::Item;
     use thiserror::Error;
 
@@ -139,42 +139,38 @@ pub mod mock {
     crate::export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
 
     crate::cw_orch_interface!(MOCK_ADAPTER, MockAdapterContract, MockInitMsg, MockAdapterI);
-    pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
+    pub fn mock_init(
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+    ) -> Result<Response, MockError> {
         let adapter = MOCK_ADAPTER;
-        let mock_api = MockApi::default();
-        let owner = mock_api.addr_make(OWNER);
-        let ans_host = mock_api.addr_make(TEST_ANS_HOST);
-        let vc = mock_api.addr_make(TEST_VERSION_CONTROL);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        let info = message_info(&owner, &[]);
+        let info = message_info(&abstr.owner, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: ans_host.to_string(),
-                version_control_address: vc.to_string(),
+                ans_host_address: abstr.ans_host.to_string(),
+                version_control_address: abstr.version_control.to_string(),
             },
             module: MockInitMsg {},
         };
-        adapter.instantiate(deps, mock_env(), info, init_msg)
+        adapter.instantiate(deps.as_mut(), mock_env(), info, init_msg)
     }
 
     pub fn mock_init_custom(
-        deps: DepsMut,
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
         module: MockAdapterContract,
     ) -> Result<Response, MockError> {
-        let mock_api = MockApi::default();
-        let owner = mock_api.addr_make(OWNER);
-        let ans_host = mock_api.addr_make(TEST_ANS_HOST);
-        let vc = mock_api.addr_make(TEST_VERSION_CONTROL);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        let info = message_info(&owner, &[]);
+        let info = message_info(&abstr.owner, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: ans_host.to_string(),
-                version_control_address: vc.to_string(),
+                ans_host_address: abstr.ans_host.to_string(),
+                version_control_address: abstr.version_control.to_string(),
             },
             module: MockInitMsg {},
         };
-        module.instantiate(deps, mock_env(), info, init_msg)
+        module.instantiate(deps.as_mut(), mock_env(), info, init_msg)
     }
 
     /// Generate a BOOT instance for a mock adapter
