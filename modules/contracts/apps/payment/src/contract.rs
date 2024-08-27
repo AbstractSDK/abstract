@@ -23,7 +23,6 @@ pub type PaymentApp = AppContract<
     AppExecuteMsg,
     AppQueryMsg,
     AppMigrateMsg,
-    cw20::Cw20ReceiveMsg,
 >;
 
 const DEX_DEPENDENCY: StaticDependency = StaticDependency::new(
