@@ -12,7 +12,7 @@
 - [Accounts](./3_framework/3_architecture.md)
     - [Account Ownership](./3_framework/4_ownership.md)
     - [Interchain Abstract Accounts](./3_framework/8_ibc.md)
-    - [Oracle](./5_platform/7_oracle.md)
+    <!-- - [Oracle](./5_platform/7_oracle.md) -->
 - [Modules](./3_framework/5_modules.md)
     - [Module Types](./3_framework/6_module_types.md)
     - [Upgradability](./3_framework/7_upgradability.md)
