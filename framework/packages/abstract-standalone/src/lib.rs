@@ -75,10 +75,7 @@ pub mod mock {
         feature_objects::{AnsHost, VersionControlContract},
         AbstractResponse, AbstractSdkError,
     };
-    use abstract_testing::{
-        addresses::{TEST_ANS_HOST, TEST_PROXY, TEST_VERSION_CONTROL},
-        prelude::*,
-    };
+    use abstract_testing::{addresses::*, prelude::*};
     use thiserror::Error;
 
     use crate::StandaloneContract;

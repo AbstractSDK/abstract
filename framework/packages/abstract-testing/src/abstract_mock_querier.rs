@@ -15,62 +15,47 @@ use cw_storage_plus::Item;
 
 use crate::prelude::*;
 
-/// A mock querier setup with the proper responses for proxy/manager/accountId.
-pub fn mocked_account_querier_builder() -> AbstractMockQuerierBuilder {
-    AbstractMockQuerierBuilder::default().account(TEST_MANAGER, TEST_PROXY, TEST_ACCOUNT_ID)
-}
-
 pub struct AbstractMockQuerierBuilder {
     builder: MockQuerierBuilder,
-    version_control: Addr,
+    abstract_addrs: AbstractMockAddrs,
 }
 
-impl Default for AbstractMockQuerierBuilder {
-    fn default() -> Self {
-        Self {
-            builder: MockQuerierBuilder::default(),
-            version_control: MockApi::default().addr_make(TEST_VERSION_CONTROL),
-        }
-    }
-}
 // ANCHOR: account
 impl AbstractMockQuerierBuilder {
-    /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the account to version control.
-    pub fn account(mut self, manager: &str, proxy: &str, account_id: AccountId) -> Self {
-        let mockapi = MockApi::default();
-        let manager_addr = mockapi.addr_make(manager);
-        let proxy_addr = mockapi.addr_make(proxy);
-        let owner = mockapi.addr_make(OWNER);
+    pub fn new(mock_api: MockApi) -> AbstractMockQuerierBuilder {
+        AbstractMockQuerierBuilder {
+            builder: MockQuerierBuilder::default(),
+            abstract_addrs: AbstractMockAddrs::new(mock_api),
+        }
+    }
 
+    /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the account to version control.
+    pub fn account(mut self, account_base: &AccountBase, account_id: AccountId) -> Self {
         self.builder = self
             .builder
-            .with_contract_item(proxy_addr.as_str(), ACCOUNT_ID, &account_id)
-            .with_contract_item(manager_addr.as_str(), ACCOUNT_ID, &account_id)
+            .with_contract_item(&account_base.proxy, ACCOUNT_ID, &account_id)
+            .with_contract_item(&account_base.manager, ACCOUNT_ID, &account_id)
             .with_contract_item(
-                proxy_addr.as_str(),
+                &account_base.proxy,
                 Item::new(ADMIN_NAMESPACE),
-                &Some(manager_addr.clone()),
+                &Some(account_base.manager.clone()),
             )
             // Setup the account owner as the test owner
             .with_contract_item(
-                manager_addr.as_str(),
+                &account_base.manager,
                 Item::new(OWNERSHIP_STORAGE_KEY),
                 &Some(Ownership {
-                    owner: GovernanceDetails::Monarchy { monarch: owner },
+                    owner: GovernanceDetails::Monarchy {
+                        monarch: self.abstract_addrs.owner.clone(),
+                    },
                     pending_owner: None,
                     pending_expiry: None,
                 }),
             )
             .with_contract_map_entry(
-                self.version_control.as_str(),
+                &self.abstract_addrs.version_control,
                 ACCOUNT_ADDRESSES,
-                (
-                    &account_id,
-                    AccountBase {
-                        manager: manager_addr,
-                        proxy: proxy_addr,
-                    },
-                ),
+                (&account_id, account_base.clone()),
             );
 
         self
@@ -79,24 +64,28 @@ impl AbstractMockQuerierBuilder {
 
     /// Add mock assets into ANS
     pub fn assets(mut self, assets: Vec<(&AssetEntry, AssetInfo)>) -> Self {
-        self.builder =
-            self.builder
-                .with_contract_map_entries(TEST_ANS_HOST, ASSET_ADDRESSES, assets);
+        self.builder = self.builder.with_contract_map_entries(
+            &self.abstract_addrs.ans_host,
+            ASSET_ADDRESSES,
+            assets,
+        );
 
         self
     }
 
     pub fn channels(mut self, channels: Vec<(&ChannelEntry, String)>) -> Self {
-        self.builder = self
-            .builder
-            .with_contract_map_entries(TEST_ANS_HOST, CHANNELS, channels);
+        self.builder = self.builder.with_contract_map_entries(
+            &self.abstract_addrs.ans_host,
+            CHANNELS,
+            channels,
+        );
 
         self
     }
 
     /// Change the version control address. Any account added after this will be registered to this address.
     pub fn set_version_control(mut self, version_control: Addr) -> Self {
-        self.version_control = version_control;
+        self.abstract_addrs.version_control = version_control;
         self
     }
 
@@ -106,6 +95,10 @@ impl AbstractMockQuerierBuilder {
 
     pub fn builder(self) -> MockQuerierBuilder {
         self.builder
+    }
+
+    pub fn addrs(&self) -> &AbstractMockAddrs {
+        &self.abstract_addrs
     }
 
     pub fn build(self) -> MockQuerier {

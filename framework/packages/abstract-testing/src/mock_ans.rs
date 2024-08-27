@@ -17,8 +17,9 @@ use cosmwasm_std::{
 };
 use cw_asset::AssetInfo;
 
-use crate::{addresses::*, MockQuerierBuilder};
+use crate::{addresses::*, ans::*, MockQuerierBuilder};
 
+// TODO: update docs
 /// mirror ANS state
 /// ```rust,ignore
 /// pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> = Map::new("assets");
@@ -31,17 +32,23 @@ use crate::{addresses::*, MockQuerierBuilder};
 /// pub const ASSET_PAIRINGS: Map<&DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 /// pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
 /// ```
-#[derive(Default)]
 pub struct MockAnsHost {
     pub contracts: Vec<(ContractEntry, Addr)>,
     pub assets: Vec<(AssetEntry, AssetInfo)>,
     pub channels: Vec<(ChannelEntry, String)>,
     pub pools: Vec<(UncheckedPoolAddress, PoolMetadata)>,
+    pub mock_api: MockApi,
 }
 
 impl MockAnsHost {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(mock_api: MockApi) -> Self {
+        Self {
+            contracts: vec![],
+            assets: vec![],
+            channels: vec![],
+            pools: vec![],
+            mock_api,
+        }
     }
 
     pub fn to_querier(self) -> MockQuerier {
@@ -49,19 +56,20 @@ impl MockAnsHost {
     }
 
     pub fn insert_into(self, querier_builder: MockQuerierBuilder) -> MockQuerierBuilder {
+        let abstract_addrs = AbstractMockAddrs::new(self.mock_api);
         let mut querier_builder = querier_builder
             .with_contract_map_entries(
-                TEST_ANS_HOST,
+                &abstract_addrs.ans_host,
                 ASSET_ADDRESSES,
                 self.assets.iter().map(|(a, b)| (a, b.clone())).collect(),
             )
             .with_contract_map_entries(
-                TEST_ANS_HOST,
+                &abstract_addrs.ans_host,
                 CONTRACT_ADDRESSES,
                 self.contracts.iter().map(|(a, b)| (a, b.clone())).collect(),
             )
             .with_contract_map_entries(
-                TEST_ANS_HOST,
+                &abstract_addrs.ans_host,
                 CHANNELS,
                 self.channels.iter().map(|(a, b)| (a, b.clone())).collect(),
             );
@@ -75,7 +83,7 @@ impl MockAnsHost {
             }
             let pool_addr = pool_addr.check(&MockApi::default()).unwrap();
             querier_builder = querier_builder.with_contract_map_entries(
-                TEST_ANS_HOST,
+                &abstract_addrs.ans_host,
                 POOL_METADATA,
                 vec![(unique_id, pool_meta.clone())],
             );
@@ -90,7 +98,7 @@ impl MockAnsHost {
                     let pair: DexAssetPairing =
                         DexAssetPairing::new(pair.0.clone(), pair.1.clone(), &pool_meta.dex);
                     querier_builder = querier_builder.with_contract_map_entries(
-                        TEST_ANS_HOST,
+                        &abstract_addrs.ans_host,
                         ASSET_PAIRINGS,
                         vec![(
                             &pair,
@@ -113,29 +121,29 @@ impl MockAnsHost {
 
             unique_id.increment();
         }
-        querier_builder.with_contract_item(TEST_ANS_HOST, REGISTERED_DEXES, &dexes)
+        querier_builder.with_contract_item(&abstract_addrs.ans_host, REGISTERED_DEXES, &dexes)
     }
 
     pub fn with_defaults(mut self) -> Self {
-        self.assets.append(&mut vec![
+        self.assets.extend([
             (AssetEntry::from(EUR), AssetInfo::native(EUR)),
             (AssetEntry::from(USD), AssetInfo::native(USD)),
             (
                 AssetEntry::from(TTOKEN),
-                AssetInfo::Cw20(Addr::unchecked(TTOKEN)),
+                AssetInfo::Cw20(self.mock_api.addr_make(TTOKEN)),
             ),
             (
                 AssetEntry::from(EUR_USD_LP),
-                AssetInfo::Cw20(Addr::unchecked(EUR_USD_LP)),
+                AssetInfo::Cw20(self.mock_api.addr_make(EUR_USD_LP)),
             ),
             (
                 AssetEntry::from(TTOKEN_EUR_LP),
-                AssetInfo::Cw20(Addr::unchecked(TTOKEN_EUR_LP)),
+                AssetInfo::Cw20(self.mock_api.addr_make(TTOKEN_EUR_LP)),
             ),
         ]);
-        self.pools.append(&mut vec![
+        self.pools.extend([
             (
-                UncheckedPoolAddress::contract(EUR_USD_PAIR),
+                UncheckedPoolAddress::contract(self.mock_api.addr_make(EUR_USD_PAIR).into_string()),
                 PoolMetadata::new(
                     TEST_DEX,
                     PoolType::ConstantProduct,
@@ -143,7 +151,9 @@ impl MockAnsHost {
                 ),
             ),
             (
-                UncheckedPoolAddress::contract(TTOKEN_EUR_PAIR),
+                UncheckedPoolAddress::contract(
+                    self.mock_api.addr_make(TTOKEN_EUR_PAIR).into_string(),
+                ),
                 PoolMetadata::new(
                     TEST_DEX,
                     PoolType::ConstantProduct,

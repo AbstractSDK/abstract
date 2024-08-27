@@ -1562,10 +1562,10 @@ mod test {
         #[test]
         fn try_add_module_to_approval_with_admin() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            let contract_addr = Addr::unchecked("contract");
+            let contract_addr = deps.api.addr_make("contract");
             // create mock with ContractInfo response for contract with admin set
             deps.querier = mock_manager_querier()
-                .with_contract_admin(&contract_addr, Addr::unchecked("admin"))
+                .with_contract_admin(&contract_addr, &deps.api.addr_make("admin"))
                 .build();
 
             mock_init_with_account(deps.as_mut(), false)?;

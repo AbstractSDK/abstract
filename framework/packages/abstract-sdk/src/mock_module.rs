@@ -4,7 +4,7 @@ use abstract_std::objects::{
     ans_host::AnsHost, dependency::StaticDependency, version_control::VersionControlContract,
 };
 use abstract_testing::prelude::*;
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::{testing::MockApi, Addr, Deps};
 
 use crate::{
     features::{
@@ -18,7 +18,8 @@ use crate::{
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(Addr::unchecked(TEST_PROXY))
+        let test_base = test_account_base(self.mock_api);
+        Ok(test_base.proxy)
     }
 }
 
@@ -59,13 +60,14 @@ pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 
 /// A mock module that can be used for testing.
 /// Identifies itself as [`TEST_MODULE_ID`].
-#[derive(Default)]
-pub struct MockModule {}
+pub struct MockModule {
+    mock_api: MockApi,
+}
 
 impl MockModule {
     /// mock constructor
-    pub const fn new() -> Self {
-        Self {}
+    pub fn new(mock_api: MockApi) -> Self {
+        Self { mock_api }
     }
 }
 
