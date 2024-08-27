@@ -216,7 +216,6 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
             &ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
-                    base_asset: None,
                     namespace: None,
                     install_modules: vec![],
                 },

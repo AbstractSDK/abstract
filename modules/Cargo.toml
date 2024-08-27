@@ -48,7 +48,6 @@ protobuf = { version = "2", features = ["with-bytes"] }
 chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-cw-semver = { version = "1.0" }
 cw-orch = { version = "0.24.0" }
 cw-orch-interchain = { version = "0.3.0" }
 cw-orch-osmosis-test-tube = { version = "0.2.0" }
@@ -59,7 +58,7 @@ tokio = { version = "1.4", features = ["full"] }
 abstract-interface = { version = "0.23.0" }
 abstract-adapter = { version = "0.23.0" }
 abstract-app = { version = "0.23.0" }
-abstract-standalone = { version = "0.22.0" }
+abstract-standalone = { version = "0.23.0" }
 abstract-testing = { version = "0.23.0" }
 abstract-macros = { version = "0.23.0" }
 abstract-client = { version = "0.23.0" }
@@ -82,7 +81,6 @@ wyndex-bundle = { path = "../integrations/bundles/wyndex" }
 ## Modules
 croncat-app = { path = "./contracts/apps/croncat", default-features = false }
 challenge-app = { path = "./contracts/apps/challenge", default-features = false }
-etf-app = { path = "./contracts/apps/etf", default-features = false }
 dca-app = { path = "./contracts/apps/dca", default-features = false }
 abstract-cw-staking = { path = "./contracts/adapters/cw-staking", default-features = false }
 abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = false }

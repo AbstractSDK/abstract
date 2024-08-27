@@ -18,11 +18,11 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 semver = { workspace = true }
-cw-semver = { workspace = true }
 schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
+cw20 = { workspace = true }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
 abstract-std = { workspace = true }
@@ -58,3 +58,6 @@ env_logger = "0.11.3"
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw721-base = "0.18.0"
+
+[dependencies]
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

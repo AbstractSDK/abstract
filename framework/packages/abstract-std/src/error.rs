@@ -1,7 +1,6 @@
 use cosmwasm_std::{OverflowError, StdError};
 use cw_asset::AssetError;
-use cw_semver::Error as CwSemverError;
-use semver::{Error as SemverError, Version};
+use semver::Version;
 use thiserror::Error;
 
 use crate::objects::{ans_host::AnsHostError, version_control::VersionControlError};
@@ -81,14 +80,8 @@ pub enum AbstractError {
     },
 }
 
-impl From<SemverError> for AbstractError {
-    fn from(err: SemverError) -> Self {
-        AbstractError::Semver(err.to_string())
-    }
-}
-
-impl From<CwSemverError> for AbstractError {
-    fn from(err: CwSemverError) -> Self {
+impl From<semver::Error> for AbstractError {
+    fn from(err: semver::Error) -> Self {
         AbstractError::Semver(err.to_string())
     }
 }

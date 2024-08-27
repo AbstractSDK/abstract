@@ -1,9 +1,12 @@
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self, Display},
+    str::FromStr,
+};
 
 use cosmwasm_std::{ensure_eq, to_json_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
-use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
+use semver::Version;
 
 use super::module_reference::ModuleReference;
 use crate::{
@@ -251,6 +254,21 @@ impl ModuleVersion {
     }
 }
 
+impl FromStr for ModuleVersion {
+    type Err = AbstractError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "latest" => Ok(Self::Latest),
+            _ => {
+                let v = Self::Version(s.to_owned());
+                v.validate()?;
+                Ok(v)
+            }
+        }
+    }
+}
+
 // Do not change!!
 impl Display for ModuleVersion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -337,8 +355,10 @@ impl Module {
     // Helper to know if this module supposed to be whitelisted on proxy contract
     pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
-            // Standalone or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
-            ModuleReference::Standalone(_) | ModuleReference::Native(_) => false,
+            // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
+            ModuleReference::Standalone(_)
+            | ModuleReference::Native(_)
+            | ModuleReference::Service(_) => false,
             _ => true,
         }
     }
@@ -405,8 +425,8 @@ pub fn assert_module_data_validity(
     // verify that the contract's data is equal to its registered data
     let cw_2_data_res = cw2::CONTRACT.query(querier, module_address.clone());
 
-    // For standalone we only check the version if cw2 exists
-    if let ModuleReference::Standalone(_) = module_claim.reference {
+    // For standalone and service we only check the version if cw2 exists
+    if let ModuleReference::Standalone(_) | ModuleReference::Service(_) = module_claim.reference {
         if let Ok(cw_2_data) = cw_2_data_res {
             ensure_eq!(
                 version,
@@ -442,8 +462,9 @@ pub fn assert_module_data_validity(
     );
     // we're done if it's not an actual module
     match module_claim.reference {
-        ModuleReference::AccountBase(_) => return Ok(()),
-        ModuleReference::Native(_) => return Ok(()),
+        ModuleReference::AccountBase(_)
+        | ModuleReference::Native(_)
+        | ModuleReference::Service(_) => return Ok(()),
         _ => {}
     }
 

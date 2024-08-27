@@ -21,7 +21,6 @@ cw-utils = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
-cw-semver = { workspace = true, features = ["serde"] }
 semver = { workspace = true, features = ["serde"] }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
@@ -36,6 +35,7 @@ cw-clearable = { workspace = true }
 
 ## Stringify function names
 function_name = { version = "0.3.0" }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 speculoos = { workspace = true }

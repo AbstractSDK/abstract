@@ -17,3 +17,4 @@ crate-type = ["cdylib", "rlib"]
 cosmwasm-std = { workspace = true }
 cw20 = { workspace = true }
 cw-asset = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }

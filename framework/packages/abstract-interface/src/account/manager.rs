@@ -152,7 +152,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute_on_module(
             module_id,
-            adapter::ExecuteMsg::<Empty, Empty>::Base(adapter::BaseExecuteMsg {
+            adapter::ExecuteMsg::<Empty>::Base(adapter::BaseExecuteMsg {
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
                 proxy_address: None,
             }),
@@ -202,7 +202,6 @@ impl<Chain: CwEnv> Manager<Chain> {
             to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
-                    base_asset: None,
                     namespace: None,
                     install_modules: vec![ModuleInstallConfig::new(
                         ModuleInfo::from_id_latest(IBC_CLIENT)?,

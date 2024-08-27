@@ -13,7 +13,7 @@ pub use crate::apis::{distribution::*, stargate::feegrant::*};
 pub use crate::{
     ans_resolve::Resolve,
     apis::{
-        accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
-        verify::*, version_registry::*,
+        adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, verify::*,
+        version_registry::*,
     },
 };

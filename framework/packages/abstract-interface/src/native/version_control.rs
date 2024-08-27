@@ -1,7 +1,8 @@
 pub use abstract_std::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_std::{
     objects::{
-        module::{Module, ModuleInfo, ModuleStatus, ModuleVersion},
+        dependency::StaticDependency,
+        module::{Module, ModuleId, ModuleInfo, ModuleStatus, ModuleVersion},
         module_reference::ModuleReference,
         namespace::{Namespace, ABSTRACT_NAMESPACE},
         AccountId,
@@ -125,6 +126,69 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         }
     }
 
+    /// Return list of registered module versions
+    pub fn module_versions(
+        &self,
+        module_id: ModuleId,
+    ) -> Result<Vec<semver::Version>, crate::AbstractInterfaceError> {
+        let parts: Vec<&str> = module_id.split(':').collect();
+        if parts.len() != 2 {
+            return Err(abstract_std::AbstractError::FormattingError {
+                object: "module_id".to_string(),
+                expected: "namespace:module".to_string(),
+                actual: module_id.to_string(),
+            }
+            .into());
+        }
+
+        let mut start_after = None;
+        let mut versions: Vec<semver::Version> = vec![];
+        loop {
+            let modules_page = self
+                .module_list(
+                    Some(ModuleFilter {
+                        namespace: Some(parts[0].to_owned()),
+                        name: Some(parts[1].to_owned()),
+                        version: None,
+                        status: Some(ModuleStatus::Registered),
+                    }),
+                    None,
+                    start_after,
+                )?
+                .modules;
+            if modules_page.is_empty() {
+                break;
+            }
+            start_after = modules_page.last().map(|module| module.module.info.clone());
+            let versions_page = modules_page
+                .into_iter()
+                .map(|module| module.module.info.version.try_into().unwrap());
+
+            versions.extend(versions_page)
+        }
+        Ok(versions)
+    }
+
+    // Check that module dependencies deployed on chain
+    pub fn assert_dependencies_deployed(
+        &self,
+        dependencies: &[StaticDependency],
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        for dependency in dependencies {
+            let module_versions = self.module_versions(dependency.id)?;
+            // Check if at least one version matches
+            let matches = module_versions
+                .iter()
+                .any(|version| dependency.matches(version));
+            if !matches {
+                return Err(crate::AbstractInterfaceError::NoMatchingModule(
+                    dependency.clone(),
+                ));
+            }
+        }
+        Ok(())
+    }
+
     pub fn register_base(
         &self,
         account: &AbstractAccount<Chain>,
@@ -174,6 +238,18 @@ impl<Chain: CwEnv> VersionControl<Chain> {
     ) -> Result<(), crate::AbstractInterfaceError> {
         let to_register = self.contracts_into_module_entries(natives, |c| {
             ModuleReference::Native(c.address().unwrap())
+        })?;
+        self.propose_modules(to_register)?;
+        Ok(())
+    }
+
+    /// Register services modules
+    pub fn register_services(
+        &self,
+        services: Vec<(&Contract<Chain>, VersionString)>,
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        let to_register = self.contracts_into_module_entries(services, |c| {
+            ModuleReference::Service(c.address().unwrap())
         })?;
         self.propose_modules(to_register)?;
         Ok(())

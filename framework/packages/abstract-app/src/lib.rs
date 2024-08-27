@@ -29,7 +29,7 @@ pub use abstract_testing;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    use abstract_interface::{AppDeployer, DependencyCreation};
+    use abstract_interface::{AppDeployer, DependencyCreation, RegisteredModule};
     pub use abstract_std::app;
     use abstract_std::{
         manager::ModuleInstallConfig,
@@ -79,12 +79,9 @@ pub mod mock {
     pub struct MockMigrateMsg;
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockReceiveMsg;
-
-    #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg;
 
-    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_sdk::{base::InstantiateEndpoint, features::Dependencies, AbstractSdkError};
     use abstract_testing::{
         addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
         prelude::{
@@ -122,7 +119,6 @@ pub mod mock {
         MockExecMsg,
         MockQueryMsg,
         MockMigrateMsg,
-        MockReceiveMsg,
         MockSudoMsg,
     >;
 
@@ -151,7 +147,6 @@ pub mod mock {
                 }
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
             .with_ibc_callback(|deps, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
 
@@ -242,6 +237,22 @@ pub mod mock {
     #[cw_orch::interface(Init, Exec, Query, Migrate)]
     pub struct MockAppI<Chain>;
 
+    impl<Chain> RegisteredModule for MockAppI<Chain> {
+        type InitMsg = MockInitMsg;
+
+        fn module_id<'a>() -> &'a str {
+            BASIC_MOCK_APP.module_id()
+        }
+
+        fn module_version<'a>() -> &'a str {
+            BASIC_MOCK_APP.version()
+        }
+
+        fn dependencies<'a>() -> &'a [StaticDependency] {
+            BASIC_MOCK_APP.dependencies()
+        }
+    }
+
     impl<T: cw_orch::prelude::CwEnv> AppDeployer<T> for MockAppI<T> {}
 
     impl<T: cw_orch::prelude::CwEnv> Uploadable for MockAppI<T> {
@@ -257,14 +268,14 @@ pub mod mock {
     macro_rules! gen_app_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
         use $crate::std::app;
-        use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
+        use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg};
         use ::cw_orch::prelude::*;
         use $crate::sdk::base::Handler;
         use $crate::sdk::features::AccountIdentification;
         use $crate::sdk::{Execution, TransferInterface};
 
 
-        type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Exec = app::ExecuteMsg<MockExecMsg>;
         type Query = app::QueryMsg<MockQueryMsg>;
         type Init = app::InstantiateMsg<MockInitMsg>;
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
@@ -357,6 +368,22 @@ pub mod mock {
         pub struct $name;
 
         impl<T: cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<T> for $name <T> {}
+
+        impl<Chain> $crate::abstract_interface::RegisteredModule for $name<Chain> {
+            type InitMsg = MockInitMsg;
+
+            fn module_id<'a>() -> &'a str {
+                MOCK_APP_WITH_DEP.module_id()
+            }
+
+            fn module_version<'a>() -> &'a str {
+                MOCK_APP_WITH_DEP.version()
+            }
+
+            fn dependencies<'a>() -> &'a [$crate::objects::dependency::StaticDependency] {
+                MOCK_APP_WITH_DEP.dependencies()
+            }
+        }
 
         impl<T: cw_orch::prelude::CwEnv> Uploadable for $name<T> {
             fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {

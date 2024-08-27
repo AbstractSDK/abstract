@@ -8,8 +8,8 @@ use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy};
 use abstract_std::objects::dependency::StaticDependency;
 use cw_orch::prelude::*;
 
-pub type MockAdapterContract = AdapterContract<AdapterMockError, Empty, Empty, Empty, Empty, Empty>;
-pub type MockAppContract = AppContract<AppMockError, Empty, Empty, Empty, Empty, Empty, Empty>;
+pub type MockAdapterContract = AdapterContract<AdapterMockError, Empty, Empty, Empty, Empty>;
+pub type MockAppContract = AppContract<AppMockError, Empty, Empty, Empty, Empty, Empty>;
 
 pub const V1: &str = "1.0.0";
 pub const V2: &str = "2.0.0";

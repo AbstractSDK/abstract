@@ -13,18 +13,9 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
         SudoMsg,
     > ModuleIbcEndpoint
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     fn ibc_host(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
         let vc_query_result = self

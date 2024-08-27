@@ -48,18 +48,18 @@ impl AccountId {
         Ok(Self { seq, trace })
     }
 
-    /// Construct the `AccountId` for an account on a remote chain based on the current Account.
-    /// Will pop the trace if the destination chain is the last chain in the trace.
-    pub fn into_dest_account_id(
+    /// Construct the `AccountId` for an account on a host chain based on the current Account.
+    /// Will pop the trace if the host chain is the last chain in the trace.
+    pub fn into_remote_account_id(
         mut self,
-        src_chain: TruncatedChainId,
-        dest_chain: TruncatedChainId,
+        client_chain: TruncatedChainId,
+        host_chain: TruncatedChainId,
     ) -> Self {
         match &mut self.trace {
             AccountTrace::Remote(ref mut chains) => {
-                // if last account chain is the destination chain, pop
-                if chains.last() != Some(&dest_chain) {
-                    chains.push(src_chain);
+                // if last account chain is the host chain, pop
+                if chains.last() != Some(&host_chain) {
+                    chains.push(client_chain);
                 } else {
                     chains.pop();
                     // if the pop made the AccountId empty then we're targeting a local account.
@@ -69,7 +69,7 @@ impl AccountId {
                 }
             }
             AccountTrace::Local => {
-                self.trace = AccountTrace::Remote(vec![src_chain]);
+                self.trace = AccountTrace::Remote(vec![client_chain]);
             }
         }
         self

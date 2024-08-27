@@ -54,8 +54,6 @@ pub mod state {
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
-    /// Context for old adapters that are currently removing authorized addresses
-    pub const REMOVE_ADAPTER_AUTHORIZED_CONTEXT: Item<u64> = Item::new("rm_a_auth");
     // Additional states, not listed here: cw_gov_ownable::GovOwnership
 }
 
@@ -71,7 +69,6 @@ use crate::{
         gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
         module::ModuleInfo,
         ownership::Ownership,
-        AssetEntry,
     },
 };
 
@@ -170,8 +167,6 @@ pub enum ExecuteMsg {
         description: Option<String>,
         // URL linked to the account
         link: Option<String>,
-        // Optionally specify a base asset for the sub-account
-        base_asset: Option<AssetEntry>,
         // optionally specify a namespace for the sub-account
         namespace: Option<String>,
         // Provide list of module to install after sub-account creation

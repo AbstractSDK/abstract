@@ -13,7 +13,7 @@ use cosmwasm_std::{Addr, Binary};
 use crate::{
     ibc_client::InstalledModuleIdentification,
     manager::{self, ModuleInstallConfig},
-    objects::{account::AccountId, module::ModuleInfo, AssetEntry, TruncatedChainId},
+    objects::{account::AccountId, module::ModuleInfo, TruncatedChainId},
 };
 
 pub mod state {
@@ -74,7 +74,6 @@ pub enum InternalAction {
         name: String,
         description: Option<String>,
         link: Option<String>,
-        base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },
@@ -90,6 +89,8 @@ pub enum HelperAction {
 /// Callable actions on a remote host
 #[cosmwasm_schema::cw_serde]
 pub enum HostAction {
+    /// Dispatch messages to a remote manager contract.
+    /// Will create a new Account if required.
     Dispatch {
         manager_msgs: Vec<manager::ExecuteMsg>,
     },

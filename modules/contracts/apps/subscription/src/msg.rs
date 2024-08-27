@@ -97,6 +97,26 @@ pub enum SubscriptionExecuteMsg {
     RefreshTWA {},
 }
 
+#[cosmwasm_schema::cw_serde]
+#[derive(cw_orch::ExecuteFns)]
+/// Custom execute handler
+pub enum CustomExecuteMsg {
+    /// A configuration message, defined by the base.
+    Base(abstract_app::std::app::BaseExecuteMsg),
+    /// An app request defined by a base consumer.
+    Module(SubscriptionExecuteMsg),
+    // Payment App doesn't use IBC, so those skipped here
+    /// Custom msg type
+    Receive(cw20::Cw20ReceiveMsg),
+}
+
+// Enable cw_orch api
+impl From<SubscriptionExecuteMsg> for CustomExecuteMsg {
+    fn from(value: SubscriptionExecuteMsg) -> Self {
+        Self::Module(value)
+    }
+}
+
 /// Subscriptions query messages
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]

@@ -14,7 +14,7 @@ use abstract_std::{
     ibc_host::{self, HostAction, InternalAction},
     manager::{self, ModuleInstallConfig},
     objects::{
-        module::ModuleInfo, module_reference::ModuleReference, AccountId, AssetEntry, ChannelEntry,
+        module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
     },
     version_control::AccountBase,
@@ -239,9 +239,10 @@ pub fn execute_send_module_to_module_packet(
 
     // We need additional information depending on the module type
     let source_module = match module_info.reference {
-        ModuleReference::AccountBase(_) => return Err(IbcClientError::Unauthorized {}),
-        ModuleReference::Native(_) => return Err(IbcClientError::Unauthorized {}),
-        ModuleReference::Standalone(_) => return Err(IbcClientError::Unauthorized {}),
+        ModuleReference::AccountBase(_)
+        | ModuleReference::Native(_)
+        | ModuleReference::Standalone(_)
+        | ModuleReference::Service(_) => return Err(IbcClientError::Unauthorized {}),
         ModuleReference::Adapter(_) => InstalledModuleIdentification {
             module_info: module_info.info,
             account_id: None,
@@ -368,7 +369,6 @@ pub fn execute_register_account(
     info: MessageInfo,
     env: Env,
     host_chain: TruncatedChainId,
-    base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
@@ -398,7 +398,6 @@ pub fn execute_register_account(
             description: account_info.description,
             link: account_info.link,
             name: account_info.name,
-            base_asset,
             namespace,
             install_modules,
         }),

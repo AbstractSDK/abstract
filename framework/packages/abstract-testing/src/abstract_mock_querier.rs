@@ -1,11 +1,11 @@
 use abstract_std::{
-    ans_host::state::{ASSET_ADDRESSES, CHANNELS},
+    ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
     objects::{
         account::ACCOUNT_ID,
         common_namespace::{ADMIN_NAMESPACE, OWNERSHIP_STORAGE_KEY},
         gov_type::GovernanceDetails,
         ownership::Ownership,
-        AccountId, AssetEntry, ChannelEntry,
+        AccountId, AssetEntry, ChannelEntry, ContractEntry,
     },
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
@@ -79,6 +79,14 @@ impl AbstractMockQuerierBuilder {
         self.builder =
             self.builder
                 .with_contract_map_entries(TEST_ANS_HOST, ASSET_ADDRESSES, assets);
+
+        self
+    }
+
+    pub fn contracts(mut self, contracts: Vec<(&ContractEntry, Addr)>) -> Self {
+        self.builder =
+            self.builder
+                .with_contract_map_entries(TEST_ANS_HOST, CONTRACT_ADDRESSES, contracts);
 
         self
     }

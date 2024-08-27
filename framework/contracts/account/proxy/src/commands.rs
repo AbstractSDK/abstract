@@ -1,10 +1,12 @@
 use abstract_sdk::std::{
     ibc_client::ExecuteMsg as IbcClientMsg,
-    proxy::state::{ADMIN, ANS_HOST, STATE},
+    proxy::state::{ADMIN, STATE},
     IBC_CLIENT,
 };
-use abstract_std::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
-use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
+use abstract_std::ICA_CLIENT;
+use cosmwasm_std::{
+    wasm_execute, Binary, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg, WasmQuery,
+};
 
 use crate::{
     contract::{ProxyResponse, ProxyResult, RESPONSE_REPLY_ID},
@@ -13,8 +15,8 @@ use crate::{
 
 const LIST_SIZE_LIMIT: usize = 15;
 
-/// Executes actions forwarded by whitelisted contracts
-/// This contracts acts as a proxy contract for the dApps
+/// Executes `Vec<CosmosMsg>` on the proxy.
+/// Permission: Module
 pub fn execute_module_action(
     deps: DepsMut,
     msg_info: MessageInfo,
@@ -28,8 +30,8 @@ pub fn execute_module_action(
     Ok(ProxyResponse::action("execute_module_action").add_messages(msgs))
 }
 
-/// Executes actions forwarded by whitelisted contracts
-/// This contracts acts as a proxy contract for the dApps
+/// Executes `CosmosMsg` on the proxy and forwards its response.
+/// Permission: Module
 pub fn execute_module_action_response(
     deps: DepsMut,
     msg_info: MessageInfo,
@@ -45,8 +47,8 @@ pub fn execute_module_action_response(
     Ok(ProxyResponse::action("execute_module_action_response").add_submessage(submsg))
 }
 
-/// Executes IBC actions forwarded by whitelisted contracts
-/// Calls the messages on the IBC client (ensuring permission)
+/// Executes IBC actions on the IBC client.
+/// Permission: Module
 pub fn execute_ibc_action(deps: DepsMut, msg_info: MessageInfo, msg: IbcClientMsg) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
     if !state.modules.contains(&msg_info.sender) {
@@ -71,20 +73,37 @@ pub fn execute_ibc_action(deps: DepsMut, msg_info: MessageInfo, msg: IbcClientMs
     Ok(ProxyResponse::action("execute_ibc_action").add_message(client_msg))
 }
 
-/// Update the stored vault asset information
-pub fn update_assets(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
-    to_remove: Vec<AssetEntry>,
-) -> ProxyResult {
-    // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let ans_host = &ANS_HOST.load(deps.storage)?;
+/// Execute an action on an ICA.
+/// Permission: Module
+///
+/// This function queries the `abstract:ica-client` contract from the account's manager.
+/// It then fires a smart-query on that address of type [`QueryMsg::IcaAction`](abstract_ica::msg::QueryMsg).
+///
+/// The resulting `Vec<CosmosMsg>` are then executed on the proxy contract.
+pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> ProxyResult {
+    let state = STATE.load(deps.storage)?;
+    if !state.modules.contains(&msg_info.sender) {
+        return Err(ProxyError::SenderNotWhitelisted {});
+    }
 
-    let oracle = Oracle::new();
-    oracle.update_assets(deps, ans_host, to_add, to_remove)?;
-    Ok(ProxyResponse::action("update_proxy_assets"))
+    let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
+    let ica_client_address = abstract_sdk::std::manager::state::ACCOUNT_MODULES
+        .query(&deps.querier, manager_address, ICA_CLIENT)?
+        .ok_or_else(|| {
+            StdError::generic_err(format!(
+                "ica_client not found on manager. Add it under the {ICA_CLIENT} name."
+            ))
+        })?;
+
+    let res: abstract_ica::msg::IcaActionResult = deps.querier.query(
+        &WasmQuery::Smart {
+            contract_addr: ica_client_address.into(),
+            msg: action_query,
+        }
+        .into(),
+    )?;
+
+    Ok(ProxyResponse::action("ica_action").add_messages(res.msgs))
 }
 
 /// Add a contract to the whitelist
@@ -410,13 +429,12 @@ mod test {
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".parse().unwrap(),
-                    base_asset: None,
                     namespace: None,
                     install_modules: vec![],
                 },
             };
 
-            let not_whitelisted_info = mock_info(TEST_MANAGER, &[]);
+            let not_whitelisted_info = mock_info("not_whitelisted", &[]);
             execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
             let manager_info = mock_info(TEST_MANAGER, &[]);
@@ -438,7 +456,6 @@ mod test {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".parse().unwrap(),
-                        base_asset: None,
                         namespace: None,
                         install_modules: vec![],
                     })
@@ -502,6 +519,62 @@ mod test {
                     funds,
                 },
             )));
+        }
+    }
+
+    mod ica_action {
+        use abstract_ica::msg::IcaActionResult;
+        use abstract_std::{manager, proxy::state::State};
+
+        use super::*;
+
+        #[test]
+        fn ica_action() {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+            // whitelist creator
+            STATE
+                .save(
+                    &mut deps.storage,
+                    &State {
+                        modules: vec![Addr::unchecked(TEST_MANAGER)],
+                    },
+                )
+                .unwrap();
+
+            let action = Binary::from(b"some_action");
+            let msg = ExecuteMsg::IcaAction {
+                action_query_msg: action.clone(),
+            };
+
+            let not_whitelisted_info = mock_info("not_whitelisted", &[]);
+            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+
+            let manager_info = mock_info(TEST_MANAGER, &[]);
+            // ibc not enabled
+            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            // mock enabling ibc
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_map_entry(
+                    TEST_MANAGER,
+                    manager::state::ACCOUNT_MODULES,
+                    (ICA_CLIENT, Addr::unchecked("ica_client_addr")),
+                )
+                .with_smart_handler("ica_client_addr", move |bin| {
+                    if bin.eq(&action) {
+                        Ok(to_json_binary(&IcaActionResult {
+                            msgs: vec![CosmosMsg::Custom(Empty {})],
+                        })
+                        .unwrap())
+                    } else {
+                        Err("Unexpected action query".to_owned())
+                    }
+                })
+                .build();
+
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            assert_that(&res.messages).has_length(1);
+            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Custom(Empty {})));
         }
     }
 }

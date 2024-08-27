@@ -146,7 +146,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     name,
                     description,
                     link,
-                    base_asset,
                     namespace,
                     install_modules,
                     account_id,
@@ -157,7 +156,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     name,
                     description,
                     link,
-                    base_asset,
                     namespace,
                     install_modules,
                     account_id,
@@ -249,9 +247,6 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
     match msg.id {
         commands::REGISTER_MODULES_DEPENDENCIES => {
             commands::register_dependencies(deps, msg.result)
-        }
-        commands::HANDLE_ADAPTER_AUTHORIZED_REMOVE => {
-            commands::adapter_authorized_remove(deps, msg.result)
         }
         _ => Err(ManagerError::UnexpectedReply {}),
     }

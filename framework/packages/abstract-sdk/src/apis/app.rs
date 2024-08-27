@@ -72,11 +72,11 @@ impl<'a, T: AppInterface> Apps<'a, T> {
     pub fn execute<M: Serialize>(
         &self,
         app_id: ModuleId,
-        message: impl Into<msg::ExecuteMsg<M, Empty>>,
+        message: impl Into<msg::ExecuteMsg<M>>,
     ) -> AbstractSdkResult<CosmosMsg> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(app_id)?;
-        let app_msg: msg::ExecuteMsg<M, Empty> = message.into();
+        let app_msg: msg::ExecuteMsg<M> = message.into();
         let app_address = modules.module_address(app_id)?;
         Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
     }
@@ -145,8 +145,7 @@ mod tests {
 
             let res = mods.execute(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
-            let expected_msg: app::ExecuteMsg<_, Empty> =
-                app::ExecuteMsg::Module(MockModuleExecuteMsg {});
+            let expected_msg: app::ExecuteMsg<_> = app::ExecuteMsg::Module(MockModuleExecuteMsg {});
 
             assert_that!(res)
                 .is_ok()

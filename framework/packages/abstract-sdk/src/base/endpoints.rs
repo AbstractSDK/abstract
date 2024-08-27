@@ -72,13 +72,13 @@
 //! # use schemars::JsonSchema;
 //! # use serde::Serialize;
 //!
-//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg: Serialize + JsonSchema >
-//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg > {
+//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg: Serialize + JsonSchema >
+//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg > {
 //!     
 //!     // Expected entrypoint ExecuteMsg type, imported from abstract_std.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`
 //!     // type that is inserted into the expected execute message.
-//!     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
+//!     type ExecuteMsg = ExecuteMsg<CustomExecMsg>;
 //!     
 //!     fn execute(
 //!         self,
@@ -96,7 +96,6 @@
 //!             // by passing `self` to the handlers we expose all the features and Adapters that the base contract provides through the SDK.
 //!             ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
 //!             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
-//!             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
 //!            
 //!         }
 //!     }
@@ -122,9 +121,6 @@
 //!
 //! ## Sudo
 //! The sudo endpoint can only be called by the chain's governance address.
-//!
-//! #### Receive
-//! The receive endpoint is used to handle messages sent from external contracts, most commonly the [CW20](https://crates.io/crates/cw20) contract.
 
 mod execute;
 mod ibc_callback;
@@ -132,17 +128,15 @@ mod instantiate;
 pub(crate) mod migrate;
 mod modules_ibc;
 mod query;
-mod receive;
 mod reply;
 mod sudo;
 
 // Provide endpoints under ::base::traits::
-pub use execute::ExecuteEndpoint;
+pub use execute::{CustomExecuteHandler, ExecuteEndpoint};
 pub use ibc_callback::IbcCallbackEndpoint;
 pub use instantiate::InstantiateEndpoint;
 pub use migrate::MigrateEndpoint;
 pub use modules_ibc::ModuleIbcEndpoint;
 pub use query::QueryEndpoint;
-pub use receive::ReceiveEndpoint;
 pub use reply::ReplyEndpoint;
 pub use sudo::SudoEndpoint;

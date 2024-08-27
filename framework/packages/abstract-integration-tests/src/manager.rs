@@ -1,4 +1,4 @@
-use abstract_adapter::mock::{MockExecMsg, MockReceiveMsg};
+use abstract_adapter::mock::MockExecMsg;
 use abstract_app::mock::MockInitMsg;
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
@@ -67,7 +67,6 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
             install_modules: vec![],
             account_id: None,
         },
@@ -100,7 +99,6 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
             ),
         ],
         String::from("sub_account"),
-        None,
         None,
         Some(String::from("account_description")),
         None,
@@ -160,7 +158,6 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
             install_modules: vec![],
             account_id: None,
         },
@@ -241,7 +238,6 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
                 description: None,
                 link: None,
                 namespace: None,
-                base_asset: None,
                 install_modules: vec![
                     ModuleInstallConfig::new(
                         ModuleInfo::from_id(
@@ -433,7 +429,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 
     let manager_address = account.manager.address()?;
     staking_adapter.call_as(&manager_address).execute(
-        &abstract_std::adapter::ExecuteMsg::<MockExecMsg, MockReceiveMsg>::Base(
+        &abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Base(
             abstract_std::adapter::BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -459,12 +455,10 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
             // execute a message on the adapter, which sets some data in its response
             msg: wasm_execute(
                 adapter_addr.address,
-                &abstract_std::adapter::ExecuteMsg::<MockExecMsg, Empty>::Module(
-                    AdapterRequestMsg {
-                        proxy_address: Some(account.proxy.addr_str()?),
-                        request: MockExecMsg {},
-                    },
-                ),
+                &abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Module(AdapterRequestMsg {
+                    proxy_address: Some(account.proxy.addr_str()?),
+                    request: MockExecMsg {},
+                }),
                 vec![],
             )?
             .into(),
@@ -485,7 +479,6 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
-        None,
         None,
         None,
         None,

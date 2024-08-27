@@ -4,7 +4,7 @@ use cw2::ContractVersion;
 
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
+    MigrateHandlerFn, ModuleIbcHandlerFn, QueryHandlerFn, SudoHandlerFn,
 };
 use crate::{
     base::{
@@ -29,8 +29,6 @@ where
     type CustomQueryMsg;
     /// Custom migrate message for the contract
     type CustomMigrateMsg;
-    /// Receive message for the contract
-    type ReceiveMsg;
     /// Sudo message for the contract
     type SudoMsg;
 
@@ -145,24 +143,6 @@ where
         Ok(handler)
     }
 
-    /// Get a reply handler if it exists.
-    fn maybe_receive_handler(
-        &self,
-    ) -> Option<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
-        let contract = self.contract();
-        contract.receive_handler
-    }
-    /// Get a receive handler or return an error.
-    fn receive_handler(
-        &self,
-    ) -> AbstractSdkResult<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
-        let Some(handler) = self.maybe_receive_handler() else {
-            return Err(AbstractSdkError::MissingHandler {
-                endpoint: "receive".to_string(),
-            });
-        };
-        Ok(handler)
-    }
     /// Get an ibc callback handler if it exists.
     fn maybe_ibc_callback_handler(&self) -> Option<IbcCallbackHandlerFn<Self, Self::Error>> {
         let contract = self.contract();

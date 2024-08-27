@@ -25,12 +25,13 @@ cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
-cw-semver = { workspace = true }
+semver = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
 abstract-macros = { workspace = true }
 cw-ownable = { workspace = true }
 cosmwasm-schema = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

@@ -16,8 +16,7 @@ use crate::{
     version_control::AccountBase,
 };
 
-pub type ExecuteMsg<ModuleMsg = Empty, ReceiveMsg = Empty> =
-    EndpointExecMsg<BaseExecuteMsg, ModuleMsg, ReceiveMsg>;
+pub type ExecuteMsg<ModuleMsg = Empty> = EndpointExecMsg<BaseExecuteMsg, ModuleMsg>;
 pub type QueryMsg<ModuleMsg = Empty> = EndpointQueryMsg<BaseQueryMsg, ModuleMsg>;
 pub type InstantiateMsg<ModuleMsg = Empty> = EndpointInstantiateMsg<BaseInstantiateMsg, ModuleMsg>;
 pub type MigrateMsg<ModuleMsg = Empty> = EndpointMigrateMsg<BaseMigrateMsg, ModuleMsg>;
@@ -32,7 +31,7 @@ use serde::Serialize;
 /// in the [`ExecuteMsg`] enum.
 /// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
 pub trait AppExecuteMsg: Serialize {}
-impl<T: AppExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
+impl<T: AppExecuteMsg> From<T> for ExecuteMsg<T> {
     fn from(module: T) -> Self {
         Self::Module(module)
     }
