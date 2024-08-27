@@ -11,7 +11,7 @@ use cw_orch::{contract::Contract, prelude::*};
 use crate::{client::AbstractClientResult, Application};
 
 /// A `Service` represents a contract registered in version control.
-/// 
+///
 /// `Service`s should be created from [`Application`]s using the `into_service` method.
 /// They can then be registered using the `service.deploy()` method.
 //
