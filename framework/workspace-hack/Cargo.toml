@@ -57,6 +57,7 @@ console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.20", default-features = false, features = ["cosmwasm", "grpc-transport"] }
 cosmrs = { version = "0.15", features = ["cosmwasm", "dev", "grpc"] }
 cosmwasm-std = { version = "1", default-features = false, features = ["cosmwasm_1_4"] }
+crunchy = { version = "0.2", features = ["std"] }
 cw-orch-interchain-core = { version = "0.4", default-features = false, features = ["daemon"] }
 deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
@@ -104,8 +105,10 @@ console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.20", default-features = false, features = ["cosmwasm", "grpc-transport"] }
 cosmrs = { version = "0.15", features = ["cosmwasm", "dev", "grpc"] }
 cosmwasm-std = { version = "1", default-features = false, features = ["cosmwasm_1_4"] }
+crunchy = { version = "0.2", features = ["std"] }
 cw-orch-interchain-core = { version = "0.4", default-features = false, features = ["daemon"] }
 deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
+derive_more = { version = "0.99" }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 ecdsa = { version = "0.16", features = ["pkcs8", "signing", "std", "verifying"] }
 ed25519 = { version = "2", default-features = false, features = ["alloc", "serde", "std"] }
@@ -152,6 +155,7 @@ console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.20", default-features = false, features = ["cosmwasm", "grpc-transport"] }
 cosmrs = { version = "0.15", features = ["cosmwasm", "dev", "grpc"] }
 cosmwasm-std = { version = "1", default-features = false, features = ["cosmwasm_1_4"] }
+crunchy = { version = "0.2", features = ["std"] }
 cw-orch-interchain-core = { version = "0.4", default-features = false, features = ["daemon"] }
 deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
@@ -200,8 +204,10 @@ console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.20", default-features = false, features = ["cosmwasm", "grpc-transport"] }
 cosmrs = { version = "0.15", features = ["cosmwasm", "dev", "grpc"] }
 cosmwasm-std = { version = "1", default-features = false, features = ["cosmwasm_1_4"] }
+crunchy = { version = "0.2", features = ["std"] }
 cw-orch-interchain-core = { version = "0.4", default-features = false, features = ["daemon"] }
 deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
+derive_more = { version = "0.99" }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 ecdsa = { version = "0.16", features = ["pkcs8", "signing", "std", "verifying"] }
 ed25519 = { version = "2", default-features = false, features = ["alloc", "serde", "std"] }
