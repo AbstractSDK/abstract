@@ -371,4 +371,8 @@ tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
 uuid = { version = "1", features = ["v4"] }
 
+
+# Disabled by running `cargo hakari disable`.
+# To re-enable, run:
+#     cargo hakari generate
 ### END HAKARI SECTION
