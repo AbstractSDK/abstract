@@ -24,4 +24,6 @@ abstract-testing.workspace = true
 cosmwasm-schema = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
