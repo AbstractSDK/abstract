@@ -741,17 +741,13 @@ mod test {
 
     fn create_second_account(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) {
         let abstr = AbstractMockAddrs::new(deps.api);
-        let second_account = AccountBase {
-            manager: deps.api.addr_make("second-manager"),
-            proxy: deps.api.addr_make("second-proxy"),
-        };
         // create second account
         execute_as(
             deps.as_mut(),
             &abstr.account_factory,
             ExecuteMsg::AddAccount {
                 account_id: SECOND_TEST_ACCOUNT_ID,
-                account_base: second_account,
+                account_base: abstr.account,
                 namespace: None,
             },
         )
@@ -986,13 +982,16 @@ mod test {
             .unwrap();
 
             // We create a 0 admin account
-            const TEST_ADMIN_PROXY: &str = "test-admin-proxy";
+            let test_admin_proxy = deps.api.addr_make("test-admin-proxy");
             execute_as(
                 deps.as_mut(),
                 &abstr.account_factory,
                 ExecuteMsg::AddAccount {
                     account_id: ABSTRACT_ACCOUNT_ID,
-                    account_base: abstr.account,
+                    account_base: AccountBase {
+                        manager: abstr.account.manager,
+                        proxy: test_admin_proxy.clone(),
+                    },
                     namespace: None,
                 },
             )
@@ -1037,7 +1036,7 @@ mod test {
                 .is_ok()
                 .map(|res| &res.messages)
                 .is_equal_to(vec![SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
-                    to_address: TEST_ADMIN_PROXY.to_string(),
+                    to_address: test_admin_proxy.to_string(),
                     amount: sent_coins,
                 }))]);
 
@@ -1136,7 +1135,7 @@ mod test {
                         _ => panic!("unexpected message"),
                     }
                 })
-                .with_owner(&abstr.account.manager, Some(&abstr.owner))
+                .with_owner(&account_1_manager, Some(&abstr.owner))
                 .build();
             mock_init_with_account(&mut deps, true)?;
 
@@ -2332,13 +2331,13 @@ mod test {
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
+            let other = deps.api.addr_make(TEST_OTHER);
             let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
-                new_owner: TEST_OTHER.to_string(),
+                new_owner: other.to_string(),
                 expiry: None,
             });
 
             // as other
-            let other = deps.api.addr_make(TEST_OTHER);
             let transfer_res = execute_as(deps.as_mut(), &other, transfer_msg.clone());
             assert_that!(&transfer_res)
                 .is_err()
