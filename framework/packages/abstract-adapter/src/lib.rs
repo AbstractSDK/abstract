@@ -48,7 +48,7 @@ pub mod mock {
     crate::adapter_msg_types!(MockAdapterContract, MockExecMsg, MockQueryMsg);
 
     pub const TEST_METADATA: &str = "test_metadata";
-    pub const TEST_AUTHORIZED_ADDRESS: &str = "test_authorized_address";
+    pub const TEST_AUTHORIZED_ADDR: &str = "test_authorized_address";
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {

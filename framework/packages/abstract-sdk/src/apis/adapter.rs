@@ -145,7 +145,7 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier(deps.api);
             let app = MockModule::new(deps.api);
-            let base = test_account_base(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let mods = app.adapters(deps.as_ref());
 
@@ -153,14 +153,14 @@ mod tests {
 
             let expected_msg: adapter::ExecuteMsg<_, Empty> =
                 adapter::ExecuteMsg::Module(AdapterRequestMsg {
-                    proxy_address: Some(base.proxy.to_string()),
+                    proxy_address: Some(abstr.account.proxy.to_string()),
                     request: MockModuleExecuteMsg {},
                 });
 
             assert_that!(res)
                 .is_ok()
                 .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: base.proxy.to_string(),
+                    contract_addr: abstr.module_address.to_string(),
                     msg: to_json_binary(&expected_msg).unwrap(),
                     funds: vec![],
                 }));

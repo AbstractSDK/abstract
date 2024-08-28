@@ -85,13 +85,7 @@ pub mod mock {
     pub struct MockSudoMsg;
 
     use abstract_sdk::{base::InstantiateEndpoint, features::Dependencies, AbstractSdkError};
-    use abstract_testing::{
-        addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
-        prelude::{
-            MockDeps, MockQuerierBuilder, TEST_MODULE_FACTORY, TEST_MODULE_ID, TEST_VERSION,
-            TEST_WITH_DEP_MODULE_ID,
-        },
-    };
+    use abstract_testing::prelude::*;
     use thiserror::Error;
 
     use self::interface::MockAppWithDepI;
@@ -205,27 +199,26 @@ pub mod mock {
 
     crate::export_endpoints!(MOCK_APP_WITH_DEP, MockAppContract);
 
-    pub fn app_base_mock_querier() -> MockQuerierBuilder {
+    pub fn app_base_mock_querier(mock_api: MockApi) -> MockQuerierBuilder {
+        let abstr = AbstractMockAddrs::new(mock_api);
         MockQuerierBuilder::default()
-            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected messsage"))
+            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected messsage"))
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
     /// This will set the [`abstract_testing::addresses::TEST_MANAGER`] as the admin.
     pub fn mock_init() -> MockDeps {
         let mut deps = mock_dependencies();
-        let module_factory = deps.api.addr_make(TEST_MODULE_FACTORY);
-        let ans_host = deps.api.addr_make(TEST_ANS_HOST);
-        let version_control = deps.api.addr_make(TEST_VERSION_CONTROL);
-        let info = message_info(&module_factory, &[]);
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.module_factory, &[]);
 
-        deps.querier = app_base_mock_querier().build();
+        deps.querier = app_base_mock_querier(deps.api).build();
 
         let msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
-                ans_host_address: ans_host.to_string(),
-                version_control_address: version_control.to_string(),
-                account_base: test_account_base(),
+                ans_host_address: abstr.ans_host.to_string(),
+                version_control_address: abstr.version_control.to_string(),
+                account_base: abstr.account,
             },
             module: MockInitMsg {},
         };

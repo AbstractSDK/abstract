@@ -91,10 +91,11 @@ mod tests {
         _msg: MockExecMsg,
     ) -> Result<Response, MockError> {
         let mock_api = MockApi::default();
-        let expected_proxy = mock_api.addr_make(TEST_PROXY);
-        let expected_manager = mock_api.addr_make(TEST_MANAGER);
-        let expected_ans = mock_api.addr_make(TEST_ANS_HOST);
-        let expected_vc = mock_api.addr_make(TEST_VERSION_CONTROL);
+        let abstr = AbstractMockAddrs::new(mock_api);
+        let expected_proxy = abstr.account.proxy;
+        let expected_manager = abstr.account.manager;
+        let expected_ans = abstr.ans_host;
+        let expected_vc = abstr.version_control;
         // assert with test values
         let proxy = module.proxy_address(deps.as_ref())?;
         assert_that!(proxy).is_equal_to(&expected_proxy);
@@ -123,18 +124,25 @@ mod tests {
     #[test]
     fn custom_exec() {
         let mut deps = mock_dependencies();
-        let manager = deps.api.addr_make(TEST_MANAGER);
-        deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID).build();
+        let base = test_account_base(deps.api);
 
-        mock_init_custom(deps.as_mut(), featured_adapter()).unwrap();
+        deps.querier = AbstractMockQuerierBuilder::new(deps.api)
+            .account(&base, TEST_ACCOUNT_ID)
+            .build();
+
+        mock_init_custom(&mut deps, featured_adapter()).unwrap();
 
         let msg = ExecuteMsg::Module(AdapterRequestMsg {
             proxy_address: None,
             request: MockExecMsg {},
         });
 
-        let res =
-            featured_adapter().execute(deps.as_mut(), mock_env(), message_info(&manager, &[]), msg);
+        let res = featured_adapter().execute(
+            deps.as_mut(),
+            mock_env(),
+            message_info(&base.manager, &[]),
+            msg,
+        );
 
         assert_that!(res).is_ok();
     }
@@ -142,9 +150,11 @@ mod tests {
     #[test]
     fn targets_not_set() {
         let mut deps = mock_dependencies();
-        deps.querier = AbstractMockQuerierBuilder::new(deps.api).account(&test_account_base(deps.api), TEST_ACCOUNT_ID).build();
+        deps.querier = AbstractMockQuerierBuilder::new(deps.api)
+            .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
+            .build();
 
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         let res = MOCK_ADAPTER.proxy_address(deps.as_ref());
         assert_that!(res).is_err();

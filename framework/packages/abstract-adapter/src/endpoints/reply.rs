@@ -24,7 +24,7 @@ mod test {
     fn endpoint() -> AdapterMockResult {
         let env = mock_env();
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_testing::mock_querier(deps.api);
         let reply_msg = Reply {
             id: 1,
             result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
@@ -46,7 +46,7 @@ mod test {
     fn no_matching_id() -> AdapterMockResult {
         let env = mock_env();
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_testing::mock_querier(deps.api);
         let reply_msg = Reply {
             id: 0,
             result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {

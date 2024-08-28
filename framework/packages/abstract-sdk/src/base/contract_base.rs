@@ -1,7 +1,6 @@
 use abstract_std::ibc::{Callback, IbcResult, ModuleIbcInfo};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
-use cw_storage_plus::Item;
 
 use super::handler::Handler;
 use crate::{std::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};

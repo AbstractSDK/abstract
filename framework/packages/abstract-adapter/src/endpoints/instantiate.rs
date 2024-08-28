@@ -80,12 +80,14 @@ mod test {
         let api = MOCK_ADAPTER.with_dependencies(&[MOCK_DEP]);
         let env = mock_env();
         let mut deps = mock_dependencies();
-        let info = message_info(&deps.api.addr_make(TEST_MANAGER), &[]);
-        deps.querier = abstract_testing::mock_querier();
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        let info = message_info(&abstr.account.manager, &[]);
+        deps.querier = abstract_testing::mock_querier(deps.api);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: deps.api.addr_make(TEST_ANS_HOST).to_string(),
-                version_control_address: deps.api.addr_make(TEST_VERSION_CONTROL).to_string(),
+                ans_host_address: abstr.ans_host.to_string(),
+                version_control_address: abstr.version_control.to_string(),
             },
             module: MockInitMsg {},
         };
@@ -115,10 +117,10 @@ mod test {
         let state = api.base_state.load(&deps.storage)?;
         assert_that!(state).is_equal_to(AdapterState {
             version_control: VersionControlContract {
-                address: deps.api.addr_make(TEST_VERSION_CONTROL),
+                address: abstr.version_control,
             },
             ans_host: AnsHost {
-                address: deps.api.addr_make(TEST_ANS_HOST),
+                address: abstr.ans_host,
             },
         });
         Ok(())

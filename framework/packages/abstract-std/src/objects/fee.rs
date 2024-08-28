@@ -193,7 +193,7 @@ mod tests {
         }
     }
     mod transfer_fee {
-        use cosmwasm_std::{coin, coins, testing::mock_info};
+        use cosmwasm_std::{coin, coins, testing::message_info};
 
         use super::*;
 
@@ -253,7 +253,7 @@ mod tests {
         #[test]
         fn test_loose_fee_validation() {
             let fee = FixedFee::new(&coin(45, "ujunox"));
-            let mut info = mock_info("anyone", &coins(47, "ujunox"));
+            let mut info = message_info(&Addr::unchecked("anyone"), &coins(47, "ujunox"));
             fee.charge(&mut info).unwrap();
             assert_eq!(info.funds, coins(2, "ujunox"));
         }

@@ -1,8 +1,6 @@
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
 
-use std::path::PathBuf;
-
 use cw_orch::prelude::*;
 
 use crate::{
@@ -149,7 +147,7 @@ impl<Chain: CwEnv> DeployedChains<Chain> for Abstract<Chain> {
         let crate_path = env!("CARGO_MANIFEST_DIR");
 
         Some(
-            PathBuf::from(crate_path)
+            std::path::PathBuf::from(crate_path)
                 .join("state.json")
                 .display()
                 .to_string(),

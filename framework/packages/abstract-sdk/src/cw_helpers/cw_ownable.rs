@@ -44,7 +44,7 @@ mod tests {
     use cosmwasm_schema::{cw_serde, QueryResponses};
     use cosmwasm_std::{
         from_json,
-        testing::{mock_dependencies, mock_env, mock_info},
+        testing::{message_info, mock_dependencies, mock_env},
         Addr, Binary, StdError, StdResult,
     };
     use cw_ownable::{cw_ownable_execute, cw_ownable_query, Action, OwnershipError};
@@ -80,15 +80,17 @@ mod tests {
         let mut deps = mock_dependencies();
 
         let env = mock_env();
-        let info = mock_info(OLD_OWNER, &[]);
+        let old_owner = deps.api.addr_make(OLD_OWNER);
+        let new_owner = deps.api.addr_make(NEW_OWNER);
+        let info = message_info(&old_owner, &[]);
 
-        cw_ownable::initialize_owner(&mut deps.storage, &deps.api, Some(OLD_OWNER))?;
+        cw_ownable::initialize_owner(&mut deps.storage, &deps.api, Some(old_owner.as_str()))?;
 
         let mut_deps = deps.as_mut();
 
         // ExecuteMsg for testing the macro
         let transfer_ownership_action = Action::TransferOwnership {
-            new_owner: NEW_OWNER.to_string(),
+            new_owner: new_owner.to_string(),
             expiry: None,
         };
 
@@ -103,8 +105,8 @@ mod tests {
         let expected_response = MockResponse::new(
             "update_ownership",
             vec![
-                ("owner", OLD_OWNER),
-                ("pending_owner", NEW_OWNER),
+                ("owner", old_owner.as_str()),
+                ("pending_owner", new_owner.as_str()),
                 ("pending_expiry", "none"),
             ],
         );
@@ -119,9 +121,9 @@ mod tests {
         let mut deps = mock_dependencies();
         let _env = mock_env();
 
-        let old_owner = "owner1";
+        let old_owner = deps.api.addr_make("owner1");
 
-        cw_ownable::initialize_owner(&mut deps.storage, &deps.api, Some(old_owner))?;
+        cw_ownable::initialize_owner(&mut deps.storage, &deps.api, Some(old_owner.as_str()))?;
 
         // Ownership query message for testing the macro
         let ownership_query_msg = QueryMsg::Ownership {};
@@ -131,7 +133,7 @@ mod tests {
         };
 
         let expected = cw_ownable::Ownership {
-            owner: Some(Addr::unchecked(old_owner)),
+            owner: Some(old_owner),
             pending_owner: None,
             pending_expiry: None,
         };

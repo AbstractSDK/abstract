@@ -262,10 +262,9 @@ pub fn execute_update_config(
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
-    use abstract_testing::OWNER;
     use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        to_json_binary,
+        testing::{message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage},
+        to_json_binary, OwnedDeps,
     };
     use speculoos::prelude::*;
 
@@ -274,19 +273,21 @@ mod test {
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
-    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute(deps, mock_env(), mock_info(sender, &[]), msg)
+    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
+        execute(deps, mock_env(), message_info(sender, &[]), msg)
     }
 
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute_as(deps, OWNER, msg)
-    }
-
-    fn test_only_admin(msg: ExecuteMsg) -> ModuleFactoryTestResult {
-        let mut deps = mock_dependencies();
-        mock_init(deps.as_mut())?;
-
-        let res = execute(deps.as_mut(), mock_env(), mock_info("not_admin", &[]), msg);
+    fn test_only_admin(
+        msg: ExecuteMsg,
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+    ) -> ModuleFactoryTestResult {
+        let not_admin = deps.api.addr_make("not_admin");
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            message_info(&not_admin, &[]),
+            msg,
+        );
         assert_that!(&res)
             .is_err()
             .is_equal_to(ModuleFactoryError::Ownership(
@@ -297,42 +298,45 @@ mod test {
     }
 
     mod update_ownership {
+        use abstract_testing::prelude::AbstractMockAddrs;
+
         use super::*;
 
         #[test]
         fn only_admin() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
                 new_owner: "new_owner".to_string(),
                 expiry: None,
             });
 
-            test_only_admin(msg)
+            test_only_admin(msg, &mut deps)
         }
 
         #[test]
         fn update_owner() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_admin = "new_admin";
+            let new_admin = deps.api.addr_make("new_admin");
             // First update to transfer
             let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
                 new_owner: new_admin.to_string(),
                 expiry: None,
             });
 
-            let _transfer_res = execute_as_admin(deps.as_mut(), transfer_msg)?;
+            let _transfer_res = execute_as(deps.as_mut(), &abstr.owner, transfer_msg)?;
 
             // Then update and accept as the new owner
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
-            let _accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
+            let _accept_res = execute_as(deps.as_mut(), &new_admin, accept_msg).unwrap();
 
             assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
                 .is_some()
-                .is_equal_to(cosmwasm_std::Addr::unchecked(new_admin));
+                .is_equal_to(new_admin);
 
             Ok(())
         }
@@ -342,9 +346,7 @@ mod test {
         use super::*;
 
         use abstract_std::objects::{module::ModuleVersion, AccountId};
-        use cosmwasm_std::{
-            coin, Api, Checksum, CodeInfoResponse, Empty, HexBinary, QuerierResult,
-        };
+        use cosmwasm_std::{coin, Api, Checksum, CodeInfoResponse, Empty, QuerierResult};
 
         #[test]
         fn should_create_msg_with_instantiate2_msg() -> ModuleFactoryTestResult {
@@ -369,7 +371,6 @@ mod test {
                 }
                 _ => panic!("handling only code_info"),
             });
-            let _info = mock_info("anyone", &[]);
 
             let expected_module_init_msg = to_json_binary(&Empty {}).unwrap();
             let expected_code_id = 10u64;
@@ -431,33 +432,38 @@ mod test {
     }
 
     mod update_config {
+        use abstract_testing::prelude::AbstractMockAddrs;
+
         use super::*;
 
         #[test]
         fn only_admin() -> ModuleFactoryTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(&mut deps)?;
+
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_address: None,
                 version_control_address: None,
             };
 
-            test_only_admin(msg)
+            test_only_admin(msg, &mut deps)
         }
 
         #[test]
         fn update_ans_host_address() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_ans_host = "new_ans_host";
+            let new_ans_host = deps.api.addr_make("new_ans_host");
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_address: Some(new_ans_host.to_string()),
                 version_control_address: None,
             };
 
-            execute_as_admin(deps.as_mut(), msg)?;
+            execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
-            assert_that!(CONFIG.load(&deps.storage)?.ans_host_address)
-                .is_equal_to(Addr::unchecked(new_ans_host));
+            assert_that!(CONFIG.load(&deps.storage)?.ans_host_address).is_equal_to(new_ans_host);
 
             Ok(())
         }
@@ -465,18 +471,18 @@ mod test {
         #[test]
         fn update_version_control_address() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_vc = "new_version_control";
+            let new_vc = deps.api.addr_make("new_version_control");
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_address: None,
                 version_control_address: Some(new_vc.to_string()),
             };
 
-            execute_as_admin(deps.as_mut(), msg)?;
+            execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
-            assert_that!(CONFIG.load(&deps.storage)?.version_control_address)
-                .is_equal_to(Addr::unchecked(new_vc));
+            assert_that!(CONFIG.load(&deps.storage)?.version_control_address).is_equal_to(new_vc);
 
             Ok(())
         }

@@ -373,14 +373,14 @@ impl MockQuerierBuilder {
 
 pub trait MockQuerierOwnership {
     /// Add the [`cw_gov_ownable::Ownership`] to the querier.
-    fn with_owner(self, contract: &Addr, owner: Option<impl ToString>) -> Self;
+    fn with_owner(self, contract: &Addr, owner: Option<&Addr>) -> Self;
 }
 
 impl MockQuerierOwnership for MockQuerierBuilder {
-    fn with_owner(mut self, contract: &Addr, owner: Option<impl ToString>) -> Self {
+    fn with_owner(mut self, contract: &Addr, owner: Option<&Addr>) -> Self {
         let owner = if let Some(owner) = owner {
             GovernanceDetails::Monarchy {
-                monarch: Addr::unchecked(owner.to_string()),
+                monarch: owner.clone(),
             }
         } else {
             GovernanceDetails::Renounced {}
@@ -410,45 +410,43 @@ pub fn mock_querier(mock_api: MockApi) -> MockQuerier {
     let raw_handler = move |contract: &Addr, key: &Binary| {
         // TODO: should we do something with the key?
         let _str_key = std::str::from_utf8(key.as_slice()).unwrap();
-        let abstract_addrs = AbstractMockAddrs::new(mock_api);
-        let account_addrs = test_account_base(mock_api);
+        let abstr = AbstractMockAddrs::new(mock_api);
 
-        if contract == account_addrs.proxy {
+        if contract == abstr.account.proxy {
             Err("unexpected key".to_string())
-        } else if contract == account_addrs.manager {
+        } else if contract == abstr.account.manager {
             // Return the default value
             Ok(Binary::default())
-        } else if contract == abstract_addrs.version_control {
+        } else if contract == abstr.version_control {
             // Default value
             Ok(Binary::default())
         } else {
             Err("unexpected contract".to_string())
         }
     };
-    let abstract_addrs = AbstractMockAddrs::new(mock_api);
-    let account_base = test_account_base(mock_api);
+    let abstr = AbstractMockAddrs::new(mock_api);
 
     MockQuerierBuilder::default()
         .with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
-            &abstract_addrs.version_control,
+            &abstr.version_control,
             ACCOUNT_ADDRESSES,
-            (&TEST_ACCOUNT_ID, test_account_base(mock_api)),
+            (&TEST_ACCOUNT_ID, abstr.account.clone()),
         )
         .with_contract_item(
-            &account_base.proxy,
+            &abstr.account.proxy,
             Item::new("admin"),
-            &Some(account_base.manager.clone()),
+            &Some(abstr.account.manager.clone()),
         )
-        .with_contract_item(&account_base.manager, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-        .with_smart_handler(&abstract_addrs.module_address, |msg| {
+        .with_contract_item(&abstr.account.manager, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+        .with_smart_handler(&abstr.module_address, |msg| {
             let Empty {} = from_json(msg).unwrap();
             Ok(to_json_binary(TEST_MODULE_RESPONSE).unwrap())
         })
         .with_contract_map_entry(
-            &account_base.manager,
+            &abstr.account.manager,
             ACCOUNT_MODULES,
-            (TEST_MODULE_ID, abstract_addrs.module_address),
+            (TEST_MODULE_ID, abstr.module_address),
         )
         .build()
 }
@@ -483,7 +481,7 @@ mod tests {
                 &TEST_ACCOUNT_ID,
             );
 
-            let expected = test_account_base(deps.api);
+            let expected = abstr.account;
 
             assert_that!(actual).is_ok().is_some().is_equal_to(expected)
         }
@@ -573,11 +571,10 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
-            let test_base = test_account_base(deps.api);
 
             let actual = ACCOUNT_MODULES.query(
                 &wrap_querier(&deps.querier),
-                test_base.manager,
+                abstr.account.manager,
                 TEST_MODULE_ID,
             );
 

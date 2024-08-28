@@ -31,10 +31,7 @@ use abstract_std::{
     },
     IBC_CLIENT,
 };
-use abstract_testing::{
-    addresses::{TEST_MODULE_NAME, TTOKEN},
-    prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
-};
+use abstract_testing::prelude::*;
 use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;

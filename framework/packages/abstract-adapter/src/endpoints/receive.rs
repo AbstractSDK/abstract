@@ -11,7 +11,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 #[cfg(test)]
 mod tests {
     use abstract_std::adapter::ExecuteMsg;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env};
     use speculoos::prelude::*;
 
     use crate::mock::{execute, AdapterMockResult, MockReceiveMsg};
@@ -19,9 +19,10 @@ mod tests {
     #[test]
     fn endpoint() -> AdapterMockResult {
         let env = mock_env();
-        let info = mock_info("sender", &[]);
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        let sender = deps.api.addr_make("sender");
+        let info = message_info(&sender, &[]);
+        deps.querier = abstract_testing::mock_querier(deps.api);
         let msg = MockReceiveMsg {};
         let res = execute(deps.as_mut(), env, info, ExecuteMsg::Receive(msg))?;
         assert_that!(&res.messages.len()).is_equal_to(0);

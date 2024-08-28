@@ -45,6 +45,7 @@ pub mod addresses {
                 account_factory: mock_api.addr_make(TEST_ACCOUNT_FACTORY),
                 module_factory: mock_api.addr_make(TEST_MODULE_FACTORY),
                 module_address: mock_api.addr_make(TEST_MODULE_ADDRESS),
+                account: test_account_base(mock_api),
             }
         }
     }
@@ -57,6 +58,7 @@ pub mod addresses {
         pub account_factory: Addr,
         pub module_factory: Addr,
         pub module_address: Addr,
+        pub account: AccountBase,
     }
 }
 
@@ -100,5 +102,5 @@ pub mod prelude {
     pub use module::*;
 
     use super::*;
-    pub use super::{MockAnsHost, MockDeps};
+    pub use super::{MockAnsHost, MockDeps, TEST_VERSION};
 }

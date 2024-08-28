@@ -18,8 +18,8 @@ use crate::{
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        let test_base = test_account_base(self.mock_api);
-        Ok(test_base.proxy)
+        let abstr = AbstractMockAddrs::new(self.mock_api);
+        Ok(abstr.account.proxy)
     }
 }
 
@@ -33,16 +33,18 @@ impl ModuleIdentification for MockModule {
 
 impl AbstractNameService for MockModule {
     fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+        let abstr = AbstractMockAddrs::new(self.mock_api);
         Ok(AnsHost {
-            address: Addr::unchecked("ans"),
+            address: abstr.ans_host,
         })
     }
 }
 
 impl AbstractRegistryAccess for MockModule {
     fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+        let abstr = AbstractMockAddrs::new(self.mock_api);
         Ok(VersionControlContract {
-            address: Addr::unchecked("abstract_registry"),
+            address: abstr.version_control,
         })
     }
 }

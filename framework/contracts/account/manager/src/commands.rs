@@ -1046,16 +1046,9 @@ mod tests {
 
     type ManagerTestResult = Result<(), ManagerError>;
 
-    const TEST_PROXY_ADDR: &str = "proxy";
-
     fn mock_installed_proxy(deps: &mut MockDeps) -> StdResult<()> {
-        let owner = deps.api.addr_make(OWNER);
-        let _info = message_info(&owner, &[]);
-        ACCOUNT_MODULES.save(
-            deps.as_mut().storage,
-            PROXY,
-            &Addr::unchecked(TEST_PROXY_ADDR),
-        )
+        let base = test_account_base(deps.api);
+        ACCOUNT_MODULES.save(deps.as_mut().storage, PROXY, &base.proxy)
     }
 
     fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ManagerResult {
@@ -1113,7 +1106,8 @@ mod tests {
         #[test]
         fn validates_new_owner_address() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
@@ -1138,7 +1132,8 @@ mod tests {
         #[test]
         fn updates_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             let new_owner = deps.api.addr_make("new_owner");
             mock_init(&mut deps)?;
 
@@ -1167,7 +1162,8 @@ mod tests {
         #[test]
         fn updates_governance_type() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             let new_gov = deps.api.addr_make("new_gov");
 
             mock_init(&mut deps)?;
@@ -1299,8 +1295,8 @@ mod tests {
         #[test]
         fn only_account_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
-            let account_factory = deps.api.addr_make(TEST_ACCOUNT_FACTORY);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             let not_account_factory = deps.api.addr_make("not_account_factory");
             let module_addr = deps.api.addr_make("module_addr");
             mock_init(&mut deps)?;
@@ -1313,7 +1309,7 @@ mod tests {
             let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&action_add).unwrap());
 
             // the factory can not call this
-            let res = execute_as(deps.as_mut(), &account_factory, msg.clone());
+            let res = execute_as(deps.as_mut(), &abstr.account_factory, msg.clone());
             assert_that!(&res).is_err();
 
             // only the owner can
@@ -1372,7 +1368,8 @@ mod tests {
         #[test]
         fn errors_with_existing_dependents() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             init_with_proxy(&mut deps);
 
             let test_module = "test:module";
@@ -1397,7 +1394,8 @@ mod tests {
         #[test]
         fn disallows_removing_proxy() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             init_with_proxy(&mut deps);
 
             let msg = ExecuteMsg::UninstallModule {
@@ -1431,7 +1429,8 @@ mod tests {
         #[test]
         fn fails_with_nonexistent_module() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
 
             mock_init(&mut deps)?;
 
@@ -1452,11 +1451,12 @@ mod tests {
         #[test]
         fn forwards_exec_to_module() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
 
             init_with_proxy(&mut deps);
 
-            let exec_msg = &"some msg";
+            let exec_msg = "some msg";
 
             let msg = ExecuteMsg::ExecOnModule {
                 module_id: PROXY.to_string(),
@@ -1469,7 +1469,8 @@ mod tests {
             let msgs = res.unwrap().messages;
             assert_that!(&msgs).has_length(1);
 
-            let expected_msg: CosmosMsg = wasm_execute(TEST_PROXY_ADDR, &exec_msg, vec![])?.into();
+            let expected_msg: CosmosMsg =
+                wasm_execute(abstr.account.proxy, &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
             assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);
@@ -1498,7 +1499,8 @@ mod tests {
         #[test]
         fn updates() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             init_with_proxy(&mut deps);
 
             let name = "new name";
@@ -1526,7 +1528,8 @@ mod tests {
         #[test]
         fn removals() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             init_with_proxy(&mut deps);
 
             let prev_name = "name".to_string();
@@ -1561,7 +1564,8 @@ mod tests {
         #[test]
         fn validates_name() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             init_with_proxy(&mut deps);
 
             let msg = ExecuteMsg::UpdateInfo {
@@ -1598,7 +1602,8 @@ mod tests {
         #[test]
         fn validates_link() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
 
             init_with_proxy(&mut deps);
 
@@ -1679,7 +1684,8 @@ mod tests {
         #[test]
         fn exec_fails_when_suspended() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateStatus {
@@ -1709,7 +1715,8 @@ mod tests {
         #[test]
         fn suspend_account() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateStatus {
@@ -1727,7 +1734,8 @@ mod tests {
         #[test]
         fn unsuspend_account() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateStatus {
@@ -1751,7 +1759,8 @@ mod tests {
         #[test]
         fn only_account_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
 
             mock_init(&mut deps)?;
 
@@ -1770,8 +1779,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
 
-            let factory_addr = deps.api.addr_make(TEST_ACCOUNT_FACTORY);
-            let factory_res = execute_as(deps.as_mut(), &factory_addr, msg.clone());
+            let factory_res = execute_as(deps.as_mut(), &abstr.account_factory, msg.clone());
             assert_that!(&factory_res).is_err();
 
             let owner_res = execute_as(deps.as_mut(), &owner, msg);
@@ -1783,13 +1791,13 @@ mod tests {
         #[test]
         fn should_return_err_unrecognized_action() -> ManagerTestResult {
             let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
             mock_init(&mut deps)?;
 
             let msg =
                 ExecuteMsg::UpdateInternalConfig(to_json_binary(&QueryMsg::Config {}).unwrap());
 
-            let factory_addr = deps.api.addr_make(TEST_ACCOUNT_FACTORY);
-            let res = execute_as(deps.as_mut(), &factory_addr, msg);
+            let res = execute_as(deps.as_mut(), &abstr.account_factory, msg);
 
             assert_that!(&res)
                 .is_err()
@@ -1827,7 +1835,8 @@ mod tests {
         #[test]
         fn allows_ownership_acceptance() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            let owner = deps.api.addr_make(OWNER);
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
             mock_init(&mut deps)?;
 
             let pending_owner = deps.api.addr_make("not_owner");

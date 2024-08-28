@@ -90,13 +90,14 @@ mod test {
         export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
 
         let mut deps = mock_dependencies();
-        let owner = deps.api.addr_make(OWNER);
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let owner = abstr.owner;
 
         // init
         let init_msg = adapter::InstantiateMsg {
             base: adapter::BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
+                ans_host_address: abstr.ans_host.to_string(),
+                version_control_address: abstr.version_control.to_string(),
             },
             module: MockInitMsg {},
         };
