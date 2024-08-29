@@ -1,9 +1,10 @@
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, CosmosMsg, Empty};
-use manager::ModuleInstallConfig;
+use manager::{ModuleInstallConfig, UpdateSubAccountAction, InfoResponse, ModuleInfosResponse, SubAccountIdsResponse, ModuleAddressesResponse, ModuleVersionsResponse};
+use proxy::{ConfigResponse};
 
 use crate::{
-    ibc_client::ExecuteMsg,
-    objects::{gov_type::GovernanceDetails, AccountId},
+    objects::{gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse}, module::ModuleInfo, ownership::Ownership, AccountId},
 };
 
 use super::*;
@@ -20,9 +21,10 @@ pub struct InstantiateMsg {
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
-    // pub module_factory_address: String,
-    // pub version_control_address: String,
-    // pub ans_host_address: String,
+    // TODO: Compute these
+    pub module_factory_address: String,
+    pub version_control_address: String,
+    pub ans_host_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -34,7 +36,7 @@ pub enum ExecuteMsg {
     /// Execute a message and forward the Response data
     ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
-    IbcAction { msg: IbcClientMsg },
+    IbcAction { msg: crate::ibc_client::ExecuteMsg },
     /// Queries the Abstract Ica Client with the provided action query.
     /// Provides access to different ICA implementations for different ecosystems.
     IcaAction {
@@ -91,8 +93,6 @@ pub enum ExecuteMsg {
     UpdateStatus { is_suspended: Option<bool> },
     /// Actions called by internal or external sub-accounts
     UpdateSubAccount(UpdateSubAccountAction),
-    /// Callback endpoint
-    Callback(CallbackMsg),
     /// Update the contract's ownership. The `action`
     /// can propose transferring ownership to an account,
     /// accept a pending ownership transfer, or renounce the ownership
@@ -101,7 +101,7 @@ pub enum ExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[derive(cw_orch::QueryFns)]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     // ## Old Proxy ##
     /// Contains the enabled modules

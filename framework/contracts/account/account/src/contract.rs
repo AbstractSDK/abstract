@@ -42,12 +42,12 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
 
-    ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
+    ACCOUNT_ID.save(deps.storage, &account_id)?;
     STATE.save(deps.storage, &State { modules: vec![] })?;
 
     // ## Manage ##
-    let module_factory_address = deps.api.addr_validate(&msg.module_factory_address)?;
-    let version_control_address = deps.api.addr_validate(&msg.version_control_address)?;
+    let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
+    let version_control_address = deps.api.addr_validate(&version_control_address)?;
 
     // Save config
     let config = Config {
