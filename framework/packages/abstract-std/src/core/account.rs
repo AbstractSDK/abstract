@@ -22,12 +22,13 @@ pub struct InstantiateMsg {
     // TODO: fork and make pub
     // pub authenticator: Option<AddAuthenticator>,
     pub account_id: Option<AccountId>,
+    pub owner: GovernanceDetails<String>,
     // Optionally modules can be provided. They will be installed after account registration.
     pub install_modules: Vec<ModuleInstallConfig>,
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
-    // TODO: Compute these
+    // TODO: Compute these using instantiate2.
     pub module_factory_address: String,
     pub version_control_address: String,
     pub ans_host_address: String,

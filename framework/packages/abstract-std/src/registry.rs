@@ -6,6 +6,7 @@
 //! These fixed names can be used to provide name-addressable searches for complex logic.
 
 pub const MANAGER: &str = "abstract:manager";
+pub const ACCOUNT: &str = "abstract:account";
 pub const VERSION_CONTROL: &str = "abstract:version-control";
 pub const ACCOUNT_FACTORY: &str = "abstract:account-factory";
 pub const MODULE_FACTORY: &str = "abstract:module-factory";
