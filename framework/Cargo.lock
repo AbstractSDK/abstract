@@ -175,9 +175,9 @@ dependencies = [
 
 [[package]]
 name = "abstract-cw-orch-polytone"
-version = "4.0.1"
+version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d45fc5ab421fdc841958d511018136871c413c3a1aa38260561a38653a77b8b1"
+checksum = "0cdf8f6536844d2521a78dfb5c6b21510c51175c0206685875e10626666d1791"
 dependencies = [
  "abstract-polytone-note",
  "abstract-polytone-proxy",
