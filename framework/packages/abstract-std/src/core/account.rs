@@ -1,6 +1,7 @@
+use cosmwasm_std::{Binary, CosmosMsg, Empty};
 use manager::ModuleInstallConfig;
 
-use crate::objects::{gov_type::GovernanceDetails, AccountId};
+use crate::{ibc_client::ExecuteMsg, objects::{gov_type::GovernanceDetails, AccountId}};
 
 use super::*;
 
@@ -9,7 +10,7 @@ use super::*;
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     // TODO: fork and make pub
-    pub authenticator: Option<AddAuthenticator>,
+    // pub authenticator: Option<AddAuthenticator>,
     pub account_id: Option<AccountId>,
     // Optionally modules can be provided. They will be installed after account registration.
     pub install_modules: Vec<ModuleInstallConfig>,
