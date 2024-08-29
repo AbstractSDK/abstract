@@ -16,18 +16,9 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
         SudoMsg,
     > AbstractNameService
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         // Retrieve the ANS host address from the base state.
@@ -42,18 +33,9 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
         SudoMsg,
     > AccountIdentification
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.base_state.load(deps.storage)?.proxy_address)
@@ -66,18 +48,9 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
         SudoMsg,
     > AccountExecutor
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
 }
 
@@ -87,18 +60,9 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
         SudoMsg,
     > AbstractRegistryAccess
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
         Ok(self.base_state.load(deps.storage)?.version_control)

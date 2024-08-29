@@ -62,6 +62,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
+        ExecuteMsg::IcaAction { action_query_msg } => ica_action(deps, info, action_query_msg),
     }
 }
 

@@ -6,17 +6,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
         SudoMsg,
     > ReplyEndpoint
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
 }

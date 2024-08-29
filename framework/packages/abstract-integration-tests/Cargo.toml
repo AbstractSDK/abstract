@@ -24,3 +24,4 @@ abstract-testing.workspace = true
 cosmwasm-schema = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

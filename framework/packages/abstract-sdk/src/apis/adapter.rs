@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use abstract_std::{adapter::AdapterRequestMsg, objects::module::ModuleId};
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps};
 use serde::{de::DeserializeOwned, Serialize};
 
 use super::{AbstractApi, ApiIdentification};
@@ -70,7 +70,7 @@ pub struct Adapters<'a, T: AdapterInterface> {
 impl<'a, T: AdapterInterface> Adapters<'a, T> {
     /// Interactions with Abstract Adapters
     /// Construct an adapter execute message.
-    pub fn execute<M: Serialize + Into<abstract_std::adapter::ExecuteMsg<M, Empty>>>(
+    pub fn execute<M: Serialize + Into<abstract_std::adapter::ExecuteMsg<M>>>(
         &self,
         adapter_id: ModuleId,
         message: M,
@@ -150,7 +150,7 @@ mod tests {
 
             let res = mods.execute(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
-            let expected_msg: adapter::ExecuteMsg<_, Empty> =
+            let expected_msg: adapter::ExecuteMsg<_> =
                 adapter::ExecuteMsg::Module(AdapterRequestMsg {
                     proxy_address: Some(TEST_PROXY.into()),
                     request: MockModuleExecuteMsg {},

@@ -4,6 +4,7 @@ members = [
   "packages/standards/*",
   "contracts/native/*",
   "contracts/account/*",
+  "workspace-hack",
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -82,6 +83,7 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }
 
+abstract-ica = { path = "packages/abstract-ica" }
 abstract-sdk = { version = "0.23.0", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.23.0", path = "packages/abstract-testing" }
 abstract-std = { version = "0.23.0", path = "packages/abstract-std" }
@@ -100,6 +102,11 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+[profile.dev]
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 3
+
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
@@ -111,3 +118,7 @@ debug-assertions = false
 codegen-units = 1
 panic = 'abort'
 incremental = false
+
+[workspace.metadata.cargo-udeps.ignore]
+# ensures CI doens't flag workspace-hack as unused dep
+normal = ["workspace-hack"]

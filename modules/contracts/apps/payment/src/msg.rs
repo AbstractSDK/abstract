@@ -39,6 +39,26 @@ pub enum AppExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[derive(cw_orch::ExecuteFns)]
+/// Custom execute handler
+pub enum CustomExecuteMsg {
+    /// A configuration message, defined by the base.
+    Base(abstract_app::std::app::BaseExecuteMsg),
+    /// An app request defined by a base consumer.
+    Module(AppExecuteMsg),
+    // Payment App doesn't use IBC, so those skipped here
+    /// Custom msg type
+    Receive(cw20::Cw20ReceiveMsg),
+}
+
+// Enable cw_orch api
+impl From<AppExecuteMsg> for CustomExecuteMsg {
+    fn from(value: AppExecuteMsg) -> Self {
+        Self::Module(value)
+    }
+}
+
+#[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum AppQueryMsg {
     /// Returns [`ConfigResponse`]

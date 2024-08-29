@@ -33,6 +33,7 @@ abstract-interface = { version = "0.23.0", path = "../../packages/abstract-inter
 
 # Testing
 abstract-testing = { workspace = true, optional = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

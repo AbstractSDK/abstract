@@ -30,6 +30,7 @@ cw-asset = { workspace = true }
 abstract-macros = { workspace = true }
 abstract-sdk = { workspace = true }
 cw-ownable = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 cw20 = { workspace = true }

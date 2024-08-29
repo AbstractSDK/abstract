@@ -36,6 +36,7 @@ semver = { workspace = true }
 abstract-macros = { workspace = true }
 cw-orch = { workspace = true }
 cw-paginate = "0.2.1"
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 abstract-interface = { workspace = true }
