@@ -110,7 +110,7 @@ pub fn instantiate(
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
-            msg.install_modules,
+            install_modules,
             config.module_factory_address,
             config.version_control_address,
             info.funds,
