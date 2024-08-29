@@ -24,6 +24,7 @@ impl Default for AbstractDaemonState {
     }
 }
 
+// TODO: after cw-orch 0.25 replace env_info to chain_id
 impl AbstractDaemonState {
     /// Get address of the abstract contract by contract_id
     pub fn contract_addr(

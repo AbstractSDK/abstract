@@ -23,10 +23,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
     }
 
     pub fn instantiate(&self, abstr: &Abstract<Chain>, admin: &Addr) -> Result<(), CwOrchError> {
-        #[cfg(feature = "interchain")]
-        let register_infrastructures =
-            connection::list_ibc_infrastructures(self.host.environment().clone());
-
         self.client.instantiate(
             &abstract_std::ibc_client::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
@@ -37,14 +33,20 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         )?;
 
         #[cfg(feature = "interchain")]
-        for (chain, ibc_infrastructure) in register_infrastructures.counterparts {
-            use abstract_std::ibc_client::ExecuteMsgFns;
+        {
+            // Register polytones
+            let register_infrastructures =
+                connection::list_ibc_infrastructures(self.host.environment().clone());
 
-            self.client.register_infrastructure(
-                chain,
-                ibc_infrastructure.remote_abstract_host,
-                ibc_infrastructure.polytone_note,
-            )?;
+            for (chain, ibc_infrastructure) in register_infrastructures.counterparts {
+                use abstract_std::ibc_client::ExecuteMsgFns;
+
+                self.client.register_infrastructure(
+                    chain,
+                    ibc_infrastructure.remote_abstract_host,
+                    ibc_infrastructure.polytone_note,
+                )?;
+            }
         }
 
         self.host.instantiate(
@@ -155,8 +157,7 @@ pub mod connection {
 
         let mut counterparts = vec![];
         for connected_polytone in polytone.connected_polytones() {
-            // TODO: It's crappy to rely on parse_network to get chain_name, but is there any other option?
-            // Perhaps we should store daemon states in just `.chain_id`, instead of `.chain_name.chain_id`
+            // TODO: remove parse network after migrating to cw-orch 0.25 (we only need chain id now)
             let Ok(chain_info) = networks::parse_network(&connected_polytone.chain_id) else {
                 continue;
             };
@@ -180,5 +181,32 @@ pub mod connection {
             }
         }
         abstract_std::ibc_client::ListIbcInfrastructureResponse { counterparts }
+    }
+}
+
+#[cfg(feature = "interchain")]
+#[cfg(test)]
+mod test {
+    use super::connection::*;
+    use super::*;
+
+    // From https://github.com/CosmosContracts/juno/blob/32568dba828ff7783aea8cb5bb4b8b5832888255/docker/test-user.env#L2
+    const LOCAL_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
+
+    #[test]
+    fn list_ibc() {
+        use networks::JUNO_1;
+
+        // Deploy requires CwEnv, even for load
+        let juno = DaemonBuilder::new(JUNO_1)
+            .mnemonic(LOCAL_MNEMONIC)
+            .build()
+            .unwrap();
+        let l = list_ibc_infrastructures(juno);
+        l.counterparts.iter().any(|(chain_id, ibc_infra)| {
+            chain_id.as_str() == "osmosis"
+                && ibc_infra.remote_abstract_host.starts_with("osmo")
+                && ibc_infra.polytone_note.to_string().starts_with("juno")
+        });
     }
 }
