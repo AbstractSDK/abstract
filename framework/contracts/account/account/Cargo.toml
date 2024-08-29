@@ -61,6 +61,8 @@ abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
 abstract-integration-tests = { workspace = true }
 
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
+
 [profile.release]
 rpath = false
 lto = true
