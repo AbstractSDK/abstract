@@ -32,23 +32,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             None,
         )?;
 
-        #[cfg(feature = "interchain")]
-        {
-            // Register polytones
-            let register_infrastructures =
-                connection::list_ibc_infrastructures(self.host.environment().clone());
-
-            for (chain, ibc_infrastructure) in register_infrastructures.counterparts {
-                use abstract_std::ibc_client::ExecuteMsgFns;
-
-                self.client.register_infrastructure(
-                    chain,
-                    ibc_infrastructure.remote_abstract_host,
-                    ibc_infrastructure.polytone_note,
-                )?;
-            }
-        }
-
         self.host.instantiate(
             &abstract_std::ibc_host::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
@@ -75,6 +58,26 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 ibc_host::contract::CONTRACT_VERSION.to_string(),
             ),
         ])
+    }
+
+    #[cfg(feature = "interchain")]
+    /// Register infrastructure on connected chains
+    ///
+    /// Note: this should only be called on real chains (for example using [`cw_orch::daemon::Daemon`])
+    pub fn register_infrastructure(&self) -> Result<(), AbstractInterfaceError> {
+        let register_infrastructures =
+            connection::list_ibc_infrastructures(self.host.environment().clone());
+
+        for (chain, ibc_infrastructure) in register_infrastructures.counterparts {
+            use abstract_std::ibc_client::ExecuteMsgFns;
+
+            self.client.register_infrastructure(
+                chain,
+                ibc_infrastructure.remote_abstract_host,
+                ibc_infrastructure.polytone_note,
+            )?;
+        }
+        Ok(())
     }
 }
 
