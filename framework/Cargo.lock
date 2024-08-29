@@ -534,6 +534,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -562,6 +563,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]

@@ -37,6 +37,7 @@ cw-orch = { workspace = true }
 
 evm-note = "0.0.2"
 polytone-evm = "0.0.2"
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true }
