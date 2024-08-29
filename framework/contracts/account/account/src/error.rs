@@ -37,6 +37,4 @@ pub enum AccountError {
 
     #[error("Your account is currently suspended")]
     AccountSuspended {},
-
-
 }
