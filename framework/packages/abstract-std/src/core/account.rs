@@ -1,7 +1,10 @@
 use cosmwasm_std::{Binary, CosmosMsg, Empty};
 use manager::ModuleInstallConfig;
 
-use crate::{ibc_client::ExecuteMsg, objects::{gov_type::GovernanceDetails, AccountId}};
+use crate::{
+    ibc_client::ExecuteMsg,
+    objects::{gov_type::GovernanceDetails, AccountId},
+};
 
 use super::*;
 

@@ -16,8 +16,8 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 
-use proxy::commands::*;
 use manager::commands::*;
+use proxy::commands::*;
 
 use crate::error::ManagerError;
 
