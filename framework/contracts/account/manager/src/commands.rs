@@ -47,7 +47,7 @@ pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
 #[abstract_response(MANAGER)]
 pub struct ManagerResponse;
 
-pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
+pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
 pub(crate) const INSTALL_MODULES_CONTEXT: Item<Vec<(Module, Option<Addr>)>> = Item::new("icontext");
 
@@ -109,7 +109,7 @@ pub fn install_modules(
 
 /// Generate message and attribute for installing module
 /// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
-pub(crate) fn _install_modules(
+pub fn _install_modules(
     mut deps: DepsMut,
     modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
@@ -442,7 +442,7 @@ pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> 
 }
 
 /// Update governance of sub_accounts account after claim
-pub(crate) fn maybe_update_sub_account_governance(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
+pub fn maybe_update_sub_account_governance(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
     let mut account_id = None;
     let ownership = ownership::get_ownership(deps.storage)?;
@@ -488,7 +488,7 @@ pub(crate) fn maybe_update_sub_account_governance(deps: DepsMut) -> ManagerResul
 
 /// Renounce ownership of this account \
 /// **WARNING**: This will lock the account, making it unusable.
-pub(crate) fn remove_account_from_contracts(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
+pub fn remove_account_from_contracts(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
 
     let account_id = ACCOUNT_ID.load(deps.storage)?;

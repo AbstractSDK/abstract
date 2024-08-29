@@ -1,14 +1,12 @@
+use abstract_macros::abstract_response;
 use abstract_sdk::std::{
-    merged::{ExecMsg, InitMsg, QueryMsg},
     objects::validation::{validate_description, validate_link, validate_name},
     proxy::state::ACCOUNT_ID,
     MANAGER,
 };
 use abstract_std::{
-    account::{ExecuteMsg, InstantiateMsg, QueryMsg},
-    manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
-    objects::{gov_type::GovernanceDetails, ownership},
-    PROXY,
+    ACCOUNT,
+    account::{ExecuteMsg, InstantiateMsg, QueryMsg}, manager::{state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS}, UpdateSubAccountAction}, objects::{gov_type::GovernanceDetails, ownership, AccountId}, proxy::state::STATE, PROXY
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
@@ -19,9 +17,12 @@ use cw2::set_contract_version;
 use manager::commands::*;
 use proxy::commands::*;
 
-use crate::error::ManagerError;
+use crate::error::AccountError;
 
-pub type ManagerResult<R = Response> = Result<R, ManagerError>;
+#[abstract_response(ACCOUNT)]
+pub struct AccountResponse;
+
+pub type AccountResult<R = Response> = Result<R, AccountError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -32,18 +33,28 @@ pub fn instantiate(
     info: MessageInfo,
     InstantiateMsg {
         account_id,
+        owner,
         install_modules,
         name,
         description,
         link,
+        module_factory_address,
+        version_control_address,
+        ans_host_address,
     }: InstantiateMsg,
-) -> ManagerResult {
+) -> AccountResult {
     // ## Proxy ##
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
 
+    let account_id =
+        account_id.unwrap_or_else(|| /*  TODO: Query VC for Sequence*/ AccountId::local(0));
+
     ACCOUNT_ID.save(deps.storage, &account_id)?;
-    STATE.save(deps.storage, &State { modules: vec![] })?;
+    STATE.save(
+        deps.storage,
+        &abstract_std::proxy::state::State { modules: vec![] },
+    )?;
 
     // ## Manage ##
     let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
@@ -54,34 +65,28 @@ pub fn instantiate(
         version_control_address: version_control_address.clone(),
         module_factory_address: module_factory_address.clone(),
     };
-    CONFIG.save(deps.storage, &config)?;
+    abstract_std::manager::state::CONFIG.save(deps.storage, &config)?;
 
     // Verify info
-    validate_description(msg.description.as_deref())?;
-    validate_link(msg.link.as_deref())?;
-    validate_name(&msg.name)?;
+    validate_description(description.as_deref())?;
+    validate_link(link.as_deref())?;
+    validate_name(&name)?;
 
     let account_info = AccountInfo {
-        name: msg.name,
+        name,
         chain_id: env.block.chain_id,
-        description: msg.description,
-        link: msg.link,
+         description,
+        link,
     };
 
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    // Add proxy to modules
-    ACCOUNT_MODULES.save(
-        deps.storage,
-        PROXY,
-        &deps.api.addr_validate(&msg.proxy_addr)?,
-    )?;
-
     // Set owner
     let cw_gov_owner = ownership::initialize_owner(
         deps.branch(),
-        msg.owner,
+        // TODO: support no owner here (ownership handled in SUDO)
+        owner,
         config.version_control_address.clone(),
     )?;
 
@@ -90,12 +95,12 @@ pub fn instantiate(
     let mut response = ManagerResponse::new(
         "instantiate",
         vec![
-            ("account_id".to_owned(), msg.account_id.to_string()),
+            ("account_id".to_owned(), account_id.to_string()),
             ("owner".to_owned(), cw_gov_owner.owner.to_string()),
         ],
     );
 
-    if !msg.install_modules.is_empty() {
+    if !install_modules.is_empty() {
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
@@ -124,30 +129,30 @@ pub fn instantiate(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
+pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> AccountResult {
     match msg {
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
-        } => update_account_status(deps, info, suspension_status),
+        } => update_account_status(deps, info, suspension_status).map_err(AccountError::from),
         msg => {
             // Block actions if user is not subscribed
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
             if is_suspended {
-                return Err(ManagerError::AccountSuspended {});
+                return Err(AccountError::AccountSuspended {});
             }
 
             match msg {
                 ExecuteMsg::UpdateInternalConfig(config) => {
-                    update_internal_config(deps, info, config)
+                    update_internal_config(deps, info, config).map_err(AccountError::from)
                 }
-                ExecuteMsg::InstallModules { modules } => install_modules(deps, info, modules),
+                ExecuteMsg::InstallModules { modules } => install_modules(deps, info, modules).map_err(AccountError::from),
                 ExecuteMsg::UninstallModule { module_id } => {
-                    uninstall_module(deps, info, module_id)
+                    uninstall_module(deps, info, module_id).map_err(AccountError::from)
                 }
                 ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg,
-                } => exec_on_module(deps, info, module_id, exec_msg),
+                } => exec_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
                 ExecuteMsg::CreateSubAccount {
                     name,
                     description,
@@ -165,17 +170,18 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     namespace,
                     install_modules,
                     account_id,
-                ),
-                ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
+                ).map_err(AccountError::from),
+                ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules).map_err(AccountError::from),
                 ExecuteMsg::UpdateInfo {
                     name,
                     description,
                     link,
-                } => update_info(deps, info, name, description, link),
+                } => update_info(deps, info, name, description, link).map_err(AccountError::from),
                 ExecuteMsg::UpdateSubAccount(action) => {
-                    handle_sub_account_action(deps, info, action)
+                    handle_sub_account_action(deps, info, action).map_err(AccountError::from)
                 }
-                ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
+                // TODO: Update module migrate logic to not use callback!
+                // ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
                     // If sub-account related it may require some messages to be constructed beforehand
@@ -199,20 +205,17 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     )?
                     .into_attributes();
                     Ok(
-                        ManagerResponse::new("update_ownership", new_owner_attributes)
+                        AccountResponse::new("update_ownership", new_owner_attributes)
                             .add_messages(msgs),
                     )
                 }
-                ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs),
+                ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs).map_err(AccountError::from),
                 ExecuteMsg::ModuleActionWithData { msg } => {
-                    execute_module_action_response(deps, info, msg)
+                    execute_module_action_response(deps, info, msg).map_err(AccountError::from)
                 }
-                ExecuteMsg::IbcAction { msg } => execute_ibc_action(deps, info, msg),
-                ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
-                ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
-                ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
+                ExecuteMsg::IbcAction { msg } => execute_ibc_action(deps, info, msg).map_err(AccountError::from),
                 ExecuteMsg::IcaAction { action_query_msg } => {
-                    ica_action(deps, info, action_query_msg)
+                    ica_action(deps, info, action_query_msg).map_err(AccountError::from)
                 }
                 _ => panic!(),
             }
@@ -253,7 +256,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn disallow_same_version() -> ManagerResult<()> {
+        fn disallow_same_version() -> AccountResult<()> {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -275,7 +278,7 @@ mod tests {
         }
 
         #[test]
-        fn disallow_downgrade() -> ManagerResult<()> {
+        fn disallow_downgrade() -> AccountResult<()> {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -300,7 +303,7 @@ mod tests {
         }
 
         #[test]
-        fn disallow_name_change() -> ManagerResult<()> {
+        fn disallow_name_change() -> AccountResult<()> {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -323,7 +326,7 @@ mod tests {
         }
 
         #[test]
-        fn works() -> ManagerResult<()> {
+        fn works() -> AccountResult<()> {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
