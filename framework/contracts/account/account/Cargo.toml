@@ -1,5 +1,5 @@
 [package]
-name = "abstract-merged"
+name = "abstract-account"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
