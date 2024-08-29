@@ -1,10 +1,16 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, CosmosMsg, Empty};
-use manager::{ModuleInstallConfig, UpdateSubAccountAction, InfoResponse, ModuleInfosResponse, SubAccountIdsResponse, ModuleAddressesResponse, ModuleVersionsResponse};
-use proxy::{ConfigResponse};
+use manager::{
+    InfoResponse, ModuleAddressesResponse, ModuleInfosResponse, ModuleInstallConfig,
+    ModuleVersionsResponse, SubAccountIdsResponse, UpdateSubAccountAction,
+};
+use proxy::ConfigResponse;
 
-use crate::{
-    objects::{gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse}, module::ModuleInfo, ownership::Ownership, AccountId},
+use crate::objects::{
+    gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
+    module::ModuleInfo,
+    ownership::Ownership,
+    AccountId,
 };
 
 use super::*;
