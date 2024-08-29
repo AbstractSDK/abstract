@@ -74,13 +74,7 @@ pub fn deploy_host_and_client<Chain: CwEnv>(chain: Chain) -> cw_orch::anyhow::Re
     let abs = Abstract::load_from(chain.clone())?;
     let ibc_infra = AbstractIbc::new(&chain);
     ibc_infra.upload()?;
-    ibc_infra.instantiate(
-        &abs,
-        &chain.sender_addr(),
-        ListIbcInfrastructureResponse {
-            counterparts: vec![],
-        },
-    )?;
+    ibc_infra.instantiate(&abs, &chain.sender_addr())?;
     ibc_infra.register(&abs.version_control)?;
 
     abs.version_control.approve_any_abstract_modules()?;
