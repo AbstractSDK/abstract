@@ -5,8 +5,14 @@ use abstract_sdk::std::{
     MANAGER,
 };
 use abstract_std::{
-    ACCOUNT,
-    account::{ExecuteMsg, InstantiateMsg, QueryMsg}, manager::{state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS}, UpdateSubAccountAction}, objects::{gov_type::GovernanceDetails, ownership, AccountId}, proxy::state::STATE, PROXY
+    account::{ExecuteMsg, InstantiateMsg, QueryMsg},
+    manager::{
+        state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS},
+        UpdateSubAccountAction,
+    },
+    objects::{gov_type::GovernanceDetails, ownership, AccountId},
+    proxy::state::STATE,
+    ACCOUNT, PROXY,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
@@ -75,7 +81,7 @@ pub fn instantiate(
     let account_info = AccountInfo {
         name,
         chain_id: env.block.chain_id,
-         description,
+        description,
         link,
     };
 
@@ -145,7 +151,9 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::UpdateInternalConfig(config) => {
                     update_internal_config(deps, info, config).map_err(AccountError::from)
                 }
-                ExecuteMsg::InstallModules { modules } => install_modules(deps, info, modules).map_err(AccountError::from),
+                ExecuteMsg::InstallModules { modules } => {
+                    install_modules(deps, info, modules).map_err(AccountError::from)
+                }
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id).map_err(AccountError::from)
                 }
@@ -170,8 +178,11 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     namespace,
                     install_modules,
                     account_id,
-                ).map_err(AccountError::from),
-                ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules).map_err(AccountError::from),
+                )
+                .map_err(AccountError::from),
+                ExecuteMsg::Upgrade { modules } => {
+                    upgrade_modules(deps, env, info, modules).map_err(AccountError::from)
+                }
                 ExecuteMsg::UpdateInfo {
                     name,
                     description,
@@ -209,11 +220,15 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             .add_messages(msgs),
                     )
                 }
-                ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs).map_err(AccountError::from),
+                ExecuteMsg::ModuleAction { msgs } => {
+                    execute_module_action(deps, info, msgs).map_err(AccountError::from)
+                }
                 ExecuteMsg::ModuleActionWithData { msg } => {
                     execute_module_action_response(deps, info, msg).map_err(AccountError::from)
                 }
-                ExecuteMsg::IbcAction { msg } => execute_ibc_action(deps, info, msg).map_err(AccountError::from),
+                ExecuteMsg::IbcAction { msg } => {
+                    execute_ibc_action(deps, info, msg).map_err(AccountError::from)
+                }
                 ExecuteMsg::IcaAction { action_query_msg } => {
                     ica_action(deps, info, action_query_msg).map_err(AccountError::from)
                 }
