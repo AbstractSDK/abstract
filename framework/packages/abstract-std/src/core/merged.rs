@@ -4,7 +4,6 @@ use crate::objects::{gov_type::GovernanceDetails, AccountId};
 
 use super::*;
 
-
 /// Account Instantiate Msg
 /// https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs
 #[cosmwasm_schema::cw_serde]
