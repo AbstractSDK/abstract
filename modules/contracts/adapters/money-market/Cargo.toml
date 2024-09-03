@@ -31,7 +31,7 @@ testing = ["dep:abstract-client", "dep:cw20"]
 mars = ["abstract-mars-adapter/full_integration"]
 ghost = ["abstract-kujira-adapter/full_integration"]
 
-osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
+# osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
 # Builds
 [package.metadata.optimizer]
@@ -55,7 +55,7 @@ cw-storage-plus = { workspace = true }
 
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true }
-cw-orch-osmosis-test-tube = { workspace = true, optional = true }
+# cw-orch-osmosis-test-tube = { workspace = true, optional = true }
 
 # Local
 abstract-money-market-standard = { workspace = true }

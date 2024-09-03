@@ -31,7 +31,7 @@ export = []
 default = ["export"]
 schema = ["abstract-adapter/schema"]
 testing = ["dep:abstract-client", "dep:cw20"]
-osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
+# osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
 # Supported Dexes
 wynd = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
@@ -81,7 +81,7 @@ serde = { workspace = true }
 
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true }
-cw-orch-osmosis-test-tube = { workspace = true, optional = true }
+# cw-orch-osmosis-test-tube = { workspace = true, optional = true }
 
 # Local
 abstract-staking-standard = { workspace = true }
