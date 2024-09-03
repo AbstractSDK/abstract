@@ -14,11 +14,9 @@ full_integration = [
   "dep:cosmwasm-schema",
   "dep:cw-asset",
   "dep:cw-utils",
-  "dep:astrovault",
 ]
 
 [dependencies]
-astrovault = { version = "0.1.1", optional = true }
 lazy_static = "1.4.0"
 
 cosmwasm-std = { workspace = true }
@@ -31,5 +29,6 @@ cw-asset = { workspace = true, optional = true }
 cw-utils = { workspace = true, optional = true }
 
 [dev-dependencies]
+astrovault = { version = "0.1.1" }
 abstract-dex-standard = { workspace = true, features = ["testing"] }
 cw-orch = { workspace = true }

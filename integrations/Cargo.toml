@@ -1,12 +1,12 @@
 [workspace]
 members = [
-  "astroport-adapter",
+  # "astroport-adapter",
   "astrovault-adapter",
-  "bundles/*",
-  "osmosis-adapter",
-  "wyndex-adapter",
-  "kujira-adapter",
-  "mars-adapter",
+  # "bundles/*",
+  # "osmosis-adapter",
+  # "wyndex-adapter",
+  # "kujira-adapter",
+  # "mars-adapter",
 ]
 
 resolver = "2"

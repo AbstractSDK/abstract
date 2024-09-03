@@ -48,7 +48,7 @@ impl Astrovault {
 
         let config: mini_astrovault::ConfigResponse = deps
             .querier
-            .query_wasm_smart(pool, &mini_astrovault::AstrovaultQueryMsg::Config {})?;
+            .query_wasm_smart(pool, &mini_astrovault::AstrovaultDexQueryMsg::Config {})?;
 
         match config {
             config if config.factory == STANDARD_POOL_FACTORY => Ok(AstrovaultPoolType::Standard),
@@ -74,7 +74,7 @@ fn native_swap(
     let msgs = match pool_type {
         AstrovaultPoolType::Standard => vec![wasm_execute(
             pair_address.to_string(),
-            &mini_astrovault::AstrovaultExecuteMsg::SwapStandard {
+            &mini_astrovault::AstrovaultDexExecuteMsg::SwapStandard {
                 offer_asset: Some(cw_asset_to_astrovault(&offer_asset)?),
                 // Those 2 fields deprecated
                 belief_price: None,
@@ -89,7 +89,7 @@ fn native_swap(
         AstrovaultPoolType::Stable { .. } => {
             let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                 pair_address.to_string(),
-                &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                &mini_astrovault::AstrovaultDexQueryMsg::PoolInfo {},
             )?;
             let ask_asset = cw_asset_info_to_astrovault(&ask_asset)?;
             let index = pool_info
@@ -106,7 +106,7 @@ fn native_swap(
                 ))?;
             vec![wasm_execute(
                 pair_address.to_string(),
-                &mini_astrovault::AstrovaultExecuteMsg::SwapStable {
+                &mini_astrovault::AstrovaultDexExecuteMsg::SwapStable {
                     swap_to_asset_index: index as u32,
                     expected_return: None,
                     to: None,
@@ -118,7 +118,7 @@ fn native_swap(
         AstrovaultPoolType::Ratio => {
             vec![wasm_execute(
                 pair_address.to_string(),
-                &mini_astrovault::AstrovaultExecuteMsg::SwapRatio {
+                &mini_astrovault::AstrovaultDexExecuteMsg::SwapRatio {
                     expected_return: None,
                     to: None,
                 },
@@ -146,7 +146,7 @@ fn cw20_swap(
             &Cw20ExecuteMsg::Send {
                 contract: pair_address.to_string(),
                 amount: offer_asset.amount,
-                msg: to_json_binary(&mini_astrovault::AstrovaultExecuteMsg::SwapStandard {
+                msg: to_json_binary(&mini_astrovault::AstrovaultDexExecuteMsg::SwapStandard {
                     offer_asset: None,
                     // Those 2 fields deprecated
                     belief_price: None,
@@ -162,7 +162,7 @@ fn cw20_swap(
         AstrovaultPoolType::Stable { .. } => {
             let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                 pair_address.to_string(),
-                &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                &mini_astrovault::AstrovaultDexQueryMsg::PoolInfo {},
             )?;
             let ask_asset = cw_asset_info_to_astrovault(&ask_asset)?;
             let index = pool_info
@@ -182,7 +182,7 @@ fn cw20_swap(
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
-                    msg: to_json_binary(&mini_astrovault::AstrovaultExecuteMsg::SwapStable {
+                    msg: to_json_binary(&mini_astrovault::AstrovaultDexExecuteMsg::SwapStable {
                         swap_to_asset_index: index as u32,
                         expected_return: None,
                         to: None,
@@ -198,7 +198,7 @@ fn cw20_swap(
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
-                    msg: to_json_binary(&mini_astrovault::AstrovaultExecuteMsg::SwapRatio {
+                    msg: to_json_binary(&mini_astrovault::AstrovaultDexExecuteMsg::SwapRatio {
                         expected_return: None,
                         to: None,
                     })?,
@@ -324,7 +324,7 @@ impl DexCommand for Astrovault {
         let liquidity_msg = match pool_type {
             AstrovaultPoolType::Standard => wasm_execute(
                 pair_address,
-                &mini_astrovault::AstrovaultExecuteMsg::ProvideLiquidity {
+                &mini_astrovault::AstrovaultDexExecuteMsg::ProvideLiquidity {
                     assets: [
                         astrovault_assets.swap_remove(0),
                         astrovault_assets.swap_remove(0),
@@ -339,7 +339,7 @@ impl DexCommand for Astrovault {
                 // Normalize order
                 let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                     pair_address.clone(),
-                    &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                    &mini_astrovault::AstrovaultDexQueryMsg::PoolInfo {},
                 )?;
                 let astrovault_assets =
                     astrovault_assets_normalize_order(astrovault_assets, &pool_info.asset_infos)?;
@@ -347,7 +347,7 @@ impl DexCommand for Astrovault {
                 coins.retain(|c| !c.amount.is_zero());
                 wasm_execute(
                     pair_address,
-                    &mini_astrovault::AstrovaultExecuteMsg::DepositStable {
+                    &mini_astrovault::AstrovaultDexExecuteMsg::DepositStable {
                         assets_amount: astrovault_assets.into_iter().map(|a| a.amount).collect(),
                         direct_staking: None,
                         receiver: None,
@@ -359,7 +359,7 @@ impl DexCommand for Astrovault {
                 // Normalize order
                 let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                     pair_address.clone(),
-                    &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                    &mini_astrovault::AstrovaultDexQueryMsg::PoolInfo {},
                 )?;
                 let astrovault_assets =
                     astrovault_assets_normalize_order(astrovault_assets, &pool_info.asset_infos)?;
@@ -367,7 +367,7 @@ impl DexCommand for Astrovault {
                 coins.retain(|c| !c.amount.is_zero());
                 wasm_execute(
                     pair_address,
-                    &mini_astrovault::AstrovaultExecuteMsg::DepositRatio {
+                    &mini_astrovault::AstrovaultDexExecuteMsg::DepositRatio {
                         assets_amount: [astrovault_assets[0].amount, astrovault_assets[1].amount],
                         direct_staking: None,
                         receiver: None,
@@ -451,14 +451,14 @@ impl DexCommand for Astrovault {
         // Do simulation
         match pool_type {
             AstrovaultPoolType::Standard => {
-                let astrovault::standard_pool::query_msg::SimulationResponse {
+                let mini_astrovault::SimulationResponse {
                     return_amount,
                     spread_amount,
                     commission_amount,
                     buybackburn_amount: _,
                 } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &mini_astrovault::AstrovaultQueryMsg::Simulation {
+                    &mini_astrovault::AstrovaultDexQueryMsg::Simulation {
                         offer_asset: cw_asset_to_astrovault(&offer_asset)?,
                     },
                 )?;
@@ -468,7 +468,7 @@ impl DexCommand for Astrovault {
             AstrovaultPoolType::Stable { .. } => {
                 let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                    &mini_astrovault::AstrovaultDexQueryMsg::PoolInfo {},
                 )?;
                 let ask_astrovault_asset = cw_asset_info_to_astrovault(&ask_asset)?;
                 let ask_index = pool_info
@@ -497,14 +497,14 @@ impl DexCommand for Astrovault {
                             .collect(),
                     ))?;
                 // TODO: why from_assets is vectors, and we swap one asset for the other
-                let astrovault::stable_pool::query_msg::StablePoolQuerySwapSimulation {
+                let mini_astrovault::StablePoolQuerySwapSimulation {
                     from_assets_amount: _,
                     mut swap_to_assets_amount,
                     assets_fee_amount: _,
                     mint_to_assets_amount: _,
                 } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &mini_astrovault::AstrovaultQueryMsg::SwapSimulationStable {
+                    &mini_astrovault::AstrovaultDexQueryMsg::SwapSimulationStable {
                         amount: offer_asset.amount,
                         swap_from_asset_index: offer_index as u32,
                         swap_to_asset_index: ask_index as u32,
@@ -521,7 +521,7 @@ impl DexCommand for Astrovault {
             AstrovaultPoolType::Ratio => {
                 let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                    &mini_astrovault::AstrovaultDexQueryMsg::PoolInfo {},
                 )?;
                 let offer_astrovault_asset = cw_asset_info_to_astrovault(&offer_asset.info)?;
                 let offer_index = pool_info
@@ -537,14 +537,14 @@ impl DexCommand for Astrovault {
                             .collect(),
                     ))?;
 
-                let astrovault::ratio_pool_factory::query_msg::SwapCalcResponse {
+                let mini_astrovault::SwapCalcResponse {
                     from_amount: _,
                     to_amount_without_fee: _,
                     to_amount_minus_fee,
                     fee_amount,
                 } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &mini_astrovault::AstrovaultQueryMsg::SwapSimulationRatio {
+                    &mini_astrovault::AstrovaultDexQueryMsg::SwapSimulationRatio {
                         amount: offer_asset.amount,
                         swap_from_asset_index: offer_index as u8,
                     },
@@ -557,17 +557,17 @@ impl DexCommand for Astrovault {
 }
 
 #[cfg(feature = "full_integration")]
-fn cw_asset_to_astrovault(asset: &Asset) -> Result<astrovault::assets::asset::Asset, DexError> {
+fn cw_asset_to_astrovault(asset: &Asset) -> Result<mini_astrovault::AstrovaultAsset, DexError> {
     match &asset.info {
-        AssetInfoBase::Native(denom) => Ok(astrovault::assets::asset::Asset {
+        AssetInfoBase::Native(denom) => Ok(mini_astrovault::AstrovaultAsset {
             amount: asset.amount,
-            info: astrovault::assets::asset::AssetInfo::NativeToken {
+            info: mini_astrovault::AstrovaultAssetInfo::NativeToken {
                 denom: denom.clone(),
             },
         }),
-        AssetInfoBase::Cw20(contract_addr) => Ok(astrovault::assets::asset::Asset {
+        AssetInfoBase::Cw20(contract_addr) => Ok(mini_astrovault::AstrovaultAsset {
             amount: asset.amount,
-            info: astrovault::assets::asset::AssetInfo::Token {
+            info: mini_astrovault::AstrovaultAssetInfo::Token {
                 contract_addr: contract_addr.to_string(),
             },
         }),
@@ -578,12 +578,12 @@ fn cw_asset_to_astrovault(asset: &Asset) -> Result<astrovault::assets::asset::As
 #[cfg(feature = "full_integration")]
 fn cw_asset_info_to_astrovault(
     info: &AssetInfo,
-) -> Result<astrovault::assets::asset::AssetInfo, DexError> {
+) -> Result<mini_astrovault::AstrovaultAssetInfo, DexError> {
     match &info {
-        AssetInfoBase::Native(denom) => Ok(astrovault::assets::asset::AssetInfo::NativeToken {
+        AssetInfoBase::Native(denom) => Ok(mini_astrovault::AstrovaultAssetInfo::NativeToken {
             denom: denom.clone(),
         }),
-        AssetInfoBase::Cw20(contract_addr) => Ok(astrovault::assets::asset::AssetInfo::Token {
+        AssetInfoBase::Cw20(contract_addr) => Ok(mini_astrovault::AstrovaultAssetInfo::Token {
             contract_addr: contract_addr.to_string(),
         }),
         _ => Err(DexError::UnsupportedAssetType(info.to_string())),
@@ -592,16 +592,16 @@ fn cw_asset_info_to_astrovault(
 
 #[cfg(feature = "full_integration")]
 fn astrovault_assets_normalize_order(
-    mut assets: Vec<astrovault::assets::asset::Asset>,
-    assets_order: &[astrovault::assets::asset::AssetInfo],
-) -> Result<Vec<astrovault::assets::asset::Asset>, DexError> {
+    mut assets: Vec<mini_astrovault::AstrovaultAsset>,
+    assets_order: &[mini_astrovault::AstrovaultAssetInfo],
+) -> Result<Vec<mini_astrovault::AstrovaultAsset>, DexError> {
     let mut resulting_assets = Vec::with_capacity(assets_order.len());
     for item in assets_order {
         if let Some(position) = assets.iter().position(|a| a.info.eq(item)) {
             resulting_assets.push(assets.swap_remove(position));
         } else {
             // Any not found asset replace by zero
-            resulting_assets.push(astrovault::assets::asset::Asset {
+            resulting_assets.push(mini_astrovault::AstrovaultAsset {
                 info: item.clone(),
                 amount: Uint128::zero(),
             })
@@ -750,7 +750,7 @@ mod tests {
                             },
                         },
                     ],
-                    slippage_tolerance: Some(max_spread()),
+                    slippage_tolerance: Some("0.1".parse().unwrap()),
                     direct_staking: None,
                     receiver: None,
                 },
