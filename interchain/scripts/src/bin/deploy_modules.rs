@@ -6,8 +6,10 @@ use abstract_interface::*;
 use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use clap::Parser;
 use cosmwasm_std::Decimal;
-use cw_orch::{daemon::networks::parse_network, prelude::*};
-use dca_app::{contract::DCA_APP_ID, DCA};
+use cw_orch::{
+    daemon::{networks::parse_network, DeployedChains},
+    prelude::*,
+};
 use reqwest::Url;
 use tokio::runtime::Runtime;
 
@@ -44,10 +46,11 @@ fn full_deploy() -> anyhow::Result<()> {
         )?;
 
         // Deploy apps
-        DCA::new(DCA_APP_ID, chain.clone()).deploy(
-            dca_app::contract::DCA_APP_VERSION.parse()?,
-            DeployStrategy::Try,
-        )?;
+        // use dca_app::{contract::DCA_APP_ID, DCA};
+        // DCA::new(DCA_APP_ID, chain.clone()).deploy(
+        //     dca_app::contract::DCA_APP_VERSION.parse()?,
+        //     DeployStrategy::Try,
+        // )?;
         Challenge::new(CHALLENGE_APP_ID, chain.clone()).deploy(
             challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
             DeployStrategy::Try,
