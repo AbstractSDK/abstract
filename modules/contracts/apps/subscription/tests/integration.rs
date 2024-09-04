@@ -14,7 +14,7 @@ use abstract_subscription::{
 pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
 use cosmwasm_std::{coins, Decimal, StdError, Uint128, Uint64};
-use cw20_builder::{Cw20Base, Cw20Coin, Cw20ExecuteMsgFns, Cw20QueryMsgFns};
+use cw20_builder::{Cw20Base, Cw20Coin, ExecuteMsgInterfaceFns, QueryMsgInterfaceFns};
 use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
@@ -25,7 +25,6 @@ const DENOM: &str = "abstr";
 const INCOME_AVERAGING_PERIOD: Uint64 = Uint64::new(259200);
 
 struct NativeSubscription {
-    mock: MockBech32,
     client: AbstractClient<MockBech32>,
     subscription_app: Application<MockBech32, SubscriptionInterface<MockBech32>>,
     payment_asset: AssetInfo,
@@ -93,10 +92,12 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
 }
 
 /// Set up the test environment with the contract installed
-fn setup_native(balances: Vec<(&str, &[Coin])>) -> anyhow::Result<NativeSubscription> {
-    let chain = MockBech32::new("mock");
+fn setup_native<'a>(
+    chain: &MockBech32,
+    balances: impl IntoIterator<Item = (&'a Addr, &'a [Coin])>,
+) -> anyhow::Result<NativeSubscription> {
     let client = AbstractClient::builder(chain.clone()).build()?;
-    client.set_balances(balances.into_iter().map(|(a, b)| (chain.addr_make(a), b)))?;
+    client.set_balances(balances)?;
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new("abstract")?)
         .build()?;
@@ -126,7 +127,6 @@ fn setup_native(balances: Vec<(&str, &[Coin])>) -> anyhow::Result<NativeSubscrip
     )?;
 
     Ok(NativeSubscription {
-        mock: chain,
         client,
         subscription_app,
         payment_asset: AssetInfo::native(DENOM),
@@ -137,13 +137,13 @@ fn setup_native(balances: Vec<(&str, &[Coin])>) -> anyhow::Result<NativeSubscrip
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
+    let mock = MockBech32::new("mock");
     let NativeSubscription {
         client: _,
         subscription_app,
         payment_asset,
         emission_cw20,
-        mock: _,
-    } = setup_native(vec![])?;
+    } = setup_native(&mock, [])?;
 
     let addr = emission_cw20.address()?;
     let config = subscription_app.config()?;
@@ -181,33 +181,37 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn subscribe() -> anyhow::Result<()> {
-    let subscriber1 = "subscriber1";
-    let subscriber2 = "subscriber2";
-    let subscriber3 = "subscriber3";
-    let subscriber4 = "subscriber4";
+    let mock = MockBech32::new("mock");
 
+    let subscriber1 = mock.addr_make("subscriber1");
+    let subscriber2 = mock.addr_make("subscriber2");
+    let subscriber3 = mock.addr_make("subscriber3");
+    let subscriber4 = mock.addr_make("subscriber4");
     let sub_amount = coins(500, DENOM);
+
     let NativeSubscription {
-        mock,
         client,
         subscription_app,
         payment_asset: _,
         emission_cw20: _,
-    } = setup_native(vec![
-        (subscriber1, &sub_amount),
-        (subscriber2, &sub_amount),
-        (subscriber3, &sub_amount),
-        (subscriber4, &sub_amount),
-    ])?;
+    } = setup_native(
+        &mock,
+        [
+            (&subscriber1, sub_amount.as_slice()),
+            (&subscriber2, sub_amount.as_slice()),
+            (&subscriber3, sub_amount.as_slice()),
+            (&subscriber4, sub_amount.as_slice()),
+        ],
+    )?;
 
     let subscription_addr = subscription_app.address()?;
 
     // 2 people subscribe
     subscription_app
-        .call_as(&mock.addr_make(subscriber1))
+        .call_as(&subscriber1)
         .pay(None, &sub_amount)?;
     subscription_app
-        .call_as(&mock.addr_make(subscriber2))
+        .call_as(&subscriber2)
         .pay(None, &sub_amount)?;
     let twa = query_twa(&client.environment(), subscription_addr.clone());
     // No income yet
@@ -218,7 +222,7 @@ fn subscribe() -> anyhow::Result<()> {
 
     // Third user subscribes
     subscription_app
-        .call_as(&mock.addr_make(subscriber3))
+        .call_as(&subscriber3)
         .pay(None, &sub_amount)?;
     // refresh twa
     subscription_app.refresh_twa()?;
@@ -227,7 +231,7 @@ fn subscribe() -> anyhow::Result<()> {
 
     // expected value for 2 subscribers (cost * period)
     let two_subs_per_second = Decimal::from_str("0.000037")? * Decimal::from_str("2.0")?;
-    let expected_cum = two_subs_per_second * Uint128::from(INCOME_AVERAGING_PERIOD);
+    let expected_cum = Uint128::from(INCOME_AVERAGING_PERIOD).mul_floor(two_subs_per_second);
     // assert it's equal to the 2 subscribers(rounded)
     assert_eq!(twa.cumulative_value, expected_cum.u128());
     // cum_over_period / time passed
@@ -245,13 +249,14 @@ fn subscribe() -> anyhow::Result<()> {
 
     // Fourth user subscribes
     subscription_app
-        .call_as(&mock.addr_make(subscriber4))
+        .call_as(&subscriber4)
         .pay(None, &sub_amount)?;
     // two subscribers were subbed for two periods
     let first_two_subs =
-        two_subs_per_second * Uint128::from(INCOME_AVERAGING_PERIOD * Uint64::new(2));
+        Uint128::from(INCOME_AVERAGING_PERIOD * Uint64::new(2)).mul_floor(two_subs_per_second);
     // and last one only for one
-    let third_sub = Decimal::from_str("0.000037")? * Uint128::from(INCOME_AVERAGING_PERIOD);
+    let third_sub =
+        Uint128::from(INCOME_AVERAGING_PERIOD).mul_floor(Decimal::from_str("0.000037")?);
 
     let expected_value = first_two_subs + third_sub;
 
@@ -263,18 +268,24 @@ fn subscribe() -> anyhow::Result<()> {
 
 #[test]
 fn claim_emissions_week_shared() -> anyhow::Result<()> {
-    let subscriber1 = "subscriber1";
-    let subscriber2 = "subscriber2";
+    let mock = MockBech32::new("mock");
+
+    let subscriber1 = mock.addr_make("subscriber1");
+    let subscriber2 = mock.addr_make("subscriber2");
+
     let sub_amount = coins(500, DENOM);
     let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
         emission_cw20,
-        mock,
-    } = setup_native(vec![(subscriber1, &sub_amount), (subscriber2, &sub_amount)])?;
-    let subscriber1 = mock.addr_make(subscriber1);
-    let subscriber2 = mock.addr_make(subscriber2);
+    } = setup_native(
+        &mock,
+        [
+            (&subscriber1, sub_amount.as_slice()),
+            (&subscriber2, sub_amount.as_slice()),
+        ],
+    )?;
 
     // 2 users subscribe
     subscription_app
@@ -290,7 +301,7 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
     subscription_app.claim_emissions(subscriber2.to_string())?;
     // check balances
     let balance1 = emission_cw20.balance(subscriber1.to_string())?;
-    let total_amount = Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS);
+    let total_amount = Uint128::from(WEEK_IN_SECONDS).mul_floor(Decimal::from_str("0.00005")?);
     // 2 users
     let expected_balance = total_amount / Uint128::new(2);
     assert_eq!(balance1.balance, expected_balance);
@@ -324,16 +335,16 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
 
 #[test]
 fn claim_emissions_none() -> anyhow::Result<()> {
-    let subscriber1 = "subscriber1";
+    let mock = MockBech32::new("mock");
+
+    let subscriber1 = mock.addr_make("subscriber1");
     let sub_amount = coins(500, DENOM);
     let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
         emission_cw20: _,
-        mock,
-    } = setup_native(vec![(subscriber1, &sub_amount)])?;
-    let subscriber1 = mock.addr_make(subscriber1);
+    } = setup_native(&mock, [(&subscriber1, sub_amount.as_slice())])?;
 
     subscription_app
         .call_as(&subscription_app.account().manager()?)
@@ -356,8 +367,10 @@ fn claim_emissions_none() -> anyhow::Result<()> {
 
 #[test]
 fn claim_emissions_week_per_user() -> anyhow::Result<()> {
-    let subscriber1 = "subscriber1";
-    let subscriber2 = "subscriber2";
+    let mock = MockBech32::new("mock");
+
+    let subscriber1 = mock.addr_make("subscriber1");
+    let subscriber2 = mock.addr_make("subscriber2");
     let sub_amount = coins(500, DENOM);
 
     let NativeSubscription {
@@ -365,10 +378,13 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
         subscription_app,
         payment_asset: _,
         emission_cw20,
-        mock,
-    } = setup_native(vec![(subscriber1, &sub_amount), (subscriber2, &sub_amount)])?;
-    let subscriber1 = mock.addr_make(subscriber1);
-    let subscriber2 = mock.addr_make(subscriber2);
+    } = setup_native(
+        &mock,
+        [
+            (&subscriber1, sub_amount.as_slice()),
+            (&subscriber2, sub_amount.as_slice()),
+        ],
+    )?;
 
     subscription_app
         .call_as(&subscription_app.account().manager()?)
@@ -396,7 +412,7 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     subscription_app.claim_emissions(subscriber1.to_string())?;
     subscription_app.claim_emissions(subscriber2.to_string())?;
 
-    let expected_balance = Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS);
+    let expected_balance = Uint128::from(WEEK_IN_SECONDS).mul_floor(Decimal::from_str("0.00005")?);
 
     // check balance of user1
     let balance1 = emission_cw20.balance(subscriber1.to_string())?;
@@ -434,7 +450,8 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
 
 #[test]
 fn claim_emissions_errors() -> anyhow::Result<()> {
-    let subscriber1 = "subscriber1";
+    let mock = MockBech32::new("mock");
+    let subscriber1 = mock.addr_make("subscriber1");
 
     let sub_amount = coins(500, DENOM);
     let NativeSubscription {
@@ -442,10 +459,7 @@ fn claim_emissions_errors() -> anyhow::Result<()> {
         subscription_app,
         payment_asset: _,
         emission_cw20: _,
-        mock,
-    } = setup_native(vec![(subscriber1, &sub_amount)])?;
-    let subscriber1 = mock.addr_make(subscriber1);
-
+    } = setup_native(&mock, [(&subscriber1, sub_amount.as_slice())])?;
     // no subs
 
     let err = subscription_app
@@ -477,8 +491,9 @@ fn claim_emissions_errors() -> anyhow::Result<()> {
 
 #[test]
 fn unsubscribe() -> anyhow::Result<()> {
-    let subscriber1 = "subscriber1";
-    let subscriber2 = "subscriber2";
+    let mock = MockBech32::new("mock");
+    let subscriber1 = mock.addr_make("subscriber1");
+    let subscriber2 = mock.addr_make("subscriber2");
 
     // For 4 weeks with few hours
     let sub_amount = coins(90, DENOM);
@@ -488,10 +503,7 @@ fn unsubscribe() -> anyhow::Result<()> {
         subscription_app,
         payment_asset: _,
         emission_cw20,
-        mock,
-    } = setup_native(vec![(subscriber1, &sub_amount)])?;
-    let subscriber1 = mock.addr_make(subscriber1);
-    let subscriber2 = mock.addr_make(subscriber2);
+    } = setup_native(&mock, [(&subscriber1, sub_amount.as_slice())])?;
 
     subscription_app
         .call_as(&subscriber1)
@@ -530,7 +542,7 @@ fn unsubscribe() -> anyhow::Result<()> {
     // 5 weeks passed until unsubscribe
     assert_eq!(
         b.balance,
-        Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS * 5)
+        Uint128::from(WEEK_IN_SECONDS * 5).mul_floor(Decimal::from_str("0.00005")?)
     );
     // Unsubscribe on already unsubscribed user should fail
     assert!(subscription_app
@@ -546,20 +558,22 @@ fn unsubscribe() -> anyhow::Result<()> {
 
 #[test]
 fn unsubscribe_part_of_list() -> anyhow::Result<()> {
-    let subscriber1 = "subscriber1";
-    let subscriber2 = "subscriber2";
+    let mock = MockBech32::new("mock");
+
+    let subscriber1 = mock.addr_make("subscriber1");
+    let subscriber2 = mock.addr_make("subscriber2");
     let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
         emission_cw20: _,
-        mock,
-    } = setup_native(vec![
-        (subscriber1, coins(2200, DENOM).as_slice()),
-        (subscriber2, coins(220, DENOM).as_slice()),
-    ])?;
-    let subscriber1 = mock.addr_make(subscriber1);
-    let subscriber2 = mock.addr_make(subscriber2);
+    } = setup_native(
+        &mock,
+        [
+            (&subscriber1, coins(2200, DENOM).as_slice()),
+            (&subscriber2, coins(220, DENOM).as_slice()),
+        ],
+    )?;
 
     subscription_app
         .call_as(&subscriber1)

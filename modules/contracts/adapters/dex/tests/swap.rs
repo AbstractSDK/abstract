@@ -1,3 +1,5 @@
+#![cfg(feature = "TODO: replace wyndex_bundle")]
+
 use abstract_adapter::std::{ans_host::QueryMsgFns as _, objects::ABSTRACT_ACCOUNT_ID};
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_dex_standard::{msg::DexFeesResponse, DexError};
