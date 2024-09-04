@@ -38,6 +38,8 @@ cw-orch = { workspace = true }
 abstract-adapter = { version = "0.23.0", path = "../../abstract-adapter" }
 
 abstract-interface = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
