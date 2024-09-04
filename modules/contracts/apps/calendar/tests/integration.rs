@@ -1,12 +1,14 @@
 use abstract_app::std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use abstract_client::{AbstractClient, Application, Publisher};
 // Use prelude to get all the necessary imports
-use abstract_app::abstract_testing::prelude::*;
 use calendar_app::{
     error::CalendarError,
-    msg::{CalendarExecuteMsg, CalendarInstantiateMsg, ConfigResponse, Time},
+    msg::{
+        CalendarExecuteMsg, CalendarExecuteMsgFns, CalendarInstantiateMsg, CalendarQueryMsgFns,
+        ConfigResponse, Time,
+    },
     state::Meeting,
-    *,
+    CalendarAppInterface,
 };
 use chrono::{DateTime, Days, FixedOffset, NaiveDateTime, NaiveTime, TimeZone, Timelike};
 use cosmwasm_std::{coins, BlockInfo, Uint128};
@@ -31,7 +33,7 @@ fn request_meeting_with_start_time(
             minute: start_time.minute,
         },
         module,
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )
 }
 
@@ -48,7 +50,7 @@ fn request_meeting_with_end_time(
         },
         end_time,
         module,
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )
 }
 
@@ -94,15 +96,15 @@ fn setup_with_time(
 
     client.set_balances(vec![
         (
-            chain.addr_make("sender1"),
+            &chain.addr_make("sender1"),
             coins(INITIAL_BALANCE, DENOM).as_slice(),
         ),
         (
-            chain.addr_make("sender2"),
+            &chain.addr_make("sender2"),
             coins(INITIAL_BALANCE, DENOM).as_slice(),
         ),
         (
-            chain.addr_make("sender"),
+            &chain.addr_make("sender"),
             coins(INITIAL_BALANCE, DENOM).as_slice(),
         ),
     ])?;
@@ -111,7 +113,7 @@ fn setup_with_time(
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new("abstract")?)
         .ownership(GovernanceDetails::Monarchy {
-            monarch: OWNER.to_owned(),
+            monarch: chain.sender_addr().to_string(),
         })
         .build()?;
 
@@ -469,7 +471,7 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )?;
 
     let sender2 = chain.addr_make("sender2");
@@ -486,7 +488,7 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )?;
     let meetings_response = app.meetings(
         meeting_start_datetime1
@@ -547,7 +549,7 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )?;
 
     let sender2 = chain.addr_make("sender2");
@@ -564,7 +566,7 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )?;
     let meetings_response = app.meetings(
         meeting_start_datetime1
@@ -750,7 +752,7 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
             minute: 0,
         },
         app.clone(),
-        Coin::new(120, DENOM),
+        Coin::new(120u128, DENOM),
     )?;
 
     let sender2 = chain.addr_make("sender2");
@@ -767,7 +769,7 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
             minute: 30,
         },
         app.clone(),
-        Coin::new(30, DENOM),
+        Coin::new(30u128, DENOM),
     )
     .unwrap_err();
 
@@ -808,7 +810,7 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
             minute: 0,
         },
         app.clone(),
-        Coin::new(120, DENOM),
+        Coin::new(120u128, DENOM),
     )?;
 
     let sender2 = chain.addr_make("sender2");
@@ -825,7 +827,7 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )
     .unwrap_err();
 
@@ -866,7 +868,7 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
             minute: 0,
         },
         app.clone(),
-        Coin::new(120, DENOM),
+        Coin::new(120u128, DENOM),
     )?;
 
     let sender2 = chain.addr_make("sender2");
@@ -883,7 +885,7 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )
     .unwrap_err();
 
@@ -924,7 +926,7 @@ fn cannot_request_meeting_in_past() -> anyhow::Result<()> {
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )
     .unwrap_err();
 
@@ -965,7 +967,7 @@ fn cannot_request_meeting_with_end_time_before_start_time() -> anyhow::Result<()
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )
     .unwrap_err();
 
@@ -1006,7 +1008,7 @@ fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Re
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )
     .unwrap_err();
 
@@ -1047,7 +1049,7 @@ fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Resu
             minute: 30,
         },
         app.clone(),
-        Coin::new(60, DENOM),
+        Coin::new(60u128, DENOM),
     )
     .unwrap_err();
 
@@ -1093,7 +1095,7 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
                 start_time: meeting_start_datetime.and_utc().timestamp().into(),
                 end_time: meeting_end_datetime.and_utc().timestamp().into(),
             }),
-            Some(&[Coin::new(60, DENOM)]),
+            &[Coin::new(60u128, DENOM)],
         )
         .unwrap_err()
         .into();
@@ -1133,7 +1135,7 @@ fn cannot_request_meeting_with_insufficient_funds() -> anyhow::Result<()> {
             minute: 0,
         },
         app.clone(),
-        Coin::new(30, DENOM),
+        Coin::new(30u128, DENOM),
     )
     .unwrap_err();
 

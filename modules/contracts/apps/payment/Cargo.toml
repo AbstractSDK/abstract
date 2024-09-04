@@ -54,5 +54,8 @@ cw20 = { workspace = true }
 cw20-base = { workspace = true }
 cw-plus-interface = { workspace = true }
 
-wyndex-bundle = { workspace = true }
-abstract-dex-adapter = { workspace = true, features = ["wynd", "testing"] }
+# wyndex-bundle = { workspace = true }
+abstract-dex-adapter = { workspace = true, features = [
+    # "wynd",
+    "testing",
+] }

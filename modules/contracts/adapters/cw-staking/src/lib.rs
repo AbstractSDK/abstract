@@ -103,7 +103,7 @@ pub mod interface {
                 proxy_address: Some(account.proxy.addr_str()?),
                 request: StakingExecuteMsg { provider, action },
             });
-            self.execute(&swap_msg, None).map_err(Into::into)
+            self.execute(&swap_msg, &[]).map_err(Into::into)
         }
 
         /// Stake using Abstract Account (registered in daemon_state).

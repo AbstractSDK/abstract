@@ -99,7 +99,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
         // Ensure staked
         let stake_response: StakeResponse =
@@ -143,7 +143,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
 
         // Unstake half
@@ -158,7 +158,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
 
         // Ensure user got his lp back
@@ -177,7 +177,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
 
         // Ensure unstaked
@@ -227,7 +227,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
 
         self.provider.generate_rewards(&proxy_addr, reward_value)?;
@@ -242,7 +242,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
         let reward = self
             .query_proxy_balance(&proxy_addr, &self.provider.reward_asset())?
@@ -295,7 +295,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
         self.provider
             .generate_rewards(&proxy_addr, 10_000_000u128)?;

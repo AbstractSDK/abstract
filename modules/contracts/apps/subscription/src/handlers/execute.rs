@@ -238,12 +238,12 @@ pub fn claim_emissions_msg(
         }
         crate::state::EmissionType::SecondShared(shared_emissions, token) => {
             // active_sub can't be 0 as we already loaded one from storage
-            let amount = (shared_emissions * Uint128::from(seconds_passed))
-                / (Uint128::from(subscription_state.active_subs));
+            let amount = Uint128::from(seconds_passed).mul_floor(shared_emissions)
+                / Uint128::from(subscription_state.active_subs);
             Asset::new(token, amount)
         }
         crate::state::EmissionType::SecondPerUser(per_user_emissions, token) => {
-            let amount = per_user_emissions * Uint128::from(seconds_passed);
+            let amount = Uint128::from(seconds_passed).mul_floor(per_user_emissions);
             Asset::new(token, amount)
         }
     };

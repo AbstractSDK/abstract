@@ -80,7 +80,7 @@ pub mod interface {
                 proxy_address: Some(account.proxy.addr_str()?),
                 request,
             });
-            self.execute(&msg, None).map_err(Into::into)
+            self.execute(&msg, &[]).map_err(Into::into)
         }
 
         /// Raw action
@@ -95,7 +95,7 @@ pub mod interface {
                 proxy_address: Some(account.proxy.addr_str()?),
                 request: DexExecuteMsg::Action { dex, action },
             });
-            self.execute(&msg, None).map_err(Into::into)
+            self.execute(&msg, &[]).map_err(Into::into)
         }
 
         /// Swap using ans resolved assets

@@ -42,7 +42,7 @@ cw-asset = { workspace = true }
 abstract-app = { workspace = true }
 
 chrono = { version = "0.4.31", default-features = false }
-cw-utils = "1.0.1"
+cw-utils = { workspace = true }
 
 # Dependencies for interface
 cw-orch = { workspace = true }

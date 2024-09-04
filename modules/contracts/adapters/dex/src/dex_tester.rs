@@ -594,7 +594,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         for message in generate_messages.messages {
             match message {
                 CosmosMsg::Bank(BankMsg::Send { to_address, amount }) => {
-                    chain.add_balance(to_address, amount)?;
+                    chain.add_balance(&Addr::unchecked(to_address), amount)?;
                 }
                 CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr,

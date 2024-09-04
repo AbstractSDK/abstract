@@ -126,7 +126,7 @@ fn setup() -> anyhow::Result<(
             to_add: vec![("denom".to_owned(), AssetInfo::native(DENOM).into())],
             to_remove: vec![],
         },
-        None,
+        &[],
     )?;
 
     let account_details: AccountDetails = AccountDetails {
@@ -143,7 +143,7 @@ fn setup() -> anyhow::Result<(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
 
     let _ = account.install_app(
@@ -154,7 +154,7 @@ fn setup() -> anyhow::Result<(
                 veto_duration_seconds: None,
             },
         },
-        None,
+        &[],
     )?;
 
     challenge_app.set_sender(&account.manager.address()?);

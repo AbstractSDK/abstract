@@ -1,3 +1,4 @@
+#![cfg(feature = "TODO: replace wyndex_bundle")]
 mod common;
 
 use abstract_adapter::abstract_interface::{

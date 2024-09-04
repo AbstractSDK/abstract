@@ -50,7 +50,7 @@ fn deploy_cw_staking(
         };
         cw_staking
             .as_instance_mut()
-            .instantiate(&init_msg, None, None)?;
+            .instantiate(&init_msg, None, &[])?;
 
         version_control.register_adapters(vec![(
             cw_staking.as_instance_mut(),

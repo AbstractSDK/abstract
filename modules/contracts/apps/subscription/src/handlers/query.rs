@@ -31,8 +31,8 @@ pub fn query_handler(
         SubscriptionQueryMsg::Fee {} => {
             let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
             let twa_data = INCOME_TWA.load(deps.storage)?;
-            let minimal_cost =
-                Uint128::from(twa_data.averaging_period) * config.subscription_cost_per_second;
+            let minimal_cost = Uint128::from(twa_data.averaging_period)
+                .mul_floor(config.subscription_cost_per_second);
             to_json_binary(&SubscriptionFeeResponse {
                 fee: Asset {
                     info: config.payment_asset,
