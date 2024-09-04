@@ -21,7 +21,7 @@ env:
 jobs:
   framework-clone-tests:
     runs-on: ubuntu-latest
-    name: ubuntu / stable
+    name: framework clone tests
     steps:
       - uses: actions/checkout@v3
         with:
@@ -55,7 +55,7 @@ jobs:
 
   interchain-tests:
     runs-on: ubuntu-latest
-    name: ubuntu / stable
+    name: interchain mock tests
     steps:
       - uses: actions/checkout@v3
         with:
@@ -83,7 +83,7 @@ jobs:
 
   modules-clone-tests:
     runs-on: ubuntu-latest
-    name: ubuntu / stable
+    name: module clone tests
     steps:
       - uses: actions/checkout@v3
         with:
