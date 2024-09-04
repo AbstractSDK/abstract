@@ -37,6 +37,9 @@ cw-asset = { workspace = true }
 cw-ownable = { workspace = true }
 serde-cw-value = "0.7.0"
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
+
 [dev-dependencies]
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true }

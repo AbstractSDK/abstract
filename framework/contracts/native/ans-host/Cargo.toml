@@ -31,6 +31,9 @@ abstract-macros = { workspace = true }
 abstract-sdk = { workspace = true }
 cw-ownable = { workspace = true }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
+
 [dev-dependencies]
 cw20 = { workspace = true }
 cosmwasm-schema = { workspace = true }

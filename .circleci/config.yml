@@ -101,7 +101,7 @@ jobs:
 
   build-framework:
     docker:
-      - image: cimg/rust:1.75.0
+      - image: cimg/rust:1.80.0
     resource_class: xlarge
     steps:
       - setup_remote_docker
@@ -134,7 +134,7 @@ jobs:
             git checkout "$CIRCLE_BRANCH-build"
       - restore_cache:
           keys:
-            - cargocache-v2-build-rust:1.75.0-{{ checksum "framework/Cargo.lock" }}
+            - cargocache-v2-build-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Build framework WASM artifacts
           command: |
@@ -155,7 +155,7 @@ jobs:
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
-          key: cargocache-v2-build-rust:1.75.0-{{ checksum "framework/Cargo.lock" }}
+          key: cargocache-v2-build-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Commit and push framework artifacts
           command: |
@@ -180,7 +180,7 @@ jobs:
 
   build-modules:
     docker:
-      - image: cimg/rust:1.75.0
+      - image: cimg/rust:1.80.0
     resource_class: xlarge
     steps:
       - setup_remote_docker
@@ -260,7 +260,7 @@ jobs:
 
   tests:
     docker:
-      - image: cimg/rust:1.75.0
+      - image: cimg/rust:1.80.0
     resource_class: xlarge
     steps:
       - checkout
@@ -271,7 +271,7 @@ jobs:
             cargo generate-lockfile
       - restore_cache:
           keys:
-            - cargocache-v2-tests-rust:1.75.0-{{ checksum "modules/Cargo.lock" }}
+            - cargocache-v2-tests-rust:1.80.0-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Modules tests
           command: |
@@ -282,11 +282,11 @@ jobs:
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps
-          key: cargocache-v2-tests-rust:1.75.0-{{ checksum "modules/Cargo.lock" }}
+          key: cargocache-v2-tests-rust:1.80.0-{{ checksum "modules/Cargo.lock" }}
 
   deploy:
     docker:
-      - image: cimg/rust:1.75.0
+      - image: cimg/rust:1.80.0
     resource_class: large
     steps:
       - checkout
@@ -299,7 +299,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - cargocache-v2-deploy-rust:1.75.0-{{ checksum "framework/Cargo.lock" }}
+            - cargocache-v2-deploy-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Decode and Deploy
           command: |
@@ -330,11 +330,11 @@ jobs:
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.75.0-{{ checksum "framework/Cargo.lock" }}
+          key: cargocache-v2-deploy-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
 
   modules-coverage:
     docker:
-      - image: cimg/rust:1.75.0
+      - image: cimg/rust:1.80.0
     resource_class: xlarge
     steps:
       - setup_remote_docker
@@ -348,7 +348,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - cargocache-v2-coverage-rust:1.75.0-{{ checksum "modules/Cargo.lock" }}
+            - cargocache-v2-coverage-rust:1.80.0-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Run tests with coverage for modules
           command: |
@@ -361,11 +361,11 @@ jobs:
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.75.0-{{ checksum "modules/Cargo.lock" }}
+          key: cargocache-v2-deploy-rust:1.80.0-{{ checksum "modules/Cargo.lock" }}
 
   framework-coverage:
     docker:
-      - image: cimg/rust:1.75.0
+      - image: cimg/rust:1.80.0
     resource_class: xlarge
     steps:
       - setup_remote_docker
@@ -379,7 +379,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - cargocache-v2-coverage-rust:1.75.0-{{ checksum "framework/Cargo.lock" }}
+            - cargocache-v2-coverage-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Run tests with coverage for framework
           command: |
@@ -392,7 +392,7 @@ jobs:
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.75.0-{{ checksum "framework/Cargo.lock" }}
+          key: cargocache-v2-deploy-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
 
   pass:
     docker:

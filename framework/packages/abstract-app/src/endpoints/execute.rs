@@ -1,7 +1,4 @@
-use abstract_sdk::{
-    base::{ModuleIbcEndpoint, ReceiveEndpoint},
-    features::AbstractResponse,
-};
+use abstract_sdk::{base::ModuleIbcEndpoint, features::AbstractResponse};
 use abstract_std::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use schemars::JsonSchema;
@@ -22,20 +19,11 @@ impl<
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg: Serialize + JsonSchema,
         SudoMsg,
     > ExecuteEndpoint
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
+    type ExecuteMsg = ExecuteMsg<CustomExecMsg>;
 
     fn execute(
         self,
@@ -50,7 +38,6 @@ impl<
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
-            ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
             ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
         }
     }
@@ -62,18 +49,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
         SudoMsg,
-    >
-    AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    > AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     fn base_execute(
         &self,
@@ -130,7 +107,7 @@ mod test {
     use cw_controllers::AdminError;
     use speculoos::prelude::*;
 
-    type AppExecuteMsg = SuperExecuteMsg<MockExecMsg, MockReceiveMsg>;
+    type AppExecuteMsg = SuperExecuteMsg<MockExecMsg>;
 
     fn execute_as(deps: DepsMut, sender: &Addr, msg: AppExecuteMsg) -> Result<Response, MockError> {
         let info = message_info(&sender, &[]);

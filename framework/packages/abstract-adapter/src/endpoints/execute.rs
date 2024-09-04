@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ModuleIbcEndpoint, ReceiveEndpoint},
+    base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ModuleIbcEndpoint},
     features::ModuleIdentification,
     AbstractResponse, AccountVerification,
 };
@@ -23,12 +23,11 @@ impl<
         CustomInitMsg,
         CustomExecMsg: Serialize + JsonSchema + AdapterExecuteMsg,
         CustomQueryMsg,
-        ReceiveMsg: Serialize + JsonSchema,
         SudoMsg,
     > ExecuteEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
+    type ExecuteMsg = ExecuteMsg<CustomExecMsg>;
 
     fn execute(
         mut self,
@@ -43,7 +42,6 @@ impl<
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
-            ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
             ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
         }
     }
@@ -55,8 +53,8 @@ fn is_top_level_owner(querier: &QuerierWrapper, manager: Addr, sender: &Addr) ->
 }
 
 /// The api-contract base implementation.
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
+    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
     fn base_execute(
         &mut self,
@@ -249,14 +247,12 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::mock::{
-        mock_init, AdapterMockResult, MockError, MockExecMsg, MockReceiveMsg, MOCK_ADAPTER,
-    };
+    use crate::mock::{mock_init, AdapterMockResult, MockError, MockExecMsg, MOCK_ADAPTER};
 
     fn execute_as(
         deps: DepsMut,
         sender: &Addr,
-        msg: ExecuteMsg<MockExecMsg, MockReceiveMsg>,
+        msg: ExecuteMsg<MockExecMsg>,
     ) -> Result<Response, MockError> {
         MOCK_ADAPTER.execute(deps, mock_env(), message_info(&sender, &[]), msg)
     }

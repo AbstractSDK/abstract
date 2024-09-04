@@ -1,4 +1,7 @@
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self, Display},
+    str::FromStr,
+};
 
 use cosmwasm_std::{ensure_eq, to_json_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
@@ -248,6 +251,21 @@ impl ModuleVersion {
                 // assert version parses correctly
                 Version::parse(ver)?;
                 Ok(())
+            }
+        }
+    }
+}
+
+impl FromStr for ModuleVersion {
+    type Err = AbstractError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "latest" => Ok(Self::Latest),
+            _ => {
+                let v = Self::Version(s.to_owned());
+                v.validate()?;
+                Ok(v)
             }
         }
     }

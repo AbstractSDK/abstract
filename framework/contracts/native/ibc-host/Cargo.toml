@@ -37,6 +37,9 @@ abstract-macros = { workspace = true }
 cw-orch = { workspace = true }
 cw-paginate = "2.0.0"
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
+
 [dev-dependencies]
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true }

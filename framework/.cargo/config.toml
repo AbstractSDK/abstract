@@ -1,6 +1,3 @@
 [alias]
 schema = "run --example schema"
 wasm = "build --release --target wasm32-unknown-unknown"
-
-[registries.abstract-money]
-index = "ssh://git@ssh.shipyard.rs/abstract-money/crate-index.git"

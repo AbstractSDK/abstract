@@ -22,8 +22,8 @@ use crate::{
     },
 };
 
-pub type ExecuteMsg<Request = Empty, ReceiveMsg = Empty> =
-    MiddlewareExecMsg<BaseExecuteMsg, AdapterRequestMsg<Request>, ReceiveMsg>;
+pub type ExecuteMsg<Request = Empty> =
+    MiddlewareExecMsg<BaseExecuteMsg, AdapterRequestMsg<Request>>;
 pub type QueryMsg<ModuleMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, ModuleMsg>;
 pub type InstantiateMsg<ModuleMsg = Empty> =
     MiddlewareInstantiateMsg<BaseInstantiateMsg, ModuleMsg>;
@@ -32,12 +32,11 @@ pub type InstantiateMsg<ModuleMsg = Empty> =
 /// in the [`ExecuteMsg`] enum.
 /// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
 pub trait AdapterExecuteMsg: Serialize {}
-
-impl<T: AdapterExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
-    fn from(adapter_msg: T) -> Self {
+impl<T: AdapterExecuteMsg> From<T> for ExecuteMsg<T> {
+    fn from(request: T) -> Self {
         Self::Module(AdapterRequestMsg {
             proxy_address: None,
-            request: adapter_msg,
+            request,
         })
     }
 }
@@ -67,16 +66,14 @@ pub struct BaseInstantiateMsg {
     pub version_control_address: String,
 }
 
-impl<RequestMsg, ReceiveMsg> From<BaseExecuteMsg>
-    for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg, ReceiveMsg>
-{
+impl<RequestMsg> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg> {
     fn from(adapter_msg: BaseExecuteMsg) -> Self {
         Self::Base(adapter_msg)
     }
 }
 
-impl<RequestMsg, Request, BaseExecMsg> From<AdapterRequestMsg<RequestMsg>>
-    for MiddlewareExecMsg<BaseExecMsg, AdapterRequestMsg<RequestMsg>, Request>
+impl<RequestMsg, BaseExecMsg> From<AdapterRequestMsg<RequestMsg>>
+    for MiddlewareExecMsg<BaseExecMsg, AdapterRequestMsg<RequestMsg>>
 {
     fn from(request_msg: AdapterRequestMsg<RequestMsg>) -> Self {
         Self::Module(request_msg)

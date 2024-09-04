@@ -34,6 +34,9 @@ cw-orch = { workspace = true }
 abstract-interface = { version = "0.23.0", path = "../../packages/abstract-interface" }
 abstract-ibc-host = { version = "0.23.0", path = "../../contracts/native/ibc-host", default-features = false }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
 speculoos = { workspace = true }
