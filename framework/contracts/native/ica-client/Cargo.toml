@@ -37,6 +37,10 @@ cw-orch = { workspace = true }
 
 evm-note = { version = "0.0.2", features = ["library"]}
 polytone-evm = "0.0.2"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
+
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true }
