@@ -145,4 +145,4 @@ jobs:
             workspaces: "framework -> target"
       - name: cargo udeps framework
         working-directory: ./framework
-        run: cargo workspaces exec cargo +nightly udeps --exclude "workspace-hack"
+        run: cargo workspaces exec cargo +nightly udeps --workspace --exclude "workspace-hack"
