@@ -31,6 +31,9 @@ polytone-evm = { version = "0.0.2" }
 alloy = { version = "0.2.1", default-features = false }
 alloy-sol-types = { version = "0.7.7", default-features = false }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
 [dev-dependencies]
 speculoos = { workspace = true }
 rstest = { workspace = true }
