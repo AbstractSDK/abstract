@@ -158,14 +158,12 @@ pub mod cw20_builder {
 
     // Re-exports to limit dependencies for consumer.
     use cosmwasm_std::Addr;
-    pub use cw20::{msg::Cw20ExecuteMsgFns, *};
-    pub use cw20_base::msg::{InstantiateMarketingInfo, QueryMsgFns as Cw20QueryMsgFns};
-    use cw_orch::{
-        environment::CwEnv,
-        prelude::{CwOrchInstantiate, CwOrchUpload},
+    pub use cw20::*;
+    pub use cw20_base::msg::InstantiateMarketingInfo;
+    use cw_orch::{environment::CwEnv, prelude::*};
+    pub use cw_plus_interface::cw20_base::{
+        Cw20Base, ExecuteMsgInterfaceFns, InstantiateMsg, QueryMsgInterfaceFns,
     };
-    pub use cw_plus_interface::cw20_base::Cw20Base;
-    use cw_plus_interface::cw20_base::InstantiateMsg;
 
     use crate::client::AbstractClientResult;
 
@@ -230,23 +228,22 @@ pub mod cw20_builder {
         // TODO: we can rename it to `build()` as other methods and take {module-id}-{symbol} as id instead
         pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Chain>> {
             let cw20 = Cw20Base::new(id, self.chain.clone());
-            unimplemented!("cw20 not bumped to 2.0");
             // TODO: Consider adding error if the code-id is already uploaded. This would
             // imply that the user is trying to instantiate twice using the same id which would
             // overwrite the state.
-            // cw20.upload()?;
-            // cw20.instantiate(
-            //     &InstantiateMsg {
-            //         decimals: self.decimals,
-            //         mint: self.mint.clone(),
-            //         symbol: self.symbol.clone(),
-            //         name: self.name.clone(),
-            //         initial_balances: self.initial_balances.clone(),
-            //         marketing: self.marketing.clone(),
-            //     },
-            //     self.admin.as_ref(),
-            //     None,
-            // )?;
+            cw20.upload()?;
+            cw20.instantiate(
+                &InstantiateMsg {
+                    decimals: self.decimals,
+                    mint: self.mint.clone(),
+                    symbol: self.symbol.clone(),
+                    name: self.name.clone(),
+                    initial_balances: self.initial_balances.clone(),
+                    marketing: self.marketing.clone(),
+                },
+                self.admin.as_ref(),
+                &[],
+            )?;
             Ok(cw20)
         }
     }

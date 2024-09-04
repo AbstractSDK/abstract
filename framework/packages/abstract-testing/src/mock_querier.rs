@@ -342,11 +342,10 @@ impl MockQuerierBuilder {
                     let addr = Addr::unchecked(contract_addr);
                     let contract_handler = self.smart_handlers.get(&addr);
 
-                    let res = match contract_handler {
+                    match contract_handler {
                         Some(handler) => (*handler)(msg),
                         None => (*self.fallback_smart_handler)(&addr, msg),
-                    };
-                    res
+                    }
                 }
                 WasmQuery::ContractInfo { contract_addr } => {
                     let addr = Addr::unchecked(contract_addr);

@@ -17,7 +17,7 @@ pub(crate) fn instantiate_msg(info: &MessageInfo) -> InstantiateMsg {
 /**
  * Mocks instantiation.
  */
-pub fn mock_init<Q: cosmwasm_std::Querier>(deps: &mut OwnedDeps<MockStorage,MockApi,Q>) {
+pub fn mock_init<Q: cosmwasm_std::Querier>(deps: &mut OwnedDeps<MockStorage, MockApi, Q>) {
     let abstr = AbstractMockAddrs::new(deps.api);
     let info = message_info(&abstr.owner, &[]);
     let msg = InstantiateMsg {

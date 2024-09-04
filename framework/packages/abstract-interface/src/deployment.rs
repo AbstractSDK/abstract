@@ -126,13 +126,15 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     }
 
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
+        #[allow(unused_mut)]
         let mut abstr = Self::new(chain);
-        // We register all the contracts default state
-        let state = State::load_state();
-
         #[cfg(feature = "daemon")]
-        abstr.set_contracts_state(Some(state));
+        {
+            // We register all the contracts default state
+            let state = State::load_state();
 
+            abstr.set_contracts_state(Some(state));
+        }
         // Check if abstract deployed, for successful load
         if let Err(CwOrchError::AddrNotInStore(_)) = abstr.version_control.address() {
             return Err(AbstractInterfaceError::NotDeployed {});

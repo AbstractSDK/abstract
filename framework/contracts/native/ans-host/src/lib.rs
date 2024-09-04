@@ -15,7 +15,9 @@ mod test_common {
 
     use crate::{contract, error::AnsHostError};
 
-    pub fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> Result<Response, AnsHostError> {
+    pub fn mock_init(
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+    ) -> Result<Response, AnsHostError> {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();

@@ -952,7 +952,9 @@ mod test {
             (new_entry_1, new_entry_2, new_entry_3)
         }
 
-        fn setup_map_tester<'a>(mock_api: MockApi) -> CwMapTester<
+        fn setup_map_tester<'a>(
+            mock_api: MockApi,
+        ) -> CwMapTester<
             ExecuteMsg,
             AnsHostError,
             &'a ChannelEntry,
@@ -1114,8 +1116,7 @@ mod test {
             pool_contract_addr: &Addr,
             metadata: PoolMetadata,
         ) -> UncheckedPoolMapEntry {
-            let pool_id =
-                UncheckedPoolAddress::contract(pool_contract_addr);
+            let pool_id = UncheckedPoolAddress::contract(pool_contract_addr);
             (pool_id, metadata)
         }
 
@@ -1129,21 +1130,19 @@ mod test {
         fn execute_update(
             deps: DepsMut,
             (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolId>),
-            owner: &Addr
+            owner: &Addr,
         ) -> AnsHostTestResult {
             let msg = build_update_msg(to_add, to_remove);
-            execute_helper(deps, msg,owner)?;
+            execute_helper(deps, msg, owner)?;
             Ok(())
         }
 
-        fn register_dex(deps: DepsMut, dex: &str,
-            owner: &Addr
-        ) -> AnsHostTestResult {
+        fn register_dex(deps: DepsMut, dex: &str, owner: &Addr) -> AnsHostTestResult {
             let msg = ExecuteMsg::UpdateDexes {
                 to_add: vec![dex.into()],
                 to_remove: vec![],
             };
-            execute_helper(deps, msg,owner)?;
+            execute_helper(deps, msg, owner)?;
             Ok(())
         }
 
@@ -1195,7 +1194,11 @@ mod test {
 
             let new_entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata.clone());
 
-            execute_update(deps.as_mut(), (vec![new_entry.clone()], vec![]), &abstr.owner)?;
+            execute_update(
+                deps.as_mut(),
+                (vec![new_entry.clone()], vec![]),
+                &abstr.owner,
+            )?;
 
             let expected_pools: Vec<PoolMetadataMapEntry> =
                 vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
@@ -1253,7 +1256,11 @@ mod test {
 
             let new_entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata.clone());
 
-            execute_update(deps.as_mut(), (vec![new_entry.clone()], vec![]), &abstr.owner)?;
+            execute_update(
+                deps.as_mut(),
+                (vec![new_entry.clone()], vec![]),
+                &abstr.owner,
+            )?;
 
             let expected_pools: Vec<PoolMetadataMapEntry> =
                 vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
@@ -1334,7 +1341,7 @@ mod test {
             execute_update(
                 deps.as_mut(),
                 (vec![entry], vec![INITIAL_UNIQUE_POOL_ID.into()]),
-                &abstr.owner
+                &abstr.owner,
             )?;
 
             // metadata should be emtpy
@@ -1354,7 +1361,11 @@ mod test {
             mock_init(&mut deps).unwrap();
             let abstr = AbstractMockAddrs::new(deps.api);
 
-            let res = execute_update(deps.as_mut(), (vec![], vec![INITIAL_UNIQUE_POOL_ID.into()]), &abstr.owner);
+            let res = execute_update(
+                deps.as_mut(),
+                (vec![], vec![INITIAL_UNIQUE_POOL_ID.into()]),
+                &abstr.owner,
+            );
 
             assert_that(&res).is_ok();
 

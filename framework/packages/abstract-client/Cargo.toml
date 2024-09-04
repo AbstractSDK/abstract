@@ -37,9 +37,9 @@ thiserror.workspace = true
 cw-asset = { workspace = true, optional = true }
 
 # For Cw20 builder
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "3.0.0", optional = true }
-cw20 = { package = "abstract-cw20", version = "3.0.0", optional = true }
-cw20-base = { package = "abstract-cw20-base", version = "3.0.0", optional = true }
+cw-plus-interface = { package = "abstract-cw-plus-interface", version = "4.0.0", optional = true }
+cw20 = { version = "2.0.0", optional = true }
+cw20-base = { version = "2.0.0", optional = true }
 cw721 = "0.18"
 
 # For random account seq

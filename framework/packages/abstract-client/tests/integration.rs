@@ -12,7 +12,7 @@ use abstract_app::{
     traits::ModuleIdentification,
 };
 use abstract_client::{
-    builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
+    builder::cw20_builder::{self, ExecuteMsgInterfaceFns, QueryMsgInterfaceFns},
     AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
     Publisher,
 };
@@ -527,117 +527,116 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     Ok(())
 }
 
-// TODO: cw20 bump
-// #[test]
-// fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
-//     let chain = MockBech32::new("mock");
-//     let sender = chain.sender_addr();
-//     let client = AbstractClient::builder(chain.clone()).build()?;
+#[test]
+fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender_addr();
+    let client = AbstractClient::builder(chain.clone()).build()?;
 
-//     let name = "name";
-//     let symbol = "symbol";
-//     let decimals = 6;
-//     let description = "A test cw20 token";
-//     let logo = "link-to-logo";
-//     let project = "project";
-//     let marketing = chain.addr_make("marketing");
-//     let cap = Uint128::from(100u128);
-//     let starting_balance = Uint128::from(100u128);
-//     let minter_response = cw20_builder::MinterResponse {
-//         minter: sender.to_string(),
-//         cap: Some(cap),
-//     };
+    let name = "name";
+    let symbol = "symbol";
+    let decimals = 6;
+    let description = "A test cw20 token";
+    let logo = "link-to-logo";
+    let project = "project";
+    let marketing = chain.addr_make("marketing");
+    let cap = Uint128::from(100u128);
+    let starting_balance = Uint128::from(100u128);
+    let minter_response = cw20_builder::MinterResponse {
+        minter: sender.to_string(),
+        cap: Some(cap),
+    };
 
-//     let cw20: cw20_builder::Cw20Base<MockBech32> = client
-//         .cw20_builder(name, symbol, decimals)
-//         .initial_balance(cw20_builder::Cw20Coin {
-//             address: sender.to_string(),
-//             amount: starting_balance,
-//         })
-//         .admin(sender.to_string())
-//         .mint(minter_response.clone())
-//         .marketing(cw20_builder::InstantiateMarketingInfo {
-//             description: Some(description.to_owned()),
-//             logo: Some(cw20_builder::Logo::Url(logo.to_owned())),
-//             project: Some(project.to_owned()),
-//             marketing: Some(marketing.to_string()),
-//         })
-//         .instantiate_with_id("abstract:test_cw20")?;
+    let cw20: cw20_builder::Cw20Base<MockBech32> = client
+        .cw20_builder(name, symbol, decimals)
+        .initial_balance(cw20_builder::Cw20Coin {
+            address: sender.to_string(),
+            amount: starting_balance,
+        })
+        .admin(sender.to_string())
+        .mint(minter_response.clone())
+        .marketing(cw20_builder::InstantiateMarketingInfo {
+            description: Some(description.to_owned()),
+            logo: Some(cw20_builder::Logo::Url(logo.to_owned())),
+            project: Some(project.to_owned()),
+            marketing: Some(marketing.to_string()),
+        })
+        .instantiate_with_id("abstract:test_cw20")?;
 
-//     let actual_minter_response: cw20_builder::MinterResponse = cw20.minter()?;
-//     assert_eq!(minter_response, actual_minter_response);
+    let actual_minter_response: cw20_builder::MinterResponse = cw20.minter()?;
+    assert_eq!(minter_response, actual_minter_response);
 
-//     let marketing_info_response: cw20_builder::MarketingInfoResponse = cw20.marketing_info()?;
-//     assert_eq!(
-//         cw20_builder::MarketingInfoResponse {
-//             description: Some(description.to_owned()),
-//             logo: Some(cw20_builder::LogoInfo::Url(logo.to_owned())),
-//             project: Some(project.to_owned()),
-//             marketing: Some(marketing),
-//         },
-//         marketing_info_response
-//     );
+    let marketing_info_response: cw20_builder::MarketingInfoResponse = cw20.marketing_info()?;
+    assert_eq!(
+        cw20_builder::MarketingInfoResponse {
+            description: Some(description.to_owned()),
+            logo: Some(cw20_builder::LogoInfo::Url(logo.to_owned())),
+            project: Some(project.to_owned()),
+            marketing: Some(marketing),
+        },
+        marketing_info_response
+    );
 
-//     let owner_balance: cw20_builder::BalanceResponse = cw20.balance(sender.to_string())?;
-//     assert_eq!(
-//         cw20_builder::BalanceResponse {
-//             balance: starting_balance
-//         },
-//         owner_balance
-//     );
-//     let transfer_amount = Uint128::from(50u128);
-//     let recipient = chain.addr_make("user");
-//     cw20.transfer(transfer_amount, recipient.to_string())?;
+    let owner_balance: cw20_builder::BalanceResponse = cw20.balance(sender.to_string())?;
+    assert_eq!(
+        cw20_builder::BalanceResponse {
+            balance: starting_balance
+        },
+        owner_balance
+    );
+    let transfer_amount = Uint128::from(50u128);
+    let recipient = chain.addr_make("user");
+    cw20.transfer(transfer_amount, recipient.to_string())?;
 
-//     let recipient_balance = cw20.balance(recipient.to_string())?;
-//     assert_eq!(
-//         cw20_builder::BalanceResponse {
-//             balance: transfer_amount
-//         },
-//         recipient_balance
-//     );
+    let recipient_balance = cw20.balance(recipient.to_string())?;
+    assert_eq!(
+        cw20_builder::BalanceResponse {
+            balance: transfer_amount
+        },
+        recipient_balance
+    );
 
-//     Ok(())
-// }
+    Ok(())
+}
 
-// #[test]
-// fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
-//     let chain = MockBech32::new("mock");
-//     let sender = chain.sender_addr();
-//     let client = AbstractClient::builder(chain).build()?;
+#[test]
+fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender_addr();
+    let client = AbstractClient::builder(chain).build()?;
 
-//     let name = "name";
-//     let symbol = "symbol";
-//     let decimals = 6;
+    let name = "name";
+    let symbol = "symbol";
+    let decimals = 6;
 
-//     let cw20: cw20_builder::Cw20Base<MockBech32> = client
-//         .cw20_builder(name, symbol, decimals)
-//         .instantiate_with_id("abstract:test_cw20")?;
+    let cw20: cw20_builder::Cw20Base<MockBech32> = client
+        .cw20_builder(name, symbol, decimals)
+        .instantiate_with_id("abstract:test_cw20")?;
 
-//     let minter_response = cw20.minter();
-//     assert!(minter_response.is_err());
+    let minter_response = cw20.minter();
+    assert!(minter_response.is_err());
 
-//     let marketing_info_response: cw20_builder::MarketingInfoResponse = cw20.marketing_info()?;
-//     assert_eq!(
-//         cw20_builder::MarketingInfoResponse {
-//             description: None,
-//             logo: None,
-//             project: None,
-//             marketing: None,
-//         },
-//         marketing_info_response
-//     );
+    let marketing_info_response: cw20_builder::MarketingInfoResponse = cw20.marketing_info()?;
+    assert_eq!(
+        cw20_builder::MarketingInfoResponse {
+            description: None,
+            logo: None,
+            project: None,
+            marketing: None,
+        },
+        marketing_info_response
+    );
 
-//     let owner_balance: cw20_builder::BalanceResponse = cw20.balance(sender.to_string())?;
-//     assert_eq!(
-//         cw20_builder::BalanceResponse {
-//             balance: Uint128::zero(),
-//         },
-//         owner_balance
-//     );
+    let owner_balance: cw20_builder::BalanceResponse = cw20.balance(sender.to_string())?;
+    assert_eq!(
+        cw20_builder::BalanceResponse {
+            balance: Uint128::zero(),
+        },
+        owner_balance
+    );
 
-//     Ok(())
-// }
+    Ok(())
+}
 
 #[test]
 fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
