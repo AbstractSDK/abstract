@@ -54,9 +54,9 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install ${{ matrix.toolchain }}
         uses: dtolnay/rust-toolchain@master
         with:
@@ -78,9 +78,9 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install nightly
         uses: dtolnay/rust-toolchain@nightly
       - name: cargo doc
@@ -101,9 +101,9 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install stable
         uses: dtolnay/rust-toolchain@stable
       - name: cargo install cargo-hack
@@ -125,9 +125,9 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install nightly
         uses: dtolnay/rust-toolchain@nightly
       - name: cargo install cargo-udeps
