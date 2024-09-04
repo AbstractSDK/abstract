@@ -63,6 +63,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           components: clippy
       - uses: Swatinem/rust-cache@v2
+        with: 
+          workspaces: "framework -> target"
       - name: cargo clippy
         working-directory: ./framework
         run: cargo clippy --all-targets --all-features -- -D warnings
@@ -110,6 +112,8 @@ jobs:
       - name: cargo install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - uses: Swatinem/rust-cache@v2
+        with: 
+            workspaces: "framework -> target"
       - name: cargo hack
         working-directory: ./framework
         run: cargo hack --feature-powerset check --lib --tests
@@ -137,6 +141,8 @@ jobs:
       - name: cargo install cargo-workspaces
         run: cargo +stable install cargo-workspaces
       - uses: Swatinem/rust-cache@v2
+        with: 
+            workspaces: "framework -> target"
       - name: cargo udeps framework
         working-directory: ./framework
         run: cargo workspaces exec cargo +nightly udeps

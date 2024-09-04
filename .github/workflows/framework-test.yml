@@ -41,6 +41,8 @@ jobs:
         working-directory: ./framework
         run: cargo generate-lockfile
       - uses: Swatinem/rust-cache@v2
+        with: 
+          workspaces: "framework -> target"
       - name: cargo test --locked
         working-directory: ./framework
         run: cargo test --locked --all-features --all-targets
