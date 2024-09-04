@@ -39,9 +39,9 @@ sha256 = "1"
 clap = { workspace = true }
 dirs = "5.0.1"
 
-croncat-app = { workspace = true }
+# croncat-app = { workspace = true }
 challenge-app = { workspace = true }
-dca-app = { workspace = true }
+# dca-app = { workspace = true }
 abstract-dex-adapter = { workspace = true }
 abstract-cw-staking = { workspace = true }
 abstract-money-market-adapter = { workspace = true }
