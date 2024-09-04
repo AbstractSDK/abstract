@@ -40,7 +40,7 @@ jobs:
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./framework
         run: cargo generate-lockfile
-      # https://twitter.com/jonhoo/status/1571290371124260865
+      - uses: Swatinem/rust-cache@v2
       - name: cargo test --locked
         working-directory: ./framework
         run: cargo test --locked --all-features --all-targets
