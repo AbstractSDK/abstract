@@ -23,10 +23,10 @@ serde = { workspace = true }
 polytone = { workspace = true }
 map-macro = "0.3.0"
 
-cw-orch = {workspace = true}
-abstract-sdk = {workspace = true}
+cw-orch = { workspace = true }
+abstract-sdk = { workspace = true }
 
-# EMV
+# EVM
 polytone-evm = { version = "0.0.2" }
 alloy = { version = "0.2.1", default-features = false }
 alloy-sol-types = { version = "0.7.7", default-features = false }

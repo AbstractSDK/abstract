@@ -90,10 +90,10 @@ mod tests {
     use super::*;
 
     use crate::test_common::mock_init;
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL, *};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         from_json,
-        testing::{mock_dependencies, mock_env, mock_info},
+        testing::{message_info, mock_dependencies, mock_env},
         Addr,
     };
     use cw2::CONTRACT;
@@ -103,27 +103,25 @@ mod tests {
     #[test]
     fn instantiate_works() -> IcaClientResult<()> {
         let mut deps = mock_dependencies();
+        let abstr = AbstractMockAddrs::new(deps.api);
         let msg = InstantiateMsg {
-            ans_host_address: TEST_ANS_HOST.into(),
-            version_control_address: TEST_VERSION_CONTROL.into(),
+            ans_host_address: abstr.ans_host.to_string(),
+            version_control_address: abstr.version_control.to_string(),
         };
-        let info = mock_info(OWNER, &[]);
+        let info = message_info(&abstr.owner, &[]);
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_that!(res.messages).is_empty();
 
         // config
         let expected_config = Config {
-            version_control: VersionControlContract::new(Addr::unchecked(TEST_VERSION_CONTROL)),
-            ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
+            version_control: VersionControlContract::new(abstr.version_control),
+            ans_host: AnsHost::new(abstr.ans_host),
         };
 
         let ownership_resp: Ownership<Addr> =
             from_json(query(deps.as_ref(), mock_env(), QueryMsg::Ownership {})?)?;
 
-        assert_eq!(
-            ownership_resp.owner,
-            Some(Addr::unchecked(OWNER.to_owned()))
-        );
+        assert_eq!(ownership_resp.owner, Some(abstr.owner));
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
         assert_that!(actual_config).is_equal_to(expected_config);
@@ -145,7 +143,7 @@ mod tests {
         #[test]
         fn disallow_same_version() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -167,7 +165,7 @@ mod tests {
         #[test]
         fn disallow_downgrade() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let big_version = "999.999.999";
             cw2::set_contract_version(deps.as_mut().storage, ICA_CLIENT, big_version)?;
@@ -192,7 +190,7 @@ mod tests {
         #[test]
         fn disallow_name_change() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
@@ -215,7 +213,7 @@ mod tests {
         #[test]
         fn works() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 

@@ -548,13 +548,15 @@ mod test {
         #[test]
         fn ica_action() {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut());
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let ica_client_addr = deps.api.addr_make("ica_client_addr");
+            mock_init(&mut deps);
             // whitelist creator
             STATE
                 .save(
                     &mut deps.storage,
                     &State {
-                        modules: vec![Addr::unchecked(TEST_MANAGER)],
+                        modules: vec![abstr.account.manager.clone()],
                     },
                 )
                 .unwrap();
@@ -564,20 +566,20 @@ mod test {
                 action_query_msg: action.clone(),
             };
 
-            let not_whitelisted_info = mock_info("not_whitelisted", &[]);
+            let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
             execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
-            let manager_info = mock_info(TEST_MANAGER, &[]);
+            let manager_info = message_info(&abstr.account.manager, &[]);
             // ibc not enabled
             execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
             // mock enabling ibc
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
-                    TEST_MANAGER,
+                    &abstr.account.manager,
                     manager::state::ACCOUNT_MODULES,
-                    (ICA_CLIENT, Addr::unchecked("ica_client_addr")),
+                    (ICA_CLIENT, ica_client_addr.clone()),
                 )
-                .with_smart_handler("ica_client_addr", move |bin| {
+                .with_smart_handler(&ica_client_addr, move |bin| {
                     if bin.eq(&action) {
                         Ok(to_json_binary(&IcaActionResult {
                             msgs: vec![CosmosMsg::Custom(Empty {})],

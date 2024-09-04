@@ -73,7 +73,6 @@ impl<
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
-    use abstract_std::version_control::AccountBase;
     use abstract_testing::{mock_querier, prelude::*};
     use speculoos::prelude::*;
 

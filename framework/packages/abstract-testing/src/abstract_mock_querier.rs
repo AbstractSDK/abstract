@@ -74,9 +74,11 @@ impl AbstractMockQuerierBuilder {
     }
 
     pub fn contracts(mut self, contracts: Vec<(&ContractEntry, Addr)>) -> Self {
-        self.builder =
-            self.builder
-                .with_contract_map_entries(TEST_ANS_HOST, CONTRACT_ADDRESSES, contracts);
+        self.builder = self.builder.with_contract_map_entries(
+            &self.abstract_addrs.ans_host,
+            CONTRACT_ADDRESSES,
+            contracts,
+        );
 
         self
     }
