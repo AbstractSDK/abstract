@@ -18,7 +18,7 @@ abstract-client = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }
-env_logger = "0.10.0"
+env_logger = "0.11.3"
 lazy_static = "1.4.0"
 
 # # Clone testing
