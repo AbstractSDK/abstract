@@ -152,11 +152,11 @@ impl MockStaking for AstrovaultStake {
     fn generate_rewards(&self, addr: &Addr, amount: u128) -> anyhow::Result<()> {
         let chain = &self.chain;
 
-        let mint_distributor_addr = &self.rewards_source.address;
+        let mint_distributor_addr = Addr::unchecked(&self.rewards_source.address);
 
         let config: astrovault::mint_distributor::query_msg::ConfigResponse =
             chain.wasm_querier().smart_query(
-                mint_distributor_addr,
+                &mint_distributor_addr,
                 &astrovault::mint_distributor::query_msg::QueryMsg::Config {},
             )?;
 
@@ -165,7 +165,7 @@ impl MockStaking for AstrovaultStake {
                 allowlist: Some(vec![chain.sender_addr().to_string()]),
             },
             &[],
-            &Addr::unchecked(mint_distributor_addr),
+            &mint_distributor_addr,
         )?;
 
         chain.execute(
@@ -174,7 +174,7 @@ impl MockStaking for AstrovaultStake {
                 amount: amount.into(),
             },
             &[],
-            &Addr::unchecked(mint_distributor_addr),
+            &mint_distributor_addr,
         )?;
 
         Ok(())

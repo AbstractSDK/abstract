@@ -615,7 +615,7 @@ mod tests {
             objects::{version_control::VersionControlError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
-        use cosmwasm_std::{coins, Binary, CosmosMsg, IbcMsg};
+        use cosmwasm_std::{coins, AnyMsg, Binary, CosmosMsg, IbcMsg};
         use prost::Name;
         use std::str::FromStr;
 
@@ -715,28 +715,30 @@ mod tests {
             use prost::Message;
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()
-                .map(|c| CosmosMsg::Stargate {
-                    type_url: ibc_proto::ibc::apps::transfer::v1::MsgTransfer::type_url(),
-                    value: Binary::from(
-                        ibc_proto::ibc::apps::transfer::v1::MsgTransfer {
-                            source_port: "transfer".to_owned(),
-                            source_channel: channel_id.clone(),
-                            token: Some(ibc_proto::cosmos::base::v1beta1::Coin {
-                                denom: c.denom,
-                                amount: c.amount.to_string(),
-                            }),
-                            sender: mock_env().contract.address.to_string(),
-                            receiver: remote_addr.clone(),
-                            timeout_height: None,
-                            timeout_timestamp: mock_env()
-                                .block
-                                .time
-                                .plus_seconds(PACKET_LIFETIME)
-                                .nanos(),
-                            memo: memo.clone().unwrap(),
-                        }
-                        .encode_to_vec(),
-                    ),
+                .map(|c| {
+                    CosmosMsg::Any(AnyMsg {
+                        type_url: ibc_proto::ibc::apps::transfer::v1::MsgTransfer::type_url(),
+                        value: Binary::from(
+                            ibc_proto::ibc::apps::transfer::v1::MsgTransfer {
+                                source_port: "transfer".to_owned(),
+                                source_channel: channel_id.clone(),
+                                token: Some(ibc_proto::cosmos::base::v1beta1::Coin {
+                                    denom: c.denom,
+                                    amount: c.amount.to_string(),
+                                }),
+                                sender: mock_env().contract.address.to_string(),
+                                receiver: remote_addr.clone(),
+                                timeout_height: None,
+                                timeout_timestamp: mock_env()
+                                    .block
+                                    .time
+                                    .plus_seconds(PACKET_LIFETIME)
+                                    .nanos(),
+                                memo: memo.clone().unwrap(),
+                            }
+                            .encode_to_vec(),
+                        ),
+                    })
                 })
                 .collect();
 

@@ -17,7 +17,7 @@ use cosmos_sdk_proto::{
     },
     traits::{Message, Name},
 };
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
+use cosmwasm_std::{Addr, AnyMsg, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
 use ibc_proto::ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height};
 
 use super::stargate::{
@@ -95,12 +95,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
-            // TODO: `Name` implementation is missing for authz
-            // type_url: authz::v1beta1::MsgRevoke::type_url(),
-            type_url: "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
+        CosmosMsg::Any(AnyMsg {
+            type_url: authz::v1beta1::MsgRevoke::type_url(),
             value: Binary::new(msg),
-        }
+        })
     }
 
     /// Generate cosmwasm message for the AuthZAuthorization type
@@ -117,10 +115,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
-            type_url: "/cosmos.authz.v1beta1.MsgGrant".to_string(),
+        CosmosMsg::Any(AnyMsg {
+            type_url: authz::v1beta1::MsgGrant::type_url(),
             value: Binary::new(msg),
-        }
+        })
     }
 
     /// Grants generic authorization to a **grantee**.
@@ -281,7 +279,7 @@ impl AuthZ {
                 ),
                 _ => todo!(),
             },
-            CosmosMsg::Stargate { type_url, value } => (type_url.clone(), value.into()),
+            CosmosMsg::Any(AnyMsg { type_url, value }) => (type_url.clone(), value.into()),
             CosmosMsg::Bank(bank_msg) => match bank_msg {
                 cosmwasm_std::BankMsg::Send { to_address, amount } => (
                     MsgSend::type_url(),
@@ -451,12 +449,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
-            // TODO: `Name` implementation is missing for authz
-            // type_url: authz::v1beta1::MsgExec::type_url(),
-            type_url: "/cosmos.authz.v1beta1.MsgExec".to_string(),
+        CosmosMsg::Any(AnyMsg {
+            type_url: authz::v1beta1::MsgExec::type_url(),
             value: Binary::new(msg),
-        }
+        })
     }
 }
 
@@ -484,7 +480,7 @@ mod tests {
             expiration,
         );
 
-        let expected_msg = CosmosMsg::Stargate {
+        let expected_msg = CosmosMsg::Any(AnyMsg {
             type_url: "/cosmos.authz.v1beta1.MsgGrant".to_string(),
             value: Binary::new(
                 authz::v1beta1::MsgGrant {
@@ -503,7 +499,7 @@ mod tests {
                 }
                 .encode_to_vec(),
             ),
-        };
+        });
 
         assert_eq!(generic_authorization_msg, expected_msg);
     }
@@ -521,7 +517,7 @@ mod tests {
         let generic_authorization_msg =
             auth_z.revoke(&grantee, "/cosmos.gov.v1beta1.MsgVote".to_string());
 
-        let expected_msg = CosmosMsg::Stargate {
+        let expected_msg = CosmosMsg::Any(AnyMsg {
             type_url: "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
             value: Binary::new(
                 authz::v1beta1::MsgRevoke {
@@ -531,7 +527,7 @@ mod tests {
                 }
                 .encode_to_vec(),
             ),
-        };
+        });
 
         assert_eq!(generic_authorization_msg, expected_msg);
     }

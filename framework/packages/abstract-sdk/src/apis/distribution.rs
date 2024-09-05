@@ -4,9 +4,10 @@
 
 use cosmos_sdk_proto::{
     cosmos::{base, distribution},
+    prost::Name,
     traits::Message,
 };
-use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg};
+use cosmwasm_std::{to_json_binary, Addr, AnyMsg, Coin, CosmosMsg};
 
 use crate::{features::AccountExecutor, AbstractSdkResult, AccountAction};
 
@@ -62,10 +63,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress".to_string(),
+        let msg = CosmosMsg::Any(AnyMsg {
+            type_url: distribution::v1beta1::MsgSetWithdrawAddress::type_url(),
             value: to_json_binary(&msg)?,
-        };
+        });
 
         Ok(msg.into())
     }
@@ -82,10 +83,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward".to_string(),
+        let msg = CosmosMsg::Any(AnyMsg {
+            type_url: distribution::v1beta1::MsgWithdrawDelegatorReward::type_url(),
             value: to_json_binary(&msg)?,
-        };
+        });
 
         Ok(msg.into())
     }
@@ -100,10 +101,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission".to_string(),
+        let msg = CosmosMsg::Any(AnyMsg {
+            type_url: distribution::v1beta1::MsgWithdrawValidatorCommission::type_url(),
             value: to_json_binary(&msg)?,
-        };
+        });
 
         Ok(msg.into())
     }
@@ -126,10 +127,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.distribution.v1beta1.MsgFundCommunityPool".to_string(),
+        let msg = CosmosMsg::Any(AnyMsg {
+            type_url: distribution::v1beta1::MsgFundCommunityPool::type_url(),
             value: to_json_binary(&msg)?,
-        };
+        });
 
         Ok(msg.into())
     }

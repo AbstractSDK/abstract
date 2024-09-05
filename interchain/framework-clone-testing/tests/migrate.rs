@@ -88,7 +88,7 @@ fn old_account_functions() -> anyhow::Result<()> {
         // Try to install
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-        let res = old_account.install_app(&app, &MockInitMsg {}, None);
+        let res = old_account.install_app(&app, &MockInitMsg {}, &[]);
         // An old account should be able to install new apps
         assert!(res.is_ok());
     } else {
@@ -204,7 +204,7 @@ mod version_control {
 
         // Check if not migrated yet
         let vc_version_bytes = chain.wasm_querier().raw_query(
-            abstr_deployment.version_control.address()?,
+            &abstr_deployment.version_control.address()?,
             cw2::CONTRACT.as_slice().to_vec(),
         )?;
         let vc_version: cw2::ContractVersion = from_json(vc_version_bytes)?;

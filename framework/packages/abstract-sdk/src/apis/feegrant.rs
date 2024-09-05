@@ -8,7 +8,7 @@ use cosmos_sdk_proto::{
     cosmos::feegrant,
     traits::{Message, Name},
 };
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
+use cosmwasm_std::{Addr, AnyMsg, Binary, Coin, CosmosMsg, Timestamp};
 
 use super::stargate::feegrant::{BasicOrPeriodicAllowance, MsgAllowance};
 use crate::{
@@ -80,10 +80,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
+        CosmosMsg::Any(AnyMsg {
             type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
             value: Binary::new(msg),
-        }
+        })
     }
 
     /// Grants an allowance to a **grantee**.
@@ -100,10 +100,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
+        CosmosMsg::Any(AnyMsg {
             type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
             value: Binary::new(msg),
-        }
+        })
     }
 
     /// Grants a basic allowance.
@@ -182,7 +182,7 @@ mod test {
         grantee: Addr,
         allowance: impl StargateMessage,
     ) -> CosmosMsg {
-        CosmosMsg::Stargate {
+        CosmosMsg::Any(AnyMsg {
             type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
             value: Binary::new(
                 feegrant::v1beta1::MsgGrantAllowance {
@@ -192,7 +192,7 @@ mod test {
                 }
                 .encode_to_vec(),
             ),
-        }
+        })
     }
 
     mod basic_allowance {
@@ -289,7 +289,7 @@ mod test {
 
             let revoke_msg = fee_granter.revoke_allowance(&grantee);
 
-            let expected_msg = CosmosMsg::Stargate {
+            let expected_msg = CosmosMsg::Any(AnyMsg {
                 type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
                 value: Binary::new(
                     feegrant::v1beta1::MsgRevokeAllowance {
@@ -298,7 +298,7 @@ mod test {
                     }
                     .encode_to_vec(),
                 ),
-            };
+            });
             assert_eq!(revoke_msg, expected_msg);
         }
     }

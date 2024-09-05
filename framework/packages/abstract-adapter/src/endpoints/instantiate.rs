@@ -68,7 +68,7 @@ mod test {
         objects::module_version::{ModuleData, MODULE},
     };
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, StdError};
+    use cosmwasm_std::testing::*;
     use cw2::{ContractVersion, CONTRACT};
     use speculoos::prelude::*;
 
