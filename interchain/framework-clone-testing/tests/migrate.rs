@@ -63,8 +63,6 @@ fn old_account_migrate() -> anyhow::Result<()> {
 }
 
 #[test]
-// FIXME: un-ignore it when possible
-#[ignore = "0.23 includes massive ownership revamp which is not compatible with new versions"]
 fn old_account_functions() -> anyhow::Result<()> {
     let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
@@ -181,58 +179,5 @@ mod account_factory {
         let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
 
         create_one_account_with_namespace_fee(chain)
-    }
-}
-
-mod version_control {
-
-    use abstract_interface::VCQueryFns;
-
-    use super::*;
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct Config0_21 {
-        pub account_factory_address: Option<Addr>,
-        pub allow_direct_module_registration_and_updates: bool,
-        pub namespace_registration_fee: Option<Coin>,
-    }
-
-    // TODO: remove after 0.22 deployed
-    #[test]
-    fn version_control0_21_config_migration() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
-
-        // Check if not migrated yet
-        let vc_version_bytes = chain.wasm_querier().raw_query(
-            abstr_deployment.version_control.address()?,
-            cw2::CONTRACT.as_slice().to_vec(),
-        )?;
-        let vc_version: cw2::ContractVersion = from_json(vc_version_bytes)?;
-        if vc_version.version != "0.21.0" {
-            println!("Vc already migrated, remove this test please");
-            return Ok(());
-        }
-
-        let old_config: Config0_21 = abstr_deployment
-            .version_control
-            .query(&abstract_std::version_control::QueryMsg::Config {})?;
-
-        abstr_deployment.migrate_if_version_changed()?;
-
-        let config = abstr_deployment.version_control.config()?;
-        assert_eq!(
-            old_config.account_factory_address,
-            config.account_factory_address
-        );
-        assert_eq!(
-            old_config.allow_direct_module_registration_and_updates,
-            config.security_disabled
-        );
-        assert_eq!(
-            old_config.namespace_registration_fee,
-            config.namespace_registration_fee
-        );
-
-        Ok(())
     }
 }

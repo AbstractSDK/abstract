@@ -54,14 +54,17 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install ${{ matrix.toolchain }}
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
           components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with: 
+          workspaces: "framework -> target"
       - name: cargo clippy
         working-directory: ./framework
         run: cargo clippy --all-targets --all-features -- -D warnings
@@ -78,9 +81,9 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install nightly
         uses: dtolnay/rust-toolchain@nightly
       - name: cargo doc
@@ -101,13 +104,16 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install stable
         uses: dtolnay/rust-toolchain@stable
       - name: cargo install cargo-hack
         uses: taiki-e/install-action@cargo-hack
+      - uses: Swatinem/rust-cache@v2
+        with: 
+            workspaces: "framework -> target"
       - name: cargo hack
         working-directory: ./framework
         run: cargo hack --feature-powerset check --lib --tests
@@ -125,15 +131,18 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install nightly
         uses: dtolnay/rust-toolchain@nightly
       - name: cargo install cargo-udeps
         uses: taiki-e/install-action@cargo-udeps
       - name: cargo install cargo-workspaces
         run: cargo +stable install cargo-workspaces
+      - uses: Swatinem/rust-cache@v2
+        with: 
+            workspaces: "framework -> target"
       - name: cargo udeps framework
         working-directory: ./framework
-        run: cargo workspaces exec cargo +nightly udeps
+        run: cargo workspaces exec cargo +nightly udeps --workspace --exclude "workspace-hack"

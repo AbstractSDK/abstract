@@ -27,7 +27,7 @@ abstract-client = { workspace = true }
 tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }
-env_logger = "0.10.0"
+env_logger = "0.11.3"
 
 ibc-relayer-types = "0.25"
 

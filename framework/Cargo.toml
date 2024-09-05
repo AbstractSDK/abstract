@@ -121,3 +121,4 @@ incremental = false
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep
 normal = ["workspace-hack"]
+development = ["workspace-hack"]

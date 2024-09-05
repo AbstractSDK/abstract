@@ -20,20 +20,15 @@ cosmwasm-std = { workspace = true, features = ["ibc3", "staking"] }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw-ownable = { workspace = true }
-cw-utils = { workspace = true }
 cw2 = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-macros = { workspace = true }
 semver = { workspace = true }
 polytone = { workspace = true }
-cw-paginate = "0.2.1"
-ibc-proto = { version = "0.46.0", default-features = false }
-prost = { version = "0.12.3", default-features = false }
 abstract-ica = { workspace = true }
-cw-orch = { workspace = true }
+abstract-macros ={ workspace = true }
 
 evm-note = { version = "0.0.2", features = ["library"]}
 polytone-evm = "0.0.2"

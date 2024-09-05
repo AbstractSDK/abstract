@@ -55,7 +55,7 @@ abstract-app = { workspace = true, features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
-env_logger = "0.10.0"
+env_logger = "0.11.3"
 cw-orch = { workspace = true, features = ["daemon"] }
 
 # Croncat intefraces
