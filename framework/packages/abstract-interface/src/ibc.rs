@@ -59,26 +59,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             ),
         ])
     }
-
-    #[cfg(feature = "interchain")]
-    /// Register infrastructure on connected chains
-    ///
-    /// Note: this should only be called on real chains (for example using [`cw_orch::daemon::Daemon`])
-    pub fn register_infrastructure(&self) -> Result<(), AbstractInterfaceError> {
-        let register_infrastructures =
-            connection::list_ibc_infrastructures(self.host.environment().clone());
-
-        for (chain, ibc_infrastructure) in register_infrastructures.counterparts {
-            use abstract_std::ibc_client::ExecuteMsgFns;
-
-            self.client.register_infrastructure(
-                chain,
-                ibc_infrastructure.remote_abstract_host,
-                ibc_infrastructure.polytone_note,
-            )?;
-        }
-        Ok(())
-    }
 }
 
 #[cfg(feature = "interchain")]
@@ -105,6 +85,25 @@ pub mod connection {
         ) -> Result<(), AbstractInterfaceError> {
             connect_one_way_to(self, remote_abstr, interchain)?;
             connect_one_way_to(remote_abstr, self, interchain)?;
+            Ok(())
+        }
+    }
+
+    impl AbstractIbc<Daemon> {
+        /// Register infrastructure on connected chains
+        pub fn register_infrastructure(&self) -> Result<(), AbstractInterfaceError> {
+            let register_infrastructures =
+                connection::list_ibc_infrastructures(self.host.environment().clone());
+
+            for (chain, ibc_infrastructure) in register_infrastructures.counterparts {
+                use abstract_std::ibc_client::ExecuteMsgFns;
+
+                self.client.register_infrastructure(
+                    chain,
+                    ibc_infrastructure.remote_abstract_host,
+                    ibc_infrastructure.polytone_note,
+                )?;
+            }
             Ok(())
         }
     }
