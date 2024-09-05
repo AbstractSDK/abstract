@@ -177,6 +177,33 @@
         "additionalProperties": false
       },
       {
+        "description": "Queries the Abstract Ica Client with the provided action query. Provides access to different ICA implementations for different ecosystems.",
+        "type": "object",
+        "required": [
+          "ica_action"
+        ],
+        "properties": {
+          "ica_action": {
+            "type": "object",
+            "required": [
+              "action_query_msg"
+            ],
+            "properties": {
+              "action_query_msg": {
+                "description": "Query of type `abstract-ica-client::msg::QueryMsg`",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Binary"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
         "description": "Adds the provided address to whitelisted dapps",
         "type": "object",
         "required": [
@@ -1908,6 +1935,7 @@
         "description": "Callable actions on a remote host",
         "oneOf": [
           {
+            "description": "Dispatch messages to a remote manager contract. Will create a new Account if required.",
             "type": "object",
             "required": [
               "dispatch"
