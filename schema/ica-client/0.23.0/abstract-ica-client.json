@@ -1,5 +1,5 @@
 {
-  "contract_name": "abstract-ibc-client",
+  "contract_name": "abstract-ica-client",
   "contract_version": "0.23.0",
   "idl_version": "1.0.0",
   "instantiate": {

@@ -44,6 +44,8 @@ cw721 = "0.18"
 
 # For random account seq
 rand = { version = "0.8.5" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]

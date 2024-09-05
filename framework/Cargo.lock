@@ -639,7 +639,6 @@ dependencies = [
  "quote",
  "speculoos",
  "syn 1.0.109",
- "workspace-hack",
 ]
 
 [[package]]
