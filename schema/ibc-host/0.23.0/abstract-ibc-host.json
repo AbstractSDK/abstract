@@ -815,6 +815,7 @@
         "description": "Callable actions on a remote host",
         "oneOf": [
           {
+            "description": "Dispatch messages to a remote manager contract. Will create a new Account if required.",
             "type": "object",
             "required": [
               "dispatch"
