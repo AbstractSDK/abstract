@@ -145,7 +145,7 @@ impl<T: CwEnv> Abstract<T> {
             has_migrated = true
         }
 
-        if self.ibc.deploy_or_migrate_if_version_changed(self)? {
+        if self.ibc.migrate_if_needed()? {
             has_migrated = true;
 
             natives_to_register.push((
@@ -283,47 +283,5 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             .host
             .upload_and_migrate_if_needed(&ibc_host::MigrateMsg {})?;
         Ok(client.is_some() || host.is_some())
-    }
-
-    /// Deploys or Migrates IBC Client and IBC Host
-    /// - If no version changes - don't do anything
-    /// - If version change is breaking - new version is deployed
-    /// - If version change is non-breaking - ibc contracts migrated instead
-    pub fn deploy_or_migrate_if_version_changed(
-        &self,
-        abstr: &Abstract<Chain>,
-    ) -> Result<bool, crate::AbstractInterfaceError> {
-        let ibc_client_cw2_version = contract_version(&self.client)?.version;
-        // Check if any version changes
-        // *Note: IBC client and IBC host supposed to be versioned equally
-        if ::ibc_client::contract::CONTRACT_VERSION == ibc_client_cw2_version {
-            // No need to do anything
-            return Ok(false);
-        }
-
-        // Version change - upload both contracts
-        self.client
-            .upload_if_needed()?
-            .expect("IBC client wasm might be outdated");
-        self.host
-            .upload_if_needed()?
-            .expect("IBC host wasm might be outdated");
-
-        // Check if version is breaking
-        let version_req = semver::VersionReq::parse(&ibc_client_cw2_version).unwrap();
-        let new_version = semver::Version::parse(::ibc_client::contract::CONTRACT_VERSION).unwrap();
-        if version_req.matches(&new_version) {
-            // If version is not breaking, simply migrate
-            self.client
-                .migrate_if_needed(&ibc_client::MigrateMsg {})?
-                .expect("IBC client supposed to be migrated, but skipped instead");
-            self.host
-                .migrate_if_needed(&ibc_host::MigrateMsg {})?
-                .expect("IBC host supposed to be migrated, but skipped instead");
-        } else {
-            self.instantiate(abstr, &self.client.environment().sender_addr())?;
-        }
-
-        Ok(true)
     }
 }
