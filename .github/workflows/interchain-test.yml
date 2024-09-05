@@ -48,6 +48,9 @@ jobs:
         run: |
           mkdir -p ~/.cw-orchestrator
           echo -n '${{ secrets.CW_ORCH_NETWORKS }}' > ~/.cw-orchestrator/networks.toml
+      - uses: Swatinem/rust-cache@v2
+        with: 
+            workspaces: "interchain/framework-clone-testing -> target"
       - name: cargo test --locked
         env:
           SCCACHE_GHA_ENABLED: "true"
@@ -79,6 +82,9 @@ jobs:
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./interchain/interchain-tests
         run: cargo generate-lockfile
+      - uses: Swatinem/rust-cache@v2
+        with: 
+            workspaces: "interchain/interchain-tests -> target"
       - name: cargo test --locked
         working-directory: ./interchain/interchain-tests
         run: cargo test --locked
@@ -112,7 +118,9 @@ jobs:
         run: |
           mkdir -p ~/.cw-orchestrator
           echo -n '${{ secrets.CW_ORCH_NETWORKS }}' > ~/.cw-orchestrator/networks.toml
-
+      - uses: Swatinem/rust-cache@v2
+        with: 
+            workspaces: "interchain/modules-clone-testing -> target"
       - name: cargo test --locked
         working-directory: ./interchain/modules-clone-testing
         run: cargo nextest run --retries 3
