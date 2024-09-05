@@ -542,6 +542,7 @@ name = "abstract-ica-client"
 version = "0.23.0"
 dependencies = [
  "abstract-ica",
+ "abstract-macros",
  "abstract-polytone",
  "abstract-sdk",
  "abstract-std",

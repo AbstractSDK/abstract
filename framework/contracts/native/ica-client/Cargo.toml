@@ -28,6 +28,7 @@ abstract-sdk = { workspace = true }
 semver = { workspace = true }
 polytone = { workspace = true }
 abstract-ica = { workspace = true }
+abstract-macros ={ workspace = true }
 
 evm-note = { version = "0.0.2", features = ["library"]}
 polytone-evm = "0.0.2"
