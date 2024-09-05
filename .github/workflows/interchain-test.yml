@@ -111,7 +111,7 @@ jobs:
       - name: save private network configs
         run: |
           mkdir -p ~/.cw-orchestrator
-          echo -n '${{ secrets.CW_ORCH_NETWORKS }}' > ~/.cw-orchestrator/networks.json
+          echo -n '${{ secrets.CW_ORCH_NETWORKS }}' > ~/.cw-orchestrator/networks.toml
 
       - name: cargo test --locked
         working-directory: ./interchain/modules-clone-testing
