@@ -92,18 +92,6 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
             .map_err(|error| self.wrap_query_error(error))
     }
 
-    /// Get the proxy address for a given account id.
-    pub fn proxy_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
-        self.account_base(account_id)
-            .map(|account_base| account_base.proxy)
-    }
-
-    /// Get the manager address for a given account id.
-    pub fn manager_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
-        self.account_base(account_id)
-            .map(|account_base| account_base.manager)
-    }
-
     /// Get the account base for a given account id.
     pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<Account> {
         self.vc
