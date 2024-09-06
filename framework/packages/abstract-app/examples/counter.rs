@@ -98,8 +98,10 @@ mod handlers {
         |_, _, _, _| to_json_binary("counter_query").map_err(Into::into);
     pub const sudo: SudoHandlerFn<CounterApp, CounterSudoMsg, CounterError> =
         |_, _, _, _| Ok(Response::new().set_data("counter_sudo".as_bytes()));
-    pub const reply: ReplyHandlerFn<CounterApp, CounterError> =
-        |_, _, _, msg| Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()));
+    pub const reply: ReplyHandlerFn<CounterApp, CounterError> = |_, _, _, msg| {
+        #[allow(deprecated)]
+        Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+    };
     pub const migrate: MigrateHandlerFn<CounterApp, CounterMigrateMsg, CounterError> =
         |_, _, _, _| Ok(Response::new().set_data("counter_migrate".as_bytes()));
     // ANCHOR: execute

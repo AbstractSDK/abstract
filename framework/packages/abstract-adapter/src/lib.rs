@@ -121,6 +121,7 @@ pub mod mock {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })
             .with_replies(&[(1u64, |_, _, _, msg| {
+                #[allow(deprecated)]
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })]);
 

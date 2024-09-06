@@ -151,6 +151,7 @@ pub mod mock {
                 StaticDependency::new(IBC_CLIENT, &[abstract_std::registry::ABSTRACT_VERSION]),
             ])
             .with_replies(&[(1u64, |_, _, _, msg| {
+                #[allow(deprecated)]
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })])
             .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));

@@ -32,6 +32,7 @@ pub fn reply_execute_action(deps: DepsMut, env: Env, _reply: Reply) -> Result<Re
 pub fn reply_forward_response_data(reply: Reply) -> HostResult {
     // get the result from the reply
     if let cosmwasm_std::SubMsgResult::Ok(response) = reply.result {
+        #[allow(deprecated)]
         if let Ok(MsgExecuteContractResponse { data: Some(data) }) =
             cw_utils::parse_execute_response_data(response.data.unwrap_or_default().as_slice())
         {
