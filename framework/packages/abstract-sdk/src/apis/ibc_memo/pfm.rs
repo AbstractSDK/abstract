@@ -3,12 +3,12 @@ use std::collections::BTreeMap;
 use serde_cw_value::Value;
 
 /// Builder for [Packet Forward Middleware](https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware) memos.
-pub struct PacketForwardMiddlewareBuilder {
+pub struct PfmMemoBuilder {
     port: Option<String>,
     hops: Vec<PacketForwardMiddlewareHop>,
 }
 
-impl PacketForwardMiddlewareBuilder {
+impl PfmMemoBuilder {
     /// Forward memo builder
     pub fn new(first_hop_channel: impl Into<String>) -> Self {
         Self {
@@ -50,7 +50,7 @@ impl PacketForwardMiddlewareBuilder {
     /// Build the memo json string
     /// Receiver is an address of the packet receiver on remote chain
     pub fn build(self, receiver: impl Into<String>) -> cosmwasm_std::StdResult<String> {
-        let PacketForwardMiddlewareBuilder {
+        let PfmMemoBuilder {
             port,
             hops,
         } = self;

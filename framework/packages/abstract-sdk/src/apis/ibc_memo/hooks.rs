@@ -4,13 +4,13 @@ use cosmwasm_std::{from_json, to_json_binary, Addr, Binary};
 use serde_cw_value::Value;
 
 /// Builder for [IbcHooks](https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks) memo field.
-pub struct IbcHooksBuilder {
+pub struct HookMemoBuilder {
     contract_addr: String,
     msg: Binary,
     ibc_callback: Option<Addr>,
 }
 
-impl IbcHooksBuilder {
+impl HookMemoBuilder {
     /// New Wasm Contract Memo IBC Hook
     /// Note: contract_addr should be the same as "receiver"
     pub fn new(contract_addr: impl Into<String>, msg: &impl serde::Serialize) -> Self {

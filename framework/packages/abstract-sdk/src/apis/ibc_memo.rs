@@ -1,8 +1,8 @@
 mod hooks;
 mod pfm;
 
-pub use hooks::IbcHooksBuilder;
-pub use pfm::PacketForwardMiddlewareBuilder;
+pub use hooks::HookMemoBuilder;
+pub use pfm::PfmMemoBuilder;
 
 #[cfg(test)]
 mod test {
@@ -12,7 +12,7 @@ mod test {
 
     #[test]
     fn memo_middleware() {
-        let minimal = PacketForwardMiddlewareBuilder::new("channel-1")
+        let minimal = PfmMemoBuilder::new("channel-1")
             .build("foo")
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&minimal).unwrap();
@@ -25,7 +25,7 @@ mod test {
         });
         assert_eq!(value, expected_value);
 
-        let complete = PacketForwardMiddlewareBuilder::new("channel-1")
+        let complete = PfmMemoBuilder::new("channel-1")
             .port("different_port")
             .timeout("10m")
             .retries(4)
@@ -51,7 +51,7 @@ mod test {
         });
         assert_eq!(value, expected_value);
 
-        let multimultihop = PacketForwardMiddlewareBuilder::new("channel-1")
+        let multimultihop = PfmMemoBuilder::new("channel-1")
             .hop("channel-2")
             .hop("channel-3")
             .build("receiver")
@@ -87,7 +87,7 @@ mod test {
             "withdraw": {}
         });
 
-        let minimal = IbcHooksBuilder::new("mock_addr".to_owned(), &msg)
+        let minimal = HookMemoBuilder::new("mock_addr".to_owned(), &msg)
             .build()
             .unwrap();
         let value: serde_json::Value = serde_json::from_str(&minimal).unwrap();
@@ -99,7 +99,7 @@ mod test {
         });
         assert_eq!(value, expected_value);
 
-        let complete = IbcHooksBuilder::new("mock_addr".to_owned(), &msg)
+        let complete = HookMemoBuilder::new("mock_addr".to_owned(), &msg)
             .callback_contract(Addr::unchecked("callback_addr"))
             .build()
             .unwrap();

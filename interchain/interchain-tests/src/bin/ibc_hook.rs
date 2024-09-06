@@ -6,7 +6,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use abstract_interchain_tests::{setup::set_starship_env, JUNO};
 use abstract_interface::{connection::connect_one_way_to, Abstract};
-use abstract_sdk::{IbcHooksBuilder, IbcMemoBuilder};
+use abstract_sdk::HookMemoBuilder;
 use abstract_std::{
     ans_host::ExecuteMsgFns,
     objects::{TruncatedChainId, UncheckedChannelEntry},
@@ -104,7 +104,7 @@ pub fn test_pfm() -> AnyResult<()> {
         vec![coin(test_amount, get_denom(&juno, token_subdenom.as_str()))],
     ))?;
 
-    let memo = IbcHooksBuilder::new(
+    let memo = HookMemoBuilder::new(
         counter_juno2.addr_str()?,
         &counter_contract::msg::ExecuteMsg::Increment {},
     )
@@ -179,7 +179,7 @@ mod counter_different_cw_orch {
                 networks::ChainKind::Local => cw_orch_counter::environment::ChainKind::Local,
                 networks::ChainKind::Mainnet => cw_orch_counter::environment::ChainKind::Mainnet,
                 networks::ChainKind::Testnet => cw_orch_counter::environment::ChainKind::Testnet,
-                networks::ChainKind::Unspecified => unreachable!(),
+                _ => unreachable!(),
             };
             let chain = cw_orch_counter::prelude::ChainInfoOwned {
                 chain_id: chain.chain_id,

@@ -10,7 +10,7 @@ use abstract_interchain_tests::{
 use abstract_interface::{
     connection::connect_one_way_to, Abstract, AbstractAccount, ProxyQueryFns,
 };
-use abstract_sdk::{IbcMemoBuilder, PacketForwardMiddlewareBuilder};
+use abstract_sdk::PfmMemoBuilder;
 use abstract_std::{
     ans_host::ExecuteMsgFns,
     objects::{TruncatedChainId, UncheckedChannelEntry},
@@ -145,10 +145,9 @@ pub fn test_pfm() -> AnyResult<()> {
         .unwrap()
         .to_string();
 
-    let memo = PacketForwardMiddlewareBuilder::new(juno4.sender_addr())
-        .hop(juno2_juno3_channel_port_juno2)
+    let memo = PfmMemoBuilder::new(juno2_juno3_channel_port_juno2)
         .hop(juno3_juno4_channel_port_juno3)
-        .build()?;
+        .build(juno4.sender_addr())?;
     origin_account.manager.execute_on_module(
         PROXY,
         abstract_std::proxy::ExecuteMsg::IbcAction {
