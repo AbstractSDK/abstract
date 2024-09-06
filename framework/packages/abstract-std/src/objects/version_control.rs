@@ -231,12 +231,10 @@ impl VersionControlContract {
         maybe_account_addr: &Addr,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<AccountId> {
-        let self_reported_account_id =
-            self.unchecked_account_id(maybe_account_addr, querier)?;
+        let self_reported_account_id = self.unchecked_account_id(maybe_account_addr, querier)?;
         // now we need to verify that the account id is indeed correct
         let account_base = self.account(&self_reported_account_id, querier)?;
-        if account_base.addr().ne(maybe_account_addr)
-        {
+        if account_base.addr().ne(maybe_account_addr) {
             Err(VersionControlError::FailedToQueryAccountId {
                 contract_addr: maybe_account_addr.clone(),
             })

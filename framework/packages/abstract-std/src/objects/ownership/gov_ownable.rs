@@ -216,8 +216,7 @@ pub fn assert_nested_owner(
         return Ok(());
     }
     // Otherwise we need to check top level owner
-    let top_level_ownership = if let GovernanceDetails::SubAccount { account } = ownership.owner
-    {
+    let top_level_ownership = if let GovernanceDetails::SubAccount { account } = ownership.owner {
         query_top_level_owner(querier, account)?
     } else {
         ownership

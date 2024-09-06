@@ -25,7 +25,7 @@ pub enum GovernanceDetails<T: AddressLike> {
     /// Used when the account is a sub-account of another account.
     SubAccount {
         // Account address
-        account: T
+        account: T,
     },
     /// An external governance source
     External {
@@ -93,7 +93,9 @@ impl GovernanceDetails<String> {
                 )?;
                 let Some(b) = base else {
                     return Err(AbstractError::Std(cosmwasm_std::StdError::generic_err(
-                        format!("Version control does not have account id of account {account_addr}"),
+                        format!(
+                            "Version control does not have account id of account {account_addr}"
+                        ),
                     )));
                 };
                 if b.addr() == account_addr {
@@ -164,7 +166,7 @@ impl GovernanceDetails<Addr> {
     pub fn owner_address(&self, querier: &QuerierWrapper) -> Option<Addr> {
         match self {
             GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
-            GovernanceDetails::SubAccount { account} => Some(account.clone()),
+            GovernanceDetails::SubAccount { account } => Some(account.clone()),
             GovernanceDetails::External {
                 governance_address, ..
             } => Some(governance_address.clone()),

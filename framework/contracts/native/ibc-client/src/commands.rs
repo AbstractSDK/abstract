@@ -253,9 +253,7 @@ pub fn execute_send_module_to_module_packet(
                 .query(&deps.querier, info.sender.clone())?
                 .proxy_address;
             let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
-            let account_base = cfg
-                .version_control
-                .account(&account_id, &deps.querier)?;
+            let account_base = cfg.version_control.account(&account_id, &deps.querier)?;
             let ibc_client = manager::state::ACCOUNT_MODULES.query(
                 &deps.querier,
                 account_base.manager,
