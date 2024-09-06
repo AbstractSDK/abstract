@@ -13,7 +13,7 @@ use abstract_std::{
         ownership, AccountId, ABSTRACT_ACCOUNT_ID,
     },
     version_control::{NamespaceResponse, UpdateModule},
-    PROXY,
+    ACCOUNT,
 };
 use abstract_testing::prelude::*;
 use anyhow::Error;
@@ -90,9 +90,9 @@ fn instantiate() -> AResult {
     assert_that!(&modules).has_length(1);
     assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
         address: account.proxy.address()?,
-        id: PROXY.to_string(),
+        id: ACCOUNT.to_string(),
         version: cw2::ContractVersion {
-            contract: PROXY.into(),
+            contract: ACCOUNT.into(),
             version: CONTRACT_VERSION.into(),
         },
     });
@@ -134,7 +134,7 @@ fn exec_through_manager() -> AResult {
                 amount: burn_amount,
             })],
         })?,
-        PROXY.to_string(),
+        ACCOUNT.to_string(),
         &[],
     )?;
 
@@ -501,7 +501,7 @@ fn nft_owner_success() -> Result<(), Error> {
     };
 
     // confirm sender (who owns this NFT) can execute on the account through the manager
-    account.manager.execute_on_module(PROXY, &burn_msg)?;
+    account.manager.execute_on_module(ACCOUNT, &burn_msg)?;
 
     // confirm tokens were burnt
     let balance = chain.query_balance(&account.proxy.address()?, TTOKEN)?;
@@ -514,7 +514,7 @@ fn nft_owner_success() -> Result<(), Error> {
     let res = account
         .manager
         .call_as(&not_nft_holder)
-        .execute_on_module(PROXY, &burn_msg);
+        .execute_on_module(ACCOUNT, &burn_msg);
 
     assert!(&res.is_err());
 
@@ -541,14 +541,14 @@ fn nft_owner_success() -> Result<(), Error> {
     assert_eq!(resp.owner, new_nft_owner);
 
     // try to call as the old owner (default sender)
-    let res = account.manager.execute_on_module(PROXY, &burn_msg);
+    let res = account.manager.execute_on_module(ACCOUNT, &burn_msg);
     assert!(&res.is_err());
 
     // Now try with new NFT owner
     account
         .manager
         .call_as(&new_nft_owner)
-        .execute_on_module(PROXY, burn_msg)?;
+        .execute_on_module(ACCOUNT, burn_msg)?;
 
     let balance = chain.query_balance(&account.proxy.address()?, TTOKEN)?;
     assert_eq!(balance, first_burn.checked_sub(burn_amnt.into())?);

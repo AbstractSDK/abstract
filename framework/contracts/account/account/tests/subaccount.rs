@@ -7,7 +7,7 @@ use abstract_std::{
         gov_type::{GovAction, GovernanceDetails},
         ownership, AccountId,
     },
-    proxy, PROXY,
+    proxy, ACCOUNT,
 };
 use cosmwasm_std::{to_json_binary, wasm_execute, WasmMsg};
 use cw_orch::prelude::*;
@@ -444,7 +444,7 @@ fn account_updated_to_subaccount() -> AResult {
         to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![wasm_execute(manager2_addr, &accept_msg, vec![])?.into()],
         })?,
-        PROXY.to_owned(),
+        ACCOUNT.to_owned(),
         &[],
     )?;
 
@@ -608,7 +608,7 @@ fn account_updated_to_subaccount_without_recursion() -> AResult {
 
     // accepting ownership by sender instead of the manager
     account_1.manager.execute_on_module(
-        PROXY,
+        ACCOUNT,
         proxy::ExecuteMsg::ModuleAction {
             msgs: vec![WasmMsg::Execute {
                 contract_addr: account_2.manager.addr_str()?,
@@ -644,7 +644,7 @@ fn sub_account_to_regular_account_without_recursion() -> AResult {
     )?;
 
     account.manager.execute_on_module(
-        PROXY,
+        ACCOUNT,
         proxy::ExecuteMsg::ModuleAction {
             msgs: vec![WasmMsg::Execute {
                 contract_addr: sub_account.manager.addr_str()?,

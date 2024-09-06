@@ -9,7 +9,7 @@ use abstract_std::{
     objects::{AccountId, TruncatedChainId},
     proxy,
     version_control::Account,
-    PROXY,
+    ACCOUNT,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
@@ -145,7 +145,7 @@ pub fn send_all_back(
     let manager_msg = wasm_execute(
         account.manager,
         &manager::ExecuteMsg::ExecOnModule {
-            module_id: PROXY.into(),
+            module_id: ACCOUNT.into(),
             exec_msg: to_json_binary(&proxy::ExecuteMsg::ModuleAction { msgs })?,
         },
         vec![],

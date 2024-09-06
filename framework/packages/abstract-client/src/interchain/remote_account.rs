@@ -19,7 +19,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership, AccountId, TruncatedChainId,
     },
-    proxy, IBC_CLIENT, PROXY,
+    proxy, IBC_CLIENT, ACCOUNT,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
 use cw_orch::{
@@ -359,14 +359,14 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let modules = vec![
             (
-                ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
+                ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
                 Some(
                     to_json_binary(&abstract_std::manager::MigrateMsg {})
                         .map_err(Into::<CwOrchError>::into)?,
                 ),
             ),
             (
-                ModuleInfo::from_id(abstract_std::registry::PROXY, version)?,
+                ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version)?,
                 Some(
                     to_json_binary(&abstract_std::proxy::MigrateMsg {})
                         .map_err(Into::<CwOrchError>::into)?,
@@ -407,7 +407,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.execute_on_manager(vec![manager::ExecuteMsg::ExecOnModule {
-            module_id: PROXY.to_owned(),
+            module_id: ACCOUNT.to_owned(),
             exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
                 .map_err(AbstractInterfaceError::from)?,
         }])
@@ -560,7 +560,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         let tx_response = self
             .abstr_owner_account
             .manager
-            .execute_on_module(PROXY, msg)?;
+            .execute_on_module(ACCOUNT, msg)?;
         let packets = self
             .ibc_env
             .await_packets(&self.origin_chain().chain_id(), tx_response)

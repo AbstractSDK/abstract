@@ -13,7 +13,7 @@ use abstract_std::{
         ownership, AccountId, ABSTRACT_ACCOUNT_ID,
     },
     version_control::{NamespaceResponse, UpdateModule},
-    PROXY,
+    ACCOUNT,
 };
 use abstract_testing::prelude::*;
 use anyhow::Error;
@@ -91,9 +91,9 @@ fn instantiate() -> AResult {
     assert_that!(&modules).has_length(1);
     assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
         address: account.proxy.address()?,
-        id: PROXY.to_string(),
+        id: ACCOUNT.to_string(),
         version: cw2::ContractVersion {
-            contract: PROXY.into(),
+            contract: ACCOUNT.into(),
             version: CONTRACT_VERSION.into(),
         },
     });
@@ -138,7 +138,7 @@ fn exec_through_manager() -> AResult {
                 amount: burn_amount,
             })],
         })?,
-        PROXY.to_string(),
+        ACCOUNT.to_string(),
         &[],
     )?;
 

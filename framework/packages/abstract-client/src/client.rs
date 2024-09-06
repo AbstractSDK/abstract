@@ -392,7 +392,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 }
 
 pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
-    if !id.starts_with(abstract_std::MANAGER) {
+    if !id.starts_with(abstract_std::ACCOUNT) {
         return Ok(None);
     }
 

@@ -1,5 +1,5 @@
 pub use abstract_std::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
-use abstract_std::{objects::AccountId, proxy::*, PROXY};
+use abstract_std::{objects::AccountId, proxy::*, ACCOUNT};
 use cw_orch::{interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -7,7 +7,7 @@ pub struct Proxy<Chain>;
 
 impl<Chain: CwEnv> Proxy<Chain> {
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
-        let proxy_id = format!("{PROXY}-{account_id}");
+        let proxy_id = format!("{ACCOUNT}-{account_id}");
         Self::new(proxy_id, chain)
     }
 }

@@ -1297,7 +1297,7 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
 
     let proxy_addr = client.module_instantiate2_address_raw(
         &account_id,
-        ModuleInfo::from_id_latest(abstract_std::PROXY)?,
+        ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
     )?;
     let account = client
         .account_builder()
@@ -1356,7 +1356,7 @@ fn instantiate2_random_seq() -> anyhow::Result<()> {
 
     let proxy_addr = client.module_instantiate2_address_raw(
         &account_id,
-        ModuleInfo::from_id_latest(abstract_std::PROXY)?,
+        ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
     )?;
     let account = client
         .account_builder()

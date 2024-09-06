@@ -16,7 +16,7 @@ use abstract_std::{
         ownership, AccountId,
     },
     version_control::UpdateModule,
-    PROXY,
+    ACCOUNT,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
@@ -466,7 +466,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
             )?
             .into(),
         })?,
-        PROXY.to_string(),
+        ACCOUNT.to_string(),
         &[],
     )?;
 

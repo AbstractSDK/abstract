@@ -1,8 +1,8 @@
 //! Mock module for API and feature testing
 
-use abstract_std::objects::{
+use abstract_std::{objects::{
     ans_host::AnsHost, dependency::StaticDependency, version_control::VersionControlContract,
-};
+}, version_control::Account};
 use abstract_testing::prelude::*;
 use cosmwasm_std::{testing::MockApi, Addr, Deps};
 
@@ -17,9 +17,9 @@ use crate::{
 
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+    fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
         let abstr = AbstractMockAddrs::new(self.mock_api);
-        Ok(abstr.account.proxy)
+        Ok(abstr.account)
     }
 }
 

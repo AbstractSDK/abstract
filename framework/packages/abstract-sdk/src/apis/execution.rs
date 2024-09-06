@@ -79,7 +79,7 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
-        let msg = self.base.execute_on_proxy(
+        let msg = self.base.execute_on_account(
             self.deps,
             &ExecuteMsg::ModuleActionWithData { msg },
             vec![],
@@ -110,7 +110,7 @@ impl<'a, T: Execution> Executor<'a, T> {
             .collect();
         let msg =
             self.base
-                .execute_on_proxy(self.deps, &ExecuteMsg::ModuleAction { msgs }, funds)?;
+                .execute_on_account(self.deps, &ExecuteMsg::ModuleAction { msgs }, funds)?;
         Ok(ExecutorMsg(msg))
     }
 

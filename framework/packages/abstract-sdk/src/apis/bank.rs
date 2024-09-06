@@ -91,13 +91,13 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)
             .map_err(|error| self.wrap_query_error(error))?;
         let balance =
-            resolved_info.query_balance(&self.deps.querier, self.base.proxy_address(self.deps)?)?;
+            resolved_info.query_balance(&self.deps.querier, self.base.account(self.deps)?.into_addr())?;
         Ok(Asset::new(resolved_info, balance))
     }
 
     /// Move funds from the contract into the Account.
     pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
-        let recipient = self.base.proxy_address(self.deps)?;
+        let recipient = self.base.account(self.deps)?.into_addr();
         let transferable_funds = funds
             .into_iter()
             .map(|asset| asset.transferable_asset(self.base, self.deps))

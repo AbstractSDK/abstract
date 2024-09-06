@@ -40,7 +40,7 @@ use abstract_std::{
         AccountId,
     },
     version_control::{self, NamespaceResponse},
-    IBC_CLIENT, PROXY,
+    IBC_CLIENT, ACCOUNT,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{
@@ -609,14 +609,14 @@ impl<Chain: CwEnv> Account<Chain> {
             .manager
             .upgrade(vec![
                 (
-                    ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
+                    ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
                     Some(
                         to_json_binary(&abstract_std::manager::MigrateMsg {})
                             .map_err(Into::<CwOrchError>::into)?,
                     ),
                 ),
                 (
-                    ModuleInfo::from_id(abstract_std::registry::PROXY, version)?,
+                    ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version)?,
                     Some(
                         to_json_binary(&abstract_std::proxy::MigrateMsg {})
                             .map_err(Into::<CwOrchError>::into)?,
@@ -650,7 +650,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.execute_on_manager(
             &manager::ExecuteMsg::ExecOnModule {
-                module_id: PROXY.to_owned(),
+                module_id: ACCOUNT.to_owned(),
                 exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
                     .map_err(AbstractInterfaceError::from)?,
             },

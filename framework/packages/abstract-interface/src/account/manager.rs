@@ -8,7 +8,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion},
         AccountId, TruncatedChainId,
     },
-    IBC_CLIENT, MANAGER, PROXY,
+    IBC_CLIENT, ACCOUNT, ACCOUNT,
 };
 use cosmwasm_std::{to_json_binary, Binary, Empty};
 use cw_orch::{environment::Environment, interface, prelude::*};
@@ -19,7 +19,7 @@ pub struct Manager<Chain>;
 
 impl<Chain: CwEnv> Manager<Chain> {
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
-        let manager_id = format!("{MANAGER}-{account_id}");
+        let manager_id = format!("{ACCOUNT}-{account_id}");
         Self::new(manager_id, chain)
     }
 }
@@ -209,7 +209,7 @@ impl<Chain: CwEnv> Manager<Chain> {
                     )],
                 },
             })?,
-            PROXY.to_string(),
+            ACCOUNT.to_string(),
             &[],
         )?;
 
@@ -244,7 +244,7 @@ impl<Chain: CwEnv> Manager<Chain> {
             },
         };
 
-        self.execute_on_module(PROXY, msg)
+        self.execute_on_module(ACCOUNT, msg)
     }
 
     pub fn execute_on_remote_module(
@@ -266,7 +266,7 @@ impl<Chain: CwEnv> Manager<Chain> {
             },
         };
 
-        self.execute_on_module(PROXY, msg)
+        self.execute_on_module(ACCOUNT, msg)
     }
 
     pub fn send_all_funds_back(
@@ -281,6 +281,6 @@ impl<Chain: CwEnv> Manager<Chain> {
             },
         };
 
-        self.execute_on_module(PROXY, msg)
+        self.execute_on_module(ACCOUNT, msg)
     }
 }

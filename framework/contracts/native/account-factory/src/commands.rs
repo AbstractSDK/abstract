@@ -9,17 +9,15 @@ use abstract_sdk::{
         },
         proxy::InstantiateMsg as ProxyInstantiateMsg,
         version_control::{Account, ExecuteMsg as VCExecuteMsg},
-        MANAGER, PROXY,
-    },
-};
-use abstract_std::{
-    manager::ModuleInstallConfig,
+        ACCOUNT, 
+        manager::ModuleInstallConfig,
     module_factory::SimulateInstallModulesResponse,
     objects::{
         account::AccountTrace, module::assert_module_data_validity,
         salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError, IBC_HOST,
+    },
 };
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
@@ -56,10 +54,10 @@ pub fn execute_create_account(
     let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
     // Check if the caller is the manager the proposed owner account when creating a sub-account.
     // This prevents other users from creating sub-accounts for accounts they don't own.
-    if let GovernanceDetails::SubAccount { manager, .. } = &governance {
+    if let GovernanceDetails::SubAccount { account } = &governance {
         ensure_eq!(
             info.sender,
-            manager,
+            account ,
             AccountFactoryError::SubAccountCreatorNotManager {
                 caller: info.sender.into(),
                 manager: manager.into()
@@ -117,8 +115,8 @@ pub fn execute_create_account(
     let (manager_module, proxy_module) = {
         let mut modules = version_control.query_modules_configs(
             vec![
-                ModuleInfo::from_id_latest(PROXY)?,
-                ModuleInfo::from_id_latest(MANAGER)?,
+                ModuleInfo::from_id_latest(ACCOUNT)?,
+                ModuleInfo::from_id_latest(ACCOUNT)?,
             ],
             &deps.querier,
         )?;
@@ -194,10 +192,7 @@ pub fn execute_create_account(
     )?;
     let manager_addr_human = deps.api.addr_humanize(&manager_addr)?;
 
-    let account_base = Account {
-        manager: manager_addr_human,
-        proxy: proxy_addr_human,
-    };
+    let account_base = Account::new(manager_addr_human);
     // save context for after-init check
     let context = Context {
         account_id,
@@ -210,7 +205,7 @@ pub fn execute_create_account(
     let proxy_message = ProxyInstantiateMsg {
         account_id: context.account_id,
         ans_host_address: config.ans_host_contract.to_string(),
-        manager_addr: context.account_base.manager.to_string(),
+        manager_addr: context.account_base.addr().to_string(),
     };
 
     // Add Account base to version_control

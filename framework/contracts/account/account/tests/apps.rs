@@ -10,7 +10,7 @@ use abstract_std::{
         AccountId,
     },
     version_control::ModuleFilter,
-    PROXY,
+    ACCOUNT,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
@@ -51,7 +51,7 @@ fn execute_on_proxy_through_manager() -> AResult {
                 amount: burn_amount,
             })],
         })?,
-        PROXY.to_string(),
+        ACCOUNT.to_string(),
         &[forwarded_coin.clone()],
     )?;
 

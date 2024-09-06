@@ -10,49 +10,13 @@ use cosmwasm_std::{Addr, Deps};
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
-    std::PROXY,
+    std::ACCOUNT,
     AbstractSdkResult,
 };
 
-/// Store a proxy contract address.
-/// Implements [`AccountIdentification`].
-#[derive(Clone)]
-pub struct ProxyContract {
-    /// Address of the proxy contract
-    pub contract_address: Addr,
-}
-
-impl ProxyContract {
-    /// Construct a new proxy contract feature object.
-    pub fn new(address: Addr) -> Self {
-        Self {
-            contract_address: address,
-        }
-    }
-}
-
-impl AccountIdentification for ProxyContract {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.contract_address.clone())
-    }
-}
-
-impl ModuleIdentification for ProxyContract {
-    fn module_id(&self) -> &'static str {
-        PROXY
-    }
-}
 
 impl AccountIdentification for Account {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.proxy.clone())
-    }
-
-    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.manager.clone())
-    }
-
-    fn account_base(&self, _deps: Deps) -> AbstractSdkResult<Account> {
+    fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
         Ok(self.clone())
     }
 }
@@ -60,7 +24,7 @@ impl AccountIdentification for Account {
 impl ModuleIdentification for Account {
     /// Any actions executed by the core will be by the proxy address
     fn module_id(&self) -> &'static str {
-        PROXY
+        ACCOUNT
     }
 }
 
@@ -129,7 +93,7 @@ mod tests {
         fn should_identify_self_as_abstract_proxy() {
             let proxy = ProxyContract::new(Addr::unchecked("test"));
 
-            assert_that!(proxy.module_id()).is_equal_to(PROXY);
+            assert_that!(proxy.module_id()).is_equal_to(ACCOUNT);
         }
     }
 
@@ -152,7 +116,7 @@ mod tests {
         fn should_identify_self_as_abstract_proxy() {
             let account_base = test_account_base(MockApi::default());
 
-            assert_that!(account_base.module_id()).is_equal_to(PROXY);
+            assert_that!(account_base.module_id()).is_equal_to(ACCOUNT);
         }
     }
 }

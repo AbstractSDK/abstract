@@ -212,7 +212,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         host_chain: TruncatedChainId,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
@@ -232,7 +232,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         action: HostAction,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::RemoteAction { host_chain, action },
             },
@@ -249,7 +249,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         memo: Option<String>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::SendFunds {
                     host_chain,

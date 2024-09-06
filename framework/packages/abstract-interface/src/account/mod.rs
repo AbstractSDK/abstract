@@ -18,7 +18,7 @@ use abstract_std::{
         TruncatedChainId,
     },
     version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
-    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+    ABSTRACT_EVENT_TYPE, ACCOUNT, ACCOUNT,
 };
 use cosmwasm_std::{from_json, to_json_binary};
 use cw2::{ContractVersion, CONTRACT};
@@ -236,7 +236,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         } = account_details;
 
         self.manager.execute_on_module(
-            abstract_std::PROXY,
+            abstract_std::ACCOUNT,
             abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
@@ -368,14 +368,14 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         // We upgrade the proxy to the latest version through all the versions
         loop {
-            if self.upgrade_next_module_version(PROXY)?.is_none() {
+            if self.upgrade_next_module_version(ACCOUNT)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;
         }
 
         loop {
-            if self.upgrade_next_module_version(MANAGER)?.is_none() {
+            if self.upgrade_next_module_version(ACCOUNT)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;
@@ -393,7 +393,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         let chain = self.manager.environment().clone();
 
         // We start by getting the current module version
-        let current_cw2_module_version: ContractVersion = if module_id == MANAGER {
+        let current_cw2_module_version: ContractVersion = if module_id == ACCOUNT {
             let current_manager_version = chain
                 .wasm_querier()
                 .raw_query(&self.manager.address()?, CONTRACT.as_slice().to_vec())
