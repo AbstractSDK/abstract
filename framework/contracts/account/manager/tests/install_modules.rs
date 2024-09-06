@@ -19,7 +19,10 @@ fn cannot_reinstall_module() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     abstr
         .version_control
@@ -63,7 +66,10 @@ fn adds_module_to_account_modules() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     abstr
         .version_control
@@ -96,7 +102,10 @@ fn useful_error_module_not_found() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     let err = manager
         .execute(

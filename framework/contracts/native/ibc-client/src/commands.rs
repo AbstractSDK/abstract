@@ -5,13 +5,21 @@ use abstract_sdk::{
     ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
-    account, app::AppState, ibc::{Callback, ModuleQuery}, ibc_client::{
+    account,
+    app::AppState,
+    ibc::{Callback, ModuleQuery},
+    ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
-    }, ibc_host::{self, HostAction, InternalAction}, manager::{self, ModuleInstallConfig}, objects::{
+    },
+    ibc_host::{self, HostAction, InternalAction},
+    manager::{self, ModuleInstallConfig},
+    objects::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
-    }, version_control::Account, IBC_CLIENT, ICS20
+    },
+    version_control::Account,
+    IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
     ensure, to_json_binary, wasm_execute, AnyMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty,
@@ -245,7 +253,9 @@ pub fn execute_send_module_to_module_packet(
             let account = Item::<AppState>::new(BASE_STATE)
                 .query(&deps.querier, info.sender.clone())?
                 .account;
-            let account_id = cfg.version_control.account_id(account.addr(), &deps.querier)?;
+            let account_id = cfg
+                .version_control
+                .account_id(account.addr(), &deps.querier)?;
             let account_base = cfg.version_control.account(&account_id, &deps.querier)?;
             let ibc_client = manager::state::ACCOUNT_MODULES.query(
                 &deps.querier,

@@ -11,7 +11,10 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 
 use crate::{
-    account, ibc_client::InstalledModuleIdentification, manager::{self, ModuleInstallConfig}, objects::{account::AccountId, module::ModuleInfo, TruncatedChainId}
+    account,
+    ibc_client::InstalledModuleIdentification,
+    manager::{self, ModuleInstallConfig},
+    objects::{account::AccountId, module::ModuleInfo, TruncatedChainId},
 };
 
 pub mod state {

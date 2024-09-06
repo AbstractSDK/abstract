@@ -23,7 +23,10 @@ fn can_install_and_uninstall_ibc_client() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     ibc_client_installed(manager).unwrap_err();
     manager.execute(

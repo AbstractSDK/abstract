@@ -56,7 +56,8 @@ impl<
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
-        self.admin.set(deps.branch(), Some(account_base.into_addr()))?;
+        self.admin
+            .set(deps.branch(), Some(account_base.into_addr()))?;
 
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new());

@@ -1,13 +1,13 @@
 use abstract_sdk::std::{
+    manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
     manager::{
         state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, QueryMsg,
     },
     objects::validation::{validate_description, validate_link, validate_name},
+    objects::{gov_type::GovernanceDetails, ownership},
     proxy::state::ACCOUNT_ID,
     ACCOUNT,
-    manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
-    objects::{gov_type::GovernanceDetails, ownership},
 };
 
 use cosmwasm_std::{

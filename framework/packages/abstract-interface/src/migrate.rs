@@ -5,7 +5,7 @@ use abstract_std::{
     version_control, ACCOUNT,
 };
 use abstract_std::{
-    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, ACCOUNT, VERSION_CONTROL,
+    ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
 };
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};

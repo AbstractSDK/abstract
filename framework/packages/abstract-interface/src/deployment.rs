@@ -5,9 +5,9 @@ use cw_orch::prelude::*;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
-    AccountFactory, AnsHost, Account, ModuleFactory, VersionControl,
+    Account, AccountFactory, AnsHost, ModuleFactory, VersionControl,
 };
-use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, ACCOUNT, MODULE_FACTORY, VERSION_CONTROL};
+use abstract_std::{ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL};
 
 use rust_embed::RustEmbed;
 

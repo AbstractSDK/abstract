@@ -216,7 +216,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 
         self.authorized_addresses
             .save(deps.storage, account.clone(), &authorized_addrs)?;
-        Ok(self.custom_response("update_authorized_addresses", vec![("account", account.as_str())]))
+        Ok(self.custom_response(
+            "update_authorized_addresses",
+            vec![("account", account.as_str())],
+        ))
     }
 }
 

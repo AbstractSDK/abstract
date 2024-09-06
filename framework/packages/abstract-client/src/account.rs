@@ -40,7 +40,7 @@ use abstract_std::{
         AccountId,
     },
     version_control::{self, NamespaceResponse},
-    IBC_CLIENT, ACCOUNT,
+    ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{

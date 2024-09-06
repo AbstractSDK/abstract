@@ -14,7 +14,6 @@ use crate::{
     AbstractSdkResult,
 };
 
-
 impl AccountIdentification for Account {
     fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
         Ok(self.clone())

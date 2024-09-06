@@ -289,7 +289,10 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
 pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     let abstr = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { account: manager, proxy } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy,
+    } = &account;
     abstr
         .version_control
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
@@ -321,7 +324,10 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
 pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr) -> AResult {
     let abstr = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { account: manager, proxy } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy,
+    } = &account;
     abstr
         .version_control
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
@@ -367,7 +373,10 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
 pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
     deployment
         .version_control
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;

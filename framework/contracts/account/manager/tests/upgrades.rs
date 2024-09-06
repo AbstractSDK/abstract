@@ -32,7 +32,10 @@ fn install_app_successful() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
@@ -72,7 +75,10 @@ fn install_app_versions_not_met() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
@@ -99,7 +105,10 @@ fn upgrade_app() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
@@ -350,7 +359,10 @@ fn no_duplicate_migrations() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     abstr
         .version_control

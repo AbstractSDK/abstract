@@ -18,7 +18,7 @@ use abstract_std::{
         TruncatedChainId,
     },
     version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
-    ABSTRACT_EVENT_TYPE, ACCOUNT, 
+    ABSTRACT_EVENT_TYPE, ACCOUNT,
 };
 use cosmwasm_std::{from_json, to_json_binary};
 use cw2::{ContractVersion, CONTRACT};
@@ -35,7 +35,7 @@ use cw_orch::{environment::Environment, prelude::*};
 use serde::Serialize;
 use speculoos::prelude::*;
 
-pub use self::{manager::*};
+pub use self::manager::*;
 use crate::{get_account_contracts, VersionControl};
 
 #[derive(Clone)]
@@ -60,8 +60,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
 impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn new(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
-        let manager =
-            get_account_contracts(&abstract_deployment.version_control, account_id);
+        let manager = get_account_contracts(&abstract_deployment.version_control, account_id);
         Self { account: manager }
     }
 

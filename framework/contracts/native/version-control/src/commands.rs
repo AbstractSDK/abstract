@@ -389,7 +389,8 @@ pub fn claim_namespace(
     } else {
         // If there is no security, only account owner can register a namespace
         let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-        let account_owner = query_account_owner(&deps.querier, account_base.into_addr(), &account_id)?;
+        let account_owner =
+            query_account_owner(&deps.querier, account_base.into_addr(), &account_id)?;
 
         // The account owner as well as the account factory contract are able to claim namespaces
         if msg_info.sender != account_owner {

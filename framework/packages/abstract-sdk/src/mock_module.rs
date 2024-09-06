@@ -1,8 +1,11 @@
 //! Mock module for API and feature testing
 
-use abstract_std::{objects::{
-    ans_host::AnsHost, dependency::StaticDependency, version_control::VersionControlContract,
-}, version_control::Account};
+use abstract_std::{
+    objects::{
+        ans_host::AnsHost, dependency::StaticDependency, version_control::VersionControlContract,
+    },
+    version_control::Account,
+};
 use abstract_testing::prelude::*;
 use cosmwasm_std::{testing::MockApi, Addr, Deps};
 

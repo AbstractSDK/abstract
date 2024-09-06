@@ -13,7 +13,7 @@ use abstract_std::{
         module::ModuleInfo,
         AccountId, UncheckedChannelEntry,
     },
-    ACCOUNT_FACTORY, ICS20, ACCOUNT, ACCOUNT,
+    ACCOUNT, ACCOUNT, ACCOUNT_FACTORY, ICS20,
 };
 use cosmwasm_std::Event;
 use cw_orch::prelude::*;

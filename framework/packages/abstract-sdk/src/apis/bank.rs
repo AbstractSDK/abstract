@@ -90,8 +90,10 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         let resolved_info = asset
             .resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)
             .map_err(|error| self.wrap_query_error(error))?;
-        let balance =
-            resolved_info.query_balance(&self.deps.querier, self.base.account(self.deps)?.into_addr())?;
+        let balance = resolved_info.query_balance(
+            &self.deps.querier,
+            self.base.account(self.deps)?.into_addr(),
+        )?;
         Ok(Asset::new(resolved_info, balance))
     }
 

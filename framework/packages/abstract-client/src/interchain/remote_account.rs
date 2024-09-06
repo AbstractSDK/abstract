@@ -19,7 +19,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership, AccountId, TruncatedChainId,
     },
-    proxy, IBC_CLIENT, ACCOUNT,
+    proxy, ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
 use cw_orch::{

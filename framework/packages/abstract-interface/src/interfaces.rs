@@ -4,9 +4,7 @@ use abstract_std::{
 };
 use cw_orch::{environment::Environment, prelude::*};
 
-use crate::{
-    AccountFactory, AnsHost, IbcClient, IbcHost, Account, ModuleFactory, VersionControl,
-};
+use crate::{Account, AccountFactory, AnsHost, IbcClient, IbcHost, ModuleFactory, VersionControl};
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: CwEnv>(

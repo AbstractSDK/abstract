@@ -2,6 +2,12 @@ use abstract_sdk::{
     feature_objects::VersionControlContract,
     std::{
         manager::InstantiateMsg as ManagerInstantiateMsg,
+        manager::ModuleInstallConfig,
+        module_factory::SimulateInstallModulesResponse,
+        objects::{
+            account::AccountTrace, module::assert_module_data_validity,
+            salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
+        },
         objects::{
             gov_type::GovernanceDetails,
             module::{Module, ModuleInfo},
@@ -9,14 +15,7 @@ use abstract_sdk::{
         },
         proxy::InstantiateMsg as ProxyInstantiateMsg,
         version_control::{Account, ExecuteMsg as VCExecuteMsg},
-        ACCOUNT, 
-        manager::ModuleInstallConfig,
-    module_factory::SimulateInstallModulesResponse,
-    objects::{
-        account::AccountTrace, module::assert_module_data_validity,
-        salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
-    },
-    AbstractError, IBC_HOST,
+        AbstractError, ACCOUNT, IBC_HOST,
     },
 };
 use cosmwasm_std::{
@@ -57,7 +56,7 @@ pub fn execute_create_account(
     if let GovernanceDetails::SubAccount { account } = &governance {
         ensure_eq!(
             info.sender,
-            account ,
+            account,
             AccountFactoryError::SubAccountCreatorNotAccount {
                 caller: info.sender.into(),
                 account: account.into(),

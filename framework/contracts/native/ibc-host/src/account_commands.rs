@@ -3,7 +3,13 @@ use abstract_sdk::{
     Resolve,
 };
 use abstract_std::{
-    account, account_factory, ibc_host::state::CONFIG, manager::{self, ModuleInstallConfig}, objects::{AccountId, TruncatedChainId}, proxy, version_control::Account, ACCOUNT
+    account, account_factory,
+    ibc_host::state::CONFIG,
+    manager::{self, ModuleInstallConfig},
+    objects::{AccountId, TruncatedChainId},
+    proxy,
+    version_control::Account,
+    ACCOUNT,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,

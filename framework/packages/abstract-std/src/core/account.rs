@@ -154,7 +154,6 @@ pub enum QueryMsg {
     Ownership {},
 }
 
-
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub modules: Vec<String>,

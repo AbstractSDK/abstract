@@ -20,7 +20,10 @@ fn throws_if_enabling_when_already_enabled() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     manager.set_ibc_status(true)?;
     let res = manager.set_ibc_status(true);
@@ -37,7 +40,10 @@ fn throws_if_disabling_without_ibc_client_installed() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     let res = manager.set_ibc_status(false);
 
@@ -53,7 +59,10 @@ fn can_update_ibc_settings() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount { account: manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     ibc_client_installed(manager).unwrap_err();
     manager.set_ibc_status(true)?;
