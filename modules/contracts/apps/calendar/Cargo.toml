@@ -54,6 +54,6 @@ abstract-client = { workspace = true, features = ["test-utils"] }
 speculoos = { workspace = true }
 semver = { workspace = true }
 dotenv = "0.15.0"
-env_logger = "0.10.0"
+env_logger = "0.11.3"
 cw-orch = { workspace = true }
 clap = { workspace = true }
