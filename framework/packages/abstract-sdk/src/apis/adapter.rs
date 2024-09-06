@@ -153,7 +153,7 @@ mod tests {
 
             let expected_msg: adapter::ExecuteMsg<_> =
                 adapter::ExecuteMsg::Module(AdapterRequestMsg {
-                    proxy_address: Some(abstr.account.proxy.to_string()),
+                    account_address: Some(abstr.account.proxy.to_string()),
                     request: MockModuleExecuteMsg {},
                 });
 

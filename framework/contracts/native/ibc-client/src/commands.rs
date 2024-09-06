@@ -5,20 +5,13 @@ use abstract_sdk::{
     ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
-    app::AppState,
-    ibc::{Callback, ModuleQuery},
-    ibc_client::{
+    account, app::AppState, ibc::{Callback, ModuleQuery}, ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
-    },
-    ibc_host::{self, HostAction, InternalAction},
-    manager::{self, ModuleInstallConfig},
-    objects::{
+    }, ibc_host::{self, HostAction, InternalAction}, manager::{self, ModuleInstallConfig}, objects::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
-    },
-    version_control::Account,
-    IBC_CLIENT, ICS20,
+    }, version_control::Account, IBC_CLIENT, ICS20
 };
 use cosmwasm_std::{
     ensure, to_json_binary, wasm_execute, AnyMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty,
@@ -156,7 +149,7 @@ fn send_remote_host_action(
                 remote_ibc_host,
                 &ibc_host::ExecuteMsg::Execute {
                     // TODO: consider removing this field
-                    proxy_address: account.proxy.to_string(),
+                    account_address: account.addr().to_string(),
                     account_id,
                     action,
                 },
@@ -249,14 +242,14 @@ pub fn execute_send_module_to_module_packet(
         },
         ModuleReference::App(_) => {
             // We verify the associated account id
-            let proxy_addr = Item::<AppState>::new(BASE_STATE)
+            let account = Item::<AppState>::new(BASE_STATE)
                 .query(&deps.querier, info.sender.clone())?
-                .proxy_address;
-            let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
+                .account;
+            let account_id = cfg.version_control.account_id(account.addr(), &deps.querier)?;
             let account_base = cfg.version_control.account(&account_id, &deps.querier)?;
             let ibc_client = manager::state::ACCOUNT_MODULES.query(
                 &deps.querier,
-                account_base.manager,
+                account_base.into_addr(),
                 IBC_CLIENT,
             )?;
             // Check that ibc_client is installed on account
@@ -382,9 +375,9 @@ pub fn execute_register_account(
     let account_id = account_base.account_id(deps.as_ref())?;
     // get auxiliary information
 
-    let account_info: manager::InfoResponse = deps
+    let account_info: account::InfoResponse = deps
         .querier
-        .query_wasm_smart(account_base.manager.clone(), &manager::QueryMsg::Info {})?;
+        .query_wasm_smart(account_base.addr(), &manager::QueryMsg::Info {})?;
     let account_info = account_info.info;
 
     let note_message = send_remote_host_action(

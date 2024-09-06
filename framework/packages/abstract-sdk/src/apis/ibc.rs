@@ -273,7 +273,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(to_json_binary(&init_msg)?),
@@ -293,7 +293,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(module, None)],
                 }],
             },
@@ -312,7 +312,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ExecOnModule {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
                 }],
@@ -357,7 +357,7 @@ mod test {
         let msg = client.host_action(
             TEST_HOST_CHAIN.parse().unwrap(),
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateStatus {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::UpdateStatus {
                     is_suspended: None,
                 }],
             },
@@ -366,12 +366,12 @@ mod test {
 
         let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: base.proxy.to_string(),
+            contract_addr: base.addr().to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     action: HostAction::Dispatch {
-                        manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateStatus {
+                        account_msgs: vec![abstract_std::account::ExecuteMsg::UpdateStatus {
                             is_suspended: None,
                         }],
                     },
@@ -401,7 +401,7 @@ mod test {
 
         let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: base.proxy.to_string(),
+            contract_addr: base.addr().to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),

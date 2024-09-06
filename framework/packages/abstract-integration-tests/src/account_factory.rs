@@ -61,7 +61,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         &[namespace_fee],
     )?;
 
-    let manager_addr = account.manager.address()?;
+    let manager_addr = account.account.address()?;
     let proxy_addr = account.proxy.address()?;
 
     // We need to check if the namespace is associated with this account

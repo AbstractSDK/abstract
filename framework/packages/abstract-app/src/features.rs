@@ -5,6 +5,7 @@ use abstract_sdk::{
     },
     AbstractSdkResult,
 };
+use abstract_std::version_control::Account;
 use cosmwasm_std::{Addr, Deps};
 
 use crate::{state::ContractError, AppContract};
@@ -37,8 +38,8 @@ impl<
     > AccountIdentification
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.base_state.load(deps.storage)?.proxy_address)
+    fn account(&self, deps: Deps) -> AbstractSdkResult<Account> {
+        Ok(self.base_state.load(deps.storage)?.account)
     }
 }
 

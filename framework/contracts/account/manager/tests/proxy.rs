@@ -85,7 +85,7 @@ fn instantiate() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
-    let modules = account.manager.module_infos(None, None)?.module_infos;
+    let modules = account.account.module_infos(None, None)?.module_infos;
 
     // assert proxy module
     assert_that!(&modules).has_length(1);
@@ -99,7 +99,7 @@ fn instantiate() -> AResult {
     });
 
     // assert manager config
-    assert_that!(account.manager.config()?).is_equal_to(abstract_std::manager::ConfigResponse {
+    assert_that!(account.account.config()?).is_equal_to(abstract_std::manager::ConfigResponse {
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         account_id: TEST_ACCOUNT_ID,
@@ -132,7 +132,7 @@ fn exec_through_manager() -> AResult {
     let burn_amount = vec![Coin::new(10_000_u128, TTOKEN)];
 
     // Burn coins from proxy
-    account.manager.exec_on_module(
+    account.account.exec_on_module(
         cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
@@ -160,14 +160,14 @@ fn default_without_response_data() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
-    install_adapter(&account.manager, TEST_MODULE_ID)?;
+    install_adapter(&account.account, TEST_MODULE_ID)?;
 
     chain.set_balance(
         &account.proxy.address()?,
         vec![Coin::new(100_000_u128, TTOKEN)],
     )?;
 
-    let resp = account.manager.execute_on_module(
+    let resp = account.account.execute_on_module(
         TEST_MODULE_ID,
         Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
@@ -382,7 +382,7 @@ fn install_multiple_modules() -> AResult {
     ])?;
 
     // Make sure all installed
-    let account_module_versions = account.manager.module_versions(vec![
+    let account_module_versions = account.account.module_versions(vec![
         String::from("abstract:standalone1"),
         String::from("abstract:standalone2"),
     ])?;
@@ -403,7 +403,7 @@ fn install_multiple_modules() -> AResult {
         }
     );
 
-    let account_module_addresses = account.manager.module_addresses(vec![
+    let account_module_addresses = account.account.module_addresses(vec![
         String::from("abstract:standalone1"),
         String::from("abstract:standalone2"),
     ])?;
@@ -448,7 +448,7 @@ fn renounce_cleans_namespace() -> AResult {
     assert!(namespace_result.is_ok());
 
     account
-        .manager
+        .account
         .update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     let namespace_result = deployment
@@ -457,7 +457,7 @@ fn renounce_cleans_namespace() -> AResult {
     assert_eq!(namespace_result, NamespaceResponse::Unclaimed {});
 
     // Governance is in fact renounced
-    let ownership = account.manager.ownership()?;
+    let ownership = account.account.ownership()?;
     assert_eq!(ownership.owner, GovernanceDetails::Renounced {});
 
     Ok(())

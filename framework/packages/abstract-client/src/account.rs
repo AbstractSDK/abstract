@@ -489,7 +489,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Query account info
     pub fn info(&self) -> AbstractClientResult<AccountInfo> {
-        let info_response: InfoResponse = self.abstr_account.manager.info()?;
+        let info_response: InfoResponse = self.abstr_account.account.info()?;
         Ok(info_response.info)
     }
 
@@ -606,7 +606,7 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Migrates manager and proxy contracts to their respective new versions.
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
-            .manager
+            .account
             .upgrade(vec![
                 (
                     ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
@@ -628,14 +628,14 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Returns owner of the account
     pub fn ownership(&self) -> AbstractClientResult<ownership::Ownership<String>> {
-        self.abstr_account.manager.ownership().map_err(Into::into)
+        self.abstr_account.account.ownership().map_err(Into::into)
     }
 
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
         self.abstr_account
-            .manager
+            .account
             .top_level_owner()
             .map(|tlo| tlo.address)
             .map_err(Into::into)
@@ -665,7 +665,7 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
-            .manager
+            .account
             .execute(execute_msg, funds)
             .map_err(Into::into)
     }
@@ -688,7 +688,7 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Set IBC status on an Account.
     pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
-            .manager
+            .account
             .set_ibc_status(enabled)
             .map_err(Into::into)
     }
@@ -702,7 +702,7 @@ impl<Chain: CwEnv> Account<Chain> {
                 .map(|module_info| module_info.id.clone());
             let res: ModuleInfosResponse = self
                 .abstr_account
-                .manager
+                .account
                 .module_infos(None, last_module_id)?;
             if res.module_infos.is_empty() {
                 break;
@@ -718,7 +718,7 @@ impl<Chain: CwEnv> Account<Chain> {
         ids: Vec<String>,
     ) -> AbstractClientResult<ModuleAddressesResponse> {
         self.abstr_account
-            .manager
+            .account
             .module_addresses(ids)
             .map_err(Into::into)
     }
@@ -732,7 +732,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let maybe_module_addr = self
             .environment()
             .wasm_querier()
-            .raw_query(&self.abstr_account.manager.address()?, key)
+            .raw_query(&self.abstr_account.account.address()?, key)
             .map_err(Into::into)?;
         Ok(!maybe_module_addr.is_empty())
     }
@@ -747,13 +747,13 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let mut module_versions_response = self
             .abstr_account
-            .manager
+            .account
             .module_versions(vec![module_id])?;
         let installed_version = module_versions_response.versions.pop().unwrap().version;
         let expected_version = match &module.version {
             // If latest we need to find latest version stored in VC
             ModuleVersion::Latest => {
-                let manager_config = self.abstr_account.manager.config()?;
+                let manager_config = self.abstr_account.account.config()?;
                 let mut modules_response: version_control::ModulesResponse = self
                     .environment()
                     .query(
@@ -790,7 +790,7 @@ impl<Chain: CwEnv> Account<Chain> {
         loop {
             let sub_account_ids = self
                 .abstr_account
-                .manager
+                .account
                 .sub_account_ids(None, start_after)?
                 .sub_accounts;
             start_after = sub_account_ids.last().cloned();
@@ -819,7 +819,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Address of the manager
     pub fn manager(&self) -> AbstractClientResult<Addr> {
-        self.abstr_account.manager.address().map_err(Into::into)
+        self.abstr_account.account.address().map_err(Into::into)
     }
 
     /// Address of the account (proxy)
@@ -852,7 +852,7 @@ impl<Chain: CwEnv> Account<Chain> {
                 .any(|module_info| module_info.id == m.module.id())
         });
         if !modules.is_empty() {
-            self.abstr_account.manager.install_modules(modules, funds)?;
+            self.abstr_account.account.install_modules(modules, funds)?;
         }
 
         let module = self.module::<M>()?;
@@ -870,7 +870,7 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
-        let sub_account_response = self.abstr_account.manager.create_sub_account(
+        let sub_account_response = self.abstr_account.account.create_sub_account(
             modules,
             "Sub Account".to_owned(),
             None,

@@ -48,7 +48,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000_u128, TTOKEN)];
     let forwarded_coin: Coin = coin(100, "other_coin");
 
-    account.manager.exec_on_module(
+    account.account.exec_on_module(
         cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
@@ -100,14 +100,14 @@ fn account_app_ownership() -> AResult {
 
     let admin_res: AdminResponse =
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;
-    assert_eq!(admin_res.admin.unwrap(), account.manager.addr_str()?);
+    assert_eq!(admin_res.admin.unwrap(), account.account.addr_str()?);
 
     // Can call either by account owner or manager
     app.call_as(&sender).execute(
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
         &[],
     )?;
-    app.call_as(&account.manager.address()?).execute(
+    app.call_as(&account.account.address()?).execute(
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
         &[],
     )?;
@@ -140,7 +140,7 @@ fn subaccount_app_ownership() -> AResult {
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
 
-    account.manager.create_sub_account(
+    account.account.create_sub_account(
         vec![ModuleInstallConfig::new(
             ModuleInfo::from_id_latest(APP_ID).unwrap(),
             Some(to_json_binary(&MockInitMsg {}).unwrap()),
@@ -154,7 +154,7 @@ fn subaccount_app_ownership() -> AResult {
     )?;
 
     let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
-    let module = sub_account.manager.module_info(APP_ID)?.unwrap();
+    let module = sub_account.account.module_info(APP_ID)?.unwrap();
     app.set_address(&module.address);
 
     // Check query gives us right Top Level Owner
@@ -164,7 +164,7 @@ fn subaccount_app_ownership() -> AResult {
 
     let admin_res: AdminResponse =
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;
-    assert_eq!(admin_res.admin.unwrap(), sub_account.manager.addr_str()?);
+    assert_eq!(admin_res.admin.unwrap(), sub_account.account.addr_str()?);
     app.call_as(&sender).execute(
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
         &[],
@@ -188,7 +188,7 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
     account.install_app(&app, &MockInitMsg {}, &[])?;
 
     // Reinstall
-    account.manager.uninstall_module(APP_ID.to_owned())?;
+    account.account.uninstall_module(APP_ID.to_owned())?;
     let Err(AbstractInterfaceError::Orch(err)) = account.install_app(&app, &MockInitMsg {}, &[])
     else {
         panic!("Expected error");

@@ -49,8 +49,8 @@ pub enum AccountFactoryError {
     #[error("Sender {0} is not the IBC host {1}")]
     SenderNotIbcHost(String, String),
 
-    #[error("The caller ({caller}) is not the owner account's manager ({manager}). Only manager can create sub-accounts for its account.", )]
-    SubAccountCreatorNotManager { caller: String, manager: String },
+    #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
+    SubAccountCreatorNotAccount { caller: String, account: String },
 
     #[error("Predictable local account id sequence can't be lower than 2147483648")]
     PredictableAccountIdFailed {},

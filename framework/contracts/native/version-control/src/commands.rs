@@ -74,8 +74,7 @@ pub fn add_account(
         "add_account",
         vec![
             ("account_id", account_id.to_string().as_str()),
-            ("manager", account_base.manager.as_ref()),
-            ("proxy", account_base.proxy.as_ref()),
+            ("account", account_base.addr().as_str()),
             ("namespace", &format!("{namespace:?}")),
         ],
     );
@@ -390,7 +389,7 @@ pub fn claim_namespace(
     } else {
         // If there is no security, only account owner can register a namespace
         let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-        let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
+        let account_owner = query_account_owner(&deps.querier, account_base.into_addr(), &account_id)?;
 
         // The account owner as well as the account factory contract are able to claim namespaces
         if msg_info.sender != account_owner {
@@ -454,7 +453,7 @@ fn claim_namespace_internal(
         // We transfer the namespace fee if necessary
         let admin_account = ACCOUNT_ADDRESSES.load(storage, &ABSTRACT_ACCOUNT_ID)?;
         Some(CosmosMsg::Bank(BankMsg::Send {
-            to_address: admin_account.proxy.to_string(),
+            to_address: admin_account.addr().to_string(),
             amount: msg_info.funds,
         }))
     } else {
@@ -579,10 +578,10 @@ pub fn update_config(
 
 pub fn query_account_owner(
     querier: &QuerierWrapper,
-    manager_addr: Addr,
+    account_addr: Addr,
     account_id: &AccountId,
 ) -> VCResult<Addr> {
-    let ownership::Ownership { owner, .. } = ownership::query_ownership(querier, manager_addr)?;
+    let ownership::Ownership { owner, .. } = ownership::query_ownership(querier, account_addr)?;
 
     owner
         .owner_address(querier)
@@ -603,10 +602,10 @@ pub fn validate_account_owner(
             namespace: namespace.to_owned(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let manager = account_base.manager;
+    let account = account_base.addr();
     // Check manager first, manager can call this function to unregister a namespace when renouncing its ownership.
-    if sender != manager {
-        let account_owner = query_account_owner(&deps.querier, manager.clone(), &account_id)?;
+    if sender != account {
+        let account_owner = query_account_owner(&deps.querier, account.clone(), &account_id)?;
         if sender != account_owner {
             return Err(VCError::AccountOwnerMismatch {
                 sender,

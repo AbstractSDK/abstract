@@ -86,7 +86,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name =
-                TruncatedChainId::from_chain_id(&owner_account.manager.environment().chain_id());
+                TruncatedChainId::from_chain_id(&owner_account.account.environment().chain_id());
             id.push_chain(chain_name);
             id
         };
@@ -183,7 +183,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name = TruncatedChainId::from_chain_id(
-                &owner_account.abstr_account.manager.environment().chain_id(),
+                &owner_account.abstr_account.account.environment().chain_id(),
             );
             id.push_chain(chain_name);
             id
@@ -242,7 +242,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     fn origin_chain(&self) -> Chain {
-        self.abstr_owner_account.manager.environment().clone()
+        self.abstr_owner_account.account.environment().clone()
     }
 
     /// Address of the proxy
@@ -394,7 +394,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
         self.abstr_owner_account
-            .manager
+            .account
             .top_level_owner()
             .map(|tlo| tlo.address)
             .map_err(Into::into)
@@ -559,7 +559,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
 
         let tx_response = self
             .abstr_owner_account
-            .manager
+            .account
             .execute_on_module(ACCOUNT, msg)?;
         let packets = self
             .ibc_env

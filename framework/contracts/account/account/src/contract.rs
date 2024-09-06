@@ -81,7 +81,6 @@ pub fn instantiate(
 
     let account_info = AccountInfo {
         name,
-        chain_id: env.block.chain_id,
         description,
         link,
     };

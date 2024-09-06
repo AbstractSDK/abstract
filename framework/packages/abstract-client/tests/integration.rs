@@ -956,7 +956,7 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
     let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
     assert_eq!(
         err,
-        account_factory::error::AccountFactoryError::SubAccountCreatorNotManager {
+        account_factory::error::AccountFactoryError::SubAccountCreatorNotAccount {
             caller: client.sender().into_string(),
             manager: account.manager()?.into_string()
         }

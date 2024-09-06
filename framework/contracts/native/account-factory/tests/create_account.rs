@@ -197,7 +197,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let account_1 = AbstractAccount::new(&deployment, TEST_ACCOUNT_ID);
     assert_that!(Account {
-        manager: account_1.manager.address()?,
+        manager: account_1.account.address()?,
         proxy: account_1.proxy.address()?,
     })
     .is_equal_to(&account);
@@ -208,7 +208,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     })
     .is_equal_to(&account);
 
-    let account_config = account_1.manager.config()?;
+    let account_config = account_1.account.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_std::manager::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
@@ -243,7 +243,7 @@ fn sender_is_not_admin_external() -> AResult {
     )?;
 
     let account = AbstractAccount::new(&deployment, TEST_ACCOUNT_ID);
-    let account_config = account.manager.config()?;
+    let account_config = account.account.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_std::manager::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,

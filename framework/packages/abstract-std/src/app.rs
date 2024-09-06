@@ -102,7 +102,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AppConfigResponse {
-    pub proxy_address: Addr,
+    pub account: Addr,
     pub ans_host_address: Addr,
     pub manager_address: Addr,
 }
@@ -113,8 +113,8 @@ pub struct BaseMigrateMsg {}
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[cosmwasm_schema::cw_serde]
 pub struct AppState {
-    /// Proxy contract address for relaying transactions
-    pub proxy_address: Addr,
+    /// Account contract address for proxying transactions
+    pub account: Account,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
     /// Used to verify requests

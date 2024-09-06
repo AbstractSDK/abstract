@@ -58,9 +58,9 @@ pub fn execute_create_account(
         ensure_eq!(
             info.sender,
             account ,
-            AccountFactoryError::SubAccountCreatorNotManager {
+            AccountFactoryError::SubAccountCreatorNotAccount {
                 caller: info.sender.into(),
-                manager: manager.into()
+                account: account.into(),
             }
         )
     }
@@ -260,7 +260,7 @@ pub fn execute_create_account(
     .add_message(WasmMsg::Instantiate2 {
         code_id: proxy_code_id,
         funds: funds_to_proxy.into_vec(),
-        admin: Some(account_base.manager.to_string()),
+        admin: Some(account_base.addr().to_string()),
         label: format!("Proxy of Account: {}", proxy_message.account_id),
         msg: to_json_binary(&proxy_message)?,
         salt: salt.clone(),
@@ -271,14 +271,14 @@ pub fn execute_create_account(
         WasmMsg::Instantiate2 {
             code_id: manager_code_id,
             funds: funds_for_install,
-            admin: Some(account_base.manager.into_string()),
+            admin: Some(account_base.addr().to_string()),
             label: format!("Manager of Account: {}", proxy_message.account_id),
             msg: to_json_binary(&ManagerInstantiateMsg {
                 account_id: proxy_message.account_id,
                 owner: governance.into(),
                 version_control_address: config.version_control_contract.into_string(),
                 module_factory_address: config.module_factory_address.into_string(),
-                proxy_addr: account_base.proxy.into_string(),
+                proxy_addr: account_base.into_addr().into_string(),
                 name,
                 description,
                 link,
@@ -317,20 +317,20 @@ pub fn validate_instantiated_account(deps: DepsMut, _result: SubMsgResult) -> Ac
     assert_module_data_validity(
         &deps.querier,
         &context.manager_module,
-        Some(account_base.manager.clone()),
+        Some(account_base.addr().clone()),
     )?;
     assert_module_data_validity(
         &deps.querier,
         &context.proxy_module,
-        Some(account_base.proxy.clone()),
+        Some(account_base.addr().clone()),
     )?;
 
     let resp = AccountFactoryResponse::new(
         "create_account",
         vec![
             ("account", account_id.to_string()),
-            ("manager_address", account_base.manager.into_string()),
-            ("proxy_address", account_base.proxy.into_string()),
+            ("manager_address", account_base.addr().to_string()),
+            ("proxy_address", account_base.into_addr().into_string()),
         ],
     );
 

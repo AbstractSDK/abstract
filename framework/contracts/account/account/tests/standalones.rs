@@ -70,7 +70,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     )?;
 
     // Reinstall
-    account.manager.uninstall_module(STANDALONE_ID.to_owned())?;
+    account.account.uninstall_module(STANDALONE_ID.to_owned())?;
     let Err(AbstractInterfaceError::Orch(err)) = account.install_standalone(
         &standalone,
         &MockInitMsg {

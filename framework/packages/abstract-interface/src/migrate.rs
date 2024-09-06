@@ -122,10 +122,10 @@ impl<T: CwEnv> Abstract<T> {
             .modules;
 
         if ::manager::contract::CONTRACT_VERSION != versions[0].module.info.version.to_string()
-            && self.account.manager.upload_if_needed()?.is_some()
+            && self.account.account.upload_if_needed()?.is_some()
         {
             accounts_to_register.push((
-                self.account.manager.as_instance(),
+                self.account.account.as_instance(),
                 ::manager::contract::CONTRACT_VERSION.to_string(),
             ));
         }

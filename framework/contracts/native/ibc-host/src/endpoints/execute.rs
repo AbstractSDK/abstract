@@ -29,7 +29,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
         }
         ExecuteMsg::RemoveChainProxy { chain } => remove_chain_proxy(deps, info, chain),
         ExecuteMsg::Execute {
-            proxy_address,
+            account_address: proxy_address,
             account_id,
             action,
         } => {

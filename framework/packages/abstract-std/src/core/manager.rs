@@ -36,7 +36,6 @@ pub mod state {
     #[cosmwasm_schema::cw_serde]
     pub struct AccountInfo {
         pub name: String,
-        pub chain_id: String,
         pub description: Option<String>,
         pub link: Option<String>,
     }

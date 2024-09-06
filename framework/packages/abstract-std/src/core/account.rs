@@ -1,10 +1,10 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Binary, CosmosMsg, Empty};
-use manager::{
+use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty};
+use manager::state::SuspensionStatus;
+pub use manager::{
     InfoResponse, ModuleAddressesResponse, ModuleInfosResponse, ModuleInstallConfig,
     ModuleVersionsResponse, SubAccountIdsResponse, UpdateSubAccountAction,
 };
-use proxy::ConfigResponse;
 
 use crate::objects::{
     gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
@@ -14,6 +14,9 @@ use crate::objects::{
 };
 
 use super::*;
+
+#[cosmwasm_schema::cw_serde]
+pub struct MigrateMsg {}
 
 /// Account Instantiate Msg
 /// https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs
@@ -149,4 +152,14 @@ pub enum QueryMsg {
     /// Query the contract's ownership information
     #[returns(Ownership<String>)]
     Ownership {},
+}
+
+
+#[cosmwasm_schema::cw_serde]
+pub struct ConfigResponse {
+    pub modules: Vec<String>,
+    pub account_id: AccountId,
+    pub is_suspended: SuspensionStatus,
+    pub version_control_address: Addr,
+    pub module_factory_address: Addr,
 }
