@@ -358,7 +358,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         };
 
         let addr = wasm_querier
-            .instantiate2_addr(code_id, creator, salt)
+            .instantiate2_addr(code_id, &Addr::unchecked(creator), salt)
             .map_err(Into::into)?;
         Ok(Addr::unchecked(addr))
     }

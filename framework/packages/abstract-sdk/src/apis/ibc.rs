@@ -354,7 +354,7 @@ mod test {
     #[test]
     fn test_host_action_no_callback() {
         let deps = mock_dependencies();
-        let stub = MockModule::new();
+        let stub = MockModule::new(deps.api);
         let client = stub.ibc_client(deps.as_ref());
         let msg = client.host_action(
             TEST_HOST_CHAIN.parse().unwrap(),
@@ -366,8 +366,9 @@ mod test {
         );
         assert_that!(msg).is_ok();
 
+        let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: TEST_PROXY.to_string(),
+            contract_addr: base.proxy.to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
@@ -388,7 +389,7 @@ mod test {
     #[test]
     fn test_ics20_transfer() {
         let deps = mock_dependencies();
-        let stub = MockModule::new();
+        let stub = MockModule::new(deps.api);
         let client = stub.ibc_client(deps.as_ref());
 
         let expected_funds = coins(100, "denom");
@@ -401,8 +402,9 @@ mod test {
         );
         assert_that!(msg).is_ok();
 
+        let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: TEST_PROXY.to_string(),
+            contract_addr: base.proxy.to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),

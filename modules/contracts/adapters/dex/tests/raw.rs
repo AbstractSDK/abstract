@@ -1,3 +1,5 @@
+#![cfg(feature = "TODO: replace wyndex_bundle")]
+
 use abstract_adapter::std::{
     adapter::AdapterRequestMsg,
     ans_host::QueryMsgFns as _,

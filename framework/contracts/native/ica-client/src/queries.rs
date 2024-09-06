@@ -90,10 +90,10 @@ mod tests {
         },
         version_control::{self as vc, ModuleConfiguration},
     };
-    use abstract_testing::prelude::{TEST_VERSION_CONTROL, *};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         from_json,
-        testing::{mock_dependencies, mock_env},
+        testing::{mock_dependencies, mock_env, MockApi},
         Addr, HexBinary,
     };
 
@@ -106,25 +106,27 @@ mod tests {
     const EVM_CHAIN: &str = "bartio";
     const COSMOS_CHAIN: &str = "juno";
 
-    fn env_note_addr() -> Addr {
-        Addr::unchecked("evm_note_addr".to_string())
+    fn env_note_addr(api: MockApi) -> Addr {
+        api.addr_make("evm_note_addr")
     }
 
-    fn ucs_forwarder_addr() -> Addr {
-        Addr::unchecked("ucs_forwarder".to_string())
+    fn ucs_forwarder_addr(api: MockApi) -> Addr {
+        api.addr_make("ucs_forwarder")
     }
 
     /// setup the querier with the proper responses and state
-    fn state_setup() -> MockQuerierBuilder {
+    fn state_setup(api: MockApi) -> MockQuerierBuilder {
         let chain_name = TruncatedChainId::from_str(EVM_CHAIN).unwrap();
+        let abstr = AbstractMockAddrs::new(api);
 
-        mocked_account_querier_builder()
+        AbstractMockQuerierBuilder::new(api)
+            .account(&abstr.account, TEST_ACCOUNT_ID)
             .contracts(vec![(
                 &ContractEntry {
                     contract: types::UCS01_FORWARDER_CONTRACT.to_string(),
                     protocol: types::UCS01_PROTOCOL.to_string(),
                 },
-                ucs_forwarder_addr(),
+                ucs_forwarder_addr(api),
             )])
             .channels(vec![(
                 &ChannelEntry {
@@ -134,7 +136,7 @@ mod tests {
                 "channel-1".into(),
             )])
             .builder()
-            .with_smart_handler(env_note_addr().as_str(), |bin| {
+            .with_smart_handler(&env_note_addr(api), |bin| {
                 let msg = from_json::<evm_note::msg::QueryMsg>(bin).unwrap();
                 match msg {
                     evm_note::msg::QueryMsg::RemoteAddress { .. } => {
@@ -143,7 +145,7 @@ mod tests {
                     _ => panic!("should only query for RemoteAddress"),
                 }
             })
-            .with_smart_handler(TEST_VERSION_CONTROL, |bin| {
+            .with_smart_handler(&abstr.version_control, move |bin| {
                 let msg = from_json::<vc::QueryMsg>(bin).unwrap();
                 match msg {
                     vc::QueryMsg::Modules { infos } => {
@@ -164,9 +166,7 @@ mod tests {
                                         abstract_ica::POLYTONE_EVM_VERSION.parse().unwrap(),
                                     )
                                     .unwrap(),
-                                    reference: ModuleReference::Native(Addr::unchecked(
-                                        env_note_addr().to_string(),
-                                    )),
+                                    reference: ModuleReference::Native(env_note_addr(api)),
                                 },
                             }],
                         })
@@ -195,17 +195,18 @@ mod tests {
         #[test]
         fn config() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            deps.querier = state_setup().build();
+            deps.querier = state_setup(deps.api).build();
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
             let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {})?;
             let res: ConfigResponse = from_json(&res).unwrap();
             assert_eq!(
                 res,
                 ConfigResponse {
-                    ans_host: TEST_ANS_HOST.to_owned(),
-                    version_control_address: TEST_VERSION_CONTROL.to_owned()
+                    ans_host: abstr.ans_host.to_string(),
+                    version_control_address: abstr.version_control.to_string()
                 }
             );
             Ok(())
@@ -214,19 +215,22 @@ mod tests {
         #[test]
         fn evm_exec_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
-            deps.querier = state_setup().build();
+            deps.querier = state_setup(deps.api).build();
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: TEST_PROXY.into(),
+                proxy_address: abstr.account.proxy.to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
                     msgs: vec![EvmMsg::Call {
                         to: "to".to_string(),
-                        data: HexBinary::from(vec![0x01]),
+                        data: vec![0x01].into(),
+                        value: None,
+                        allow_failure: None,
                     }],
                     callback: None,
                 })],
@@ -237,12 +241,14 @@ mod tests {
 
             assert_that!(res).is_equal_to(IcaActionResponse {
                 msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    env_note_addr(),
+                    env_note_addr(deps.api),
                     &evm_note::msg::ExecuteMsg::Execute {
                         callback: None,
                         msgs: vec![EvmMsg::Call {
                             to: "to".to_string(),
-                            data: HexBinary::from(vec![0x01]),
+                            data: vec![0x01].into(),
+                            value: None,
+                            allow_failure: None,
                         }],
                         timeout_seconds: PACKET_LIFETIME.into(),
                     },
@@ -258,16 +264,17 @@ mod tests {
             use super::*;
 
             let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
-            deps.querier = state_setup().build();
+            deps.querier = state_setup(deps.api).build();
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let receiver = HexBinary::from_hex("123fff").unwrap();
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: TEST_PROXY.into(),
+                proxy_address: abstr.account.proxy.to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Fund {
                     funds: coins(1, "test"),
@@ -281,7 +288,7 @@ mod tests {
 
             assert_that!(res).is_equal_to(IcaActionResponse {
                 msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    ucs_forwarder_addr(),
+                    ucs_forwarder_addr(deps.api),
                     &Ucs01ForwarderExecuteMsg::Transfer {
                         channel: "channel-1".into(),
                         receiver,
@@ -300,14 +307,15 @@ mod tests {
             use super::*;
 
             let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
-            deps.querier = state_setup().build();
+            deps.querier = state_setup(deps.api).build();
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: TEST_PROXY.into(),
+                proxy_address: abstr.account.proxy.to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Fund {
                     funds: coins(1, "test"),
@@ -321,7 +329,7 @@ mod tests {
 
             assert_that!(res).is_equal_to(IcaActionResponse {
                 msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    ucs_forwarder_addr(),
+                    ucs_forwarder_addr(deps.api),
                     &Ucs01ForwarderExecuteMsg::Transfer {
                         channel: "channel-1".into(),
                         receiver: HexBinary::from_hex("123fff").unwrap(),
@@ -338,19 +346,22 @@ mod tests {
         #[test]
         fn evm_exec_non_evm_chaintype() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(COSMOS_CHAIN)?;
 
-            deps.querier = state_setup().build();
+            deps.querier = state_setup(deps.api).build();
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: TEST_PROXY.into(),
+                proxy_address: abstr.account.proxy.to_string(),
                 chain: chain_name.clone(),
                 actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
                     msgs: vec![EvmMsg::Call {
                         to: "to".to_string(),
-                        data: HexBinary::from(vec![0x01]),
+                        data: vec![0x01].into(),
+                        value: None,
+                        allow_failure: None,
                     }],
                     callback: None,
                 })],

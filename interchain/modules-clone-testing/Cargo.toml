@@ -18,29 +18,29 @@ abstract-client = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }
-env_logger = "0.10.0"
+env_logger = "0.11.3"
 lazy_static = "1.4.0"
 
 # # Clone testing
 abstract-dex-adapter = { workspace = true, features = [
   "testing",
-  "astroport",
-  "fin",
+  # "astroport",
+  # "fin",
   "astrovault",
 ] }
 abstract-cw-staking = { workspace = true, features = [
   "testing",
-  "astroport",
-  "bow",
+  # "astroport",
+  # "bow",
   "astrovault",
 ] }
 abstract-money-market-adapter = { workspace = true, features = [
   "testing",
-  "mars",
-  "ghost",
+  # "mars",
+  # "ghost",
 ] }
-astroport = { version = "3.11.1" }
-kujira = { version = "0.8" }
+# astroport = { version = "3.11.1" }
+# kujira = { version = "0.8" }
 astrovault = { version = "0.1.4" }
 
 serde_json = "1"

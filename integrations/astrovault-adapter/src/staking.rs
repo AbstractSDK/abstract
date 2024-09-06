@@ -31,6 +31,7 @@ impl Identify for Astrovault {
 
 #[cfg(feature = "full_integration")]
 use {
+    crate::mini_astrovault,
     crate::mini_astrovault::RewardSourceResponse,
     abstract_sdk::{
         feature_objects::AnsHost,
@@ -43,10 +44,6 @@ use {
         UnbondingResponse,
     },
     abstract_staking_standard::{CwStakingCommand, CwStakingError},
-    astrovault::lp_staking::{
-        handle_msg::ExecuteMsg as LpExecuteMsg,
-        query_msg::{LpBalanceResponse, LpConfigResponse, QueryMsg as LpQueryMsg},
-    },
     cosmwasm_std::{
         to_json_binary, wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Timestamp,
         Uint128,
@@ -97,13 +94,11 @@ impl CwStakingCommand for Astrovault {
         stake_request: Vec<AnsAsset>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = to_json_binary(
-            &astrovault::lp_staking::handle_msg::LPStakingReceiveMsg::Deposit {
-                sender: None,
-                not_claim_rewards: Some(true),
-                notify: None,
-            },
-        )?;
+        let msg = to_json_binary(&mini_astrovault::AstrovaultStakingReceiveMsg::Deposit {
+            sender: None,
+            not_claim_rewards: Some(true),
+            notify: None,
+        })?;
 
         let stake_msgs = stake_request
             .into_iter()
@@ -137,7 +132,7 @@ impl CwStakingCommand for Astrovault {
             .map(|(unstake, token)| {
                 let msg: CosmosMsg = wasm_execute(
                     token.staking_contract_address.to_string(),
-                    &LpExecuteMsg::Withdrawal {
+                    &mini_astrovault::AstrovaultStakingExecuteMsg::Withdrawal {
                         amount: Some(unstake.amount),
                         direct_pool_withdrawal: None,
                         to: None,
@@ -161,7 +156,7 @@ impl CwStakingCommand for Astrovault {
             .map(|context| {
                 let msg: CosmosMsg = wasm_execute(
                     context.staking_contract_address.to_string(),
-                    &LpExecuteMsg::WithdrawalFromLockup {
+                    &mini_astrovault::AstrovaultStakingExecuteMsg::WithdrawalFromLockup {
                         to: None,
                         direct_pool_withdrawal: None,
                         notify: None,
@@ -182,7 +177,7 @@ impl CwStakingCommand for Astrovault {
             .map(|context| {
                 let msg: CosmosMsg = wasm_execute(
                     context.staking_contract_address.to_string(),
-                    &LpExecuteMsg::Withdrawal {
+                    &mini_astrovault::AstrovaultStakingExecuteMsg::Withdrawal {
                         amount: Some(Uint128::zero()),
                         direct_pool_withdrawal: None,
                         to: None,
@@ -208,8 +203,11 @@ impl CwStakingCommand for Astrovault {
 
         let mut infos = Vec::with_capacity(staking_addrs.len());
         for staking_addr in staking_addrs {
-            let LpConfigResponse { inc_token, .. } = querier
-                .query_wasm_smart::<LpConfigResponse>(staking_addr.clone(), &LpQueryMsg::Config {})
+            let mini_astrovault::LpConfigResponse { inc_token, .. } = querier
+                .query_wasm_smart(
+                    staking_addr.clone(),
+                    &mini_astrovault::AstrovaultStakingQueryMsg::Config {},
+                )
                 .map_err(|e| {
                     StdError::generic_err(format!(
                         "Failed to query staking info for {} with lp_staking: {}, {:?}",
@@ -246,10 +244,10 @@ impl CwStakingCommand for Astrovault {
             .tokens
             .iter()
             .map(|t| {
-                let stake_balance: LpBalanceResponse = querier
+                let stake_balance: mini_astrovault::LpBalanceResponse = querier
                     .query_wasm_smart(
                         t.staking_contract_address.clone(),
-                        &LpQueryMsg::Balance {
+                        &mini_astrovault::AstrovaultStakingQueryMsg::Balance {
                             address: staker.to_string(),
                         },
                     )
@@ -277,10 +275,10 @@ impl CwStakingCommand for Astrovault {
             .tokens
             .iter()
             .map(|t| {
-                let stake_balance: LpBalanceResponse = querier
+                let stake_balance: mini_astrovault::LpBalanceResponse = querier
                     .query_wasm_smart(
                         t.staking_contract_address.clone(),
-                        &LpQueryMsg::Balance {
+                        &mini_astrovault::AstrovaultStakingQueryMsg::Balance {
                             address: staker.to_string(),
                         },
                     )
@@ -320,7 +318,7 @@ impl CwStakingCommand for Astrovault {
                 let rewards_info: Vec<RewardSourceResponse> = querier
                     .query_wasm_smart(
                         t.staking_contract_address.clone(),
-                        &LpQueryMsg::RewardSources {
+                        &mini_astrovault::AstrovaultStakingQueryMsg::RewardSources {
                             reward_source: None,
                         },
                     )
@@ -335,10 +333,10 @@ impl CwStakingCommand for Astrovault {
                 let tokens = rewards_info
                     .into_iter()
                     .map(|rew_source| match rew_source.info.reward_asset {
-                        astrovault::assets::asset::AssetInfo::Token { contract_addr } => {
+                        mini_astrovault::AstrovaultAssetInfo::Token { contract_addr } => {
                             AssetInfo::cw20(Addr::unchecked(contract_addr))
                         }
-                        astrovault::assets::asset::AssetInfo::NativeToken { denom } => {
+                        mini_astrovault::AstrovaultAssetInfo::NativeToken { denom } => {
                             AssetInfo::native(denom)
                         }
                     })

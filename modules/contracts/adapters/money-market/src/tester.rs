@@ -134,12 +134,12 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             new_account.proxy()?.to_string(),
         )?;
 
-        assert!(user_deposit.amount > Uint128::from(amount) * Decimal::from_str("0.95")?);
+        assert!(user_deposit.amount > Uint128::from(amount).mul_floor(Decimal::from_str("0.95")?));
         assert_eq!(
             self.abstr_deployment
                 .environment()
                 .bank_querier()
-                .balance(proxy_addr, None)
+                .balance(&proxy_addr, None)
                 .unwrap()
                 .len(),
             0
@@ -160,9 +160,12 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             account.proxy()?.to_string(),
         )?;
 
-        assert!(user_deposit_value.amount > Uint128::from(DEPOSIT_VALUE) * Decimal::percent(99));
+        assert!(
+            user_deposit_value.amount
+                > Uint128::from(DEPOSIT_VALUE).mul_floor(Decimal::percent(99))
+        );
         let withdraw_value = user_deposit_value.amount / Uint128::new(2);
-        let withdraw_fee = withdraw_value * FEE;
+        let withdraw_fee = withdraw_value.mul_floor(FEE);
         self.execute(
             &account.proxy()?,
             MoneyMarketAnsAction::Withdraw {
@@ -171,7 +174,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         )?;
 
         let current_balance = self.query_proxy_balance(&account.proxy()?, &asset_info_lending)?;
-        assert!(current_balance + withdraw_fee > withdraw_value * Decimal::percent(99));
+        assert!(current_balance + withdraw_fee > withdraw_value.mul_floor(Decimal::percent(99)));
 
         Ok(account)
     }
@@ -219,12 +222,15 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             new_account.proxy()?.to_string(),
         )?;
 
-        assert!(user_collateral.amount > Uint128::from(DEPOSIT_VALUE) * Decimal::from_str("0.95")?);
+        assert!(
+            user_collateral.amount
+                > Uint128::from(DEPOSIT_VALUE).mul_floor(Decimal::from_str("0.95")?)
+        );
         assert_eq!(
             self.abstr_deployment
                 .environment()
                 .bank_querier()
-                .balance(proxy_addr, None)
+                .balance(&proxy_addr, None)
                 .unwrap()
                 .len(),
             0
@@ -247,7 +253,10 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             account.proxy()?.to_string(),
         )?;
 
-        assert!(user_collateral.amount > Uint128::from(DEPOSIT_VALUE) * Decimal::from_str("0.95")?);
+        assert!(
+            user_collateral.amount
+                > Uint128::from(DEPOSIT_VALUE).mul_floor(Decimal::from_str("0.95")?)
+        );
 
         self.execute(
             &account.proxy()?,
@@ -259,7 +268,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
 
         let current_balance =
             self.query_proxy_balance(&account.proxy()?, &asset_info_collateral)?;
-        assert!(current_balance > user_collateral.amount * Decimal::percent(99));
+        assert!(current_balance > user_collateral.amount.mul_floor(Decimal::percent(99)));
 
         Ok(account)
     }
@@ -286,7 +295,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             account.proxy()?.to_string(),
         )?;
 
-        assert!(user_borrow.amount > Uint128::from(BORROW_VALUE) * Decimal::percent(99));
+        assert!(user_borrow.amount > Uint128::from(BORROW_VALUE).mul_floor(Decimal::percent(99)));
 
         Ok(account)
     }
@@ -380,7 +389,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
                     action,
                 },
             }),
-            None,
+            &[],
         )?)
     }
 

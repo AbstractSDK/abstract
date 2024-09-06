@@ -1,6 +1,6 @@
 use abstract_std::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
-use cw2::ContractVersion;
+use cw2::{ContractVersion, CONTRACT};
 
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -37,8 +37,7 @@ where
 
     /// Returns the cw2 contract version.
     fn stored_version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
-        let contract = self.contract();
-        contract.version.load(store).map_err(Into::into)
+        CONTRACT.load(store).map_err(Into::into)
     }
 
     /// Returns the static contract info.

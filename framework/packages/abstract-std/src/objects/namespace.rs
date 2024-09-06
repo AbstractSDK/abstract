@@ -78,6 +78,7 @@ impl Display for Namespace {
 
 impl KeyDeserialize for &Namespace {
     type Output = Namespace;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -107,6 +108,7 @@ impl<'a> Prefixer<'a> for Namespace {
 
 impl KeyDeserialize for Namespace {
     type Output = Namespace;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {

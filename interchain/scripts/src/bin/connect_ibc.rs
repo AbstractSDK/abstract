@@ -79,7 +79,7 @@ fn connect(
     )?;
 
     let interchain =
-        DaemonInterchainEnv::from_daemons(vec![src_daemon, dst_daemon], &ChannelCreationValidator);
+        DaemonInterchain::from_daemons(vec![src_daemon, dst_daemon], &ChannelCreationValidator);
     src_abstract.connect_to(&dst_abstract, &interchain)?;
 
     Ok(())

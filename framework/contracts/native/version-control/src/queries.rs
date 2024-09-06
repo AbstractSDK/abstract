@@ -53,8 +53,8 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                 .collect();
             let (latest_version, id) = versions?
                 .first()
-                .ok_or_else(|| StdError::GenericErr {
-                    msg: VCError::ModuleNotFound(module.clone()).to_string(),
+                .ok_or_else(|| {
+                    StdError::generic_err(VCError::ModuleNotFound(module.clone()).to_string())
                 })?
                 .clone();
             module.version = ModuleVersion::Version(latest_version);
@@ -97,10 +97,10 @@ pub fn handle_module_list_query(
     } = filter.unwrap_or_default();
 
     let mod_lib = match status {
-        Some(ModuleStatus::Registered) => &REGISTERED_MODULES,
-        Some(ModuleStatus::Pending) => &PENDING_MODULES,
-        Some(ModuleStatus::Yanked) => &YANKED_MODULES,
-        None => &REGISTERED_MODULES,
+        Some(ModuleStatus::Registered) => REGISTERED_MODULES,
+        Some(ModuleStatus::Pending) => PENDING_MODULES,
+        Some(ModuleStatus::Yanked) => YANKED_MODULES,
+        None => REGISTERED_MODULES,
     };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
@@ -206,7 +206,7 @@ fn filter_modules_by_namespace(
     limit: usize,
     namespace: Namespace,
     name: &Option<String>,
-    mod_lib: &Map<&ModuleInfo, ModuleReference>,
+    mod_lib: Map<&ModuleInfo, ModuleReference>,
 ) -> StdResult<Vec<(ModuleInfo, ModuleReference)>> {
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
@@ -269,8 +269,8 @@ mod test {
     use abstract_std::{manager, objects::account::AccountTrace, version_control::*};
     use abstract_testing::{prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Binary, DepsMut, StdError,
+        testing::{message_info, mock_dependencies, mock_env, MockApi},
+        Addr, Binary, DepsMut, OwnedDeps, StdError,
     };
     use speculoos::prelude::*;
 
@@ -281,14 +281,18 @@ mod test {
     const TEST_OTHER_PROXY_ADDR: &str = "proxy1";
     const TEST_OTHER_MANAGER_ADDR: &str = "manager1";
 
-    pub fn mock_manager_querier() -> MockQuerierBuilder {
+    pub fn mock_manager_querier(mock_api: MockApi) -> MockQuerierBuilder {
+        let abstr = AbstractMockAddrs::new(mock_api);
+        let other_manager = mock_api.addr_make(TEST_OTHER_MANAGER_ADDR);
+        let other_owner = mock_api.addr_make(TEST_OTHER);
         MockQuerierBuilder::default()
-            .with_smart_handler(TEST_MANAGER, |msg| {
+            .with_smart_handler(&abstr.account.manager, move |msg| {
+                let abstr = AbstractMockAddrs::new(mock_api);
                 match from_json(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
-                            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
-                            module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                            version_control_address: abstr.version_control,
+                            module_factory_address: abstr.module_factory,
                             account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
@@ -297,12 +301,13 @@ mod test {
                     _ => panic!("unexpected message"),
                 }
             })
-            .with_smart_handler(TEST_OTHER_MANAGER_ADDR, |msg| {
+            .with_smart_handler(&other_manager, move |msg| {
                 match from_json(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
+                        let abstr = AbstractMockAddrs::new(mock_api.clone());
                         let resp = manager::ConfigResponse {
-                            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
-                            module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                            version_control_address: abstr.version_control,
+                            module_factory_address: abstr.module_factory,
                             account_id: TEST_OTHER_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
@@ -311,16 +316,19 @@ mod test {
                     _ => panic!("unexpected message"),
                 }
             })
-            .with_owner(TEST_MANAGER, Some(OWNER))
-            .with_owner(TEST_OTHER_MANAGER_ADDR, Some(TEST_OTHER))
+            .with_owner(&abstr.account.manager, Some(&abstr.owner))
+            .with_owner(&other_manager, Some(&other_owner))
     }
 
-    fn mock_init(mut deps: DepsMut) -> VersionControlTestResult {
-        let info = mock_info(OWNER, &[]);
+    fn mock_init(
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+    ) -> VersionControlTestResult {
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
 
         contract::instantiate(
-            deps.branch(),
+            deps.as_mut(),
             mock_env(),
             info,
             InstantiateMsg {
@@ -329,10 +337,11 @@ mod test {
                 namespace_registration_fee: None,
             },
         )?;
-        execute_as_admin(
-            deps.branch(),
+        execute_as(
+            deps.as_mut(),
+            &abstr.owner,
             ExecuteMsg::UpdateConfig {
-                account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
+                account_factory_address: Some(abstr.account_factory.to_string()),
                 security_disabled: None,
                 namespace_registration_fee: None,
             },
@@ -342,37 +351,36 @@ mod test {
     }
 
     /// Initialize the version_control with admin as creator and test account
-    fn mock_init_with_account(mut deps: DepsMut) -> VCResult {
-        mock_init(deps.branch())?;
+    fn mock_init_with_account(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> VCResult {
+        let abstr = AbstractMockAddrs::new(deps.api);
+        mock_init(deps)?;
         execute_as(
-            deps.branch(),
-            TEST_ACCOUNT_FACTORY,
+            deps.as_mut(),
+            &abstr.account_factory,
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
-                account_base: test_account_base(),
+                account_base: abstr.account,
                 namespace: None,
             },
         )?;
+
+        let other_account = AccountBase {
+            manager: deps.api.addr_make(TEST_OTHER_MANAGER_ADDR),
+            proxy: deps.api.addr_make(TEST_OTHER_PROXY_ADDR),
+        };
         execute_as(
-            deps.branch(),
-            TEST_ACCOUNT_FACTORY,
+            deps.as_mut(),
+            &abstr.account_factory,
             ExecuteMsg::AddAccount {
                 account_id: TEST_OTHER_ACCOUNT_ID,
-                account_base: AccountBase {
-                    manager: Addr::unchecked(TEST_OTHER_MANAGER_ADDR),
-                    proxy: Addr::unchecked(TEST_OTHER_PROXY_ADDR),
-                },
+                account_base: other_account,
                 namespace: None,
             },
         )
     }
 
-    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> VCResult {
-        contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
-    }
-
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
-        contract::execute(deps, mock_env(), mock_info(OWNER, &[]), msg)
+    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> VCResult {
+        contract::execute(deps, mock_env(), message_info(sender, &[]), msg)
     }
 
     fn query_helper(deps: Deps, msg: QueryMsg) -> VCResult<Binary> {
@@ -384,30 +392,36 @@ mod test {
 
         use abstract_std::objects::module::ModuleVersion::Latest;
 
-        fn add_namespace(deps: DepsMut, namespace: &str) {
+        fn add_namespace(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>, namespace: &str) {
+            let abstr = AbstractMockAddrs::new(deps.api);
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id: TEST_ACCOUNT_ID,
                 namespace: namespace.to_string(),
             };
 
-            let res = execute_as_admin(deps, msg);
+            let res = execute_as(deps.as_mut(), &abstr.owner, msg);
             assert_that!(&res).is_ok();
         }
 
-        fn add_module(deps: DepsMut, new_module_info: ModuleInfo) {
+        fn add_module(
+            deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+            new_module_info: ModuleInfo,
+        ) {
+            let abstr = AbstractMockAddrs::new(deps.api);
+
             let add_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module_info, ModuleReference::App(0))],
             };
 
-            let res = execute_as_admin(deps, add_msg);
+            let res = execute_as(deps.as_mut(), &abstr.owner, add_msg);
             assert_that!(&res).is_ok();
         }
 
         #[test]
         fn get_module() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            mock_init_with_account(deps.as_mut())?;
+            deps.querier = mock_manager_querier(deps.api).build();
+            mock_init_with_account(&mut deps)?;
             let new_module_info =
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".into())).unwrap();
 
@@ -415,8 +429,8 @@ mod test {
                 name, namespace, ..
             } = new_module_info.clone();
 
-            add_namespace(deps.as_mut(), "test");
-            add_module(deps.as_mut(), new_module_info.clone());
+            add_namespace(&mut deps, "test");
+            add_module(&mut deps, new_module_info.clone());
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
@@ -435,8 +449,8 @@ mod test {
         #[test]
         fn none_when_no_matching_version() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            mock_init_with_account(deps.as_mut())?;
+            deps.querier = mock_manager_querier(deps.api).build();
+            mock_init_with_account(&mut deps)?;
             let new_module_info =
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".into())).unwrap();
 
@@ -444,8 +458,8 @@ mod test {
                 name, namespace, ..
             } = new_module_info.clone();
 
-            add_namespace(deps.as_mut(), "test");
-            add_module(deps.as_mut(), new_module_info);
+            add_namespace(&mut deps, "test");
+            add_module(&mut deps, new_module_info);
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
@@ -465,23 +479,23 @@ mod test {
         #[test]
         fn get_latest_when_multiple_registered() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            mock_init_with_account(deps.as_mut())?;
+            deps.querier = mock_manager_querier(deps.api).build();
+            mock_init_with_account(&mut deps)?;
 
-            add_namespace(deps.as_mut(), "test");
+            add_namespace(&mut deps, "test");
 
             let module_id = "test:module";
             let oldest_version =
                 ModuleInfo::from_id(module_id, ModuleVersion::Version("0.1.2".into())).unwrap();
 
-            add_module(deps.as_mut(), oldest_version);
+            add_module(&mut deps, oldest_version);
             let newest_version =
                 ModuleInfo::from_id(module_id, ModuleVersion::Version("100.1.2".into())).unwrap();
-            add_module(deps.as_mut(), newest_version.clone());
+            add_module(&mut deps, newest_version.clone());
 
             let another_version =
                 ModuleInfo::from_id(module_id, ModuleVersion::Version("1.1.2".into())).unwrap();
-            add_module(deps.as_mut(), another_version);
+            add_module(&mut deps, another_version);
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
@@ -501,7 +515,7 @@ mod test {
     use cosmwasm_std::from_json;
 
     /// Add namespaces
-    fn add_namespaces(mut deps: DepsMut, acc_and_namespace: Vec<(AccountId, &str)>, sender: &str) {
+    fn add_namespaces(mut deps: DepsMut, acc_and_namespace: Vec<(AccountId, &str)>, sender: &Addr) {
         for (account_id, namespace) in acc_and_namespace {
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id,
@@ -514,7 +528,7 @@ mod test {
     }
 
     /// Add the provided modules to the version control
-    fn propose_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>, sender: &str) {
+    fn propose_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>, sender: &Addr) {
         let modules = new_module_infos
             .into_iter()
             .map(|info| (info, ModuleReference::App(0)))
@@ -525,38 +539,44 @@ mod test {
     }
 
     /// Yank the provided module in the version control
-    fn yank_module(deps: DepsMut, module_info: ModuleInfo) {
+    fn yank_module(
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+        module_info: ModuleInfo,
+    ) {
+        let abstr = AbstractMockAddrs::new(deps.api);
         let yank_msg = ExecuteMsg::YankModule {
             module: module_info,
         };
-        let res = execute_as_admin(deps, yank_msg);
+        let res = execute_as(deps.as_mut(), &abstr.owner, yank_msg);
         assert_that!(&res).is_ok();
     }
 
     /// Init verison control with some test modules.
-    fn init_with_mods(mut deps: DepsMut) {
-        mock_init_with_account(deps.branch()).unwrap();
+    fn init_with_mods(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) {
+        let abstr = AbstractMockAddrs::new(deps.api);
+        mock_init_with_account(deps).unwrap();
 
-        add_namespaces(deps.branch(), vec![(TEST_ACCOUNT_ID, "cw-plus")], OWNER);
         add_namespaces(
-            deps.branch(),
-            vec![(TEST_OTHER_ACCOUNT_ID, "4t2")],
-            TEST_OTHER,
+            deps.as_mut(),
+            vec![(TEST_ACCOUNT_ID, "cw-plus")],
+            &abstr.owner,
         );
+        let other = deps.api.addr_make(TEST_OTHER);
+        add_namespaces(deps.as_mut(), vec![(TEST_OTHER_ACCOUNT_ID, "4t2")], &other);
 
         let cw_mods = vec![
             ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        propose_modules(deps.branch(), cw_mods, OWNER);
+        propose_modules(deps.as_mut(), cw_mods, &abstr.owner);
 
         let fortytwo_mods = vec![
             ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        propose_modules(deps, fortytwo_mods, TEST_OTHER);
+        propose_modules(deps.as_mut(), fortytwo_mods, &other);
     }
 
     mod modules {
@@ -565,8 +585,8 @@ mod test {
         #[test]
         fn get_cw_plus_modules() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
 
             let namespace = Namespace::new("cw-plus")?;
 
@@ -603,8 +623,8 @@ mod test {
         #[test]
         fn get_modules_not_found() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
@@ -636,8 +656,8 @@ mod test {
         #[test]
         fn filter_by_namespace_existing() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
             let filtered_namespace = "cw-plus".to_string();
 
             let filter = ModuleFilter {
@@ -664,8 +684,9 @@ mod test {
         #[test]
         fn filter_default_returns_only_non_yanked() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            init_with_mods(&mut deps);
 
             let cw_mods = vec![
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -673,14 +694,14 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            propose_modules(deps.as_mut(), cw_mods, OWNER);
+            propose_modules(deps.as_mut(), cw_mods, &abstr.owner);
             yank_module(
-                deps.as_mut(),
+                &mut deps,
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             );
             yank_module(
-                deps.as_mut(),
+                &mut deps,
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             );
@@ -713,8 +734,9 @@ mod test {
         #[test]
         fn filter_yanked_by_namespace_existing() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            init_with_mods(&mut deps);
 
             let cw_mods = vec![
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -722,14 +744,14 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            propose_modules(deps.as_mut(), cw_mods, OWNER);
+            propose_modules(deps.as_mut(), cw_mods, &abstr.owner);
             yank_module(
-                deps.as_mut(),
+                &mut deps,
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             );
             yank_module(
-                deps.as_mut(),
+                &mut deps,
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             );
@@ -765,15 +787,20 @@ mod test {
         #[test]
         fn filter_by_namespace_non_existing() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            mock_init_with_account(deps.as_mut()).unwrap();
-            add_namespaces(deps.as_mut(), vec![(TEST_ACCOUNT_ID, "cw-plus")], OWNER);
+            deps.querier = mock_manager_querier(deps.api).build();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            mock_init_with_account(&mut deps).unwrap();
+            add_namespaces(
+                deps.as_mut(),
+                vec![(TEST_ACCOUNT_ID, "cw-plus")],
+                &abstr.owner,
+            );
             let cw_mods = vec![ModuleInfo::from_id(
                 "cw-plus:module1",
                 ModuleVersion::Version("0.1.2".into()),
             )
             .unwrap()];
-            propose_modules(deps.as_mut(), cw_mods, OWNER);
+            propose_modules(deps.as_mut(), cw_mods, &abstr.owner);
 
             let filtered_namespace = "cw-plus".to_string();
 
@@ -797,8 +824,8 @@ mod test {
         #[test]
         fn filter_by_namespace_and_name() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
 
             let filtered_namespace = "cw-plus".to_string();
             let filtered_name = "module2".to_string();
@@ -828,8 +855,9 @@ mod test {
         #[test]
         fn filter_by_namespace_and_name_with_multiple_versions() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            init_with_mods(&mut deps);
 
             let filtered_namespace = "cw-plus".to_string();
             let filtered_name = "module2".to_string();
@@ -841,7 +869,7 @@ mod test {
                     ModuleVersion::Version("0.1.3".into()),
                 )
                 .unwrap()],
-                OWNER,
+                &abstr.owner,
             );
 
             let filter = ModuleFilter {
@@ -870,8 +898,8 @@ mod test {
         #[test]
         fn filter_by_only_version_many() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
 
             let filtered_version = "0.1.2".to_string();
 
@@ -899,8 +927,8 @@ mod test {
         #[test]
         fn filter_by_only_version_none() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
 
             let filtered_version = "5555".to_string();
 
@@ -924,8 +952,8 @@ mod test {
         #[test]
         fn filter_by_name_and_version() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
 
             let filtered_name = "module2".to_string();
             let filtered_version = "0.1.2".to_string();
@@ -957,8 +985,8 @@ mod test {
         #[test]
         fn filter_by_namespace_and_version() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
 
             let filtered_namespace = "cw-plus".to_string();
             let filtered_version = "0.1.2".to_string();
@@ -995,8 +1023,8 @@ mod test {
         #[test]
         fn namespaces() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-            init_with_mods(deps.as_mut());
+            deps.querier = mock_manager_querier(deps.api).build();
+            init_with_mods(&mut deps);
 
             // get for test other account
             let res = query_helper(
@@ -1019,7 +1047,7 @@ mod test {
         #[test]
         fn not_registered_should_be_unknown() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let not_registered = AccountId::new(15, AccountTrace::Local)?;
             let res = query_helper(
@@ -1043,7 +1071,7 @@ mod test {
         #[test]
         fn registered_should_return_account_base() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            mock_init_with_account(deps.as_mut())?;
+            mock_init_with_account(&mut deps)?;
 
             let res = query_helper(
                 deps.as_ref(),
@@ -1054,7 +1082,7 @@ mod test {
 
             assert_that!(res).is_ok().map(|res| {
                 let AccountBaseResponse { account_base } = from_json(res).unwrap();
-                assert_that!(account_base).is_equal_to(test_account_base());
+                assert_that!(account_base).is_equal_to(test_account_base(deps.api));
                 res
             });
 

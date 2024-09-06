@@ -311,7 +311,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                         let funds = self.generate_funds(&modules_to_install, false)?;
                         account_from_namespace
                             .abstr_account
-                            .install_modules(modules_to_install, Some(&funds))?;
+                            .install_modules(modules_to_install, &funds)?;
                     }
                     return Ok(account_from_namespace);
                 }
@@ -344,14 +344,14 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             account_id: self.expected_local_account_id,
         };
         let abstract_account = match self.owner_account {
-            None => self.abstr.account_factory.create_new_account(
-                account_details,
-                ownership,
-                Some(&funds),
-            )?,
+            None => {
+                self.abstr
+                    .account_factory
+                    .create_new_account(account_details, ownership, &funds)?
+            }
             Some(owner_account) => owner_account
                 .abstr_account
-                .create_sub_account(account_details, Some(&funds))?,
+                .create_sub_account(account_details, &funds)?,
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }
@@ -471,7 +471,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let coins = self
             .environment()
             .bank_querier()
-            .balance(self.proxy()?, Some(denom.into()))
+            .balance(&self.proxy()?, Some(denom.into()))
             .map_err(Into::into)?;
 
         // There will always be a single element in this case.
@@ -482,7 +482,7 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
             .bank_querier()
-            .balance(self.proxy()?, None)
+            .balance(&self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
     }
@@ -666,7 +666,7 @@ impl<Chain: CwEnv> Account<Chain> {
     ) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .manager
-            .execute(execute_msg, Some(funds))
+            .execute(execute_msg, funds)
             .map_err(Into::into)
     }
 
@@ -732,7 +732,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let maybe_module_addr = self
             .environment()
             .wasm_querier()
-            .raw_query(self.abstr_account.manager.addr_str()?, key)
+            .raw_query(&self.abstr_account.manager.address()?, key)
             .map_err(Into::into)?;
         Ok(!maybe_module_addr.is_empty())
     }
@@ -852,9 +852,7 @@ impl<Chain: CwEnv> Account<Chain> {
                 .any(|module_info| module_info.id == m.module.id())
         });
         if !modules.is_empty() {
-            self.abstr_account
-                .manager
-                .install_modules(modules, Some(funds))?;
+            self.abstr_account.manager.install_modules(modules, funds)?;
         }
 
         let module = self.module::<M>()?;

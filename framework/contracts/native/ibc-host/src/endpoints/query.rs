@@ -69,35 +69,36 @@ mod test {
     #[test]
     fn test_registered_client() {
         use abstract_std::ibc_host::{ClientProxyResponse, InstantiateMsg, QueryMsg};
-        use cosmwasm_std::{
-            from_json,
-            testing::{mock_dependencies, mock_env, mock_info},
-        };
+        use cosmwasm_std::{from_json, testing::*};
 
         use crate::contract::{execute, instantiate, query};
         // Instantiate
         let mut deps = mock_dependencies();
-        let info = mock_info("admin", &[]);
+        let info = message_info(&deps.api.addr_make("admin"), &[]);
+        let dummy = deps.api.addr_make("dummy");
+        let foo = deps.api.addr_make("foo");
+        let bar = deps.api.addr_make("bar");
         instantiate(
             deps.as_mut(),
             mock_env(),
             info.clone(),
             InstantiateMsg {
-                account_factory_address: "dummy".to_string(),
-                version_control_address: "foo".to_string(),
-                ans_host_address: "bar".to_string(),
+                account_factory_address: dummy.to_string(),
+                version_control_address: foo.to_string(),
+                ans_host_address: bar.to_string(),
             },
         )
         .unwrap();
 
         // Register
+        let proxy = deps.api.addr_make("juno-proxy");
         execute(
             deps.as_mut(),
             mock_env(),
             info,
             abstract_std::ibc_host::ExecuteMsg::RegisterChainProxy {
                 chain: "juno".parse().unwrap(),
-                proxy: "juno-proxy".to_string(),
+                proxy: proxy.to_string(),
             },
         )
         .unwrap();
@@ -112,6 +113,6 @@ mod test {
         )
         .unwrap();
         let queried_client_name: ClientProxyResponse = from_json(client_name).unwrap();
-        assert_eq!(queried_client_name.proxy, "juno-proxy");
+        assert_eq!(queried_client_name.proxy, proxy);
     }
 }

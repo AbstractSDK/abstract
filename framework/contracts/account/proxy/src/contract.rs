@@ -91,6 +91,8 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> ProxyResult {
         Reply {
             id: RESPONSE_REPLY_ID,
             result: SubMsgResult::Ok(_),
+            payload: _,
+            gas_used: _,
         } => reply::forward_response_data(msg),
         _ => Err(ProxyError::UnexpectedReply {}),
     }
@@ -112,7 +114,7 @@ mod tests {
         #[test]
         fn disallow_same_version() -> ProxyResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut());
+            mock_init(&mut deps);
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -132,7 +134,7 @@ mod tests {
         #[test]
         fn disallow_downgrade() -> ProxyResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut());
+            mock_init(&mut deps);
 
             let big_version = "999.999.999";
             cw2::set_contract_version(deps.as_mut().storage, PROXY, big_version)?;
@@ -155,7 +157,7 @@ mod tests {
         #[test]
         fn disallow_name_change() -> ProxyResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut());
+            mock_init(&mut deps);
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
@@ -176,7 +178,7 @@ mod tests {
         #[test]
         fn works() -> ProxyResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut());
+            mock_init(&mut deps);
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 

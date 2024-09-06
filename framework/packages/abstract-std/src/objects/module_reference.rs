@@ -205,13 +205,13 @@ mod test {
     fn test_validate_happy_path() {
         let deps = mock_dependencies();
 
-        let native = ModuleReference::Native(Addr::unchecked("addr"));
+        let native = ModuleReference::Native(deps.api.addr_make("addr"));
         assert_that!(native.validate(deps.as_ref())).is_ok();
 
-        let api = ModuleReference::Adapter(Addr::unchecked("addr"));
+        let api = ModuleReference::Adapter(deps.api.addr_make("addr"));
         assert_that!(api.validate(deps.as_ref())).is_ok();
 
-        let service = ModuleReference::Service(Addr::unchecked("addr"));
+        let service = ModuleReference::Service(deps.api.addr_make("addr"));
         assert_that!(service.validate(deps.as_ref())).is_ok();
 
         let account_base = ModuleReference::AccountBase(1);
@@ -231,10 +231,10 @@ mod test {
         let native = ModuleReference::Native(Addr::unchecked(""));
         assert_that!(native.validate(deps.as_ref())).is_err();
 
-        let api = ModuleReference::Adapter(Addr::unchecked(""));
+        let api = ModuleReference::Adapter(Addr::unchecked("abcde"));
         assert_that!(api.validate(deps.as_ref())).is_err();
 
-        let service = ModuleReference::Service(Addr::unchecked(""));
+        let service = ModuleReference::Service(Addr::unchecked("non_bech"));
         assert_that!(service.validate(deps.as_ref())).is_err();
     }
 }

@@ -16,10 +16,10 @@ pub const MAX_ADMIN_RECURSION: usize = 2;
 /// This object has same api to the [cw_controllers::Admin]
 /// With added query_account_owner method (will get top-level owner in case of sub-accounts)
 /// but allows top-level abstract account owner to have admin privileges on the module
-pub struct NestedAdmin<'a>(Admin<'a>);
+pub struct NestedAdmin(Admin);
 
-impl<'a> NestedAdmin<'a> {
-    pub const fn new(namespace: &'a str) -> Self {
+impl NestedAdmin {
+    pub const fn new(namespace: &'static str) -> Self {
         NestedAdmin(Admin::new(namespace))
     }
 

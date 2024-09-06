@@ -11,26 +11,27 @@ pub(crate) use abstract_sdk::std::account_factory::state;
 mod test_common {
     use abstract_std::account_factory::InstantiateMsg;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_env, mock_info},
-        DepsMut,
-    };
+    use cosmwasm_std::{testing::*, OwnedDeps};
 
     use crate::{contract, contract::AccountFactoryResult};
 
-    pub fn mock_init(deps: DepsMut) -> AccountFactoryResult {
-        let info = mock_info(OWNER, &[]);
+    pub fn mock_init(
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+    ) -> AccountFactoryResult {
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let owner = abstr.owner;
+        let info = message_info(&owner, &[]);
         let admin = info.sender.to_string();
 
         contract::instantiate(
-            deps,
+            deps.as_mut(),
             mock_env(),
             info,
             InstantiateMsg {
                 admin,
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                module_factory_address: TEST_MODULE_FACTORY.to_string(),
+                version_control_address: abstr.version_control.to_string(),
+                ans_host_address: abstr.ans_host.to_string(),
+                module_factory_address: abstr.module_factory.to_string(),
             },
         )
     }

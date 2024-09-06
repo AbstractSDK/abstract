@@ -89,6 +89,8 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
         Reply {
             id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,
             result,
+            payload: _,
+            gas_used: _,
         } => commands::validate_instantiated_account(deps, result),
         _ => Err(AccountFactoryError::UnexpectedReply {}),
     }
@@ -114,21 +116,16 @@ mod tests {
 
     type AccountFactoryTestResult = AccountFactoryResult<()>;
 
-    fn execute_as(deps: DepsMut, sender: impl ToString, msg: ExecuteMsg) -> AccountFactoryResult {
-        execute(
-            deps,
-            mock_env(),
-            mock_info(sender.to_string().as_str(), &[]),
-            msg,
-        )
+    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> AccountFactoryResult {
+        execute(deps, mock_env(), message_info(sender, &[]), msg)
     }
 
-    fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> AccountFactoryResult {
-        execute_as(deps, OWNER, msg)
-    }
-
-    fn test_only_owner(deps: DepsMut, msg: ExecuteMsg) -> AccountFactoryTestResult {
-        let res = execute_as(deps, "not_admin", msg);
+    fn test_only_owner(
+        deps: DepsMut,
+        msg: ExecuteMsg,
+        not_owner: &Addr,
+    ) -> AccountFactoryTestResult {
+        let res = execute_as(deps, &not_owner, msg);
         assert_that!(&res)
             .is_err()
             .is_equal_to(AccountFactoryError::Ownership(OwnershipError::NotOwner {}));
@@ -142,16 +139,17 @@ mod tests {
         #[test]
         fn only_owner() -> AccountFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let new_ans_host = deps.api.addr_make("test_ans_host_2");
+            mock_init(&mut deps)?;
 
-            let new_ans_host = "test_ans_host_2";
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: None,
                 module_factory_address: None,
             };
 
-            test_only_owner(deps.as_mut(), msg)?;
+            let not_owner = deps.api.addr_make("not_owner");
+            test_only_owner(deps.as_mut(), msg, &not_owner)?;
 
             Ok(())
         }
@@ -159,21 +157,22 @@ mod tests {
         #[test]
         fn update_ans_host_address() -> AccountFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_ans_host = "test_ans_host_2";
+            let new_ans_host = deps.api.addr_make("test_ans_host_2");
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: None,
                 module_factory_address: None,
             };
 
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             let expected_config = Config {
-                version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
-                ans_host_contract: Addr::unchecked(new_ans_host),
-                module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                version_control_contract: abstr.version_control,
+                ans_host_contract: new_ans_host,
+                module_factory_address: abstr.module_factory,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -184,21 +183,22 @@ mod tests {
         #[test]
         fn update_version_control_address() -> AccountFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_version_control = "test_version_control_2";
+            let new_version_control = deps.api.addr_make("test_version_control_2");
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_contract: None,
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: None,
             };
 
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             let expected_config = Config {
-                version_control_contract: Addr::unchecked(new_version_control),
-                ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
-                module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                version_control_contract: new_version_control,
+                ans_host_contract: abstr.ans_host,
+                module_factory_address: abstr.module_factory,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -209,21 +209,22 @@ mod tests {
         #[test]
         fn update_module_factory_address() -> AccountFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_module_factory = "test_module_factory_2";
+            let new_module_factory = deps.api.addr_make("test_module_factory_2");
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_contract: None,
                 version_control_contract: None,
                 module_factory_address: Some(new_module_factory.to_string()),
             };
 
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             let expected_config = Config {
-                version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
-                ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
-                module_factory_address: Addr::unchecked(new_module_factory),
+                version_control_contract: abstr.version_control,
+                ans_host_contract: abstr.ans_host,
+                module_factory_address: new_module_factory,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -234,23 +235,24 @@ mod tests {
         #[test]
         fn update_all() -> AccountFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_ans_host = "test_ans_host_2";
-            let new_version_control = "test_version_control_2";
-            let new_module_factory = "test_module_factory_2";
+            let new_ans_host = deps.api.addr_make("test_ans_host_2");
+            let new_version_control = deps.api.addr_make("test_version_control_2");
+            let new_module_factory = deps.api.addr_make("test_module_factory_2");
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: Some(new_module_factory.to_string()),
             };
 
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             let expected_config = Config {
-                version_control_contract: Addr::unchecked(new_version_control),
-                ans_host_contract: Addr::unchecked(new_ans_host),
-                module_factory_address: Addr::unchecked(new_module_factory),
+                version_control_contract: new_version_control,
+                ans_host_contract: new_ans_host,
+                module_factory_address: new_module_factory,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -267,14 +269,16 @@ mod tests {
         #[test]
         fn only_owner() -> AccountFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let new_owner = deps.api.addr_make("new_owner");
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateOwnership(Action::TransferOwnership {
-                new_owner: "new_owner".to_string(),
+                new_owner: new_owner.to_string(),
                 expiry: None,
             });
 
-            test_only_owner(deps.as_mut(), msg)?;
+            let not_owner = deps.api.addr_make("not_owner");
+            test_only_owner(deps.as_mut(), msg, &not_owner)?;
 
             Ok(())
         }
@@ -282,22 +286,23 @@ mod tests {
         #[test]
         fn update_owner() -> AccountFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let new_admin = deps.api.addr_make("new_admin");
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_admin = "new_admin";
             // First update to transfer
             let transfer_msg = ExecuteMsg::UpdateOwnership(Action::TransferOwnership {
                 new_owner: new_admin.to_string(),
                 expiry: None,
             });
 
-            let transfer_res = execute_as_owner(deps.as_mut(), transfer_msg);
+            let transfer_res = execute_as(deps.as_mut(), &abstr.owner, transfer_msg);
 
             assert_that!(transfer_res).is_ok();
 
             // Then update and accept as the new owner
             let accept_msg = ExecuteMsg::UpdateOwnership(Action::AcceptOwnership);
-            let _accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
+            let _accept_res = execute_as(deps.as_mut(), &new_admin, accept_msg).unwrap();
 
             assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
                 .is_some()
@@ -310,14 +315,17 @@ mod tests {
     #[test]
     fn query_config() -> AccountFactoryTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut())?;
+        mock_init(&mut deps)?;
+        let abstr = AbstractMockAddrs::new(deps.api);
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap();
         let config: ConfigResponse = from_json(res).unwrap();
 
-        assert_that!(config.version_control_contract.as_str()).is_equal_to(TEST_VERSION_CONTROL);
-        assert_that!(config.ans_host_contract.as_str()).is_equal_to(TEST_ANS_HOST);
-        assert_that!(config.module_factory_address.as_str()).is_equal_to(TEST_MODULE_FACTORY);
+        assert_that!(config.version_control_contract.as_str())
+            .is_equal_to(abstr.version_control.as_str());
+        assert_that!(config.ans_host_contract.as_str()).is_equal_to(abstr.ans_host.as_str());
+        assert_that!(config.module_factory_address.as_str())
+            .is_equal_to(abstr.module_factory.as_str());
 
         Ok(())
     }
@@ -325,14 +333,15 @@ mod tests {
     #[test]
     fn query_ownership() -> AccountFactoryTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut())?;
+        mock_init(&mut deps)?;
+        let abstr = AbstractMockAddrs::new(deps.api);
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Ownership {}).unwrap();
         let ownership: cw_ownable::Ownership<Addr> = from_json(res).unwrap();
 
         assert_that!(ownership.owner)
             .is_some()
-            .is_equal_to(Addr::unchecked(OWNER));
+            .is_equal_to(abstr.owner);
 
         Ok(())
     }
@@ -346,7 +355,7 @@ mod tests {
         #[test]
         fn disallow_same_version() -> AccountFactoryResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -368,7 +377,7 @@ mod tests {
         #[test]
         fn disallow_downgrade() -> AccountFactoryResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let big_version = "999.999.999";
             cw2::set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, big_version)?;
@@ -393,7 +402,7 @@ mod tests {
         #[test]
         fn disallow_name_change() -> AccountFactoryResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
@@ -416,7 +425,7 @@ mod tests {
         #[test]
         fn works() -> AccountFactoryResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 

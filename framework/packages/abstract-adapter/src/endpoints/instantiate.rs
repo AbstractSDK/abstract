@@ -68,10 +68,7 @@ mod test {
         objects::module_version::{ModuleData, MODULE},
     };
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Addr, StdError,
-    };
+    use cosmwasm_std::testing::*;
     use cw2::{ContractVersion, CONTRACT};
     use speculoos::prelude::*;
 
@@ -81,13 +78,15 @@ mod test {
     fn successful() -> AdapterMockResult {
         let api = MOCK_ADAPTER.with_dependencies(&[MOCK_DEP]);
         let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        let info = message_info(&abstr.account.manager, &[]);
+        deps.querier = abstract_testing::mock_querier(deps.api);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address: TEST_VERSION_CONTROL.into(),
+                ans_host_address: abstr.ans_host.to_string(),
+                version_control_address: abstr.version_control.to_string(),
             },
             module: MockInitMsg {},
         };
@@ -117,54 +116,12 @@ mod test {
         let state = api.base_state.load(&deps.storage)?;
         assert_that!(state).is_equal_to(AdapterState {
             version_control: VersionControlContract {
-                address: Addr::unchecked(TEST_VERSION_CONTROL),
+                address: abstr.version_control,
             },
             ans_host: AnsHost {
-                address: Addr::unchecked(TEST_ANS_HOST),
+                address: abstr.ans_host,
             },
         });
-        Ok(())
-    }
-
-    #[test]
-    fn invalid_ans_host() -> AdapterMockResult {
-        let api = MOCK_ADAPTER;
-        let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &[]);
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address: "5".into(),
-            },
-            module: MockInitMsg {},
-        };
-        let res = api.instantiate(deps.as_mut(), env, info, init_msg);
-        assert_that!(&res).is_err_containing(
-            &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn invalid_version_control() -> AdapterMockResult {
-        let api = MOCK_ADAPTER;
-        let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &[]);
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address: "4".into(),
-            },
-            module: MockInitMsg {},
-        };
-        let res = api.instantiate(deps.as_mut(), env, info, init_msg);
-        assert_that!(&res).is_err_containing(
-            &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
-        );
         Ok(())
     }
 }

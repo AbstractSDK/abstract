@@ -9,7 +9,7 @@ use crate::std::objects::AccountId;
 // see std::proxy::state::ADMIN
 use crate::{AbstractSdkError, AbstractSdkResult};
 
-const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
+const MANAGER: Item<Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
 /// Retrieve identifying information about an Account.
 /// This includes the manager, proxy, core and account_id.
@@ -42,15 +42,19 @@ pub trait AccountIdentification: Sized {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
+    use cosmwasm_std::testing::MockApi;
     use speculoos::prelude::*;
 
     use super::*;
 
-    struct MockBinding;
+    struct MockBinding {
+        mock_api: MockApi,
+    }
 
     impl AccountIdentification for MockBinding {
         fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-            Ok(Addr::unchecked(TEST_PROXY))
+            let account_base = test_account_base(self.mock_api);
+            Ok(account_base.proxy)
         }
     }
 
@@ -61,42 +65,48 @@ mod test {
 
         #[test]
         fn test_proxy_address() {
-            let binding = MockBinding;
             let deps = mock_dependencies();
+            let binding = MockBinding { mock_api: deps.api };
+
+            let account_base = test_account_base(deps.api);
 
             let res = binding.proxy_address(deps.as_ref());
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to(Addr::unchecked(TEST_PROXY));
+            assert_that!(res).is_ok().is_equal_to(account_base.proxy);
         }
 
         #[test]
         fn test_manager_address() {
-            let binding = MockBinding;
             let mut deps = mock_dependencies();
+            let binding = MockBinding { mock_api: deps.api };
+            let account_base = test_account_base(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
+                .with_contract_item(
+                    &account_base.proxy,
+                    MANAGER,
+                    &Some(account_base.manager.clone()),
+                )
                 .build();
 
             assert_that!(binding.manager_address(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(Addr::unchecked(TEST_MANAGER));
+                .is_equal_to(account_base.manager);
         }
 
         #[test]
         fn test_account() {
             let mut deps = mock_dependencies();
+            let expected_account_base = test_account_base(deps.api);
+
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
+                .with_contract_item(
+                    &expected_account_base.proxy,
+                    MANAGER,
+                    &Some(expected_account_base.manager.clone()),
+                )
                 .build();
 
-            let expected_account_base = AccountBase {
-                manager: Addr::unchecked(TEST_MANAGER),
-                proxy: Addr::unchecked(TEST_PROXY),
-            };
-
-            let binding = MockBinding;
+            let binding = MockBinding { mock_api: deps.api };
             assert_that!(binding.account_base(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(expected_account_base);
@@ -105,11 +115,13 @@ mod test {
         #[test]
         fn account_id() {
             let mut deps = mock_dependencies();
+            let account_base = test_account_base(deps.api);
+
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_item(&account_base.proxy, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding;
+            let binding = MockBinding { mock_api: deps.api };
             assert_that!(binding.account_id(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(TEST_ACCOUNT_ID);

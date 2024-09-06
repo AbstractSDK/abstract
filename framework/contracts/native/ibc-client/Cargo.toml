@@ -16,7 +16,7 @@ default = ["export"]
 export = []
 
 [dependencies]
-cosmwasm-std = { workspace = true, features = ["ibc3", "staking"] }
+cosmwasm-std = { workspace = true, features = ["stargate", "staking"] }
 cw-storage-plus = { workspace = true }
 cw-ownable = { workspace = true }
 cw-utils = { workspace = true }
@@ -29,9 +29,11 @@ abstract-macros = { workspace = true }
 semver = { workspace = true }
 polytone-note = { workspace = true, features = ["library"] }
 polytone = { workspace = true }
-cw-paginate = "0.2.1"
-ibc-proto = { version = "0.46.0", default-features = false }
-prost = { version = "0.12.3", default-features = false }
+cw-paginate = "2.0.0"
+ibc-proto = { version = "0.47.0", default-features = false }
+prost = { version = "0.13.1", default-features = false }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]

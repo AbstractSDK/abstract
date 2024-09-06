@@ -40,7 +40,7 @@ impl Deposit {
 }
 
 pub struct UserDeposit<'a> {
-    map: Map<'a, &'a [u8], Deposit>,
+    map: Map<&'a [u8], Deposit>,
 }
 
 impl UserDeposit<'_> {
@@ -84,7 +84,7 @@ impl UserDeposit<'_> {
 }
 
 pub struct DepositManager {
-    total_deposits: Item<'static, Deposit>,
+    total_deposits: Item<Deposit>,
     user_deposits: UserDeposit<'static>, // TODO: Check if lifetime can be improved
 }
 

@@ -161,11 +161,12 @@ pub fn send_action(
 
     let ica_controller_msg = cw_ica_controller::types::msg::ExecuteMsg::SendCosmosMsgs {
         messages: vec![msg],
+        queries: vec![],
         packet_memo: Some("aloha".to_string()),
         timeout_seconds: None,
     };
 
-    let msg = cw_ica_contract.call(ica_controller_msg)?;
+    let msg = cw_ica_contract.execute(ica_controller_msg)?;
 
     Ok(standalone.response("send_action").add_message(msg))
 }

@@ -8,8 +8,8 @@ use abstract_std::{
     version_control::state::ACCOUNT_ADDRESSES,
 };
 use cosmwasm_std::{
-    Addr, Binary, ContractInfoResponse, ContractResult, Empty, QuerierWrapper, SystemResult,
-    WasmQuery,
+    testing::MockApi, Addr, Binary, ContractInfoResponse, ContractResult, Empty, QuerierWrapper,
+    SystemResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};
@@ -18,9 +18,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::prelude::*;
 
 type BinaryQueryResult = Result<Binary, String>;
-type ContractAddr = String;
-type AdminAddr = String;
-type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
+type FallbackHandler = dyn for<'a> Fn(&'a Addr, &'a Binary) -> BinaryQueryResult;
 type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
 type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
@@ -30,10 +28,12 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 /// ```
 /// use cosmwasm_std::{from_json, to_json_binary};
 /// use abstract_testing::MockQuerierBuilder;
-/// use cosmwasm_std::testing::MockQuerier;
+/// use cosmwasm_std::testing::{MockQuerier, MockApi};
 /// use abstract_sdk::mock_module::MockModuleExecuteMsg;
 ///
-/// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
+/// let api = MockApi::default();
+/// let contract_address = api.addr_make("contract_address");
+/// let querier = MockQuerierBuilder::default().with_smart_handler(&contract_address, |msg| {
 ///    // handle the message
 ///     let res = match from_json::<MockModuleExecuteMsg>(msg).unwrap() {
 ///         // handle the message
@@ -47,23 +47,23 @@ pub struct MockQuerierBuilder {
     base: MockQuerier,
     fallback_raw_handler: Box<FallbackHandler>,
     fallback_smart_handler: Box<FallbackHandler>,
-    smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
-    raw_handlers: HashMap<ContractAddr, Box<RawHandler>>,
-    raw_mappings: HashMap<ContractAddr, HashMap<Binary, Binary>>,
-    contract_admin: HashMap<ContractAddr, AdminAddr>,
+    smart_handlers: HashMap<Addr, Box<SmartHandler>>,
+    raw_handlers: HashMap<Addr, Box<RawHandler>>,
+    raw_mappings: HashMap<Addr, HashMap<Binary, Binary>>,
+    contract_admin: HashMap<Addr, Addr>,
 }
 
 impl Default for MockQuerierBuilder {
     /// Create a default
     fn default() -> Self {
-        let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
-            let str_key = std::str::from_utf8(&key.0).unwrap();
+        let raw_fallback: fn(&Addr, &Binary) -> BinaryQueryResult = |addr, key| {
+            let str_key = std::str::from_utf8(key.as_slice()).unwrap();
             Err(format!(
                 "No raw query handler for {addr:?} with key {str_key:?}"
             ))
         };
-        let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
-            let str_key = std::str::from_utf8(&key.0).unwrap();
+        let smart_fallback: fn(&Addr, &Binary) -> BinaryQueryResult = |addr, key| {
+            let str_key = std::str::from_utf8(key.as_slice()).unwrap();
             Err(format!(
                 "unexpected smart-query on contract: {addr:?} {str_key:?}"
             ))
@@ -81,7 +81,7 @@ impl Default for MockQuerierBuilder {
     }
 }
 
-pub fn map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> String
+pub fn map_key<'a, K, V>(map: &Map<K, V>, key: K) -> String
 where
     V: Serialize + DeserializeOwned,
     K: PrimaryKey<'a>,
@@ -89,7 +89,7 @@ where
     String::from_utf8(raw_map_key(map, key)).unwrap()
 }
 
-pub fn raw_map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> Vec<u8>
+pub fn raw_map_key<'a, K, V>(map: &Map<K, V>, key: K) -> Vec<u8>
 where
     V: Serialize + DeserializeOwned,
     K: PrimaryKey<'a>,
@@ -100,7 +100,7 @@ where
 impl MockQuerierBuilder {
     pub fn with_fallback_smart_handler<SH>(mut self, handler: SH) -> Self
     where
-        SH: 'static + Fn(&str, &Binary) -> BinaryQueryResult,
+        SH: 'static + Fn(&Addr, &Binary) -> BinaryQueryResult,
     {
         self.fallback_smart_handler = Box::new(handler);
         self
@@ -108,7 +108,7 @@ impl MockQuerierBuilder {
 
     pub fn with_fallback_raw_handler<RH>(mut self, handler: RH) -> Self
     where
-        RH: 'static + Fn(&str, &Binary) -> BinaryQueryResult,
+        RH: 'static + Fn(&Addr, &Binary) -> BinaryQueryResult,
     {
         self.fallback_raw_handler = Box::new(handler);
         self
@@ -120,10 +120,12 @@ impl MockQuerierBuilder {
     /// ```rust
     /// use cosmwasm_std::{from_json, to_json_binary};
     /// use abstract_testing::MockQuerierBuilder;
-    /// use cosmwasm_std::testing::MockQuerier;
+    /// use cosmwasm_std::testing::{MockQuerier, MockApi};
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
     ///
-    /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
+    /// let api = MockApi::default();
+    /// let contract_address = deps.api.addr_make("contract_address");
+    /// let querier = MockQuerierBuilder::default().with_smart_handler(&contract_address, |msg| {
     ///    // handle the message
     ///     let res = match from_json::<MockModuleQueryMsg>(msg).unwrap() {
     ///         // handle the message
@@ -133,12 +135,12 @@ impl MockQuerierBuilder {
     /// }).build();
     ///
     /// ```
-    pub fn with_smart_handler<SH>(mut self, contract: &str, handler: SH) -> Self
+    pub fn with_smart_handler<SH>(mut self, contract: &Addr, handler: SH) -> Self
     where
         SH: 'static + Fn(&Binary) -> BinaryQueryResult,
     {
         self.smart_handlers
-            .insert(contract.to_string(), Box::new(handler));
+            .insert(contract.clone(), Box::new(handler));
         self
     }
 
@@ -149,10 +151,12 @@ impl MockQuerierBuilder {
     /// ```rust
     /// use cosmwasm_std::{from_json, to_json_binary};
     /// use abstract_testing::MockQuerierBuilder;
-    /// use cosmwasm_std::testing::MockQuerier;
+    /// use cosmwasm_std::testing::{MockQuerier, MockApi};
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
     ///
-    /// let querier = MockQuerierBuilder::default().with_raw_handler("contract1", |key: &str| {
+    /// let api = MockApi::default();
+    /// let contract_address = api.addr_make("contract1");
+    /// let querier = MockQuerierBuilder::default().with_raw_handler(&contract_address, |key: &str| {
     ///     // Example: Let's say, in the raw storage, the key "the key" maps to the value "the value"
     ///     match key {
     ///         "the key" => to_json_binary("the value").map_err(|e| e.to_string()),
@@ -160,37 +164,41 @@ impl MockQuerierBuilder {
     ///     }
     /// }).build();
     /// ```
-    pub fn with_raw_handler<RH>(mut self, contract: &str, handler: RH) -> Self
+    pub fn with_raw_handler<RH>(mut self, contract: &Addr, handler: RH) -> Self
     where
         RH: 'static + Fn(&str) -> BinaryQueryResult,
     {
         self.raw_handlers
-            .insert(contract.to_string(), Box::new(handler));
+            .insert(contract.clone(), Box::new(handler));
         self
     }
 
-    fn insert_contract_key_value(&mut self, contract: &str, key: Vec<u8>, value: Binary) {
-        let raw_map = self.raw_mappings.entry(contract.to_string()).or_default();
-        raw_map.insert(Binary(key), value);
+    fn insert_contract_key_value(&mut self, contract: &Addr, key: Vec<u8>, value: Binary) {
+        let raw_map = self.raw_mappings.entry(contract.clone()).or_default();
+        raw_map.insert(Binary::new(key), value);
     }
 
     /// Add a map entry to the querier for the given contract.
     /// ```rust
     /// use cw_storage_plus::Map;
+    /// use cosmwasm_std::testing::MockApi;
     /// use abstract_testing::MockQuerierBuilder;
+    ///
+    /// let api = MockApi::default();
+    /// let contract_address = api.addr_make("contract1");
     ///
     /// const MAP: Map<String, String> = Map::new("map");
     ///
     /// MockQuerierBuilder::default()
     ///     .with_contract_map_entry(
-    ///     "contract_address",
+    ///     &contract_address,
     ///     MAP,
     ///     ("key".to_string(), "value".to_string())
     /// );
     pub fn with_contract_map_entry<'a, K, V>(
         self,
-        contract: &str,
-        cw_map: Map<'a, K, V>,
+        contract: &Addr,
+        cw_map: Map<K, V>,
         entry: (K, V),
     ) -> Self
     where
@@ -202,8 +210,8 @@ impl MockQuerierBuilder {
 
     pub fn with_contract_map_entries<'a, K, V>(
         mut self,
-        contract: &str,
-        cw_map: Map<'a, K, V>,
+        contract: &Addr,
+        cw_map: Map<K, V>,
         entries: Vec<(K, V)>,
     ) -> Self
     where
@@ -225,26 +233,26 @@ impl MockQuerierBuilder {
     /// This is useful when you want the item to exist, but not have a value.
     pub fn with_contract_map_key<'a, K, V>(
         mut self,
-        contract: &str,
-        cw_map: Map<'a, K, V>,
+        contract: &Addr,
+        cw_map: Map<K, V>,
         key: K,
     ) -> Self
     where
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
     {
-        self.insert_contract_key_value(contract, raw_map_key(&cw_map, key), Binary(vec![]));
+        self.insert_contract_key_value(contract, raw_map_key(&cw_map, key), Binary::default());
 
         self
     }
 
     /// Add an empty item key to the querier for the given contract.
     /// This is useful when you want the item to exist, but not have a value.
-    pub fn with_empty_contract_item<T>(mut self, contract: &str, cw_item: Item<T>) -> Self
+    pub fn with_empty_contract_item<T>(mut self, contract: &Addr, cw_item: Item<T>) -> Self
     where
         T: Serialize + DeserializeOwned,
     {
-        self.insert_contract_key_value(contract, cw_item.as_slice().to_vec(), Binary(vec![]));
+        self.insert_contract_key_value(contract, cw_item.as_slice().to_vec(), Binary::default());
 
         self
     }
@@ -252,18 +260,22 @@ impl MockQuerierBuilder {
     /// Include a contract item in the mock querier.
     /// ```rust
     /// use cw_storage_plus::Item;
+    /// use cosmwasm_std::testing::MockApi;
     /// use abstract_testing::MockQuerierBuilder;
+    ///
+    /// let api = MockApi::default();
+    /// let contract_address = api.addr_make("contract1");
     ///
     /// const ITEM: Item<String> = Item::new("item");
     ///
     /// MockQuerierBuilder::default()
     ///     .with_contract_item(
-    ///     "contract_address",
+    ///     &contract_address,
     ///     ITEM,
     ///     &"value".to_string(),
     /// );
     /// ```
-    pub fn with_contract_item<T>(mut self, contract: &str, cw_item: Item<T>, value: &T) -> Self
+    pub fn with_contract_item<T>(mut self, contract: &Addr, cw_item: Item<T>, value: &T) -> Self
     where
         T: Serialize + DeserializeOwned,
     {
@@ -279,11 +291,15 @@ impl MockQuerierBuilder {
     /// Add a specific version of the contract to the mock querier.
     /// ```rust
     /// use abstract_testing::MockQuerierBuilder;
+    /// use cosmwasm_std::testing::MockApi;
+    ///
+    /// let api = MockApi::default();
+    /// let contract_address = api.addr_make("contract1");
     ///
     /// MockQuerierBuilder::default()
-    ///    .with_contract_version("contract_address", "v1.0.0");
+    ///    .with_contract_version(&contract_address, "v1.0.0");
     /// ```
-    pub fn with_contract_version(self, contract: &str, version: impl ToString) -> Self {
+    pub fn with_contract_version(self, contract: &Addr, version: impl ToString) -> Self {
         self.with_contract_item(
             contract,
             CONTRACT,
@@ -294,9 +310,8 @@ impl MockQuerierBuilder {
         )
     }
     /// set the SDK-level contract admin for a contract.
-    pub fn with_contract_admin(mut self, contract: impl ToString, admin: impl ToString) -> Self {
-        self.contract_admin
-            .insert(contract.to_string(), admin.to_string());
+    pub fn with_contract_admin(mut self, contract: &Addr, admin: &Addr) -> Self {
+        self.contract_admin.insert(contract.clone(), admin.clone());
         self
     }
 
@@ -305,35 +320,42 @@ impl MockQuerierBuilder {
         self.base.update_wasm(move |wasm| {
             let res = match wasm {
                 WasmQuery::Raw { contract_addr, key } => {
-                    let str_key = std::str::from_utf8(&key.0).unwrap();
+                    let str_key = std::str::from_utf8(key.as_slice()).unwrap();
+                    let addr = Addr::unchecked(contract_addr);
 
                     // First check for raw mappings
-                    if let Some(raw_map) = self.raw_mappings.get(contract_addr.as_str()) {
+                    if let Some(raw_map) = self.raw_mappings.get(&addr) {
                         if let Some(value) = raw_map.get(key) {
                             return SystemResult::Ok(ContractResult::Ok(value.clone()));
                         }
                     }
 
                     // Then check the handlers
-                    let raw_handler = self.raw_handlers.get(contract_addr.as_str());
+                    let raw_handler = self.raw_handlers.get(&addr);
 
                     match raw_handler {
                         Some(handler) => (*handler)(str_key),
-                        None => (*self.fallback_raw_handler)(contract_addr.as_str(), key),
+                        None => (*self.fallback_raw_handler)(&addr, key),
                     }
                 }
                 WasmQuery::Smart { contract_addr, msg } => {
-                    let contract_handler = self.smart_handlers.get(contract_addr.as_str());
+                    let addr = Addr::unchecked(contract_addr);
+                    let contract_handler = self.smart_handlers.get(&addr);
 
-                    let res = match contract_handler {
+                    match contract_handler {
                         Some(handler) => (*handler)(msg),
-                        None => (*self.fallback_smart_handler)(contract_addr.as_str(), msg),
-                    };
-                    res
+                        None => (*self.fallback_smart_handler)(&addr, msg),
+                    }
                 }
                 WasmQuery::ContractInfo { contract_addr } => {
-                    let mut info = ContractInfoResponse::default();
-                    info.admin = self.contract_admin.get(contract_addr).cloned();
+                    let addr = Addr::unchecked(contract_addr);
+                    let info = ContractInfoResponse::new(
+                        1,
+                        Addr::unchecked(""),
+                        self.contract_admin.get(&addr).map(Addr::unchecked),
+                        false,
+                        None,
+                    );
                     Ok(to_json_binary(&info).unwrap())
                 }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
@@ -350,14 +372,14 @@ impl MockQuerierBuilder {
 
 pub trait MockQuerierOwnership {
     /// Add the [`cw_gov_ownable::Ownership`] to the querier.
-    fn with_owner(self, contract: &str, owner: Option<impl ToString>) -> Self;
+    fn with_owner(self, contract: &Addr, owner: Option<&Addr>) -> Self;
 }
 
 impl MockQuerierOwnership for MockQuerierBuilder {
-    fn with_owner(mut self, contract: &str, owner: Option<impl ToString>) -> Self {
+    fn with_owner(mut self, contract: &Addr, owner: Option<&Addr>) -> Self {
         let owner = if let Some(owner) = owner {
             GovernanceDetails::Monarchy {
-                monarch: Addr::unchecked(owner.to_string()),
+                monarch: owner.clone(),
             }
         } else {
             GovernanceDetails::Renounced {}
@@ -383,44 +405,47 @@ impl MockQuerierOwnership for MockQuerierBuilder {
 ///   - "account_id" -> TEST_ACCOUNT_ID
 /// - TEST_VERSION_CONTROL
 ///   - "account" -> { TEST_PROXY, TEST_MANAGER }
-pub fn mock_querier() -> MockQuerier {
-    let raw_handler = |contract: &str, key: &Binary| {
-        let _str_key = std::str::from_utf8(&key.0).unwrap();
-        match contract {
-            TEST_PROXY => Err("unexpected key".to_string()),
-            TEST_MANAGER => {
-                // Return the default value
-                Ok(Binary(vec![]))
-            }
-            TEST_VERSION_CONTROL => {
-                // Default value
-                Ok(Binary(vec![]))
-            }
-            _ => Err("unexpected contract".to_string()),
+pub fn mock_querier(mock_api: MockApi) -> MockQuerier {
+    let raw_handler = move |contract: &Addr, key: &Binary| {
+        // TODO: should we do something with the key?
+        let _str_key = std::str::from_utf8(key.as_slice()).unwrap();
+        let abstr = AbstractMockAddrs::new(mock_api);
+
+        if contract == abstr.account.proxy {
+            Err("unexpected key".to_string())
+        } else if contract == abstr.account.manager {
+            // Return the default value
+            Ok(Binary::default())
+        } else if contract == abstr.version_control {
+            // Default value
+            Ok(Binary::default())
+        } else {
+            Err("unexpected contract".to_string())
         }
     };
+    let abstr = AbstractMockAddrs::new(mock_api);
 
     MockQuerierBuilder::default()
         .with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
-            TEST_VERSION_CONTROL,
+            &abstr.version_control,
             ACCOUNT_ADDRESSES,
-            (&TEST_ACCOUNT_ID, test_account_base()),
+            (&TEST_ACCOUNT_ID, abstr.account.clone()),
         )
         .with_contract_item(
-            TEST_PROXY,
+            &abstr.account.proxy,
             Item::new("admin"),
-            &Some(Addr::unchecked(TEST_MANAGER)),
+            &Some(abstr.account.manager.clone()),
         )
-        .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-        .with_smart_handler(TEST_MODULE_ADDRESS, |msg| {
+        .with_contract_item(&abstr.account.manager, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+        .with_smart_handler(&abstr.module_address, |msg| {
             let Empty {} = from_json(msg).unwrap();
             Ok(to_json_binary(TEST_MODULE_RESPONSE).unwrap())
         })
         .with_contract_map_entry(
-            TEST_MANAGER,
+            &abstr.account.manager,
             ACCOUNT_MODULES,
-            (TEST_MODULE_ID, Addr::unchecked(TEST_MODULE_ADDRESS)),
+            (TEST_MODULE_ID, abstr.module_address),
         )
         .build()
 }
@@ -435,31 +460,27 @@ mod tests {
         manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
-    use cosmwasm_std::testing::mock_dependencies;
+    use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
     use super::*;
 
     mod account {
-        use abstract_std::version_control::AccountBase;
-
         use super::*;
 
         #[test]
         fn should_return_account_address() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mock_querier(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
-                Addr::unchecked(TEST_VERSION_CONTROL),
+                abstr.version_control,
                 &TEST_ACCOUNT_ID,
             );
 
-            let expected = AccountBase {
-                proxy: Addr::unchecked(TEST_PROXY),
-                manager: Addr::unchecked(TEST_MANAGER),
-            };
+            let expected = abstr.account;
 
             assert_that!(actual).is_ok().is_some().is_equal_to(expected)
         }
@@ -473,9 +494,11 @@ mod tests {
 
         #[test]
         fn smart_query() {
+            let api = MockApi::default();
             // ## ANCHOR: smart_query
+            let contract_address = api.addr_make("contract_address");
             let querier = MockQuerierBuilder::default()
-                .with_smart_handler("contract_address", |msg| {
+                .with_smart_handler(&contract_address, |msg| {
                     // handle the message
                     let MockModuleQueryMsg {} = from_json::<MockModuleQueryMsg>(msg).unwrap();
                     to_json_binary(&MockModuleQueryResponse {}).map_err(|e| e.to_string())
@@ -485,7 +508,7 @@ mod tests {
 
             let resp_bin = querier
                 .handle_query(&QueryRequest::Wasm(WasmQuery::Smart {
-                    contract_addr: "contract_address".to_string(),
+                    contract_addr: contract_address.to_string(),
                     msg: to_json_binary(&MockModuleQueryMsg {}).unwrap(),
                 }))
                 .unwrap()
@@ -497,9 +520,11 @@ mod tests {
 
         #[test]
         fn raw_query() {
+            let api = MockApi::default();
             // ## ANCHOR: raw_query
+            let contract_address = api.addr_make("contract_address");
             let querier = MockQuerierBuilder::default()
-                .with_raw_handler("contract_address", |key: &str| {
+                .with_raw_handler(&contract_address, |key: &str| {
                     // Example: Let's say, in the raw storage, the key "the_key" maps to the value "the_value"
                     match key {
                         "the_key" => to_json_binary("the_value").map_err(|e| e.to_string()),
@@ -511,7 +536,7 @@ mod tests {
 
             let resp_bin = querier
                 .handle_query(&QueryRequest::Wasm(WasmQuery::Raw {
-                    contract_addr: "contract_address".to_string(),
+                    contract_addr: contract_address.to_string(),
                     key: Binary::from("the_key".joined_key()),
                 }))
                 .unwrap()
@@ -528,9 +553,10 @@ mod tests {
         #[test]
         fn should_return_test_acct_id_with_test_manager() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
-            let actual =
-                ACCOUNT_ID.query(&wrap_querier(&deps.querier), Addr::unchecked(TEST_MANAGER));
+            deps.querier = mock_querier(deps.api);
+            let test_base = test_account_base(deps.api);
+
+            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), test_base.manager);
 
             assert_that!(actual).is_ok().is_equal_to(TEST_ACCOUNT_ID);
         }
@@ -542,18 +568,19 @@ mod tests {
         #[test]
         fn should_return_test_module_address_for_test_module() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mock_querier(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let actual = ACCOUNT_MODULES.query(
                 &wrap_querier(&deps.querier),
-                Addr::unchecked(TEST_MANAGER),
+                abstr.account.manager,
                 TEST_MODULE_ID,
             );
 
             assert_that!(actual)
                 .is_ok()
                 .is_some()
-                .is_equal_to(Addr::unchecked(TEST_MODULE_ADDRESS));
+                .is_equal_to(abstr.module_address);
         }
 
         // #[test]

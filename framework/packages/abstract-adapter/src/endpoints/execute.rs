@@ -243,10 +243,7 @@ fn get_addr_from_module_id_or_addr(
 mod tests {
     use abstract_std::adapter;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Storage,
-    };
+    use cosmwasm_std::{testing::*, Addr, Storage};
     use speculoos::prelude::*;
 
     use super::*;
@@ -254,15 +251,15 @@ mod tests {
 
     fn execute_as(
         deps: DepsMut,
-        sender: &str,
+        sender: &Addr,
         msg: ExecuteMsg<MockExecMsg>,
     ) -> Result<Response, MockError> {
-        MOCK_ADAPTER.execute(deps, mock_env(), mock_info(sender, &[]), msg)
+        MOCK_ADAPTER.execute(deps, mock_env(), message_info(&sender, &[]), msg)
     }
 
     fn base_execute_as(
         deps: DepsMut,
-        sender: &str,
+        sender: &Addr,
         msg: BaseExecuteMsg,
     ) -> Result<Response, MockError> {
         execute_as(deps, sender, adapter::ExecuteMsg::Base(msg))
@@ -270,75 +267,80 @@ mod tests {
 
     mod update_authorized_addresses {
         use super::*;
-        use crate::mock::TEST_AUTHORIZED_ADDRESS;
+        use crate::mock::TEST_AUTHORIZED_ADDR;
 
-        fn load_test_proxy_authorized_addresses(storage: &dyn Storage) -> Vec<Addr> {
+        fn load_test_proxy_authorized_addresses(
+            storage: &dyn Storage,
+            proxy_addr: &Addr,
+        ) -> Vec<Addr> {
             MOCK_ADAPTER
                 .authorized_addresses
-                .load(storage, Addr::unchecked(TEST_PROXY))
+                .load(storage, proxy_addr.clone())
                 .unwrap()
         }
 
         #[test]
         fn authorize_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mock_querier(deps.api);
+            let base = test_account_base(deps.api);
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
-            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
                 proxy_address: None,
             };
 
-            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+            base_execute_as(deps.as_mut(), &base.manager, msg)?;
 
             let api = MOCK_ADAPTER;
             assert_that!(api.authorized_addresses.is_empty(&deps.storage)).is_false();
 
-            let test_proxy_authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
+            let test_proxy_authorized_addrs =
+                load_test_proxy_authorized_addresses(&deps.storage, &base.proxy);
 
             assert_that!(test_proxy_authorized_addrs.len()).is_equal_to(1);
             assert_that!(test_proxy_authorized_addrs)
-                .contains(Addr::unchecked(TEST_AUTHORIZED_ADDRESS));
+                .contains(deps.api.addr_make(TEST_AUTHORIZED_ADDR));
             Ok(())
         }
 
         #[test]
         fn revoke_address_authorization() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mock_querier(deps.api);
+            let base = test_account_base(deps.api);
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
             };
 
-            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+            base_execute_as(deps.as_mut(), &base.manager, msg)?;
 
-            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
+            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage, &base.proxy);
             assert_that!(authorized_addrs.len()).is_equal_to(1);
 
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![],
-                    to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_remove: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                 },
             };
 
-            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
-            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
+            base_execute_as(deps.as_mut(), &base.manager, msg)?;
+            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage, &base.proxy);
             assert_that!(authorized_addrs.len()).is_equal_to(0);
             Ok(())
         }
@@ -346,32 +348,32 @@ mod tests {
         #[test]
         fn add_existing_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mock_querier(deps.api);
+            let base = test_account_base(deps.api);
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
             };
 
-            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+            base_execute_as(deps.as_mut(), &base.manager, msg)?;
 
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
             };
 
-            let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
+            let res = base_execute_as(deps.as_mut(), &base.manager, msg);
 
-            let _test_authorized_address_string = TEST_AUTHORIZED_ADDRESS.to_string();
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -387,9 +389,10 @@ mod tests {
         #[test]
         fn add_module_id_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mock_querier(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
@@ -400,12 +403,13 @@ mod tests {
                 },
             };
 
-            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+            base_execute_as(deps.as_mut(), &abstr.account.manager, msg)?;
 
-            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
+            let authorized_addrs =
+                load_test_proxy_authorized_addresses(&deps.storage, &abstr.account.proxy);
             assert_that!(authorized_addrs.len()).is_equal_to(1);
             assert_that!(authorized_addrs[0].to_string())
-                .is_equal_to(TEST_MODULE_ADDRESS.to_string());
+                .is_equal_to(abstr.module_address.to_string());
 
             Ok(())
         }
@@ -413,20 +417,21 @@ mod tests {
         #[test]
         fn remove_authorized_address_dne() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mock_querier(deps.api);
+            let base = test_account_base(deps.api);
 
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![],
-                    to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_remove: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).into()],
                 },
             };
 
-            let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
+            let res = base_execute_as(deps.as_mut(), &base.manager, msg);
 
             assert_that!(res).is_err().matches(|e| {
                 matches!(
@@ -444,8 +449,12 @@ mod tests {
     mod execute_app {
         use super::*;
 
-        use crate::mock::TEST_AUTHORIZED_ADDRESS;
-        use abstract_std::objects::{account::AccountTrace, AccountId};
+        use crate::mock::TEST_AUTHORIZED_ADDR;
+        use abstract_std::{
+            objects::{account::AccountTrace, AccountId},
+            version_control::AccountBase,
+        };
+        use cosmwasm_std::OwnedDeps;
 
         /// This sets up the test with the following:
         /// TEST_PROXY has a single authorized address, test_authorized_address
@@ -453,40 +462,48 @@ mod tests {
         ///
         /// Note that the querier needs to mock the Account base, as the proxy will
         /// query the Account base to get the list of authorized addresses.
-        fn setup_with_authorized_addresses(mut deps: DepsMut, authorized: Vec<&str>) {
-            mock_init(deps.branch()).unwrap();
+        fn setup_with_authorized_addresses(
+            deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+            authorized: Vec<&str>,
+        ) {
+            mock_init(deps).unwrap();
 
-            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: authorized.into_iter().map(Into::into).collect(),
+                    to_add: authorized
+                        .into_iter()
+                        .map(|addr| deps.api.addr_make(addr).to_string())
+                        .collect(),
                     to_remove: vec![],
                 },
             };
 
-            base_execute_as(deps, TEST_MANAGER, msg).unwrap();
+            let base = test_account_base(deps.api);
+            base_execute_as(deps.as_mut(), &base.manager, msg).unwrap();
         }
 
         #[test]
         fn unauthorized_addresses_are_unauthorized() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
+                .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
+                .build();
 
-            setup_with_authorized_addresses(deps.as_mut(), vec![]);
+            setup_with_authorized_addresses(&mut deps, vec![]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg {},
             });
 
-            let unauthorized: String = "someoone".into();
+            let unauthorized = deps.api.addr_make("someoone");
             let res = execute_as(deps.as_mut(), &unauthorized, msg);
 
-            assert_unauthorized(res, unauthorized);
+            assert_unauthorized(res);
         }
 
-        fn assert_unauthorized(res: Result<Response, MockError>, _unauthorized: String) {
+        fn assert_unauthorized(res: Result<Response, MockError>) {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -501,16 +518,19 @@ mod tests {
         #[test]
         fn executing_as_account_manager_is_allowed() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
+            let base = test_account_base(deps.api);
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
+                .account(&base, TEST_ACCOUNT_ID)
+                .build();
 
-            setup_with_authorized_addresses(deps.as_mut(), vec![]);
+            setup_with_authorized_addresses(&mut deps, vec![]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg {},
             });
 
-            let res = execute_as(deps.as_mut(), TEST_MANAGER, msg);
+            let res = execute_as(deps.as_mut(), &base.manager, msg);
 
             assert_that!(res).is_ok();
         }
@@ -518,59 +538,71 @@ mod tests {
         #[test]
         fn executing_as_authorized_address_not_allowed_without_proxy() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
+                .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
+                .build();
 
-            setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
+            setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg {},
             });
 
-            let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
+            let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
+            let res = execute_as(deps.as_mut(), &authorized, msg);
 
-            assert_unauthorized(res, TEST_AUTHORIZED_ADDRESS.into());
+            assert_unauthorized(res);
         }
 
         #[test]
         fn executing_as_authorized_address_is_allowed_via_proxy() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
+            let base = test_account_base(deps.api);
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
+                .account(&base, TEST_ACCOUNT_ID)
+                .build();
 
-            setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
+            setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: Some(TEST_PROXY.into()),
+                proxy_address: Some(base.proxy.to_string()),
                 request: MockExecMsg {},
             });
 
-            let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
+            let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
+            let res = execute_as(deps.as_mut(), &authorized, msg);
 
             assert_that!(res).is_ok();
         }
 
         #[test]
         fn executing_as_authorized_address_on_diff_proxy_should_err() {
-            let other_proxy = "some_other_proxy";
             let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder()
+            let base = test_account_base(deps.api);
+            let another_base = AccountBase {
+                manager: deps.api.addr_make("some_other_manager"),
+                proxy: deps.api.addr_make("some_other_proxy"),
+            };
+            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
+                .account(&base, TEST_ACCOUNT_ID)
                 .account(
-                    "some_other_manager",
-                    other_proxy,
+                    &another_base,
                     AccountId::new(69420u32, AccountTrace::Local).unwrap(),
                 )
                 .build();
 
-            setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
+            setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: Some(other_proxy.into()),
+                proxy_address: Some(another_base.proxy.to_string()),
                 request: MockExecMsg {},
             });
 
-            let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
+            let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
+            let res = execute_as(deps.as_mut(), &authorized, msg);
 
-            assert_unauthorized(res, TEST_AUTHORIZED_ADDRESS.into());
+            assert_unauthorized(res);
         }
     }
 }

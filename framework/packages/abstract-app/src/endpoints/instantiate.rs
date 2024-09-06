@@ -72,24 +72,23 @@ mod test {
     use crate::mock::*;
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_std::app::BaseInstantiateMsg;
-    use abstract_testing::{
-        addresses::test_account_base,
-        prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL},
-    };
+    use abstract_testing::prelude::*;
     use speculoos::{assert_that, prelude::*};
 
     #[test]
     fn test_instantiate() {
         let mut deps = mock_dependencies();
-        let info = mock_info(TEST_MODULE_FACTORY, &[]);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        deps.querier = app_base_mock_querier().build();
+        let info = message_info(&abstr.module_factory, &[]);
+
+        deps.querier = app_base_mock_querier(deps.api).build();
 
         let msg = SuperInstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
-                account_base: test_account_base(),
+                ans_host_address: abstr.ans_host.to_string(),
+                version_control_address: abstr.version_control.to_string(),
+                account_base: abstr.account,
             },
             module: MockInitMsg {},
         };

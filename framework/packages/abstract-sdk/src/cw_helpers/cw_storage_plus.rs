@@ -4,7 +4,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 /// Load a batch of values by their keys from a [`Map`].
 pub fn load_many<'a, K, V>(
-    map: Map<'a, K, V>,
+    map: Map<K, V>,
     storage: &dyn Storage,
     keys: Vec<K>,
 ) -> StdResult<Vec<(K, V)>>

@@ -6,7 +6,7 @@ use abstract_std::{
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
-pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+pub use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::{
     from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
 };
@@ -293,7 +293,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
 }
 
 pub mod origin_app {
-    use abstract_testing::addresses::{TEST_MODULE_ID, TEST_VERSION};
+    use abstract_testing::{module::TEST_MODULE_ID, TEST_VERSION};
 
     use super::{mock_app, MockAppContract};
     pub const MOCK_APP_ORIGIN: MockAppContract = mock_app(TEST_MODULE_ID, TEST_VERSION);
@@ -351,7 +351,10 @@ pub mod test {
         AppDeployer, DeployStrategy, Manager, ManagerQueryFns, VCExecFns, VCQueryFns,
     };
     use abstract_std::manager::{self, ModuleInstallConfig};
-    use abstract_testing::addresses::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION};
+    use abstract_testing::{
+        module::{TEST_MODULE_ID, TEST_NAMESPACE},
+        TEST_VERSION,
+    };
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary};
     use cw_orch::{environment::Environment, prelude::*};
@@ -368,7 +371,7 @@ pub mod test {
         let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
 
         let (origin_account, _remote_account_id) =
-            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, vec![])?;
 
         let app = MockAppOriginI::new(
             TEST_MODULE_ID,
@@ -382,7 +385,7 @@ pub mod test {
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
-        origin_account.install_app(&app, &MockInitMsg {}, None)?;
+        origin_account.install_app(&app, &MockInitMsg {}, &[])?;
 
         // The user on origin chain wants to change the account description
         let target_module_info =
@@ -418,10 +421,10 @@ pub mod test {
         let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
 
         let (origin_account, _remote_account_id) =
-            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, vec![])?;
 
         let (remote_account, _remote_account_id) =
-            create_test_remote_account(&abstr_remote, STARGAZE, JUNO, &mock_interchain, None)?;
+            create_test_remote_account(&abstr_remote, STARGAZE, JUNO, &mock_interchain, vec![])?;
 
         // Install local app
         let app = MockAppOriginI::new(
@@ -435,7 +438,7 @@ pub mod test {
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
-        origin_account.install_app(&app, &MockInitMsg {}, None)?;
+        origin_account.install_app(&app, &MockInitMsg {}, &[])?;
 
         // Install remote app
         let app_remote = MockAppRemoteI::new(
@@ -481,10 +484,10 @@ pub mod test {
         let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
 
         let (origin_account, remote_account_id) =
-            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, vec![])?;
 
         let (remote_account, _) =
-            create_test_remote_account(&abstr_remote, STARGAZE, JUNO, &mock_interchain, None)?;
+            create_test_remote_account(&abstr_remote, STARGAZE, JUNO, &mock_interchain, vec![])?;
 
         // Install local app
         let app = MockAppOriginI::new(
@@ -498,7 +501,7 @@ pub mod test {
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
-        origin_account.install_app(&app, &MockInitMsg {}, None)?;
+        origin_account.install_app(&app, &MockInitMsg {}, &[])?;
 
         // Install remote app
         let app_remote = MockAppRemoteI::new(
@@ -595,7 +598,7 @@ pub mod test {
             remote.addr_make_with_balance("remote-test", coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
 
         let (origin_account, _remote_account_id) =
-            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, vec![])?;
 
         // Install local app
         let app = MockAppOriginI::new(
@@ -609,7 +612,7 @@ pub mod test {
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
-        origin_account.install_app(&app, &MockInitMsg {}, None)?;
+        origin_account.install_app(&app, &MockInitMsg {}, &[])?;
 
         let query_response = app.query_something_ibc(remote_address.to_string(), remote_name)?;
 
@@ -654,11 +657,21 @@ pub mod test {
 
             let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
 
-            let (origin_account, remote_account_id) =
-                create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+            let (origin_account, remote_account_id) = create_test_remote_account(
+                &abstr_origin,
+                JUNO,
+                STARGAZE,
+                &mock_interchain,
+                vec![],
+            )?;
 
-            let (remote_account, _) =
-                create_test_remote_account(&abstr_remote, STARGAZE, JUNO, &mock_interchain, None)?;
+            let (remote_account, _) = create_test_remote_account(
+                &abstr_remote,
+                STARGAZE,
+                JUNO,
+                &mock_interchain,
+                vec![],
+            )?;
 
             // Install local app
             let app = MockAppOriginI::new(
@@ -672,7 +685,7 @@ pub mod test {
 
             app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
-            origin_account.install_app(&app, &MockInitMsg {}, None)?;
+            origin_account.install_app(&app, &MockInitMsg {}, &[])?;
 
             // Install remote app
             let app_remote = MockAppRemoteI::new(

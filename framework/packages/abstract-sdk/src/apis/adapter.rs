@@ -113,8 +113,8 @@ mod tests {
         fake_module: ModuleId,
     ) {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let app = MockModule::new();
+        deps.querier = abstract_testing::mock_querier(deps.api);
+        let app = MockModule::new(deps.api);
 
         let _mods = app.adapters(deps.as_ref());
 
@@ -143,8 +143,9 @@ mod tests {
         #[test]
         fn expected_adapter_request() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new();
+            deps.querier = abstract_testing::mock_querier(deps.api);
+            let app = MockModule::new(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let mods = app.adapters(deps.as_ref());
 
@@ -152,14 +153,14 @@ mod tests {
 
             let expected_msg: adapter::ExecuteMsg<_> =
                 adapter::ExecuteMsg::Module(AdapterRequestMsg {
-                    proxy_address: Some(TEST_PROXY.into()),
+                    proxy_address: Some(abstr.account.proxy.to_string()),
                     request: MockModuleExecuteMsg {},
                 });
 
             assert_that!(res)
                 .is_ok()
                 .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: TEST_MODULE_ADDRESS.into(),
+                    contract_addr: abstr.module_address.to_string(),
                     msg: to_json_binary(&expected_msg).unwrap(),
                     funds: vec![],
                 }));
@@ -183,8 +184,8 @@ mod tests {
         #[test]
         fn expected_adapter_query() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new();
+            deps.querier = abstract_testing::mock_querier(deps.api);
+            let app = MockModule::new(deps.api);
 
             let mods = app.adapters(deps.as_ref());
 

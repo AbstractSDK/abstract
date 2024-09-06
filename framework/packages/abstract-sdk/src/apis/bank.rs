@@ -279,8 +279,8 @@ mod test {
 
         #[test]
         fn transfer_asset_to_sender() {
-            let app = MockModule::new();
             let deps = mock_dependencies();
+            let app = MockModule::new(deps.api);
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
@@ -298,9 +298,10 @@ mod test {
                 amount: coins,
             });
 
+            let base = test_account_base(deps.api);
             assert_that!(response.messages[0].msg).is_equal_to(
                 &wasm_execute(
-                    TEST_PROXY,
+                    base.proxy,
                     &ExecuteMsg::ModuleAction {
                         msgs: vec![expected_msg],
                     },
@@ -320,8 +321,8 @@ mod test {
 
         #[test]
         fn deposit() {
-            let app = MockModule::new();
             let deps = mock_dependencies();
+            let app = MockModule::new(deps.api);
 
             // ANCHOR: deposit
             // Get bank API struct from the app
@@ -334,8 +335,9 @@ mod test {
             let response: Response = app.response("deposit").add_messages(deposit_msgs);
             // ANCHOR_END: deposit
 
+            let base = test_account_base(deps.api);
             let bank_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
-                to_address: TEST_PROXY.to_string(),
+                to_address: base.proxy.to_string(),
                 amount: coins,
             });
 
@@ -348,8 +350,8 @@ mod test {
 
         #[test]
         fn withdraw_coins() {
-            let app = MockModule::new();
             let deps = mock_dependencies();
+            let app = MockModule::new(deps.api);
             let expected_amount = 100u128;
             let env = mock_env();
 
@@ -374,14 +376,14 @@ mod test {
 
         #[test]
         fn send_cw20() {
-            let app = MockModule::new();
             let deps = mock_dependencies();
+            let app = MockModule::new(deps.api);
             let expected_amount = 100u128;
-            let expected_recipient = Addr::unchecked("recipient");
+            let expected_recipient = deps.api.addr_make("recipient");
 
             let bank = app.bank(deps.as_ref());
             let hook_msg = Empty {};
-            let asset = Addr::unchecked("asset");
+            let asset = deps.api.addr_make("asset");
             let coin = Asset::cw20(asset.clone(), expected_amount);
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
 
@@ -401,10 +403,10 @@ mod test {
 
         #[test]
         fn send_coins() {
-            let app = MockModule::new();
             let deps = mock_dependencies();
+            let app = MockModule::new(deps.api);
             let expected_amount = 100u128;
-            let expected_recipient = Addr::unchecked("recipient");
+            let expected_recipient = deps.api.addr_make("recipient");
 
             let bank = app.bank(deps.as_ref());
             let coin = coin(expected_amount, "asset");

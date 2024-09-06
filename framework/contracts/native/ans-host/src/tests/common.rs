@@ -1,11 +1,8 @@
 use abstract_std::ans_host::ExecuteMsg;
-use cosmwasm_std::{
-    testing::{mock_env, mock_info},
-    DepsMut,
-};
+use cosmwasm_std::{testing::*, Addr, DepsMut};
 
 use crate::{contract, contract::AnsHostResult};
 
-pub(crate) fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> AnsHostResult {
-    contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
+pub(crate) fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> AnsHostResult {
+    contract::execute(deps, mock_env(), message_info(sender, &[]), msg)
 }

@@ -2,6 +2,7 @@
 //! This module provides functionality to interact with the authz module of CosmosSDK Chains.
 //! It allows for granting authorizations to perform actions on behalf of an account to other accounts.
 
+use cosmos_sdk_proto::Any;
 use cosmos_sdk_proto::{
     cosmos::{
         authz,
@@ -14,18 +15,17 @@ use cosmos_sdk_proto::{
         MsgClearAdmin, MsgExecuteContract, MsgInstantiateContract, MsgInstantiateContract2,
         MsgMigrateContract, MsgUpdateAdmin,
     },
-    ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height},
     traits::{Message, Name},
 };
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
-use prost_types::Any;
+use cosmwasm_std::{Addr, AnyMsg, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
+use ibc_proto::ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height};
 
 use super::stargate::{
     authz::{
         AuthZAuthorization, AuthorizationType, GenericAuthorization, Policy, SendAuthorization,
         StakeAuthorization,
     },
-    convert_coin, convert_coins,
+    convert_coin, convert_coins, convert_ibc_coin,
     gov::vote_to_option,
 };
 
@@ -95,12 +95,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
-            // TODO: `Name` implementation is missing for authz
-            // type_url: authz::v1beta1::MsgRevoke::type_url(),
-            type_url: "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
-            value: Binary(msg),
-        }
+        CosmosMsg::Any(AnyMsg {
+            type_url: authz::v1beta1::MsgRevoke::type_url(),
+            value: Binary::new(msg),
+        })
     }
 
     /// Generate cosmwasm message for the AuthZAuthorization type
@@ -117,10 +115,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
-            type_url: "/cosmos.authz.v1beta1.MsgGrant".to_string(),
-            value: Binary(msg),
-        }
+        CosmosMsg::Any(AnyMsg {
+            type_url: authz::v1beta1::MsgGrant::type_url(),
+            value: Binary::new(msg),
+        })
     }
 
     /// Grants generic authorization to a **grantee**.
@@ -281,7 +279,7 @@ impl AuthZ {
                 ),
                 _ => todo!(),
             },
-            CosmosMsg::Stargate { type_url, value } => (type_url.clone(), value.into()),
+            CosmosMsg::Any(AnyMsg { type_url, value }) => (type_url.clone(), value.into()),
             CosmosMsg::Bank(bank_msg) => match bank_msg {
                 cosmwasm_std::BankMsg::Send { to_address, amount } => (
                     MsgSend::type_url(),
@@ -370,19 +368,21 @@ impl AuthZ {
                         to_address,
                         amount,
                         timeout,
+                        memo
                     } => (
                         MsgTransfer::type_url(),
                         MsgTransfer{
                             source_port: "transfer".to_string(),
                             source_channel: channel_id,
-                            token: Some(convert_coin(amount)),
+                            token: Some(convert_ibc_coin(amount)),
                             sender: self.granter.to_string(),
                             receiver: to_address,
                             timeout_height: timeout.block().map(|b| Height{
                                 revision_number: b.revision,
                                 revision_height: b.height,
                             }),
-                            timeout_timestamp: timeout.timestamp().map(|t| t.nanos()).unwrap_or_default()
+                            timeout_timestamp: timeout.timestamp().map(|t| t.nanos()).unwrap_or_default(),
+                            memo: memo.unwrap_or_default(),
                         }.encode_to_vec()
                     ),
                     // This is there because there is a priori no port associated with the sender
@@ -390,12 +390,15 @@ impl AuthZ {
                 }
             }
             CosmosMsg::Gov(gov_msg) => match gov_msg {
-                cosmwasm_std::GovMsg::Vote { proposal_id, vote } => (
+                cosmwasm_std::GovMsg::Vote {
+                    proposal_id,
+                    option,
+                } => (
                     "/cosmos.gov.v1beta1.MsgVote".to_string(),
                     MsgVote {
                         proposal_id,
                         voter: self.granter.to_string(),
-                        option: vote_to_option(vote),
+                        option: vote_to_option(option),
                     }
                     .encode_to_vec(),
                 ),
@@ -446,12 +449,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
-            // TODO: `Name` implementation is missing for authz
-            // type_url: authz::v1beta1::MsgExec::type_url(),
-            type_url: "/cosmos.authz.v1beta1.MsgExec".to_string(),
-            value: Binary(msg),
-        }
+        CosmosMsg::Any(AnyMsg {
+            type_url: authz::v1beta1::MsgExec::type_url(),
+            value: Binary::new(msg),
+        })
     }
 }
 
@@ -464,11 +465,11 @@ mod tests {
 
     #[test]
     fn generic_authorization() {
-        let app = MockModule::new();
         let deps = mock_dependencies();
+        let app = MockModule::new(deps.api);
 
-        let granter = Addr::unchecked("granter");
-        let grantee = Addr::unchecked("grantee");
+        let granter = deps.api.addr_make("granter");
+        let grantee = deps.api.addr_make("grantee");
 
         let auth_z = app.auth_z(deps.as_ref(), Some(granter.clone())).unwrap();
         let expiration = Some(Timestamp::from_seconds(10));
@@ -479,9 +480,9 @@ mod tests {
             expiration,
         );
 
-        let expected_msg = CosmosMsg::Stargate {
+        let expected_msg = CosmosMsg::Any(AnyMsg {
             type_url: "/cosmos.authz.v1beta1.MsgGrant".to_string(),
-            value: Binary(
+            value: Binary::new(
                 authz::v1beta1::MsgGrant {
                     granter: granter.into_string(),
                     grantee: grantee.into_string(),
@@ -498,27 +499,27 @@ mod tests {
                 }
                 .encode_to_vec(),
             ),
-        };
+        });
 
         assert_eq!(generic_authorization_msg, expected_msg);
     }
 
     #[test]
     fn revoke_authorization() {
-        let app = MockModule::new();
         let deps = mock_dependencies();
+        let app = MockModule::new(deps.api);
 
-        let granter = Addr::unchecked("granter");
-        let grantee = Addr::unchecked("grantee");
+        let granter = deps.api.addr_make("granter");
+        let grantee = deps.api.addr_make("grantee");
 
         let auth_z = app.auth_z(deps.as_ref(), Some(granter.clone())).unwrap();
 
         let generic_authorization_msg =
             auth_z.revoke(&grantee, "/cosmos.gov.v1beta1.MsgVote".to_string());
 
-        let expected_msg = CosmosMsg::Stargate {
+        let expected_msg = CosmosMsg::Any(AnyMsg {
             type_url: "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
-            value: Binary(
+            value: Binary::new(
                 authz::v1beta1::MsgRevoke {
                     granter: granter.into_string(),
                     grantee: grantee.into_string(),
@@ -526,7 +527,7 @@ mod tests {
                 }
                 .encode_to_vec(),
             ),
-        };
+        });
 
         assert_eq!(generic_authorization_msg, expected_msg);
     }

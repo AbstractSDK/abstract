@@ -58,7 +58,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        Some(&[namespace_fee]),
+        &[namespace_fee],
     )?;
 
     let manager_addr = account.manager.address()?;

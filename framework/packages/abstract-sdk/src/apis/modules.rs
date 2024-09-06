@@ -133,7 +133,7 @@ mod test {
         #[test]
         fn should_return_ok_if_dependency() {
             let deps = mock_dependencies();
-            let app = MockModule::new();
+            let app = MockModule::new(deps.api);
 
             let mods = app.modules(deps.as_ref());
 
@@ -144,7 +144,7 @@ mod test {
         #[test]
         fn should_return_err_if_not_dependency() {
             let deps = mock_dependencies();
-            let app = MockModule::new();
+            let app = MockModule::new(deps.api);
 
             let mods = app.modules(deps.as_ref());
 

@@ -22,7 +22,7 @@ pub use abstract_testing;
 pub mod mock {
     use abstract_std::standalone;
     use cosmwasm_schema::QueryResponses;
-    pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    pub use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi};
     use cosmwasm_std::{
         to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
     };
@@ -75,10 +75,7 @@ pub mod mock {
         feature_objects::{AnsHost, VersionControlContract},
         AbstractResponse, AbstractSdkError,
     };
-    use abstract_testing::{
-        addresses::{TEST_ANS_HOST, TEST_PROXY, TEST_VERSION_CONTROL},
-        prelude::*,
-    };
+    use abstract_testing::{addresses::*, prelude::*};
     use thiserror::Error;
 
     use crate::StandaloneContract;
@@ -105,9 +102,10 @@ pub mod mock {
 
     // Easy way to see if an ibc-callback was actually received.
     pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
-    pub fn standalone_base_mock_querier() -> MockQuerierBuilder {
+    pub fn standalone_base_mock_querier(mock_api: MockApi) -> MockQuerierBuilder {
+        let abstr = AbstractMockAddrs::new(mock_api);
         MockQuerierBuilder::default()
-            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected messsage"))
+            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected messsage"))
     }
 
     #[cosmwasm_std::entry_point]
@@ -150,20 +148,18 @@ pub mod mock {
     /// This will set the [`abstract_testing::addresses::TEST_MANAGER`] as the admin.
     pub fn mock_init() -> MockDeps {
         let mut deps = mock_dependencies();
-        let _info = mock_info(TEST_MODULE_FACTORY, &[]);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        deps.querier = standalone_base_mock_querier().build();
+        deps.querier = standalone_base_mock_querier(deps.api).build();
 
         BASIC_MOCK_STANDALONE
             .base_state
             .save(
                 &mut deps.storage,
                 &standalone::StandaloneState {
-                    proxy_address: Addr::unchecked(TEST_PROXY),
-                    ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
-                    version_control: VersionControlContract::new(Addr::unchecked(
-                        TEST_VERSION_CONTROL,
-                    )),
+                    proxy_address: abstr.account.proxy,
+                    ans_host: AnsHost::new(abstr.ans_host),
+                    version_control: VersionControlContract::new(abstr.version_control),
                     is_migratable: true,
                 },
             )

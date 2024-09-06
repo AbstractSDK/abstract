@@ -157,20 +157,20 @@ mod test {
 
         use abstract_std::app::{AppConfigResponse, BaseQueryMsg};
         use abstract_testing::prelude::*;
-        use cosmwasm_std::Addr;
         use cw_controllers::AdminResponse;
 
         #[test]
         fn config() -> AppTestResult {
             let deps = mock_init();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let config_query = QueryMsg::Base(BaseQueryMsg::BaseConfig {});
             let res = query_helper(deps.as_ref(), config_query)?;
 
             assert_that!(from_json(res).unwrap()).is_equal_to(AppConfigResponse {
-                proxy_address: Addr::unchecked(TEST_PROXY),
-                ans_host_address: Addr::unchecked(TEST_ANS_HOST),
-                manager_address: Addr::unchecked(TEST_MANAGER),
+                proxy_address: abstr.account.proxy,
+                ans_host_address: abstr.ans_host,
+                manager_address: abstr.account.manager,
             });
 
             Ok(())
@@ -179,12 +179,13 @@ mod test {
         #[test]
         fn admin() -> AppTestResult {
             let deps = mock_init();
+            let base = test_account_base(deps.api);
 
             let admin_query = QueryMsg::Base(BaseQueryMsg::BaseAdmin {});
             let res = query_helper(deps.as_ref(), admin_query)?;
 
             assert_that!(from_json(res).unwrap()).is_equal_to(AdminResponse {
-                admin: Some(TEST_MANAGER.to_string()),
+                admin: Some(base.manager.to_string()),
             });
 
             Ok(())

@@ -154,7 +154,7 @@ mod tests {
         #[test]
         fn sets_abstract_namespace() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let account_id = NAMESPACES_INFO.load(
                 deps.as_ref().storage,
@@ -175,7 +175,7 @@ mod tests {
         #[test]
         fn disallow_same_version() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_old_init(deps.as_mut())?;
+            mock_old_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -195,7 +195,7 @@ mod tests {
         #[test]
         fn disallow_downgrade() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_old_init(deps.as_mut())?;
+            mock_old_init(&mut deps)?;
 
             let big_version = "999.999.999";
             cw2::set_contract_version(deps.as_mut().storage, VERSION_CONTROL, big_version)?;
@@ -218,7 +218,7 @@ mod tests {
         #[test]
         fn disallow_name_change() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_old_init(deps.as_mut())?;
+            mock_old_init(&mut deps)?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
@@ -239,7 +239,7 @@ mod tests {
         #[test]
         fn works() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_old_init(deps.as_mut())?;
+            mock_old_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 

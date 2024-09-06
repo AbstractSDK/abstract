@@ -34,7 +34,7 @@ fn cannot_reinstall_module() -> AResult {
                 None,
             )],
         },
-        None,
+        &[],
     )?;
 
     let err = manager
@@ -45,7 +45,7 @@ fn cannot_reinstall_module() -> AResult {
                     None,
                 )],
             },
-            None,
+            &[],
         )
         .unwrap_err();
     let manager_err: ManagerError = err.downcast().unwrap();
@@ -78,7 +78,7 @@ fn adds_module_to_account_modules() -> AResult {
                 None,
             )],
         },
-        None,
+        &[],
     )?;
 
     let addrs: ModuleAddressesResponse = manager.query(&ManagerQuery::ModuleAddresses {
@@ -106,7 +106,7 @@ fn useful_error_module_not_found() -> AResult {
                     None,
                 )],
             },
-            None,
+            &[],
         )
         .unwrap_err();
 

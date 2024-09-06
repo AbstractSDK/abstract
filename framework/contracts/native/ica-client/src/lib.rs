@@ -10,18 +10,19 @@ mod test_common {
     use crate::msg::InstantiateMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
-        testing::{mock_env, mock_info},
-        DepsMut,
+        testing::{message_info, mock_env, MockApi},
+        OwnedDeps,
     };
 
     use crate::{contract, contract::IcaClientResult};
 
-    pub fn mock_init(deps: DepsMut) -> IcaClientResult {
+    pub fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> IcaClientResult {
+        let abstr = AbstractMockAddrs::new(deps.api);
         let msg = InstantiateMsg {
-            ans_host_address: TEST_ANS_HOST.into(),
-            version_control_address: TEST_VERSION_CONTROL.into(),
+            ans_host_address: abstr.ans_host.to_string(),
+            version_control_address: abstr.version_control.to_string(),
         };
-        let info = mock_info(OWNER, &[]);
-        contract::instantiate(deps, mock_env(), info, msg)
+        let info = message_info(&abstr.owner, &[]);
+        contract::instantiate(deps.as_mut(), mock_env(), info, msg)
     }
 }

@@ -21,8 +21,8 @@ use abstract_std::{
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
-    ensure, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
-    IbcMsg, MessageInfo, QueryRequest, Storage, WasmQuery,
+    ensure, to_json_binary, wasm_execute, AnyMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty,
+    Env, IbcMsg, MessageInfo, QueryRequest, Storage, WasmQuery,
 };
 use cw_storage_plus::Item;
 use polytone::callbacks::CallbackRequest;
@@ -499,16 +499,17 @@ fn _ics_20_send_msg(
 
             let value = value.encode_to_vec();
             let value = Binary::from(value);
-            CosmosMsg::Stargate {
+            CosmosMsg::Any(AnyMsg {
                 type_url: MsgTransfer::type_url(),
                 value,
-            }
+            })
         }
         None => IbcMsg::Transfer {
             channel_id: ics20_channel_id,
             to_address: receiver,
             amount: coin,
             timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+            memo,
         }
         .into(),
     }
@@ -529,7 +530,7 @@ fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<E
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),
         QueryRequest::Staking(query) => QueryRequest::Staking(query),
-        QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
+        QueryRequest::Grpc(grpc) => QueryRequest::Grpc(grpc),
         QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
         QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
         // Distribution flag not enabled on polytone, so should not be accepted.

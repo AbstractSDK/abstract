@@ -4,7 +4,7 @@
 
 use abstract_macros::with_abstract_event;
 use abstract_std::proxy::ExecuteMsg;
-use cosmwasm_std::{Coin, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use cosmwasm_std::{Binary, Coin, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
@@ -129,6 +129,7 @@ impl<'a, T: Execution> Executor<'a, T> {
             msg: msg.into(),
             gas_limit: None,
             reply_on,
+            payload: Binary::default(),
         };
         Ok(sub_msg)
     }
@@ -148,6 +149,7 @@ impl<'a, T: Execution> Executor<'a, T> {
             msg: msg.into(),
             gas_limit: None,
             reply_on,
+            payload: Binary::default(),
         };
         Ok(sub_msg)
     }
@@ -207,7 +209,7 @@ mod test {
         #[test]
         fn empty_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let stub = MockModule::new(deps.api);
             let executor = stub.executor(deps.as_ref());
 
             let messages = vec![];
@@ -215,8 +217,9 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
+            let base = test_account_base(deps.api);
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
+                contract_addr: base.proxy.to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
                     msgs: flatten_actions(messages),
                 })
@@ -229,7 +232,7 @@ mod test {
         #[test]
         fn with_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let stub = MockModule::new(deps.api);
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -238,8 +241,9 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
+            let base = test_account_base(deps.api);
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
+                contract_addr: base.proxy.to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
                     msgs: flatten_actions(messages),
                 })
@@ -258,7 +262,7 @@ mod test {
         #[test]
         fn empty_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let stub = MockModule::new(deps.api);
             let executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
@@ -272,10 +276,11 @@ mod test {
             );
             assert_that!(actual_res).is_ok();
 
+            let base = test_account_base(deps.api);
             let expected = SubMsg {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: TEST_PROXY.to_string(),
+                    contract_addr: base.proxy.to_string(),
                     msg: to_json_binary(&ExecuteMsg::ModuleAction {
                         msgs: flatten_actions(empty_actions),
                     })
@@ -284,6 +289,7 @@ mod test {
                 }),
                 gas_limit: None,
                 reply_on: expected_reply_on,
+                payload: Binary::default(),
             };
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }
@@ -291,7 +297,7 @@ mod test {
         #[test]
         fn with_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let stub = MockModule::new(deps.api);
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -307,10 +313,11 @@ mod test {
             );
             assert_that!(actual_res).is_ok();
 
+            let base = test_account_base(deps.api);
             let expected = SubMsg {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: TEST_PROXY.to_string(),
+                    contract_addr: base.proxy.to_string(),
                     msg: to_json_binary(&ExecuteMsg::ModuleAction {
                         msgs: flatten_actions(action),
                     })
@@ -320,6 +327,7 @@ mod test {
                 }),
                 gas_limit: None,
                 reply_on: expected_reply_on,
+                payload: Binary::default(),
             };
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }
@@ -332,7 +340,7 @@ mod test {
         #[test]
         fn empty_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let stub = MockModule::new(deps.api);
             let executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
@@ -340,8 +348,9 @@ mod test {
 
             let actual_res = executor.execute_with_response(empty_actions.clone(), expected_action);
 
+            let base = test_account_base(deps.api);
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
+                contract_addr: base.proxy.to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
                     msgs: flatten_actions(empty_actions),
                 })
@@ -363,7 +372,7 @@ mod test {
         #[test]
         fn with_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let stub = MockModule::new(deps.api);
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -372,8 +381,9 @@ mod test {
 
             let actual_res = executor.execute_with_response(action.clone(), expected_action);
 
+            let base = test_account_base(deps.api);
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
+                contract_addr: base.proxy.to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
                     msgs: flatten_actions(action),
                 })

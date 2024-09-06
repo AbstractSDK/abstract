@@ -11,7 +11,6 @@ use cw_orch::prelude::{
     networks::{parse_network, ChainInfo},
     *,
 };
-use dca_app::{contract::DCA_APP_ID, DCA};
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -31,15 +30,14 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             Empty {},
             DeployStrategy::Try,
         )?;
-        // TODO: DEX oversized, not deployed in current release
-        // DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
-        //     abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
-        //     DexInstantiateMsg {
-        //         recipient_account: 0,
-        //         swap_fee: Decimal::permille(3),
-        //     },
-        //     DeployStrategy::Try,
-        // )?;
+        DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
+            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
+            DexInstantiateMsg {
+                recipient_account: 0,
+                swap_fee: Decimal::permille(3),
+            },
+            DeployStrategy::Try,
+        )?;
         MoneyMarketAdapter::new(MONEY_MARKET_ADAPTER_ID, chain.clone()).deploy(
             abstract_money_market_adapter::contract::CONTRACT_VERSION.parse()?,
             MoneyMarketInstantiateMsg {
@@ -51,10 +49,11 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         // Deploy apps
 
-        DCA::new(DCA_APP_ID, chain.clone()).deploy(
-            dca_app::contract::DCA_APP_VERSION.parse()?,
-            DeployStrategy::Try,
-        )?;
+        // use dca_app::{contract::DCA_APP_ID, DCA};
+        // DCA::new(DCA_APP_ID, chain.clone()).deploy(
+        //     dca_app::contract::DCA_APP_VERSION.parse()?,
+        //     DeployStrategy::Try,
+        // )?;
         Challenge::new(CHALLENGE_APP_ID, chain.clone()).deploy(
             challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
             DeployStrategy::Try,

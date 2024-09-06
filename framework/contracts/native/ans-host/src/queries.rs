@@ -308,23 +308,20 @@ mod test {
         ans_host::*,
         objects::{pool_id::PoolAddressBase, PoolType, TruncatedChainId},
     };
-    use abstract_testing::OWNER;
-    use cosmwasm_std::{
-        from_json,
-        testing::{mock_dependencies, mock_env, mock_info, MockApi},
-        Addr, DepsMut,
-    };
+    use abstract_testing::addresses::AbstractMockAddrs;
+    use cosmwasm_std::{from_json, testing::*, Addr, DepsMut, OwnedDeps};
     use cw_asset::AssetInfo;
     use speculoos::prelude::*;
     use std::str::FromStr;
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 
-    fn mock_init(mut deps: DepsMut) -> AnsHostResult {
-        let info = mock_info(OWNER, &[]);
+    fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> AnsHostResult {
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
 
-        instantiate(deps.branch(), mock_env(), info, InstantiateMsg { admin })
+        instantiate(deps.as_mut(), mock_env(), info, InstantiateMsg { admin })
     }
 
     fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
@@ -340,7 +337,7 @@ mod test {
         }
     }
 
-    fn create_test_assets(input: Vec<(&str, &str)>, api: MockApi) -> Vec<(String, AssetInfo)> {
+    fn create_test_assets(input: Vec<(&str, &Addr)>, api: MockApi) -> Vec<(String, AssetInfo)> {
         let test_assets: Vec<(String, AssetInfo)> = input
             .into_iter()
             .map(|input| {
@@ -376,7 +373,7 @@ mod test {
     }
 
     fn create_contract_entry_and_string(
-        input: Vec<(&str, &str, &str)>,
+        input: Vec<(&str, &str, &Addr)>,
     ) -> Vec<(ContractEntry, String)> {
         let contract_entry: Vec<(ContractEntry, String)> = input
             .into_iter()
@@ -568,7 +565,9 @@ mod test {
     fn create_option_pool_ref(id: u64, pool_id: &str, api: MockApi) -> Option<Vec<PoolReference>> {
         Some(vec![PoolReference {
             unique_id: UniquePoolId::new(id),
-            pool_address: PoolAddressBase::contract(pool_id).check(&api).unwrap(),
+            pool_address: PoolAddressBase::contract(api.addr_make(pool_id))
+                .check(&api)
+                .unwrap(),
         }])
     }
 
@@ -584,11 +583,17 @@ mod test {
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create test query data
-        let test_assets = create_test_assets(vec![("bar", "bar"), ("foo", "foo")], api);
+        let test_assets = create_test_assets(
+            vec![
+                ("bar", &api.addr_make("bar")),
+                ("foo", &api.addr_make("foo")),
+            ],
+            api,
+        );
         update_asset_addresses(deps.as_mut(), test_assets)?;
         // create msg
         let msg = QueryMsg::Assets {
@@ -599,7 +604,10 @@ mod test {
 
         // Stage data for equality test
         let expected = create_asset_response(create_test_assets(
-            vec![("bar", "bar"), ("foo", "foo")],
+            vec![
+                ("bar", &deps.api.addr_make("bar")),
+                ("foo", &deps.api.addr_make("foo")),
+            ],
             api,
         ));
         // Assert
@@ -612,10 +620,11 @@ mod test {
     fn test_query_contract() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // create test query data
-        let to_add = create_contract_entry_and_string(vec![("foo", "foo", "foo")]);
+        let to_add =
+            create_contract_entry_and_string(vec![("foo", "foo", &deps.api.addr_make("foo"))]);
         update_contract_addresses(deps.as_mut(), to_add)?;
         // create, send and deserialise msg
         let msg = QueryMsg::Contracts {
@@ -625,10 +634,14 @@ mod test {
 
         // Stage data for equality test
         let expected = ContractsResponse {
-            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")])
-                .into_iter()
-                .map(|(a, b)| (a, Addr::unchecked(b)))
-                .collect(),
+            contracts: create_contract_entry_and_string(vec![(
+                "foo",
+                "foo",
+                &deps.api.addr_make("foo"),
+            )])
+            .into_iter()
+            .map(|(a, b)| (a, Addr::unchecked(b)))
+            .collect(),
         };
 
         // Assert
@@ -640,7 +653,7 @@ mod test {
     #[test]
     fn test_query_channels() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // create test query data
         let to_add = create_channel_entry_and_string(vec![("foo", "foo", "foo")]);
@@ -668,19 +681,26 @@ mod test {
     fn test_query_asset_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create test query data
-        let test_assets = create_test_assets(vec![("foo", "foo"), ("bar", "bar")], api);
+        let test_assets = create_test_assets(
+            vec![
+                ("foo", &deps.api.addr_make("foo")),
+                ("bar", &deps.api.addr_make("bar")),
+            ],
+            api,
+        );
         update_asset_addresses(deps.as_mut(), test_assets)?;
 
         // create second entry
-        let test_assets1 = create_test_assets(vec![("foobar", "foobar")], api);
+        let test_assets1 = create_test_assets(vec![("foobar", &deps.api.addr_make("foobar"))], api);
         update_asset_addresses(deps.as_mut(), test_assets1)?;
 
         // create duplicate entry
-        let test_assets_duplicate = create_test_assets(vec![("foobar", "foobar")], api);
+        let test_assets_duplicate =
+            create_test_assets(vec![("foobar", &deps.api.addr_make("foobar"))], api);
         update_asset_addresses(deps.as_mut(), test_assets_duplicate)?;
 
         // return all entries
@@ -697,14 +717,22 @@ mod test {
 
         // Stage data for equality test
         let expected = create_asset_list_response(create_test_assets(
-            vec![("bar", "bar"), ("foo", "foo"), ("foobar", "foobar")],
+            vec![
+                ("bar", &deps.api.addr_make("bar")),
+                ("foo", &deps.api.addr_make("foo")),
+                ("foobar", &deps.api.addr_make("foobar")),
+            ],
             api,
         ));
 
-        let expected_foobar =
-            create_asset_list_response(create_test_assets(vec![("foobar", "foobar")], api));
-        let expected_bar =
-            create_asset_list_response(create_test_assets(vec![("bar", "bar")], api));
+        let expected_foobar = create_asset_list_response(create_test_assets(
+            vec![("foobar", &deps.api.addr_make("foobar"))],
+            api,
+        ));
+        let expected_bar = create_asset_list_response(create_test_assets(
+            vec![("bar", &deps.api.addr_make("bar"))],
+            api,
+        ));
 
         assert_that!(res).is_equal_to(&expected);
         assert_that!(res_first_entry).is_equal_to(&expected_bar);
@@ -716,7 +744,7 @@ mod test {
     fn test_query_asset_list_above_max() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create test query data
@@ -754,18 +782,21 @@ mod test {
     fn test_query_contract_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // create test query data
-        let to_add = create_contract_entry_and_string(vec![("foo", "foo1", "foo2")]);
+        let to_add =
+            create_contract_entry_and_string(vec![("foo", "foo1", &deps.api.addr_make("foo2"))]);
         update_contract_addresses(deps.as_mut(), to_add)?;
 
         // create second entry
-        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar1", "bar2")]);
+        let to_add1 =
+            create_contract_entry_and_string(vec![("bar", "bar1", &deps.api.addr_make("bar2"))]);
         update_contract_addresses(deps.as_mut(), to_add1)?;
 
         // create duplicate entry
-        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar1", "bar2")]);
+        let to_add1 =
+            create_contract_entry_and_string(vec![("bar", "bar1", &deps.api.addr_make("bar2"))]);
         update_contract_addresses(deps.as_mut(), to_add1)?;
 
         // create msgs
@@ -789,8 +820,8 @@ mod test {
         // Stage data for equality test
         let expected = ContractListResponse {
             contracts: create_contract_entry_and_string(vec![
-                ("bar", "bar1", "bar2"),
-                ("foo", "foo1", "foo2"),
+                ("bar", "bar1", &deps.api.addr_make("bar2")),
+                ("foo", "foo1", &deps.api.addr_make("foo2")),
             ])
             .into_iter()
             .map(|(a, b)| (a, Addr::unchecked(b)))
@@ -798,10 +829,14 @@ mod test {
         };
 
         let expected_foo = ContractListResponse {
-            contracts: create_contract_entry_and_string(vec![("foo", "foo1", "foo2")])
-                .into_iter()
-                .map(|(a, b)| (a, Addr::unchecked(b)))
-                .collect(),
+            contracts: create_contract_entry_and_string(vec![(
+                "foo",
+                "foo1",
+                &deps.api.addr_make("foo2"),
+            )])
+            .into_iter()
+            .map(|(a, b)| (a, Addr::unchecked(b)))
+            .collect(),
         };
 
         // Assert
@@ -817,7 +852,7 @@ mod test {
     fn test_query_channel_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // create test query data
         let to_add =
@@ -886,7 +921,7 @@ mod test {
     #[test]
     fn test_query_registered_dexes() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
 
         // Create test data
         let to_add: Vec<String> = vec!["foo".to_string(), "bar".to_string()];
@@ -916,7 +951,7 @@ mod test {
     #[test]
     fn test_query_pools() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create DexAssetPairing
@@ -946,7 +981,7 @@ mod test {
     #[test]
     fn test_query_pool_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         let api = deps.api;
 
         // create first pool entry
@@ -1028,7 +1063,7 @@ mod test {
     #[test]
     fn test_query_pool_metadata() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         // create metadata entries
         let bar_key = UniquePoolId::new(42);
         let bar_metadata = create_pool_metadata("bar", "btc", "eth");
@@ -1082,7 +1117,7 @@ mod test {
     #[test]
     fn test_query_pool_metadata_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
-        mock_init(deps.as_mut()).unwrap();
+        mock_init(&mut deps).unwrap();
         // create metadata entries
         let bar_key = UniquePoolId::new(42);
         let bar_metadata = create_pool_metadata("bar", "btc", "eth");

@@ -1,12 +1,12 @@
 [workspace]
 members = [
-  "astroport-adapter",
+  # "astroport-adapter",
   "astrovault-adapter",
-  "bundles/*",
-  "osmosis-adapter",
-  "wyndex-adapter",
-  "kujira-adapter",
-  "mars-adapter",
+  # "bundles/*",
+  # "osmosis-adapter",
+  # "wyndex-adapter",
+  # "kujira-adapter",
+  # "mars-adapter",
 ]
 
 resolver = "2"
@@ -26,19 +26,19 @@ license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
-cosmwasm-std = { version = "1.2" }
-cosmwasm-schema = { version = "1.2" }
-cw-storage-plus = "1.2.0"
-cw2 = "1.1.2"
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "3.0.0" }
-cw20 = { package = "abstract-cw20", version = "3.0.0" }
-cw20-base = { package = "abstract-cw20-base", version = "3.0.0" }
-cw-utils = "1.0"
-cw-controllers = "1.1"
-cw-ownable = { version = "0.5" }
-cw-address-like = { version = "1.0" }
-cw-asset = { version = "3.0" }
-cw-orch = { version = "0.24.0" }
+cosmwasm-std = { version = "2.0" }
+cosmwasm-schema = { version = "2.0" }
+cw-storage-plus = "2.0.0"
+cw2 = "2.0.0"
+cw-plus-interface = { package = "abstract-cw-plus-interface", version = "4.0.0" }
+cw20 = { version = "2.0.0" }
+cw20-base = { version = "2.0.0" }
+cw-utils = "2.0"
+cw-controllers = "2.0"
+cw-ownable = { version = "2.0" }
+cw-address-like = { version = "2.0" }
+cw-asset = { version = "4.0" }
+cw-orch = { version = "0.25.0" }
 
 anyhow = "1.0"
 
@@ -73,6 +73,12 @@ abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
+abstract-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", branch = "buckram/update-interface-package" }
+
+# TODO: remove after polytone release
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

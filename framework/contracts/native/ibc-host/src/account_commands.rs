@@ -136,6 +136,7 @@ pub fn send_all_back(
                 to_address: client_proxy_address.to_string(),
                 amount: coin,
                 timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+                memo: None,
             }
             .into(),
         )

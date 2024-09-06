@@ -87,7 +87,8 @@ impl GovernanceDetails<String> {
             }
             GovernanceDetails::SubAccount { manager, proxy } => {
                 let manager_addr = deps.api.addr_validate(&manager)?;
-                let account_id = account::ACCOUNT_ID.query(&deps.querier, manager_addr)?;
+                let proxy_addr = deps.api.addr_validate(&proxy)?;
+                let account_id = account::ACCOUNT_ID.query(&deps.querier, manager_addr.clone())?;
                 let base = version_control::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
                     version_control_addr,
@@ -98,7 +99,7 @@ impl GovernanceDetails<String> {
                         format!("Version control does not have account id of manager {manager}"),
                     )));
                 };
-                if b.manager == manager && b.proxy == proxy {
+                if b.manager == manager_addr && b.proxy == proxy_addr {
                     Ok(GovernanceDetails::SubAccount {
                         manager: b.manager,
                         proxy: b.proxy,
@@ -251,14 +252,16 @@ mod test {
     #[test]
     fn test_verify() {
         let deps = mock_dependencies();
+        let owner = deps.api.addr_make("monarch");
         let gov = GovernanceDetails::Monarchy {
-            monarch: "monarch".to_string(),
+            monarch: owner.to_string(),
         };
-        let mock_version_control = Addr::unchecked("mock_version_control");
+        let mock_version_control = deps.api.addr_make("mock_version_control");
         assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
 
+        let gov_addr = deps.api.addr_make("gov_addr");
         let gov = GovernanceDetails::External {
-            governance_address: "gov_addr".to_string(),
+            governance_address: gov_addr.to_string(),
             governance_type: "external-multisig".to_string(),
         };
         assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
@@ -276,15 +279,16 @@ mod test {
         assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
 
         // too short
+        let gov_address = deps.api.addr_make("gov_address");
         let gov = GovernanceDetails::External {
-            governance_address: "gov_address".to_string(),
+            governance_address: gov_address.to_string(),
             governance_type: "gov".to_string(),
         };
         assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
 
         // too long
         let gov = GovernanceDetails::External {
-            governance_address: "gov_address".to_string(),
+            governance_address: gov_address.to_string(),
             governance_type: "a".repeat(190),
         };
         assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
@@ -297,11 +301,12 @@ mod test {
         assert!(gov.verify(deps.as_ref(), mock_version_control).is_err());
 
         // good nft
+        let collection_addr = deps.api.addr_make("collection_addr");
         let gov = GovernanceDetails::NFT {
-            collection_addr: "collection_addr".to_string(),
+            collection_addr: collection_addr.to_string(),
             token_id: "1".to_string(),
         };
-        let mock_version_control = Addr::unchecked("mock_version_control");
+        let mock_version_control = deps.api.addr_make("mock_version_control");
         assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
     }
 }

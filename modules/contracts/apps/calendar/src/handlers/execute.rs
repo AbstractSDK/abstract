@@ -195,11 +195,11 @@ fn handle_stake(
     let response = match stake_action {
         StakeAction::Return => module.response("return_stake").add_message(BankMsg::Send {
             to_address: requester,
-            amount: vec![Coin::new(amount_staked.into(), config.denom)],
+            amount: vec![Coin::new(amount_staked, config.denom)],
         }),
         StakeAction::FullSlash => {
             let proxy_deposit_msgs: Vec<CosmosMsg> =
-                bank.deposit(vec![Coin::new(amount_staked.into(), config.denom)])?;
+                bank.deposit(vec![Coin::new(amount_staked, config.denom)])?;
             module
                 .response("full_slash")
                 .add_messages(proxy_deposit_msgs)
@@ -214,19 +214,14 @@ fn handle_stake(
             let amount_to_slash =
                 amount_staked.multiply_ratio(minutes_late, meeting_duration_in_minutes as u128);
 
-            let proxy_deposit_msgs: Vec<CosmosMsg> = bank.deposit(vec![Coin::new(
-                amount_to_slash.into(),
-                config.denom.clone(),
-            )])?;
+            let proxy_deposit_msgs: Vec<CosmosMsg> =
+                bank.deposit(vec![Coin::new(amount_to_slash, config.denom.clone())])?;
 
             module
                 .response("partial_slash")
                 .add_message(BankMsg::Send {
                     to_address: requester,
-                    amount: vec![Coin::new(
-                        (amount_staked - amount_to_slash).into(),
-                        config.denom,
-                    )],
+                    amount: vec![Coin::new(amount_staked - amount_to_slash, config.denom)],
                 })
                 .add_messages(proxy_deposit_msgs)
         }

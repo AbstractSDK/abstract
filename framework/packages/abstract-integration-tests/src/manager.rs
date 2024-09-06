@@ -49,7 +49,7 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let app_addr = account.install_app(&app, &MockInitMsg {}, None)?;
+    let app_addr = account.install_app(&app, &MockInitMsg {}, &[])?;
     let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
     assert_that!(app_addr).is_equal_to(module_addr);
     Ok(())
@@ -73,7 +73,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     crate::mock_modules::deploy_modules(&chain);
 
@@ -164,7 +164,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
 
@@ -275,12 +275,12 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
                 monarch: sender.to_string(),
             },
             // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
-            Some(&[coin(18, coin1), coin(20, coin2)]),
+            &[coin(18, coin1), coin(20, coin2)],
         )
         .unwrap();
     let balances = chain
         .bank_querier()
-        .balance(account.proxy.address()?, None)
+        .balance(&account.proxy.address()?, None)
         .unwrap();
     assert_eq!(balances, vec![coin(1, coin1), coin(5, coin2)]);
     Ok(())
@@ -310,7 +310,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
 
     let test_addr_balance = chain
         .bank_querier()
-        .balance(Addr::unchecked(&adapter1), Some("TEST".to_owned()))
+        .balance(&Addr::unchecked(&adapter1), Some("TEST".to_owned()))
         .unwrap();
     assert_eq!(test_addr_balance[0].amount, Uint128::new(123456));
 
@@ -438,11 +438,14 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
                 },
             },
         ),
-        None,
+        &[],
     )?;
 
     chain
-        .set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])
+        .set_balance(
+            &account.proxy.address()?,
+            vec![Coin::new(100_000u128, TTOKEN)],
+        )
         .unwrap();
 
     let adapter_addr = account

@@ -1,4 +1,4 @@
-use std::time::Duration;
+// use std::time::Duration;
 
 use cosmos_sdk_proto::{
     cosmos::{base, feegrant},
@@ -39,7 +39,7 @@ pub struct PeriodicAllowance {
     /// @see [cosmos_sdk_proto::cosmos::feegrant::v1beta1::PeriodicAllowance::basic]
     pub basic: Option<BasicAllowance>,
     /// @see [cosmos_sdk_proto::cosmos::feegrant::v1beta1::PeriodicAllowance::period]
-    pub period: Option<Duration>,
+    pub period: Option<std::time::Duration>,
     /// @see [cosmos_sdk_proto::cosmos::feegrant::v1beta1::PeriodicAllowance::period_spend_limit]
     pub period_spend_limit: Vec<Coin>,
     /// @see [cosmos_sdk_proto::cosmos::feegrant::v1beta1::PeriodicAllowance::period_spend_limit]
@@ -52,7 +52,7 @@ impl PeriodicAllowance {
     /// Create new periodic allowance
     pub fn new(
         basic: Option<BasicAllowance>,
-        period: Option<Duration>,
+        period: Option<std::time::Duration>,
         period_spend_limit: Vec<Coin>,
         period_can_spend: Vec<Coin>,
         period_reset: Option<Timestamp>,
@@ -135,10 +135,12 @@ impl StargateMessage for PeriodicAllowance {
     fn to_proto(&self) -> feegrant::v1beta1::PeriodicAllowance {
         feegrant::v1beta1::PeriodicAllowance {
             basic: self.basic.clone().map(|b| b.to_proto()),
-            period: self.period.map(|p| prost_types::Duration {
-                seconds: p.as_secs() as i64,
-                nanos: 0,
-            }),
+            period: self.period.map(
+                |p| cosmos_sdk_proto::tendermint::google::protobuf::Duration {
+                    seconds: p.as_secs() as i64,
+                    nanos: 0,
+                },
+            ),
             period_spend_limit: super::convert_coins(self.period_spend_limit.clone()),
             period_can_spend: super::convert_coins(self.period_can_spend.clone()),
             period_reset: self.period_reset.map(super::convert_stamp),

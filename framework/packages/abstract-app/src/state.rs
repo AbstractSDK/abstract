@@ -46,8 +46,8 @@ pub struct AppContract<
     SudoMsg: 'static = Empty,
 > {
     // Custom state for every App
-    pub admin: NestedAdmin<'static>,
-    pub(crate) base_state: Item<'static, AppState>,
+    pub admin: NestedAdmin,
+    pub(crate) base_state: Item<AppState>,
 
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,
@@ -75,11 +75,11 @@ impl<
         }
     }
 
-    pub fn module_id(&self) -> &str {
+    pub fn module_id(&self) -> &'static str {
         self.contract.info().0
     }
 
-    pub fn version(&self) -> &str {
+    pub fn version(&self) -> &'static str {
         self.contract.info().1
     }
 
@@ -176,6 +176,7 @@ mod tests {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })
             .with_replies(&[(1u64, |_, _, _, msg| {
+                #[allow(deprecated)]
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })])
             .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));

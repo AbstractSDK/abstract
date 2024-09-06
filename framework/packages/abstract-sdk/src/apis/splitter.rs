@@ -84,7 +84,7 @@ mod test {
 
     fn split() -> Result<Response, AbstractSdkError> {
         let deps = mock_dependencies();
-        let module = MockModule::new();
+        let module = MockModule::new(deps.api);
         // ANCHOR: usage
         let asset = AnsAsset {
             amount: Uint128::from(100u128),
@@ -92,9 +92,9 @@ mod test {
         };
 
         let receivers = vec![
-            Addr::unchecked("receiver1"),
-            Addr::unchecked("receiver2"),
-            Addr::unchecked("receiver3"),
+            deps.api.addr_make("receiver1"),
+            deps.api.addr_make("receiver2"),
+            deps.api.addr_make("receiver3"),
         ];
 
         let split_funds = module.splitter(deps.as_ref()).split(asset, &receivers)?;

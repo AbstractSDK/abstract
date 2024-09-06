@@ -265,10 +265,7 @@ fn contract_version<Chain: CwEnv, A: ContractInstance<Chain>>(
     let wasm_querier = contract.environment().wasm_querier();
     Ok(from_json(
         wasm_querier
-            .raw_query(
-                contract.address()?.to_string(),
-                CONTRACT.as_slice().to_vec(),
-            )
+            .raw_query(&contract.address()?, CONTRACT.as_slice().to_vec())
             .unwrap(),
     )?)
 }

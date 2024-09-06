@@ -12,7 +12,7 @@ use abstract_app::{
     traits::ModuleIdentification,
 };
 use abstract_client::{
-    builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
+    builder::cw20_builder::{self, ExecuteMsgInterfaceFns, QueryMsgInterfaceFns},
     AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
     Publisher,
 };
@@ -31,10 +31,7 @@ use abstract_std::{
     },
     IBC_CLIENT,
 };
-use abstract_testing::{
-    addresses::{TEST_MODULE_NAME, TTOKEN},
-    prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
-};
+use abstract_testing::prelude::*;
 use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;
@@ -353,7 +350,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
     my_adapter
         .call_as(&publisher_manager)
-        .execute(&AdapterMockExecMsg {}.into(), None)?;
+        .execute(&AdapterMockExecMsg {}.into(), &[])?;
     let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
@@ -386,7 +383,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
     my_adapter
         .call_as(&publisher_manager)
-        .execute(&AdapterMockExecMsg {}.into(), None)?;
+        .execute(&AdapterMockExecMsg {}.into(), &[])?;
     let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
@@ -647,9 +644,9 @@ fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain).build()?;
     let account = client.account_builder().build()?;
 
-    let coin1 = Coin::new(50, "denom1");
-    let coin2 = Coin::new(20, "denom2");
-    let coin3 = Coin::new(10, "denom3");
+    let coin1 = Coin::new(50u128, "denom1");
+    let coin2 = Coin::new(20u128, "denom2");
+    let coin3 = Coin::new(10u128, "denom3");
     account.set_balance(&[coin1.clone(), coin2.clone()])?;
     account.add_balance(&[coin3.clone()])?;
 
@@ -692,9 +689,9 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build()?;
 
     let user = chain.addr_make("user");
-    let coin1 = Coin::new(50, "denom1");
-    let coin2 = Coin::new(20, "denom2");
-    let coin3 = Coin::new(10, "denom3");
+    let coin1 = Coin::new(50u128, "denom1");
+    let coin2 = Coin::new(20u128, "denom2");
+    let coin3 = Coin::new(10u128, "denom3");
     client.set_balance(&user, &[coin1.clone(), coin2.clone()])?;
     client.add_balance(&user, &[coin3.clone()])?;
 
@@ -733,7 +730,7 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
     let denom = "denom";
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build()?;
-    client.set_balances([(client.sender(), coins(100, denom).as_slice())])?;
+    client.set_balances([(&client.sender(), coins(100, denom).as_slice())])?;
 
     let user = chain.addr_make("user");
 
@@ -785,13 +782,13 @@ fn doc_example_test() -> anyhow::Result<()> {
     // ## ANCHOR_END: build_client
 
     // ## ANCHOR: balances
-    let coins = &[Coin::new(50, "eth"), Coin::new(20, "btc")];
+    let coins = &[Coin::new(50u128, "eth"), Coin::new(20u128, "btc")];
 
     // Set a balance
     client.set_balance(&sender, coins)?;
 
     // Add to an address's balance
-    client.add_balance(&sender, &[Coin::new(50, "eth")])?;
+    client.add_balance(&sender, &[Coin::new(50u128, "eth")])?;
 
     // Query an address's balance
     let coin1_balance = client.query_balance(&sender, "eth")?;
@@ -834,7 +831,7 @@ fn doc_example_test() -> anyhow::Result<()> {
     // Get the owner
     let owner: Addr = account.owner()?;
     // Add or set balance
-    account.add_balance(&[Coin::new(100, "btc")])?;
+    account.add_balance(&[Coin::new(100u128, "btc")])?;
     // ...
     // ## ANCHOR_END: account_helpers
 

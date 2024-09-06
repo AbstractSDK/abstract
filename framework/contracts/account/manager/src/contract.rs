@@ -270,7 +270,7 @@ mod tests {
         #[test]
         fn disallow_same_version() -> ManagerResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -292,7 +292,7 @@ mod tests {
         #[test]
         fn disallow_downgrade() -> ManagerResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let big_version = "999.999.999";
             set_contract_version(deps.as_mut().storage, MANAGER, big_version)?;
@@ -317,7 +317,7 @@ mod tests {
         #[test]
         fn disallow_name_change() -> ManagerResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
@@ -340,7 +340,7 @@ mod tests {
         #[test]
         fn works() -> ManagerResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 

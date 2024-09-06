@@ -36,6 +36,7 @@ docker create -v /code --name with_code alpine /bin/true
 docker cp Cargo.toml with_code:/code
 docker cp Cargo.lock with_code:/code
 # copy code into this volume
+docker cp ./workspace-hack with_code:/code
 docker cp ./contracts with_code:/code
 docker cp ./packages with_code:/code
 # Run the build
