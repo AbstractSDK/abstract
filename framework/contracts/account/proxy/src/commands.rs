@@ -95,17 +95,15 @@ pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) ->
             ))
         })?;
 
-    // TODO: uncomment
-    unimplemented!()
-    // let res: abstract_ica::msg::IcaActionResult = deps.querier.query(
-    //     &WasmQuery::Smart {
-    //         contract_addr: ica_client_address.into(),
-    //         msg: action_query,
-    //     }
-    //     .into(),
-    // )?;
+    let res: abstract_ica::msg::IcaActionResult = deps.querier.query(
+        &WasmQuery::Smart {
+            contract_addr: ica_client_address.into(),
+            msg: action_query,
+        }
+        .into(),
+    )?;
 
-    // Ok(ProxyResponse::action("ica_action").add_messages(res.msgs))
+    Ok(ProxyResponse::action("ica_action").add_messages(res.msgs))
 }
 
 /// Add a contract to the whitelist

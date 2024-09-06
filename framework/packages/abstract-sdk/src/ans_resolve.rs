@@ -170,7 +170,7 @@ mod tests {
         querier: &MockQuerier<Empty>,
         entry: &R,
     ) -> AnsHostResult<R::Output> {
-        entry.resolve(&wrap_querier(querier), &ans_host)
+        entry.resolve(&wrap_querier(querier), ans_host)
     }
 
     fn test_dne<R: Resolve>(ans_host: &AnsHost, nonexistent: &R)
