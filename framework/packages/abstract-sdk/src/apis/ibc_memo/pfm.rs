@@ -2,22 +2,18 @@ use std::collections::BTreeMap;
 
 use serde_cw_value::Value;
 
-use super::IbcMemoBuilder;
-
 /// Builder for [Packet Forward Middleware](https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware) memos.
 pub struct PacketForwardMiddlewareBuilder {
-    receiver: String,
     port: Option<String>,
     hops: Vec<PacketForwardMiddlewareHop>,
 }
 
 impl PacketForwardMiddlewareBuilder {
     /// Forward memo builder
-    pub fn new(receiver: impl Into<String>) -> Self {
+    pub fn new(first_hop_channel: impl Into<String>) -> Self {
         Self {
-            receiver: receiver.into(),
             port: None,
-            hops: vec![],
+            hops: vec![PacketForwardMiddlewareHop::new(first_hop_channel)],
         }
     }
 
@@ -50,31 +46,15 @@ impl PacketForwardMiddlewareBuilder {
         }
         self
     }
-}
 
-struct PacketForwardMiddlewareHop {
-    channel: String,
-    timeout: Option<String>,
-    retries: Option<u8>,
-}
-
-impl PacketForwardMiddlewareHop {
-    pub fn new(channel: impl Into<String>) -> Self {
-        Self {
-            channel: channel.into(),
-            timeout: None,
-            retries: None,
-        }
-    }
-}
-
-impl IbcMemoBuilder for PacketForwardMiddlewareBuilder {
-    fn build_value_map(self) -> BTreeMap<Value, Value> {
+    /// Build the memo json string
+    /// Receiver is an address of the packet receiver on remote chain
+    pub fn build(self, receiver: impl Into<String>) -> cosmwasm_std::StdResult<String> {
         let PacketForwardMiddlewareBuilder {
-            receiver,
             port,
             hops,
         } = self;
+        let receiver = receiver.into();
         let port = port.unwrap_or("transfer".to_owned());
 
         let mut forwards = hops
@@ -102,7 +82,23 @@ impl IbcMemoBuilder for PacketForwardMiddlewareBuilder {
             }
             head = BTreeMap::from([(Value::String("forward".to_owned()), Value::Map(forward_msg))]);
         }
-        head
+        cosmwasm_std::to_json_string(&head)
+    }
+}
+
+struct PacketForwardMiddlewareHop {
+    channel: String,
+    timeout: Option<String>,
+    retries: Option<u8>,
+}
+
+impl PacketForwardMiddlewareHop {
+    pub fn new(channel: impl Into<String>) -> Self {
+        Self {
+            channel: channel.into(),
+            timeout: None,
+            retries: None,
+        }
     }
 }
 
@@ -115,7 +111,7 @@ struct ForwardMemo {
     retries: Option<u8>,
 }
 
-impl IbcMemoBuilder for ForwardMemo {
+impl ForwardMemo {
     fn build_value_map(self) -> BTreeMap<Value, Value> {
         let receiver = self.receiver.unwrap_or("pfm".to_owned());
         let mut forward_value = BTreeMap::from([

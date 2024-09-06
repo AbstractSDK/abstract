@@ -3,8 +3,6 @@ use std::collections::BTreeMap;
 use cosmwasm_std::{from_json, to_json_binary, Addr, Binary};
 use serde_cw_value::Value;
 
-use super::IbcMemoBuilder;
-
 /// Builder for [IbcHooks](https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks) memo field.
 pub struct IbcHooksBuilder {
     contract_addr: String,
@@ -30,31 +28,30 @@ impl IbcHooksBuilder {
         self.ibc_callback = Some(callback_contract);
         self
     }
-}
 
-impl IbcMemoBuilder for IbcHooksBuilder {
-    fn build_value_map(self) -> BTreeMap<Value, Value> {
-        let execute_wasm_value = BTreeMap::from([
-            (
-                Value::String("contract".to_owned()),
-                Value::String(self.contract_addr),
-            ),
-            (
-                Value::String("msg".to_owned()),
-                from_json(&self.msg).expect("expected valid json message"),
-            ),
-        ]);
-
-        let mut memo = BTreeMap::from([(
-            Value::String("wasm".to_owned()),
-            Value::Map(execute_wasm_value.into_iter().collect()),
-        )]);
-        if let Some(contract_addr) = self.ibc_callback {
-            memo.insert(
-                Value::String("ibc_callback".to_owned()),
-                Value::String(contract_addr.into_string()),
-            );
-        }
-        memo
+    /// Build memo json string
+    pub fn build(self) -> cosmwasm_std::StdResult<String> {
+            let execute_wasm_value = BTreeMap::from([
+                (
+                    Value::String("contract".to_owned()),
+                    Value::String(self.contract_addr),
+                ),
+                (
+                    Value::String("msg".to_owned()),
+                    from_json(&self.msg).expect("expected valid json message"),
+                ),
+            ]);
+    
+            let mut memo = BTreeMap::from([(
+                Value::String("wasm".to_owned()),
+                Value::Map(execute_wasm_value.into_iter().collect()),
+            )]);
+            if let Some(contract_addr) = self.ibc_callback {
+                memo.insert(
+                    Value::String("ibc_callback".to_owned()),
+                    Value::String(contract_addr.into_string()),
+                );
+            }
+            cosmwasm_std::to_json_string(&memo)
     }
 }
