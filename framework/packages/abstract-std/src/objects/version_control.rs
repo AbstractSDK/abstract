@@ -10,7 +10,7 @@ use super::{
 };
 use crate::version_control::{
     state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
-    AccountBase, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
+    Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
     NamespacesResponse, QueryMsg,
 };
 
@@ -252,7 +252,7 @@ impl VersionControlContract {
         &self,
         account_id: &AccountId,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<AccountBase> {
+    ) -> VersionControlResult<Account> {
         let maybe_account = ACCOUNT_ADDRESSES
             .query(querier, self.address.clone(), account_id)
             .map_err(|error| VersionControlError::QueryFailed {
@@ -285,7 +285,7 @@ impl VersionControlContract {
         &self,
         maybe_manager: &Addr,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<AccountBase> {
+    ) -> VersionControlResult<Account> {
         let account_id = self.unchecked_account_id(maybe_manager, querier)?;
         let account_base = self.account_base(&account_id, querier)?;
         if account_base.manager.ne(maybe_manager) {
@@ -303,7 +303,7 @@ impl VersionControlContract {
         &self,
         maybe_proxy: &Addr,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<AccountBase> {
+    ) -> VersionControlResult<Account> {
         let account_id = self.unchecked_account_id(maybe_proxy, querier)?;
         let account_base = self.account_base(&account_id, querier)?;
         if account_base.proxy.ne(maybe_proxy) {

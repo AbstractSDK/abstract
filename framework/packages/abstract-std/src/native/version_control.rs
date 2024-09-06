@@ -21,7 +21,7 @@ pub struct Config {
 pub mod state {
     use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 
-    use super::{AccountBase, Config, ModuleConfiguration, ModuleDefaultConfiguration};
+    use super::{Account, Config, ModuleConfiguration, ModuleDefaultConfiguration};
     use crate::objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
         namespace::Namespace,
@@ -45,7 +45,7 @@ pub mod state {
     pub const MODULE_DEFAULT_CONFIG: Map<(&Namespace, &str), ModuleDefaultConfiguration> =
         Map::new("dcfg");
     /// Maps Account ID to the address of its core contracts
-    pub const ACCOUNT_ADDRESSES: Map<&AccountId, AccountBase> = Map::new("accs");
+    pub const ACCOUNT_ADDRESSES: Map<&AccountId, Account> = Map::new("accs");
 
     /// Sub indexes for namespaces.
     // TODO: move to a two maps, we don't need multiindex for accountid
@@ -84,10 +84,7 @@ use crate::objects::{
 
 /// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
-pub struct AccountBase {
-    pub manager: Addr,
-    pub proxy: Addr,
-}
+pub struct Account(Addr);
 
 /// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
@@ -139,10 +136,10 @@ pub enum ExecuteMsg {
     RemoveNamespaces { namespaces: Vec<String> },
     /// Register a new Account to the deployed Accounts.
     /// Claims namespace if provided.  
-    /// Only Factory can call this
+    /// Only new accounts can call this.
     AddAccount {
         account_id: AccountId,
-        account_base: AccountBase,
+        account_base: Account,
         namespace: Option<String>,
     },
     /// Updates configuration of the VC contract
@@ -226,7 +223,7 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountBaseResponse {
-    pub account_base: AccountBase,
+    pub account_base: Account,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -318,7 +315,7 @@ impl NamespaceResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct NamespaceInfo {
     pub account_id: AccountId,
-    pub account_base: AccountBase,
+    pub account_base: Account,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -452,7 +452,7 @@ mod tests {
         use crate::mock::TEST_AUTHORIZED_ADDR;
         use abstract_std::{
             objects::{account::AccountTrace, AccountId},
-            version_control::AccountBase,
+            version_control::Account,
         };
         use cosmwasm_std::OwnedDeps;
 
@@ -580,7 +580,7 @@ mod tests {
         fn executing_as_authorized_address_on_diff_proxy_should_err() {
             let mut deps = mock_dependencies();
             let base = test_account_base(deps.api);
-            let another_base = AccountBase {
+            let another_base = Account {
                 manager: deps.api.addr_make("some_other_manager"),
                 proxy: deps.api.addr_make("some_other_proxy"),
             };

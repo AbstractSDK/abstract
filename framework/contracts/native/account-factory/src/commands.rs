@@ -8,7 +8,7 @@ use abstract_sdk::{
             module_reference::ModuleReference,
         },
         proxy::InstantiateMsg as ProxyInstantiateMsg,
-        version_control::{AccountBase, ExecuteMsg as VCExecuteMsg},
+        version_control::{Account, ExecuteMsg as VCExecuteMsg},
         MANAGER, PROXY,
     },
 };
@@ -194,7 +194,7 @@ pub fn execute_create_account(
     )?;
     let manager_addr_human = deps.api.addr_humanize(&manager_addr)?;
 
-    let account_base = AccountBase {
+    let account_base = Account {
         manager: manager_addr_human,
         proxy: proxy_addr_human,
     };

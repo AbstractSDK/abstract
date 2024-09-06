@@ -16,7 +16,7 @@ pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 /// use the package version as test version, breaks tests otherwise.
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
-    use abstract_std::version_control::AccountBase;
+    use abstract_std::version_control::Account;
     use cosmwasm_std::{testing::MockApi, Addr};
 
     // Test addr makers
@@ -29,8 +29,8 @@ pub mod addresses {
     const TEST_MODULE_FACTORY: &str = "module_factory_address";
     const TEST_MODULE_ADDRESS: &str = "test_module_address";
 
-    pub fn test_account_base(mock_api: MockApi) -> AccountBase {
-        AccountBase {
+    pub fn test_account_base(mock_api: MockApi) -> Account {
+        Account {
             manager: mock_api.addr_make(TEST_MANAGER),
             proxy: mock_api.addr_make(TEST_PROXY),
         }
@@ -58,7 +58,7 @@ pub mod addresses {
         pub account_factory: Addr,
         pub module_factory: Addr,
         pub module_address: Addr,
-        pub account: AccountBase,
+        pub account: Account,
     }
 }
 

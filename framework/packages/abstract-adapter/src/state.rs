@@ -5,7 +5,7 @@ use abstract_sdk::{
         ModuleIbcHandlerFn, QueryHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
     namespaces::BASE_STATE,
-    std::version_control::AccountBase,
+    std::version_control::Account,
     AbstractSdkError,
 };
 use abstract_std::{
@@ -53,7 +53,7 @@ pub struct AdapterContract<
     /// Map ProxyAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
-    pub target_account: Option<AccountBase>,
+    pub target_account: Option<Account>,
 }
 
 /// Constructor
@@ -166,7 +166,7 @@ mod tests {
     fn set_and_get_target() -> AdapterMockResult {
         let mut mock = MOCK_ADAPTER;
         let target = Addr::unchecked("target");
-        mock.target_account = Some(AccountBase {
+        mock.target_account = Some(Account {
             proxy: target.clone(),
             manager: Addr::unchecked("manager"),
         });

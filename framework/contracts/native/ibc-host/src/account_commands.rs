@@ -8,7 +8,7 @@ use abstract_std::{
     manager::{self, ModuleInstallConfig},
     objects::{AccountId, TruncatedChainId},
     proxy,
-    version_control::AccountBase,
+    version_control::Account,
     PROXY,
 };
 use cosmwasm_std::{
@@ -76,7 +76,7 @@ pub fn receive_register(
 /// Execute manager message on local manager.
 pub fn receive_dispatch(
     _deps: DepsMut,
-    account: AccountBase,
+    account: Account,
     manager_msgs: Vec<manager::ExecuteMsg>,
 ) -> HostResult {
     // execute the message on the manager
@@ -101,7 +101,7 @@ pub fn receive_dispatch(
 pub fn receive_send_all_back(
     deps: DepsMut,
     env: Env,
-    account: AccountBase,
+    account: Account,
     client_proxy_address: String,
     src_chain: TruncatedChainId,
 ) -> HostResult {
@@ -114,7 +114,7 @@ pub fn receive_send_all_back(
 pub fn send_all_back(
     deps: Deps,
     env: Env,
-    account: AccountBase,
+    account: Account,
     client_proxy_address: String,
     src_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
@@ -154,7 +154,7 @@ pub fn send_all_back(
 }
 
 /// get the account base from the version control contract
-pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, HostError> {
+pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<Account, HostError> {
     let version_control = CONFIG.load(deps.storage)?.version_control;
     let account_base = version_control.account_base(account_id, &deps.querier)?;
     Ok(account_base)

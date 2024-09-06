@@ -1,6 +1,6 @@
 use abstract_std::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
-    version_control::AccountBase,
+    version_control::Account,
 };
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
@@ -24,8 +24,8 @@ pub trait AccountIdentification: Sized {
         })
     }
     /// Get the AccountBase for the current account.
-    fn account_base(&self, deps: Deps) -> AbstractSdkResult<AccountBase> {
-        Ok(AccountBase {
+    fn account_base(&self, deps: Deps) -> AbstractSdkResult<Account> {
+        Ok(Account {
             manager: self.manager_address(deps)?,
             proxy: self.proxy_address(deps)?,
         })

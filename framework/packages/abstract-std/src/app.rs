@@ -13,7 +13,7 @@ use crate::{
         ans_host::AnsHost, gov_type::TopLevelOwnerResponse, module_version::ModuleDataResponse,
         version_control::VersionControlContract,
     },
-    version_control::AccountBase,
+    version_control::Account,
 };
 
 pub type ExecuteMsg<ModuleMsg = Empty> = EndpointExecMsg<BaseExecuteMsg, ModuleMsg>;
@@ -55,7 +55,7 @@ impl AppQueryMsg for Empty {}
 pub struct BaseInstantiateMsg {
     pub ans_host_address: String,
     pub version_control_address: String,
-    pub account_base: AccountBase,
+    pub account_base: Account,
 }
 
 #[cosmwasm_schema::cw_serde]

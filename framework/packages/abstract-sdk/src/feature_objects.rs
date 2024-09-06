@@ -5,7 +5,7 @@
 //! requiring the usage of a base contract.
 
 pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-use abstract_std::{version_control::AccountBase, VERSION_CONTROL};
+use abstract_std::{version_control::Account, VERSION_CONTROL};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::{
@@ -43,7 +43,7 @@ impl ModuleIdentification for ProxyContract {
     }
 }
 
-impl AccountIdentification for AccountBase {
+impl AccountIdentification for Account {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.proxy.clone())
     }
@@ -52,12 +52,12 @@ impl AccountIdentification for AccountBase {
         Ok(self.manager.clone())
     }
 
-    fn account_base(&self, _deps: Deps) -> AbstractSdkResult<AccountBase> {
+    fn account_base(&self, _deps: Deps) -> AbstractSdkResult<Account> {
         Ok(self.clone())
     }
 }
 
-impl ModuleIdentification for AccountBase {
+impl ModuleIdentification for Account {
     /// Any actions executed by the core will be by the proxy address
     fn module_id(&self) -> &'static str {
         PROXY

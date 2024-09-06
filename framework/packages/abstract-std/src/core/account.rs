@@ -23,6 +23,7 @@ pub struct InstantiateMsg {
     // pub authenticator: Option<AddAuthenticator>,
     pub account_id: Option<AccountId>,
     pub owner: GovernanceDetails<String>,
+    pub namespace: Option<String>,
     // Optionally modules can be provided. They will be installed after account registration.
     pub install_modules: Vec<ModuleInstallConfig>,
     pub name: String,

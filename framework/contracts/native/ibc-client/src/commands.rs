@@ -17,7 +17,7 @@ use abstract_std::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
     },
-    version_control::AccountBase,
+    version_control::Account,
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
@@ -137,7 +137,7 @@ pub fn execute_remove_host(
 fn send_remote_host_action(
     deps: Deps,
     account_id: AccountId,
-    account: AccountBase,
+    account: Account,
     host_chain: TruncatedChainId,
     action: HostAction,
     callback_request: Option<CallbackRequest>,

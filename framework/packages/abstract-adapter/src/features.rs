@@ -42,7 +42,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     fn account_base(
         &self,
         _deps: Deps,
-    ) -> AbstractSdkResult<abstract_sdk::std::version_control::AccountBase> {
+    ) -> AbstractSdkResult<abstract_sdk::std::version_control::Account> {
         if let Some(target) = &self.target_account {
             Ok(target.clone())
         } else {
@@ -70,7 +70,7 @@ mod tests {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::{
         adapter::{AdapterRequestMsg, ExecuteMsg},
-        version_control::AccountBase,
+        version_control::Account,
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, DepsMut, Env, MessageInfo, Response};
@@ -101,7 +101,7 @@ mod tests {
         let manager = module.manager_address(deps.as_ref())?;
         assert_that!(manager).is_equal_to(&expected_manager);
         let account = module.account_base(deps.as_ref())?;
-        assert_that!(account).is_equal_to(AccountBase {
+        assert_that!(account).is_equal_to(Account {
             manager: expected_manager,
             proxy: expected_proxy,
         });

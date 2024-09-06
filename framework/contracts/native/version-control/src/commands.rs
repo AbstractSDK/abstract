@@ -7,7 +7,7 @@ use abstract_sdk::{
             namespace::Namespace,
             AccountId,
         },
-        version_control::{state::*, AccountBase, Config},
+        version_control::{state::*, Account, Config},
     },
 };
 use abstract_std::{
@@ -36,7 +36,7 @@ pub fn add_account(
     deps: DepsMut,
     msg_info: MessageInfo,
     account_id: AccountId,
-    account_base: AccountBase,
+    account_base: Account,
     namespace: Option<String>,
 ) -> VCResult {
     let config = CONFIG.load(deps.storage)?;
@@ -758,10 +758,10 @@ mod test {
 
     fn create_third_account(
         deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-    ) -> AccountBase {
+    ) -> Account {
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let third_account = AccountBase {
+        let third_account = Account {
             manager: deps.api.addr_make("third-manager"),
             proxy: deps.api.addr_make("third-proxy"),
         };
@@ -988,7 +988,7 @@ mod test {
                 &abstr.account_factory,
                 ExecuteMsg::AddAccount {
                     account_id: ABSTRACT_ACCOUNT_ID,
-                    account_base: AccountBase {
+                    account_base: Account {
                         manager: abstr.account.manager,
                         proxy: test_admin_proxy.clone(),
                     },
@@ -1145,7 +1145,7 @@ mod test {
                 &abstr.account_factory,
                 ExecuteMsg::AddAccount {
                     account_id: SECOND_TEST_ACCOUNT_ID,
-                    account_base: AccountBase {
+                    account_base: Account {
                         manager: account_1_manager,
                         proxy: account_1_proxy,
                     },
@@ -2293,7 +2293,7 @@ mod test {
             mock_init_with_factory(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
-            let test_core: AccountBase = abstr.account;
+            let test_core: Account = abstr.account;
             let msg = ExecuteMsg::AddAccount {
                 account_id: ABSTRACT_ACCOUNT_ID,
                 account_base: test_core.clone(),

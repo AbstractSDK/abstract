@@ -348,7 +348,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
     pub fn get_account(
         &self,
         account_id: AccountId,
-    ) -> Result<AccountBase, crate::AbstractInterfaceError> {
+    ) -> Result<Account, crate::AbstractInterfaceError> {
         let resp: AccountBaseResponse = self.query(&QueryMsg::AccountBase { account_id })?;
         Ok(resp.account_base)
     }
