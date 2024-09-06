@@ -374,7 +374,7 @@ mod test {
     type AnsHostTestResult = Result<(), AnsHostError>;
 
     fn execute_helper(deps: DepsMut, msg: ExecuteMsg, owner: &Addr) -> AnsHostTestResult {
-        contract::execute(deps, mock_env(), message_info(&owner, &[]), msg)?;
+        contract::execute(deps, mock_env(), message_info(owner, &[]), msg)?;
         Ok(())
     }
 
@@ -562,7 +562,7 @@ mod test {
         }
 
         fn mock_contract_map_entry(address: &Addr) -> (UncheckedContractEntry, String) {
-            contract_address_map_entry("test_namespace", "test_contract", &address)
+            contract_address_map_entry("test_namespace", "test_contract", address)
         }
 
         fn update_contract_addresses_msg_builder(
@@ -596,7 +596,7 @@ mod test {
             let info = message_info(&abstr.owner, &[]);
             let test_addr = mock_api.addr_make("test_address");
 
-            let tester = CwMapTesterBuilder::default()
+            CwMapTesterBuilder::default()
                 .info(info)
                 .map(CONTRACT_ADDRESSES)
                 .execute(contract::execute)
@@ -604,9 +604,7 @@ mod test {
                 .mock_entry(mock_contract_map_entry(&test_addr))
                 .from_checked_entry(from_checked_entry)
                 .build()
-                .unwrap();
-
-            tester
+                .unwrap()
         }
 
         #[test]
@@ -785,7 +783,7 @@ mod test {
             let abstr = AbstractMockAddrs::new(mock_api);
             let info = message_info(&abstr.owner, &[]);
 
-            let tester = CwMapTesterBuilder::default()
+            CwMapTesterBuilder::default()
                 .info(info)
                 .map(ASSET_ADDRESSES)
                 .execute(contract::execute)
@@ -793,9 +791,7 @@ mod test {
                 .mock_entry(mock_asset_map_entry())
                 .from_checked_entry(from_checked_entry)
                 .build()
-                .unwrap();
-
-            tester
+                .unwrap()
         }
 
         #[test]
@@ -965,7 +961,7 @@ mod test {
             let abstr = AbstractMockAddrs::new(mock_api);
             let info = message_info(&abstr.owner, &[]);
 
-            let tester = CwMapTesterBuilder::default()
+            CwMapTesterBuilder::default()
                 .info(info)
                 .map(CHANNELS)
                 .execute(contract::execute)
@@ -973,9 +969,7 @@ mod test {
                 .mock_entry(mock_unchecked_channel_map_entry())
                 .from_checked_entry(from_checked_entry)
                 .build()
-                .unwrap();
-
-            tester
+                .unwrap()
         }
 
         #[test]

@@ -325,7 +325,7 @@ impl MockQuerierBuilder {
 
                     // First check for raw mappings
                     if let Some(raw_map) = self.raw_mappings.get(&addr) {
-                        if let Some(value) = raw_map.get(key) {
+                        if let Some(value) = raw_map.get(&key) {
                             return SystemResult::Ok(ContractResult::Ok(value.clone()));
                         }
                     }
@@ -335,7 +335,7 @@ impl MockQuerierBuilder {
 
                     match raw_handler {
                         Some(handler) => (*handler)(str_key),
-                        None => (*self.fallback_raw_handler)(&addr, key),
+                        None => (*self.fallback_raw_handler)(&addr, &key),
                     }
                 }
                 WasmQuery::Smart { contract_addr, msg } => {
@@ -343,8 +343,8 @@ impl MockQuerierBuilder {
                     let contract_handler = self.smart_handlers.get(&addr);
 
                     match contract_handler {
-                        Some(handler) => (*handler)(msg),
-                        None => (*self.fallback_smart_handler)(&addr, msg),
+                        Some(handler) => (*handler)(&msg),
+                        None => (*self.fallback_smart_handler)(&addr, &msg),
                     }
                 }
                 WasmQuery::ContractInfo { contract_addr } => {
