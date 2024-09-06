@@ -145,17 +145,24 @@ impl<T: CwEnv> Abstract<T> {
             has_migrated = true
         }
 
-        if self.ibc.migrate_if_needed()? {
-            has_migrated = true;
-
+        if ::ibc_client::contract::CONTRACT_VERSION != contract_version(&self.ibc.client)?.version
+            && self.ibc.client.upload_if_needed()?.is_some()
+        {
             natives_to_register.push((
                 self.ibc.client.as_instance(),
                 ::ibc_client::contract::CONTRACT_VERSION.to_string(),
             ));
+            has_migrated = true;
+        }
+
+        if ::ibc_host::contract::CONTRACT_VERSION != contract_version(&self.ibc.host)?.version
+            && self.ibc.host.upload_if_needed()?.is_some()
+        {
             natives_to_register.push((
                 self.ibc.host.as_instance(),
                 ::ibc_host::contract::CONTRACT_VERSION.to_string(),
             ));
+            has_migrated = true;
         }
 
         self.version_control.register_natives(natives_to_register)?;
