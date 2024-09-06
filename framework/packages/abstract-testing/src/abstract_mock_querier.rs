@@ -33,16 +33,10 @@ impl AbstractMockQuerierBuilder {
     pub fn account(mut self, account_base: &Account, account_id: AccountId) -> Self {
         self.builder = self
             .builder
-            .with_contract_item(&account_base.proxy, ACCOUNT_ID, &account_id)
-            .with_contract_item(&account_base.manager, ACCOUNT_ID, &account_id)
-            .with_contract_item(
-                &account_base.proxy,
-                Item::new(ADMIN_NAMESPACE),
-                &Some(account_base.manager.clone()),
-            )
+            .with_contract_item(account_base.addr(), ACCOUNT_ID, &account_id)
             // Setup the account owner as the test owner
             .with_contract_item(
-                &account_base.manager,
+                account_base.addr(),
                 Item::new(OWNERSHIP_STORAGE_KEY),
                 &Some(Ownership {
                     owner: GovernanceDetails::Monarchy {

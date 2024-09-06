@@ -156,6 +156,6 @@ pub fn send_all_back(
 /// get the account base from the version control contract
 pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<Account, HostError> {
     let version_control = CONFIG.load(deps.storage)?.version_control;
-    let account_base = version_control.account_base(account_id, &deps.querier)?;
+    let account_base = version_control.account(account_id, &deps.querier)?;
     Ok(account_base)
 }

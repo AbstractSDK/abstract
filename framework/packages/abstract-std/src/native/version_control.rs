@@ -86,6 +86,20 @@ use crate::objects::{
 #[cosmwasm_schema::cw_serde]
 pub struct Account(Addr);
 
+impl Account {
+    pub fn new(addr: Addr) -> Self {
+        Self(addr)
+    }
+
+    pub fn addr(&self) -> &Addr {
+        &self.0
+    }
+
+    pub fn into_addr(self) -> Addr {
+        self.0
+    }
+}
+
 /// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {

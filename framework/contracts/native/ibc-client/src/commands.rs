@@ -192,7 +192,7 @@ pub fn execute_send_packet(
             // Verify that the sender is a proxy contract
             let account_base = cfg
                 .version_control
-                .assert_proxy(&info.sender, &deps.querier)?;
+                .assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
             let account_id = account_base.account_id(deps.as_ref())?;
@@ -255,7 +255,7 @@ pub fn execute_send_module_to_module_packet(
             let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
             let account_base = cfg
                 .version_control
-                .account_base(&account_id, &deps.querier)?;
+                .account(&account_id, &deps.querier)?;
             let ibc_client = manager::state::ACCOUNT_MODULES.query(
                 &deps.querier,
                 account_base.manager,
@@ -378,7 +378,7 @@ pub fn execute_register_account(
     // Verify that the sender is a proxy contract
     let account_base = cfg
         .version_control
-        .assert_proxy(&info.sender, &deps.querier)?;
+        .assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
     let account_id = account_base.account_id(deps.as_ref())?;
@@ -426,7 +426,7 @@ pub fn execute_send_funds(
 
     let account_base = cfg
         .version_control
-        .assert_proxy(&info.sender, &deps.querier)?;
+        .assert_account(&info.sender, &deps.querier)?;
 
     // get account_id of Account
     let account_id = account_base.account_id(deps.as_ref())?;

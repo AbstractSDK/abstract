@@ -21,8 +21,7 @@ pub mod addresses {
 
     // Test addr makers
     const OWNER: &str = "owner";
-    const TEST_PROXY: &str = "proxy_address";
-    const TEST_MANAGER: &str = "manager_address";
+    const TEST_ACCOUNT: &str = "account_address";
     const TEST_ANS_HOST: &str = "test_ans_host_address";
     const TEST_VERSION_CONTROL: &str = "version_control_address";
     const TEST_ACCOUNT_FACTORY: &str = "account_factory_address";
@@ -30,10 +29,7 @@ pub mod addresses {
     const TEST_MODULE_ADDRESS: &str = "test_module_address";
 
     pub fn test_account_base(mock_api: MockApi) -> Account {
-        Account {
-            manager: mock_api.addr_make(TEST_MANAGER),
-            proxy: mock_api.addr_make(TEST_PROXY),
-        }
+        Account::new(mock_api.addr_make(TEST_ACCOUNT))
     }
 
     impl AbstractMockAddrs {

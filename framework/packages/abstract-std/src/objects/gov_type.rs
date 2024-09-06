@@ -24,10 +24,8 @@ pub enum GovernanceDetails<T: AddressLike> {
     },
     /// Used when the account is a sub-account of another account.
     SubAccount {
-        /// The manager of the account of which this account is the sub-account.
-        manager: T,
-        /// The proxy of the account of which this account is the sub-account.
-        proxy: T,
+        // Account address
+        account: T
     },
     /// An external governance source
     External {
@@ -85,10 +83,9 @@ impl GovernanceDetails<String> {
                 let addr = deps.api.addr_validate(&monarch)?;
                 Ok(GovernanceDetails::Monarchy { monarch: addr })
             }
-            GovernanceDetails::SubAccount { manager, proxy } => {
-                let manager_addr = deps.api.addr_validate(&manager)?;
-                let proxy_addr = deps.api.addr_validate(&proxy)?;
-                let account_id = account::ACCOUNT_ID.query(&deps.querier, manager_addr.clone())?;
+            GovernanceDetails::SubAccount { account } => {
+                let account_addr = deps.api.addr_validate(&account)?;
+                let account_id = account::ACCOUNT_ID.query(&deps.querier, account_addr.clone())?;
                 let base = version_control::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
                     version_control_addr,
@@ -96,13 +93,12 @@ impl GovernanceDetails<String> {
                 )?;
                 let Some(b) = base else {
                     return Err(AbstractError::Std(cosmwasm_std::StdError::generic_err(
-                        format!("Version control does not have account id of manager {manager}"),
+                        format!("Version control does not have account id of account {account_addr}"),
                     )));
                 };
-                if b.manager == manager_addr && b.proxy == proxy_addr {
+                if b.addr() == account_addr {
                     Ok(GovernanceDetails::SubAccount {
-                        manager: b.manager,
-                        proxy: b.proxy,
+                        account: account_addr,
                     })
                 } else {
                     Err(AbstractError::Std(cosmwasm_std::StdError::generic_err(
@@ -168,7 +164,7 @@ impl GovernanceDetails<Addr> {
     pub fn owner_address(&self, querier: &QuerierWrapper) -> Option<Addr> {
         match self {
             GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
-            GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
+            GovernanceDetails::SubAccount { account} => Some(account.clone()),
             GovernanceDetails::External {
                 governance_address, ..
             } => Some(governance_address.clone()),
@@ -198,9 +194,8 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
             GovernanceDetails::Monarchy { monarch } => GovernanceDetails::Monarchy {
                 monarch: monarch.into_string(),
             },
-            GovernanceDetails::SubAccount { manager, proxy } => GovernanceDetails::SubAccount {
-                manager: manager.into_string(),
-                proxy: proxy.into_string(),
+            GovernanceDetails::SubAccount { account } => GovernanceDetails::SubAccount {
+                account: account.into_string(),
             },
             GovernanceDetails::External {
                 governance_address,

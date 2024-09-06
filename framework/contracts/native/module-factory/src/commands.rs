@@ -37,7 +37,7 @@ pub fn execute_create_modules(
     let version_control = VersionControlContract::new(config.version_control_address);
 
     // assert that sender is manager
-    let account_base = version_control.assert_manager(&info.sender, &deps.querier)?;
+    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =

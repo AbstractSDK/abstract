@@ -81,14 +81,14 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<Account> {
         self.vc
-            .assert_manager(maybe_manager, &self.deps.querier)
+            .assert_account(maybe_manager, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<Account> {
         self.vc
-            .assert_proxy(maybe_proxy, &self.deps.querier)
+            .assert_account(maybe_proxy, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
@@ -107,7 +107,7 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Get the account base for a given account id.
     pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<Account> {
         self.vc
-            .account_base(account_id, &self.deps.querier)
+            .account(account_id, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
