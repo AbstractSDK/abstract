@@ -756,9 +756,7 @@ mod test {
 
     pub const THIRD_ACC_ID: AccountId = AccountId::const_new(3, AccountTrace::Local);
 
-    fn create_third_account(
-        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-    ) -> Account {
+    fn create_third_account(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> Account {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let third_account = Account {

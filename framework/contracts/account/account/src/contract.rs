@@ -5,10 +5,15 @@ use abstract_sdk::std::{
     MANAGER,
 };
 use abstract_std::{
-    account::{ExecuteMsg, InstantiateMsg, QueryMsg}, manager::{
+    account::{ExecuteMsg, InstantiateMsg, QueryMsg},
+    manager::{
         state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS},
         UpdateSubAccountAction,
-    }, objects::{gov_type::GovernanceDetails, ownership, AccountId}, proxy::state::STATE, version_control::Account, ACCOUNT, PROXY
+    },
+    objects::{gov_type::GovernanceDetails, ownership, AccountId},
+    proxy::state::STATE,
+    version_control::Account,
+    ACCOUNT, PROXY,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
@@ -44,8 +49,6 @@ pub fn instantiate(
         version_control_address,
         ans_host_address,
         namespace,
-
-        
     }: InstantiateMsg,
 ) -> AccountResult {
     // ## Proxy ##
