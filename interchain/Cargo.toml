@@ -106,6 +106,12 @@ abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", 
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", branch = "buckram/update-interface-package" }
 # Backup release profile, will result in warnings during optimization
+
+[patch.'https://github.com/AbstractSDK/cw-orchestrator']
+# TODO: cw-orch/contract-ws still forcing path cw-orch for some reason
+cw-orch = { version = "0.25.0" }
+cw-orch-interchain = { version = "0.4.0" }
+
 [profile.release]
 rpath = false
 lto = true

@@ -14,10 +14,10 @@ use abstract_std::{
 };
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins};
+use counter_contract::CounterContract;
 use cw_orch::{daemon::RUNTIME, prelude::*};
 use cw_orch_interchain::prelude::*;
 use cw_orch_proto::tokenfactory::{create_denom, get_denom, mint};
-use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
 // Note: Truncated chain id have to be different
 pub const JUNO2: &str = "junotwo-1";
@@ -54,7 +54,7 @@ pub fn test_pfm() -> AnyResult<()> {
     // let abstr_juno = Abstract::load_from(juno.clone())?;
     // let abstr_juno2 = Abstract::load_from(juno2.clone())?;
 
-    let counter_juno2 = counter_different_cw_orch::init_counter(juno2.clone())?;
+    let counter_juno2 = init_counter(juno2.clone())?;
 
     let sender = juno.sender_addr().to_string();
 
@@ -100,12 +100,12 @@ pub fn test_pfm() -> AnyResult<()> {
 
     // Send funds to the remote account
     RUNTIME.block_on(juno.sender().bank_send(
-        &origin_account.proxy.addr_str()?,
+        &origin_account.proxy.address()?,
         vec![coin(test_amount, get_denom(&juno, token_subdenom.as_str()))],
     ))?;
 
     let memo = HookMemoBuilder::new(
-        counter_juno2.addr_str()?,
+        counter_juno2.address()?,
         &counter_contract::msg::ExecuteMsg::Increment {},
     )
     .build()?;
@@ -152,79 +152,21 @@ pub fn test_pfm() -> AnyResult<()> {
     // Verify the funds have been received
     let count_juno2_balance = juno2
         .bank_querier()
-        .balance(counter_juno2.addr_str()?, None)?;
+        .balance(&counter_juno2.address()?, None)?;
 
     log::info!("count_juno2 balance, {:?}", count_juno2_balance);
     Ok(())
 }
 
-// Counter contract doesn't use crates.io version of cw-orch, some weird hacks here.
-mod counter_different_cw_orch {
-    use cw_orch::interface;
-    use cw_orch::prelude::*;
-
-    #[interface(
-        counter_contract::msg::InstantiateMsg,
-        counter_contract::msg::ExecuteMsg,
-        counter_contract::msg::QueryMsg,
-        counter_contract::msg::MigrateMsg,
-        id = "counter_contract"
-    )]
-    pub struct CounterContract;
-
-    impl<Chain> Uploadable for CounterContract<Chain> {
-        fn wasm(chain: &ChainInfoOwned) -> WasmPath {
-            let chain = chain.clone();
-            let kind = match chain.kind {
-                networks::ChainKind::Local => cw_orch_counter::environment::ChainKind::Local,
-                networks::ChainKind::Mainnet => cw_orch_counter::environment::ChainKind::Mainnet,
-                networks::ChainKind::Testnet => cw_orch_counter::environment::ChainKind::Testnet,
-                _ => unreachable!(),
-            };
-            let chain = cw_orch_counter::prelude::ChainInfoOwned {
-                chain_id: chain.chain_id,
-                gas_denom: chain.gas_denom,
-                gas_price: chain.gas_price,
-                grpc_urls: chain.grpc_urls,
-                lcd_url: chain.lcd_url,
-                fcd_url: chain.fcd_url,
-                network_info: cw_orch_counter::environment::NetworkInfoOwned {
-                    chain_name: chain.network_info.chain_name,
-                    pub_address_prefix: chain.network_info.pub_address_prefix,
-                    coin_type: chain.network_info.coin_type,
-                },
-                kind,
-            };
-
-            let wasm_path =
-                <counter_contract::CounterContract<Chain> as cw_orch_counter::prelude::Uploadable>::wasm(
-                    &chain,
-                );
-            WasmPath::new(wasm_path.path()).unwrap()
-        }
-
-        fn wrapper() -> Box<dyn MockContract<Empty, Empty>> {
-            Box::new(
-                ContractWrapper::new_with_empty(
-                    counter_contract::contract::execute,
-                    counter_contract::contract::instantiate,
-                    counter_contract::contract::query,
-                )
-                .with_migrate(counter_contract::contract::migrate),
-            )
-        }
-    }
-
-    pub fn init_counter<Chain: CwEnv>(chain: Chain) -> anyhow::Result<CounterContract<Chain>> {
-        let counter = CounterContract::new(chain);
-        counter.upload()?;
-        counter.instantiate(
-            &counter_contract::msg::InstantiateMsg { count: 0 },
-            None,
-            None,
-        )?;
-        Ok(counter)
-    }
+pub fn init_counter<Chain: CwEnv>(chain: Chain) -> anyhow::Result<CounterContract<Chain>> {
+    let counter = CounterContract::new(chain);
+    counter.upload()?;
+    counter.instantiate(
+        &counter_contract::msg::InstantiateMsg { count: 0 },
+        None,
+        &[],
+    )?;
+    Ok(counter)
 }
 
 pub fn main() {

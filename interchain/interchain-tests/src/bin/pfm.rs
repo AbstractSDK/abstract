@@ -21,7 +21,6 @@ use cosmwasm_std::{coin, coins};
 use cw_orch::{daemon::RUNTIME, prelude::*};
 use cw_orch_interchain::prelude::*;
 use cw_orch_proto::tokenfactory::{create_denom, get_denom, mint};
-use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
 // Note: Truncated chain id have to be different
 pub const JUNO2: &str = "junotwo-1";
@@ -119,7 +118,7 @@ pub fn test_pfm() -> AnyResult<()> {
     // Create a test account + Remote account
 
     let (origin_account, remote_account_id) =
-        create_test_remote_account(&abstr_juno, JUNO, JUNO2, &interchain, None)?;
+        create_test_remote_account(&abstr_juno, JUNO, JUNO2, &interchain, vec![])?;
 
     // Get the ibc client address
     let remote_account = AbstractAccount::new(&abstr_juno2, remote_account_id.clone());
@@ -129,7 +128,7 @@ pub fn test_pfm() -> AnyResult<()> {
 
     // Send funds to the remote account
     RUNTIME.block_on(juno.sender().bank_send(
-        &origin_account.proxy.addr_str()?,
+        &origin_account.proxy.address()?,
         vec![coin(test_amount, get_denom(&juno, token_subdenom.as_str()))],
     ))?;
     let juno2_juno3_channel_port_juno2 = juno2_juno3_channel
@@ -163,7 +162,7 @@ pub fn test_pfm() -> AnyResult<()> {
     std::thread::sleep(Duration::from_secs(15));
 
     // Verify the funds have been received
-    let balance = juno4.bank_querier().balance(juno4.sender_addr(), None)?;
+    let balance = juno4.bank_querier().balance(&juno4.sender_addr(), None)?;
 
     log::info!("juno4 balance, {:?}", balance);
 
