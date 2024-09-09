@@ -4,7 +4,10 @@
 //!
 //! ## Description
 //! An Abstract standalone contract is a contract that is controlled by abstract account, but cannot perform actions on a [proxy](crate::proxy) contract.
-use crate::{objects::{ans_host::AnsHost, version_control::VersionControlContract}, version_control::Account};
+use crate::{
+    objects::{ans_host::AnsHost, version_control::VersionControlContract},
+    version_control::Account,
+};
 
 use cosmwasm_std::Addr;
 

@@ -27,17 +27,21 @@ use abstract_interface::{
     VCQueryFns,
 };
 use abstract_std::{
-    account, manager::{
+    account,
+    manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
-    }, objects::{
+    },
+    objects::{
         gov_type::GovernanceDetails,
         module::{ModuleId, ModuleInfo, ModuleVersion},
         namespace::Namespace,
         ownership,
         validation::verifiers,
         AccountId,
-    }, version_control::{self, NamespaceResponse}, ACCOUNT, IBC_CLIENT
+    },
+    version_control::{self, NamespaceResponse},
+    ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{

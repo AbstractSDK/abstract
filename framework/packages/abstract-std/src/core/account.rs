@@ -15,12 +15,12 @@ use crate::objects::{
 
 use super::*;
 
-// TODO: Move manager and proxy state here 
+// TODO: Move manager and proxy state here
 pub mod state {
     use super::*;
 
-    pub use manager::state::{SuspensionStatus, ACCOUNT_MODULES, ACCOUNT_ID};
-    pub use proxy::state::{ADMIN, STATE, State};
+    pub use manager::state::{SuspensionStatus, ACCOUNT_ID, ACCOUNT_MODULES};
+    pub use proxy::state::{State, ADMIN, STATE};
 }
 
 #[cosmwasm_schema::cw_serde]
