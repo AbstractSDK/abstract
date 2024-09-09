@@ -354,14 +354,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             }
         }
 
-        // We upgrade the proxy to the latest version through all the versions
-        loop {
-            if self.upgrade_next_module_version(ACCOUNT)?.is_none() {
-                break;
-            }
-            one_migration_was_successful = true;
-        }
-
+        // We upgrade the account to the latest version through all the versions
         loop {
             if self.upgrade_next_module_version(ACCOUNT)?.is_none() {
                 break;
