@@ -326,7 +326,6 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount {
         account: manager,
-        proxy,
     } = &account;
     abstr
         .version_control

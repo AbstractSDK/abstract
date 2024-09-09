@@ -4,7 +4,7 @@
 //!
 //! ## Description
 //! An Abstract standalone contract is a contract that is controlled by abstract account, but cannot perform actions on a [proxy](crate::proxy) contract.
-use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
+use crate::{objects::{ans_host::AnsHost, version_control::VersionControlContract}, version_control::Account};
 
 use cosmwasm_std::Addr;
 
@@ -18,7 +18,7 @@ pub struct StandaloneInstantiateMsg {
 /// Contains the abstract infrastructure addresses needed the APIs.
 #[cosmwasm_schema::cw_serde]
 pub struct StandaloneState {
-    pub proxy_address: Addr,
+    pub account: Account,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
     /// Used to verify requests

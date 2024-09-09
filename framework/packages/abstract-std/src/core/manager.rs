@@ -41,18 +41,18 @@ pub mod state {
     }
 
     /// Suspension status
-    pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new("\u{0}{12}is_suspended");
+    pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new("a");
     /// Configuration
-    pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
+    pub const CONFIG: Item<Config> = Item::new("b");
     /// Info about the Account
-    pub const INFO: Item<AccountInfo> = Item::new("info");
+    pub const INFO: Item<AccountInfo> = Item::new("c");
     /// Enabled Abstract modules
-    pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("modules");
+    pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("d");
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
-    pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
+    pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("e");
     /// List of sub-accounts
-    pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
+    pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("f");
     // Additional states, not listed here: cw_gov_ownable::GovOwnership
 }
 

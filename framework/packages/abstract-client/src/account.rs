@@ -27,20 +27,17 @@ use abstract_interface::{
     VCQueryFns,
 };
 use abstract_std::{
-    manager::{
-        self, state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
+    account, manager::{
+        state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
-    },
-    objects::{
+    }, objects::{
         gov_type::GovernanceDetails,
         module::{ModuleId, ModuleInfo, ModuleVersion},
         namespace::Namespace,
         ownership,
         validation::verifiers,
         AccountId,
-    },
-    version_control::{self, NamespaceResponse},
-    ACCOUNT, IBC_CLIENT,
+    }, version_control::{self, NamespaceResponse}, ACCOUNT, IBC_CLIENT
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{
@@ -471,7 +468,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let coins = self
             .environment()
             .bank_querier()
-            .balance(&self.proxy()?, Some(denom.into()))
+            .balance(&self.address()?, Some(denom.into()))
             .map_err(Into::into)?;
 
         // There will always be a single element in this case.
@@ -482,7 +479,7 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
             .bank_querier()
-            .balance(&self.proxy()?, None)
+            .balance(&self.address()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
     }
@@ -648,8 +645,8 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Chain::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
-        self.execute_on_manager(
-            &manager::ExecuteMsg::ExecOnModule {
+        self.configure(
+            &account::ExecuteMsg::ExecOnModule {
                 module_id: ACCOUNT.to_owned(),
                 exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
                     .map_err(AbstractInterfaceError::from)?,
@@ -658,10 +655,10 @@ impl<Chain: CwEnv> Account<Chain> {
         )
     }
 
-    /// Executes a [`manager::ExecuteMsg`] on the manager of the account.
-    pub fn execute_on_manager(
+    /// Executes a [`account::ExecuteMsg`] on the manager of the account.
+    pub fn configure(
         &self,
-        execute_msg: &manager::ExecuteMsg,
+        execute_msg: &account::ExecuteMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
@@ -728,7 +725,7 @@ impl<Chain: CwEnv> Account<Chain> {
         // Currently this is the only way that
         // - Doesn't error on missing account module
         // - Predictable gas usage
-        let key = manager::state::ACCOUNT_MODULES.key(id).to_vec();
+        let key = account::state::ACCOUNT_MODULES.key(id).to_vec();
         let maybe_module_addr = self
             .environment()
             .wasm_querier()
@@ -812,19 +809,9 @@ impl<Chain: CwEnv> Account<Chain> {
             .collect())
     }
 
-    /// Address of the proxy
-    pub fn proxy(&self) -> AbstractClientResult<Addr> {
-        self.abstr_account.proxy.address().map_err(Into::into)
-    }
-
-    /// Address of the manager
-    pub fn manager(&self) -> AbstractClientResult<Addr> {
-        self.abstr_account.account.address().map_err(Into::into)
-    }
-
     /// Address of the account (proxy)
     pub fn address(&self) -> AbstractClientResult<Addr> {
-        self.proxy()
+        Ok(self.abstr_account.account.address()?)
     }
 
     /// Retrieve installed application on account
@@ -993,7 +980,7 @@ impl<Chain: MutCwEnv> Account<Chain> {
     /// Set balance for the Proxy
     pub fn set_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
-            .set_balance(&self.proxy()?, amount.to_vec())
+            .set_balance(&self.address()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }
@@ -1001,7 +988,7 @@ impl<Chain: MutCwEnv> Account<Chain> {
     /// Add balance to the Proxy
     pub fn add_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
-            .add_balance(&self.proxy()?, amount.to_vec())
+            .add_balance(&self.address()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }

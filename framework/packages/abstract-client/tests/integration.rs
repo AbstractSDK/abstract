@@ -253,8 +253,8 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
         .build()?;
 
     let publisher_account = publisher.account();
-    let publisher_manager = publisher_account.manager()?;
-    let publisher_proxy = publisher_account.proxy()?;
+    let publisher_manager = publisher_account.address()?;
+    let publisher_proxy = publisher_account.address()?;
 
     publisher.publish_app::<MockAppI<MockBech32>>()?;
 
@@ -340,8 +340,8 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
         .install_on_sub_account(true)
         .build()?;
 
-    let publisher_manager = publisher.account().manager()?;
-    let publisher_proxy = publisher.account().proxy()?;
+    let publisher_manager = publisher.account().address()?;
+    let publisher_proxy = publisher.account().address()?;
 
     publisher.publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
 
@@ -474,7 +474,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
         )?;
 
     my_app
-        .call_as(&app_publisher.account().manager()?)
+        .call_as(&app_publisher.account().address()?)
         .do_something()?;
 
     let something = my_app.get_something()?;
@@ -818,7 +818,7 @@ fn doc_example_test() -> anyhow::Result<()> {
     app.do_something()?;
 
     // Call as someone else
-    let manager: Addr = account.manager()?;
+    let manager: Addr = account.address()?;
     app.call_as(&manager).do_something()?;
 
     // Query the app
@@ -942,8 +942,8 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
         .account_builder()
         .name("foo-bar")
         .ownership(GovernanceDetails::SubAccount {
-            manager: account.manager()?.into_string(),
-            proxy: account.proxy()?.into_string(),
+            manager: account.address()?.into_string(),
+            proxy: account.address()?.into_string(),
         })
         .build();
 
@@ -958,7 +958,7 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
         err,
         account_factory::error::AccountFactoryError::SubAccountCreatorNotAccount {
             caller: client.sender().into_string(),
-            manager: account.manager()?.into_string()
+            manager: account.address()?.into_string()
         }
     );
     Ok(())
@@ -1141,7 +1141,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
     let my_app = account.application::<MockAppWithDepI<_>>()?;
 
     my_app
-        .call_as(&app_publisher.account().manager()?)
+        .call_as(&app_publisher.account().address()?)
         .do_something()?;
 
     let something = my_app.get_something()?;
@@ -1196,7 +1196,7 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
     // Check it authorized
     let authorized_addrs_resp: AuthorizedAddressesResponse = adapter.query(
         &abstract_std::adapter::BaseQueryMsg::AuthorizedAddresses {
-            proxy_address: app.account().proxy()?.to_string(),
+            proxy_address: app.account().address()?.to_string(),
         }
         .into(),
     )?;
@@ -1304,7 +1304,7 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
         .expected_account_id(next_seq)
         .build()?;
 
-    assert_eq!(account.proxy()?, proxy_addr);
+    assert_eq!(account.address()?, proxy_addr);
     Ok(())
 }
 
@@ -1363,7 +1363,7 @@ fn instantiate2_random_seq() -> anyhow::Result<()> {
         .expected_account_id(next_seq)
         .build()?;
 
-    assert_eq!(account.proxy()?, proxy_addr);
+    assert_eq!(account.address()?, proxy_addr);
     Ok(())
 }
 

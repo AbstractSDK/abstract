@@ -61,8 +61,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         &[namespace_fee],
     )?;
 
-    let manager_addr = account.account.address()?;
-    let proxy_addr = account.proxy.address()?;
+    let account_addr = account.account.address()?;
 
     // We need to check if the namespace is associated with this account
     let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;
@@ -71,10 +70,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         namespace,
         NamespaceResponse::Claimed(NamespaceInfo {
             account_id: account.id()?,
-            account_base: Account {
-                manager: manager_addr,
-                proxy: proxy_addr,
-            }
+            account_base: Account::new(account_addr.clone()),
         })
     );
 

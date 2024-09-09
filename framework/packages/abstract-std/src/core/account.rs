@@ -1,10 +1,10 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty};
-use manager::state::SuspensionStatus;
 pub use manager::{
     InfoResponse, ModuleAddressesResponse, ModuleInfosResponse, ModuleInstallConfig,
     ModuleVersionsResponse, SubAccountIdsResponse, UpdateSubAccountAction,
 };
+use state::SuspensionStatus;
 
 use crate::objects::{
     gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
@@ -14,6 +14,14 @@ use crate::objects::{
 };
 
 use super::*;
+
+// TODO: Move manager and proxy state here 
+pub mod state {
+    use super::*;
+
+    pub use manager::state::{SuspensionStatus, ACCOUNT_MODULES, ACCOUNT_ID};
+    pub use proxy::state::{ADMIN, STATE, State};
+}
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}

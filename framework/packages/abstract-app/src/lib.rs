@@ -294,7 +294,7 @@ pub mod mock {
                 println!("checking address of adapter1");
                 let manager = module.admin.get(deps.as_ref())?.unwrap();
                 // Check if the adapter has access to its dependency during instantiation.
-                let adapter1_addr = $crate::std::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
+                let adapter1_addr = $crate::std::account::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
                 // We have address!
                 ::cosmwasm_std::ensure!(
                     adapter1_addr.is_some(),
@@ -302,8 +302,8 @@ pub mod mock {
                 );
                 println!("adapter_addr: {adapter1_addr:?}");
                 // See test `install_app_with_proxy_action` where this transfer will happen.
-                let proxy_addr = module.proxy_address(deps.as_ref())?;
-                let balance = deps.querier.query_balance(proxy_addr, "TEST")?;
+                let account_addr = module.account(deps.as_ref())?;
+                let balance = deps.querier.query_balance(account_addr.addr(), "TEST")?;
                 if !balance.amount.is_zero() {
                 println!("sending amount from proxy: {balance:?}");
                     let action = module
