@@ -3390,7 +3390,8 @@ dependencies = [
 [[package]]
 name = "evm-note"
 version = "0.1.0"
-source = "git+https://github.com/AbstractSDK/evm-ibc?branch=upgrade/cosmwasm_2_0#d481abe63d7bfb64f3b3ddafed8e9530a2089b40"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df1c1e91eb85ae973ea12887356b37a1c363fd4092087c1d235d1e118cebb20c"
 dependencies = [
  "alloy-sol-types",
  "cosmwasm-schema 2.1.3",
@@ -5277,7 +5278,8 @@ dependencies = [
 [[package]]
 name = "polytone-evm"
 version = "0.1.0"
-source = "git+https://github.com/AbstractSDK/evm-ibc?branch=upgrade/cosmwasm_2_0#d481abe63d7bfb64f3b3ddafed8e9530a2089b40"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e4dcd5edd6e9f539fb7550db9d18d37c1e8ecdedb796e1b78d516b2cb08a862"
 dependencies = [
  "alloy",
  "alloy-sol-types",
