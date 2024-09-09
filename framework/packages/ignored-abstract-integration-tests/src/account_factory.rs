@@ -2,7 +2,7 @@ use abstract_interface::{Abstract, AccountDetails, AccountFactoryExecFns, VCExec
 use abstract_sdk::cw_helpers::Clearable;
 use abstract_std::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace},
-    version_control::{AccountBase, NamespaceInfo, NamespaceResponse},
+    version_control::{Account, NamespaceInfo, NamespaceResponse},
 };
 use cosmwasm_std::coin;
 use cw_orch::{environment::MutCwEnv, prelude::*};
@@ -61,8 +61,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         &[namespace_fee],
     )?;
 
-    let manager_addr = account.manager.address()?;
-    let proxy_addr = account.proxy.address()?;
+    let account_addr = account.account.address()?;
 
     // We need to check if the namespace is associated with this account
     let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;
@@ -71,10 +70,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         namespace,
         NamespaceResponse::Claimed(NamespaceInfo {
             account_id: account.id()?,
-            account_base: AccountBase {
-                manager: manager_addr,
-                proxy: proxy_addr,
-            }
+            account_base: Account::new(account_addr.clone()),
         })
     );
 

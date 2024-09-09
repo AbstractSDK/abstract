@@ -1,17 +1,15 @@
 use abstract_sdk::std::{
+    manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
     manager::{
         state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, QueryMsg,
     },
     objects::validation::{validate_description, validate_link, validate_name},
-    proxy::state::ACCOUNT_ID,
-    MANAGER,
-};
-use abstract_std::{
-    manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
     objects::{gov_type::GovernanceDetails, ownership},
-    PROXY,
+    proxy::state::ACCOUNT_ID,
+    ACCOUNT,
 };
+
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
     StdResult,
@@ -36,7 +34,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ManagerResult {
-    set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+    set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
     let module_factory_address = deps.api.addr_validate(&msg.module_factory_address)?;
     let version_control_address = deps.api.addr_validate(&msg.version_control_address)?;
 
@@ -57,7 +55,6 @@ pub fn instantiate(
 
     let account_info = AccountInfo {
         name: msg.name,
-        chain_id: env.block.chain_id,
         description: msg.description,
         link: msg.link,
     };
@@ -68,7 +65,7 @@ pub fn instantiate(
     // Add proxy to modules
     ACCOUNT_MODULES.save(
         deps.storage,
-        PROXY,
+        ACCOUNT,
         &deps.api.addr_validate(&msg.proxy_addr)?,
     )?;
 
@@ -104,9 +101,9 @@ pub fn instantiate(
     }
 
     // Register on manager if it's sub-account
-    if let GovernanceDetails::SubAccount { manager, .. } = cw_gov_owner.owner {
+    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
         response = response.add_message(wasm_execute(
-            manager,
+            account,
             &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
                 id: ACCOUNT_ID.load(deps.storage)?.seq(),
             }),
@@ -280,7 +277,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ManagerError::Abstract(
                     AbstractError::CannotDowngradeContract {
-                        contract: MANAGER.to_string(),
+                        contract: ACCOUNT.to_string(),
                         from: version.clone(),
                         to: version,
                     },
@@ -295,7 +292,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let big_version = "999.999.999";
-            set_contract_version(deps.as_mut().storage, MANAGER, big_version)?;
+            set_contract_version(deps.as_mut().storage, ACCOUNT, big_version)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -305,7 +302,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ManagerError::Abstract(
                     AbstractError::CannotDowngradeContract {
-                        contract: MANAGER.to_string(),
+                        contract: ACCOUNT.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version,
                     },
@@ -330,7 +327,7 @@ mod tests {
                 .is_equal_to(ManagerError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
-                        to: MANAGER.parse().unwrap(),
+                        to: ACCOUNT.parse().unwrap(),
                     },
                 ));
 
@@ -350,7 +347,7 @@ mod tests {
             }
             .to_string();
 
-            set_contract_version(deps.as_mut().storage, MANAGER, small_version)?;
+            set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
 
             let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);

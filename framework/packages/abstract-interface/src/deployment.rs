@@ -5,9 +5,9 @@ use cw_orch::prelude::*;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
+    Account, AccountFactory, AnsHost, ModuleFactory, VersionControl,
 };
-use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_std::{ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL};
 
 use rust_embed::RustEmbed;
 
@@ -45,10 +45,9 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-        let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain.clone());
+        let account = Account::new(ACCOUNT, chain.clone());
 
-        let mut account = AbstractAccount { manager, proxy };
+        let mut account = AbstractAccount { account: account };
         let ibc_infra = AbstractIbc::new(&chain);
 
         ans_host.upload()?;
@@ -118,8 +117,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             Box::new(&mut self.version_control),
             Box::new(&mut self.account_factory),
             Box::new(&mut self.module_factory),
-            Box::new(&mut self.account.manager),
-            Box::new(&mut self.account.proxy),
+            Box::new(&mut self.account.account),
             Box::new(&mut self.ibc.client),
             Box::new(&mut self.ibc.host),
         ]
@@ -162,10 +160,9 @@ impl<Chain: CwEnv> Abstract<Chain> {
         let (ans_host, account_factory, version_control, module_factory) =
             get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
-        let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain);
+        let account = Account::new(ACCOUNT, chain.clone());
         Self {
-            account: AbstractAccount { manager, proxy },
+            account: AbstractAccount { account },
             ans_host,
             version_control,
             account_factory,

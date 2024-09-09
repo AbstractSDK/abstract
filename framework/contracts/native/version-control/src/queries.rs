@@ -364,7 +364,7 @@ mod test {
             },
         )?;
 
-        let other_account = AccountBase {
+        let other_account = Account {
             manager: deps.api.addr_make(TEST_OTHER_MANAGER_ADDR),
             proxy: deps.api.addr_make(TEST_OTHER_PROXY_ADDR),
         };

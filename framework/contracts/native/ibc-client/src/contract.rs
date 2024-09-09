@@ -585,7 +585,7 @@ mod tests {
                         // The note's remote proxy will call the ibc host
                         remote_ibc_host,
                         &ibc_host::ExecuteMsg::Execute {
-                            proxy_address: base.proxy.to_string(),
+                            account_address: base.proxy.to_string(),
                             account_id: TEST_ACCOUNT_ID,
                             action,
                         },
@@ -844,7 +844,7 @@ mod tests {
                         // The note's remote proxy will call the ibc host
                         remote_ibc_host,
                         &ibc_host::ExecuteMsg::Execute {
-                            proxy_address: base.proxy.to_string(),
+                            account_address: base.proxy.to_string(),
                             account_id: TEST_ACCOUNT_ID,
                             action: HostAction::Internal(InternalAction::Register {
                                 description: None,

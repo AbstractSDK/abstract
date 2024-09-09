@@ -2,7 +2,7 @@ use abstract_macros::abstract_response;
 use abstract_sdk::std::{
     objects::validation::{validate_description, validate_link, validate_name},
     proxy::state::ACCOUNT_ID,
-    MANAGER,
+    ACCOUNT,
 };
 use abstract_std::{
     account::{ExecuteMsg, InstantiateMsg, QueryMsg},
@@ -12,7 +12,7 @@ use abstract_std::{
     },
     objects::{gov_type::GovernanceDetails, ownership, AccountId},
     proxy::state::STATE,
-    ACCOUNT, PROXY,
+    version_control::Account,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
@@ -47,11 +47,12 @@ pub fn instantiate(
         module_factory_address,
         version_control_address,
         ans_host_address,
+        namespace,
     }: InstantiateMsg,
 ) -> AccountResult {
     // ## Proxy ##
     // Use CW2 to set the contract version, this is needed for migrations
-    cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+    cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
     let account_id =
         account_id.unwrap_or_else(|| /*  TODO: Query VC for Sequence*/ AccountId::local(0));
@@ -80,7 +81,6 @@ pub fn instantiate(
 
     let account_info = AccountInfo {
         name,
-        chain_id: env.block.chain_id,
         description,
         link,
     };
@@ -121,15 +121,25 @@ pub fn instantiate(
     }
 
     // Register on manager if it's sub-account
-    if let GovernanceDetails::SubAccount { manager, .. } = cw_gov_owner.owner {
+    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
         response = response.add_message(wasm_execute(
-            manager,
+            account,
             &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
                 id: ACCOUNT_ID.load(deps.storage)?.seq(),
             }),
             vec![],
         )?);
     }
+
+    let response = response.add_message(wasm_execute(
+        version_control_address,
+        &abstract_std::version_control::ExecuteMsg::AddAccount {
+            account_id: ACCOUNT_ID.load(deps.storage)?,
+            account_base: Account::new(env.contract.address),
+            namespace,
+        },
+        vec![],
+    )?);
 
     Ok(response)
 }
@@ -283,7 +293,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ManagerError::Abstract(
                     AbstractError::CannotDowngradeContract {
-                        contract: MANAGER.to_string(),
+                        contract: ACCOUNT.to_string(),
                         from: version.clone(),
                         to: version,
                     },
@@ -298,7 +308,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let big_version = "999.999.999";
-            set_contract_version(deps.as_mut().storage, MANAGER, big_version)?;
+            set_contract_version(deps.as_mut().storage, ACCOUNT, big_version)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -308,7 +318,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ManagerError::Abstract(
                     AbstractError::CannotDowngradeContract {
-                        contract: MANAGER.to_string(),
+                        contract: ACCOUNT.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version,
                     },
@@ -333,7 +343,7 @@ mod tests {
                 .is_equal_to(ManagerError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
-                        to: MANAGER.parse().unwrap(),
+                        to: ACCOUNT.parse().unwrap(),
                     },
                 ));
 
@@ -353,7 +363,7 @@ mod tests {
             }
             .to_string();
 
-            set_contract_version(deps.as_mut().storage, MANAGER, small_version)?;
+            set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
 
             let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);

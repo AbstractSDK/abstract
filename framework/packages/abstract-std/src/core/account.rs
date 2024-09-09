@@ -1,10 +1,10 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Binary, CosmosMsg, Empty};
-use manager::{
+use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty};
+pub use manager::{
     InfoResponse, ModuleAddressesResponse, ModuleInfosResponse, ModuleInstallConfig,
     ModuleVersionsResponse, SubAccountIdsResponse, UpdateSubAccountAction,
 };
-use proxy::ConfigResponse;
+use state::SuspensionStatus;
 
 use crate::objects::{
     gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
@@ -15,6 +15,17 @@ use crate::objects::{
 
 use super::*;
 
+// TODO: Move manager and proxy state here
+pub mod state {
+    use super::*;
+
+    pub use manager::state::{SuspensionStatus, ACCOUNT_ID, ACCOUNT_MODULES};
+    pub use proxy::state::{State, ADMIN, STATE};
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct MigrateMsg {}
+
 /// Account Instantiate Msg
 /// https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs
 #[cosmwasm_schema::cw_serde]
@@ -23,6 +34,7 @@ pub struct InstantiateMsg {
     // pub authenticator: Option<AddAuthenticator>,
     pub account_id: Option<AccountId>,
     pub owner: GovernanceDetails<String>,
+    pub namespace: Option<String>,
     // Optionally modules can be provided. They will be installed after account registration.
     pub install_modules: Vec<ModuleInstallConfig>,
     pub name: String,
@@ -148,4 +160,13 @@ pub enum QueryMsg {
     /// Query the contract's ownership information
     #[returns(Ownership<String>)]
     Ownership {},
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ConfigResponse {
+    pub modules: Vec<String>,
+    pub account_id: AccountId,
+    pub is_suspended: SuspensionStatus,
+    pub version_control_address: Addr,
+    pub module_factory_address: Addr,
 }

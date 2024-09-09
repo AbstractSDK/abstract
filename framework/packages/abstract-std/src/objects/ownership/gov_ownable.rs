@@ -145,14 +145,14 @@ impl Ownership<Addr> {
         sender: &Addr,
     ) -> Result<(), GovOwnershipError> {
         match &self.owner {
-            GovernanceDetails::SubAccount { manager, .. } => {
-                let top_level_owner = query_top_level_owner(querier, manager.clone())?;
+            GovernanceDetails::SubAccount { account } => {
+                let top_level_owner = query_top_level_owner(querier, account.clone())?;
                 // Verify top level account allows ownership changes
                 // We prevent transfers of current ownership if it's NFT
                 top_level_owner.assert_owner_can_change()?;
 
                 // Assert admin
-                // We are dealing with sub account, so we need to check both manager as caller and top level address
+                // We are dealing with sub account, so we need to check both account as caller and top level address
                 if self.assert_owner(querier, sender).is_err() {
                     top_level_owner.assert_owner(querier, sender)?
                 }
@@ -216,9 +216,8 @@ pub fn assert_nested_owner(
         return Ok(());
     }
     // Otherwise we need to check top level owner
-    let top_level_ownership = if let GovernanceDetails::SubAccount { manager, .. } = ownership.owner
-    {
-        query_top_level_owner(querier, manager)?
+    let top_level_ownership = if let GovernanceDetails::SubAccount { account } = ownership.owner {
+        query_top_level_owner(querier, account)?
     } else {
         ownership
     };
@@ -317,11 +316,11 @@ fn accept_ownership(
 
         let is_pending_owner = if sender == pending_owner {
             true
-        } else if let GovernanceDetails::SubAccount { manager, .. } = &maybe_pending_owner {
+        } else if let GovernanceDetails::SubAccount { account, .. } = &maybe_pending_owner {
             // If not direct owner, need to check top level ownership
 
             // Check if top level owner of pending is caller
-            query_top_level_owner(querier, manager.clone())?
+            query_top_level_owner(querier, account.clone())?
                 .owner
                 .owner_address(querier)
                 .map(|top_sender| top_sender == sender)

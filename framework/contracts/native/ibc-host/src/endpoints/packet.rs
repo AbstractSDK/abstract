@@ -64,8 +64,8 @@ pub fn handle_host_action(
             // If this account already exists, we can propagate the action
             if let Ok(account) = account_commands::get_account(deps.as_ref(), &account_id) {
                 match action {
-                    HostAction::Dispatch { manager_msgs } => {
-                        receive_dispatch(deps, account, manager_msgs)
+                    HostAction::Dispatch { account_msgs } => {
+                        receive_dispatch(deps, account, account_msgs)
                     }
                     HostAction::Helpers(helper_action) => match helper_action {
                         HelperAction::SendAllBack => {

@@ -411,9 +411,7 @@ pub fn mock_querier(mock_api: MockApi) -> MockQuerier {
         let _str_key = std::str::from_utf8(key.as_slice()).unwrap();
         let abstr = AbstractMockAddrs::new(mock_api);
 
-        if contract == abstr.account.proxy {
-            Err("unexpected key".to_string())
-        } else if contract == abstr.account.manager {
+        if contract == abstr.account.addr() {
             // Return the default value
             Ok(Binary::default())
         } else if contract == abstr.version_control {
@@ -432,18 +430,13 @@ pub fn mock_querier(mock_api: MockApi) -> MockQuerier {
             ACCOUNT_ADDRESSES,
             (&TEST_ACCOUNT_ID, abstr.account.clone()),
         )
-        .with_contract_item(
-            &abstr.account.proxy,
-            Item::new("admin"),
-            &Some(abstr.account.manager.clone()),
-        )
-        .with_contract_item(&abstr.account.manager, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+        .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
         .with_smart_handler(&abstr.module_address, |msg| {
             let Empty {} = from_json(msg).unwrap();
             Ok(to_json_binary(TEST_MODULE_RESPONSE).unwrap())
         })
         .with_contract_map_entry(
-            &abstr.account.manager,
+            abstr.account.addr(),
             ACCOUNT_MODULES,
             (TEST_MODULE_ID, abstr.module_address),
         )

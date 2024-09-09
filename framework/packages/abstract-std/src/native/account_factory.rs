@@ -17,7 +17,7 @@ pub mod state {
             account::{AccountId, AccountSequence},
             module::Module,
         },
-        version_control::AccountBase,
+        version_control::Account,
     };
 
     /// Account Factory configuration
@@ -31,7 +31,7 @@ pub mod state {
     /// Account Factory context for post-[`crate::manager`] [`crate::proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub account_base: AccountBase,
+        pub account_base: Account,
         pub manager_module: Module,
         pub proxy_module: Module,
         pub account_id: AccountId,

@@ -2,24 +2,21 @@ use abstract_sdk::{
     feature_objects::VersionControlContract,
     std::{
         manager::InstantiateMsg as ManagerInstantiateMsg,
+        manager::ModuleInstallConfig,
+        module_factory::SimulateInstallModulesResponse,
+        objects::{
+            account::AccountTrace, module::assert_module_data_validity,
+            salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
+        },
         objects::{
             gov_type::GovernanceDetails,
             module::{Module, ModuleInfo},
             module_reference::ModuleReference,
         },
         proxy::InstantiateMsg as ProxyInstantiateMsg,
-        version_control::{AccountBase, ExecuteMsg as VCExecuteMsg},
-        MANAGER, PROXY,
+        version_control::{Account, ExecuteMsg as VCExecuteMsg},
+        AbstractError, ACCOUNT, IBC_HOST,
     },
-};
-use abstract_std::{
-    manager::ModuleInstallConfig,
-    module_factory::SimulateInstallModulesResponse,
-    objects::{
-        account::AccountTrace, module::assert_module_data_validity,
-        salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
-    },
-    AbstractError, IBC_HOST,
 };
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
@@ -56,13 +53,13 @@ pub fn execute_create_account(
     let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
     // Check if the caller is the manager the proposed owner account when creating a sub-account.
     // This prevents other users from creating sub-accounts for accounts they don't own.
-    if let GovernanceDetails::SubAccount { manager, .. } = &governance {
+    if let GovernanceDetails::SubAccount { account } = &governance {
         ensure_eq!(
             info.sender,
-            manager,
-            AccountFactoryError::SubAccountCreatorNotManager {
+            account,
+            AccountFactoryError::SubAccountCreatorNotAccount {
                 caller: info.sender.into(),
-                manager: manager.into()
+                account: account.into(),
             }
         )
     }
@@ -117,8 +114,8 @@ pub fn execute_create_account(
     let (manager_module, proxy_module) = {
         let mut modules = version_control.query_modules_configs(
             vec![
-                ModuleInfo::from_id_latest(PROXY)?,
-                ModuleInfo::from_id_latest(MANAGER)?,
+                ModuleInfo::from_id_latest(ACCOUNT)?,
+                ModuleInfo::from_id_latest(ACCOUNT)?,
             ],
             &deps.querier,
         )?;
@@ -194,10 +191,7 @@ pub fn execute_create_account(
     )?;
     let manager_addr_human = deps.api.addr_humanize(&manager_addr)?;
 
-    let account_base = AccountBase {
-        manager: manager_addr_human,
-        proxy: proxy_addr_human,
-    };
+    let account_base = Account::new(manager_addr_human);
     // save context for after-init check
     let context = Context {
         account_id,
@@ -210,7 +204,7 @@ pub fn execute_create_account(
     let proxy_message = ProxyInstantiateMsg {
         account_id: context.account_id,
         ans_host_address: config.ans_host_contract.to_string(),
-        manager_addr: context.account_base.manager.to_string(),
+        manager_addr: context.account_base.addr().to_string(),
     };
 
     // Add Account base to version_control
@@ -265,7 +259,7 @@ pub fn execute_create_account(
     .add_message(WasmMsg::Instantiate2 {
         code_id: proxy_code_id,
         funds: funds_to_proxy.into_vec(),
-        admin: Some(account_base.manager.to_string()),
+        admin: Some(account_base.addr().to_string()),
         label: format!("Proxy of Account: {}", proxy_message.account_id),
         msg: to_json_binary(&proxy_message)?,
         salt: salt.clone(),
@@ -276,14 +270,14 @@ pub fn execute_create_account(
         WasmMsg::Instantiate2 {
             code_id: manager_code_id,
             funds: funds_for_install,
-            admin: Some(account_base.manager.into_string()),
+            admin: Some(account_base.addr().to_string()),
             label: format!("Manager of Account: {}", proxy_message.account_id),
             msg: to_json_binary(&ManagerInstantiateMsg {
                 account_id: proxy_message.account_id,
                 owner: governance.into(),
                 version_control_address: config.version_control_contract.into_string(),
                 module_factory_address: config.module_factory_address.into_string(),
-                proxy_addr: account_base.proxy.into_string(),
+                proxy_addr: account_base.into_addr().into_string(),
                 name,
                 description,
                 link,
@@ -322,20 +316,20 @@ pub fn validate_instantiated_account(deps: DepsMut, _result: SubMsgResult) -> Ac
     assert_module_data_validity(
         &deps.querier,
         &context.manager_module,
-        Some(account_base.manager.clone()),
+        Some(account_base.addr().clone()),
     )?;
     assert_module_data_validity(
         &deps.querier,
         &context.proxy_module,
-        Some(account_base.proxy.clone()),
+        Some(account_base.addr().clone()),
     )?;
 
     let resp = AccountFactoryResponse::new(
         "create_account",
         vec![
             ("account", account_id.to_string()),
-            ("manager_address", account_base.manager.into_string()),
-            ("proxy_address", account_base.proxy.into_string()),
+            ("manager_address", account_base.addr().to_string()),
+            ("proxy_address", account_base.into_addr().into_string()),
         ],
     );
 
