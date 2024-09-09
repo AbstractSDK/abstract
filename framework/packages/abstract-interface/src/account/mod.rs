@@ -60,8 +60,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
 impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn new(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
-        let manager = get_account_contracts(&abstract_deployment.version_control, account_id);
-        Self { account: manager }
+        let account = get_account_contracts(&abstract_deployment.version_control, account_id);
+        Self { account }
     }
 
     /// Register the account core contracts in the version control
@@ -291,8 +291,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         let account = Account::new_from_id(&id, chain.clone());
 
         // set addresses
-        let manager_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
-        account.set_address(&Addr::unchecked(manager_address));
+        let account_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
+        account.set_address(&Addr::unchecked(account_address));
 
         Ok(AbstractAccount { account })
     }
@@ -375,11 +375,11 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         // We start by getting the current module version
         let current_cw2_module_version: ContractVersion = if module_id == ACCOUNT {
-            let current_manager_version = chain
+            let current_account_version = chain
                 .wasm_querier()
                 .raw_query(&self.account.address()?, CONTRACT.as_slice().to_vec())
                 .unwrap();
-            from_json(current_manager_version)?
+            from_json(current_account_version)?
         } else {
             self.account
                 .module_versions(vec![module_id.to_string()])?

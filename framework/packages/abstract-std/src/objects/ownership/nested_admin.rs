@@ -153,7 +153,7 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     for _ in 0..MAX_ADMIN_RECURSION {
         match current {
             Ok(Ownership {
-                owner: GovernanceDetails::SubAccount { account, .. },
+                owner: GovernanceDetails::SubAccount { account },
                 ..
             }) => {
                 current = query_ownership(querier, account);

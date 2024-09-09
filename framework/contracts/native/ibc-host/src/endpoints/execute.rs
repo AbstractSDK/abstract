@@ -29,7 +29,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
         }
         ExecuteMsg::RemoveChainProxy { chain } => remove_chain_proxy(deps, info, chain),
         ExecuteMsg::Execute {
-            account_address: proxy_address,
+            account_address,
             account_id,
             action,
         } => {
@@ -37,7 +37,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             let src_chain: TruncatedChainId =
                 REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
-            handle_host_action(deps, env, src_chain, proxy_address, account_id, action)
+            handle_host_action(deps, env, src_chain, account_address, account_id, action)
         }
         ExecuteMsg::UpdateOwnership(action) => {
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
