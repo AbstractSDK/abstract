@@ -151,7 +151,7 @@ pub enum ExecuteMsg {
     Callback(polytone_callbacks::CallbackMessage),
 }
 
-// Copy from `polytone_note`
+/// Copy of [polytone_note::msg::ExecuteMsg](https://docs.rs/polytone-note/1.0.0/polytone_note/msg/enum.ExecuteMsg.html)
 #[cosmwasm_schema::cw_serde]
 pub enum PolytoneNoteExecuteMsg {
     /// Performs the requested queries on the voice chain and returns

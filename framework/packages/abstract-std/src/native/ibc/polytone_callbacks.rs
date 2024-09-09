@@ -1,3 +1,5 @@
+//! Copy of [polytone::callbacks](https://docs.rs/polytone/1.0.0/polytone/callbacks/index.html) types used inside abstract
+
 use super::*;
 
 use cosmwasm_std::{Addr, SubMsgResponse, Uint64};
