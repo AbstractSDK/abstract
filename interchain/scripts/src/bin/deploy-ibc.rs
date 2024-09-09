@@ -3,6 +3,7 @@ use std::iter;
 
 use abstract_interface::{Abstract, AbstractIbc};
 use abstract_scripts::ROLLKIT_TESTNET;
+use abstract_std::ibc_client::ListIbcInfrastructureResponse;
 use cw_orch::{
     daemon::{
         networks::{neutron::NEUTRON_NETWORK, ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1},
