@@ -35,13 +35,9 @@ pub enum VersionControlError {
         registry_addr: Addr,
     },
 
-    // caller not Manager error
-    #[error("Address {0} is not the Manager of Account {1}.")]
-    NotManager(Addr, AccountId),
-
-    // caller not Proxy error
-    #[error("Address {0} is not the Proxy of Account {1}.")]
-    NotProxy(Addr, AccountId),
+    // Caller is not a valid account
+    #[error("Address {0} is not the valid account address of {1}.")]
+    NotAccount(Addr, AccountId),
 
     // Query method failed
     #[error("Query during '{method_name}' failed: {error}")]
@@ -286,7 +282,7 @@ impl VersionControlContract {
         let account_id = self.unchecked_account_id(maybe_account, querier)?;
         let account_base = self.account(&account_id, querier)?;
         if account_base.addr().ne(maybe_account) {
-            Err(VersionControlError::NotManager(
+            Err(VersionControlError::NotAccount(
                 maybe_account.clone(),
                 account_id,
             ))
