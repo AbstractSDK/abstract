@@ -9,6 +9,8 @@ use crate::{
     version_control::Account,
 };
 
+use cosmwasm_std::Addr;
+
 /// Data required for the `StandaloneContract::instantiate` function.
 #[cosmwasm_schema::cw_serde]
 pub struct StandaloneInstantiateMsg {

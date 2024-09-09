@@ -19,8 +19,8 @@ pub trait AppInterface: ModuleInterface + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
         # let deps = mock_dependencies();
-        # let module = MockModule::new(deps.api);
 
         let apps: Apps<MockModule>  = module.apps(deps.as_ref());
         ```
@@ -55,8 +55,8 @@ impl<'a, T: AppInterface> ApiIdentification for Apps<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
     # let deps = mock_dependencies();
-    # let module = MockModule::new(deps.api);
 
     let apps: Apps<MockModule>  = module.apps(deps.as_ref());
     ```

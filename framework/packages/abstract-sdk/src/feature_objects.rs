@@ -6,7 +6,7 @@
 
 pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 use abstract_std::{version_control::Account, VERSION_CONTROL};
-use cosmwasm_std::Deps;
+use cosmwasm_std::{Addr, Deps};
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
@@ -53,7 +53,7 @@ mod tests {
     use super::*;
 
     mod version_control {
-        use cosmwasm_std::{testing::mock_dependencies, Addr};
+        use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
         use crate::features::AbstractRegistryAccess;
@@ -72,7 +72,7 @@ mod tests {
     }
 
     mod account {
-        use cosmwasm_std::{testing::mock_dependencies, Addr};
+        use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
 

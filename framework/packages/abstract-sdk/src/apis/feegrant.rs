@@ -27,8 +27,8 @@ pub trait GrantInterface: AccountExecutor {
     /// use abstract_sdk::prelude::*;
     /// # use cosmwasm_std::testing::mock_dependencies;
     /// # use abstract_sdk::mock_module::MockModule;
+    /// # let module = MockModule::new();
     /// # let deps = mock_dependencies();
-    /// # let module = MockModule::new(deps.api);
 
     /// let grant: FeeGranter = module.fee_granter(deps.as_ref(), None)?;
     /// ```
@@ -51,8 +51,7 @@ impl<T> GrantInterface for T where T: AccountExecutor {}
 /// use abstract_sdk::prelude::*;
 /// # use cosmwasm_std::testing::mock_dependencies;
 /// # use abstract_sdk::mock_module::MockModule;
-/// # let deps = mock_dependencies();
-/// # let module = MockModule::new(deps.api);
+/// # let module = MockModule::new();
 ///
 /// let grant: FeeGranter  = module.fee_granter(deps.as_ref(), None)?;
 /// ```

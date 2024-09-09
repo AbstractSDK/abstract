@@ -89,13 +89,12 @@ The API can then be used by any contract that implements its required traits, in
   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
   # use abstract_sdk::feature_objects::AnsHost;
   # use abstract_sdk::{AbstractSdkResult, AccountAction};
-  # use abstract_std::version_control::Account;
   # pub struct MyContract {
   #     
   # }
   # impl AccountIdentification for MyContract {
-  #     fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
-  #         Ok(Account::new(Addr::unchecked("just_an_example")))
+  #     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+  #         Ok(Addr::unchecked("just_an_example"))
   #     }
   # }
   # impl ModuleIdentification for MyContract {

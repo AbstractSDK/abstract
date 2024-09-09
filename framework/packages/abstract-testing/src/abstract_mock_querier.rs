@@ -1,8 +1,11 @@
 use abstract_std::{
     ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
     objects::{
-        account::ACCOUNT_ID, common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails,
-        ownership::Ownership, AccountId, AssetEntry, ChannelEntry, ContractEntry,
+        account::ACCOUNT_ID,
+        common_namespace::{ADMIN_NAMESPACE, OWNERSHIP_STORAGE_KEY},
+        gov_type::GovernanceDetails,
+        ownership::Ownership,
+        AccountId, AssetEntry, ChannelEntry, ContractEntry,
     },
     version_control::{state::ACCOUNT_ADDRESSES, Account},
 };
