@@ -4,9 +4,9 @@ use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
+    account::{self, ModuleInstallConfig},
     ibc::{Callback, ModuleQuery},
     ibc_host::HostAction,
-    manager::{self, ModuleInstallConfig},
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
         version_control::VersionControlContract, TruncatedChainId,
@@ -220,12 +220,13 @@ impl InstalledModuleIdentification {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
                 let account_base = vc.account(&target_account_id, &deps.querier)?;
 
-                let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
-                    account_base.into_addr(),
-                    &manager::QueryMsg::ModuleAddresses {
-                        ids: vec![self.module_info.id()],
-                    },
-                )?;
+                let module_info: account::responses::ModuleAddressesResponse =
+                    deps.querier.query_wasm_smart(
+                        account_base.into_addr(),
+                        &account::QueryMsg::ModuleAddresses {
+                            ids: vec![self.module_info.id()],
+                        },
+                    )?;
                 module_info
                     .modules
                     .first()

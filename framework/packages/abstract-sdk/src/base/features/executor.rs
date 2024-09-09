@@ -1,4 +1,4 @@
-use abstract_std::proxy;
+use abstract_std::account;
 use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
 
 use crate::AbstractSdkResult;
@@ -11,7 +11,7 @@ pub trait AccountExecutor: AccountIdentification {
     fn execute_on_account(
         &self,
         deps: Deps,
-        msg: &proxy::ExecuteMsg,
+        msg: &account::ExecuteMsg,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<CosmosMsg> {
         let account_address = self.account(deps)?;
@@ -20,3 +20,5 @@ pub trait AccountExecutor: AccountIdentification {
             .map_err(Into::into)
     }
 }
+
+impl<T> AccountExecutor for T where T: AccountIdentification {}

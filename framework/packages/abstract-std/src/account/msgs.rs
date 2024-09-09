@@ -1,10 +1,10 @@
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty};
-pub use manager::{
-    InfoResponse, ModuleAddressesResponse, ModuleInfosResponse, ModuleInstallConfig,
-    ModuleVersionsResponse, SubAccountIdsResponse, UpdateSubAccountAction,
+pub use super::responses::{
+    ConfigResponse, InfoResponse, ModuleAddressesResponse, ModuleInfosResponse,
+    ModuleVersionsResponse, SubAccountIdsResponse,
 };
-use state::SuspensionStatus;
+use super::types::{ModuleInstallConfig, UpdateSubAccountAction};
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Binary, CosmosMsg, Empty};
 
 use crate::objects::{
     gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
@@ -12,16 +12,6 @@ use crate::objects::{
     ownership::Ownership,
     AccountId,
 };
-
-use super::*;
-
-// TODO: Move manager and proxy state here
-pub mod state {
-    use super::*;
-
-    pub use manager::state::{SuspensionStatus, ACCOUNT_ID, ACCOUNT_MODULES};
-    pub use proxy::state::{State, ADMIN, STATE};
-}
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
@@ -160,13 +150,4 @@ pub enum QueryMsg {
     /// Query the contract's ownership information
     #[returns(Ownership<String>)]
     Ownership {},
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct ConfigResponse {
-    pub modules: Vec<String>,
-    pub account_id: AccountId,
-    pub is_suspended: SuspensionStatus,
-    pub version_control_address: Addr,
-    pub module_factory_address: Addr,
 }

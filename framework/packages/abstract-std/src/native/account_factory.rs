@@ -46,7 +46,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
 use crate::{
-    manager::ModuleInstallConfig,
+    account::ModuleInstallConfig,
     objects::{
         account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,

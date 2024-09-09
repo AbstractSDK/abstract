@@ -50,7 +50,7 @@ pub trait AuthZInterface: AccountExecutor {
         deps: cosmwasm_std::Deps<'a>,
         granter: Option<Addr>,
     ) -> AbstractSdkResult<AuthZ> {
-        let granter = granter.unwrap_or(self.proxy_address(deps)?);
+        let granter = granter.unwrap_or(self.account(deps)?.addr());
         Ok(AuthZ { granter })
     }
 }
