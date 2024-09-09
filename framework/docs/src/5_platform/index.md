@@ -26,5 +26,3 @@ Through the interplay of the components above, Abstract offers a number of featu
 - [Monetization](./6_monetization.md): Developers have the ability to monetize their modules by setting
   installation fee or usage fees for
   their modules. By providing direct monetization strategies we aim to reduce funding intermediaries and improved the sustainability of small team/solo developer projects.
-
-- [Account Value Oracle](./7_oracle.md): An integrated way to easily get the value of your Account's assets **on-chain**.

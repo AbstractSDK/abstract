@@ -13,8 +13,25 @@ These modules come in different types, each with their own purpose. The most com
 
 Modules are classified in the following categories:
 
-- **App**: modules that add a functionality, exposing new entry-points for you or your users.
-- **Adapter**: modules that act as a standard interface between your Account and external services.
+- **App**: Modules that add a functionality, exposing new entry-points for you or your users.
+- **Adapter**: Modules that act as a standard interface between your Account and external services.
+- **Standalone**: Modules that are not directly integrated with Abstract Accounts.
+- **Service**: Reference to a smart-contract or module that is externally maintained.
+
+Each module type has its own characteristics best fit for different use-cases. The main differences between the module types are:
+
+- **Customizability**: The ability for the user of the application to customize important settings of the application.
+- **Permissions**: The ability for the app to execute messages on behalf of the user's account. "Admin" indicates that the app can execute messages on behalf of the account, while "Non-Admin" indicates that the app can't.
+
+```mermaid
+quadrantChart
+  x-axis Admin --> Non-Admin
+  y-axis Static --> Customizable
+  quadrant-1 Standalone
+  quadrant-2 App
+  quadrant-3 Adapter
+  quadrant-4 "(App as) Service"
+```
 
 ## Module IDs
 
@@ -96,3 +113,9 @@ On installation the standalone contract will be instantiated and the Account wil
 Standalone contracts, unlike Adapters and Apps, can't execute messages on the account's proxy. They are highly suited for module-to-module IBC applications.
 
 You can find an example standalone application [here](https://github.com/AbstractSDK/abstract/tree/main/modules/contracts/standalones/ica-owner).
+
+## Service
+
+A `Service` module is not a module type per se, but rather a way to categorize a smart-contract that provide a service to the Abstract ecosystem. The contract could be an app module installed on an account of the service provider, or a contract that is not directly integrated with Abstract Accounts.
+
+Regardless, services are most useful when creating an on-chain service for other accounts or EOAs. For example, an on-chain mail service should be referenced by others but its developers should also be able to upgrade it. If the developers build the application with Abstract they can publish the module as an App, instantiate or migrate it on their account and then register it as a Service for others to reference.
