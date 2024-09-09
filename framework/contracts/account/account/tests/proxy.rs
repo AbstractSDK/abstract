@@ -18,7 +18,6 @@ use abstract_std::{
 use abstract_testing::prelude::*;
 use anyhow::Error;
 use cosmwasm_std::{coin, CosmosMsg, Uint128};
-use cw721::OwnerOfResponse;
 use cw_orch::{
     mock::{cw_multi_test::MockApiBech32, MockBase},
     prelude::*,
@@ -532,7 +531,7 @@ fn nft_owner_success() -> Result<(), Error> {
 
     // ensure NFT was transferred
     let resp: OwnerOfResponse = chain.wasm_querier().smart_query(
-        nft_addr,
+        &nft_addr,
         &cw721::Cw721QueryMsg::OwnerOf {
             token_id: token_id.clone(),
             include_expired: None,

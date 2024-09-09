@@ -16,7 +16,7 @@ use abstract_std::{
     manager::ModuleInstallConfig,
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        account::AccountTrace, module::assert_module_data_validity,
+        account::AccountTrace, module::assert_module_data_validity, ownership::cw721,
         salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError, IBC_HOST,
@@ -25,7 +25,6 @@ use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
     Env, MessageInfo, Storage, SubMsg, SubMsgResult, WasmMsg,
 };
-use cw721::OwnerOfResponse;
 use cw_ownable::OwnershipError;
 
 use crate::{
@@ -382,7 +381,7 @@ fn verify_nft_ownership(
     nft_id: String,
 ) -> Result<(), AccountFactoryError> {
     // get owner of token_id from collection
-    let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
+    let owner: cw721::OwnerOfResponse = deps.querier.query_wasm_smart(
         nft_addr,
         &cw721::Cw721QueryMsg::OwnerOf {
             token_id: nft_id,

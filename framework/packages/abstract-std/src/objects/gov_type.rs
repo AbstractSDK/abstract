@@ -2,13 +2,14 @@
 
 use crate::{objects::account, version_control};
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
-use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
 use cw_utils::Expiration;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::AbstractError;
+
+use super::ownership::cw721;
 
 const MIN_GOV_TYPE_LENGTH: usize = 4;
 const MAX_GOV_TYPE_LENGTH: usize = 64;
@@ -177,7 +178,7 @@ impl GovernanceDetails<Addr> {
                 collection_addr,
                 token_id,
             } => {
-                let res: Option<OwnerOfResponse> = querier
+                let res: Option<cw721::OwnerOfResponse> = querier
                     .query_wasm_smart(
                         collection_addr,
                         &cw721::Cw721QueryMsg::OwnerOf {

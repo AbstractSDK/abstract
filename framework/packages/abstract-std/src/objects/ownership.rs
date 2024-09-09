@@ -1,3 +1,5 @@
+/// This module used internally, for Nft Owners and could be removed at any point if cw721 will get upgraded to cosmwasm 2.0+
+pub mod cw721;
 mod gov_ownable;
 pub mod nested_admin;
 
