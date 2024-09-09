@@ -16,8 +16,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
     Ok(AccountResponse::action("migrate"))
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::testing::*;
