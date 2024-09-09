@@ -47,6 +47,7 @@ ans-host = { version = "0.23.0", package = "abstract-ans-host", path = "../../co
 version-control = { version = "0.23.0", package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false }
 proxy = { version = "0.23.0", package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false }
 manager = { version = "0.23.0", package = "abstract-manager", path = "../../contracts/account/manager", default-features = false }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [build-dependencies]
 serde_json = "1.0.79"
@@ -58,6 +59,3 @@ env_logger = "0.11.3"
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw721-base = "0.18.0"
-
-[dependencies]
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
