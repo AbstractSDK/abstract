@@ -1,30 +1,31 @@
-pub use abstract_std::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
+pub use abstract_std::account::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_std::{
+    account::*,
     adapter::{self, AdapterBaseMsg},
     ibc_host::{HelperAction, HostAction},
-    manager::*,
+    manager::ManagerModuleInfo,
     module_factory::SimulateInstallModulesResponse,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         AccountId, TruncatedChainId,
     },
-    IBC_CLIENT, MANAGER, PROXY,
+    ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Binary, Empty};
 use cw_orch::{environment::Environment, interface, prelude::*};
 use serde::Serialize;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct Manager<Chain>;
+pub struct Account<Chain>;
 
-impl<Chain: CwEnv> Manager<Chain> {
+impl<Chain: CwEnv> Account<Chain> {
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
-        let manager_id = format!("{MANAGER}-{account_id}");
+        let manager_id = format!("{ACCOUNT}-{account_id}");
         Self::new(manager_id, chain)
     }
 }
 
-impl<Chain: CwEnv> Uploadable for Manager<Chain> {
+impl<Chain: CwEnv> Uploadable for Account<Chain> {
     fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
@@ -43,7 +44,7 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
     }
 }
 
-impl<Chain: CwEnv> Manager<Chain> {
+impl<Chain: CwEnv> Account<Chain> {
     pub fn upgrade_module<M: Serialize>(
         &self,
         module_id: &str,
@@ -209,7 +210,7 @@ impl<Chain: CwEnv> Manager<Chain> {
                     )],
                 },
             })?,
-            PROXY.to_string(),
+            ACCOUNT.to_string(),
             &[],
         )?;
 
@@ -239,12 +240,12 @@ impl<Chain: CwEnv> Manager<Chain> {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
-                    manager_msgs: vec![msg],
+                    account_msgs: vec![msg],
                 },
             },
         };
 
-        self.execute_on_module(PROXY, msg)
+        self.execute_on_module(ACCOUNT, msg)
     }
 
     pub fn execute_on_remote_module(
@@ -258,7 +259,7 @@ impl<Chain: CwEnv> Manager<Chain> {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
-                    manager_msgs: vec![ExecuteMsg::ExecOnModule {
+                    account_msgs: vec![ExecuteMsg::ExecOnModule {
                         module_id: module_id.to_string(),
                         exec_msg: msg,
                     }],
@@ -266,7 +267,7 @@ impl<Chain: CwEnv> Manager<Chain> {
             },
         };
 
-        self.execute_on_module(PROXY, msg)
+        self.execute_on_module(ACCOUNT, msg)
     }
 
     pub fn send_all_funds_back(
@@ -281,6 +282,6 @@ impl<Chain: CwEnv> Manager<Chain> {
             },
         };
 
-        self.execute_on_module(PROXY, msg)
+        self.execute_on_module(ACCOUNT, msg)
     }
 }

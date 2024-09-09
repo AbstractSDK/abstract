@@ -10,7 +10,6 @@ dependencies = [
  "abstract-adapter",
  "abstract-ans-host",
  "abstract-app",
- "abstract-integration-tests",
  "abstract-interface",
  "abstract-macros",
  "abstract-manager",
@@ -45,7 +44,6 @@ dependencies = [
 name = "abstract-account-factory"
 version = "0.23.0"
 dependencies = [
- "abstract-integration-tests",
  "abstract-interface",
  "abstract-macros",
  "abstract-sdk",
@@ -134,7 +132,6 @@ version = "0.23.0"
 dependencies = [
  "abstract-app",
  "abstract-ibc-host",
- "abstract-integration-tests",
  "abstract-interface",
  "abstract-sdk",
  "abstract-std",
@@ -383,30 +380,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "abstract-integration-tests"
-version = "0.23.0"
-dependencies = [
- "abstract-adapter",
- "abstract-app",
- "abstract-interface",
- "abstract-manager",
- "abstract-sdk",
- "abstract-std",
- "abstract-testing",
- "anyhow",
- "cosmwasm-schema 2.1.3",
- "cosmwasm-std 2.1.3",
- "cw-asset",
- "cw-orch",
- "cw-ownable 2.1.0",
- "cw2 2.0.0",
- "log",
- "semver",
- "speculoos",
- "workspace-hack",
-]
-
-[[package]]
 name = "abstract-interface"
 version = "0.23.1"
 dependencies = [
@@ -465,7 +438,6 @@ dependencies = [
  "abstract-adapter",
  "abstract-ans-host",
  "abstract-app",
- "abstract-integration-tests",
  "abstract-interface",
  "abstract-macros",
  "abstract-module-factory",
@@ -499,7 +471,6 @@ dependencies = [
 name = "abstract-module-factory"
 version = "0.23.0"
 dependencies = [
- "abstract-integration-tests",
  "abstract-interface",
  "abstract-macros",
  "abstract-sdk",
@@ -689,7 +660,6 @@ dependencies = [
 name = "abstract-standalone"
 version = "0.23.0"
 dependencies = [
- "abstract-integration-tests",
  "abstract-interface",
  "abstract-sdk",
  "abstract-standalone",
@@ -7917,6 +7887,7 @@ dependencies = [
  "ibc-proto",
  "ibc-relayer-types",
  "ics23",
+ "itertools 0.12.1",
  "k256",
  "libc",
  "log",
@@ -7927,7 +7898,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "ppv-lite86",
- "prost 0.13.2",
+ "prost 0.12.6",
  "prost-types",
  "protobuf",
  "rand",
@@ -7946,13 +7917,16 @@ dependencies = [
  "subtle-encoding",
  "syn 1.0.109",
  "syn 2.0.77",
+ "sync_wrapper 1.0.1",
  "tendermint 0.38.1",
  "tendermint-proto 0.38.1",
  "tendermint-proto 0.39.1",
  "time",
  "tiny-keccak",
+ "tokio",
  "tokio-stream",
  "tokio-util",
+ "tonic",
  "tower",
  "tracing",
  "tracing-core",

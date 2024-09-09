@@ -5,7 +5,7 @@ use abstract_sdk::std::{
         state::{State, ADMIN, STATE},
         ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    PROXY,
+    ACCOUNT,
 };
 use abstract_std::objects::module_version::assert_contract_upgrade;
 use cosmwasm_std::{
@@ -18,7 +18,7 @@ use crate::{commands::*, error::ProxyError, queries::*, reply};
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const RESPONSE_REPLY_ID: u64 = 1;
 
-#[abstract_response(PROXY)]
+#[abstract_response(ACCOUNT)]
 pub struct ProxyResponse;
 
 /// The result type for the proxy contract.
@@ -37,7 +37,7 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> ProxyResult {
     // Use CW2 to set the contract version, this is needed for migrations
-    cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+    cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
     let manager_addr = deps.api.addr_validate(&msg.manager_addr)?;
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
@@ -71,8 +71,8 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
     deps.storage.remove("\u{0}{6}ans_host".as_bytes());
-    assert_contract_upgrade(deps.storage, PROXY, version)?;
-    cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+    assert_contract_upgrade(deps.storage, ACCOUNT, version)?;
+    cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
     Ok(Response::default())
 }
 
@@ -122,7 +122,7 @@ mod tests {
 
             assert_that!(res).is_err().is_equal_to(ProxyError::Abstract(
                 AbstractError::CannotDowngradeContract {
-                    contract: PROXY.to_string(),
+                    contract: ACCOUNT.to_string(),
                     from: version.clone(),
                     to: version,
                 },
@@ -137,7 +137,7 @@ mod tests {
             mock_init(&mut deps);
 
             let big_version = "999.999.999";
-            cw2::set_contract_version(deps.as_mut().storage, PROXY, big_version)?;
+            cw2::set_contract_version(deps.as_mut().storage, ACCOUNT, big_version)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -145,7 +145,7 @@ mod tests {
 
             assert_that!(res).is_err().is_equal_to(ProxyError::Abstract(
                 AbstractError::CannotDowngradeContract {
-                    contract: PROXY.to_string(),
+                    contract: ACCOUNT.to_string(),
                     from: big_version.parse().unwrap(),
                     to: version,
                 },
@@ -168,7 +168,7 @@ mod tests {
             assert_that!(res).is_err().is_equal_to(ProxyError::Abstract(
                 AbstractError::ContractNameMismatch {
                     from: old_name.parse().unwrap(),
-                    to: PROXY.parse().unwrap(),
+                    to: ACCOUNT.parse().unwrap(),
                 },
             ));
 
@@ -187,7 +187,7 @@ mod tests {
                 ..version.clone()
             }
             .to_string();
-            cw2::set_contract_version(deps.as_mut().storage, PROXY, small_version)?;
+            cw2::set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
 
             let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);

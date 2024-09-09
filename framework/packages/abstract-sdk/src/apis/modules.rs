@@ -74,9 +74,9 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// This should **not** be used to execute messages on an `Api`.
     /// Use `Modules::api_request(..)` instead.
     pub fn module_address(&self, module_id: ModuleId) -> AbstractSdkResult<Addr> {
-        let manager_addr = self.base.manager_address(self.deps)?;
+        let account_addr = self.base.account(self.deps)?;
         let maybe_module_addr =
-            ACCOUNT_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
+            ACCOUNT_MODULES.query(&self.deps.querier, account_addr.into_addr(), module_id)?;
         let Some(module_addr) = maybe_module_addr else {
             return Err(crate::AbstractSdkError::MissingModule {
                 module: module_id.to_string(),

@@ -11,6 +11,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 
 use crate::{
+    account,
     ibc_client::InstalledModuleIdentification,
     manager::{self, ModuleInstallConfig},
     objects::{account::AccountId, module::ModuleInfo, TruncatedChainId},
@@ -89,10 +90,10 @@ pub enum HelperAction {
 /// Callable actions on a remote host
 #[cosmwasm_schema::cw_serde]
 pub enum HostAction {
-    /// Dispatch messages to a remote manager contract.
+    /// Dispatch messages to a remote Account.
     /// Will create a new Account if required.
     Dispatch {
-        manager_msgs: Vec<manager::ExecuteMsg>,
+        account_msgs: Vec<account::ExecuteMsg>,
     },
     /// Can't be called by an account directly. These are permissioned messages that only the IBC Client is allowed to call by itself.
     Internal(InternalAction),
@@ -128,7 +129,7 @@ pub enum ExecuteMsg {
         account_id: AccountId,
         /// The address of the calling account id. This is used purely for the send-all-back method.
         /// We include it in all messages none-the-less to simplify the users life
-        proxy_address: String,
+        account_address: String,
         action: HostAction,
     },
     // ANCHOR_END: ibc-host-execute

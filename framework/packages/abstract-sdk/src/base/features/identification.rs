@@ -1,6 +1,5 @@
 use abstract_std::{
-    objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
-    version_control::AccountBase,
+    objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID, version_control::Account,
 };
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
@@ -15,25 +14,12 @@ const MANAGER: Item<Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 /// This includes the manager, proxy, core and account_id.
 pub trait AccountIdentification: Sized {
     /// Get the proxy address for the current account.
-    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr>;
-    /// Get the manager address for the current account.
-    fn manager_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
-        let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
-        maybe_proxy_manager.ok_or_else(|| AbstractSdkError::AdminNotSet {
-            proxy_addr: self.proxy_address(deps).unwrap(),
-        })
-    }
-    /// Get the AccountBase for the current account.
-    fn account_base(&self, deps: Deps) -> AbstractSdkResult<AccountBase> {
-        Ok(AccountBase {
-            manager: self.manager_address(deps)?,
-            proxy: self.proxy_address(deps)?,
-        })
-    }
+    fn account(&self, deps: Deps) -> AbstractSdkResult<Account>;
+
     /// Get the Account id for the current account.
     fn account_id(&self, deps: Deps) -> AbstractSdkResult<AccountId> {
         ACCOUNT_ID
-            .query(&deps.querier, self.proxy_address(deps)?)
+            .query(&deps.querier, self.account(deps)?.into_addr())
             .map_err(Into::into)
     }
 }

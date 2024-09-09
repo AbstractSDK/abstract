@@ -10,7 +10,7 @@ use abstract_std::{
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
     },
-    version_control::{AccountBase, NamespaceInfo, NamespaceResponse},
+    version_control::{Account, NamespaceInfo, NamespaceResponse},
     ABSTRACT_EVENT_TYPE,
 };
 use abstract_testing::prelude::*;
@@ -83,7 +83,7 @@ fn create_one_account() -> AResult {
 
     let account_list = version_control.account_base(TEST_ACCOUNT_ID)?;
 
-    assert_that!(&account_list.account_base).is_equal_to(AccountBase {
+    assert_that!(&account_list.account_base).is_equal_to(Account {
         manager: Addr::unchecked(manager),
         proxy: Addr::unchecked(proxy),
     });
@@ -155,13 +155,13 @@ fn create_two_account_s() -> AResult {
     assert_that!(&vc_config).is_equal_to(&expected);
 
     let account_1 = version_control.account_base(account_1_id)?.account_base;
-    assert_that!(&account_1).is_equal_to(AccountBase {
+    assert_that!(&account_1).is_equal_to(Account {
         manager: Addr::unchecked(manager1),
         proxy: Addr::unchecked(proxy1),
     });
 
     let account_2 = version_control.account_base(account_2_id)?.account_base;
-    assert_that!(&account_2).is_equal_to(AccountBase {
+    assert_that!(&account_2).is_equal_to(Account {
         manager: Addr::unchecked(manager2),
         proxy: Addr::unchecked(proxy2),
     });
@@ -196,19 +196,19 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account = version_control.account_base(TEST_ACCOUNT_ID)?.account_base;
 
     let account_1 = AbstractAccount::new(&deployment, TEST_ACCOUNT_ID);
-    assert_that!(AccountBase {
-        manager: account_1.manager.address()?,
+    assert_that!(Account {
+        manager: account_1.account.address()?,
         proxy: account_1.proxy.address()?,
     })
     .is_equal_to(&account);
 
-    assert_that!(AccountBase {
+    assert_that!(Account {
         manager: Addr::unchecked(manager),
         proxy: Addr::unchecked(proxy),
     })
     .is_equal_to(&account);
 
-    let account_config = account_1.manager.config()?;
+    let account_config = account_1.account.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_std::manager::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
@@ -243,7 +243,7 @@ fn sender_is_not_admin_external() -> AResult {
     )?;
 
     let account = AbstractAccount::new(&deployment, TEST_ACCOUNT_ID);
-    let account_config = account.manager.config()?;
+    let account_config = account.account.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_std::manager::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
@@ -287,7 +287,7 @@ fn create_one_account_with_namespace() -> AResult {
 
     assert_that!(&namespace).is_equal_to(&NamespaceResponse::Claimed(NamespaceInfo {
         account_id: TEST_ACCOUNT_ID,
-        account_base: AccountBase {
+        account_base: Account {
             manager: Addr::unchecked(manager_addr),
             proxy: Addr::unchecked(proxy_addr),
         },

@@ -5,7 +5,7 @@ use abstract_sdk::{
         ModuleIbcHandlerFn, QueryHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
     namespaces::BASE_STATE,
-    std::version_control::AccountBase,
+    std::version_control::Account,
     AbstractSdkError,
 };
 use abstract_std::{
@@ -53,7 +53,7 @@ pub struct AdapterContract<
     /// Map ProxyAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
-    pub target_account: Option<AccountBase>,
+    pub target_account: Option<Account>,
 }
 
 /// Constructor
@@ -92,7 +92,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             .target_account
             .as_ref()
             .ok_or_else(|| StdError::generic_err("No target Account specified to execute on."))?
-            .proxy)
+            .addr())
     }
     /// add dependencies to the contract
     pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
@@ -166,10 +166,7 @@ mod tests {
     fn set_and_get_target() -> AdapterMockResult {
         let mut mock = MOCK_ADAPTER;
         let target = Addr::unchecked("target");
-        mock.target_account = Some(AccountBase {
-            proxy: target.clone(),
-            manager: Addr::unchecked("manager"),
-        });
+        mock.target_account = Some(Account::new(target.clone()));
         assert_eq!(mock.target()?, &target);
         Ok(())
     }
