@@ -20,7 +20,6 @@ schemars = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw-ownable = { workspace = true }
 serde = { workspace = true }
-polytone = { workspace = true }
 map-macro = "0.3.0"
 
 cw-orch = { workspace = true }

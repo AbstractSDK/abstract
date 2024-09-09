@@ -319,9 +319,8 @@ mod tests {
     mod register_infrastructure {
         use std::str::FromStr;
 
-        use abstract_std::objects::TruncatedChainId;
+        use abstract_std::{ibc::polytone_callbacks::CallbackRequest, objects::TruncatedChainId};
         use cosmwasm_std::wasm_execute;
-        use polytone::callbacks::CallbackRequest;
 
         use super::*;
         use crate::commands::PACKET_LIFETIME;
@@ -386,7 +385,7 @@ mod tests {
 
             let note_proxy_msg = wasm_execute(
                 note_addr.to_string(),
-                &polytone_note::msg::ExecuteMsg::Execute {
+                &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![],
                     callback: Some(CallbackRequest {
                         receiver: mock_env().contract.address.to_string(),
@@ -581,7 +580,7 @@ mod tests {
 
             let note_message = wasm_execute(
                 note_addr.to_string(),
-                &polytone_note::msg::ExecuteMsg::Execute {
+                &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![wasm_execute(
                         // The note's remote proxy will call the ibc host
                         remote_ibc_host,
@@ -756,12 +755,12 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
         use abstract_std::{
+            ibc::polytone_callbacks::CallbackRequest,
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{version_control::VersionControlError, TruncatedChainId},
         };
         use cosmwasm_std::wasm_execute;
-        use polytone::callbacks::CallbackRequest;
         use std::str::FromStr;
 
         #[test]
@@ -840,7 +839,7 @@ mod tests {
 
             let note_message = wasm_execute(
                 note_contract.to_string(),
-                &polytone_note::msg::ExecuteMsg::Execute {
+                &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![wasm_execute(
                         // The note's remote proxy will call the ibc host
                         remote_ibc_host,
@@ -1038,9 +1037,11 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_std::objects::{account::TEST_ACCOUNT_ID, TruncatedChainId};
+        use abstract_std::{
+            ibc::polytone_callbacks::{Callback, CallbackMessage, ExecutionResponse},
+            objects::{account::TEST_ACCOUNT_ID, TruncatedChainId},
+        };
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
-        use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
 
         use super::*;
 

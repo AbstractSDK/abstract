@@ -1,6 +1,5 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Coin, Deps, QueryRequest, StdError};
-use polytone::callbacks::CallbackMessage;
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Deps, Empty, QueryRequest, StdError, Uint64};
 
 use self::state::IbcInfrastructure;
 use crate::{
@@ -13,6 +12,8 @@ use crate::{
     },
     AbstractError,
 };
+
+use super::ibc::polytone_callbacks;
 
 pub mod state {
 
@@ -147,7 +148,36 @@ pub enum ExecuteMsg {
     RemoveHost { host_chain: TruncatedChainId },
     /// Callback from the Polytone implementation
     /// This is triggered regardless of the execution result
-    Callback(CallbackMessage),
+    Callback(polytone_callbacks::CallbackMessage),
+}
+
+// Copy from `polytone_note`
+#[cosmwasm_schema::cw_serde]
+pub enum PolytoneNoteExecuteMsg {
+    /// Performs the requested queries on the voice chain and returns
+    /// a callback of Vec<QuerierResult>, or ACK-FAIL if unmarshalling
+    /// any of the query requests fails.
+    Query {
+        msgs: Vec<QueryRequest<Empty>>,
+        callback: polytone_callbacks::CallbackRequest,
+        timeout_seconds: Uint64,
+    },
+    /// Executes the requested messages on the voice chain on behalf
+    /// of the note chain sender. Message receivers can return data in
+    /// their callbacks by calling `set_data` on their `Response`
+    /// object. Optionally, returns a callback of `Vec<Callback>` where
+    /// index `i` corresponds to the callback for `msgs[i]`.
+    ///
+    /// Accounts are created on the voice chain after the first call
+    /// to execute by the local address. To create an account, but
+    /// perform no additional actions, pass an empty list to
+    /// `msgs`. Accounts are queryable via the `RemoteAddress {
+    /// local_address }` query after they have been created.
+    Execute {
+        msgs: Vec<CosmosMsg<Empty>>,
+        callback: Option<polytone_callbacks::CallbackRequest>,
+        timeout_seconds: Uint64,
+    },
 }
 
 /// This enum is used for sending callbacks to the note contract of the IBC client
