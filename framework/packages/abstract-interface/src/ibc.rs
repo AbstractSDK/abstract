@@ -65,8 +65,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 // Helpers to create connection with another chain
 pub mod connection {
     use super::*;
-    use abstract_std::ibc_client::ExecuteMsgFns as _;
-    use abstract_std::ibc_client::QueryMsgFns;
+    use abstract_std::ibc_client::{ExecuteMsgFns, QueryMsgFns};
     use abstract_std::ibc_host::ExecuteMsgFns as _;
     use abstract_std::objects::TruncatedChainId;
     use cw_orch::environment::Environment;
@@ -86,6 +85,25 @@ pub mod connection {
         ) -> Result<(), AbstractInterfaceError> {
             connect_one_way_to(self, remote_abstr, interchain)?;
             connect_one_way_to(remote_abstr, self, interchain)?;
+            Ok(())
+        }
+    }
+
+    impl AbstractIbc<Daemon> {
+        /// Register infrastructure on connected chains
+        pub fn register_infrastructure(&self) -> Result<(), AbstractInterfaceError> {
+            let register_infrastructures =
+                connection::list_ibc_infrastructures(self.host.environment().clone());
+
+            for (chain, ibc_infrastructure) in register_infrastructures.counterparts {
+                use abstract_std::ibc_client::ExecuteMsgFns;
+
+                self.client.register_infrastructure(
+                    chain,
+                    ibc_infrastructure.remote_abstract_host,
+                    ibc_infrastructure.polytone_note,
+                )?;
+            }
             Ok(())
         }
     }
@@ -126,5 +144,71 @@ pub mod connection {
             .register_chain_proxy(chain1_name, proxy_address.remote_polytone_proxy.unwrap())?;
 
         Ok(())
+    }
+
+    pub fn list_ibc_infrastructures<Chain: CwEnv>(
+        chain: Chain,
+    ) -> abstract_std::ibc_client::ListIbcInfrastructureResponse {
+        let Ok(polytone) = cw_orch_polytone::Polytone::load_from(chain) else {
+            return abstract_std::ibc_client::ListIbcInfrastructureResponse {
+                counterparts: vec![],
+            };
+        };
+        let abstract_state = crate::AbstractDaemonState::default();
+        let deployment_id = "default".to_owned();
+
+        let mut counterparts = vec![];
+        for connected_polytone in polytone.connected_polytones() {
+            // TODO: remove parse network after migrating to cw-orch 0.25 (we only need chain id now)
+            let Ok(chain_info) = networks::parse_network(&connected_polytone.chain_id) else {
+                continue;
+            };
+            let chain_name = chain_info.network_info.chain_name.to_owned();
+            let env_info = EnvironmentInfo {
+                chain_id: connected_polytone.chain_id.clone(),
+                chain_name,
+                deployment_id: deployment_id.clone(),
+            };
+            if let Some(remote_abstract_host) = abstract_state.contract_addr(&env_info, IBC_HOST) {
+                let truncated_chain_id =
+                    abstract_std::objects::TruncatedChainId::from_chain_id(&env_info.chain_id);
+                counterparts.push((
+                    truncated_chain_id,
+                    abstract_std::ibc_client::state::IbcInfrastructure {
+                        polytone_note: connected_polytone.note,
+                        remote_abstract_host: remote_abstract_host.into(),
+                        remote_proxy: None,
+                    },
+                ))
+            }
+        }
+        abstract_std::ibc_client::ListIbcInfrastructureResponse { counterparts }
+    }
+}
+
+#[cfg(feature = "interchain")]
+#[cfg(test)]
+mod test {
+    use super::connection::*;
+    use super::*;
+
+    // From https://github.com/CosmosContracts/juno/blob/32568dba828ff7783aea8cb5bb4b8b5832888255/docker/test-user.env#L2
+    const LOCAL_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
+
+    #[test]
+    fn list_ibc() {
+        use networks::JUNO_1;
+
+        // Deploy requires CwEnv, even for load
+        let juno = DaemonBuilder::new(JUNO_1)
+            .mnemonic(LOCAL_MNEMONIC)
+            .build()
+            .unwrap();
+        let l = list_ibc_infrastructures(juno);
+        l.counterparts.iter().any(|(chain_id, ibc_infra)| {
+            chain_id.as_str() == "osmosis"
+                && ibc_infra.remote_abstract_host.starts_with("osmo")
+                && ibc_infra.polytone_note.to_string().starts_with("juno")
+        });
     }
 }
