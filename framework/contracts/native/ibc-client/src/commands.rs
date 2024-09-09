@@ -417,6 +417,7 @@ pub fn execute_send_funds(
     host_chain: TruncatedChainId,
     funds: Vec<Coin>,
     memo: Option<String>,
+    receiver: Option<String>,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
@@ -428,13 +429,18 @@ pub fn execute_send_funds(
         .version_control
         .assert_proxy(&info.sender, &deps.querier)?;
 
-    // get account_id of Account
-    let account_id = account_base.account_id(deps.as_ref())?;
-    // load remote account
-    let remote_addr = ACCOUNTS.load(
-        deps.storage,
-        (account_id.trace(), account_id.seq(), &host_chain),
-    )?;
+    let remote_addr = match receiver {
+        Some(addr) => addr,
+        None => {
+            // get account_id of Account
+            let account_id = account_base.account_id(deps.as_ref())?;
+            // load remote account
+            ACCOUNTS.load(
+                deps.storage,
+                (account_id.trace(), account_id.seq(), &host_chain),
+            )?
+        }
+    };
 
     let ics20_channel_entry = ChannelEntry {
         connected_chain: host_chain,

@@ -22,6 +22,12 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     Ok((abstr_origin, abstr_remote))
 }
 
+// Set in code for starship tests
+pub fn set_starship_env() {
+    std::env::set_var("STATE_FILE", "starship-state.json");
+    std::env::set_var("ARTIFACTS_DIR", "../artifacts");
+}
+
 #[cfg(test)]
 pub mod mock_test {
     use abstract_std::{

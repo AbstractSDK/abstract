@@ -9,11 +9,6 @@ pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of an account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
 
-pub fn set_env() {
-    std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
-    std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
-}
-
 pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     abstr_origin: &Abstract<Chain>,
     origin_id: &str,
@@ -718,6 +713,7 @@ mod test {
                     funds: coins(10, origin_denom),
                     host_chain: TruncatedChainId::from_chain_id(STARGAZE),
                     memo: None,
+                    receiver: None,
                 },
             },
         )?;

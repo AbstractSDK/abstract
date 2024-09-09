@@ -96,6 +96,9 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: TruncatedChainId,
+        /// Address of the token receiver on host chain
+        /// Defaults to proxy address of remote account
+        receiver: Option<String>,
         funds: Vec<Coin>,
         memo: Option<String>,
     },
