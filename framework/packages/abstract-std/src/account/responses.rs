@@ -21,10 +21,6 @@ use cw2::ContractVersion;
 use super::state::AccountInfo;
 use crate::{account::state::SuspensionStatus, objects::account::AccountId};
 
-/// Callback message to set the dependencies after module upgrades.
-#[cosmwasm_schema::cw_serde]
-pub struct CallbackMsg {}
-
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleVersionsResponse {
     pub versions: Vec<ContractVersion>,

@@ -22,6 +22,8 @@ use crate::{
     queries, versioning,
 };
 
+use cr
+
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -239,15 +241,6 @@ pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> Manage
     Ok(Response::new())
 }
 
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
-    match msg.id {
-        commands::REGISTER_MODULES_DEPENDENCIES => {
-            commands::register_dependencies(deps, msg.result)
-        }
-        _ => Err(ManagerError::UnexpectedReply {}),
-    }
-}
 
 #[cfg(test)]
 mod tests {

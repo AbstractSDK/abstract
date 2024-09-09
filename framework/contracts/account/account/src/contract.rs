@@ -1,29 +1,44 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::std::{
+    account::state::ACCOUNT_ID,
     objects::validation::{validate_description, validate_link, validate_name},
-    proxy::state::ACCOUNT_ID,
     ACCOUNT,
 };
 use abstract_std::{
-    account::{ExecuteMsg, InstantiateMsg, QueryMsg},
-    manager::{
-        state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS},
-        UpdateSubAccountAction,
+    account::{
+        state::{
+            AccountInfo, Config, WhitelistedModules, ACCOUNT_MODULES, CONFIG, INFO,
+            SUSPENSION_STATUS, WHITELISTED_MODULES,
+        },
+        types::UpdateSubAccountAction,
+        ExecuteMsg, InstantiateMsg, QueryMsg,
     },
     objects::{gov_type::GovernanceDetails, ownership, AccountId},
-    proxy::state::STATE,
     version_control::Account,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
-    StdResult,
+    StdResult, SubMsgResult,
 };
 use cw2::set_contract_version;
 
-use manager::commands::*;
-use proxy::commands::*;
-
-use crate::error::AccountError;
+use crate::{
+    actions::{
+        execute_ibc_action, execute_module_action, execute_module_action_response, ica_action,
+    },
+    config::{
+        remove_account_from_contracts, update_account_status, update_info, update_internal_config,
+    },
+    error::AccountError,
+    modules::{
+        _install_modules, exec_on_module, install_modules, migration::upgrade_modules,
+        uninstall_module, MIGRATE_CONTEXT,
+    },
+    reply::{forward_response_data, register_dependencies},
+    sub_account::{
+        create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
+    },
+};
 
 #[abstract_response(ACCOUNT)]
 pub struct AccountResponse;
@@ -31,6 +46,9 @@ pub struct AccountResponse;
 pub type AccountResult<R = Response> = Result<R, AccountError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+pub const RESPONSE_REPLY_ID: u64 = 1;
+pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 2;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -58,12 +76,9 @@ pub fn instantiate(
         account_id.unwrap_or_else(|| /*  TODO: Query VC for Sequence*/ AccountId::local(0));
 
     ACCOUNT_ID.save(deps.storage, &account_id)?;
-    STATE.save(
-        deps.storage,
-        &abstract_std::proxy::state::State { modules: vec![] },
-    )?;
+    WHITELISTED_MODULES.save(deps.storage, &WhitelistedModules(vec![]))?;
 
-    // ## Manage ##
+    // ## Account ##
     let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
     let version_control_address = deps.api.addr_validate(&version_control_address)?;
 
@@ -72,7 +87,7 @@ pub fn instantiate(
         version_control_address: version_control_address.clone(),
         module_factory_address: module_factory_address.clone(),
     };
-    abstract_std::manager::state::CONFIG.save(deps.storage, &config)?;
+    abstract_std::account::state::CONFIG.save(deps.storage, &config)?;
 
     // Verify info
     validate_description(description.as_deref())?;
@@ -98,7 +113,7 @@ pub fn instantiate(
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
-    let mut response = ManagerResponse::new(
+    let mut response = AccountResponse::new(
         "instantiate",
         vec![
             ("account_id".to_owned(), account_id.to_string()),
@@ -250,6 +265,23 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
+    match msg {
+        Reply {
+            id: RESPONSE_REPLY_ID,
+            result: SubMsgResult::Ok(_),
+            ..
+        } => forward_response_data(msg),
+        Reply {
+            id: REGISTER_MODULES_DEPENDENCIES_REPLY_ID,
+            result: SubMsgResult::Ok(_),
+            ..
+        } => register_dependencies(deps),
+        _ => Err(AccountError::UnexpectedReply {}),
+    }
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => todo!(),
@@ -291,7 +323,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ManagerError::Abstract(
+                .is_equal_to(AccountError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ACCOUNT.to_string(),
                         from: version.clone(),
@@ -316,7 +348,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ManagerError::Abstract(
+                .is_equal_to(AccountError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ACCOUNT.to_string(),
                         from: big_version.parse().unwrap(),
@@ -340,7 +372,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ManagerError::Abstract(
+                .is_equal_to(AccountError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
                         to: ACCOUNT.parse().unwrap(),

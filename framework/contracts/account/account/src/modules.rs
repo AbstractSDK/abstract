@@ -1,48 +1,40 @@
-use abstract_macros::abstract_response;
-use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
     account::{
-        state::{
-            AccountInfo, SuspensionStatus, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO,
-            SUB_ACCOUNTS, SUSPENSION_STATUS,
-        },
-        ExecuteMsg, ModuleInstallConfig,
+        state::{ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, DEPENDENTS, WHITELISTED_MODULES},
+        ModuleInstallConfig,
     },
-    adapter::{
-        AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
-        ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
-    },
+    adapter::{AdapterBaseMsg, BaseExecuteMsg, ExecuteMsg as AdapterExecMsg},
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
     objects::{
-        dependency::Dependency,
-        gov_type::GovernanceDetails,
         module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
-        ownership::{self, GovOwnershipError},
+        ownership::{self},
         salt::generate_instantiate_salt,
-        validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
-        AccountId,
     },
     version_control::ModuleResponse,
-    ACCOUNT,
 };
 use cosmwasm_std::{
-    ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
-    Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg,
-    SubMsgResult, WasmMsg,
+    ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
+    Response, StdResult, Storage, SubMsg, SubMsgResult, WasmMsg,
 };
-use cw2::{get_contract_version, ContractVersion};
+use cw2::ContractVersion;
 use cw_storage_plus::Item;
+use migration::{build_module_migrate_msg, handle_adapter_migration, handle_app_migration};
 use semver::Version;
 
 use crate::{
-    contract::{AccountResponse, AccountResult},
+    contract::{AccountResponse, AccountResult, REGISTER_MODULES_DEPENDENCIES_REPLY_ID},
     error::AccountError,
+    queries::query_module_version,
 };
 
-pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
+pub use migration::MIGRATE_CONTEXT;
 pub(crate) const INSTALL_MODULES_CONTEXT: Item<Vec<(Module, Option<Addr>)>> = Item::new("icontext");
+
+pub mod migration;
+
+const LIST_SIZE_LIMIT: usize = 15;
 
 /// Attempts to install a new module through the Module Factory Contract
 pub fn install_modules(
@@ -93,7 +85,7 @@ pub fn _install_modules(
         .map_err(|error| AccountError::QueryModulesFailed { error })?;
 
     let mut install_context = Vec::with_capacity(modules.len());
-    let mut add_to_proxy = Vec::with_capacity(modules.len());
+    let mut add_to_whitelist = Vec::with_capacity(modules.len());
     let mut add_to_manager = Vec::with_capacity(modules.len());
 
     let salt: Binary = generate_instantiate_salt(&account_id);
@@ -112,7 +104,7 @@ pub fn _install_modules(
             | ModuleReference::Native(module_address)
             | ModuleReference::Service(module_address) => {
                 if module.should_be_whitelisted() {
-                    add_to_proxy.push(module_address.to_string());
+                    add_to_whitelist.push(module_address.to_string());
                 }
                 add_to_manager.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), None));
@@ -133,7 +125,7 @@ pub fn _install_modules(
                     AccountError::ProhibitedReinstall {}
                 );
                 if module.should_be_whitelisted() {
-                    add_to_proxy.push(module_address.to_string());
+                    add_to_whitelist.push(module_address.to_string());
                 }
                 add_to_manager.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), Some(module_address)));
@@ -144,19 +136,11 @@ pub fn _install_modules(
         };
         manager_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }
+    _whitelist_modules(deps.branch(), add_to_whitelist)?;
 
     INSTALL_MODULES_CONTEXT.save(deps.storage, &install_context)?;
 
     let mut messages = vec![];
-
-    // Add modules to proxy
-    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, ACCOUNT)?;
-    if !add_to_proxy.is_empty() {
-        messages.push(SubMsg::new(add_modules_to_proxy(
-            proxy_addr.into_string(),
-            add_to_proxy,
-        )?));
-    };
 
     // Update module addrs
     update_module_addresses(deps.branch(), Some(add_to_manager), None)?;
@@ -171,7 +155,7 @@ pub fn _install_modules(
             },
             funds,
         )?,
-        REGISTER_MODULES_DEPENDENCIES,
+        REGISTER_MODULES_DEPENDENCIES_REPLY_ID,
     ));
 
     Ok((
@@ -204,7 +188,6 @@ pub fn update_module_addresses(
 
     if let Some(modules_to_remove) = to_remove {
         for id in modules_to_remove.into_iter() {
-            validation::validate_not_proxy(&id)?;
             ACCOUNT_MODULES.remove(deps.storage, id.as_str());
         }
     }
@@ -212,16 +195,214 @@ pub fn update_module_addresses(
     Ok(AccountResponse::action("update_module_addresses"))
 }
 
-fn add_modules_to_proxy(
-    proxy_address: String,
-    module_addresses: Vec<String>,
-) -> StdResult<CosmosMsg<Empty>> {
-    Ok(wasm_execute(
-        proxy_address,
-        &ProxyMsg::AddModules {
-            modules: module_addresses,
+pub(crate) fn set_migrate_msgs_and_context(
+    deps: DepsMut,
+    module_info: ModuleInfo,
+    migrate_msg: Option<Binary>,
+    msgs: &mut Vec<CosmosMsg>,
+) -> Result<(), AccountError> {
+    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(config.version_control_address);
+
+    let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
+    let old_module_cw2 =
+        query_module_version(deps.as_ref(), old_module_addr.clone(), &version_control)?;
+    let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
+
+    let migrate_msgs = match requested_module.module.reference {
+        // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
+        ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
+            deps,
+            requested_module.module.info,
+            old_module_addr,
+            new_adapter_addr,
+        )?,
+        ModuleReference::App(code_id) => handle_app_migration(
+            deps,
+            migrate_msg,
+            old_module_addr,
+            requested_module.module.info,
+            code_id,
+        )?,
+        ModuleReference::AccountBase(code_id) | ModuleReference::Standalone(code_id) => {
+            vec![build_module_migrate_msg(
+                old_module_addr,
+                code_id,
+                migrate_msg.unwrap(),
+            )]
+        }
+
+        _ => return Err(AccountError::NotUpgradeable(module_info)),
+    };
+    msgs.extend(migrate_msgs);
+    Ok(())
+}
+
+/// Uninstall the module with the ID [`module_id`]
+pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String) -> AccountResult {
+    // only owner can uninstall modules
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+
+    // module can only be uninstalled if there are no dependencies on it
+    let dependents = DEPENDENTS.may_load(deps.storage, &module_id)?;
+    if let Some(dependents) = dependents {
+        if !dependents.is_empty() {
+            return Err(AccountError::ModuleHasDependents(Vec::from_iter(
+                dependents,
+            )));
+        }
+        // Remove the module from the dependents list
+        DEPENDENTS.remove(deps.storage, &module_id);
+    }
+
+    // Remove module as dependant from its dependencies.
+    let module_data = crate::versioning::load_module_data(deps.as_ref(), &module_id)?;
+    let module_dependencies = module_data.dependencies;
+    crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
+
+    // Remove for proxy if needed
+    let config = CONFIG.load(deps.storage)?;
+    let vc = VersionControlContract::new(config.version_control_address);
+
+    let module = vc.query_module(
+        ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
+        &deps.querier,
+    )?;
+
+    // Remove module from whitelist if it supposed to be removed
+    if module.should_be_whitelisted() {
+        _remove_whitelist_module(deps.branch(), module_id.clone())?;
+    }
+    ACCOUNT_MODULES.remove(deps.storage, &module_id);
+
+    let response = AccountResponse::new("uninstall_module", vec![("module", &module_id)]);
+    Ok(response)
+}
+
+/// Execute the [`exec_msg`] on the provided [`module_id`],
+pub fn exec_on_module(
+    deps: DepsMut,
+    info: MessageInfo,
+    module_id: String,
+    exec_msg: Binary,
+) -> AccountResult {
+    // only owner can forward messages to modules
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+
+    let module_addr = load_module_addr(deps.storage, &module_id)?;
+
+    let response = AccountResponse::new("exec_on_module", vec![("module", module_id)]).add_message(
+        CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: module_addr.into(),
+            msg: exec_msg,
+            funds: info.funds,
+        }),
+    );
+
+    Ok(response)
+}
+
+/// Checked load of a module address
+pub fn load_module_addr(storage: &dyn Storage, module_id: &String) -> AccountResult<Addr> {
+    ACCOUNT_MODULES
+        .may_load(storage, module_id)?
+        .ok_or_else(|| AccountError::ModuleNotFound(module_id.clone()))
+}
+
+/// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
+pub fn query_module(
+    deps: Deps,
+    module_info: ModuleInfo,
+    old_contract_version: Option<ContractVersion>,
+) -> Result<ModuleResponse, AccountError> {
+    let config = CONFIG.load(deps.storage)?;
+    // Construct feature object to access registry functions
+    let version_control = VersionControlContract::new(config.version_control_address);
+
+    let module = match &module_info.version {
+        ModuleVersion::Version(new_version) => {
+            let old_contract = old_contract_version.unwrap();
+
+            let new_version = new_version.parse::<Version>().unwrap();
+            let old_version = old_contract.version.parse::<Version>().unwrap();
+
+            if new_version < old_version {
+                return Err(AccountError::OlderVersion(
+                    new_version.to_string(),
+                    old_version.to_string(),
+                ));
+            }
+            Module {
+                info: module_info.clone(),
+                reference: version_control
+                    .query_module_reference_raw(&module_info, &deps.querier)?,
+            }
+        }
+        ModuleVersion::Latest => {
+            // Query latest version of contract
+            version_control.query_module(module_info.clone(), &deps.querier)?
+        }
+    };
+
+    Ok(ModuleResponse {
+        module: Module {
+            info: module.info,
+            reference: module.reference,
         },
-        vec![],
-    )?
-    .into())
+        config: version_control.query_config(module_info, &deps.querier)?,
+    })
+}
+
+#[inline(always)]
+fn configure_adapter(
+    adapter_address: impl Into<String>,
+    message: AdapterBaseMsg,
+) -> StdResult<CosmosMsg> {
+    let adapter_msg: AdapterExecMsg = BaseExecuteMsg {
+        proxy_address: None,
+        msg: message,
+    }
+    .into();
+    Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
+}
+
+/// Add a contract to the whitelist
+fn _whitelist_modules(deps: DepsMut, modules: Vec<String>) -> AccountResult<()> {
+    let mut whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
+
+    // This is a limit to prevent potentially running out of gas when doing lookups on the modules list
+    if whitelisted_modules.0.len() >= LIST_SIZE_LIMIT {
+        return Err(AccountError::ModuleLimitReached {});
+    }
+
+    for module in modules.iter() {
+        let module_addr = deps.api.addr_validate(module)?;
+
+        if whitelisted_modules.0.contains(&module_addr) {
+            return Err(AccountError::AlreadyWhitelisted(module.clone()));
+        }
+
+        // Add contract to whitelist.
+        whitelisted_modules.0.push(module_addr);
+    }
+
+    WHITELISTED_MODULES.save(deps.storage, &whitelisted_modules)?;
+
+    Ok(())
+}
+
+/// Remove a contract from the whitelist
+fn _remove_whitelist_module(deps: DepsMut, module: String) -> AccountResult<()> {
+    WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
+        let module_address = deps.api.addr_validate(&module)?;
+
+        if !whitelisted_modules.0.contains(&module_address) {
+            return Err(AccountError::NotWhitelisted(module.clone()));
+        }
+        // Remove contract from whitelist.
+        whitelisted_modules.0.retain(|addr| *addr != module_address);
+        Ok(whitelisted_modules)
+    })?;
+
+    Ok(())
 }

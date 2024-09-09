@@ -36,6 +36,10 @@ pub struct InstantiateMsg {
     pub ans_host_address: String,
 }
 
+/// Callback message to set the dependencies after module upgrades.
+#[cosmwasm_schema::cw_serde]
+pub struct CallbackMsg {}
+
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
@@ -107,6 +111,9 @@ pub enum ExecuteMsg {
     /// accept a pending ownership transfer, or renounce the ownership
     /// of the account permanently.
     UpdateOwnership(GovAction),
+
+    /// Callback endpoint
+    Callback(CallbackMsg),
 }
 
 #[cosmwasm_schema::cw_serde]

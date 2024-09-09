@@ -31,9 +31,10 @@ pub mod namespace {
     pub const ACCOUNT_MODULES: &str = "d";
     pub const DEPENDENTS: &str = "e";
     pub const SUB_ACCOUNTS: &str = "f";
+    pub const WHITELISTED_MODULES: &str = "g";
 }
 
-pub const STATE: Item<State> = Item::new("a");
+pub const WHITELISTED_MODULES: Item<WhitelistedModules> = Item::new(namespace::WHITELISTED_MODULES);
 pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 
 /// Suspension status
@@ -52,6 +53,4 @@ pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new(namespace::SUB_
 // Additional states, not listed here: cw_gov_ownable::GovOwnership
 
 #[cosmwasm_schema::cw_serde]
-pub struct State {
-    pub modules: Vec<Addr>,
-}
+pub struct WhitelistedModules(pub Vec<Addr>);

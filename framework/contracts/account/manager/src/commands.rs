@@ -1,16 +1,17 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
-    adapter::{
-        AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
-        ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
-    },
-    manager::{
+    account::{state::ACCOUNT_ID, ExecuteMsg as ProxyMsg},
+    account::{
         state::{
             AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO, SUB_ACCOUNTS,
             SUSPENSION_STATUS,
         },
         CallbackMsg, ExecuteMsg, InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
+    },
+    adapter::{
+        AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
+        ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
     },
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
     objects::{
@@ -24,7 +25,6 @@ use abstract_std::{
         version_control::VersionControlContract,
         AccountId,
     },
-    proxy::{state::ACCOUNT_ID, ExecuteMsg as ProxyMsg},
     version_control::ModuleResponse,
     ACCOUNT,
 };
@@ -43,9 +43,6 @@ use crate::{
 };
 
 pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
-
-#[abstract_response(ACCOUNT)]
-pub struct ManagerResponse;
 
 pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
@@ -81,142 +78,6 @@ pub fn update_module_addresses(
     }
 
     Ok(ManagerResponse::action("update_module_addresses"))
-}
-
-/// Attempts to install a new module through the Module Factory Contract
-pub fn install_modules(
-    mut deps: DepsMut,
-    info: MessageInfo,
-    modules: Vec<ModuleInstallConfig>,
-) -> ManagerResult {
-    // only owner can call this method
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-
-    let config = CONFIG.load(deps.storage)?;
-
-    let (install_msgs, install_attribute) = _install_modules(
-        deps.branch(),
-        modules,
-        config.module_factory_address,
-        config.version_control_address,
-        info.funds, // We forward all the funds to the module_factory address for them to use in the install
-    )?;
-    let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
-        .add_submessages(install_msgs);
-
-    Ok(response)
-}
-
-/// Generate message and attribute for installing module
-/// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
-pub fn _install_modules(
-    mut deps: DepsMut,
-    modules: Vec<ModuleInstallConfig>,
-    module_factory_address: Addr,
-    version_control_address: Addr,
-    funds: Vec<Coin>,
-) -> ManagerResult<(Vec<SubMsg>, Attribute)> {
-    let mut installed_modules = Vec::with_capacity(modules.len());
-    let mut manager_modules = Vec::with_capacity(modules.len());
-    let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let version_control = VersionControlContract::new(version_control_address);
-
-    let canonical_module_factory = deps
-        .api
-        .addr_canonicalize(module_factory_address.as_str())?;
-
-    let (infos, init_msgs): (Vec<_>, Vec<_>) =
-        modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules = version_control
-        .query_modules_configs(infos, &deps.querier)
-        .map_err(|error| ManagerError::QueryModulesFailed { error })?;
-
-    let mut install_context = Vec::with_capacity(modules.len());
-    let mut add_to_proxy = Vec::with_capacity(modules.len());
-    let mut add_to_manager = Vec::with_capacity(modules.len());
-
-    let salt: Binary = generate_instantiate_salt(&account_id);
-    for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
-        // Check if module is already enabled.
-        if ACCOUNT_MODULES
-            .may_load(deps.storage, &module.info.id())?
-            .is_some()
-        {
-            return Err(ManagerError::ModuleAlreadyInstalled(module.info.id()));
-        }
-        installed_modules.push(module.info.id_with_version());
-
-        let init_msg_salt = match &module.reference {
-            ModuleReference::Adapter(module_address)
-            | ModuleReference::Native(module_address)
-            | ModuleReference::Service(module_address) => {
-                if module.should_be_whitelisted() {
-                    add_to_proxy.push(module_address.to_string());
-                }
-                add_to_manager.push((module.info.id(), module_address.to_string()));
-                install_context.push((module.clone(), None));
-                None
-            }
-            ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
-                let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
-                let module_address = cosmwasm_std::instantiate2_address(
-                    checksum.as_slice(),
-                    &canonical_module_factory,
-                    &salt,
-                )?;
-                let module_address = deps.api.addr_humanize(&module_address)?;
-                ensure!(
-                    deps.querier
-                        .query_wasm_contract_info(module_address.to_string())
-                        .is_err(),
-                    ManagerError::ProhibitedReinstall {}
-                );
-                if module.should_be_whitelisted() {
-                    add_to_proxy.push(module_address.to_string());
-                }
-                add_to_manager.push((module.info.id(), module_address.to_string()));
-                install_context.push((module.clone(), Some(module_address)));
-
-                Some(init_msg.unwrap())
-            }
-            _ => return Err(ManagerError::ModuleNotInstallable(module.info.to_string())),
-        };
-        manager_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
-    }
-
-    INSTALL_MODULES_CONTEXT.save(deps.storage, &install_context)?;
-
-    let mut messages = vec![];
-
-    // Add modules to proxy
-    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, ACCOUNT)?;
-    if !add_to_proxy.is_empty() {
-        messages.push(SubMsg::new(add_modules_to_proxy(
-            proxy_addr.into_string(),
-            add_to_proxy,
-        )?));
-    };
-
-    // Update module addrs
-    update_module_addresses(deps.branch(), Some(add_to_manager), None)?;
-
-    // Install modules message
-    messages.push(SubMsg::reply_on_success(
-        wasm_execute(
-            module_factory_address,
-            &ModuleFactoryMsg::InstallModules {
-                modules: manager_modules,
-                salt,
-            },
-            funds,
-        )?,
-        REGISTER_MODULES_DEPENDENCIES,
-    ));
-
-    Ok((
-        messages,
-        Attribute::new("installed_modules", format!("{installed_modules:?}")),
-    ))
 }
 
 /// Adds the modules dependencies
@@ -934,26 +795,6 @@ pub fn update_account_status(
     }
 
     Ok(response)
-}
-
-/// Allows the owner to manually update the internal configuration of the account.
-/// This can be used to unblock the account and its modules in case of a bug/lock on the account.
-pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) -> ManagerResult {
-    // deserialize the config action
-    let action: InternalConfigAction =
-        from_json(config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
-
-    let (add, remove) = match action {
-        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => (to_add, to_remove),
-        _ => {
-            return Err(ManagerError::InvalidConfigAction {
-                error: StdError::generic_err("Unknown config action"),
-            })
-        }
-    };
-
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    update_module_addresses(deps, add, remove)
 }
 
 #[cfg(test)]
