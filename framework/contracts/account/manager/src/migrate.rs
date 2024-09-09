@@ -1,5 +1,5 @@
 use abstract_std::{
-    manager::MigrateMsg, objects::module_version::assert_contract_upgrade, MANAGER,
+    manager::MigrateMsg, objects::module_version::assert_contract_upgrade, ACCOUNT,
 };
 use cosmwasm_std::{DepsMut, Env};
 use cw2::set_contract_version;
@@ -14,7 +14,7 @@ use crate::{
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, MANAGER, version)?;
-    set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+    assert_contract_upgrade(deps.storage, ACCOUNT, version)?;
+    set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
     Ok(ManagerResponse::action("migrate"))
 }

@@ -32,7 +32,10 @@ fn install_app_successful() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
@@ -72,7 +75,10 @@ fn install_app_versions_not_met() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
@@ -99,7 +105,10 @@ fn upgrade_app() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
@@ -350,7 +359,10 @@ fn no_duplicate_migrations() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &account;
+    let AbstractAccount {
+        account: manager,
+        proxy: _,
+    } = &account;
 
     abstr
         .version_control
@@ -450,7 +462,7 @@ fn create_account_with_installed_module() -> AResult {
         .unwrap();
 
     // Make sure all installed
-    let account_module_versions = account.manager.module_versions(vec![
+    let account_module_versions = account.account.module_versions(vec![
         String::from(adapter_1::MOCK_ADAPTER_ID),
         String::from(adapter_2::MOCK_ADAPTER_ID),
         String::from(app_1::MOCK_APP_ID),
@@ -602,7 +614,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
     let balances = chain.query_all_balances(&account.proxy.address()?)?;
     assert_eq!(balances, vec![coin(5, "coin2")]);
     // Make sure all installed
-    let account_module_versions = account.manager.module_versions(vec![
+    let account_module_versions = account.account.module_versions(vec![
         String::from(adapter_1::MOCK_ADAPTER_ID),
         String::from(adapter_2::MOCK_ADAPTER_ID),
         String::from(app_1::MOCK_APP_ID),
@@ -915,7 +927,7 @@ fn native_not_migratable() -> AResult {
     let latest_ibc_client = ModuleInfo::from_id_latest(IBC_CLIENT).unwrap();
 
     let err: ManagerError = abstr_account
-        .manager
+        .account
         .upgrade(vec![(latest_ibc_client.clone(), None)])
         .unwrap_err()
         .downcast()

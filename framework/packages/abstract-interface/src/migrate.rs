@@ -2,10 +2,10 @@ use crate::{Abstract, AbstractIbc};
 use abstract_std::version_control::QueryMsgFns;
 use abstract_std::{
     account_factory, ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo,
-    version_control, MANAGER,
+    version_control, ACCOUNT,
 };
 use abstract_std::{
-    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, PROXY, VERSION_CONTROL,
+    ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
 };
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
@@ -116,16 +116,16 @@ impl<T: CwEnv> Abstract<T> {
         let versions = self
             .version_control
             .modules(vec![
-                ModuleInfo::from_id_latest(MANAGER)?,
-                ModuleInfo::from_id_latest(PROXY)?,
+                ModuleInfo::from_id_latest(ACCOUNT)?,
+                ModuleInfo::from_id_latest(ACCOUNT)?,
             ])?
             .modules;
 
         if ::manager::contract::CONTRACT_VERSION != versions[0].module.info.version.to_string()
-            && self.account.manager.upload_if_needed()?.is_some()
+            && self.account.account.upload_if_needed()?.is_some()
         {
             accounts_to_register.push((
-                self.account.manager.as_instance(),
+                self.account.account.as_instance(),
                 ::manager::contract::CONTRACT_VERSION.to_string(),
             ));
         }

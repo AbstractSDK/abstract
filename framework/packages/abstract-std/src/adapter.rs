@@ -35,7 +35,7 @@ pub trait AdapterExecuteMsg: Serialize {}
 impl<T: AdapterExecuteMsg> From<T> for ExecuteMsg<T> {
     fn from(request: T) -> Self {
         Self::Module(AdapterRequestMsg {
-            proxy_address: None,
+            account_address: None,
             request,
         })
     }
@@ -84,15 +84,15 @@ impl<RequestMsg, BaseExecMsg> From<AdapterRequestMsg<RequestMsg>>
 /// If proxy is None, then the sender must be an Account manager and the proxy address is extrapolated from the Account id.
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterRequestMsg<Request> {
-    pub proxy_address: Option<String>,
+    pub account_address: Option<String>,
     /// The actual request
     pub request: Request,
 }
 
 impl<Request: Serialize> AdapterRequestMsg<Request> {
-    pub fn new(proxy_address: Option<String>, request: Request) -> Self {
+    pub fn new(account_address: Option<String>, request: Request) -> Self {
         Self {
-            proxy_address,
+            account_address,
             request,
         }
     }

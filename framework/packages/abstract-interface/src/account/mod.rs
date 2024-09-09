@@ -18,7 +18,7 @@ use abstract_std::{
         TruncatedChainId,
     },
     version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
-    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+    ABSTRACT_EVENT_TYPE, ACCOUNT,
 };
 use cosmwasm_std::{from_json, to_json_binary};
 use cw2::{ContractVersion, CONTRACT};
@@ -27,7 +27,6 @@ use semver::{Version, VersionReq};
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
 mod manager;
-mod proxy;
 
 use std::collections::HashSet;
 
@@ -36,13 +35,13 @@ use cw_orch::{environment::Environment, prelude::*};
 use serde::Serialize;
 use speculoos::prelude::*;
 
-pub use self::{manager::*, proxy::*};
+pub use self::manager::*;
 use crate::{get_account_contracts, VersionControl};
 
 #[derive(Clone)]
 pub struct AbstractAccount<Chain: CwEnv> {
-    pub manager: Manager<Chain>,
-    pub proxy: Proxy<Chain>,
+    // TODO: merge this account with AbstractAccount
+    pub account: Account<Chain>,
 }
 
 // Auto-dereference itself to have similar api with `abstract_client::Account`
@@ -54,17 +53,15 @@ impl<Chain: CwEnv> AsRef<AbstractAccount<Chain>> for AbstractAccount<Chain> {
 
 impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn upload(&mut self) -> Result<(), crate::AbstractInterfaceError> {
-        self.manager.upload()?;
-        self.proxy.upload()?;
+        self.account.upload()?;
         Ok(())
     }
 }
 
 impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn new(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
-        let (manager, proxy) =
-            get_account_contracts(&abstract_deployment.version_control, account_id);
-        Self { manager, proxy }
+        let account = get_account_contracts(&abstract_deployment.version_control, account_id);
+        Self { account }
     }
 
     /// Register the account core contracts in the version control
@@ -81,7 +78,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         init_msg: Option<&TInitMsg>,
         funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.manager.install_module(module_id, init_msg, funds)
+        self.account.install_module(module_id, init_msg, funds)
     }
 
     pub fn install_modules(
@@ -89,7 +86,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.manager
+        self.account
             .install_modules(modules, funds)
             .map_err(Into::into)
     }
@@ -98,7 +95,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         modules: Vec<ModuleInstallConfig>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.manager.install_modules_auto(modules)
+        self.account.install_modules_auto(modules)
     }
 
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
@@ -110,13 +107,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractInterfaceError> {
         let abstract_std::manager::ModuleInfosResponse {
             module_infos: manager_modules,
-        } = self.manager.module_infos(None, None)?;
+        } = self.account.module_infos(None, None)?;
 
         // insert proxy in expected module addresses
         let expected_module_addrs = module_addrs
             .into_iter()
             .map(Addr::unchecked)
-            .chain(std::iter::once(self.proxy.address()?))
+            .chain(std::iter::once(self.account.address()?))
             .collect::<HashSet<_>>();
 
         let actual_module_addrs = manager_modules
@@ -134,7 +131,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
     ) -> Result<bool, crate::AbstractInterfaceError> {
-        let module = self.manager.module_info(module_id)?;
+        let module = self.account.module_info(module_id)?;
         Ok(module.is_some())
     }
 
@@ -147,13 +144,14 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         // insert manager in expected whitelisted addresses
         let expected_whitelisted_addrs = whitelisted_addrs
             .into_iter()
-            .chain(std::iter::once(self.manager.address()?.into_string()))
+            .chain(std::iter::once(self.account.address()?.into_string()))
             .collect::<HashSet<_>>();
 
         // check proxy config
-        let abstract_std::proxy::ConfigResponse {
+        let abstract_std::account::ConfigResponse {
             modules: proxy_whitelist,
-        } = self.proxy.config()?;
+            ..
+        } = self.account.config()?;
 
         let actual_proxy_whitelist = HashSet::from_iter(proxy_whitelist.clone());
         assert_eq!(actual_proxy_whitelist, expected_whitelisted_addrs);
@@ -163,7 +161,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Gets the account ID of the account.
     pub fn id(&self) -> Result<AccountId, crate::AbstractInterfaceError> {
-        Ok(self.manager.config()?.account_id)
+        Ok(self.account.config()?.account_id)
     }
 
     /// Installs an adapter from an adapter object
@@ -216,7 +214,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        self.manager.register_remote_account(host_chain)
+        self.account.register_remote_account(host_chain)
     }
 
     pub fn create_remote_account(
@@ -235,8 +233,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             account_id: _,
         } = account_details;
 
-        self.manager.execute_on_module(
-            abstract_std::PROXY,
+        self.account.execute_on_module(
+            abstract_std::ACCOUNT,
             abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
@@ -261,8 +259,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             account_id,
         } = account_details;
 
-        let result = self.manager.execute(
-            &abstract_std::manager::ExecuteMsg::CreateSubAccount {
+        let result = self.account.execute(
+            &abstract_std::account::ExecuteMsg::CreateSubAccount {
                 name,
                 description,
                 link,
@@ -273,7 +271,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             funds,
         )?;
 
-        Self::from_tx_response(self.manager.environment(), result)
+        Self::from_tx_response(self.account.environment(), result)
     }
 
     // Parse account from events
@@ -290,16 +288,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             abstract_std::objects::account::AccountTrace::try_from((*trace).as_str())?,
         )?;
         // construct manager and proxy ids
-        let manager = Manager::new_from_id(&id, chain.clone());
-        let proxy = Proxy::new_from_id(&id, chain.clone());
+        let account = Account::new_from_id(&id, chain.clone());
 
         // set addresses
-        let manager_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
-        manager.set_address(&Addr::unchecked(manager_address));
-        let proxy_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
-        proxy.set_address(&Addr::unchecked(proxy_address));
+        let account_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
+        account.set_address(&Addr::unchecked(account_address));
 
-        Ok(AbstractAccount { manager, proxy })
+        Ok(AbstractAccount { account })
     }
 
     pub fn upload_and_register_if_needed(
@@ -308,17 +303,10 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     ) -> Result<bool, AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
-        if self.manager.upload_if_needed()?.is_some() {
+        if self.account.upload_if_needed()?.is_some() {
             modules_to_register.push((
-                self.manager.as_instance(),
+                self.account.as_instance(),
                 ::manager::contract::CONTRACT_VERSION.to_string(),
-            ));
-        };
-
-        if self.proxy.upload_if_needed()?.is_some() {
-            modules_to_register.push((
-                self.proxy.as_instance(),
-                ::proxy::contract::CONTRACT_VERSION.to_string(),
             ));
         };
 
@@ -346,7 +334,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             let mut start_after = None;
             loop {
                 let sub_account_ids_page = self
-                    .manager
+                    .account
                     .sub_account_ids(None, start_after)?
                     .sub_accounts;
 
@@ -366,16 +354,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             }
         }
 
-        // We upgrade the proxy to the latest version through all the versions
+        // We upgrade the account to the latest version through all the versions
         loop {
-            if self.upgrade_next_module_version(PROXY)?.is_none() {
-                break;
-            }
-            one_migration_was_successful = true;
-        }
-
-        loop {
-            if self.upgrade_next_module_version(MANAGER)?.is_none() {
+            if self.upgrade_next_module_version(ACCOUNT)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;
@@ -390,17 +371,17 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
     ) -> Result<Option<Chain::Response>, AbstractInterfaceError> {
-        let chain = self.manager.environment().clone();
+        let chain = self.account.environment().clone();
 
         // We start by getting the current module version
-        let current_cw2_module_version: ContractVersion = if module_id == MANAGER {
-            let current_manager_version = chain
+        let current_cw2_module_version: ContractVersion = if module_id == ACCOUNT {
+            let current_account_version = chain
                 .wasm_querier()
-                .raw_query(&self.manager.address()?, CONTRACT.as_slice().to_vec())
+                .raw_query(&self.account.address()?, CONTRACT.as_slice().to_vec())
                 .unwrap();
-            from_json(current_manager_version)?
+            from_json(current_account_version)?
         } else {
-            self.manager
+            self.account
                 .module_versions(vec![module_id.to_string()])?
                 .versions[0]
                 .clone()
@@ -474,7 +455,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         };
 
         // Actual upgrade to the next version
-        Some(self.manager.upgrade(vec![(
+        Some(self.account.upgrade(vec![(
             ModuleInfo::from_id(
                 module_id,
                 ModuleVersion::Version(selected_version.to_string()),
@@ -489,7 +470,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         namespace: impl Into<String>,
     ) -> Result<Chain::Response, AbstractInterfaceError> {
-        let abstr = Abstract::load_from(self.manager.environment().clone())?;
+        let abstr = Abstract::load_from(self.account.environment().clone())?;
         abstr
             .version_control
             .claim_namespace(self.id()?, namespace.into())
@@ -501,13 +482,9 @@ impl<Chain: CwEnv> std::fmt::Display for AbstractAccount<Chain> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Account manager: {:?} ({:?}) proxy: {:?} ({:?})",
-            self.manager.id(),
-            self.manager
-                .addr_str()
-                .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
-            self.proxy.id(),
-            self.proxy
+            "Account: {:?} ({:?})",
+            self.account.id(),
+            self.account
                 .addr_str()
                 .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
         )

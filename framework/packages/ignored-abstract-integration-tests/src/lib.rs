@@ -31,7 +31,7 @@ pub fn create_default_account<T: CwEnv>(
 }
 
 pub fn install_module_version<T: CwEnv>(
-    manager: &Manager<T>,
+    manager: &Account<T>,
     module: &str,
     version: &str,
 ) -> anyhow::Result<String> {
@@ -82,7 +82,7 @@ pub fn add_mock_adapter_install_fee<T: CwEnv>(
 }
 
 pub fn install_adapter_with_funds<T: CwEnv>(
-    manager: &Manager<T>,
+    manager: &Account<T>,
     adapter_id: &str,
     funds: &[Coin],
 ) -> AResult {
@@ -90,6 +90,6 @@ pub fn install_adapter_with_funds<T: CwEnv>(
     Ok(())
 }
 
-pub fn install_adapter<T: CwEnv>(manager: &Manager<T>, adapter_id: &str) -> AResult {
+pub fn install_adapter<T: CwEnv>(manager: &Account<T>, adapter_id: &str) -> AResult {
     install_adapter_with_funds(manager, adapter_id, &[])
 }

@@ -5,12 +5,10 @@
 //! ## Description
 //! These fixed names can be used to provide name-addressable searches for complex logic.
 
-pub const MANAGER: &str = "abstract:manager";
 pub const ACCOUNT: &str = "abstract:account";
 pub const VERSION_CONTROL: &str = "abstract:version-control";
 pub const ACCOUNT_FACTORY: &str = "abstract:account-factory";
 pub const MODULE_FACTORY: &str = "abstract:module-factory";
-pub const PROXY: &str = "abstract:proxy";
 pub const ANS_HOST: &str = "abstract:ans-host";
 pub const IBC_CLIENT: &str = "abstract:ibc-client";
 pub const ICA_CLIENT: &str = "abstract:ica-client";
@@ -109,5 +107,5 @@ pub static NATIVE_CONTRACTS: &[&str] = &[
     VERSION_CONTROL,
     "cw20",
 ];
-pub static ACCOUNT_CONTRACTS: &[&str] = &[MANAGER, PROXY];
+pub static ACCOUNT_CONTRACTS: &[&str] = &[ACCOUNT, ACCOUNT];
 pub const ABSTRACT_EVENT_TYPE: &str = "wasm-abstract";

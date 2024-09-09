@@ -26,7 +26,7 @@ use abstract_std::{
     },
     proxy::{state::ACCOUNT_ID, ExecuteMsg as ProxyMsg},
     version_control::ModuleResponse,
-    MANAGER, PROXY,
+    ACCOUNT,
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
@@ -44,7 +44,7 @@ use crate::{
 
 pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
 
-#[abstract_response(MANAGER)]
+#[abstract_response(ACCOUNT)]
 pub struct ManagerResponse;
 
 pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
@@ -189,7 +189,7 @@ pub fn _install_modules(
     let mut messages = vec![];
 
     // Add modules to proxy
-    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
+    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, ACCOUNT)?;
     if !add_to_proxy.is_empty() {
         messages.push(SubMsg::new(add_modules_to_proxy(
             proxy_addr.into_string(),
@@ -299,8 +299,7 @@ pub fn create_sub_account(
     let create_account_msg = &abstract_std::account_factory::ExecuteMsg::CreateAccount {
         // proxy of this manager will be the account owner
         governance: GovernanceDetails::SubAccount {
-            manager: env.contract.address.into_string(),
-            proxy: ACCOUNT_MODULES.load(deps.storage, PROXY)?.into_string(),
+            account: env.contract.address.into_string(),
         },
         name,
         description,
@@ -353,7 +352,7 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerR
         &AccountId::local(id),
     )?;
 
-    if account.is_some_and(|a| a.manager == info.sender) {
+    if account.is_some_and(|a| a.addr() == info.sender) {
         SUB_ACCOUNTS.remove(deps.storage, id);
 
         Ok(ManagerResponse::new(
@@ -375,7 +374,7 @@ fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerRes
         &AccountId::local(id),
     )?;
 
-    if account.is_some_and(|a| a.manager == info.sender) {
+    if account.is_some_and(|a| a.addr() == info.sender) {
         SUB_ACCOUNTS.save(deps.storage, id, &Empty {})?;
 
         Ok(ManagerResponse::new(
@@ -430,7 +429,7 @@ pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> 
     let mut response = ManagerResponse::new("uninstall_module", vec![("module", &module_id)]);
     // Remove module from proxy whitelist if it supposed to be removed
     if module.should_be_whitelisted() {
-        let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
+        let proxy = ACCOUNT_MODULES.load(deps.storage, ACCOUNT)?;
         let module_addr = load_module_addr(deps.storage, &module_id)?;
         let remove_from_proxy_msg =
             remove_module_from_proxy(proxy.into_string(), module_addr.into_string())?;
@@ -452,10 +451,10 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> ManagerResult<Vec<C
         .ok_or(GovOwnershipError::TransferNotFound)?;
 
     // Clear state for previous manager if it was sub-account
-    if let GovernanceDetails::SubAccount { manager, .. } = ownership.owner {
+    if let GovernanceDetails::SubAccount { account } = ownership.owner {
         let id = ACCOUNT_ID.load(deps.storage)?;
         let unregister_message = wasm_execute(
-            manager,
+            account,
             &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
                 id: id.seq(),
             }),
@@ -467,14 +466,14 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> ManagerResult<Vec<C
     }
 
     // Update state for new manager if owner will be the sub-account
-    if let GovernanceDetails::SubAccount { manager, .. } = &pending_governance {
+    if let GovernanceDetails::SubAccount { account } = &pending_governance {
         let id = if let Some(id) = account_id {
             id
         } else {
             ACCOUNT_ID.load(deps.storage)?
         };
         let register_message = wasm_execute(
-            manager,
+            account,
             &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
                 id: id.seq(),
             }),
@@ -503,11 +502,11 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> ManagerResult<Vec<CosmosM
     );
 
     let ownership = ownership::get_ownership(deps.storage)?;
-    if let GovernanceDetails::SubAccount { manager, .. } = ownership.owner {
+    if let GovernanceDetails::SubAccount { account } = ownership.owner {
         // Unregister itself (sub-account) from the owning account.
         msgs.push(
             wasm_execute(
-                manager,
+                account,
                 &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
                     id: account_id.seq(),
                 }),
@@ -569,7 +568,7 @@ pub fn upgrade_modules(
             upgraded_module_ids.push(module_id.clone());
         }
 
-        if module_id == MANAGER {
+        if module_id == ACCOUNT {
             manager_migrate_info = Some((module_info, migrate_msg));
         } else {
             set_migrate_msgs_and_context(
@@ -735,7 +734,7 @@ pub fn replace_adapter(
 ) -> Result<Vec<CosmosMsg>, ManagerError> {
     let mut msgs = vec![];
     // Makes sure we already have the adapter installed
-    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
+    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, ACCOUNT)?;
     let AuthorizedAddressesResponse {
         addresses: authorized_addresses,
     } = deps.querier.query_wasm_smart(
@@ -973,7 +972,7 @@ mod tests {
 
     fn mock_installed_proxy(deps: &mut MockDeps) -> StdResult<()> {
         let base = test_account_base(deps.api);
-        ACCOUNT_MODULES.save(deps.as_mut().storage, PROXY, &base.proxy)
+        ACCOUNT_MODULES.save(deps.as_mut().storage, ACCOUNT, &base.proxy)
     }
 
     fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ManagerResult {
@@ -1207,7 +1206,7 @@ mod tests {
             let mut deps = mock_dependencies();
             init_with_proxy(&mut deps);
 
-            let to_remove: Vec<String> = vec![PROXY.to_string()];
+            let to_remove: Vec<String> = vec![ACCOUNT.to_string()];
 
             let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
             assert_that!(&res)
@@ -1324,7 +1323,7 @@ mod tests {
             init_with_proxy(&mut deps);
 
             let msg = ExecuteMsg::UninstallModule {
-                module_id: PROXY.to_string(),
+                module_id: ACCOUNT.to_string(),
             };
 
             let res = execute_as(deps.as_mut(), &owner, msg);
@@ -1384,7 +1383,7 @@ mod tests {
             let exec_msg = "some msg";
 
             let msg = ExecuteMsg::ExecOnModule {
-                module_id: PROXY.to_string(),
+                module_id: ACCOUNT.to_string(),
                 exec_msg: to_json_binary(&exec_msg)?,
             };
 

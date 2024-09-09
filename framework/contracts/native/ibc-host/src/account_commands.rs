@@ -3,13 +3,13 @@ use abstract_sdk::{
     Resolve,
 };
 use abstract_std::{
-    account_factory,
+    account, account_factory,
     ibc_host::state::CONFIG,
     manager::{self, ModuleInstallConfig},
     objects::{AccountId, TruncatedChainId},
     proxy,
-    version_control::AccountBase,
-    PROXY,
+    version_control::Account,
+    ACCOUNT,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
@@ -76,13 +76,13 @@ pub fn receive_register(
 /// Execute manager message on local manager.
 pub fn receive_dispatch(
     _deps: DepsMut,
-    account: AccountBase,
-    manager_msgs: Vec<manager::ExecuteMsg>,
+    account: Account,
+    account_msgs: Vec<account::ExecuteMsg>,
 ) -> HostResult {
     // execute the message on the manager
-    let msgs = manager_msgs
+    let msgs = account_msgs
         .into_iter()
-        .map(|msg| wasm_execute(&account.manager, &msg, vec![]))
+        .map(|msg| wasm_execute(account.addr(), &msg, vec![]))
         .collect::<Result<Vec<_>, _>>()?;
 
     let response = Response::new()
@@ -101,7 +101,7 @@ pub fn receive_dispatch(
 pub fn receive_send_all_back(
     deps: DepsMut,
     env: Env,
-    account: AccountBase,
+    account: Account,
     client_proxy_address: String,
     src_chain: TruncatedChainId,
 ) -> HostResult {
@@ -114,7 +114,7 @@ pub fn receive_send_all_back(
 pub fn send_all_back(
     deps: Deps,
     env: Env,
-    account: AccountBase,
+    account: Account,
     client_proxy_address: String,
     src_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
@@ -126,7 +126,7 @@ pub fn send_all_back(
     };
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;
     // get all the coins for the account
-    let coins = deps.querier.query_all_balances(account.proxy)?;
+    let coins = deps.querier.query_all_balances(account.addr())?;
     // Construct ics20 messages to send all the coins back
     let mut msgs: Vec<CosmosMsg> = vec![];
     for coin in coins {
@@ -143,9 +143,9 @@ pub fn send_all_back(
     }
     // call the message to send everything back through the manager
     let manager_msg = wasm_execute(
-        account.manager,
+        account.into_addr(),
         &manager::ExecuteMsg::ExecOnModule {
-            module_id: PROXY.into(),
+            module_id: ACCOUNT.into(),
             exec_msg: to_json_binary(&proxy::ExecuteMsg::ModuleAction { msgs })?,
         },
         vec![],
@@ -154,8 +154,8 @@ pub fn send_all_back(
 }
 
 /// get the account base from the version control contract
-pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, HostError> {
+pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<Account, HostError> {
     let version_control = CONFIG.load(deps.storage)?.version_control;
-    let account_base = version_control.account_base(account_id, &deps.querier)?;
+    let account_base = version_control.account(account_id, &deps.querier)?;
     Ok(account_base)
 }

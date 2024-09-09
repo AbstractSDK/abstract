@@ -2,7 +2,7 @@
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use abstract_std::{
     objects::{version_control::VersionControlContract, AccountId},
-    version_control::AccountBase,
+    version_control::Account,
 };
 use cosmwasm_std::{Addr, Deps};
 
@@ -79,35 +79,23 @@ pub struct AccountRegistry<'a, T: AccountVerification> {
 
 impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
-    pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
+    pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<Account> {
         self.vc
-            .assert_manager(maybe_manager, &self.deps.querier)
+            .assert_account(maybe_manager, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Verify if the provided proxy address is indeed a user.
-    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
+    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<Account> {
         self.vc
-            .assert_proxy(maybe_proxy, &self.deps.querier)
+            .assert_account(maybe_proxy, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
-    /// Get the proxy address for a given account id.
-    pub fn proxy_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
-        self.account_base(account_id)
-            .map(|account_base| account_base.proxy)
-    }
-
-    /// Get the manager address for a given account id.
-    pub fn manager_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
-        self.account_base(account_id)
-            .map(|account_base| account_base.manager)
-    }
-
     /// Get the account base for a given account id.
-    pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<AccountBase> {
+    pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<Account> {
         self.vc
-            .account_base(account_id, &self.deps.querier)
+            .account(account_id, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
@@ -167,7 +155,7 @@ mod test {
         #[test]
         fn not_proxy_fails() {
             let mut deps = mock_dependencies();
-            let not_base = AccountBase {
+            let not_base = Account {
                 manager: deps.api.addr_make("not_manager"),
                 proxy: deps.api.addr_make("not_proxy"),
             };
@@ -268,7 +256,7 @@ mod test {
                     ACCOUNT_ADDRESSES,
                     (
                         &TEST_ACCOUNT_ID,
-                        AccountBase {
+                        Account {
                             manager: base.manager,
                             proxy: deps.api.addr_make("not_proxy"),
                         },
@@ -296,7 +284,7 @@ mod test {
         #[test]
         fn not_manager_fails() {
             let mut deps = mock_dependencies();
-            let not_base = AccountBase {
+            let not_base = Account {
                 manager: deps.api.addr_make("not_manager"),
                 proxy: deps.api.addr_make("not_proxy"),
             };
@@ -397,7 +385,7 @@ mod test {
                     ACCOUNT_ADDRESSES,
                     (
                         &TEST_ACCOUNT_ID,
-                        AccountBase {
+                        Account {
                             manager: deps.api.addr_make("not_manager"),
                             proxy: abstr.account.proxy,
                         },

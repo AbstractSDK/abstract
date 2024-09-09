@@ -19,7 +19,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership, AccountId, TruncatedChainId,
     },
-    proxy, IBC_CLIENT, PROXY,
+    proxy, ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
 use cw_orch::{
@@ -86,7 +86,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name =
-                TruncatedChainId::from_chain_id(&owner_account.manager.environment().chain_id());
+                TruncatedChainId::from_chain_id(&owner_account.account.environment().chain_id());
             id.push_chain(chain_name);
             id
         };
@@ -183,7 +183,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name = TruncatedChainId::from_chain_id(
-                &owner_account.abstr_account.manager.environment().chain_id(),
+                &owner_account.abstr_account.account.environment().chain_id(),
             );
             id.push_chain(chain_name);
             id
@@ -242,7 +242,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     fn origin_chain(&self) -> Chain {
-        self.abstr_owner_account.manager.environment().clone()
+        self.abstr_owner_account.account.environment().clone()
     }
 
     /// Address of the proxy
@@ -357,22 +357,13 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// Migrates manager and proxy contracts to their respective new versions.
     /// Note that execution will be done through source chain
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        let modules = vec![
-            (
-                ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
-                Some(
-                    to_json_binary(&abstract_std::manager::MigrateMsg {})
-                        .map_err(Into::<CwOrchError>::into)?,
-                ),
+        let modules = vec![(
+            ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
+            Some(
+                to_json_binary(&abstract_std::account::MigrateMsg {})
+                    .map_err(Into::<CwOrchError>::into)?,
             ),
-            (
-                ModuleInfo::from_id(abstract_std::registry::PROXY, version)?,
-                Some(
-                    to_json_binary(&abstract_std::proxy::MigrateMsg {})
-                        .map_err(Into::<CwOrchError>::into)?,
-                ),
-            ),
-        ];
+        )];
         self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
             host_chain: self.host_chain_id(),
             action: ibc_host::HostAction::Dispatch {
@@ -394,7 +385,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
         self.abstr_owner_account
-            .manager
+            .account
             .top_level_owner()
             .map(|tlo| tlo.address)
             .map_err(Into::into)
@@ -407,7 +398,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.execute_on_manager(vec![manager::ExecuteMsg::ExecOnModule {
-            module_id: PROXY.to_owned(),
+            module_id: ACCOUNT.to_owned(),
             exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
                 .map_err(AbstractInterfaceError::from)?,
         }])
@@ -559,8 +550,8 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
 
         let tx_response = self
             .abstr_owner_account
-            .manager
-            .execute_on_module(PROXY, msg)?;
+            .account
+            .execute_on_module(ACCOUNT, msg)?;
         let packets = self
             .ibc_env
             .await_packets(&self.origin_chain().chain_id(), tx_response)
