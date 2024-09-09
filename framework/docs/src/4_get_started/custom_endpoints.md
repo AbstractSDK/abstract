@@ -79,7 +79,7 @@ You can find a full example of a custom module endpoint in the [payment module](
 
 ### Cw-orch Function Support
 
-To enable your endpoints to be called on the contract's interface you need to implement the `From` trait for the `CustomExecuteMsg` type.
+To enable your endpoints to be called on the contract's interface you need to implement the `From` trait for the `CustomExecuteMsg` type. Where `AppExecuteMsg` is the module's inner execute message as shown above.
 
 ```rust
 // Enable cw_orch api
