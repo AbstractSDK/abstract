@@ -17,8 +17,7 @@ use abstract_std::{
     ACCOUNT,
 };
 use cosmwasm_std::{
-    ensure, to_json_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env,
-    MessageInfo, StdResult, Storage, WasmMsg,
+    ensure, ensure_eq, to_json_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg
 };
 use cw2::get_contract_version;
 use cw_storage_plus::Item;
@@ -289,4 +288,27 @@ pub(crate) fn self_upgrade_msg(
     } else {
         Err(AccountError::InvalidReference(module_info))
     }
+}
+
+pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> AccountResult {
+    ensure_eq!(
+        info.sender,
+        env.contract.address,
+        StdError::generic_err("Callback must be called by contract")
+    );
+    let migrated_modules = MIGRATE_CONTEXT.load(deps.storage)?;
+
+    for (migrated_module_id, old_deps) in migrated_modules {
+        crate::versioning::maybe_remove_old_deps(deps.branch(), &migrated_module_id, &old_deps)?;
+        let new_deps =
+            crate::versioning::maybe_add_new_deps(deps.branch(), &migrated_module_id, &old_deps)?;
+        crate::versioning::assert_dependency_requirements(
+            deps.as_ref(),
+            &new_deps,
+            &migrated_module_id,
+        )?;
+    }
+
+    MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
+    Ok(Response::new())
 }

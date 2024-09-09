@@ -6,7 +6,7 @@ use abstract_std::{
     adapter::{AdapterBaseMsg, BaseExecuteMsg, ExecuteMsg as AdapterExecMsg},
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
     objects::{
-        module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
+        module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         ownership::{self},
         salt::generate_instantiate_salt,
@@ -16,17 +16,15 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
-    Response, StdResult, Storage, SubMsg, SubMsgResult, WasmMsg,
+    StdResult, Storage, SubMsg, WasmMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;
-use migration::{build_module_migrate_msg, handle_adapter_migration, handle_app_migration};
 use semver::Version;
 
 use crate::{
     contract::{AccountResponse, AccountResult, REGISTER_MODULES_DEPENDENCIES_REPLY_ID},
     error::AccountError,
-    queries::query_module_version,
 };
 
 pub use migration::MIGRATE_CONTEXT;
@@ -193,49 +191,6 @@ pub fn update_module_addresses(
     }
 
     Ok(AccountResponse::action("update_module_addresses"))
-}
-
-pub(crate) fn set_migrate_msgs_and_context(
-    deps: DepsMut,
-    module_info: ModuleInfo,
-    migrate_msg: Option<Binary>,
-    msgs: &mut Vec<CosmosMsg>,
-) -> Result<(), AccountError> {
-    let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_address);
-
-    let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
-    let old_module_cw2 =
-        query_module_version(deps.as_ref(), old_module_addr.clone(), &version_control)?;
-    let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
-
-    let migrate_msgs = match requested_module.module.reference {
-        // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
-        ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
-            deps,
-            requested_module.module.info,
-            old_module_addr,
-            new_adapter_addr,
-        )?,
-        ModuleReference::App(code_id) => handle_app_migration(
-            deps,
-            migrate_msg,
-            old_module_addr,
-            requested_module.module.info,
-            code_id,
-        )?,
-        ModuleReference::AccountBase(code_id) | ModuleReference::Standalone(code_id) => {
-            vec![build_module_migrate_msg(
-                old_module_addr,
-                code_id,
-                migrate_msg.unwrap(),
-            )]
-        }
-
-        _ => return Err(AccountError::NotUpgradeable(module_info)),
-    };
-    msgs.extend(migrate_msgs);
-    Ok(())
 }
 
 /// Uninstall the module with the ID [`module_id`]

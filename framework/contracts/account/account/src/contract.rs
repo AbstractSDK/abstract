@@ -7,8 +7,8 @@ use abstract_sdk::std::{
 use abstract_std::{
     account::{
         state::{
-            AccountInfo, Config, WhitelistedModules, ACCOUNT_MODULES, CONFIG, INFO,
-            SUSPENSION_STATUS, WHITELISTED_MODULES,
+            AccountInfo, Config, WhitelistedModules, CONFIG, INFO, SUSPENSION_STATUS,
+            WHITELISTED_MODULES,
         },
         types::UpdateSubAccountAction,
         ExecuteMsg, InstantiateMsg, QueryMsg,
@@ -17,10 +17,8 @@ use abstract_std::{
     version_control::Account,
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
-    StdResult, SubMsgResult,
+    wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult, SubMsgResult,
 };
-use cw2::set_contract_version;
 
 use crate::{
     actions::{
@@ -31,8 +29,14 @@ use crate::{
     },
     error::AccountError,
     modules::{
-        _install_modules, exec_on_module, install_modules, migration::upgrade_modules,
+        _install_modules, exec_on_module, install_modules,
+        migration::{handle_callback, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
+    },
+    queries::{
+        handle_account_info_query, handle_config_query, handle_module_address_query,
+        handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
+        handle_top_level_owner_query,
     },
     reply::{forward_response_data, register_dependencies},
     sub_account::{
@@ -257,11 +261,13 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::IcaAction { action_query_msg } => {
                     ica_action(deps, info, action_query_msg).map_err(AccountError::from)
                 }
-                _ => panic!(),
+                ExecuteMsg::UpdateStatus { is_suspended: _ } => {
+                    unreachable!("Update status case is reached above")
+                }
+                ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
             }
         }
-    };
-    Ok(Response::new())
+    }
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -284,17 +290,22 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => todo!(),
-        QueryMsg::ModuleVersions { ids } => todo!(),
-        QueryMsg::ModuleAddresses { ids } => todo!(),
-        QueryMsg::ModuleInfos { start_after, limit } => todo!(),
-        QueryMsg::Info {} => todo!(),
-        QueryMsg::SubAccountIds { start_after, limit } => todo!(),
-        QueryMsg::TopLevelOwner {} => todo!(),
-        QueryMsg::Ownership {} => todo!(),
-    };
+        QueryMsg::Config {} => handle_config_query(deps),
+        QueryMsg::ModuleVersions { ids } => handle_module_versions_query(deps, ids),
+        QueryMsg::ModuleAddresses { ids } => handle_module_address_query(deps, ids),
+        QueryMsg::ModuleInfos { start_after, limit } => {
+            handle_module_info_query(deps, start_after, limit)
+        }
+        QueryMsg::Info {} => handle_account_info_query(deps),
+        QueryMsg::SubAccountIds { start_after, limit } => {
+            handle_sub_accounts_query(deps, start_after, limit)
+        }
+        QueryMsg::TopLevelOwner {} => handle_top_level_owner_query(deps, env),
 
-    Ok(Binary::default())
+        QueryMsg::Ownership {} => {
+            cosmwasm_std::to_json_binary(&ownership::get_ownership(deps.storage)?)
+        }
+    }
 }
 
 #[cfg(test)]

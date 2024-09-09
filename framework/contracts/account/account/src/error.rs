@@ -3,7 +3,7 @@ use abstract_std::{
     objects::{validation::ValidationError, version_control::VersionControlError},
     AbstractError,
 };
-use cosmwasm_std::{Instantiate2AddressError, Response, StdError};
+use cosmwasm_std::{Instantiate2AddressError, StdError};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
