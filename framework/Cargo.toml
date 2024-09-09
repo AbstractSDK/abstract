@@ -5,8 +5,6 @@ members = [
   "contracts/native/*",
   "contracts/account/*",
 ]
-# TODO: upgrade abstract-ica
-exclude = ["contracts/native/ica-client", "packages/abstract-ica"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -84,7 +82,7 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" , default-features = false}
 manager = { package = "abstract-manager", path = "contracts/account/manager" , default-features = false}
 
-# abstract-ica = { path = "packages/abstract-ica" }
+abstract-ica = { path = "packages/abstract-ica" }
 abstract-sdk = { version = "0.23.0", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.23.0", path = "packages/abstract-testing" }
 abstract-std = { version = "0.23.0", path = "packages/abstract-std" }
@@ -130,3 +128,4 @@ abstract-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep
 normal = ["workspace-hack"]
+development = ["workspace-hack"]

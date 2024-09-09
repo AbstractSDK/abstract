@@ -26,6 +26,7 @@ mod test {
         deps.querier = abstract_testing::mock_querier(deps.api);
         let reply_msg = Reply {
             id: 1,
+            #[allow(deprecated)]
             result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
                 events: vec![],
                 data: Some("test_reply".as_bytes().into()),
@@ -48,6 +49,7 @@ mod test {
         deps.querier = abstract_testing::mock_querier(deps.api);
         let reply_msg = Reply {
             id: 0,
+            #[allow(deprecated)]
             result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
                 events: vec![],
                 data: Some("test_reply".as_bytes().into()),

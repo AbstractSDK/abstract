@@ -27,7 +27,7 @@ cw-orch = { workspace = true }
 abstract-sdk = { workspace = true }
 
 # EVM
-polytone-evm = { version = "0.0.2" }
+polytone-evm = { version = "0.1.0" }
 alloy = { version = "0.2.1", default-features = false }
 alloy-sol-types = { version = "0.7.7", default-features = false }
 

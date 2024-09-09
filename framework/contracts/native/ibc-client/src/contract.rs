@@ -1265,6 +1265,7 @@ mod tests {
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: remote_proxy.clone(),
+                    #[allow(deprecated)]
                     result: vec![SubMsgResponse {
                         events: vec![],
                         data: None,
@@ -1302,6 +1303,7 @@ mod tests {
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: remote_proxy.clone(),
+                    #[allow(deprecated)]
                     result: vec![SubMsgResponse {
                         events: vec![Event::new(String::from("wasm"))],
                         data: None,
@@ -1339,6 +1341,7 @@ mod tests {
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: remote_proxy.clone(),
+                    #[allow(deprecated)]
                     result: vec![SubMsgResponse {
                         events: vec![Event::new(String::from("wasm-abstract"))
                             .add_attribute("action", "create_proxy")

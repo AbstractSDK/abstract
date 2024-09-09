@@ -229,6 +229,8 @@ mod tests {
                     msgs: vec![EvmMsg::Call {
                         to: "to".to_string(),
                         data: vec![0x01].into(),
+                        value: None,
+                        allow_failure: None,
                     }],
                     callback: None,
                 })],
@@ -245,6 +247,8 @@ mod tests {
                         msgs: vec![EvmMsg::Call {
                             to: "to".to_string(),
                             data: vec![0x01].into(),
+                            value: None,
+                            allow_failure: None,
                         }],
                         timeout_seconds: PACKET_LIFETIME.into(),
                     },
@@ -356,6 +360,8 @@ mod tests {
                     msgs: vec![EvmMsg::Call {
                         to: "to".to_string(),
                         data: vec![0x01].into(),
+                        value: None,
+                        allow_failure: None,
                     }],
                     callback: None,
                 })],

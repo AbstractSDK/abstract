@@ -29,9 +29,9 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
+        uses: mozilla-actions/sccache-action@v0.0.5
         with:
-          version: "v0.4.2"
+          version: "v0.8.1"
       - name: Install stable
         uses: dtolnay/rust-toolchain@master
         with:
@@ -40,7 +40,9 @@ jobs:
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./framework
         run: cargo generate-lockfile
-      # https://twitter.com/jonhoo/status/1571290371124260865
+      - uses: Swatinem/rust-cache@v2
+        with: 
+          workspaces: "framework -> target"
       - name: cargo test --locked
         working-directory: ./framework
         run: cargo test --locked --all-features --all-targets
