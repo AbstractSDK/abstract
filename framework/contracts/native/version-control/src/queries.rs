@@ -359,7 +359,7 @@ mod test {
             &abstr.account_factory,
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
-                account_base: abstr.account,
+                account: abstr.account,
                 namespace: None,
             },
         )?;
@@ -373,7 +373,7 @@ mod test {
             &abstr.account_factory,
             ExecuteMsg::AddAccount {
                 account_id: TEST_OTHER_ACCOUNT_ID,
-                account_base: other_account,
+                account: other_account,
                 namespace: None,
             },
         )

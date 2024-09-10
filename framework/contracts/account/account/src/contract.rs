@@ -135,7 +135,7 @@ pub fn instantiate(
         version_control_address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
             account_id: ACCOUNT_ID.load(deps.storage)?,
-            account_base: Account::new(env.contract.address),
+            account: Account::new(env.contract.address),
             namespace,
         },
         vec![],
@@ -263,4 +263,62 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     };
 
     Ok(Binary::default())
+}
+
+#[cfg(test)]
+mod tests {
+    use abstract_std::{
+        account,
+        objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
+        version_control::Account,
+    };
+    use abstract_testing::prelude::AbstractMockAddrs;
+    use cosmwasm_std::{
+        testing::{message_info, mock_dependencies, mock_env}, wasm_execute, Addr, CosmosMsg, SubMsg
+    };
+    use speculoos::prelude::*;
+
+    #[test]
+    fn successful_instantiate() {
+        let mut deps = mock_dependencies();
+
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.owner, &[]);
+
+        let resp = super::instantiate(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            account::InstantiateMsg {
+                account_id: AccountId::new(1, AccountTrace::Local).ok(),
+                owner: GovernanceDetails::Monarchy {
+                    monarch: abstr.owner.to_string(),
+                },
+                version_control_address: abstr.version_control.to_string(),
+                module_factory_address: abstr.module_factory.to_string(),
+                ans_host_address: abstr.ans_host.to_string(),
+                namespace: None,
+                name: "test".to_string(),
+                description: None,
+                link: None,
+                install_modules: vec![],
+            },
+        );
+
+        assert_that!(resp).is_ok();
+
+        let expected_msg: CosmosMsg = wasm_execute(
+            abstr.version_control,
+            &abstract_std::version_control::ExecuteMsg::AddAccount {
+                account_id: AccountId::new(1, AccountTrace::Local).unwrap(),
+                account: Account::new(Addr::unchecked("cosmos2contract")),
+                namespace: None,
+            },
+            vec![],
+        )
+        .unwrap()
+        .into();
+
+        assert_that!(&resp.unwrap().messages).is_equal_to(&vec![SubMsg::new(expected_msg)]);
+    }
 }

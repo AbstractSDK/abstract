@@ -75,9 +75,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,
-            account_base: base,
+            account,
             namespace,
-        } => add_account(deps, info, account_id, base, namespace),
+        } => add_account(deps, info, account_id, account, namespace),
         ExecuteMsg::UpdateConfig {
             account_factory_address,
             security_disabled,

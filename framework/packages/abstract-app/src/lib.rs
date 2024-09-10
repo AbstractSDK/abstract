@@ -37,7 +37,7 @@ pub mod mock {
         IBC_CLIENT,
     };
     use cosmwasm_schema::QueryResponses;
-    pub use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env, MockApi};
+    pub(crate) use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env, MockApi};
     use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;

@@ -733,7 +733,7 @@ mod test {
             &abstr.account_factory,
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
-                account_base: abstr.account,
+                account: abstr.account,
                 namespace: None,
             },
         )
@@ -747,7 +747,7 @@ mod test {
             &abstr.account_factory,
             ExecuteMsg::AddAccount {
                 account_id: SECOND_TEST_ACCOUNT_ID,
-                account_base: abstr.account,
+                account: abstr.account,
                 namespace: None,
             },
         )
@@ -769,7 +769,7 @@ mod test {
             &abstr.account_factory,
             ExecuteMsg::AddAccount {
                 account_id: THIRD_ACC_ID,
-                account_base: third_account.clone(),
+                account: third_account.clone(),
                 namespace: None,
             },
         )
@@ -986,7 +986,7 @@ mod test {
                 &abstr.account_factory,
                 ExecuteMsg::AddAccount {
                     account_id: ABSTRACT_ACCOUNT_ID,
-                    account_base: Account {
+                    account: Account {
                         manager: abstr.account.manager,
                         proxy: test_admin_proxy.clone(),
                     },
@@ -1076,7 +1076,7 @@ mod test {
                 &abstr.account_factory,
                 ExecuteMsg::AddAccount {
                     account_id: SECOND_TEST_ACCOUNT_ID,
-                    account_base: abstr.account,
+                    account: abstr.account,
                     namespace: None,
                 },
             )?;
@@ -1143,7 +1143,7 @@ mod test {
                 &abstr.account_factory,
                 ExecuteMsg::AddAccount {
                     account_id: SECOND_TEST_ACCOUNT_ID,
-                    account_base: Account {
+                    account: Account {
                         manager: account_1_manager,
                         proxy: account_1_proxy,
                     },
@@ -2294,7 +2294,7 @@ mod test {
             let test_core: Account = abstr.account;
             let msg = ExecuteMsg::AddAccount {
                 account_id: ABSTRACT_ACCOUNT_ID,
-                account_base: test_core.clone(),
+                account: test_core.clone(),
                 namespace: None,
             };
 

@@ -153,7 +153,7 @@ pub enum ExecuteMsg {
     /// Only new accounts can call this.
     AddAccount {
         account_id: AccountId,
-        account_base: Account,
+        account: Account,
         namespace: Option<String>,
     },
     /// Updates configuration of the VC contract
