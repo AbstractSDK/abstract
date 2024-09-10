@@ -1,10 +1,10 @@
 use abstract_sdk::AbstractSdkError;
 use abstract_std::{
+    ibc::polytone_callbacks::CallbackMessage,
     objects::{ans_host::AnsHostError, version_control::VersionControlError, AccountId},
     AbstractError,
 };
 use cosmwasm_std::StdError;
-use polytone::callbacks::CallbackMessage;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
