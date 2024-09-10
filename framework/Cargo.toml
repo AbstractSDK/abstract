@@ -124,9 +124,6 @@ abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branc
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", branch = "buckram/update-interface-package" }
-# TODO: This one is private repo!
-polytone-evm = { git = "https://github.com/AbstractSDK/evm-ibc", branch = "upgrade/cosmwasm_2_0" }
-evm-note = { git = "https://github.com/AbstractSDK/evm-ibc", branch = "upgrade/cosmwasm_2_0" }
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep

@@ -71,33 +71,8 @@ mod tests {
         }
     }
 
-    mod proxy {
+    mod account {
         use cosmwasm_std::testing::mock_dependencies;
-
-        use super::*;
-
-        #[test]
-        fn test_proxy_address() {
-            let deps = mock_dependencies();
-            let account_base = test_account_base(deps.api);
-            let address = account_base.proxy;
-            let proxy = ProxyContract::new(address.clone());
-
-            assert_that!(proxy.proxy_address(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(address);
-        }
-
-        #[test]
-        fn should_identify_self_as_abstract_proxy() {
-            let proxy = ProxyContract::new(Addr::unchecked("test"));
-
-            assert_that!(proxy.module_id()).is_equal_to(ACCOUNT);
-        }
-    }
-
-    mod base {
-        use cosmwasm_std::testing::{mock_dependencies, MockApi};
 
         use super::*;
 
@@ -106,14 +81,14 @@ mod tests {
             let deps = mock_dependencies();
             let account_base = test_account_base(deps.api);
 
-            assert_that!(account_base.account_base(deps.as_ref()))
+            assert_that!(account_base.account(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(account_base);
         }
 
         #[test]
-        fn should_identify_self_as_abstract_proxy() {
-            let account_base = test_account_base(MockApi::default());
+        fn should_identify_self_as_account() {
+            let account_base = Account::new(Addr::unchecked("test"));
 
             assert_that!(account_base.module_id()).is_equal_to(ACCOUNT);
         }

@@ -36,23 +36,36 @@ pub mod state {
     #[cosmwasm_schema::cw_serde]
     pub struct AccountInfo {
         pub name: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub description: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub link: Option<String>,
     }
 
+    pub mod namespace {
+        pub const SUSPENSION_STATUS: &str = "a";
+        pub const CONFIG: &str = "b";
+        pub const INFO: &str = "c";
+        pub const ACCOUNT_MODULES: &str = "d";
+        pub const DEPENDENTS: &str = "e";
+        pub const SUB_ACCOUNTS: &str = "f";
+        pub const STATE: &str = "g";
+    }
+
     /// Suspension status
-    pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new("a");
+    // TODO: Pull it inside Config as `suspended: Option<String>`, with reason of suspension inside a string?
+    pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new(namespace::SUSPENSION_STATUS);
     /// Configuration
-    pub const CONFIG: Item<Config> = Item::new("b");
+    pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
     /// Info about the Account
-    pub const INFO: Item<AccountInfo> = Item::new("c");
+    pub const INFO: Item<AccountInfo> = Item::new(namespace::INFO);
     /// Enabled Abstract modules
-    pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("d");
+    pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new(namespace::ACCOUNT_MODULES);
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
-    pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("e");
+    pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new(namespace::DEPENDENTS);
     /// List of sub-accounts
-    pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("f");
+    pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new(namespace::SUB_ACCOUNTS);
     // Additional states, not listed here: cw_gov_ownable::GovOwnership
 }
 

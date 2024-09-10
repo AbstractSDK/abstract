@@ -145,7 +145,7 @@ impl Ownership<Addr> {
         sender: &Addr,
     ) -> Result<(), GovOwnershipError> {
         match &self.owner {
-            GovernanceDetails::SubAccount { account, .. } => {
+            GovernanceDetails::SubAccount { account } => {
                 let top_level_owner = query_top_level_owner(querier, account.clone())?;
                 // Verify top level account allows ownership changes
                 // We prevent transfers of current ownership if it's NFT
