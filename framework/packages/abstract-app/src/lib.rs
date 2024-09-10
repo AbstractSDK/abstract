@@ -202,7 +202,7 @@ pub mod mock {
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default()
-            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected messsage"))
+            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected message"))
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
