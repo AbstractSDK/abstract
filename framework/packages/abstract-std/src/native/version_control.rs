@@ -155,6 +155,7 @@ pub enum ExecuteMsg {
         account_id: AccountId,
         account: Account,
         namespace: Option<String>,
+        creator: String,
     },
     /// Updates configuration of the VC contract
     UpdateConfig {

@@ -177,7 +177,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
             }
             ModuleReference::App(queried_code_id)
             | ModuleReference::Standalone(queried_code_id)
-            | ModuleReference::AccountBase(queried_code_id) => {
+            | ModuleReference::Account(queried_code_id) => {
                 let request_contract = self.deps.querier.query_wasm_contract_info(&address)?;
                 if queried_code_id == request_contract.code_id {
                     Ok(module)

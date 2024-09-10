@@ -464,9 +464,9 @@ pub fn assert_module_data_validity(
     );
     // we're done if it's not an actual module
     match module_claim.reference {
-        ModuleReference::AccountBase(_)
-        | ModuleReference::Native(_)
-        | ModuleReference::Service(_) => return Ok(()),
+        ModuleReference::Account(_) | ModuleReference::Native(_) | ModuleReference::Service(_) => {
+            return Ok(())
+        }
         _ => {}
     }
 

@@ -11,7 +11,9 @@ use abstract_sdk::{
     },
 };
 use abstract_std::{
+    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     objects::{
+        account::AccountTrace,
         fee::FixedFee,
         module::{self, Module},
         ownership,
@@ -19,10 +21,11 @@ use abstract_std::{
         ABSTRACT_ACCOUNT_ID,
     },
     version_control::{ModuleDefaultConfiguration, UpdateModule},
+    IBC_HOST,
 };
 use cosmwasm_std::{
-    ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
-    QuerierWrapper, StdResult, Storage,
+    ensure, ensure_eq, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
+    Order, QuerierWrapper, StdResult, Storage,
 };
 
 use crate::{
@@ -31,24 +34,75 @@ use crate::{
 };
 
 /// Add new Account to version control contract
-/// Only Factory can add Account
+/// Only Account can add itself.
 pub fn add_account(
     deps: DepsMut,
     msg_info: MessageInfo,
     account_id: AccountId,
     account_base: Account,
     namespace: Option<String>,
+    creator: String,
 ) -> VCResult {
     let config = CONFIG.load(deps.storage)?;
 
-    // Only Factory can add new Account
-    let is_factory = config
-        .account_factory_address
-        .map(|addr| addr == msg_info.sender)
-        .unwrap_or(false);
-    if !is_factory {
-        return Err(VCError::NotAccountFactory {});
+    // Check that sender is account
+    let contract_info = cw2::query_contract_info(&deps.querier, &msg_info.sender)?;
+    let acc_module_info = ModuleInfo::try_from(contract_info)?;
+    let account_code_id = REGISTERED_MODULES
+        .load(deps.storage, &acc_module_info)?
+        .unwrap_account()?;
+
+    // verify code-id of sender
+    let sender_contract_info = deps.querier.query_wasm_contract_info(&msg_info.sender)?;
+
+    // provided and smaller, assert is eq to sequence
+    // provided and larger, just register
+    // Remote account_id is provided, assert the creator is the ibc host.
+    if account_id.is_local() {
+        // Predictable Account Id Sequence have to be >= 2147483648
+        if account_id.seq() < 2147483648 {
+            let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
+
+            ensure_eq!(
+                next_sequence,
+                account_id.seq(),
+                VCError::InvalidAccountSequence {
+                    expected: next_sequence,
+                    actual: account_id.seq(),
+                }
+            );
+
+            LOCAL_ACCOUNT_SEQUENCE.save(deps.storage, &next_sequence.checked_add(1).unwrap())?;
+        }
+    } else {
+        // If a non-local account_id is provided, assert that the creator is the ibc host
+        let creator_addr = deps.api.addr_validate(&creator)?;
+        let sender_cw2_info = cw2::query_contract_info(&deps.querier, &creator_addr)?;
+        let ibc_host_addr = REGISTERED_MODULES
+            .load(
+                deps.storage,
+                &ModuleInfo::from_id(IBC_HOST, sender_cw2_info.version.into())?,
+            )?
+            .unwrap_native()?;
+
+        ensure_eq!(
+            creator_addr,
+            ibc_host_addr,
+            VCError::SenderNotIbcHost(creator_addr.into_string(), ibc_host_addr.into())
+        );
+        // then assert that the account trace is remote and properly formatted
+        account_id.trace().verify_remote()?;
     }
+
+    ensure_eq!(
+        account_code_id,
+        sender_contract_info.code_id,
+        VCError::NotAccount {
+            account_info: acc_module_info,
+            expected_code_id: account_code_id,
+            actual_code_id: sender_contract_info.code_id
+        }
+    );
 
     // Check if account already exists
     ensure!(

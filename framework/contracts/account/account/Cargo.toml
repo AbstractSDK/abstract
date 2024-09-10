@@ -32,6 +32,8 @@ abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
+cw721 = { version = "0.18.0" }
+cw721-base = { version = "0.18.0", features = ["library"] }
 
 proxy = { workspace = true }
 manager ={ workspace = true }

@@ -160,8 +160,8 @@ pub fn execute_create_account(
 
     // Get code_ids
     let (proxy_code_id, manager_code_id) = if let (
-        ModuleReference::AccountBase(proxy_code_id),
-        ModuleReference::AccountBase(manager_code_id),
+        ModuleReference::Account(proxy_code_id),
+        ModuleReference::Account(manager_code_id),
     ) = (
         proxy_module.reference.clone(),
         manager_module.reference.clone(),

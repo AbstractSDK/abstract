@@ -6,6 +6,7 @@ use abstract_sdk::std::{
 };
 use abstract_std::{
     account::{ExecuteMsg, InstantiateMsg, QueryMsg},
+    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     manager::{
         state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS},
         UpdateSubAccountAction,
@@ -15,11 +16,12 @@ use abstract_std::{
     version_control::Account,
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
-    StdResult,
+    ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
+    StdError, StdResult,
 };
 use cw2::set_contract_version;
 
+use cw721_base::OwnershipError;
 use manager::commands::*;
 use proxy::commands::*;
 
@@ -54,18 +56,24 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let account_id =
-        account_id.unwrap_or_else(|| /*  TODO: Query VC for Sequence*/ AccountId::local(0));
+    // ## Manage ##
+    let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
+    let version_control_address = deps.api.addr_validate(&version_control_address)?;
+
+    let account_id = account_id.unwrap_or_else(|| {
+        AccountId::local(
+            LOCAL_ACCOUNT_SEQUENCE
+                .query(&deps.querier, version_control_address.clone())
+                // default to 0 for first account
+                .unwrap_or_default(),
+        )
+    });
 
     ACCOUNT_ID.save(deps.storage, &account_id)?;
     STATE.save(
         deps.storage,
         &abstract_std::proxy::state::State { modules: vec![] },
     )?;
-
-    // ## Manage ##
-    let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
-    let version_control_address = deps.api.addr_validate(&version_control_address)?;
 
     // Save config
     let config = Config {
@@ -88,11 +96,40 @@ pub fn instantiate(
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
+    let governance = owner
+        .clone()
+        .verify(deps.as_ref(), version_control_address.clone())?;
+    // Check if the caller is the manager the proposed owner account when creating a sub-account.
+    // This prevents other users from creating sub-accounts for accounts they don't own.
+    if let GovernanceDetails::SubAccount { account } = &governance {
+        ensure_eq!(
+            info.sender,
+            account,
+            AccountError::SubAccountCreatorNotAccount {
+                caller: info.sender.into(),
+                account: account.into(),
+            }
+        )
+    }
+    if let GovernanceDetails::NFT {
+        collection_addr,
+        token_id,
+    } = governance
+    {
+        verify_nft_ownership(
+            deps.as_ref(),
+            info.sender.clone(),
+            collection_addr,
+            token_id,
+        )?
+    }
+
     // Set owner
     let cw_gov_owner = ownership::initialize_owner(
         deps.branch(),
         // TODO: support no owner here (ownership handled in SUDO)
-        owner,
+        // Or do we want to add a `Sudo` governance type?
+        owner.clone(),
         config.version_control_address.clone(),
     )?;
 
@@ -121,22 +158,24 @@ pub fn instantiate(
     }
 
     // Register on manager if it's sub-account
-    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
-        response = response.add_message(wasm_execute(
-            account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                id: ACCOUNT_ID.load(deps.storage)?.seq(),
-            }),
-            vec![],
-        )?);
-    }
+    // TODO: Update sub-account creation logic
+    // if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
+    //     response = response.add_message(wasm_execute(
+    //         account,
+    //         &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+    //             id: ACCOUNT_ID.load(deps.storage)?.seq(),
+    //         }),
+    //         vec![],
+    //     )?);
+    // }
 
     let response = response.add_message(wasm_execute(
         version_control_address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
-            account_id: ACCOUNT_ID.load(deps.storage)?,
+            account_id: Some(account_id),
             account: Account::new(env.contract.address),
             namespace,
+            creator: info.sender.to_string(),
         },
         vec![],
     )?);
@@ -265,6 +304,32 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     Ok(Binary::default())
 }
 
+/// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*
+fn verify_nft_ownership(
+    deps: Deps,
+    sender: Addr,
+    nft_addr: Addr,
+    nft_id: String,
+) -> Result<(), AccountError> {
+    // get owner of token_id from collection
+    let owner: cw721::OwnerOfResponse = deps.querier.query_wasm_smart(
+        nft_addr,
+        &cw721::Cw721QueryMsg::OwnerOf {
+            token_id: nft_id,
+            include_expired: None,
+        },
+    )?;
+    let owner = deps.api.addr_validate(&owner.owner)?;
+    // verify owner
+    ensure_eq!(
+        sender,
+        owner,
+        AccountError::Ownership(OwnershipError::NotOwner)
+    );
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use abstract_std::{
@@ -274,7 +339,8 @@ mod tests {
     };
     use abstract_testing::prelude::AbstractMockAddrs;
     use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env}, wasm_execute, Addr, CosmosMsg, SubMsg
+        testing::{message_info, mock_dependencies, mock_env},
+        wasm_execute, Addr, CosmosMsg, SubMsg,
     };
     use speculoos::prelude::*;
 

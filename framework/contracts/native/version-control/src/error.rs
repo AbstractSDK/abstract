@@ -26,6 +26,18 @@ pub enum VCError {
     #[error("Semver parsing error: {0}")]
     SemVer(String),
 
+    #[error(
+        "Caller with info {} has code_id {} but expected {}",
+        account_info,
+        actual_code_id,
+        expected_code_id
+    )]
+    NotAccount {
+        account_info: ModuleInfo,
+        expected_code_id: u64,
+        actual_code_id: u64,
+    },
+
     #[error("Module {0} does not have a stored module reference")]
     ModuleNotFound(ModuleInfo),
 
@@ -78,8 +90,14 @@ pub enum VCError {
     #[error("Initialization funds can only be specified for apps and standalone modules")]
     RedundantInitFunds {},
 
-    #[error("Only account factory is allowed to add new accounts")]
-    NotAccountFactory {},
+    #[error("Predictable local account id sequence can't be lower than 2147483648")]
+    PredictableAccountIdFailed {},
+
+    #[error("Sender {0} is not the IBC host {1}")]
+    SenderNotIbcHost(String, String),
+
+    #[error("requested sequence is invalid. Expected: {expected}, actual: {actual}")]
+    InvalidAccountSequence { expected: u32, actual: u32 },
 }
 
 impl From<semver::Error> for VCError {

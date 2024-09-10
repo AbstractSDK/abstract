@@ -1,4 +1,4 @@
-use abstract_sdk::{std::objects::module::ModuleInfo, AbstractSdkError};
+use abstract_sdk::AbstractSdkError;
 use abstract_std::{
     objects::{validation::ValidationError, version_control::VersionControlError},
     AbstractError,
@@ -37,4 +37,7 @@ pub enum AccountError {
 
     #[error("Your account is currently suspended")]
     AccountSuspended {},
+
+    #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
+    SubAccountCreatorNotAccount { caller: String, account: String },
 }

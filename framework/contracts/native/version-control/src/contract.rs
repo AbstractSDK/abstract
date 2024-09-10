@@ -77,7 +77,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             account_id,
             account,
             namespace,
-        } => add_account(deps, info, account_id, account, namespace),
+            creator,
+        } => add_account(deps, info, account_id, account, namespace, creator),
         ExecuteMsg::UpdateConfig {
             account_factory_address,
             security_disabled,

@@ -199,7 +199,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
                 &account.id,
                 ModuleVersion::Version(manager::contract::CONTRACT_VERSION.to_string()),
             )?,
-            ModuleReference::AccountBase(account.code_id()?),
+            ModuleReference::Account(account.code_id()?),
         );
         self.propose_modules(vec![account_module])?;
 
@@ -213,7 +213,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         apps: Vec<(&Contract<Chain>, VersionString)>,
     ) -> Result<(), crate::AbstractInterfaceError> {
         let to_register = self.contracts_into_module_entries(apps, |c| {
-            ModuleReference::AccountBase(c.code_id().unwrap())
+            ModuleReference::Account(c.code_id().unwrap())
         })?;
         self.propose_modules(to_register)?;
         Ok(())
