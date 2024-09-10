@@ -69,7 +69,7 @@ pub trait DexCommand: Identify {
         unimplemented!();
     }
 
-    /// Provides liquidity on the the DEX
+    /// Provides liquidity on the DEX
     fn provide_liquidity(
         &self,
         deps: Deps,
