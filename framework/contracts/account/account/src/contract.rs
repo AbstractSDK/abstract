@@ -172,8 +172,8 @@ pub fn instantiate(
     let response = response.add_message(wasm_execute(
         version_control_address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
-            account_id: Some(account_id),
-            account: Account::new(env.contract.address),
+            account_id,
+            account: Account::new(env.contract.address).into(),
             namespace,
             creator: info.sender.to_string(),
         },
@@ -326,7 +326,7 @@ fn verify_nft_ownership(
         owner,
         AccountError::Ownership(OwnershipError::NotOwner)
     );
-
+    
     Ok(())
 }
 

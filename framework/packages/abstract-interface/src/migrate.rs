@@ -130,15 +130,6 @@ impl<T: CwEnv> Abstract<T> {
             ));
         }
 
-        if ::proxy::contract::CONTRACT_VERSION != versions[1].module.info.version.to_string()
-            && self.account.proxy.upload_if_needed()?.is_some()
-        {
-            accounts_to_register.push((
-                self.account.proxy.as_instance(),
-                ::proxy::contract::CONTRACT_VERSION.to_string(),
-            ));
-        }
-
         if !accounts_to_register.is_empty() {
             self.version_control
                 .register_account_mods(accounts_to_register)?;

@@ -56,6 +56,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
+
     match msg {
         ExecuteMsg::ProposeModules { modules } => propose_modules(deps, info, modules),
         ExecuteMsg::ApproveOrRejectModules { approves, rejects } => {
@@ -80,16 +81,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             creator,
         } => add_account(deps, info, account_id, account, namespace, creator),
         ExecuteMsg::UpdateConfig {
-            account_factory_address,
             security_disabled,
             namespace_registration_fee,
-        } => update_config(
-            deps,
-            info,
-            account_factory_address,
-            security_disabled,
-            namespace_registration_fee,
-        ),
+        } => update_config(deps, info, security_disabled, namespace_registration_fee),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(VcResponse, deps, env, info, action)
         }

@@ -213,8 +213,9 @@ pub fn execute_create_account(
         funds: funds_for_namespace_fee,
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: proxy_message.account_id.clone(),
-            account: context.account_base,
+            account: context.account_base.into(),
             namespace: namespace.clone(),
+            creator: info.sender.to_string(),
         })?,
     });
 

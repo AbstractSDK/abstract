@@ -76,16 +76,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         // ########### Instantiate ##############
         deployment.instantiate(data)?;
 
-        // Set Factory
-        deployment.version_control.execute(
-            &abstract_std::version_control::ExecuteMsg::UpdateConfig {
-                account_factory_address: Some(deployment.account_factory.address()?.into_string()),
-                namespace_registration_fee: None,
-                security_disabled: None,
-            },
-            &[],
-        )?;
-
         // ########### upload modules and token ##############
 
         deployment
