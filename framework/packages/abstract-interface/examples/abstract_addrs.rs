@@ -1,0 +1,72 @@
+use abstract_std::{
+    native_addrs::TEST_ABSTRACT_CREATOR, ACCOUNT_FACTORY, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
+    VERSION_CONTROL,
+};
+use cosmwasm_std::{instantiate2_address, CanonicalAddr};
+use cw_blob::interface::CwBlob;
+use cw_orch::prelude::*;
+
+/// This method will print abstract addresses
+fn main() {
+    let creator = CanonicalAddr::from(TEST_ABSTRACT_CREATOR);
+    let blob_checksum = <CwBlob<Daemon> as Uploadable>::wasm(&ChainInfoOwned::default())
+        .checksum()
+        .unwrap();
+
+    let ans_addr =
+        instantiate2_address(blob_checksum.as_slice(), &creator, ANS_HOST.as_bytes()).unwrap();
+    let version_control_addr = instantiate2_address(
+        blob_checksum.as_slice(),
+        &creator,
+        VERSION_CONTROL.as_bytes(),
+    )
+    .unwrap();
+    let account_factory_addr = instantiate2_address(
+        blob_checksum.as_slice(),
+        &creator,
+        ACCOUNT_FACTORY.as_bytes(),
+    )
+    .unwrap();
+    let module_factory_addr = instantiate2_address(
+        blob_checksum.as_slice(),
+        &creator,
+        MODULE_FACTORY.as_bytes(),
+    )
+    .unwrap();
+    let ibc_client_addr =
+        instantiate2_address(blob_checksum.as_slice(), &creator, IBC_CLIENT.as_bytes()).unwrap();
+    let ibc_host_addr =
+        instantiate2_address(blob_checksum.as_slice(), &creator, IBC_HOST.as_bytes()).unwrap();
+
+    println!("Abstract Addresses:");
+    println!(
+        "pub const ANS_ADDR: [u8;{}] = {};",
+        ans_addr.len(),
+        ans_addr.as_slice()
+    );
+    println!(
+        "pub const VERSION_CONTROL_ADDR: [u8;{}] = {};",
+        version_control_addr.len(),
+        version_control_addr.as_slice()
+    );
+    println!(
+        "pub const ACCOUNT_FACTORY_ADDR: [u8;{}] = {};",
+        account_factory_addr.len(),
+        account_factory_addr.as_slice()
+    );
+    println!(
+        "pub const MODULE_FACTORY_ADDR: [u8;{}] = {};",
+        module_factory_addr.len(),
+        module_factory_addr.as_slice()
+    );
+    println!(
+        "pub const IBC_CLIENT_ADDR: [u8;{}] = {};",
+        ibc_client_addr.len(),
+        ibc_client_addr.as_slice()
+    );
+    println!(
+        "pub const IBC_HOST_ADDR: [u8;{}] = {};",
+        ibc_host_addr.len(),
+        ibc_host_addr.as_slice()
+    );
+}

@@ -1,13 +1,17 @@
+use cosmwasm_std::{instantiate2_address, CanonicalAddr};
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
 
-use cw_orch::prelude::*;
+use cw_orch::{contract::Contract, prelude::*};
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
     Account, AccountFactory, AnsHost, ModuleFactory, VersionControl,
 };
-use abstract_std::{ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL};
+use abstract_std::{
+    native_addrs::TEST_ABSTRACT_CREATOR, ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST,
+    MODULE_FACTORY, VERSION_CONTROL,
+};
 
 use rust_embed::RustEmbed;
 
@@ -222,6 +226,12 @@ impl<Chain: CwEnv> Abstract<Chain> {
         // We also instantiate ibc contracts
         self.ibc.instantiate(self, &admin)?;
         self.ibc.register(&self.version_control)?;
+
+        Ok(())
+    }
+
+    pub fn instantiate_migrate_blobs(&self) -> Result<(), AbstractInterfaceError> {
+        let blob = Contract::new("blob", self.account_factory.environment().clone());
 
         Ok(())
     }

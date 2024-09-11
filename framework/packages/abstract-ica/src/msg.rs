@@ -12,7 +12,10 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    Instantiate(InstantiateMsg),
+    Migrate {},
+}
 
 #[cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]

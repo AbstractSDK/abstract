@@ -125,19 +125,29 @@ pub fn query_simulate_install_modules(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ModuleFactoryResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> ModuleFactoryResult {
+    match msg {
+        MigrateMsg::Instantiate(instantiate_msg) => {
+            let contract_info = deps
+                .querier
+                .query_wasm_contract_info(&env.contract.address)?;
+            // Only admin can call migrate on contract
+            let sender = contract_info.admin.unwrap();
+            let message_info = MessageInfo {
+                sender,
+                funds: vec![],
+            };
+            instantiate(deps, env, message_info, instantiate_msg)
+        }
+        MigrateMsg::Migrate {} => {
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, MODULE_FACTORY, version)?;
-    set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
+            assert_contract_upgrade(deps.storage, MODULE_FACTORY, version)?;
+            set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
 
-    // Clear unused state map
-    // Removable after 0.23 migration, not critical as it won't do anything if there's no state for this map
-    let module_init_binaries: cw_storage_plus::Map<&ModuleInfo, Binary> =
-        cw_storage_plus::Map::new("module_init_binaries");
-    module_init_binaries.clear(deps.storage);
-
-    Ok(ModuleFactoryResponse::action("migrate"))
+            Ok(ModuleFactoryResponse::action("migrate"))
+        }
+    }
 }
 
 #[cfg(test)]

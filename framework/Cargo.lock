@@ -395,10 +395,12 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "abstract-version-control",
+ "cosmrs",
  "cosmwasm-schema 2.1.3",
  "cosmwasm-std 2.1.3",
  "cw-address-like 2.0.0",
  "cw-asset",
+ "cw-blob",
  "cw-controllers",
  "cw-orch",
  "cw-orch-interchain",
@@ -2112,6 +2114,15 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw20",
  "thiserror",
+]
+
+[[package]]
+name = "cw-blob"
+version = "0.1.0"
+source = "git+https://github.com/AbstractSDK/cw-packages.git?branch=contract/cw-blob#35f8e2384be86c253a7aee96e62460875b35190d"
+dependencies = [
+ "cosmwasm-std 2.1.3",
+ "cw-orch",
 ]
 
 [[package]]

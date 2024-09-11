@@ -103,4 +103,9 @@ pub struct SimulateInstallModulesResponse {
 
 /// We currently take no arguments for migrations
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    /// Migrating from blob contract
+    Instantiate(InstantiateMsg),
+    /// Migrating from previous version
+    Migrate {},
+}

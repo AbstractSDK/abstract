@@ -139,13 +139,29 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
-    let to_version: Version = CONTRACT_VERSION.parse().unwrap();
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> IbcClientResult {
+    match msg {
+        MigrateMsg::Instantiate(instantiate_msg) => {
+            let contract_info = deps
+                .querier
+                .query_wasm_contract_info(&env.contract.address)?;
+            // Only admin can call migrate on contract
+            let sender = contract_info.admin.unwrap();
+            let message_info = MessageInfo {
+                sender,
+                funds: vec![],
+            };
+            instantiate(deps, env, message_info, instantiate_msg)
+        }
+        MigrateMsg::Migrate {} => {
+            let to_version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
-    cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
-    migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
-    Ok(IbcClientResponse::action("migrate"))
+            assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
+            cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+            migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
+            Ok(IbcClientResponse::action("migrate"))
+        }
+    }
 }
 
 #[cfg(test)]

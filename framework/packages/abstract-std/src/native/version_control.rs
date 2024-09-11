@@ -350,4 +350,9 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    /// Migrating from blob contract
+    Instantiate(InstantiateMsg),
+    /// Migrating from previous version
+    Migrate {},
+}
