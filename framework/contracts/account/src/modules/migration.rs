@@ -17,7 +17,8 @@ use abstract_std::{
     ACCOUNT,
 };
 use cosmwasm_std::{
-    ensure, ensure_eq, to_json_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg
+    ensure, ensure_eq, to_json_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env,
+    MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::get_contract_version;
 use cw_storage_plus::Item;
