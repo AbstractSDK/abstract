@@ -2,10 +2,8 @@ use crate::{Abstract, AbstractIbc};
 use abstract_std::version_control::QueryMsgFns;
 use abstract_std::{
     account_factory, ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo,
-    version_control, ACCOUNT,
-};
-use abstract_std::{
-    ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
+    version_control, ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
+    VERSION_CONTROL,
 };
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
@@ -17,18 +15,18 @@ impl<T: CwEnv> Abstract<T> {
         // start with factories
         let account_factory = self
             .account_factory
-            .upload_and_migrate_if_needed(&account_factory::MigrateMsg {})?;
+            .upload_and_migrate_if_needed(&account_factory::MigrateMsg::Migrate {})?;
         let module_factory = self
             .module_factory
-            .upload_and_migrate_if_needed(&module_factory::MigrateMsg {})?;
+            .upload_and_migrate_if_needed(&module_factory::MigrateMsg::Migrate {})?;
 
         // then VC and ANS
         let version_control = self
             .version_control
-            .upload_and_migrate_if_needed(&version_control::MigrateMsg {})?;
+            .upload_and_migrate_if_needed(&version_control::MigrateMsg::Migrate {})?;
         let ans_host = self
             .ans_host
-            .upload_and_migrate_if_needed(&ans_host::MigrateMsg {})?;
+            .upload_and_migrate_if_needed(&ans_host::MigrateMsg::Migrate {})?;
 
         // Then upload and register account if needed
         let account = self
@@ -58,7 +56,7 @@ impl<T: CwEnv> Abstract<T> {
         {
             let migration_result = self
                 .account_factory
-                .upload_and_migrate_if_needed(&account_factory::MigrateMsg {})?;
+                .upload_and_migrate_if_needed(&account_factory::MigrateMsg::Migrate {})?;
             if migration_result.is_some() {
                 has_migrated = true;
             }
@@ -72,7 +70,7 @@ impl<T: CwEnv> Abstract<T> {
         {
             let migration_result = self
                 .module_factory
-                .upload_and_migrate_if_needed(&module_factory::MigrateMsg {})?;
+                .upload_and_migrate_if_needed(&module_factory::MigrateMsg::Migrate {})?;
             if migration_result.is_some() {
                 has_migrated = true;
             }
@@ -87,7 +85,7 @@ impl<T: CwEnv> Abstract<T> {
         {
             let migration_result = self
                 .version_control
-                .upload_and_migrate_if_needed(&version_control::MigrateMsg {})?;
+                .upload_and_migrate_if_needed(&version_control::MigrateMsg::Migrate {})?;
             if migration_result.is_some() {
                 has_migrated = true;
             }
@@ -100,7 +98,7 @@ impl<T: CwEnv> Abstract<T> {
         if ::ans_host::contract::CONTRACT_VERSION != contract_version(&self.ans_host)?.version {
             let migration_result = self
                 .ans_host
-                .upload_and_migrate_if_needed(&ans_host::MigrateMsg {})?;
+                .upload_and_migrate_if_needed(&ans_host::MigrateMsg::Migrate {})?;
             if migration_result.is_some() {
                 has_migrated = true;
             }
@@ -127,15 +125,6 @@ impl<T: CwEnv> Abstract<T> {
             accounts_to_register.push((
                 self.account.account.as_instance(),
                 ::manager::contract::CONTRACT_VERSION.to_string(),
-            ));
-        }
-
-        if ::proxy::contract::CONTRACT_VERSION != versions[1].module.info.version.to_string()
-            && self.account.proxy.upload_if_needed()?.is_some()
-        {
-            accounts_to_register.push((
-                self.account.proxy.as_instance(),
-                ::proxy::contract::CONTRACT_VERSION.to_string(),
             ));
         }
 
@@ -275,10 +264,10 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
     pub fn migrate_if_needed(&self) -> Result<bool, crate::AbstractInterfaceError> {
         let client = self
             .client
-            .upload_and_migrate_if_needed(&ibc_client::MigrateMsg {})?;
+            .upload_and_migrate_if_needed(&ibc_client::MigrateMsg::Migrate {})?;
         let host = self
             .host
-            .upload_and_migrate_if_needed(&ibc_host::MigrateMsg {})?;
+            .upload_and_migrate_if_needed(&ibc_host::MigrateMsg::Migrate {})?;
         Ok(client.is_some() || host.is_some())
     }
 
@@ -312,10 +301,10 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         if version_req.matches(&new_version) {
             // If version is not breaking, simply migrate
             self.client
-                .migrate_if_needed(&ibc_client::MigrateMsg {})?
+                .migrate_if_needed(&ibc_client::MigrateMsg::Migrate {})?
                 .expect("IBC client supposed to be migrated, but skipped instead");
             self.host
-                .migrate_if_needed(&ibc_host::MigrateMsg {})?
+                .migrate_if_needed(&ibc_host::MigrateMsg::Migrate {})?
                 .expect("IBC host supposed to be migrated, but skipped instead");
         } else {
             // Version change is breaking, need to deploy new version

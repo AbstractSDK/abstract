@@ -395,7 +395,7 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "abstract-version-control",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-schema 2.1.3",
  "cosmwasm-std 2.1.3",
  "cw-address-like 2.0.0",
@@ -608,7 +608,7 @@ dependencies = [
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
- "cosmos-sdk-proto",
+ "cosmos-sdk-proto 0.24.0",
  "cosmwasm-schema 2.1.3",
  "cosmwasm-std 2.1.3",
  "cw-asset",
@@ -1775,13 +1775,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "cosmos-sdk-proto"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8ce7f4797cdf5cd18be6555ff3f0a8d37023c2d60f3b2708895d601b85c1c46"
+dependencies = [
+ "prost 0.13.2",
+ "tendermint-proto 0.39.1",
+]
+
+[[package]]
 name = "cosmrs"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af28a0ee4149da7cea0486fd7e3fbddea7dd81625279fdc521141ffb07fbd482"
 dependencies = [
  "bip32",
- "cosmos-sdk-proto",
+ "cosmos-sdk-proto 0.24.0",
  "ecdsa",
  "eyre",
  "k256",
@@ -1794,6 +1804,26 @@ dependencies = [
  "tendermint-rpc 0.39.1",
  "thiserror",
  "tokio",
+]
+
+[[package]]
+name = "cosmrs"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09f90935b72d9fa65a2a784e09f25778637b7e88e9d6f87c717081470f7fa726"
+dependencies = [
+ "bip32",
+ "cosmos-sdk-proto 0.25.0",
+ "ecdsa",
+ "eyre",
+ "k256",
+ "rand_core 0.6.4",
+ "serde",
+ "serde_json",
+ "signature",
+ "subtle-encoding",
+ "tendermint 0.39.1",
+ "thiserror",
 ]
 
 [[package]]
@@ -2119,8 +2149,8 @@ dependencies = [
 [[package]]
 name = "cw-blob"
 version = "0.1.0"
-source = "git+https://github.com/AbstractSDK/cw-packages.git?branch=contract/cw-blob#35f8e2384be86c253a7aee96e62460875b35190d"
 dependencies = [
+ "cosmrs 0.20.0",
  "cosmwasm-std 2.1.3",
  "cw-orch",
 ]
@@ -2157,7 +2187,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dd6f114ab0301b99ca0d8ba48036b87372ccc3ba0271dcd6f9533e4be578f65"
 dependencies = [
  "anyhow",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.3",
  "cw-orch-contract-derive",
  "cw-orch-core",
@@ -2196,7 +2226,7 @@ checksum = "8a9f5f99f52d7ed7c0f8c84580f2f78a15db9c7f2144d24dd485d9347917b6fa"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
- "cosmos-sdk-proto",
+ "cosmos-sdk-proto 0.24.0",
  "cosmwasm-std 2.1.3",
  "cw-storage-plus 2.0.0",
  "cw-utils 2.0.0",
@@ -2221,7 +2251,7 @@ dependencies = [
  "bech32 0.11.0",
  "bitcoin 0.32.2",
  "chrono",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.3",
  "cw-orch-core",
  "cw-orch-networks",
@@ -2313,7 +2343,7 @@ checksum = "d86766fbb5572ec8edad00844a4375eb1cd00dc3d1af31fbb57d5b99cad49ff5"
 dependencies = [
  "async-recursion",
  "base64 0.22.1",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-schema 2.1.3",
  "cosmwasm-std 2.1.3",
  "cw-orch-core",
@@ -2341,7 +2371,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0547c2ed6ba22914fa119bcb792641c67cf9b989314150d06f25742d601403e"
 dependencies = [
  "anyhow",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.3",
  "cw-orch-core",
  "cw-orch-interchain-core",
@@ -7859,7 +7889,7 @@ dependencies = [
  "bytes",
  "chrono",
  "console",
- "cosmos-sdk-proto",
+ "cosmos-sdk-proto 0.24.0",
  "cosmwasm-std 1.5.7",
  "cosmwasm-std 2.1.3",
  "crossbeam-epoch",

@@ -50,7 +50,8 @@ manager = { version = "0.23.0", package = "abstract-manager", path = "../../cont
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 # Predictable abstract addresses
-cw-blob = { git = "https://github.com/AbstractSDK/cw-packages.git", branch = "contract/cw-blob" } # TODO: replace with crates.io
+# cw-blob = { git = "https://github.com/AbstractSDK/cw-packages.git", branch = "contract/cw-blob" } # TODO: replace with crates.io
+cw-blob = { path = "../../../../cw-packages/contracts/cw-blob" }
 cosmrs = "0.19"
 
 [build-dependencies]
