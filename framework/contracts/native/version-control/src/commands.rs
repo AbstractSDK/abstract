@@ -737,6 +737,9 @@ mod tests {
             .with_contract_item(&first_acc_addr, OWNERSHIP, &owner)
             .with_contract_item(&second_acc_addr, OWNERSHIP, &owner)
             .with_contract_item(&third_acc_addr, OWNERSHIP, &owner)
+            .with_contract_item(&first_acc_addr, ACCOUNT_ID, &FIRST_TEST_ACCOUNT_ID)
+            .with_contract_item(&second_acc_addr, ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
+            .with_contract_item(&third_acc_addr, ACCOUNT_ID, &THIRD_TEST_ACCOUNT_ID)
     }
 
     /// Initialize the version_control with admin and updated account_factory
@@ -848,7 +851,7 @@ mod tests {
         // create third account
         execute_as(
             deps.as_mut(),
-            abstr.account.addr(),
+            third_account.addr(),
             ExecuteMsg::AddAccount {
                 namespace: None,
                 creator: abstr.owner.to_string(),
@@ -945,7 +948,7 @@ mod tests {
             mock_init_with_account(&mut deps, true)?;
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
             let res = execute_as(deps.as_mut(), &abstr.owner, msg);
@@ -962,7 +965,7 @@ mod tests {
             assert_that!(&res).is_ok();
 
             let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace1)?;
-            assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
+            assert_that!(account_id).is_equal_to(FIRST_TEST_ACCOUNT_ID);
             let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace2)?;
             assert_that!(account_id).is_equal_to(SECOND_TEST_ACCOUNT_ID);
             Ok(())
@@ -976,7 +979,7 @@ mod tests {
             mock_init_with_account(&mut deps, false)?;
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
             // OWNER is also admin of the contract so this succeeds
@@ -984,7 +987,7 @@ mod tests {
             assert_that!(&res).is_ok();
 
             let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace1)?;
-            assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
+            assert_that!(account_id).is_equal_to(FIRST_TEST_ACCOUNT_ID);
 
             create_second_account(&mut deps);
 
@@ -1028,22 +1031,12 @@ mod tests {
             )
             .unwrap();
 
-            let test_admin_proxy = deps.api.addr_make("test-account");
-            execute_as(
-                deps.as_mut(),
-                &abstr.account.addr(),
-                ExecuteMsg::AddAccount {
-                    creator: abstr.owner.to_string(),
-                    namespace: None,
-                },
-            )
-            .unwrap();
-
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
+
             // Fail, no fee at all
             let res = execute_as(deps.as_mut(), &abstr.owner, msg.clone());
             assert_that!(&res)
@@ -1093,7 +1086,7 @@ mod tests {
             mock_init_with_account(&mut deps, true)?;
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
 
@@ -1119,7 +1112,7 @@ mod tests {
 
             let new_namespace1 = Namespace::new("namespace1")?;
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1133,7 +1126,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(&VCError::NamespaceOccupied {
                     namespace: new_namespace1.to_string(),
-                    id: TEST_ACCOUNT_ID,
+                    id: FIRST_TEST_ACCOUNT_ID,
                 });
             Ok(())
         }
@@ -1287,7 +1280,7 @@ mod tests {
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1302,7 +1295,7 @@ mod tests {
             assert_that!(exists).is_equal_to(false);
 
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace2.to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1319,7 +1312,7 @@ mod tests {
                 res.unwrap().events[0].attributes[2],
                 attr(
                     "namespaces",
-                    format!("({}, {})", new_namespace2, TEST_ACCOUNT_ID,),
+                    format!("({}, {})", new_namespace2, FIRST_TEST_ACCOUNT_ID,),
                 )
             );
 
@@ -1336,7 +1329,7 @@ mod tests {
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1396,7 +1389,7 @@ mod tests {
             // add namespaces
             let new_namespace1 = Namespace::new("namespace1")?;
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1481,7 +1474,7 @@ mod tests {
                 deps.as_mut(),
                 &abstr.owner,
                 ExecuteMsg::ClaimNamespace {
-                    account_id: TEST_ACCOUNT_ID,
+                    account_id: FIRST_TEST_ACCOUNT_ID,
                     namespace: new_module.namespace.to_string(),
                 },
             )?;
@@ -1511,7 +1504,7 @@ mod tests {
                 deps.as_mut(),
                 &abstr.owner,
                 ExecuteMsg::ClaimNamespace {
-                    account_id: TEST_ACCOUNT_ID,
+                    account_id: FIRST_TEST_ACCOUNT_ID,
                     namespace: new_module.namespace.to_string(),
                 },
             )?;
@@ -1552,7 +1545,7 @@ mod tests {
                 deps.as_mut(),
                 &abstr.owner,
                 ExecuteMsg::ClaimNamespace {
-                    account_id: TEST_ACCOUNT_ID,
+                    account_id: FIRST_TEST_ACCOUNT_ID,
                     namespace: new_module.namespace.to_string(),
                 },
             )?;
@@ -1620,7 +1613,7 @@ mod tests {
                 deps.as_mut(),
                 &abstr.owner,
                 ExecuteMsg::ClaimNamespace {
-                    account_id: TEST_ACCOUNT_ID,
+                    account_id: FIRST_TEST_ACCOUNT_ID,
                     namespace: new_module.namespace.to_string(),
                 },
             )?;
@@ -1659,7 +1652,7 @@ mod tests {
                 deps.as_mut(),
                 &abstr.owner,
                 ExecuteMsg::ClaimNamespace {
-                    account_id: TEST_ACCOUNT_ID,
+                    account_id: FIRST_TEST_ACCOUNT_ID,
                     namespace: new_module.namespace.to_string(),
                 },
             )?;
@@ -1685,7 +1678,7 @@ mod tests {
                 deps.as_mut(),
                 &abstr.owner,
                 ExecuteMsg::ClaimNamespace {
-                    account_id: TEST_ACCOUNT_ID,
+                    account_id: FIRST_TEST_ACCOUNT_ID,
                     namespace: new_module.namespace.to_string(),
                 },
             )?;
@@ -1734,7 +1727,7 @@ mod tests {
                 deps.as_mut(),
                 &abstr.owner,
                 ExecuteMsg::ClaimNamespace {
-                    account_id: TEST_ACCOUNT_ID,
+                    account_id: FIRST_TEST_ACCOUNT_ID,
                     namespace: new_module.namespace.to_string(),
                 },
             )?;
@@ -1780,7 +1773,7 @@ mod tests {
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: rm_module.namespace.to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1822,7 +1815,7 @@ mod tests {
 
             // add namespaces as the account owner
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: rm_module.namespace.to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1860,7 +1853,7 @@ mod tests {
 
             // add namespaces as the owner
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: rm_module.namespace.to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1896,7 +1889,7 @@ mod tests {
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: FIRST_TEST_ACCOUNT_ID,
                 namespace: "namespace".to_string(),
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -2158,7 +2151,7 @@ mod tests {
 
     fn claim_test_namespace_as_owner(deps: DepsMut, owner: &Addr) -> VersionControlTestResult {
         let msg = ExecuteMsg::ClaimNamespace {
-            account_id: TEST_ACCOUNT_ID,
+            account_id: FIRST_TEST_ACCOUNT_ID,
             namespace: TEST_NAMESPACE.to_string(),
         };
         execute_as(deps, owner, msg)?;
@@ -2295,11 +2288,13 @@ mod tests {
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
-            let test_core: Account = abstr.account.clone();
             let msg = ExecuteMsg::AddAccount {
                 namespace: None,
                 creator: abstr.owner.to_string(),
             };
+
+            let first_acc_addr = deps.api.addr_make(FIRST_ACCOUNT);
+            let first_acc = Account::new(first_acc_addr.clone());
 
             // as non-account
             let res = execute_as(deps.as_mut(), &other, msg.clone());
@@ -2313,17 +2308,11 @@ mod tests {
                     .unwrap(),
                 });
 
-            // // as admin
-            // let res = execute_as(deps.as_mut(), &abstr.owner, msg.clone());
-            // assert_that!(&res)
-            //     .is_err()
-            //     .is_equal_to(&VCError::NotAccountFactory {});
-
             // as account
-            execute_as(deps.as_mut(), abstr.account.addr(), msg)?;
+            execute_as(deps.as_mut(), &first_acc_addr, msg)?;
 
-            let account = ACCOUNT_ADDRESSES.load(&deps.storage, &TEST_ACCOUNT_ID)?;
-            assert_that!(&account).is_equal_to(&test_core);
+            let account = ACCOUNT_ADDRESSES.load(&deps.storage, &FIRST_TEST_ACCOUNT_ID)?;
+            assert_that!(&account).is_equal_to(&first_acc);
             Ok(())
         }
     }

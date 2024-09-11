@@ -4,6 +4,7 @@ pub mod mock_ans;
 pub(crate) mod mock_querier;
 
 use abstract_std::account::{ConfigResponse as AccountConfigResponse, QueryMsg as AccountQueryMsg};
+use abstract_std::objects::ABSTRACT_ACCOUNT_ID;
 use abstract_std::{
     manager::state::ACCOUNT_MODULES,
     objects::{
@@ -57,7 +58,7 @@ pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
         .with_contract_map_entry(
             &abstr.version_control,
             ACCOUNT_ADDRESSES,
-            (&TEST_ACCOUNT_ID, abstr.account.clone()),
+            (&ABSTRACT_ACCOUNT_ID, abstr.account.clone()),
         )
         .with_contract_map_entry(
             &abstr.version_control,
@@ -67,7 +68,7 @@ pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
                 ModuleReference::Account(1),
             ),
         )
-        .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
+        .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &ABSTRACT_ACCOUNT_ID)
         .with_contract_version(abstr.account.addr(), ACCOUNT, TEST_VERSION)
         .with_smart_handler(&abstr.module_address, |msg| {
             let Empty {} = from_json(msg).unwrap();
