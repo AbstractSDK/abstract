@@ -382,6 +382,7 @@ dependencies = [
 name = "abstract-interface"
 version = "0.23.1"
 dependencies = [
+ "abstract-account",
  "abstract-account-factory",
  "abstract-ans-host",
  "abstract-cw-orch-polytone",

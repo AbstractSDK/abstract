@@ -1,6 +1,6 @@
 pub use abstract_std::account::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_std::{
-    account::*,
+    account::{self, *},
     adapter::{self, AdapterBaseMsg},
     ibc_host::{HelperAction, HostAction},
     manager::ManagerModuleInfo,
@@ -29,17 +29,16 @@ impl<Chain: CwEnv> Uploadable for Account<Chain> {
     fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
-                ::manager::contract::execute,
-                ::manager::contract::instantiate,
-                ::manager::contract::query,
+                ::account::contract::execute,
+                ::account::contract::instantiate,
+                ::account::contract::query,
             )
-            .with_migrate(::manager::contract::migrate)
-            .with_reply(::manager::contract::reply),
+            .with_migrate(::account::migrate::migrate)
         )
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("manager")
+            .find_wasm_path("account")
             .unwrap()
     }
 }
