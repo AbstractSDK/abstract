@@ -75,11 +75,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         } => claim_namespace(deps, info, account_id, namespace),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
-            account_id,
-            account,
             namespace,
             creator,
-        } => add_account(deps, info, account_id, account, namespace, creator),
+        } => add_account(deps, info, namespace, creator),
         ExecuteMsg::UpdateConfig {
             security_disabled,
             namespace_registration_fee,

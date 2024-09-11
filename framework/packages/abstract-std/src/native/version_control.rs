@@ -167,8 +167,6 @@ pub enum ExecuteMsg {
     /// Claims namespace if provided.  
     /// Only new accounts can call this.
     AddAccount {
-        account_id: AccountId,
-        account: Account<String>,
         namespace: Option<String>,
         creator: String,
     },

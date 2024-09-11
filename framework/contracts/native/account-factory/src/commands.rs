@@ -183,7 +183,6 @@ pub fn execute_create_account(
         &deps.api.addr_canonicalize(env.contract.address.as_str())?,
         salt.as_slice(),
     )?;
-    let proxy_addr_human = deps.api.addr_humanize(&proxy_addr)?;
     let manager_addr = instantiate2_address(
         manager_checksum.as_slice(),
         &deps.api.addr_canonicalize(env.contract.address.as_str())?,
@@ -212,8 +211,6 @@ pub fn execute_create_account(
         contract_addr: config.version_control_contract.to_string(),
         funds: funds_for_namespace_fee,
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
-            account_id: proxy_message.account_id.clone(),
-            account: context.account_base.into(),
             namespace: namespace.clone(),
             creator: info.sender.to_string(),
         })?,

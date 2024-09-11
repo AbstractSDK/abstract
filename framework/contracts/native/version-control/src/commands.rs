@@ -11,17 +11,14 @@ use abstract_sdk::{
     },
 };
 use abstract_std::{
-    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
-    objects::{
+    account_factory::state::LOCAL_ACCOUNT_SEQUENCE, objects::{
         account::AccountTrace,
         fee::FixedFee,
         module::{self, Module},
         ownership,
         validation::validate_link,
         ABSTRACT_ACCOUNT_ID,
-    },
-    version_control::{ModuleDefaultConfiguration, UpdateModule},
-    IBC_HOST,
+    }, proxy::state::ACCOUNT_ID, version_control::{ModuleDefaultConfiguration, UpdateModule}, ACCOUNT, IBC_HOST
 };
 use cosmwasm_std::{
     ensure, ensure_eq, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
@@ -38,24 +35,33 @@ use crate::{
 pub fn add_account(
     deps: DepsMut,
     msg_info: MessageInfo,
-    account_id: AccountId,
-    account: Account<String>,
     namespace: Option<String>,
     creator: String,
 ) -> VCResult {
     let config = CONFIG.load(deps.storage)?;
-    let account = account.verify(deps.api)?;
 
     // Check that sender is account
     let contract_info = cw2::query_contract_info(&deps.querier, &msg_info.sender)?;
-    let acc_module_info = ModuleInfo::try_from(contract_info)?;
+    let maybe_acc_module_info = ModuleInfo::try_from(contract_info)?;
+
+    ensure!(
+        maybe_acc_module_info.id() == ACCOUNT,
+        VCError::NotAccountInfo { caller_info: maybe_acc_module_info }
+    );
+
+    // Ensure account isn't already registered
+    let account_id = ACCOUNT_ID.query(&deps.querier, msg_info.sender.clone())?;
+    ensure!(
+        !ACCOUNT_ADDRESSES.has(deps.storage, &account_id),
+        VCError::AccountAlreadyExists(account_id)
+    );
+
+
+    let acc_module_info = maybe_acc_module_info;
 
     let account_code_id = REGISTERED_MODULES
         .load(deps.storage, &acc_module_info)?
         .unwrap_account()?;
-
-    // verify code-id of sender
-    let sender_contract_info = deps.querier.query_wasm_contract_info(&msg_info.sender)?;
 
     // provided and smaller, assert is eq to sequence
     // provided and larger, just register
@@ -96,21 +102,21 @@ pub fn add_account(
         account_id.trace().verify_remote()?;
     }
 
+    // verify code-id of sender
+    let sender_contract_info = deps.querier.query_wasm_contract_info(&msg_info.sender)?;
+
     ensure_eq!(
         account_code_id,
         sender_contract_info.code_id,
-        VCError::NotAccount {
+        VCError::NotAccountCodeId {
             account_info: acc_module_info,
             expected_code_id: account_code_id,
             actual_code_id: sender_contract_info.code_id
         }
     );
 
-    // Check if account already exists
-    ensure!(
-        !ACCOUNT_ADDRESSES.has(deps.storage, &account_id),
-        VCError::AccountAlreadyExists(account_id)
-    );
+    // Now we're sure that the account is valid.
+    let account = Account::new(msg_info.sender.clone());
 
     ACCOUNT_ADDRESSES.save(deps.storage, &account_id, &account)?;
 
@@ -699,11 +705,16 @@ mod tests {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let first_acc_addr = deps.api.addr_make(FIRST_ACCOUNT);
-        let second_acc_addr = deps.api.addr_make(SECOND_ACCOUNT);
-        let third_acc_addr = deps.api.addr_make(THIRD_ACCOUNT);
+        let querier = vc_mock_querier_builder(deps.api.clone())
+            .build();
 
-        const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+        deps.querier = querier;
+
+        deps
+    }
+
+    fn vc_mock_querier_builder(api: MockApi) -> MockQuerierBuilder {
+        let abstr = AbstractMockAddrs::new(api);
 
         let owner = Ownership {
             owner: GovernanceDetails::Monarchy {
@@ -713,17 +724,19 @@ mod tests {
             pending_expiry: None,
         };
 
-        let querier = mock_querier_builder(deps.api)
+        let first_acc_addr = api.addr_make(FIRST_ACCOUNT);
+        let second_acc_addr = api.addr_make(SECOND_ACCOUNT);
+        let third_acc_addr = api.addr_make(THIRD_ACCOUNT);
+
+        const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+
+        mock_querier_builder(api)
             .with_contract_version(&first_acc_addr, ACCOUNT, TEST_VERSION)
             .with_contract_version(&second_acc_addr, ACCOUNT, TEST_VERSION)
             .with_contract_version(&third_acc_addr, ACCOUNT, TEST_VERSION)
             .with_contract_item(&first_acc_addr, OWNERSHIP, &owner)
             .with_contract_item(&second_acc_addr, OWNERSHIP, &owner)
             .with_contract_item(&third_acc_addr, OWNERSHIP, &owner)
-            .build();
-        deps.querier = querier;
-
-        deps
     }
 
     /// Initialize the version_control with admin and updated account_factory
@@ -753,8 +766,6 @@ mod tests {
             deps.as_mut(),
             &abstr.account.addr().clone(),
             ExecuteMsg::AddAccount {
-                account_id: ABSTRACT_ACCOUNT_ID,
-                account: abstr.account.into(),
                 namespace: None,
                 creator: abstr.owner.to_string(),
             },
@@ -792,8 +803,6 @@ mod tests {
             deps.as_mut(),
             &abstr.account.addr().clone(),
             ExecuteMsg::AddAccount {
-                account_id: ABSTRACT_ACCOUNT_ID,
-                account: abstr.account.into(),
                 namespace: None,
                 creator: abstr.owner.to_string(),
             },
@@ -805,8 +814,6 @@ mod tests {
             deps.as_mut(),
             first_account.addr(),
             ExecuteMsg::AddAccount {
-                account_id: FIRST_TEST_ACCOUNT_ID,
-                account: first_account.clone().into(),
                 namespace: None,
                 creator: abstr.owner.to_string(),
             },
@@ -825,8 +832,6 @@ mod tests {
             deps.as_mut(),
             second_account.addr(),
             ExecuteMsg::AddAccount {
-                account_id: SECOND_TEST_ACCOUNT_ID,
-                account: second_account.clone().into(),
                 namespace: None,
                 creator: abstr.owner.to_string(),
             },
@@ -845,8 +850,6 @@ mod tests {
             deps.as_mut(),
             abstr.account.addr(),
             ExecuteMsg::AddAccount {
-                account_id: THIRD_ACC_ID,
-                account: third_account.clone().into(),
                 namespace: None,
                 creator: abstr.owner.to_string(),
             },
@@ -1030,8 +1033,6 @@ mod tests {
                 deps.as_mut(),
                 &abstr.account.addr(),
                 ExecuteMsg::AddAccount {
-                    account_id: AccountId::local(2),
-                    account: Account::new(test_admin_proxy.clone()).into(),
                     creator: abstr.owner.to_string(),
                     namespace: None,
                 },
@@ -1589,11 +1590,12 @@ mod tests {
         #[test]
         fn try_add_module_to_approval_with_admin() -> VersionControlTestResult {
             let mut deps = vc_mock_deps();
-            let contract_addr = deps.api.addr_make("contract");
+            let contract_addr = dbg!(deps.api.addr_make("contract"));
             // create mock with ContractInfo response for contract with admin set
-            deps.querier = mock_querier_builder(deps.api)
+            deps.querier = vc_mock_querier_builder(deps.api)
                 .with_contract_admin(&contract_addr, &deps.api.addr_make("admin"))
                 .build();
+
             let abstr = AbstractMockAddrs::new(deps.api);
 
             mock_init_with_account(&mut deps, false)?;
@@ -2284,30 +2286,31 @@ mod tests {
         #[test]
         fn add_account() -> VersionControlTestResult {
             let mut deps = vc_mock_deps();
+
+            let other = deps.api.addr_make(TEST_OTHER);
+            deps.querier = vc_mock_querier_builder(deps.api.clone())
+                .with_contract_version(&other, "some:contract", "0.0.0")
+                .build();
+
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let test_core: Account = abstr.account.clone();
             let msg = ExecuteMsg::AddAccount {
-                account_id: ABSTRACT_ACCOUNT_ID,
-                account: test_core.clone().into(),
                 namespace: None,
                 creator: abstr.owner.to_string(),
             };
 
             // as non-account
-            let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(deps.as_mut(), &other, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::NotAccount {
-                    account_info: ModuleInfo::from_id(
-                        ACCOUNT,
+                .is_equal_to(&VCError::NotAccountInfo {
+                    caller_info: ModuleInfo::from_id(
+                        "some:contract",
                         ModuleVersion::Version(String::from("0.0.0")),
                     )
                     .unwrap(),
-                    expected_code_id: 0,
-                    actual_code_id: 0,
                 });
 
             // // as admin
@@ -2319,7 +2322,7 @@ mod tests {
             // as account
             execute_as(deps.as_mut(), abstr.account.addr(), msg)?;
 
-            let account = ACCOUNT_ADDRESSES.load(&deps.storage, &ABSTRACT_ACCOUNT_ID)?;
+            let account = ACCOUNT_ADDRESSES.load(&deps.storage, &TEST_ACCOUNT_ID)?;
             assert_that!(&account).is_equal_to(&test_core);
             Ok(())
         }
@@ -2369,9 +2372,6 @@ mod tests {
         fn returns_account_owner() -> VersionControlTestResult {
             let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&abstr.account, ABSTRACT_ACCOUNT_ID)
-                .build();
             mock_init_with_account(&mut deps, true)?;
 
             let account_owner = query_account_owner(
@@ -2388,7 +2388,7 @@ mod tests {
         fn no_owner_returns_err() -> VersionControlTestResult {
             let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
-            deps.querier = MockQuerierBuilder::default()
+            deps.querier = vc_mock_querier_builder(deps.api.clone())
                 .with_contract_item(
                     &abstr.account.addr().clone(),
                     cw_storage_plus::Item::<ownership::Ownership<Addr>>::new(OWNERSHIP_STORAGE_KEY),
@@ -2399,6 +2399,7 @@ mod tests {
                     },
                 )
                 .build();
+
             mock_init_with_account(&mut deps, true)?;
 
             let account_id = ABSTRACT_ACCOUNT_ID;

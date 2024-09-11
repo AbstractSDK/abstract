@@ -1,7 +1,7 @@
 use abstract_sdk::AbstractSdkError;
 use abstract_std::{
     objects::{module::ModuleInfo, namespace::Namespace, validation::ValidationError, AccountId},
-    AbstractError,
+    AbstractError, ACCOUNT,
 };
 use cosmwasm_std::{Addr, Coin, StdError};
 use thiserror::Error;
@@ -32,10 +32,19 @@ pub enum VCError {
         actual_code_id,
         expected_code_id
     )]
-    NotAccount {
+    NotAccountCodeId {
         account_info: ModuleInfo,
         expected_code_id: u64,
         actual_code_id: u64,
+    },
+
+    #[error(
+        "Caller has info {} but should be {}",
+        caller_info,
+        ACCOUNT,
+    )]
+    NotAccountInfo {
+        caller_info: ModuleInfo,
     },
 
     #[error("Module {0} does not have a stored module reference")]
