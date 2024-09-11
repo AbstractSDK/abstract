@@ -43,7 +43,6 @@ pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             // Default value
             Ok(Binary::default())
         } else {
-            panic! {"{:?}", abstr};
             Err(format!(
                 "attempt to query {} with key {}",
                 contract, str_key
@@ -62,14 +61,6 @@ pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
         )
         .with_contract_map_entry(
             &abstr.version_control,
-            REGISTERED_MODULES,
-            (
-                &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
-                ModuleReference::Account(1),
-            ),
-        )
-        .with_contract_map_entry(
-            &Addr::unchecked(MOCK_CONTRACT_ADDR),
             REGISTERED_MODULES,
             (
                 &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),

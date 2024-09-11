@@ -664,18 +664,21 @@ pub fn validate_account_owner(
 #[cfg(test)]
 mod tests {
     #![allow(clippy::needless_borrows_for_generic_args)]
+    use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
     use abstract_std::{
         account::{ConfigResponse as AccountConfigResponse, QueryMsg as AccountQueryMsg},
         objects::account::AccountTrace,
         version_control::*, ACCOUNT,
     };
-    use abstract_testing::{prelude::*, MockQuerierOwnership};
+    use abstract_testing::{mock_querier_builder, prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_env, MockApi},
         to_json_binary, Addr, Coin, OwnedDeps,
     };
     use cw_ownable::OwnershipError;
+    use cw_storage_plus::Item;
+    use ownership::{GovernanceDetails, Ownership};
     use speculoos::prelude::*;
 
     use super::*;
@@ -684,7 +687,44 @@ mod tests {
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
+    const FIRST_ACCOUNT: &str = "first-account";
+    const SECOND_ACCOUNT: &str = "second-account";
+    const THIRD_ACCOUNT: &str = "third-account";
+
+    pub const FIRST_TEST_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
     pub const SECOND_TEST_ACCOUNT_ID: AccountId = AccountId::const_new(2, AccountTrace::Local);
+    pub const THIRD_TEST_ACCOUNT_ID: AccountId = AccountId::const_new(3, AccountTrace::Local);
+
+    fn vc_mock_deps() -> MockDeps {
+        let mut deps = mock_dependencies();
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        let first_acc_addr = deps.api.addr_make(FIRST_ACCOUNT);
+        let second_acc_addr = deps.api.addr_make(SECOND_ACCOUNT);
+        let third_acc_addr = deps.api.addr_make(THIRD_ACCOUNT);
+
+        const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+
+        let owner = Ownership {
+            owner: GovernanceDetails::Monarchy {
+                monarch: abstr.owner.clone(),
+            },
+            pending_owner: None,
+            pending_expiry: None,
+        };
+
+        let querier = mock_querier_builder(deps.api)
+            .with_contract_version(&first_acc_addr, ACCOUNT, TEST_VERSION)
+            .with_contract_version(&second_acc_addr, ACCOUNT, TEST_VERSION)
+            .with_contract_version(&third_acc_addr, ACCOUNT, TEST_VERSION)
+            .with_contract_item(&first_acc_addr, OWNERSHIP, &owner)
+            .with_contract_item(&second_acc_addr, OWNERSHIP, &owner)
+            .with_contract_item(&third_acc_addr, OWNERSHIP, &owner)
+            .build();
+        deps.querier = querier;
+
+        deps
+    }
 
     /// Initialize the version_control with admin and updated account_factory
     fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> VCResult {
@@ -703,6 +743,23 @@ mod tests {
             },
         )?;
 
+        REGISTERED_MODULES.save(
+                &mut deps.storage,
+                &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
+                &ModuleReference::Account(1))?;
+
+        // register abstract account
+        execute_as(
+            deps.as_mut(),
+            &abstr.account.addr().clone(),
+            ExecuteMsg::AddAccount {
+                account_id: ABSTRACT_ACCOUNT_ID,
+                account: abstr.account.into(),
+                namespace: None,
+                creator: abstr.owner.to_string(),
+            },
+        )?;
+
         Ok(resp)       
     }
 
@@ -715,7 +772,7 @@ mod tests {
         let admin_info = message_info(&abstr.owner, &[]);
         let admin = admin_info.sender.to_string();
 
-        contract::instantiate(
+        let resp = contract::instantiate(
             deps.as_mut(),
             mock_env(),
             admin_info,
@@ -726,22 +783,42 @@ mod tests {
             },
         )?;
 
+        REGISTERED_MODULES.save(
+            &mut deps.storage,
+            &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
+            &ModuleReference::Account(1));
+
         execute_as(
             deps.as_mut(),
             &abstr.account.addr().clone(),
             ExecuteMsg::AddAccount {
-                account_id: TEST_ACCOUNT_ID,
+                account_id: ABSTRACT_ACCOUNT_ID,
                 account: abstr.account.into(),
                 namespace: None,
                 creator: abstr.owner.to_string(),
             },
-        )
+        )?;
+
+        let first_account = Account::new(deps.api.addr_make(FIRST_ACCOUNT));
+
+        execute_as(
+            deps.as_mut(),
+            first_account.addr(),
+            ExecuteMsg::AddAccount {
+                account_id: FIRST_TEST_ACCOUNT_ID,
+                account: first_account.clone().into(),
+                namespace: None,
+                creator: abstr.owner.to_string(),
+            },
+        )?;
+
+        Ok(resp)
     }
 
     fn create_second_account(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) {
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let second_account = Account::new(deps.api.addr_make("second-account"));
+        let second_account = Account::new(deps.api.addr_make(SECOND_ACCOUNT));
 
         // create second account
         execute_as(
@@ -762,7 +839,7 @@ mod tests {
     fn create_third_account(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> Account {
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let third_account = Account::new(deps.api.addr_make("third-account"));
+        let third_account = Account::new(deps.api.addr_make(THIRD_ACCOUNT));
         // create third account
         execute_as(
             deps.as_mut(),
@@ -811,7 +888,7 @@ mod tests {
 
         #[test]
         fn only_admin_admin() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
                 new_owner: deps.api.addr_make("new_admin").to_string(),
@@ -823,7 +900,7 @@ mod tests {
 
         #[test]
         fn updates_admin() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -859,7 +936,7 @@ mod tests {
 
         #[test]
         fn claim_namespaces_by_owner() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -890,7 +967,7 @@ mod tests {
 
         #[test]
         fn fail_claim_permissioned_namespaces() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, false)?;
@@ -905,6 +982,8 @@ mod tests {
 
             let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace1)?;
             assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
+
+            create_second_account(&mut deps);
 
             let account = create_third_account(&mut deps);
 
@@ -925,7 +1004,7 @@ mod tests {
 
         #[test]
         fn claim_namespaces_with_fee() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -951,7 +1030,7 @@ mod tests {
                 deps.as_mut(),
                 &abstr.account.addr(),
                 ExecuteMsg::AddAccount {
-                    account_id: ABSTRACT_ACCOUNT_ID,
+                    account_id: AccountId::local(2),
                     account: Account::new(test_admin_proxy.clone()).into(),
                     creator: abstr.owner.to_string(),
                     namespace: None,
@@ -998,7 +1077,7 @@ mod tests {
                 .is_ok()
                 .map(|res| &res.messages)
                 .is_equal_to(vec![SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
-                    to_address: test_admin_proxy.to_string(),
+                    to_address: abstr.account.addr().to_string(),
                     amount: sent_coins,
                 }))]);
 
@@ -1007,7 +1086,7 @@ mod tests {
 
         #[test]
         fn claim_namespaces_not_owner() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1030,7 +1109,7 @@ mod tests {
 
         #[test]
         fn claim_existing_namespaces() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1060,38 +1139,10 @@ mod tests {
 
         #[test]
         fn cannot_claim_abstract() -> VCResult<()> {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
             let account_1 = deps.api.addr_make("account2");
 
-            deps.querier = mock_querier_builder(deps.api)
-                // add manager 2
-                .with_smart_handler(&account_1, move |msg| {
-                    let abstr = AbstractMockAddrs::new(deps.api);
-                    match from_json(msg).unwrap() {
-                        AccountQueryMsg::Config {} => {
-                            let resp = AccountConfigResponse {
-                                version_control_address: abstr.version_control.clone(),
-                                module_factory_address: abstr.module_factory.clone(),
-                                account_id: TEST_ACCOUNT_ID,
-                                is_suspended: false,
-                                modules: vec![],
-                            };
-                            Ok(to_json_binary(&resp).unwrap())
-                        }
-                        AccountQueryMsg::Ownership {} => {
-                            let resp = cw_ownable::Ownership {
-                                owner: Some(abstr.owner.clone()),
-                                pending_expiry: None,
-                                pending_owner: None,
-                            };
-                            Ok(to_json_binary(&resp).unwrap())
-                        }
-                        _ => panic!("unexpected message"),
-                    }
-                })
-                .with_owner(&account_1, Some(&abstr.owner))
-                .build();
             mock_init_with_account(&mut deps, true)?;
 
             // Add account 1
@@ -1118,7 +1169,7 @@ mod tests {
 
         #[test]
         fn only_admin() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateConfig {
@@ -1137,7 +1188,7 @@ mod tests {
 
         #[test]
         fn direct_registration() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -1163,7 +1214,7 @@ mod tests {
 
         #[test]
         fn only_admin() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateConfig {
@@ -1185,7 +1236,7 @@ mod tests {
 
         #[test]
         fn updates_fee() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -1226,7 +1277,7 @@ mod tests {
 
         #[test]
         fn remove_namespaces_by_admin_or_owner() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1276,7 +1327,7 @@ mod tests {
 
         #[test]
         fn remove_namespaces_as_other() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1306,7 +1357,7 @@ mod tests {
 
         #[test]
         fn remove_not_existing_namespaces() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1336,7 +1387,7 @@ mod tests {
 
         #[test]
         fn yank_orphaned_modules() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1388,7 +1439,7 @@ mod tests {
 
         #[test]
         fn add_module_by_admin() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1406,7 +1457,7 @@ mod tests {
 
         #[test]
         fn add_module_by_account_owner() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1444,7 +1495,7 @@ mod tests {
 
         #[test]
         fn update_existing_module() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1485,7 +1536,7 @@ mod tests {
 
         #[test]
         fn update_existing_module_fails() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, false)?;
@@ -1537,7 +1588,7 @@ mod tests {
 
         #[test]
         fn try_add_module_to_approval_with_admin() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             let contract_addr = deps.api.addr_make("contract");
             // create mock with ContractInfo response for contract with admin set
             deps.querier = mock_querier_builder(deps.api)
@@ -1583,7 +1634,7 @@ mod tests {
 
         #[test]
         fn add_module_to_approval() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, false)?;
@@ -1621,7 +1672,7 @@ mod tests {
 
         #[test]
         fn approve_modules() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, false)?;
@@ -1670,7 +1721,7 @@ mod tests {
 
         #[test]
         fn reject_modules() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, false)?;
@@ -1719,7 +1770,7 @@ mod tests {
 
         #[test]
         fn remove_module() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1761,7 +1812,7 @@ mod tests {
 
         #[test]
         fn yank_module_only_account_owner() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1799,7 +1850,7 @@ mod tests {
 
         #[test]
         fn yank_module() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1836,7 +1887,7 @@ mod tests {
 
         #[test]
         fn bad_version() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -1876,7 +1927,7 @@ mod tests {
 
         #[test]
         fn abstract_namespace() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             let abstract_contract_id = format!("{}:{}", ABSTRACT_NAMESPACE, "test-module");
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1903,7 +1954,7 @@ mod tests {
 
         #[test]
         fn validates_module_info() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             mock_init_with_account(&mut deps, true)?;
             let bad_modules = vec![
@@ -1950,7 +2001,7 @@ mod tests {
 
         #[test]
         fn add_module_monetization() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -2000,7 +2051,7 @@ mod tests {
 
         #[test]
         fn add_module_init_funds() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -2054,7 +2105,7 @@ mod tests {
 
         #[test]
         fn add_module_metadata() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -2117,7 +2168,7 @@ mod tests {
 
         #[test]
         fn test_only_admin() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -2147,7 +2198,7 @@ mod tests {
 
         #[test]
         fn remove_from_library() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -2175,7 +2226,7 @@ mod tests {
 
         #[test]
         fn leaves_pending() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -2199,7 +2250,7 @@ mod tests {
 
         #[test]
         fn remove_from_yanked() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -2232,7 +2283,7 @@ mod tests {
 
         #[test]
         fn add_account() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -2279,7 +2330,7 @@ mod tests {
 
         #[test]
         fn update_admin() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -2316,7 +2367,7 @@ mod tests {
 
         #[test]
         fn returns_account_owner() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
             deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 .account(&abstr.account, ABSTRACT_ACCOUNT_ID)
@@ -2335,7 +2386,7 @@ mod tests {
 
         #[test]
         fn no_owner_returns_err() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
+            let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(
