@@ -9,12 +9,8 @@ use abstract_interface::{
 };
 use abstract_std::{
     account::{
-        self,
-        
-            AccountModuleInfo, InfoResponse, ModuleAddressesResponse, ModuleInfosResponse,
-        
-        state::AccountInfo,
-        ModuleInstallConfig,
+        self, state::AccountInfo, AccountModuleInfo, InfoResponse, ModuleAddressesResponse,
+        ModuleInfosResponse, ModuleInstallConfig,
     },
     ibc_client::{self, QueryMsgFns as _},
     ibc_host,
