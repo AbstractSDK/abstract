@@ -5,7 +5,7 @@ use abstract_std::{
     version_control, ACCOUNT,
 };
 use abstract_std::{
-    ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
+    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
 };
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
@@ -121,21 +121,12 @@ impl<T: CwEnv> Abstract<T> {
             ])?
             .modules;
 
-        if ::manager::contract::CONTRACT_VERSION != versions[0].module.info.version.to_string()
+        if ::account::contract::CONTRACT_VERSION != versions[0].module.info.version.to_string()
             && self.account.account.upload_if_needed()?.is_some()
         {
             accounts_to_register.push((
                 self.account.account.as_instance(),
-                ::manager::contract::CONTRACT_VERSION.to_string(),
-            ));
-        }
-
-        if ::proxy::contract::CONTRACT_VERSION != versions[1].module.info.version.to_string()
-            && self.account.proxy.upload_if_needed()?.is_some()
-        {
-            accounts_to_register.push((
-                self.account.proxy.as_instance(),
-                ::proxy::contract::CONTRACT_VERSION.to_string(),
+                ::account::contract::CONTRACT_VERSION.to_string(),
             ));
         }
 

@@ -1,17 +1,14 @@
 use std::collections::BTreeMap;
 
-use abstract_sdk::{
-    feature_objects::VersionControlContract,
-    std::manager::{
-        state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO},
-        ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
-        ModuleInfosResponse, ModuleVersionsResponse,
-    },
-};
+use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
-    manager::{
+    account::{
+        responses::{
+            AccountModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
+            ModuleInfosResponse, ModuleVersionsResponse, SubAccountIdsResponse,
+        },
+        state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO},
         state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS},
-        SubAccountIdsResponse,
     },
     objects::{
         gov_type::TopLevelOwnerResponse,
@@ -26,14 +23,14 @@ use cw_storage_plus::Bound;
 const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 10;
 
-pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
-    let contracts = query_module_addresses(deps, &env.contract.address, ids)?;
+pub fn handle_module_address_query(deps: Deps, ids: Vec<String>) -> StdResult<Binary> {
+    let contracts = query_module_addresses(deps, ids)?;
     let vector = contracts.into_iter().collect();
     to_json_binary(&ModuleAddressesResponse { modules: vector })
 }
 
-pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
-    let response = query_module_versions(deps, &env.contract.address, ids)?;
+pub fn handle_module_versions_query(deps: Deps, ids: Vec<String>) -> StdResult<Binary> {
+    let response = query_module_versions(deps, ids)?;
     let versions = response.into_values().collect();
     to_json_binary(&ModuleVersionsResponse { versions })
 }
@@ -56,6 +53,9 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
         is_suspended,
         version_control_address,
         module_factory_address,
+        modules: ACCOUNT_MODULES
+            .keys(deps.storage, None, None, Order::Ascending)
+            .collect::<Result<_, _>>()?,
     })
 }
 
@@ -77,10 +77,10 @@ pub fn handle_module_info_query(
     let config = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract::new(config.version_control_address);
 
-    let mut resp_vec: Vec<ManagerModuleInfo> = vec![];
+    let mut resp_vec: Vec<AccountModuleInfo> = vec![];
     for (id, address) in ids_and_addr.into_iter() {
         let version = query_module_version(deps, address.clone(), &version_control)?;
-        resp_vec.push(ManagerModuleInfo {
+        resp_vec.push(AccountModuleInfo {
             id,
             version,
             address,
@@ -159,11 +159,9 @@ pub fn query_module_version(
 /// Errors if not present
 pub fn query_module_versions(
     deps: Deps,
-    manager_addr: &Addr,
     module_names: Vec<String>,
 ) -> StdResult<BTreeMap<String, ContractVersion>> {
-    let addresses: BTreeMap<String, Addr> =
-        query_module_addresses(deps, manager_addr, module_names)?;
+    let addresses: BTreeMap<String, Addr> = query_module_addresses(deps, module_names)?;
     let mut module_versions: BTreeMap<String, ContractVersion> = BTreeMap::new();
 
     let config = CONFIG.load(deps.storage)?;
@@ -179,7 +177,6 @@ pub fn query_module_versions(
 /// Errors if not present
 pub fn query_module_addresses(
     deps: Deps,
-    manager_addr: &Addr,
     module_names: Vec<String>,
 ) -> StdResult<BTreeMap<String, Addr>> {
     let mut modules: BTreeMap<String, Addr> = BTreeMap::new();
@@ -187,11 +184,77 @@ pub fn query_module_addresses(
     // Query over
     for module in module_names {
         // Add to map if present, skip otherwise. Allows version control to check what modules are present.
-        if let Some(address) =
-            ACCOUNT_MODULES.query(&deps.querier, manager_addr.clone(), &module)?
-        {
+        if let Some(address) = ACCOUNT_MODULES.may_load(deps.storage, &module)? {
             modules.insert(module, address);
         }
     }
     Ok(modules)
+}
+
+#[cfg(test)]
+mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
+    use super::*;
+
+    use crate::contract::{execute, instantiate, query, ProxyResult};
+    use abstract_std::proxy::{ExecuteMsg, InstantiateMsg};
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{
+        testing::{message_info, mock_dependencies, mock_env, MockApi},
+        OwnedDeps,
+    };
+
+    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
+
+    fn mock_init(deps: &mut MockDeps) {
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.owner, &[]);
+        let msg = InstantiateMsg {
+            account_id: TEST_ACCOUNT_ID,
+            ans_host_address: abstr.ans_host.to_string(),
+            manager_addr: abstr.account.manager.to_string(),
+        };
+        let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+    }
+
+    pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.account.manager, &[]);
+        execute(deps.as_mut(), mock_env(), info, msg)
+    }
+
+    #[test]
+    fn query_config() {
+        let mut deps = mock_dependencies();
+        deps.querier = MockAnsHost::new(deps.api).with_defaults().to_querier();
+        mock_init(&mut deps);
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::AddModules {
+                modules: vec![abstr.module_address.to_string()],
+            },
+        )
+        .unwrap();
+
+        let config: ConfigResponse = from_json(
+            query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_std::proxy::QueryMsg::Config {},
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            config,
+            ConfigResponse {
+                modules: vec![
+                    abstr.account.manager.to_string(),
+                    abstr.module_address.to_string()
+                ],
+            }
+        );
+    }
 }

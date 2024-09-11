@@ -1,9 +1,9 @@
 pub use abstract_std::account::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_std::{
+    account::responses::AccountModuleInfo,
     account::*,
     adapter::{self, AdapterBaseMsg},
     ibc_host::{HelperAction, HostAction},
-    manager::ManagerModuleInfo,
     module_factory::SimulateInstallModulesResponse,
     objects::{
         module::{ModuleInfo, ModuleVersion},
@@ -29,12 +29,12 @@ impl<Chain: CwEnv> Uploadable for Account<Chain> {
     fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
-                ::manager::contract::execute,
-                ::manager::contract::instantiate,
-                ::manager::contract::query,
+                ::account::contract::execute,
+                ::account::contract::instantiate,
+                ::account::contract::query,
             )
-            .with_migrate(::manager::contract::migrate)
-            .with_reply(::manager::contract::reply),
+            .with_migrate(::account::contract::migrate)
+            .with_reply(::account::contract::reply),
         )
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
@@ -155,7 +155,7 @@ impl<Chain: CwEnv> Account<Chain> {
             module_id,
             adapter::ExecuteMsg::<Empty>::Base(adapter::BaseExecuteMsg {
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
-                proxy_address: None,
+                account_adress: None,
             }),
         )?;
 
@@ -166,7 +166,7 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn module_info(
         &self,
         module_id: &str,
-    ) -> Result<Option<ManagerModuleInfo>, crate::AbstractInterfaceError> {
+    ) -> Result<Option<AccountModuleInfo>, crate::AbstractInterfaceError> {
         let module_infos = self.module_infos(None, None)?.module_infos;
         let found = module_infos
             .into_iter()
@@ -200,7 +200,7 @@ impl<Chain: CwEnv> Account<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let result = self.exec_on_module(
-            to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
+            to_json_binary(&abstract_std::account::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     namespace: None,
@@ -236,7 +236,7 @@ impl<Chain: CwEnv> Account<Chain> {
         msg: ExecuteMsg,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
+        let msg = abstract_std::account::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
@@ -255,7 +255,7 @@ impl<Chain: CwEnv> Account<Chain> {
         msg: Binary,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
+        let msg = abstract_std::account::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
@@ -275,7 +275,7 @@ impl<Chain: CwEnv> Account<Chain> {
         host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
+        let msg = abstract_std::account::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Helpers(HelperAction::SendAllBack),

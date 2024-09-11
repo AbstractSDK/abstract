@@ -207,9 +207,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                     )
                     .map_err(Into::into)?;
 
-                let manager_config: abstract_std::manager::ConfigResponse = chain
+                let manager_config: abstract_std::account::responses::ConfigResponse = chain
                     .query(
-                        &abstract_std::manager::QueryMsg::Config {},
+                        &abstract_std::account::QueryMsg::Config {},
                         &app_config.manager_address,
                     )
                     .map_err(Into::into)?;

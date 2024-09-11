@@ -50,18 +50,6 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         SudoMsg,
-    > AccountExecutor
-    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
-{
-}
-
-impl<
-        Error: ContractError,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        SudoMsg,
     > AbstractRegistryAccess
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {

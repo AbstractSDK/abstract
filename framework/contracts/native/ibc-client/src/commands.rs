@@ -6,6 +6,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account,
+    account::ModuleInstallConfig,
     app::AppState,
     ibc::{Callback, ModuleQuery},
     ibc_client::{
@@ -13,7 +14,6 @@ use abstract_std::{
         IbcClientCallback, InstalledModuleIdentification,
     },
     ibc_host::{self, HostAction, InternalAction},
-    manager::{self, ModuleInstallConfig},
     objects::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
@@ -257,7 +257,7 @@ pub fn execute_send_module_to_module_packet(
                 .version_control
                 .account_id(account.addr(), &deps.querier)?;
             let account_base = cfg.version_control.account(&account_id, &deps.querier)?;
-            let ibc_client = manager::state::ACCOUNT_MODULES.query(
+            let ibc_client = account::state::ACCOUNT_MODULES.query(
                 &deps.querier,
                 account_base.into_addr(),
                 IBC_CLIENT,
@@ -385,9 +385,9 @@ pub fn execute_register_account(
     let account_id = account_base.account_id(deps.as_ref())?;
     // get auxiliary information
 
-    let account_info: account::InfoResponse = deps
+    let account_info: account::responses::InfoResponse = deps
         .querier
-        .query_wasm_smart(account_base.addr(), &manager::QueryMsg::Info {})?;
+        .query_wasm_smart(account_base.addr(), &account::QueryMsg::Info {})?;
     let account_info = account_info.info;
 
     let note_message = send_remote_host_action(

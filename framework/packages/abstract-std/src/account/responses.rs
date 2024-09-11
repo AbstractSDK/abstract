@@ -37,7 +37,7 @@ pub struct InfoResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ManagerModuleInfo {
+pub struct AccountModuleInfo {
     pub id: String,
     pub version: ContractVersion,
     pub address: Addr,
@@ -45,7 +45,7 @@ pub struct ManagerModuleInfo {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfosResponse {
-    pub module_infos: Vec<ManagerModuleInfo>,
+    pub module_infos: Vec<AccountModuleInfo>,
 }
 
 #[cosmwasm_schema::cw_serde]

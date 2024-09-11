@@ -1,10 +1,13 @@
-pub mod commands;
+pub mod actions;
+pub mod config;
 pub mod contract;
 pub mod error;
-pub(crate) mod migrate;
-mod queries;
-mod validation;
-mod versioning;
+pub mod migrate;
+pub mod modules;
+pub mod queries;
+pub mod reply;
+pub mod sub_account;
+pub mod versioning;
 
 #[cfg(test)]
 mod test_common {

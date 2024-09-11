@@ -32,8 +32,7 @@ pub mod state {
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
         pub account_base: Account,
-        pub manager_module: Module,
-        pub proxy_module: Module,
+        pub account_module: Module,
         pub account_id: AccountId,
     }
 

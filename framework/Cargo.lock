@@ -36,7 +36,6 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
- "workspace-hack",
 ]
 
 [[package]]
@@ -381,15 +380,14 @@ dependencies = [
 name = "abstract-interface"
 version = "0.23.1"
 dependencies = [
+ "abstract-account",
  "abstract-account-factory",
  "abstract-ans-host",
  "abstract-cw-orch-polytone",
  "abstract-ibc-client",
  "abstract-ibc-host",
- "abstract-manager",
  "abstract-module-factory",
  "abstract-polytone",
- "abstract-proxy",
  "abstract-std",
  "abstract-testing",
  "abstract-version-control",
@@ -414,7 +412,6 @@ dependencies = [
  "serde_json",
  "speculoos",
  "thiserror",
- "workspace-hack",
 ]
 
 [[package]]
@@ -426,43 +423,6 @@ dependencies = [
  "quote",
  "speculoos",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "abstract-manager"
-version = "0.23.0"
-dependencies = [
- "abstract-account-factory",
- "abstract-adapter",
- "abstract-ans-host",
- "abstract-app",
- "abstract-interface",
- "abstract-macros",
- "abstract-module-factory",
- "abstract-proxy",
- "abstract-sdk",
- "abstract-standalone",
- "abstract-std",
- "abstract-testing",
- "abstract-version-control",
- "anyhow",
- "cosmwasm-schema 2.1.3",
- "cosmwasm-std 2.1.3",
- "cw-asset",
- "cw-controllers",
- "cw-orch",
- "cw-storage-plus 2.0.0",
- "cw2 2.0.0",
- "cw20",
- "cw721 0.18.0",
- "cw721-base 0.18.0",
- "rstest",
- "schemars",
- "semver",
- "serde",
- "speculoos",
- "thiserror",
- "workspace-hack",
 ]
 
 [[package]]
@@ -567,32 +527,6 @@ dependencies = [
  "cw2 2.0.0",
  "sha2 0.10.8",
  "thiserror",
-]
-
-[[package]]
-name = "abstract-proxy"
-version = "0.23.0"
-dependencies = [
- "abstract-ica",
- "abstract-macros",
- "abstract-sdk",
- "abstract-std",
- "abstract-testing",
- "cosmwasm-schema 2.1.3",
- "cosmwasm-std 2.1.3",
- "cw-asset",
- "cw-controllers",
- "cw-storage-plus 2.0.0",
- "cw-utils 2.0.0",
- "cw2 2.0.0",
- "cw20",
- "rstest",
- "schemars",
- "semver",
- "serde",
- "speculoos",
- "thiserror",
- "workspace-hack",
 ]
 
 [[package]]

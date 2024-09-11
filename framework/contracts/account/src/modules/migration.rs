@@ -99,6 +99,7 @@ pub fn upgrade_modules(
     .add_messages(upgrade_msgs)
     .add_message(callback_msg))
 }
+
 pub fn set_migrate_msgs_and_context(
     deps: DepsMut,
     module_info: ModuleInfo,
