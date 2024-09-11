@@ -1,8 +1,7 @@
 use abstract_std::{
     account::{
-        msgs::CallbackMsg,
         state::{ACCOUNT_MODULES, CONFIG},
-        ExecuteMsg,
+        CallbackMsg, ExecuteMsg,
     },
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg as AdapterQuery,

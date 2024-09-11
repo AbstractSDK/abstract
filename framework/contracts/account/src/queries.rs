@@ -3,12 +3,10 @@ use std::collections::BTreeMap;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
-        responses::{
-            AccountModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
-            ModuleInfosResponse, ModuleVersionsResponse, SubAccountIdsResponse,
-        },
         state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO},
         state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS},
+        AccountModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
+        ModuleInfosResponse, ModuleVersionsResponse, SubAccountIdsResponse,
     },
     objects::{
         gov_type::TopLevelOwnerResponse,

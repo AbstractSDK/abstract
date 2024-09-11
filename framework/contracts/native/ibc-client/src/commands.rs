@@ -385,7 +385,7 @@ pub fn execute_register_account(
     let account_id = account_base.account_id(deps.as_ref())?;
     // get auxiliary information
 
-    let account_info: account::responses::InfoResponse = deps
+    let account_info: account::InfoResponse = deps
         .querier
         .query_wasm_smart(account_base.addr(), &account::QueryMsg::Info {})?;
     let account_info = account_info.info;

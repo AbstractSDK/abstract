@@ -10,8 +10,7 @@ use abstract_std::{
             AccountInfo, SuspensionStatus, ACCOUNT_ID, CONFIG, INFO, SUB_ACCOUNTS,
             SUSPENSION_STATUS,
         },
-        types::{InternalConfigAction, UpdateSubAccountAction},
-        ExecuteMsg,
+        ExecuteMsg, InternalConfigAction, UpdateSubAccountAction,
     },
     objects::{
         gov_type::GovernanceDetails,

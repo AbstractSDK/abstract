@@ -1,6 +1,6 @@
 pub use abstract_std::account::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_std::{
-    account::responses::AccountModuleInfo,
+    account::AccountModuleInfo,
     account::*,
     adapter::{self, AdapterBaseMsg},
     ibc_host::{HelperAction, HostAction},

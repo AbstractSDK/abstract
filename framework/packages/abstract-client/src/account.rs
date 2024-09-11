@@ -29,11 +29,8 @@ use abstract_interface::{
 use abstract_std::{
     account,
     account::{
-        responses::{
-            AccountModuleInfo, InfoResponse, ModuleAddressesResponse, ModuleInfosResponse,
-        },
-        state::AccountInfo,
-        ModuleInstallConfig,
+        state::AccountInfo, AccountModuleInfo, InfoResponse, ModuleAddressesResponse,
+        ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
         gov_type::GovernanceDetails,

@@ -30,7 +30,7 @@ mod manager;
 
 use std::collections::HashSet;
 
-use abstract_std::{account::responses::AccountModuleInfo, objects::AccountId};
+use abstract_std::{account::AccountModuleInfo, objects::AccountId};
 use cw_orch::{environment::Environment, prelude::*};
 use serde::Serialize;
 use speculoos::prelude::*;
@@ -105,7 +105,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_addrs: Vec<String>,
     ) -> Result<Vec<AccountModuleInfo>, crate::AbstractInterfaceError> {
-        let abstract_std::account::responses::ModuleInfosResponse {
+        let abstract_std::account::ModuleInfosResponse {
             module_infos: manager_modules,
         } = self.account.module_infos(None, None)?;
 
@@ -148,7 +148,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             .collect::<HashSet<_>>();
 
         // check proxy config
-        let abstract_std::account::responses::ConfigResponse {
+        let abstract_std::account::ConfigResponse {
             modules: whitelist, ..
         } = self.account.config()?;
 

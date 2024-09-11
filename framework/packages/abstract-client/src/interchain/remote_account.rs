@@ -10,9 +10,9 @@ use abstract_interface::{
 use abstract_std::{
     account::{
         self,
-        responses::{
+        
             AccountModuleInfo, InfoResponse, ModuleAddressesResponse, ModuleInfosResponse,
-        },
+        
         state::AccountInfo,
         ModuleInstallConfig,
     },

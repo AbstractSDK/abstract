@@ -1,8 +1,7 @@
 use abstract_std::{
     account::{
         state::{ACCOUNT_ID, CONFIG, SUB_ACCOUNTS},
-        types::UpdateSubAccountAction,
-        ExecuteMsg, ModuleInstallConfig,
+        ExecuteMsg, ModuleInstallConfig, UpdateSubAccountAction,
     },
     objects::{
         gov_type::GovernanceDetails,
