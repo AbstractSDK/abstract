@@ -38,14 +38,8 @@ pub enum VCError {
         actual_code_id: u64,
     },
 
-    #[error(
-        "Caller has info {} but should be {}",
-        caller_info,
-        ACCOUNT,
-    )]
-    NotAccountInfo {
-        caller_info: ModuleInfo,
-    },
+    #[error("Caller has info {} but should be {}", caller_info, ACCOUNT)]
+    NotAccountInfo { caller_info: ModuleInfo },
 
     #[error("Module {0} does not have a stored module reference")]
     ModuleNotFound(ModuleInfo),

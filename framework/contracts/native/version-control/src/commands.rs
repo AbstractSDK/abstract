@@ -11,14 +11,18 @@ use abstract_sdk::{
     },
 };
 use abstract_std::{
-    account_factory::state::LOCAL_ACCOUNT_SEQUENCE, objects::{
+    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
+    objects::{
         account::AccountTrace,
         fee::FixedFee,
         module::{self, Module},
         ownership,
         validation::validate_link,
         ABSTRACT_ACCOUNT_ID,
-    }, proxy::state::ACCOUNT_ID, version_control::{ModuleDefaultConfiguration, UpdateModule}, ACCOUNT, IBC_HOST
+    },
+    proxy::state::ACCOUNT_ID,
+    version_control::{ModuleDefaultConfiguration, UpdateModule},
+    ACCOUNT, IBC_HOST,
 };
 use cosmwasm_std::{
     ensure, ensure_eq, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
@@ -46,7 +50,9 @@ pub fn add_account(
 
     ensure!(
         maybe_acc_module_info.id() == ACCOUNT,
-        VCError::NotAccountInfo { caller_info: maybe_acc_module_info }
+        VCError::NotAccountInfo {
+            caller_info: maybe_acc_module_info
+        }
     );
 
     // Ensure account isn't already registered
@@ -55,7 +61,6 @@ pub fn add_account(
         !ACCOUNT_ADDRESSES.has(deps.storage, &account_id),
         VCError::AccountAlreadyExists(account_id)
     );
-
 
     let acc_module_info = maybe_acc_module_info;
 
@@ -674,7 +679,8 @@ mod tests {
     use abstract_std::{
         account::{ConfigResponse as AccountConfigResponse, QueryMsg as AccountQueryMsg},
         objects::account::AccountTrace,
-        version_control::*, ACCOUNT,
+        version_control::*,
+        ACCOUNT,
     };
     use abstract_testing::{mock_querier_builder, prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
@@ -705,8 +711,7 @@ mod tests {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let querier = vc_mock_querier_builder(deps.api.clone())
-            .build();
+        let querier = vc_mock_querier_builder(deps.api.clone()).build();
 
         deps.querier = querier;
 
@@ -760,9 +765,10 @@ mod tests {
         )?;
 
         REGISTERED_MODULES.save(
-                &mut deps.storage,
-                &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
-                &ModuleReference::Account(1))?;
+            &mut deps.storage,
+            &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
+            &ModuleReference::Account(1),
+        )?;
 
         // register abstract account
         execute_as(
@@ -774,7 +780,7 @@ mod tests {
             },
         )?;
 
-        Ok(resp)       
+        Ok(resp)
     }
 
     /// Initialize the version_control with admin as creator and test account
@@ -800,7 +806,8 @@ mod tests {
         REGISTERED_MODULES.save(
             &mut deps.storage,
             &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
-            &ModuleReference::Account(1));
+            &ModuleReference::Account(1),
+        );
 
         execute_as(
             deps.as_mut(),

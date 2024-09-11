@@ -56,7 +56,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
-
     match msg {
         ExecuteMsg::ProposeModules { modules } => propose_modules(deps, info, modules),
         ExecuteMsg::ApproveOrRejectModules { approves, rejects } => {
@@ -74,10 +73,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             account_id,
         } => claim_namespace(deps, info, account_id, namespace),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
-        ExecuteMsg::AddAccount {
-            namespace,
-            creator,
-        } => add_account(deps, info, namespace, creator),
+        ExecuteMsg::AddAccount { namespace, creator } => {
+            add_account(deps, info, namespace, creator)
+        }
         ExecuteMsg::UpdateConfig {
             security_disabled,
             namespace_registration_fee,

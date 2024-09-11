@@ -326,7 +326,7 @@ fn verify_nft_ownership(
         owner,
         AccountError::Ownership(OwnershipError::NotOwner)
     );
-    
+
     Ok(())
 }
 

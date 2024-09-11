@@ -299,7 +299,12 @@ impl MockQuerierBuilder {
     /// MockQuerierBuilder::default()
     ///    .with_contract_version(&contract_address, "v1.0.0");
     /// ```
-    pub fn with_contract_version(self, contract: &Addr, name:impl Into<String>, version: impl Into<String>) -> Self {
+    pub fn with_contract_version(
+        self,
+        contract: &Addr,
+        name: impl Into<String>,
+        version: impl Into<String>,
+    ) -> Self {
         self.with_contract_item(
             contract,
             CONTRACT,
