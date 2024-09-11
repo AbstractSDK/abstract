@@ -1,9 +1,10 @@
+pub mod polytone_callbacks;
+
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, Event, QueryRequest, StdError,
     StdResult,
 };
-use polytone::callbacks::{Callback as PolytoneCallback, ErrorResponse, ExecutionResponse};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -12,6 +13,7 @@ use crate::{
     ibc_client,
     objects::{module::ModuleInfo, TruncatedChainId},
 };
+use polytone_callbacks::{Callback as PolytoneCallback, ErrorResponse, ExecutionResponse};
 
 /// Callback from modules, that is turned into an IbcResponseMsg by the ibc client
 /// A callback can only be sent to itself

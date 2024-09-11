@@ -278,8 +278,6 @@ name = "abstract-ibc-client"
 version = "0.23.0"
 dependencies = [
  "abstract-macros",
- "abstract-polytone",
- "abstract-polytone-note",
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
@@ -330,7 +328,6 @@ dependencies = [
 name = "abstract-ica"
 version = "0.23.0"
 dependencies = [
- "abstract-polytone",
  "abstract-sdk",
  "abstract-testing",
  "alloy",
@@ -358,7 +355,6 @@ version = "0.23.0"
 dependencies = [
  "abstract-ica",
  "abstract-macros",
- "abstract-polytone",
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
@@ -387,7 +383,6 @@ dependencies = [
  "abstract-ibc-client",
  "abstract-ibc-host",
  "abstract-module-factory",
- "abstract-polytone",
  "abstract-std",
  "abstract-testing",
  "abstract-version-control",
@@ -534,7 +529,6 @@ name = "abstract-sdk"
 version = "0.23.0"
 dependencies = [
  "abstract-macros",
- "abstract-polytone",
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
@@ -616,7 +610,6 @@ dependencies = [
 name = "abstract-std"
 version = "0.23.0"
 dependencies = [
- "abstract-polytone",
  "abstract-testing",
  "anyhow",
  "cosmwasm-schema 2.1.3",
@@ -4039,9 +4032,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-util"
-version = "0.1.8"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da62f120a8a37763efb0cf8fdf264b884c7b8b9ac8660b900c8661030c00e6ba"
+checksum = "cde7055719c54e36e95e8719f95883f22072a48ede39db7fc17a4e1d5281e9b9"
 dependencies = [
  "bytes",
  "futures-channel",

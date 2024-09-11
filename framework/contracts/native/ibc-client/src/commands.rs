@@ -8,10 +8,10 @@ use abstract_std::{
     account,
     account::ModuleInstallConfig,
     app::AppState,
-    ibc::{Callback, ModuleQuery},
+    ibc::{polytone_callbacks::CallbackRequest, Callback, ModuleQuery},
     ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
-        IbcClientCallback, InstalledModuleIdentification,
+        IbcClientCallback, InstalledModuleIdentification, PolytoneNoteExecuteMsg,
     },
     ibc_host::{self, HostAction, InternalAction},
     objects::{
@@ -26,7 +26,6 @@ use cosmwasm_std::{
     Env, IbcMsg, MessageInfo, QueryRequest, Storage, WasmQuery,
 };
 use cw_storage_plus::Item;
-use polytone::callbacks::CallbackRequest;
 use prost::Name;
 
 use crate::{
@@ -101,7 +100,7 @@ pub fn execute_register_infrastructure(
 
     let note_proxy_msg = wasm_execute(
         note,
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![],
             callback: Some(CallbackRequest {
                 receiver: env.contract.address.to_string(),
@@ -151,7 +150,7 @@ fn send_remote_host_action(
     // message that will be called on the local note contract
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![wasm_execute(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
@@ -299,7 +298,7 @@ pub fn execute_send_module_to_module_packet(
     // message that will be called on the local note contract
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![wasm_execute(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
@@ -353,7 +352,7 @@ pub fn execute_send_query(
     let note_contract = ibc_infra.polytone_note;
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Query {
+        &PolytoneNoteExecuteMsg::Query {
             msgs: queries,
             callback: callback_request,
             timeout_seconds: PACKET_LIFETIME.into(),

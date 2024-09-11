@@ -53,7 +53,9 @@ pub mod state {
     #[cosmwasm_schema::cw_serde]
     pub struct AccountInfo {
         pub name: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub description: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub link: Option<String>,
     }
 
@@ -72,6 +74,7 @@ pub mod state {
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 
     /// Suspension status
+    // TODO: Pull it inside Config as `suspended: Option<String>`, with reason of suspension inside a string?
     pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new(namespace::SUSPENSION_STATUS);
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
