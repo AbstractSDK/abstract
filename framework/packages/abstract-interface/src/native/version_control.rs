@@ -193,7 +193,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         &self,
         account: &AbstractAccount<Chain>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let account = account.account.as_instance();
+        let account = account.0.as_instance();
         let account_module = (
             ModuleInfo::from_id(
                 &account.id,

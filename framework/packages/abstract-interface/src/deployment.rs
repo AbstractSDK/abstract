@@ -47,7 +47,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let account = Account::new(ACCOUNT, chain.clone());
 
-        let mut account = AbstractAccount { account: account };
         let ibc_infra = AbstractIbc::new(&chain);
 
         ans_host.upload()?;
@@ -62,7 +61,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             account_factory,
             version_control,
             module_factory,
-            account,
+            account: AbstractAccount(account),
             ibc: ibc_infra,
         };
 
@@ -117,7 +116,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             Box::new(&mut self.version_control),
             Box::new(&mut self.account_factory),
             Box::new(&mut self.module_factory),
-            Box::new(&mut self.account.account),
+            Box::new(&mut self.account.0),
             Box::new(&mut self.ibc.client),
             Box::new(&mut self.ibc.host),
         ]
@@ -162,7 +161,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
         let account = Account::new(ACCOUNT, chain.clone());
         Self {
-            account: AbstractAccount { account },
+            account: AbstractAccount(account),
             ans_host,
             version_control,
             account_factory,
