@@ -694,7 +694,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::{contract, testing::*};
+    use crate::contract;
 
     type VersionControlTestResult = Result<(), VCError>;
 

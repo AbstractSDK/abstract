@@ -11,7 +11,11 @@ use abstract_std::{
         state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS},
         UpdateSubAccountAction,
     },
-    objects::{gov_type::GovernanceDetails, ownership::{self, GovOwnershipError}, AccountId},
+    objects::{
+        gov_type::GovernanceDetails,
+        ownership::{self, GovOwnershipError},
+        AccountId,
+    },
     proxy::state::STATE,
     version_control::Account,
 };
@@ -62,8 +66,7 @@ pub fn instantiate(
     let account_id = match account_id {
         Some(account_id) => account_id,
         None => AccountId::local(
-            LOCAL_ACCOUNT_SEQUENCE
-                .query(&deps.querier, version_control_address.clone())?,
+            LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, version_control_address.clone())?,
         ),
     };
 
