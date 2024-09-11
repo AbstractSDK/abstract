@@ -11,7 +11,7 @@ use abstract_std::{
         state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS},
         UpdateSubAccountAction,
     },
-    objects::{gov_type::GovernanceDetails, ownership, AccountId},
+    objects::{gov_type::GovernanceDetails, ownership::{self, GovOwnershipError}, AccountId},
     proxy::state::STATE,
     version_control::Account,
 };
@@ -172,8 +172,6 @@ pub fn instantiate(
     let response = response.add_message(wasm_execute(
         version_control_address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
-            account_id,
-            account: Account::new(env.contract.address).into(),
             namespace,
             creator: info.sender.to_string(),
         },
@@ -324,7 +322,7 @@ fn verify_nft_ownership(
     ensure_eq!(
         sender,
         owner,
-        AccountError::Ownership(OwnershipError::NotOwner)
+        AccountError::Ownership(GovOwnershipError::NotOwner)
     );
 
     Ok(())
