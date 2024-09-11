@@ -48,7 +48,6 @@ pub fn instantiate(
         link,
         module_factory_address,
         version_control_address,
-        ans_host_address,
         namespace,
     }: InstantiateMsg,
 ) -> AccountResult {
@@ -60,14 +59,13 @@ pub fn instantiate(
     let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
     let version_control_address = deps.api.addr_validate(&version_control_address)?;
 
-    let account_id = account_id.unwrap_or_else(|| {
-        AccountId::local(
+    let account_id = match account_id {
+        Some(account_id) => account_id,
+        None => AccountId::local(
             LOCAL_ACCOUNT_SEQUENCE
-                .query(&deps.querier, version_control_address.clone())
-                // default to 0 for first account
-                .unwrap_or_default(),
-        )
-    });
+                .query(&deps.querier, version_control_address.clone())?,
+        ),
+    };
 
     ACCOUNT_ID.save(deps.storage, &account_id)?;
     STATE.save(
