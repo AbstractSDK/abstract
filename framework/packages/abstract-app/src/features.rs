@@ -1,12 +1,10 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{
-        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
-    },
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
 use abstract_std::version_control::Account;
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::Deps;
 
 use crate::{state::ContractError, AppContract};
 

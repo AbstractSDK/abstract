@@ -1,11 +1,9 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{
-        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
-    },
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps, StdError};
+use cosmwasm_std::{Deps, StdError};
 
 use crate::{state::ContractError, AdapterContract};
 
@@ -23,7 +21,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AccountIdentification
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn account(&self, deps: Deps) -> AbstractSdkResult<abstract_std::version_control::Account> {
+    fn account(&self, _deps: Deps) -> AbstractSdkResult<abstract_std::version_control::Account> {
         if let Some(target) = &self.target_account {
             Ok(target.clone())
         } else {

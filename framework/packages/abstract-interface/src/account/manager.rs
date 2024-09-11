@@ -155,7 +155,7 @@ impl<Chain: CwEnv> Account<Chain> {
             module_id,
             adapter::ExecuteMsg::<Empty>::Base(adapter::BaseExecuteMsg {
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
-                account_adress: None,
+                account_address: None,
             }),
         )?;
 

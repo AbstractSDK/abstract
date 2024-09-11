@@ -314,7 +314,7 @@ fn configure_adapter(
     message: AdapterBaseMsg,
 ) -> StdResult<CosmosMsg> {
     let adapter_msg: AdapterExecMsg = BaseExecuteMsg {
-        account_adress: None,
+        account_address: None,
         msg: message,
     }
     .into();

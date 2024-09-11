@@ -104,7 +104,7 @@ pub struct BaseExecuteMsg {
     /// The account address for which to apply the configuration
     /// If None, the sender must be an Account
     /// If Some, the sender must be a direct or indirect owner (through sub-accounts) of the specified account.
-    pub account_adress: Option<String>,
+    pub account_address: Option<String>,
     // The actual base message
     pub msg: AdapterBaseMsg,
 }

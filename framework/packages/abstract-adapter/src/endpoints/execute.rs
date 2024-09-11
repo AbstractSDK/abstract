@@ -64,11 +64,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         message: BaseExecuteMsg,
     ) -> AdapterResult {
         let BaseExecuteMsg {
-            account_adress,
+            account_address,
             msg,
         } = message;
         let account_registry = self.account_registry(deps.as_ref())?;
-        let account_base = match account_adress {
+        let account_base = match account_address {
             // If account address provided, check if the sender is a direct or nested owner for this account.
             Some(requested_account) => {
                 let account_address = deps.api.addr_validate(&requested_account)?;
@@ -298,7 +298,7 @@ mod tests {
                     to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
-                account_adress: None,
+                account_address: None,
             };
 
             base_execute_as(deps.as_mut(), &base.account, msg)?;
@@ -325,7 +325,7 @@ mod tests {
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
-                account_adress: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
@@ -338,7 +338,7 @@ mod tests {
             assert_that!(authorized_addrs.len()).is_equal_to(1);
 
             let msg = BaseExecuteMsg {
-                account_adress: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![],
                     to_remove: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
@@ -361,7 +361,7 @@ mod tests {
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
-                account_adress: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
@@ -371,7 +371,7 @@ mod tests {
             base_execute_as(deps.as_mut(), &base.account, msg)?;
 
             let msg = BaseExecuteMsg {
-                account_adress: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
@@ -402,7 +402,7 @@ mod tests {
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
-                account_adress: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![TEST_MODULE_ID.into()],
                     to_remove: vec![],
@@ -430,7 +430,7 @@ mod tests {
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
-                account_adress: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![],
                     to_remove: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).into()],
@@ -475,7 +475,7 @@ mod tests {
             mock_init(deps).unwrap();
 
             let msg = BaseExecuteMsg {
-                account_adress: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: authorized
                         .into_iter()

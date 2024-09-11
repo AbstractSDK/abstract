@@ -37,7 +37,7 @@ pub trait GrantInterface: AccountExecutor {
         deps: cosmwasm_std::Deps<'a>,
         granter: Option<Addr>,
     ) -> AbstractSdkResult<FeeGranter> {
-        let granter = granter.unwrap_or(self.proxy_address(deps)?);
+        let granter = granter.unwrap_or(self.account(deps)?.addr().clone());
         Ok(FeeGranter { granter })
     }
 }

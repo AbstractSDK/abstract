@@ -4,8 +4,8 @@
 //!
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    IbcClient, InstallConfig, ManagerQueryFns as _, RegisteredModule, VCQueryFns as _,
+    Abstract, AbstractAccount, AccountDetails, DependencyCreation, IbcClient, InstallConfig,
+    ManagerQueryFns as _, RegisteredModule, VCQueryFns as _,
 };
 use abstract_std::{
     account::{

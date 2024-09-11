@@ -89,7 +89,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<
                 module_id: module_id.to_string(),
                 exec_msg: to_json_binary(&adapter::ExecuteMsg::<Empty>::Base(
                     adapter::BaseExecuteMsg {
-                        proxy_address: None,
+                        account_address: None,
                         msg: adapter::AdapterBaseMsg::UpdateAuthorizedAddresses {
                             to_add: vec![],
                             to_remove: vec![],
