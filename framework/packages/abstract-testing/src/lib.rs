@@ -3,15 +3,79 @@ pub mod map_tester;
 pub mod mock_ans;
 pub(crate) mod mock_querier;
 
+use abstract_std::{manager::state::ACCOUNT_MODULES, objects::account::TEST_ACCOUNT_ID, proxy::state::ACCOUNT_ID, version_control::state::ACCOUNT_ADDRESSES};
 use cosmwasm_std::{
-    testing::{MockApi, MockQuerier, MockStorage},
-    OwnedDeps,
+    from_json, testing::{MockApi, MockQuerier, MockStorage}, to_json_binary, Addr, Binary, Empty, OwnedDeps
 };
 pub use mock_ans::MockAnsHost;
 pub use mock_querier::{
-    map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
+    map_key, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
 };
+use module::{TEST_MODULE_ID, TEST_MODULE_RESPONSE};
+use prelude::{AbstractMockAddrs, AbstractMockQuerierBuilder};
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
+
+/// A mock querier that returns the following responses for the following **RAW** contract -> queries:
+/// - TEST_PROXY
+///   - "admin" -> TEST_MANAGER
+/// - TEST_MANAGER
+///   - "modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
+///   - "account_id" -> TEST_ACCOUNT_ID
+/// - TEST_VERSION_CONTROL
+///   - "account" -> { TEST_PROXY, TEST_MANAGER }
+pub fn mock_querier(mock_api: MockApi) -> MockQuerier {
+    let raw_handler = move |contract: &Addr, key: &Binary| {
+        // TODO: should we do something with the key?
+        let _str_key = std::str::from_utf8(key.as_slice()).unwrap();
+        let abstr = AbstractMockAddrs::new(mock_api);
+
+        if contract == abstr.account.addr() {
+            // Return the default value
+            Ok(Binary::default())
+        } else if contract == abstr.version_control {
+            // Default value
+            Ok(Binary::default())
+        } else {
+            Err("unexpected contract".to_string())
+        }
+    };
+    let abstr = AbstractMockAddrs::new(mock_api);
+
+    MockQuerierBuilder::default()
+        .with_fallback_raw_handler(raw_handler)
+        .with_contract_map_entry(
+            &abstr.version_control,
+            ACCOUNT_ADDRESSES,
+            (&TEST_ACCOUNT_ID, abstr.account.clone()),
+        )
+        .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
+        .with_smart_handler(&abstr.module_address, |msg| {
+            let Empty {} = from_json(msg).unwrap();
+            Ok(to_json_binary(TEST_MODULE_RESPONSE).unwrap())
+        })
+        .with_contract_map_entry(
+            abstr.account.addr(),
+            ACCOUNT_MODULES,
+            (TEST_MODULE_ID, abstr.module_address),
+        )
+        .build()
+}
+
+
+/// Abstract-specific mock dependencies. 
+/// 
+/// Sets the required queries for native contracts and the root Abstract Account.
+pub fn mock_dependencies() -> MockDeps {
+    let api = MockApi::default();
+    let querier = mock_querier(api.clone());
+
+    OwnedDeps {
+        storage: MockStorage::default(),
+        api,
+        querier,
+        custom_query_type: std::marker::PhantomData,
+    }
+}
 
 /// use the package version as test version, breaks tests otherwise.
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -27,9 +91,11 @@ pub mod addresses {
     const TEST_ACCOUNT_FACTORY: &str = "account_factory_address";
     const TEST_MODULE_FACTORY: &str = "module_factory_address";
     const TEST_MODULE_ADDRESS: &str = "test_module_address";
+    // set in cosmwasm_std::MockApi
+    const ENV_CONTRACT_ADDRESS: &str = "cosmos2address";
 
     pub fn test_account_base(mock_api: MockApi) -> Account {
-        Account::new(mock_api.addr_make(TEST_ACCOUNT))
+        Account::new(mock_api.addr_make(ENV_CONTRACT_ADDRESS))
     }
 
     impl AbstractMockAddrs {
@@ -51,6 +117,7 @@ pub mod addresses {
         pub owner: Addr,
         pub ans_host: Addr,
         pub version_control: Addr,
+        #[deprecated(note = "Account factory will be removed")]
         pub account_factory: Addr,
         pub module_factory: Addr,
         pub module_address: Addr,
@@ -94,8 +161,9 @@ pub mod prelude {
         testing::{MockApi as CwMockApi, MockQuerier, MockStorage},
         to_json_binary,
     };
-    pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
+    pub use mock_querier::{map_key, raw_map_key, wrap_querier, MockQuerierBuilder};
     pub use module::*;
+    pub use super::{mock_dependencies, mock_querier};
 
     use super::*;
     pub use super::{MockAnsHost, MockDeps, TEST_VERSION};

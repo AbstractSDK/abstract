@@ -397,52 +397,6 @@ impl MockQuerierOwnership for MockQuerierBuilder {
     }
 }
 
-/// A mock querier that returns the following responses for the following **RAW** contract -> queries:
-/// - TEST_PROXY
-///   - "admin" -> TEST_MANAGER
-/// - TEST_MANAGER
-///   - "modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
-///   - "account_id" -> TEST_ACCOUNT_ID
-/// - TEST_VERSION_CONTROL
-///   - "account" -> { TEST_PROXY, TEST_MANAGER }
-pub fn mock_querier(mock_api: MockApi) -> MockQuerier {
-    let raw_handler = move |contract: &Addr, key: &Binary| {
-        // TODO: should we do something with the key?
-        let _str_key = std::str::from_utf8(key.as_slice()).unwrap();
-        let abstr = AbstractMockAddrs::new(mock_api);
-
-        if contract == abstr.account.addr() {
-            // Return the default value
-            Ok(Binary::default())
-        } else if contract == abstr.version_control {
-            // Default value
-            Ok(Binary::default())
-        } else {
-            Err("unexpected contract".to_string())
-        }
-    };
-    let abstr = AbstractMockAddrs::new(mock_api);
-
-    MockQuerierBuilder::default()
-        .with_fallback_raw_handler(raw_handler)
-        .with_contract_map_entry(
-            &abstr.version_control,
-            ACCOUNT_ADDRESSES,
-            (&TEST_ACCOUNT_ID, abstr.account.clone()),
-        )
-        .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
-        .with_smart_handler(&abstr.module_address, |msg| {
-            let Empty {} = from_json(msg).unwrap();
-            Ok(to_json_binary(TEST_MODULE_RESPONSE).unwrap())
-        })
-        .with_contract_map_entry(
-            abstr.account.addr(),
-            ACCOUNT_MODULES,
-            (TEST_MODULE_ID, abstr.module_address),
-        )
-        .build()
-}
-
 pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
     QuerierWrapper::<Empty>::new(querier)
 }
@@ -453,7 +407,7 @@ mod tests {
         manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
-    use cosmwasm_std::testing::*;
+    use cosmwasm_std::testing;
     use speculoos::prelude::*;
 
     use super::*;
@@ -549,7 +503,7 @@ mod tests {
             deps.querier = mock_querier(deps.api);
             let test_base = test_account_base(deps.api);
 
-            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), test_base.manager);
+            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), test_base.addr().clone());
 
             assert_that!(actual).is_ok().is_equal_to(TEST_ACCOUNT_ID);
         }
@@ -566,7 +520,7 @@ mod tests {
 
             let actual = ACCOUNT_MODULES.query(
                 &wrap_querier(&deps.querier),
-                abstr.account.manager,
+                abstr.account.addr().clone(),
                 TEST_MODULE_ID,
             );
 
