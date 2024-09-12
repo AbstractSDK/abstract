@@ -1,12 +1,10 @@
 use crate::{Abstract, AbstractIbc};
 use abstract_std::version_control::QueryMsgFns;
 use abstract_std::{
-    account_factory, ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo,
-    version_control, ACCOUNT,
+    ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo, version_control,
+    ACCOUNT,
 };
-use abstract_std::{
-    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
-};
+use abstract_std::{ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL};
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, prelude::*};
@@ -37,8 +35,7 @@ impl<T: CwEnv> Abstract<T> {
 
         self.version_control.approve_any_abstract_modules()?;
 
-        Ok(account_factory.is_some()
-            || module_factory.is_some()
+        Ok(module_factory.is_some()
             || version_control.is_some()
             || ans_host.is_some()
             || account
@@ -145,7 +142,6 @@ impl<T: CwEnv> Abstract<T> {
         let modules = self
             .version_control
             .modules(vec![
-                ModuleInfo::from_id_latest(ACCOUNT_FACTORY)?,
                 ModuleInfo::from_id_latest(MODULE_FACTORY)?,
                 ModuleInfo::from_id_latest(VERSION_CONTROL)?,
                 ModuleInfo::from_id_latest(ANS_HOST)?,
@@ -154,22 +150,19 @@ impl<T: CwEnv> Abstract<T> {
             ])?
             .modules;
 
-        let account_factory_module = modules[0].module.clone();
-        let module_factory_module = modules[1].module.clone();
-        let version_control_module = modules[2].module.clone();
-        let ans_host_module = modules[3].module.clone();
-        let ibc_client_module = modules[4].module.clone();
-        let ibc_host_module = modules[5].module.clone();
+        let module_factory_module = modules[0].module.clone();
+        let version_control_module = modules[1].module.clone();
+        let ans_host_module = modules[2].module.clone();
+        let ibc_client_module = modules[3].module.clone();
+        let ibc_host_module = modules[4].module.clone();
 
         // In case cw2 debugging required
-        // let account_factory_cw2_v = contract_version(&self.account_factory)?.version;
         // let module_factory_cw2_v = contract_version(&self.module_factory)?.version;
         // let version_control_cw2_v = contract_version(&self.version_control)?.version;
         // let ans_host_cw2_v = contract_version(&self.ans_host)?.version;
         // let ibc_client_cw2_v = contract_version(&self.ibc.client)?.version;
         // let ibc_host_cw2_v = contract_version(&self.ibc.host)?.version;
         // let versions = vec![
-        //     account_factory_cw2_v,
         //     module_factory_cw2_v,
         //     version_control_cw2_v,
         //     ans_host_cw2_v,

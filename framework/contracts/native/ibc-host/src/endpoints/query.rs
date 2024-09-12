@@ -83,7 +83,7 @@ mod test {
             mock_env(),
             info.clone(),
             InstantiateMsg {
-                account_factory_address: dummy.to_string(),
+                module_factory_address: dummy.to_string(),
                 version_control_address: foo.to_string(),
                 ans_host_address: bar.to_string(),
             },

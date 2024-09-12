@@ -341,7 +341,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             link: self.link.clone(),
             namespace: self.namespace.as_ref().map(ToString::to_string),
             install_modules,
-            account_id: self.expected_local_account_id,
         };
         let abstract_account = match self.owner_account {
             None => {

@@ -13,11 +13,9 @@ fn full_deploy(networks: Vec<ChainInfo>) -> cw_orch::anyhow::Result<()> {
 
         let deployment = Abstract::deploy_on(chain, sender.to_string())?;
         // Create the Abstract Account because it's needed for the fees for the dex module
-        deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            })?;
+        deployment.create_default_account(GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        })?;
     }
 
     Ok(())
