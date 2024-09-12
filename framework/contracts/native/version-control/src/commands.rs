@@ -54,6 +54,7 @@ pub fn add_account(
             caller_info: maybe_acc_module_info
         }
     );
+    let acc_module_info = maybe_acc_module_info;
 
     // Ensure account isn't already registered
     let account_id = ACCOUNT_ID.query(&deps.querier, msg_info.sender.clone())?;
@@ -62,11 +63,23 @@ pub fn add_account(
         VCError::AccountAlreadyExists(account_id)
     );
 
-    let acc_module_info = maybe_acc_module_info;
+     // verify code-id of sender
+     let sender_contract_info = deps.querier.query_wasm_contract_info(&msg_info.sender)?;
 
-    let account_code_id = REGISTERED_MODULES
-        .load(deps.storage, &acc_module_info)?
-        .unwrap_account()?;
+     let account_code_id = REGISTERED_MODULES
+     .load(deps.storage, &acc_module_info)?
+     .unwrap_account()?;
+
+     ensure_eq!(
+         account_code_id,
+         sender_contract_info.code_id,
+         VCError::NotAccountCodeId {
+             account_info: acc_module_info,
+             expected_code_id: account_code_id,
+             actual_code_id: sender_contract_info.code_id
+         }
+     );
+    
 
     // provided and smaller, assert is eq to sequence
     // provided and larger, just register
@@ -106,19 +119,6 @@ pub fn add_account(
         // then assert that the account trace is remote and properly formatted
         account_id.trace().verify_remote()?;
     }
-
-    // verify code-id of sender
-    let sender_contract_info = deps.querier.query_wasm_contract_info(&msg_info.sender)?;
-
-    ensure_eq!(
-        account_code_id,
-        sender_contract_info.code_id,
-        VCError::NotAccountCodeId {
-            account_info: acc_module_info,
-            expected_code_id: account_code_id,
-            actual_code_id: sender_contract_info.code_id
-        }
-    );
 
     // Now we're sure that the account is valid.
     let account = Account::new(msg_info.sender.clone());

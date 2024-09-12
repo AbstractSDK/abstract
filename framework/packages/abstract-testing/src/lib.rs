@@ -51,8 +51,7 @@ pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
         }
     };
     let abstr = AbstractMockAddrs::new(mock_api);
-    // panic!("{}", abstr.account.addr().to_string());
-    // cosmwasm1s0t3nh7snq5xz2nfkgqdd4wzcnm8d2x7ercmqf9v4rw8du96ud2qe23ef4
+
     MockQuerierBuilder::default()
         .with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
