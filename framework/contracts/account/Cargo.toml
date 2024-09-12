@@ -35,9 +35,6 @@ abstract-macros = { workspace = true }
 
 abstract-ica = { workspace = true }
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
-
 [dev-dependencies]
 cw20 = { workspace = true }
 cw721-base = { version = "0.18.0", features = ["library"] }
@@ -59,6 +56,8 @@ abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
 # abstract-integration-tests = { workspace = true }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [profile.release]
 rpath = false
