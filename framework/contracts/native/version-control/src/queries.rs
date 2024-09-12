@@ -7,7 +7,7 @@ use abstract_sdk::std::{
     },
     version_control::{
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
-        AccountBaseResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
+        AccountResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
     },
 };
@@ -29,13 +29,13 @@ const MAX_LIMIT: u8 = 20;
 pub fn handle_account_address_query(
     deps: Deps,
     account_id: AccountId,
-) -> StdResult<AccountBaseResponse> {
+) -> StdResult<AccountResponse> {
     let account_address = ACCOUNT_ADDRESSES.load(deps.storage, &account_id);
     match account_address {
         Err(_) => Err(StdError::generic_err(
             VCError::UnknownAccountId { id: account_id }.to_string(),
         )),
-        Ok(base) => Ok(AccountBaseResponse { account_base: base }),
+        Ok(base) => Ok(AccountResponse { account_base: base }),
     }
 }
 
@@ -1041,7 +1041,7 @@ fn filter_modules_by_namespace(
 //             let not_registered = AccountId::new(15, AccountTrace::Local)?;
 //             let res = query_helper(
 //                 deps.as_ref(),
-//                 QueryMsg::AccountBase {
+//                 QueryMsg::Account {
 //                     account_id: not_registered.clone(),
 //                 },
 //             );
@@ -1064,13 +1064,13 @@ fn filter_modules_by_namespace(
 
 //             let res = query_helper(
 //                 deps.as_ref(),
-//                 QueryMsg::AccountBase {
+//                 QueryMsg::Account {
 //                     account_id: TEST_ACCOUNT_ID,
 //                 },
 //             );
 
 //             assert_that!(res).is_ok().map(|res| {
-//                 let AccountBaseResponse { account_base } = from_json(res).unwrap();
+//                 let AccountResponse { account_base } = from_json(res).unwrap();
 //                 assert_that!(account_base).is_equal_to(test_account_base(deps.api));
 //                 res
 //             });

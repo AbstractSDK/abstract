@@ -92,7 +92,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
     match msg {
-        QueryMsg::AccountBase { account_id } => {
+        QueryMsg::Account { account_id } => {
             to_json_binary(&queries::handle_account_address_query(deps, account_id)?)
         }
         QueryMsg::Modules { infos } => to_json_binary(&queries::handle_modules_query(deps, infos)?),

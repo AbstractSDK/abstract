@@ -213,9 +213,9 @@ pub struct ModuleFilter {
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Query Core of an Account
-    /// Returns [`AccountBaseResponse`]
-    #[returns(AccountBaseResponse)]
-    AccountBase { account_id: AccountId },
+    /// Returns [`AccountResponse`]
+    #[returns(AccountResponse)]
+    Account { account_id: AccountId },
     /// Queries module information
     /// Modules that are yanked are not returned
     /// Returns [`ModulesResponse`]
@@ -248,7 +248,7 @@ pub enum QueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AccountBaseResponse {
+pub struct AccountResponse {
     pub account_base: Account,
 }
 

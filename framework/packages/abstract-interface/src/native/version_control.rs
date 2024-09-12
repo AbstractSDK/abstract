@@ -337,7 +337,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         &self,
         account_id: AccountId,
     ) -> Result<Account, crate::AbstractInterfaceError> {
-        let resp: AccountBaseResponse = self.query(&QueryMsg::AccountBase { account_id })?;
+        let resp: AccountResponse = self.query(&QueryMsg::Account { account_id })?;
         Ok(resp.account_base)
     }
 

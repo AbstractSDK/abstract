@@ -120,7 +120,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     }
 
     /// Queries the account that owns the namespace
-    /// Is also returns the base modules of that account (AccountBase)
+    /// Is also returns the base modules of that account (Account)
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
         self.vc
             .query_namespace(namespace, &self.deps.querier)

@@ -342,7 +342,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         let wasm_querier = self.environment().wasm_querier();
         let module = self.version_control().module(module_info)?;
         let (code_id, creator) = match module.reference {
-            // If AccountBase - account factory is creator
+            // If Account - account factory is creator
             ModuleReference::Account(id) => (id, self.abstr.account_factory.addr_str()?),
             // Else module factory is creator
             ModuleReference::App(id) | ModuleReference::Standalone(id) => {
