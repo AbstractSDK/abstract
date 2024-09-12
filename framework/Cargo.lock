@@ -408,6 +408,7 @@ dependencies = [
  "serde_json",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
