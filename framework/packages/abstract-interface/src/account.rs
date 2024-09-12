@@ -44,7 +44,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
     pub fn load_from(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
         get_account_contracts(&abstract_deployment.version_control, account_id)
     }
-
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
         let manager_id = format!("{ACCOUNT}-{account_id}");
         Self::new(manager_id, chain)
