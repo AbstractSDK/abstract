@@ -2,9 +2,11 @@ use abstract_macros::abstract_response;
 use abstract_sdk::{execute_update_ownership, query_ownership};
 pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_std::{
-    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     objects::namespace::Namespace,
-    version_control::{state::NAMESPACES_INFO, Config},
+    version_control::{
+        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES_INFO},
+        Config,
+    },
 };
 use abstract_std::{
     objects::ABSTRACT_ACCOUNT_ID,
@@ -269,11 +271,11 @@ mod tests {
 
         mod instantiate {
             use abstract_std::{
-                account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
                 objects::{
                     namespace::{Namespace, ABSTRACT_NAMESPACE},
                     ABSTRACT_ACCOUNT_ID,
                 },
+                version_control::state::LOCAL_ACCOUNT_SEQUENCE,
             };
             use abstract_testing::prelude::AbstractMockAddrs;
             use contract::{VCResult, VcResponse};

@@ -3,7 +3,7 @@ use abstract_std::{
     objects::{ans_host::AnsHostError, version_control::VersionControlError, AccountId},
     AbstractError,
 };
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_ownable::OwnershipError;
 use cw_utils::ParseReplyError;
 use thiserror::Error;
@@ -33,6 +33,9 @@ pub enum HostError {
 
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),
+
+    #[error("{0}")]
+    Instantiate2AddressError(#[from] Instantiate2AddressError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
