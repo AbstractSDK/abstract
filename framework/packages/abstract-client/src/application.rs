@@ -93,7 +93,6 @@ impl<Chain: CwEnv, M: ContractInstance<Chain>> Application<Chain, M> {
         for module_id in adapter_ids {
             self.account
                 .abstr_account
-                
                 .update_adapter_authorized_addresses(module_id, vec![self.addr_str()?], vec![])?;
         }
         Ok(())
