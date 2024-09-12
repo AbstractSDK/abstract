@@ -1,6 +1,8 @@
-use abstract_interface::AbstractCanonicalAddrs;
-use abstract_std::native_addrs::TEST_ABSTRACT_CREATOR;
-use cosmwasm_std::CanonicalAddr;
+use abstract_std::{
+    native_addrs::TEST_ABSTRACT_CREATOR, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST,
+    MODULE_FACTORY, VERSION_CONTROL,
+};
+use cosmwasm_std::{instantiate2_address, CanonicalAddr};
 use cw_blob::interface::CwBlob;
 use cw_orch::prelude::*;
 
@@ -9,7 +11,8 @@ fn main() -> Result<(), CwOrchError> {
     let creator = CanonicalAddr::from(TEST_ABSTRACT_CREATOR);
     let blob_checksum =
         <CwBlob<Daemon> as Uploadable>::wasm(&ChainInfoOwned::default()).checksum()?;
-    let ans_addr = instantiate2_address(blob_checksum.as_slice(), creator, ANS_HOST.as_bytes())?;
+
+    let ans_addr = instantiate2_address(blob_checksum.as_slice(), &creator, ANS_HOST.as_bytes())?;
     let version_control_addr = instantiate2_address(
         blob_checksum.as_slice(),
         &creator,

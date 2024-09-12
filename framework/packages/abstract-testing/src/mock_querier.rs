@@ -549,7 +549,7 @@ mod tests {
             deps.querier = mock_querier(deps.api);
             let test_base = test_account_base(deps.api);
 
-            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), test_base.manager);
+            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), test_base.into_addr());
 
             assert_that!(actual).is_ok().is_equal_to(TEST_ACCOUNT_ID);
         }
@@ -566,7 +566,7 @@ mod tests {
 
             let actual = ACCOUNT_MODULES.query(
                 &wrap_querier(&deps.querier),
-                abstr.account.manager,
+                abstr.account.into_addr(),
                 TEST_MODULE_ID,
             );
 

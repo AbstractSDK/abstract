@@ -1,17 +1,17 @@
-use cosmwasm_std::{instantiate2_address, Binary, CanonicalAddr};
+use cosmwasm_std::{Binary, CanonicalAddr};
 use cw_blob::interface::CwBlob;
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
 
-use cw_orch::{contract::Contract, prelude::*};
+use cw_orch::prelude::*;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
     Account, AccountFactory, AnsHost, ModuleFactory, VersionControl,
 };
 use abstract_std::{
-    native_addrs::{self, TEST_ABSTRACT_CREATOR},
-    ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
+    native_addrs, ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
+    VERSION_CONTROL,
 };
 
 use rust_embed::RustEmbed;
@@ -265,7 +265,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         chain: Chain,
         deploy_data: <Self as Deploy<Chain>>::DeployData,
         blob_code_id: u64,
-    ) -> Result<(), AbstractInterfaceError> {
+    ) -> Result<Self, AbstractInterfaceError> {
         let admin = deploy_data.clone();
         // upload
         let deployment = Self::store_on(chain.clone())?;
@@ -280,7 +280,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ),
             CanonicalAddr::from(native_addrs::ANS_ADDR),
             Binary::from(ANS_HOST.as_bytes()),
-        );
+        )?;
 
         CwBlob::upload_and_migrate(
             chain.clone(),
@@ -298,7 +298,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ),
             CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR),
             Binary::from(VERSION_CONTROL.as_bytes()),
-        );
+        )?;
 
         CwBlob::upload_and_migrate(
             chain.clone(),
@@ -313,7 +313,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ),
             CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR),
             Binary::from(MODULE_FACTORY.as_bytes()),
-        );
+        )?;
 
         CwBlob::upload_and_migrate(
             chain.clone(),
@@ -329,7 +329,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ),
             CanonicalAddr::from(native_addrs::ACCOUNT_FACTORY_ADDR),
             Binary::from(ACCOUNT_FACTORY.as_bytes()),
-        );
+        )?;
 
         // We also instantiate ibc contracts
         CwBlob::upload_and_migrate(
@@ -344,7 +344,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ),
             CanonicalAddr::from(native_addrs::IBC_CLIENT_ADDR),
             Binary::from(IBC_CLIENT.as_bytes()),
-        );
+        )?;
         CwBlob::upload_and_migrate(
             chain.clone(),
             blob_code_id,
@@ -358,10 +358,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ),
             CanonicalAddr::from(native_addrs::IBC_HOST_ADDR),
             Binary::from(IBC_HOST.as_bytes()),
-        );
+        )?;
 
         deployment.ibc.register(&deployment.version_control)?;
-        Ok(())
+        Ok(deployment)
     }
 }
 
@@ -369,6 +369,9 @@ impl<Chain: CwEnv> Abstract<Chain> {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use std::borrow::Cow;
+
+    use abstract_testing::mock::abstract_mock_bech32;
+    use cosmwasm_std::Api;
 
     use super::*;
 
@@ -384,5 +387,50 @@ mod test {
         let state = State::load_state();
         let vc_juno = &state["juno"]["juno-1"]["code_ids"].get(VERSION_CONTROL);
         assert!(vc_juno.is_some());
+    }
+
+    #[test]
+    fn deploy2() {
+        let (chain, blob_code_id) = abstract_mock_bech32("mock");
+        let abstr = Abstract::deploy2(chain.clone(), chain.sender_addr().to_string(), blob_code_id)
+            .unwrap();
+        let app = chain.app.borrow();
+        let api = app.api();
+
+        // ANS
+        let ans_addr = api
+            .addr_canonicalize(&abstr.ans_host.addr_str().unwrap())
+            .unwrap();
+        assert_eq!(*ans_addr, native_addrs::ANS_ADDR);
+
+        // VC
+        let version_control = api
+            .addr_canonicalize(&abstr.version_control.addr_str().unwrap())
+            .unwrap();
+        assert_eq!(*version_control, native_addrs::VERSION_CONTROL_ADDR);
+
+        // ACCOUNT_FACTORY
+        let account_factory = api
+            .addr_canonicalize(&abstr.account_factory.addr_str().unwrap())
+            .unwrap();
+        assert_eq!(*account_factory, native_addrs::ACCOUNT_FACTORY_ADDR);
+
+        // MODULE_FACTORY
+        let module_factory = api
+            .addr_canonicalize(&abstr.module_factory.addr_str().unwrap())
+            .unwrap();
+        assert_eq!(*module_factory, native_addrs::MODULE_FACTORY_ADDR);
+
+        // IBC_CLIENT
+        let ibc_client = api
+            .addr_canonicalize(&abstr.ibc.client.addr_str().unwrap())
+            .unwrap();
+        assert_eq!(*ibc_client, native_addrs::IBC_CLIENT_ADDR);
+
+        // IBC_HOST
+        let ibc_host = api
+            .addr_canonicalize(&abstr.ibc.host.addr_str().unwrap())
+            .unwrap();
+        assert_eq!(*ibc_host, native_addrs::IBC_HOST_ADDR);
     }
 }

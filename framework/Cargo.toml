@@ -79,8 +79,8 @@ version-control = { package = "abstract-version-control", path = "contracts/nati
 ibc-client = { package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
 ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 
-proxy = { package = "abstract-proxy", path = "contracts/account/proxy" , default-features = false}
-manager = { package = "abstract-manager", path = "contracts/account/manager" , default-features = false}
+proxy = { package = "abstract-proxy", path = "contracts/account/proxy", default-features = false }
+manager = { package = "abstract-manager", path = "contracts/account/manager", default-features = false }
 
 abstract-ica = { path = "packages/abstract-ica" }
 abstract-sdk = { version = "0.23.0", path = "packages/abstract-sdk" }
@@ -100,6 +100,9 @@ abstract-staking-standard = { path = "packages/standards/staking" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
+
+# Predictable abstract addresses
+cw-blob = { git = "https://github.com/AbstractSDK/cw-packages.git", branch = "contract/cw-blob" } # TODO: replace with crates.io
 
 [profile.dev]
 opt-level = 1
