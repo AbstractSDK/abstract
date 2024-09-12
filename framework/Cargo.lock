@@ -7822,6 +7822,7 @@ dependencies = [
  "tiny-keccak",
  "tokio-stream",
  "tokio-util",
+ "tonic",
  "tower",
  "tracing",
  "tracing-core",
