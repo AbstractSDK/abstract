@@ -28,7 +28,7 @@ pub mod state {
     pub struct State {
         pub modules: Vec<Addr>,
     }
-    pub const STATE: Item<State> = Item::new("a");
+    pub const STATE: Item<State> = Item::new(crate::manager::state::namespace::STATE);
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 }
 

@@ -59,7 +59,6 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "cw20",
- "cw721 0.18.0",
  "protobuf",
  "semver",
  "serde",
@@ -281,8 +280,6 @@ name = "abstract-ibc-client"
 version = "0.23.0"
 dependencies = [
  "abstract-macros",
- "abstract-polytone",
- "abstract-polytone-note",
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
@@ -333,7 +330,6 @@ dependencies = [
 name = "abstract-ica"
 version = "0.23.0"
 dependencies = [
- "abstract-polytone",
  "abstract-sdk",
  "abstract-testing",
  "alloy",
@@ -361,7 +357,6 @@ version = "0.23.0"
 dependencies = [
  "abstract-ica",
  "abstract-macros",
- "abstract-polytone",
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
@@ -390,7 +385,6 @@ dependencies = [
  "abstract-ibc-host",
  "abstract-manager",
  "abstract-module-factory",
- "abstract-polytone",
  "abstract-proxy",
  "abstract-std",
  "abstract-testing",
@@ -603,7 +597,6 @@ name = "abstract-sdk"
 version = "0.23.0"
 dependencies = [
  "abstract-macros",
- "abstract-polytone",
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
@@ -685,7 +678,6 @@ dependencies = [
 name = "abstract-std"
 version = "0.23.0"
 dependencies = [
- "abstract-polytone",
  "abstract-testing",
  "anyhow",
  "cosmwasm-schema 2.1.3",
@@ -701,7 +693,6 @@ dependencies = [
  "cw2 2.0.0",
  "cw20",
  "cw20-base",
- "cw721 0.18.0",
  "function_name",
  "rstest",
  "schemars",
