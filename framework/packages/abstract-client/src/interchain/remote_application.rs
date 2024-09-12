@@ -5,7 +5,7 @@
 use std::fmt::Debug;
 
 use abstract_interface::{AbstractInterfaceError, RegisteredModule};
-use abstract_std::{adapter, ibc_client, ibc_host, manager};
+use abstract_std::{account, adapter, ibc_client, ibc_host};
 use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};
 use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
@@ -50,7 +50,7 @@ impl<
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain_id(),
                 action: ibc_host::HostAction::Dispatch {
-                    manager_msgs: vec![manager::ExecuteMsg::ExecOnModule {
+                    account_msgs: vec![account::ExecuteMsg::ExecOnModule {
                         module_id: M::module_id().to_owned(),
                         exec_msg: to_json_binary(execute).map_err(AbstractInterfaceError::from)?,
                     }],
@@ -83,13 +83,13 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<
 {
     /// Authorize this application on installed adapters. Accepts Module Id's of adapters
     pub fn authorize_on_adapters(&self, adapter_ids: &[&str]) -> AbstractClientResult<()> {
-        let mut manager_msgs = vec![];
+        let mut account_msgs = vec![];
         for module_id in adapter_ids {
-            manager_msgs.push(manager::ExecuteMsg::ExecOnModule {
+            account_msgs.push(account::ExecuteMsg::ExecOnModule {
                 module_id: module_id.to_string(),
                 exec_msg: to_json_binary(&adapter::ExecuteMsg::<Empty>::Base(
                     adapter::BaseExecuteMsg {
-                        proxy_address: None,
+                        account_address: None,
                         msg: adapter::AdapterBaseMsg::UpdateAuthorizedAddresses {
                             to_add: vec![],
                             to_remove: vec![],
@@ -104,7 +104,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<
             .remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain_id(),
-                action: ibc_host::HostAction::Dispatch { manager_msgs },
+                action: ibc_host::HostAction::Dispatch { account_msgs },
             })?;
         Ok(())
     }

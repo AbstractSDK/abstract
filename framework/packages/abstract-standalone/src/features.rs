@@ -4,7 +4,7 @@ use abstract_sdk::{
     AbstractSdkResult,
 };
 use abstract_std::version_control::Account;
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::Deps;
 
 use crate::StandaloneContract;
 

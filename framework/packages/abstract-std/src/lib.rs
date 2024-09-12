@@ -54,8 +54,7 @@ pub mod standalone;
 mod error;
 pub use error::AbstractError;
 
-mod core;
-pub use crate::core::*;
+pub mod account;
 
 mod native;
 pub use crate::native::*;

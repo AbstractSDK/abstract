@@ -2,8 +2,8 @@ pub use abstract_std::account_factory::{
     ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
 };
 use abstract_std::{
+    account::ModuleInstallConfig,
     account_factory::*,
-    manager::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, AccountId},
 };
 use cw_orch::{environment::Environment, interface, prelude::*};

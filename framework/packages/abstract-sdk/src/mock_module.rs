@@ -7,7 +7,7 @@ use abstract_std::{
     version_control::Account,
 };
 use abstract_testing::prelude::*;
-use cosmwasm_std::{testing::MockApi, Addr, Deps};
+use cosmwasm_std::{testing::MockApi, Deps};
 
 use crate::{
     features::{

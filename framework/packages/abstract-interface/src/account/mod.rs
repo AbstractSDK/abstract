@@ -12,7 +12,7 @@
 //! - upgrade module
 
 use abstract_std::{
-    manager::ModuleInstallConfig,
+    account::ModuleInstallConfig,
     objects::{
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
         TruncatedChainId,
@@ -26,16 +26,16 @@ use semver::{Version, VersionReq};
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
-mod manager;
+mod account;
 
 use std::collections::HashSet;
 
-use abstract_std::{manager::ManagerModuleInfo, objects::AccountId};
+use abstract_std::{account::AccountModuleInfo, objects::AccountId};
 use cw_orch::{environment::Environment, prelude::*};
 use serde::Serialize;
 use speculoos::prelude::*;
 
-pub use self::manager::*;
+pub use self::account::*;
 use crate::{get_account_contracts, VersionControl};
 
 #[derive(Clone)]
@@ -100,12 +100,12 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
     /// Note that the proxy is automatically included in the assertions.
-    /// Returns the `Vec<ManagerModuleInfo>` from the manager
+    /// Returns the `Vec<AccountModuleInfo>` from the manager
     pub fn expect_modules(
         &self,
         module_addrs: Vec<String>,
-    ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractInterfaceError> {
-        let abstract_std::manager::ModuleInfosResponse {
+    ) -> Result<Vec<AccountModuleInfo>, crate::AbstractInterfaceError> {
+        let abstract_std::account::ModuleInfosResponse {
             module_infos: manager_modules,
         } = self.account.module_infos(None, None)?;
 
@@ -140,7 +140,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn expect_whitelist(
         &self,
         whitelisted_addrs: Vec<String>,
-    ) -> Result<Vec<String>, crate::AbstractInterfaceError> {
+    ) -> Result<Vec<(String, Addr)>, crate::AbstractInterfaceError> {
         // insert manager in expected whitelisted addresses
         let expected_whitelisted_addrs = whitelisted_addrs
             .into_iter()
@@ -149,14 +149,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         // check proxy config
         let abstract_std::account::ConfigResponse {
-            modules: proxy_whitelist,
-            ..
+            modules: whitelist, ..
         } = self.account.config()?;
 
-        let actual_proxy_whitelist = HashSet::from_iter(proxy_whitelist.clone());
-        assert_eq!(actual_proxy_whitelist, expected_whitelisted_addrs);
+        let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a| a.0.clone()));
+        assert_eq!(actual_whitelist, expected_whitelisted_addrs);
 
-        Ok(proxy_whitelist)
+        Ok(whitelist)
     }
 
     /// Gets the account ID of the account.
@@ -235,7 +234,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         self.account.execute_on_module(
             abstract_std::ACCOUNT,
-            abstract_std::proxy::ExecuteMsg::IbcAction {
+            abstract_std::account::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     namespace,
@@ -306,7 +305,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         if self.account.upload_if_needed()?.is_some() {
             modules_to_register.push((
                 self.account.as_instance(),
-                ::manager::contract::CONTRACT_VERSION.to_string(),
+                ::account::contract::CONTRACT_VERSION.to_string(),
             ));
         };
 

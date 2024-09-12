@@ -1,7 +1,7 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
-use abstract_std::{manager::state::ACCOUNT_MODULES, objects::module::ModuleId};
+use abstract_std::{account::state::ACCOUNT_MODULES, objects::module::ModuleId};
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
@@ -21,8 +21,8 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
         # let deps = mock_dependencies();
+        # let module = MockModule::new(deps.api);
 
         let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
@@ -57,8 +57,8 @@ impl<'a, T: ModuleInterface> ApiIdentification for Modules<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
     # let deps = mock_dependencies();
+    # let module = MockModule::new(deps.api);
 
     let modules: Modules<MockModule>  = module.modules(deps.as_ref());
     ```

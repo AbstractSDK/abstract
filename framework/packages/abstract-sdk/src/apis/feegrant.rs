@@ -27,8 +27,8 @@ pub trait GrantInterface: AccountExecutor {
     /// use abstract_sdk::prelude::*;
     /// # use cosmwasm_std::testing::mock_dependencies;
     /// # use abstract_sdk::mock_module::MockModule;
-    /// # let module = MockModule::new();
     /// # let deps = mock_dependencies();
+    /// # let module = MockModule::new(deps.api);
 
     /// let grant: FeeGranter = module.fee_granter(deps.as_ref(), None)?;
     /// ```
@@ -37,7 +37,7 @@ pub trait GrantInterface: AccountExecutor {
         deps: cosmwasm_std::Deps<'a>,
         granter: Option<Addr>,
     ) -> AbstractSdkResult<FeeGranter> {
-        let granter = granter.unwrap_or(self.proxy_address(deps)?);
+        let granter = granter.unwrap_or(self.account(deps)?.addr().clone());
         Ok(FeeGranter { granter })
     }
 }
@@ -51,7 +51,8 @@ impl<T> GrantInterface for T where T: AccountExecutor {}
 /// use abstract_sdk::prelude::*;
 /// # use cosmwasm_std::testing::mock_dependencies;
 /// # use abstract_sdk::mock_module::MockModule;
-/// # let module = MockModule::new();
+/// # let deps = mock_dependencies();
+/// # let module = MockModule::new(deps.api);
 ///
 /// let grant: FeeGranter  = module.fee_granter(deps.as_ref(), None)?;
 /// ```

@@ -11,9 +11,8 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 
 use crate::{
-    account,
+    account::{self, ModuleInstallConfig},
     ibc_client::InstalledModuleIdentification,
-    manager::{self, ModuleInstallConfig},
     objects::{account::AccountId, module::ModuleInfo, TruncatedChainId},
 };
 
