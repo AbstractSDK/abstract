@@ -271,6 +271,9 @@ pub fn replace_adapter(
     Ok(msgs)
 }
 
+/// Generate message for upgrading account
+///
+/// Safety: Account cannot be upgraded to contract that is not confirmed by version control
 pub(crate) fn self_upgrade_msg(
     deps: DepsMut,
     self_addr: &Addr,
