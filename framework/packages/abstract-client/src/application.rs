@@ -78,7 +78,7 @@ impl<Chain: CwEnv, M: RegisteredModule + MigratableContract> Application<Chain, 
     pub fn upgrade(&self, migrate_msg: Option<&M::MigrateMsg>) -> AbstractClientResult<()> {
         let module = ModuleInfo::from_id(M::module_id(), M::module_version().into())?;
         if !self.account.module_version_installed(module.clone())? {
-            self.account.abstr_account.account.upgrade(vec![(
+            self.account.abstr_account.upgrade(vec![(
                 module,
                 migrate_msg.map(|msg| to_json_binary(msg).unwrap()),
             )])?;
@@ -93,7 +93,7 @@ impl<Chain: CwEnv, M: ContractInstance<Chain>> Application<Chain, M> {
         for module_id in adapter_ids {
             self.account
                 .abstr_account
-                .account
+                
                 .update_adapter_authorized_addresses(module_id, vec![self.addr_str()?], vec![])?;
         }
         Ok(())

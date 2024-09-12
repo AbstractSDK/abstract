@@ -38,31 +38,20 @@ use speculoos::prelude::*;
 use std::collections::HashSet;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct Account<Chain>;
+pub struct AccountI<Chain>;
 
-pub struct AbstractAccount<Chain>(pub Account<Chain>);
-
-impl<Chain: CwEnv> AbstractAccount<Chain> {
-    pub fn new(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
-        Self(get_account_contracts(
-            &abstract_deployment.version_control,
-            account_id,
-        ))
+impl<Chain: CwEnv> AccountI<Chain> {
+    pub fn load_from(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
+        get_account_contracts(&abstract_deployment.version_control, account_id)
     }
 
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
         let manager_id = format!("{ACCOUNT}-{account_id}");
-        Self(Account::new(manager_id, chain))
+        Self::new(manager_id, chain)
     }
 }
 
-impl<Chain: CwEnv> AsRef<Account<Chain>> for AbstractAccount<Chain> {
-    fn as_ref(&self) -> &Account<Chain> {
-        &self.0
-    }
-}
-
-impl<Chain: CwEnv> Uploadable for Account<Chain> {
+impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
     fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
@@ -82,13 +71,13 @@ impl<Chain: CwEnv> Uploadable for Account<Chain> {
 }
 
 // Module related operations
-impl<Chain: CwEnv> AbstractAccount<Chain> {
+impl<Chain: CwEnv> AccountI<Chain> {
     pub fn upgrade_module<M: Serialize>(
         &self,
         module_id: &str,
         migrate_msg: &M,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        self.as_ref().upgrade(vec![(
+        self.upgrade(vec![(
             ModuleInfo::from_id(module_id, ModuleVersion::Latest)?,
             Some(to_json_binary(migrate_msg).unwrap()),
         )])?;
@@ -101,7 +90,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         funds: &[Coin],
     ) -> Result<(), crate::AbstractInterfaceError> {
         // this should check if installed?
-        self.as_ref().uninstall_module(module_id.to_string())?;
+        self.uninstall_module(module_id.to_string())?;
 
         self.install_module::<Empty>(module_id, None, funds)?;
         Ok(())
@@ -115,24 +104,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg, funds)
     }
 
-    pub fn install_modules(
-        &self,
-        modules: Vec<ModuleInstallConfig>,
-        funds: &[Coin],
-    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.as_ref()
-            .install_modules(modules, funds)
-            .map_err(Into::into)
-    }
-
     pub fn install_modules_auto(
         &self,
         modules: Vec<ModuleInstallConfig>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        let config = self.as_ref().config()?;
+        let config = self.config()?;
         let module_infos = modules.iter().map(|m| m.module.clone()).collect();
         let sim_response: SimulateInstallModulesResponse = self
-            .as_ref()
             .environment()
             .query(
                 &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
@@ -142,6 +120,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             )
             .map_err(Into::into)?;
         self.install_modules(modules, sim_response.total_required_funds.as_ref())
+            .map_err(Into::into)
     }
 
     pub fn install_module_version<M: Serialize>(
@@ -151,15 +130,14 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         init_msg: Option<&M>,
         funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.as_ref()
-            .install_modules(
-                vec![ModuleInstallConfig::new(
-                    ModuleInfo::from_id(module_id, version)?,
-                    init_msg.map(to_json_binary).transpose().unwrap(),
-                )],
-                funds,
-            )
-            .map_err(Into::into)
+        self.install_modules(
+            vec![ModuleInstallConfig::new(
+                ModuleInfo::from_id(module_id, version)?,
+                init_msg.map(to_json_binary).transpose().unwrap(),
+            )],
+            funds,
+        )
+        .map_err(Into::into)
     }
 
     /// Installs an adapter from an adapter object
@@ -213,8 +191,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         msg: impl Serialize,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        self.as_ref()
-            .exec_on_module(to_json_binary(&msg).unwrap(), module, &[])
+        self.exec_on_module(to_json_binary(&msg).unwrap(), module, &[])
             .map_err(Into::into)
     }
 
@@ -240,7 +217,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
     ) -> Result<Option<AccountModuleInfo>, crate::AbstractInterfaceError> {
-        let module_infos = self.as_ref().module_infos(None, None)?.module_infos;
+        let module_infos = self.module_infos(None, None)?.module_infos;
         let found = module_infos
             .into_iter()
             .find(|module_info| module_info.id == module_id);
@@ -253,10 +230,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: impl Into<String>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
-        Ok(self
-            .as_ref()
-            .module_addresses(vec![module_id.into()])?
-            .modules[0]
+        Ok(self.module_addresses(vec![module_id.into()])?.modules[0]
             .1
             .clone())
     }
@@ -278,13 +252,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     ) -> Result<Vec<AccountModuleInfo>, crate::AbstractInterfaceError> {
         let abstract_std::account::ModuleInfosResponse {
             module_infos: manager_modules,
-        } = self.as_ref().module_infos(None, None)?;
+        } = self.module_infos(None, None)?;
 
         // insert proxy in expected module addresses
         let expected_module_addrs = module_addrs
             .into_iter()
             .map(Addr::unchecked)
-            .chain(std::iter::once(self.as_ref().address()?))
+            .chain(std::iter::once(self.address()?))
             .collect::<HashSet<_>>();
 
         let actual_module_addrs = manager_modules
@@ -307,13 +281,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         // insert manager in expected whitelisted addresses
         let expected_whitelisted_addrs = whitelisted_addrs
             .into_iter()
-            .chain(std::iter::once(self.as_ref().address()?.into_string()))
+            .chain(std::iter::once(self.address()?.into_string()))
             .collect::<HashSet<_>>();
 
         // check proxy config
         let abstract_std::account::ConfigResponse {
             modules: whitelist, ..
-        } = self.as_ref().config()?;
+        } = self.config()?;
 
         let actual_whitelist = HashSet::from_iter(whitelist.clone());
         assert_eq!(actual_whitelist, expected_whitelisted_addrs);
@@ -323,7 +297,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 }
 
 // Remote accounts related operations
-impl<Chain: CwEnv> AbstractAccount<Chain> {
+impl<Chain: CwEnv> AccountI<Chain> {
     /// Helper to create remote accounts
     pub fn register_remote_account(
         &self,
@@ -381,7 +355,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         let response = if enabled {
             self.install_module::<Empty>(IBC_CLIENT, None, &[])?
         } else {
-            self.as_ref().uninstall_module(IBC_CLIENT.to_string())?
+            self.uninstall_module(IBC_CLIENT.to_string())?
         };
 
         Ok(response)
@@ -443,7 +417,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     }
 }
 
-impl<Chain: CwEnv> AbstractAccount<Chain> {
+impl<Chain: CwEnv> AccountI<Chain> {
     /// Register the account core contracts in the version control
     pub fn register(
         &self,
@@ -454,14 +428,14 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Gets the account ID of the account.
     pub fn id(&self) -> Result<AccountId, crate::AbstractInterfaceError> {
-        Ok(self.as_ref().config()?.account_id)
+        Ok(self.config()?.account_id)
     }
 
-    pub fn create_sub_account(
+    pub fn create_sub_account_helper(
         &self,
         account_details: AccountDetails,
         funds: &[Coin],
-    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
+    ) -> Result<AccountI<Chain>, crate::AbstractInterfaceError> {
         let AccountDetails {
             name,
             description,
@@ -471,7 +445,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             account_id,
         } = account_details;
 
-        let result = self.as_ref().create_sub_account(
+        let result = self.create_sub_account(
             install_modules,
             name,
             account_id,
@@ -481,7 +455,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             funds,
         )?;
 
-        Self::from_tx_response(self.as_ref().environment(), result)
+        Self::from_tx_response(self.environment(), result)
     }
 
     // Parse account from events
@@ -489,7 +463,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub(crate) fn from_tx_response(
         chain: &Chain,
         result: <Chain as TxHandler>::Response,
-    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
+    ) -> Result<AccountI<Chain>, crate::AbstractInterfaceError> {
         // Parse data from events
         let acc_seq = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_sequence")?;
         let trace = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "trace")?;
@@ -502,9 +476,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         // set addresses
         let account_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
-        account
-            .as_ref()
-            .set_address(&Addr::unchecked(account_address));
+        account.set_address(&Addr::unchecked(account_address));
 
         Ok(account)
     }
@@ -515,9 +487,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     ) -> Result<bool, AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
-        if self.0.upload_if_needed()?.is_some() {
+        if self.upload_if_needed()?.is_some() {
             modules_to_register.push((
-                self.as_ref().as_instance(),
+                self.as_instance(),
                 ::account::contract::CONTRACT_VERSION.to_string(),
             ));
         };
@@ -534,7 +506,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Attempts to upgrade the Account
     /// returns `true` if any migrations were performed.
-    pub fn upgrade(
+    pub fn upgrade_account(
         &self,
         abstract_deployment: &Abstract<Chain>,
     ) -> Result<bool, AbstractInterfaceError> {
@@ -545,10 +517,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             let mut sub_account_ids = vec![];
             let mut start_after = None;
             loop {
-                let sub_account_ids_page = self
-                    .as_ref()
-                    .sub_account_ids(None, start_after)?
-                    .sub_accounts;
+                let sub_account_ids_page = self.sub_account_ids(None, start_after)?.sub_accounts;
 
                 start_after = sub_account_ids_page.last().cloned();
                 if sub_account_ids_page.is_empty() {
@@ -559,8 +528,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             dbg!(&sub_account_ids);
             for sub_account_id in sub_account_ids {
                 let abstract_account =
-                    AbstractAccount::new(abstract_deployment, AccountId::local(sub_account_id));
-                if abstract_account.upgrade(abstract_deployment)? {
+                    AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id));
+                if abstract_account.upgrade_account(abstract_deployment)? {
                     one_migration_was_successful = true;
                 }
             }
@@ -583,20 +552,17 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
     ) -> Result<Option<Chain::Response>, AbstractInterfaceError> {
-        let chain = self.as_ref().environment().clone();
+        let chain = self.environment().clone();
 
         // We start by getting the current module version
         let current_cw2_module_version: ContractVersion = if module_id == ACCOUNT {
             let current_account_version = chain
                 .wasm_querier()
-                .raw_query(&self.as_ref().address()?, CONTRACT.as_slice().to_vec())
+                .raw_query(&self.address()?, CONTRACT.as_slice().to_vec())
                 .unwrap();
             from_json(current_account_version)?
         } else {
-            self.as_ref()
-                .module_versions(vec![module_id.to_string()])?
-                .versions[0]
-                .clone()
+            self.module_versions(vec![module_id.to_string()])?.versions[0].clone()
         };
         let current_module_version = Version::parse(&current_cw2_module_version.version)?;
 
@@ -667,7 +633,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         };
 
         // Actual upgrade to the next version
-        Some(self.as_ref().upgrade(vec![(
+        Some(self.upgrade(vec![(
             ModuleInfo::from_id(
                 module_id,
                 ModuleVersion::Version(selected_version.to_string()),
@@ -682,7 +648,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         namespace: impl Into<String>,
     ) -> Result<Chain::Response, AbstractInterfaceError> {
-        let abstr = Abstract::load_from(self.as_ref().environment().clone())?;
+        let abstr = Abstract::load_from(self.environment().clone())?;
         abstr
             .version_control
             .claim_namespace(self.id()?, namespace.into())
@@ -690,14 +656,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     }
 }
 
-impl<Chain: CwEnv> std::fmt::Display for AbstractAccount<Chain> {
+impl<Chain: CwEnv> std::fmt::Display for AccountI<Chain> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "Account: {:?} ({:?})",
-            self.as_ref().id(),
-            self.as_ref()
-                .addr_str()
+            self.id(),
+            self.addr_str()
                 .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
         )
     }

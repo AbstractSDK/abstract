@@ -8,7 +8,7 @@ use abstract_std::{
 };
 use cw_orch::{environment::Environment, interface, prelude::*};
 
-use crate::AbstractAccount;
+use crate::AccountI;
 
 /// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
 #[derive(Default)]
@@ -52,7 +52,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
         account_details: AccountDetails,
         governance_details: GovernanceDetails<String>,
         funds: &[Coin],
-    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
+    ) -> Result<AccountI<Chain>, crate::AbstractInterfaceError> {
         let AccountDetails {
             name,
             link,
@@ -75,13 +75,13 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             funds,
         )?;
 
-        AbstractAccount::from_tx_response(self.environment(), result)
+        AccountI::from_tx_response(self.environment(), result)
     }
 
     pub fn create_default_account(
         &self,
         governance_details: GovernanceDetails<String>,
-    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
+    ) -> Result<AccountI<Chain>, crate::AbstractInterfaceError> {
         self.create_new_account(
             AccountDetails {
                 name: "Default Abstract Account".into(),

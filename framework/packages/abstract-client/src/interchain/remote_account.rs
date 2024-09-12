@@ -4,7 +4,7 @@
 //!
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, DependencyCreation, IbcClient, InstallConfig,
+    Abstract, AccountDetails, AccountI, DependencyCreation, IbcClient, InstallConfig,
     ManagerQueryFns as _, RegisteredModule, VCQueryFns as _,
 };
 use abstract_std::{
@@ -86,7 +86,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name =
-                TruncatedChainId::from_chain_id(&owner_account.account.environment().chain_id());
+                TruncatedChainId::from_chain_id(&owner_account.environment().chain_id());
             id.push_chain(chain_name);
             id
         };
@@ -183,7 +183,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name = TruncatedChainId::from_chain_id(
-                &owner_account.abstr_account.account.environment().chain_id(),
+                &owner_account.abstr_account.environment().chain_id(),
             );
             id.push_chain(chain_name);
             id
@@ -206,7 +206,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
 /// Any execution done on remote account done through source chain
 #[derive(Clone)]
 pub struct RemoteAccount<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> {
-    pub(crate) abstr_owner_account: AbstractAccount<Chain>,
+    pub(crate) abstr_owner_account: AccountI<Chain>,
     remote_account_id: AccountId,
     host_chain: Chain,
     ibc_env: &'a IBC,
@@ -214,7 +214,7 @@ pub struct RemoteAccount<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> 
 
 impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Chain, IBC> {
     pub(crate) fn new(
-        abstr_owner_account: AbstractAccount<Chain>,
+        abstr_owner_account: AccountI<Chain>,
         remote_account_id: AccountId,
         host_chain: Chain,
         ibc_env: &'a IBC,
@@ -242,7 +242,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     fn origin_chain(&self) -> Chain {
-        self.abstr_owner_account.account.environment().clone()
+        self.abstr_owner_account.environment().clone()
     }
 
     /// Address of the account (proxy)
@@ -372,7 +372,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
         self.abstr_owner_account
-            .account
             .top_level_owner()
             .map(|tlo| tlo.address)
             .map_err(Into::into)
@@ -533,10 +532,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msg = account::ExecuteMsg::IbcAction { msg: exec_msg };
 
-        let tx_response = self
-            .abstr_owner_account
-            .account
-            .execute_on_module(ACCOUNT, msg)?;
+        let tx_response = self.abstr_owner_account.execute_on_module(ACCOUNT, msg)?;
         let packets = self
             .ibc_env
             .await_packets(&self.origin_chain().chain_id(), tx_response)

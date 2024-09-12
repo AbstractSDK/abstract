@@ -12,7 +12,7 @@ use abstract_std::{
 };
 use cw_orch::{contract::Contract, interface, prelude::*};
 
-use crate::AbstractAccount;
+use crate::AccountI;
 
 type VersionString = String;
 
@@ -191,9 +191,9 @@ impl<Chain: CwEnv> VersionControl<Chain> {
 
     pub fn register_base(
         &self,
-        account: &AbstractAccount<Chain>,
+        account: &AccountI<Chain>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let account = account.0.as_instance();
+        let account = account.as_instance();
         let account_module = (
             ModuleInfo::from_id(
                 &account.id,

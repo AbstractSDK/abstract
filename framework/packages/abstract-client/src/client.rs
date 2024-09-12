@@ -29,7 +29,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AnsHost, IbcClient, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AccountI, AnsHost, IbcClient, ManagerQueryFns, RegisteredModule, VCQueryFns,
     VersionControl,
 };
 use abstract_std::objects::{
@@ -192,8 +192,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 }
             }
             AccountSource::AccountId(account_id) => {
-                let abstract_account: AbstractAccount<Chain> =
-                    AbstractAccount::new(&self.abstr, account_id.clone());
+                let abstract_account = AccountI::load_from(&self.abstr, account_id.clone());
                 Ok(Account::new(abstract_account, true))
             }
             AccountSource::App(app) => {
@@ -214,8 +213,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                     )
                     .map_err(Into::into)?;
                 // This function verifies the account-id is valid and returns an error if not.
-                let abstract_account: AbstractAccount<Chain> =
-                    AbstractAccount::new(&self.abstr, manager_config.account_id);
+                let abstract_account = AccountI::load_from(&self.abstr, manager_config.account_id);
                 Ok(Account::new(abstract_account, true))
             }
         }
@@ -282,8 +280,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             };
 
             // only take accounts that the current sender owns
-            let account = AbstractAccount::new(&self.abstr, account_id.clone());
-            if account.account.top_level_owner()?.address != self.environment().sender_addr() {
+            let account = AccountI::load_from(&self.abstr, account_id.clone());
+            if account.top_level_owner()?.address != self.environment().sender_addr() {
                 continue;
             }
 
