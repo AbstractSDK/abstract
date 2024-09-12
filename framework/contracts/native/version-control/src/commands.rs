@@ -20,7 +20,7 @@ use abstract_std::{
         validation::validate_link,
         ABSTRACT_ACCOUNT_ID,
     },
-    version_control::{ModuleDefaultConfiguration, UpdateModule},
+    version_control::{state::LOCAL_ACCOUNT_SEQUENCE, ModuleDefaultConfiguration, UpdateModule},
     ACCOUNT, IBC_HOST,
 };
 use cosmwasm_std::{

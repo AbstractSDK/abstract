@@ -26,7 +26,7 @@ use semver::{Version, VersionReq};
 
 use crate::{Abstract, AbstractInterfaceError, AdapterDeployer};
 
-mod manager;
+mod account;
 
 use std::collections::HashSet;
 
@@ -35,7 +35,7 @@ use cw_orch::{environment::Environment, prelude::*};
 use serde::Serialize;
 use speculoos::prelude::*;
 
-pub use self::manager::*;
+pub use self::account::*;
 use crate::{get_account_contracts, VersionControl};
 
 /// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
@@ -151,7 +151,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn expect_whitelist(
         &self,
         whitelisted_addrs: Vec<String>,
-    ) -> Result<Vec<String>, crate::AbstractInterfaceError> {
+    ) -> Result<Vec<(String, Addr)>, crate::AbstractInterfaceError> {
         // insert manager in expected whitelisted addresses
         let expected_whitelisted_addrs = whitelisted_addrs
             .into_iter()
@@ -163,7 +163,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             modules: whitelist, ..
         } = self.account.config()?;
 
-        let actual_whitelist = HashSet::from_iter(whitelist.clone());
+        let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a| a.0.clone()));
         assert_eq!(actual_whitelist, expected_whitelisted_addrs);
 
         Ok(whitelist)

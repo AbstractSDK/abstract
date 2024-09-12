@@ -1,3 +1,4 @@
+// TODO: make private what we can and write module-level documentation
 pub mod actions;
 pub mod config;
 pub mod contract;

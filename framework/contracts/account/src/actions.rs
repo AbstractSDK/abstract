@@ -13,6 +13,21 @@ use crate::{
     error::AccountError,
 };
 
+/// Executes `Vec<CosmosMsg>` on the proxy.
+/// Permission: Module
+pub fn execute_module_action(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    msgs: Vec<CosmosMsg<Empty>>,
+) -> AccountResult {
+    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
+    if !whitelisted_modules.0.contains(&msg_info.sender) {
+        return Err(AccountError::SenderNotWhitelisted {});
+    }
+
+    Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
+}
+
 /// Executes `CosmosMsg` on the proxy and forwards its response.
 /// Permission: Module
 pub fn execute_module_action_response(
@@ -28,21 +43,6 @@ pub fn execute_module_action_response(
     let submsg = SubMsg::reply_on_success(msg, RESPONSE_REPLY_ID);
 
     Ok(AccountResponse::action("execute_module_action_response").add_submessage(submsg))
-}
-
-/// Executes `Vec<CosmosMsg>` on the proxy.
-/// Permission: Module
-pub fn execute_module_action(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    msgs: Vec<CosmosMsg<Empty>>,
-) -> AccountResult {
-    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if !whitelisted_modules.0.contains(&msg_info.sender) {
-        return Err(AccountError::SenderNotWhitelisted {});
-    }
-
-    Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
 
 /// Executes IBC actions on the IBC client.

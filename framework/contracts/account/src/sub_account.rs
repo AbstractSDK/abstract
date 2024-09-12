@@ -1,4 +1,3 @@
-use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
         state::{ACCOUNT_ID, CONFIG, SUB_ACCOUNTS},
