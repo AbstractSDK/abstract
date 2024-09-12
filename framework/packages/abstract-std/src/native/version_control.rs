@@ -71,7 +71,7 @@ pub mod state {
 }
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Storage};
+use cosmwasm_std::{Addr, Api, Coin, Storage};
 use cw_clearable::Clearable;
 
 use self::state::{MODULE_CONFIG, MODULE_DEFAULT_CONFIG};
@@ -84,19 +84,34 @@ use crate::objects::{
 
 /// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
-pub struct Account(Addr);
+pub struct Account<T = Addr>(T);
 
-impl Account {
-    pub fn new(addr: Addr) -> Self {
+impl<T> Account<T> {
+    pub fn new(addr: T) -> Self {
         Self(addr)
     }
+}
 
+impl Account<String> {
+    pub fn verify(self, api: &dyn Api) -> cosmwasm_std::StdResult<Account<Addr>> {
+        let addr = api.addr_validate(&self.0)?;
+        Ok(Account(addr))
+    }
+}
+
+impl Account {
     pub fn addr(&self) -> &Addr {
         &self.0
     }
 
     pub fn into_addr(self) -> Addr {
         self.0
+    }
+}
+
+impl From<Account<Addr>> for Account<String> {
+    fn from(addr: Account<Addr>) -> Self {
+        Account(addr.0.to_string())
     }
 }
 
@@ -152,14 +167,11 @@ pub enum ExecuteMsg {
     /// Claims namespace if provided.  
     /// Only new accounts can call this.
     AddAccount {
-        account_id: AccountId,
-        account_base: Account,
         namespace: Option<String>,
+        creator: String,
     },
     /// Updates configuration of the VC contract
     UpdateConfig {
-        /// Address of the account factory
-        account_factory_address: Option<String>,
         /// Whether the contract allows direct module registration
         security_disabled: Option<bool>,
         /// The fee charged when registering a namespace
@@ -201,9 +213,9 @@ pub struct ModuleFilter {
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Query Core of an Account
-    /// Returns [`AccountBaseResponse`]
-    #[returns(AccountBaseResponse)]
-    AccountBase { account_id: AccountId },
+    /// Returns [`AccountResponse`]
+    #[returns(AccountResponse)]
+    Account { account_id: AccountId },
     /// Queries module information
     /// Modules that are yanked are not returned
     /// Returns [`ModulesResponse`]
@@ -236,7 +248,7 @@ pub enum QueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AccountBaseResponse {
+pub struct AccountResponse {
     pub account_base: Account,
 }
 

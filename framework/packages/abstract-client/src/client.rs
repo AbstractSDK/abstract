@@ -305,7 +305,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             if self
                 .abstr
                 .version_control
-                .account_base(potential_account_id)
+                .account(potential_account_id)
                 .is_err()
             {
                 return Ok(random_sequence);
@@ -340,8 +340,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         let wasm_querier = self.environment().wasm_querier();
         let module = self.version_control().module(module_info)?;
         let (code_id, creator) = match module.reference {
-            // If AccountBase - account factory is creator
-            ModuleReference::AccountBase(id) => (id, self.abstr.account_factory.addr_str()?),
+            // If Account - account factory is creator
+            ModuleReference::Account(id) => (id, self.abstr.account_factory.addr_str()?),
             // Else module factory is creator
             ModuleReference::App(id) | ModuleReference::Standalone(id) => {
                 (id, self.abstr.module_factory.addr_str()?)
