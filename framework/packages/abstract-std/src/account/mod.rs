@@ -113,7 +113,6 @@ pub struct InstantiateMsg {
     // TODO: Compute these using instantiate2.
     pub module_factory_address: String,
     pub version_control_address: String,
-    pub ans_host_address: String,
 }
 
 /// Callback message to set the dependencies after module upgrades.

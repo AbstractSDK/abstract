@@ -149,7 +149,7 @@ pub fn execute_create_account(
 
     // Get code_ids
     let account_code_id =
-        if let ModuleReference::AccountBase(account_code_id) = account_module.reference.clone() {
+        if let ModuleReference::Account(account_code_id) = account_module.reference.clone() {
             account_code_id
         } else {
             return Err(AccountFactoryError::WrongModuleKind(
@@ -182,9 +182,8 @@ pub fn execute_create_account(
         contract_addr: config.version_control_contract.to_string(),
         funds: funds_for_namespace_fee,
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
-            account_id: context.account_id.clone(),
-            account_base: context.account_base,
             namespace: namespace.clone(),
+            creator: info.sender.to_string(),
         })?,
     });
 
@@ -240,7 +239,6 @@ pub fn execute_create_account(
                 link,
                 install_modules,
                 namespace,
-                ans_host_address: config.ans_host_contract.into_string(),
             })?,
             salt,
         },

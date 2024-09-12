@@ -564,7 +564,7 @@ mod tests {
             )?;
 
             let action = HostAction::Dispatch {
-                manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
+                account_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                     name: None,
                     description: None,
                     link: None,

@@ -134,7 +134,7 @@ impl VersionControlContract {
     }
 
     /// Queries the account that owns the namespace
-    /// Is also returns the base modules of that account (AccountBase)
+    /// Is also returns the base modules of that account (Account)
     #[function_name::named]
     pub fn query_namespace(
         &self,

@@ -108,4 +108,7 @@ pub enum AccountError {
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
+
+    #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
+    SubAccountCreatorNotAccount { caller: String, account: String },
 }
