@@ -26,7 +26,7 @@ use semver::{Version, VersionReq};
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
-mod manager;
+mod account;
 
 use std::collections::HashSet;
 
@@ -35,7 +35,7 @@ use cw_orch::{environment::Environment, prelude::*};
 use serde::Serialize;
 use speculoos::prelude::*;
 
-pub use self::manager::*;
+pub use self::account::*;
 use crate::{get_account_contracts, VersionControl};
 
 #[derive(Clone)]
