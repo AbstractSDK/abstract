@@ -490,7 +490,7 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name,
                 action: HostAction::Dispatch {
-                    manager_msgs: vec![account::ExecuteMsg::UpdateInfo {
+                    account_msgs: vec![account::ExecuteMsg::UpdateInfo {
                         name: None,
                         description: None,
                         link: None,

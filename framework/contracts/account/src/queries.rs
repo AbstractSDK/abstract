@@ -52,7 +52,7 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
         version_control_address,
         module_factory_address,
         modules: ACCOUNT_MODULES
-            .keys(deps.storage, None, None, Order::Ascending)
+            .range(deps.storage, None, None, Order::Ascending)
             .collect::<Result<_, _>>()?,
     })
 }
