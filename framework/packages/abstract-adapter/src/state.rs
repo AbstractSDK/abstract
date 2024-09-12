@@ -88,7 +88,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     /// Return the address of the proxy for the Account associated with this Adapter.
     /// Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, AdapterError> {
-        Ok(&self
+        Ok(self
             .target_account
             .as_ref()
             .ok_or_else(|| StdError::generic_err("No target Account specified to execute on."))?

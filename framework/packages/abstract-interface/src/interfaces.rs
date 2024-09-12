@@ -3,7 +3,7 @@ use abstract_std::{
 };
 use cw_orch::{environment::Environment, prelude::*};
 
-use crate::{Account, AnsHost, IbcClient, IbcHost, ModuleFactory, VersionControl};
+use crate::{AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, VersionControl};
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: CwEnv>(
@@ -21,13 +21,13 @@ where
 pub fn get_account_contracts<Chain: CwEnv>(
     version_control: &VersionControl<Chain>,
     account_id: AccountId,
-) -> Account<Chain>
+) -> AccountI<Chain>
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let chain = version_control.environment().clone();
 
-    let account = Account::new_from_id(&account_id, chain.clone());
+    let account = AccountI::new_from_id(&account_id, chain.clone());
 
     let account_base = version_control.get_account(account_id.clone()).unwrap();
     account.set_address(account_base.addr());
