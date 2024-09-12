@@ -361,7 +361,6 @@ mod tests {
                 },
                 version_control_address: abstr.version_control.to_string(),
                 module_factory_address: abstr.module_factory.to_string(),
-                ans_host_address: abstr.ans_host.to_string(),
                 namespace: None,
                 name: "test".to_string(),
                 description: None,
@@ -375,8 +374,7 @@ mod tests {
         let expected_msg: CosmosMsg = wasm_execute(
             abstr.version_control,
             &abstract_std::version_control::ExecuteMsg::AddAccount {
-                account_id: AccountId::new(1, AccountTrace::Local).unwrap(),
-                account: Account::new(Addr::unchecked("cosmos2contract")),
+                creator: abstr.owner.to_string(),
                 namespace: None,
             },
             vec![],
