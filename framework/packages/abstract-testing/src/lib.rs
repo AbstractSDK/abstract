@@ -6,14 +6,14 @@ pub(crate) mod mock_querier;
 use abstract_std::account::{ConfigResponse as AccountConfigResponse, QueryMsg as AccountQueryMsg};
 use abstract_std::objects::ABSTRACT_ACCOUNT_ID;
 use abstract_std::{
-    manager::state::ACCOUNT_MODULES,
+    account::state::ACCOUNT_ID,
+    account::state::ACCOUNT_MODULES,
     objects::{
         account::TEST_ACCOUNT_ID,
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         ownership,
     },
-    proxy::state::ACCOUNT_ID,
     version_control::state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES},
     ACCOUNT,
 };

@@ -36,6 +36,7 @@ dependencies = [
  "serde",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -407,6 +408,7 @@ dependencies = [
  "serde_json",
  "speculoos",
  "thiserror",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -7760,7 +7762,6 @@ dependencies = [
 name = "workspace-hack"
 version = "0.1.0"
 dependencies = [
- "abstract-polytone-note",
  "ahash 0.8.11",
  "aho-corasick",
  "anstream",

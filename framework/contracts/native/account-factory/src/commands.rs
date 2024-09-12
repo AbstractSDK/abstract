@@ -239,7 +239,6 @@ pub fn execute_create_account(
                 link,
                 install_modules,
                 namespace,
-                ans_host_address: config.ans_host_contract.into_string(),
             })?,
             salt,
         },

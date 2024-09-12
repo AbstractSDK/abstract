@@ -11,6 +11,7 @@ use abstract_sdk::{
     },
 };
 use abstract_std::{
+    account::state::ACCOUNT_ID,
     account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     objects::{
         account::AccountTrace,
@@ -20,7 +21,6 @@ use abstract_std::{
         validation::validate_link,
         ABSTRACT_ACCOUNT_ID,
     },
-    proxy::state::ACCOUNT_ID,
     version_control::{ModuleDefaultConfiguration, UpdateModule},
     ACCOUNT, IBC_HOST,
 };
@@ -63,23 +63,22 @@ pub fn add_account(
         VCError::AccountAlreadyExists(account_id)
     );
 
-     // verify code-id of sender
-     let sender_contract_info = deps.querier.query_wasm_contract_info(&msg_info.sender)?;
+    // verify code-id of sender
+    let sender_contract_info = deps.querier.query_wasm_contract_info(&msg_info.sender)?;
 
-     let account_code_id = REGISTERED_MODULES
-     .load(deps.storage, &acc_module_info)?
-     .unwrap_account()?;
+    let account_code_id = REGISTERED_MODULES
+        .load(deps.storage, &acc_module_info)?
+        .unwrap_account()?;
 
-     ensure_eq!(
-         account_code_id,
-         sender_contract_info.code_id,
-         VCError::NotAccountCodeId {
-             account_info: acc_module_info,
-             expected_code_id: account_code_id,
-             actual_code_id: sender_contract_info.code_id
-         }
-     );
-    
+    ensure_eq!(
+        account_code_id,
+        sender_contract_info.code_id,
+        VCError::NotAccountCodeId {
+            account_info: acc_module_info,
+            expected_code_id: account_code_id,
+            actual_code_id: sender_contract_info.code_id
+        }
+    );
 
     // provided and smaller, assert is eq to sequence
     // provided and larger, just register

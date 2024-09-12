@@ -36,7 +36,7 @@ abstract-macros = { workspace = true }
 abstract-ica = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 cw20 = { workspace = true }

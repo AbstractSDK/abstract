@@ -14,7 +14,6 @@ publish = false
 
 ### BEGIN HAKARI SECTION
 [dependencies]
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2", default-features = false, features = ["library"] }
 anstream = { version = "0.6" }
 anyhow = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
@@ -30,7 +29,6 @@ semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["alloc", "derive"] }
 
 [build-dependencies]
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2", default-features = false, features = ["library"] }
 anstream = { version = "0.6" }
 anyhow = { version = "1" }
 bytes = { version = "1", features = ["serde"] }

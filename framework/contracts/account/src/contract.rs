@@ -5,7 +5,6 @@ use abstract_sdk::std::{
     ACCOUNT,
 };
 use abstract_std::{
-    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     account::{
         state::{
             AccountInfo, Config, WhitelistedModules, CONFIG, INFO, SUSPENSION_STATUS,
@@ -13,17 +12,17 @@ use abstract_std::{
         },
         ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
     },
+    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     objects::{
         gov_type::GovernanceDetails,
         ownership::{self, GovOwnershipError},
         AccountId,
     },
-    proxy::state::STATE,
     version_control::Account,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult,
+    StdError, StdResult, SubMsgResult,
 };
 
 pub use crate::migrate::migrate;
