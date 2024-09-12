@@ -12,7 +12,6 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account::state::ACCOUNT_ID,
-    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     objects::{
         account::AccountTrace,
         fee::FixedFee,

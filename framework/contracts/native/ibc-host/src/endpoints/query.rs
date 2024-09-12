@@ -34,7 +34,7 @@ fn config(deps: Deps) -> HostResult<ConfigResponse> {
     let state = CONFIG.load(deps.storage)?;
     Ok(ConfigResponse {
         ans_host_address: state.ans_host.address,
-        account_factory_address: state.account_factory,
+        module_factory_address: state.module_factory_addr,
         version_control_address: state.version_control.address,
     })
 }

@@ -346,9 +346,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         };
         let abstract_account = match self.owner_account {
             None => {
-                self.abstr
-                    .account_factory
-                    .create_new_account(account_details, ownership, &funds)?
+                // https://github.com/AbstractSDK/abstract/pull/446#discussion_r1756768435
+                todo!()
             }
             Some(owner_account) => owner_account
                 .abstr_account
@@ -855,7 +854,6 @@ impl<Chain: CwEnv> Account<Chain> {
         let sub_account_response = self.abstr_account.account.create_sub_account(
             modules,
             "Sub Account".to_owned(),
-            None,
             None,
             None,
             None,

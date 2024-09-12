@@ -1,3 +1,4 @@
+use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
         state::{ACCOUNT_ID, CONFIG, SUB_ACCOUNTS},
@@ -10,7 +11,9 @@ use abstract_std::{
         AccountId,
     },
 };
-use cosmwasm_std::{wasm_execute, Attribute, CosmosMsg, DepsMut, Empty, Env, MessageInfo};
+use cosmwasm_std::{
+    wasm_execute, wasm_instantiate, Attribute, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+};
 
 use crate::{
     contract::{AccountResponse, AccountResult},
@@ -28,36 +31,40 @@ pub fn create_sub_account(
     link: Option<String>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
-    account_id: Option<u32>,
 ) -> AccountResult {
     // only owner can create a subaccount
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+    let config = CONFIG.load(deps.storage)?;
+    let seq = abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE
+        .query(&deps.querier, config.version_control_address.clone())?;
+    let account_id = AccountId::local(seq);
 
-    let create_account_msg = &abstract_std::account_factory::ExecuteMsg::CreateAccount {
-        // proxy of this manager will be the account owner
-        governance: GovernanceDetails::SubAccount {
+    let self_code_id = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?
+        .code_id;
+
+    let create_account_msg = abstract_std::account::InstantiateMsg {
+        account_id: None,
+        owner: GovernanceDetails::SubAccount {
             account: env.contract.address.into_string(),
         },
+        namespace,
+        install_modules,
         name,
         description,
         link,
-        namespace,
-        install_modules,
-        account_id: account_id.map(AccountId::local),
+        module_factory_address: config.module_factory_address.to_string(),
+        version_control_address: config.version_control_address.to_string(),
     };
 
-    let account_factory_addr = query_module(
-        deps.as_ref(),
-        ModuleInfo::from_id_latest(abstract_std::ACCOUNT_FACTORY)?,
-        None,
-    )?
-    .module
-    .reference
-    .unwrap_native()?;
-
     // Call factory and attach all funds that were provided.
-    let account_creation_message =
-        wasm_execute(account_factory_addr, create_account_msg, info.funds)?;
+    let account_creation_message = wasm_instantiate(
+        self_code_id,
+        &create_account_msg,
+        info.funds,
+        account_id.to_string(),
+    )?;
 
     let response = AccountResponse::new::<_, Attribute>("create_sub_account", vec![])
         .add_message(account_creation_message);

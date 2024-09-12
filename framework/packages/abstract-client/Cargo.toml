@@ -56,7 +56,6 @@ cw-asset.workspace = true
 cw-controllers.workspace = true
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
-account-factory.workspace = true
 anyhow.workspace = true
 cosmwasm-schema.workspace = true
 cw-storage-plus.workspace = true

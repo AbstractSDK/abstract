@@ -24,7 +24,7 @@ use cosmwasm_std::{from_json, to_json_binary};
 use cw2::{ContractVersion, CONTRACT};
 use semver::{Version, VersionReq};
 
-use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
+use crate::{Abstract, AbstractInterfaceError, AdapterDeployer};
 
 mod manager;
 
@@ -37,6 +37,17 @@ use speculoos::prelude::*;
 
 pub use self::manager::*;
 use crate::{get_account_contracts, VersionControl};
+
+/// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
+#[derive(Default)]
+pub struct AccountDetails {
+    pub name: String,
+    pub description: Option<String>,
+    pub link: Option<String>,
+    pub namespace: Option<String>,
+    pub install_modules: Vec<ModuleInstallConfig>,
+    pub account_id: Option<u32>,
+}
 
 #[derive(Clone)]
 pub struct AbstractAccount<Chain: CwEnv> {
@@ -265,7 +276,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 link,
                 namespace,
                 install_modules,
-                account_id,
             },
             funds,
         )?;

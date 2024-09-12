@@ -3,16 +3,15 @@ use abstract_sdk::{
     Resolve,
 };
 use abstract_std::{
-    account,
-    account::ModuleInstallConfig,
-    account_factory,
+    account::{self, ModuleInstallConfig},
     ibc_host::state::CONFIG,
-    objects::{AccountId, TruncatedChainId},
+    objects::{module::ModuleInfo, module_reference::ModuleReference, AccountId, TruncatedChainId},
     version_control::Account,
     ACCOUNT,
 };
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
+    to_json_binary, wasm_execute, wasm_instantiate, CosmosMsg, Deps, DepsMut, Env, IbcMsg,
+    Response, SubMsg,
 };
 
 use crate::{
@@ -42,11 +41,24 @@ pub fn receive_register(
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
 
+    let account_module_info = ModuleInfo::from_id_latest(ACCOUNT)?;
+    let ModuleReference::Account(code_id) = cfg
+        .version_control
+        .query_module(account_module_info.clone(), &deps.querier)?
+        .reference
+    else {
+        return Err(HostError::VersionControlError(
+            abstract_std::objects::version_control::VersionControlError::InvalidReference(
+                account_module_info,
+            ),
+        ));
+    };
+
     // create the message to instantiate the remote account
-    let factory_msg = wasm_execute(
-        cfg.account_factory,
-        &account_factory::ExecuteMsg::CreateAccount {
-            governance: abstract_std::objects::gov_type::GovernanceDetails::External {
+    let factory_msg = wasm_instantiate(
+        code_id,
+        &account::InstantiateMsg {
+            owner: abstract_std::objects::gov_type::GovernanceDetails::External {
                 governance_address: env.contract.address.into_string(),
                 governance_type: "abstract-ibc".into(), // at least 4 characters
             },
@@ -57,8 +69,11 @@ pub fn receive_register(
             account_id: Some(account_id.clone()),
             install_modules,
             namespace,
+            module_factory_address: cfg.module_factory_addr.to_string(),
+            version_control_address: cfg.version_control.address.to_string(),
         },
         vec![],
+        format!("Account: {account_id}"),
     )?;
 
     // If we were ordered to have a reply after account creation

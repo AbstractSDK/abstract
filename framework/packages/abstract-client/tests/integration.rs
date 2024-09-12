@@ -27,7 +27,8 @@ use abstract_std::{
     },
     objects::{
         dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
-        module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
+        module_version::ModuleDataResponse, namespace::Namespace, version_control, AccountId,
+        AssetEntry,
     },
     IBC_CLIENT,
 };

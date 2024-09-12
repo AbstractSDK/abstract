@@ -35,7 +35,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         self.host.instantiate(
             &abstract_std::ibc_host::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
-                account_factory_address: abstr.account_factory.addr_str()?,
+                module_factory_address: abstr.module_factory.addr_str()?,
                 version_control_address: abstr.version_control.addr_str()?,
             },
             Some(admin),

@@ -12,13 +12,12 @@ use abstract_std::{
         },
         ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
     },
-    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     objects::{
         gov_type::GovernanceDetails,
         ownership::{self, GovOwnershipError},
         AccountId,
     },
-    version_control::Account,
+    version_control::{state::LOCAL_ACCOUNT_SEQUENCE, Account},
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
@@ -232,7 +231,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     link,
                     namespace,
                     install_modules,
-                    account_id,
                 } => create_sub_account(
                     deps,
                     info,
@@ -242,7 +240,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     link,
                     namespace,
                     install_modules,
-                    account_id,
                 )
                 .map_err(AccountError::from),
                 ExecuteMsg::Upgrade { modules } => {

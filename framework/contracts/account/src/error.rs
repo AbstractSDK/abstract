@@ -71,9 +71,6 @@ pub enum AccountError {
     #[error("module {0} is a dependency of {1} and is not installed.")]
     DependencyNotMet(String, String),
 
-    #[error("The provided module {0} has an invalid module reference.")]
-    InvalidReference(ModuleInfo),
-
     #[error("Max amount of modules registered")]
     ModuleLimitReached,
 

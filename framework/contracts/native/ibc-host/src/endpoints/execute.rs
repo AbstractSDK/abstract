@@ -15,14 +15,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
     match msg {
         ExecuteMsg::UpdateConfig {
             ans_host_address,
-            account_factory_address,
+            module_factory_address,
             version_control_address,
         } => update_config(
             deps,
             info,
             ans_host_address,
             version_control_address,
-            account_factory_address,
+            module_factory_address,
         ),
         ExecuteMsg::RegisterChainProxy { chain, proxy } => {
             register_chain_proxy(deps, info, chain, proxy)
@@ -62,7 +62,7 @@ fn update_config(
     info: MessageInfo,
     ans_host_address: Option<String>,
     version_control_address: Option<String>,
-    account_factory_address: Option<String>,
+    module_factory_address: Option<String>,
 ) -> HostResult {
     let mut config = CONFIG.load(deps.storage)?;
 
@@ -79,9 +79,9 @@ fn update_config(
             VersionControlContract::new(deps.api.addr_validate(&version_control_address)?);
     }
 
-    if let Some(account_factory_address) = account_factory_address {
+    if let Some(module_factory_address) = module_factory_address {
         // validate address format
-        config.account_factory = deps.api.addr_validate(&account_factory_address)?;
+        config.module_factory_addr = deps.api.addr_validate(&module_factory_address)?;
     }
 
     CONFIG.save(deps.storage, &config)?;

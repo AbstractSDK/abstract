@@ -14,10 +14,7 @@ use cw_orch::{environment::Environment, prelude::*};
 impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
     pub fn migrate_if_needed(&self) -> Result<bool, crate::AbstractInterfaceError> {
-        // start with factories
-        let account_factory = self
-            .account_factory
-            .upload_and_migrate_if_needed(&account_factory::MigrateMsg {})?;
+        // start with factory
         let module_factory = self
             .module_factory
             .upload_and_migrate_if_needed(&module_factory::MigrateMsg {})?;
@@ -53,20 +50,6 @@ impl<T: CwEnv> Abstract<T> {
         let mut has_migrated = false;
         let mut natives_to_register = vec![];
 
-        if ::account_factory::contract::CONTRACT_VERSION
-            != contract_version(&self.account_factory)?.version
-        {
-            let migration_result = self
-                .account_factory
-                .upload_and_migrate_if_needed(&account_factory::MigrateMsg {})?;
-            if migration_result.is_some() {
-                has_migrated = true;
-            }
-            natives_to_register.push((
-                self.account_factory.as_instance(),
-                ::account_factory::contract::CONTRACT_VERSION.to_string(),
-            ));
-        }
         if ::module_factory::contract::CONTRACT_VERSION
             != contract_version(&self.module_factory)?.version
         {
@@ -194,15 +177,6 @@ impl<T: CwEnv> Abstract<T> {
         //     ibc_host_cw2_v,
         // ];
         // panic!("{versions:?}");
-
-        if ::account_factory::contract::CONTRACT_VERSION
-            != account_factory_module.info.version.to_string()
-        {
-            natives_to_register.push((
-                self.account_factory.as_instance(),
-                ::account_factory::contract::CONTRACT_VERSION.to_string(),
-            ));
-        }
 
         if ::module_factory::contract::CONTRACT_VERSION
             != module_factory_module.info.version.to_string()
