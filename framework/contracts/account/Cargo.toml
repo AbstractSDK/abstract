@@ -10,14 +10,12 @@ repository = "https://github.com/AbstractSDK/abstract"
 
 exclude = ["contract.wasm", "hash.txt"]
 
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
 export = []
-
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -34,6 +32,7 @@ abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
+
 abstract-ica = { workspace = true }
 
 [dev-dependencies]

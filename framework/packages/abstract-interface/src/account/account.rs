@@ -39,7 +39,7 @@ impl<Chain: CwEnv> Uploadable for Account<Chain> {
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("manager")
+            .find_wasm_path("account")
             .unwrap()
     }
 }

@@ -226,7 +226,7 @@ impl InstalledModuleIdentification {
             StdError::generic_err("Account id not specified in installed module definition");
 
         let target_addr = match &target_module_resolved.reference {
-            ModuleReference::AccountBase(code_id) => {
+            ModuleReference::Account(code_id) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
                 let account_base = vc.account(&target_account_id, &deps.querier)?;
 

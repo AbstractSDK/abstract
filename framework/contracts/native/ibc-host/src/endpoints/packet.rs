@@ -129,9 +129,7 @@ pub fn handle_module_execute(
     let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
 
     match target_module_resolved.reference {
-        ModuleReference::AccountBase(_)
-        | ModuleReference::Native(_)
-        | ModuleReference::Service(_) => {
+        ModuleReference::Account(_) | ModuleReference::Native(_) | ModuleReference::Service(_) => {
             return Err(HostError::WrongModuleAction(
                 "Can't send module-to-module message to an account, service or a native module"
                     .to_string(),

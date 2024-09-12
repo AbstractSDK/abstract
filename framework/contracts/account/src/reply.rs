@@ -14,6 +14,7 @@ pub fn forward_response_data(result: Reply) -> AccountResult {
     let res = result.result.into_result().map_err(StdError::generic_err)?;
 
     // log and add data if needed
+    #[allow(deprecated)]
     let resp = if let Some(data) = res.data {
         AccountResponse::new(
             "forward_response_data_reply",

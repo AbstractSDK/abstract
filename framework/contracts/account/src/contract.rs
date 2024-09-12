@@ -12,11 +12,17 @@ use abstract_std::{
         },
         ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
     },
-    objects::{gov_type::GovernanceDetails, ownership, AccountId},
+    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
+    objects::{
+        gov_type::GovernanceDetails,
+        ownership::{self, GovOwnershipError},
+        AccountId,
+    },
     version_control::Account,
 };
 use cosmwasm_std::{
-    wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult, SubMsgResult,
+    ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
+    StdError, StdResult, SubMsgResult,
 };
 
 pub use crate::migrate::migrate;
@@ -68,23 +74,24 @@ pub fn instantiate(
         link,
         module_factory_address,
         version_control_address,
-        ans_host_address,
         namespace,
     }: InstantiateMsg,
 ) -> AccountResult {
-    // ## Proxy ##
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let account_id =
-        account_id.unwrap_or_else(|| /*  TODO: Query VC for Sequence*/ AccountId::local(0));
+    let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
+    let version_control_address = deps.api.addr_validate(&version_control_address)?;
+
+    let account_id = match account_id {
+        Some(account_id) => account_id,
+        None => AccountId::local(
+            LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, version_control_address.clone())?,
+        ),
+    };
 
     ACCOUNT_ID.save(deps.storage, &account_id)?;
     WHITELISTED_MODULES.save(deps.storage, &WhitelistedModules(vec![]))?;
-
-    // ## Account ##
-    let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
-    let version_control_address = deps.api.addr_validate(&version_control_address)?;
 
     // Save config
     let config = Config {
@@ -107,11 +114,40 @@ pub fn instantiate(
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
+    let governance = owner
+        .clone()
+        .verify(deps.as_ref(), version_control_address.clone())?;
+    // Check if the caller is the manager the proposed owner account when creating a sub-account.
+    // This prevents other users from creating sub-accounts for accounts they don't own.
+    if let GovernanceDetails::SubAccount { account } = &governance {
+        ensure_eq!(
+            info.sender,
+            account,
+            AccountError::SubAccountCreatorNotAccount {
+                caller: info.sender.into(),
+                account: account.into(),
+            }
+        )
+    }
+    if let GovernanceDetails::NFT {
+        collection_addr,
+        token_id,
+    } = governance
+    {
+        verify_nft_ownership(
+            deps.as_ref(),
+            info.sender.clone(),
+            collection_addr,
+            token_id,
+        )?
+    }
+
     // Set owner
     let cw_gov_owner = ownership::initialize_owner(
         deps.branch(),
         // TODO: support no owner here (ownership handled in SUDO)
-        owner,
+        // Or do we want to add a `Sudo` governance type?
+        owner.clone(),
         config.version_control_address.clone(),
     )?;
 
@@ -140,22 +176,22 @@ pub fn instantiate(
     }
 
     // Register on manager if it's sub-account
-    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
-        response = response.add_message(wasm_execute(
-            account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                id: ACCOUNT_ID.load(deps.storage)?.seq(),
-            }),
-            vec![],
-        )?);
-    }
+    // TODO: Update sub-account creation logic
+    // if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
+    //     response = response.add_message(wasm_execute(
+    //         account,
+    //         &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+    //             id: ACCOUNT_ID.load(deps.storage)?.seq(),
+    //         }),
+    //         vec![],
+    //     )?);
+    // }
 
     let response = response.add_message(wasm_execute(
         version_control_address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
-            account_id: ACCOUNT_ID.load(deps.storage)?,
-            account_base: Account::new(env.contract.address),
             namespace,
+            creator: info.sender.to_string(),
         },
         vec![],
     )?);
@@ -308,222 +344,85 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use cosmwasm_std::testing::*;
-    use semver::Version;
-    use speculoos::prelude::*;
+/// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*
+fn verify_nft_ownership(
+    deps: Deps,
+    sender: Addr,
+    nft_addr: Addr,
+    nft_id: String,
+) -> Result<(), AccountError> {
+    // get owner of token_id from collection
+    let owner: ownership::cw721::OwnerOfResponse = deps.querier.query_wasm_smart(
+        nft_addr,
+        &ownership::cw721::Cw721QueryMsg::OwnerOf {
+            token_id: nft_id,
+            include_expired: None,
+        },
+    )?;
+    let owner = deps.api.addr_validate(&owner.owner)?;
+    // verify owner
+    ensure_eq!(
+        sender,
+        owner,
+        AccountError::Ownership(GovOwnershipError::NotOwner)
+    );
 
-    use super::*;
-    use crate::{contract, test_common::mock_init};
-
-    mod migrate {
-        use abstract_std::{manager::MigrateMsg, AbstractError};
-        use cw2::get_contract_version;
-
-        use super::*;
-
-        #[test]
-        fn disallow_same_version() -> AccountResult<()> {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let version: Version = CONTRACT_VERSION.parse().unwrap();
-
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
-
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AccountError::Abstract(
-                    AbstractError::CannotDowngradeContract {
-                        contract: ACCOUNT.to_string(),
-                        from: version.clone(),
-                        to: version,
-                    },
-                ));
-
-            Ok(())
-        }
-
-        #[test]
-        fn disallow_downgrade() -> AccountResult<()> {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let big_version = "999.999.999";
-            set_contract_version(deps.as_mut().storage, ACCOUNT, big_version)?;
-
-            let version: Version = CONTRACT_VERSION.parse().unwrap();
-
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
-
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AccountError::Abstract(
-                    AbstractError::CannotDowngradeContract {
-                        contract: ACCOUNT.to_string(),
-                        from: big_version.parse().unwrap(),
-                        to: version,
-                    },
-                ));
-
-            Ok(())
-        }
-
-        #[test]
-        fn disallow_name_change() -> AccountResult<()> {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let old_version = "0.0.0";
-            let old_name = "old:contract";
-            set_contract_version(deps.as_mut().storage, old_name, old_version)?;
-
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
-
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AccountError::Abstract(
-                    AbstractError::ContractNameMismatch {
-                        from: old_name.parse().unwrap(),
-                        to: ACCOUNT.parse().unwrap(),
-                    },
-                ));
-
-            Ok(())
-        }
-
-        #[test]
-        fn works() -> AccountResult<()> {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let version: Version = CONTRACT_VERSION.parse().unwrap();
-
-            let small_version = Version {
-                minor: version.minor - 1,
-                ..version.clone()
-            }
-            .to_string();
-
-            set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
-
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
-            assert_that!(res.messages).has_length(0);
-
-            assert_that!(get_contract_version(&deps.storage)?.version)
-                .is_equal_to(version.to_string());
-            Ok(())
-        }
-    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::testing::*;
-    use semver::Version;
+    use abstract_std::{
+        account,
+        objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
+        version_control::Account,
+    };
+    use abstract_testing::prelude::AbstractMockAddrs;
+    use cosmwasm_std::{
+        testing::{message_info, mock_dependencies, mock_env},
+        wasm_execute, Addr, CosmosMsg, SubMsg,
+    };
     use speculoos::prelude::*;
 
-    use super::*;
-    use crate::{contract, test_common::mock_init};
+    #[test]
+    fn successful_instantiate() {
+        let mut deps = mock_dependencies();
 
-    mod migrate {
-        use abstract_std::{manager::MigrateMsg, AbstractError};
-        use cw2::get_contract_version;
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.owner, &[]);
 
-        use super::*;
+        let resp = super::instantiate(
+            deps.as_mut(),
+            mock_env(),
+            info,
+            account::InstantiateMsg {
+                account_id: AccountId::new(1, AccountTrace::Local).ok(),
+                owner: GovernanceDetails::Monarchy {
+                    monarch: abstr.owner.to_string(),
+                },
+                version_control_address: abstr.version_control.to_string(),
+                module_factory_address: abstr.module_factory.to_string(),
+                namespace: None,
+                name: "test".to_string(),
+                description: None,
+                link: None,
+                install_modules: vec![],
+            },
+        );
 
-        #[test]
-        fn disallow_same_version() -> ManagerResult<()> {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
+        assert_that!(resp).is_ok();
 
-            let version: Version = CONTRACT_VERSION.parse().unwrap();
+        let expected_msg: CosmosMsg = wasm_execute(
+            abstr.version_control,
+            &abstract_std::version_control::ExecuteMsg::AddAccount {
+                creator: abstr.owner.to_string(),
+                namespace: None,
+            },
+            vec![],
+        )
+        .unwrap()
+        .into();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
-
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(ManagerError::Abstract(
-                    AbstractError::CannotDowngradeContract {
-                        contract: ACCOUNT.to_string(),
-                        from: version.clone(),
-                        to: version,
-                    },
-                ));
-
-            Ok(())
-        }
-
-        #[test]
-        fn disallow_downgrade() -> ManagerResult<()> {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-
-            let big_version = "999.999.999";
-            set_contract_version(deps.as_mut().storage, ACCOUNT, big_version)?;
-
-            let version: Version = CONTRACT_VERSION.parse().unwrap();
-
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
-
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(ManagerError::Abstract(
-                    AbstractError::CannotDowngradeContract {
-                        contract: ACCOUNT.to_string(),
-                        from: big_version.parse().unwrap(),
-                        to: version,
-                    },
-                ));
-
-            Ok(())
-        }
-
-        #[test]
-        fn disallow_name_change() -> ManagerResult<()> {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-
-            let old_version = "0.0.0";
-            let old_name = "old:contract";
-            set_contract_version(deps.as_mut().storage, old_name, old_version)?;
-
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
-
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(ManagerError::Abstract(
-                    AbstractError::ContractNameMismatch {
-                        from: old_name.parse().unwrap(),
-                        to: ACCOUNT.parse().unwrap(),
-                    },
-                ));
-
-            Ok(())
-        }
-
-        #[test]
-        fn works() -> ManagerResult<()> {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-
-            let version: Version = CONTRACT_VERSION.parse().unwrap();
-
-            let small_version = Version {
-                minor: version.minor - 1,
-                ..version.clone()
-            }
-            .to_string();
-
-            set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
-
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
-            assert_that!(res.messages).has_length(0);
-
-            assert_that!(get_contract_version(&deps.storage)?.version)
-                .is_equal_to(version.to_string());
-            Ok(())
-        }
+        assert_that!(&resp.unwrap().messages).is_equal_to(&vec![SubMsg::new(expected_msg)]);
     }
 }

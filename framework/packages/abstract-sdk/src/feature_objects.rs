@@ -88,9 +88,9 @@ mod tests {
 
         #[test]
         fn should_identify_self_as_account() {
-            let proxy = Account::new(Addr::unchecked("test"));
+            let account_base = Account::new(Addr::unchecked("test"));
 
-            assert_that!(proxy.module_id()).is_equal_to(ACCOUNT);
+            assert_that!(account_base.module_id()).is_equal_to(ACCOUNT);
         }
     }
 }

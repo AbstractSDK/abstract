@@ -129,7 +129,7 @@ pub fn set_migrate_msgs_and_context(
             requested_module.module.info,
             code_id,
         )?,
-        ModuleReference::AccountBase(code_id) | ModuleReference::Standalone(code_id) => {
+        ModuleReference::Account(code_id) | ModuleReference::Standalone(code_id) => {
             vec![build_module_migrate_msg(
                 old_module_addr,
                 code_id,
@@ -279,7 +279,7 @@ pub(crate) fn self_upgrade_msg(
 ) -> AccountResult<CosmosMsg> {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    if let ModuleReference::AccountBase(manager_code_id) = module.module.reference {
+    if let ModuleReference::Account(manager_code_id) = module.module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: self_addr.to_string(),
             new_code_id: manager_code_id,
