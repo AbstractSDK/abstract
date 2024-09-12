@@ -1,6 +1,8 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
+    features::{
+        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
+    },
     AbstractSdkResult,
 };
 use cosmwasm_std::{Deps, StdError};
@@ -28,6 +30,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             Err(StdError::generic_err("No target Account specified to execute on.").into())
         }
     }
+}
+
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg> AccountExecutor
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
+{
 }
 
 /// Get the version control contract
