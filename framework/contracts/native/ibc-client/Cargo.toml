@@ -27,8 +27,6 @@ abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 semver = { workspace = true }
-polytone-note = { workspace = true, features = ["library"] }
-polytone = { workspace = true }
 cw-paginate = "2.0.0"
 ibc-proto = { version = "0.47.0", default-features = false }
 prost = { version = "0.13.1", default-features = false }

@@ -1,18 +1,19 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Coin, Deps, QueryRequest, StdError};
-use polytone::callbacks::CallbackMessage;
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Deps, Empty, QueryRequest, StdError, Uint64};
 
 use self::state::IbcInfrastructure;
 use crate::{
+    account::{self, ModuleInstallConfig},
     ibc::{Callback, ModuleQuery},
     ibc_host::HostAction,
-    manager::{self, ModuleInstallConfig},
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
         version_control::VersionControlContract, TruncatedChainId,
     },
     AbstractError,
 };
+
+use super::ibc::polytone_callbacks;
 
 pub mod state {
 
@@ -147,7 +148,36 @@ pub enum ExecuteMsg {
     RemoveHost { host_chain: TruncatedChainId },
     /// Callback from the Polytone implementation
     /// This is triggered regardless of the execution result
-    Callback(CallbackMessage),
+    Callback(polytone_callbacks::CallbackMessage),
+}
+
+/// Copy of [polytone_note::msg::ExecuteMsg](https://docs.rs/polytone-note/1.0.0/polytone_note/msg/enum.ExecuteMsg.html)
+#[cosmwasm_schema::cw_serde]
+pub enum PolytoneNoteExecuteMsg {
+    /// Performs the requested queries on the voice chain and returns
+    /// a callback of Vec<QuerierResult>, or ACK-FAIL if unmarshalling
+    /// any of the query requests fails.
+    Query {
+        msgs: Vec<QueryRequest<Empty>>,
+        callback: polytone_callbacks::CallbackRequest,
+        timeout_seconds: Uint64,
+    },
+    /// Executes the requested messages on the voice chain on behalf
+    /// of the note chain sender. Message receivers can return data in
+    /// their callbacks by calling `set_data` on their `Response`
+    /// object. Optionally, returns a callback of `Vec<Callback>` where
+    /// index `i` corresponds to the callback for `msgs[i]`.
+    ///
+    /// Accounts are created on the voice chain after the first call
+    /// to execute by the local address. To create an account, but
+    /// perform no additional actions, pass an empty list to
+    /// `msgs`. Accounts are queryable via the `RemoteAddress {
+    /// local_address }` query after they have been created.
+    Execute {
+        msgs: Vec<CosmosMsg<Empty>>,
+        callback: Option<polytone_callbacks::CallbackRequest>,
+        timeout_seconds: Uint64,
+    },
 }
 
 /// This enum is used for sending callbacks to the note contract of the IBC client
@@ -196,24 +226,17 @@ impl InstalledModuleIdentification {
             StdError::generic_err("Account id not specified in installed module definition");
 
         let target_addr = match &target_module_resolved.reference {
-            ModuleReference::AccountBase(code_id) => {
+            ModuleReference::Account(code_id) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account_base = vc.account_base(&target_account_id, &deps.querier)?;
+                let account_base = vc.account(&target_account_id, &deps.querier)?;
 
                 if deps
                     .querier
-                    .query_wasm_contract_info(&account_base.proxy)?
+                    .query_wasm_contract_info(account_base.addr().as_str())?
                     .code_id
                     == *code_id
                 {
-                    account_base.proxy
-                } else if deps
-                    .querier
-                    .query_wasm_contract_info(&account_base.manager)?
-                    .code_id
-                    == *code_id
-                {
-                    account_base.manager
+                    account_base.into_addr()
                 } else {
                     Err(StdError::generic_err(
                         "Account base contract doesn't correspond to any of the proxy or manager",
@@ -225,11 +248,11 @@ impl InstalledModuleIdentification {
             | ModuleReference::Service(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account_base = vc.account_base(&target_account_id, &deps.querier)?;
+                let account_base = vc.account(&target_account_id, &deps.querier)?;
 
-                let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
-                    account_base.manager,
-                    &manager::QueryMsg::ModuleAddresses {
+                let module_info: account::ModuleAddressesResponse = deps.querier.query_wasm_smart(
+                    account_base.into_addr(),
+                    &account::QueryMsg::ModuleAddresses {
                         ids: vec![self.module_info.id()],
                     },
                 )?;

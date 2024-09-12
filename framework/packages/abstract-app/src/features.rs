@@ -1,11 +1,10 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{
-        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
-    },
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps};
+use abstract_std::version_control::Account;
+use cosmwasm_std::Deps;
 
 use crate::{state::ContractError, AppContract};
 
@@ -37,21 +36,9 @@ impl<
     > AccountIdentification
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.base_state.load(deps.storage)?.proxy_address)
+    fn account(&self, deps: Deps) -> AbstractSdkResult<Account> {
+        Ok(self.base_state.load(deps.storage)?.account)
     }
-}
-
-impl<
-        Error: ContractError,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        SudoMsg,
-    > AccountExecutor
-    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
-{
 }
 
 impl<

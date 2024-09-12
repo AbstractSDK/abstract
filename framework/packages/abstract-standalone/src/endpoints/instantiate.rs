@@ -32,12 +32,12 @@ impl StandaloneContract {
         let version_control = VersionControlContract {
             address: deps.api.addr_validate(&version_control_address)?,
         };
-        let account_base =
+        let account =
             abstract_std::module_factory::state::CURRENT_BASE.query(&deps.querier, info.sender)?;
 
         // Base state
         let state = StandaloneState {
-            proxy_address: account_base.proxy,
+            account: account.clone(),
             ans_host,
             version_control,
             is_migratable,
@@ -46,7 +46,7 @@ impl StandaloneContract {
         set_module_data(deps.storage, name, version, self.dependencies, metadata)?;
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
-        self.admin.set(deps, Some(account_base.manager))?;
+        self.admin.set(deps, Some(account.into_addr()))?;
         Ok(())
     }
 }

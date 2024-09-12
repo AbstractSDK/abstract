@@ -57,7 +57,7 @@ impl<
         let state = self.base_state.load(deps.storage)?;
         let admin = self.admin.get(deps)?.unwrap();
         Ok(AppConfigResponse {
-            proxy_address: state.proxy_address,
+            account: state.account.into_addr(),
             ans_host_address: state.ans_host.address,
             manager_address: admin,
         })
@@ -168,7 +168,7 @@ mod test {
             let res = query_helper(deps.as_ref(), config_query)?;
 
             assert_that!(from_json(res).unwrap()).is_equal_to(AppConfigResponse {
-                proxy_address: abstr.account.proxy,
+                account: abstr.account.proxy,
                 ans_host_address: abstr.ans_host,
                 manager_address: abstr.account.manager,
             });

@@ -1,13 +1,10 @@
 use abstract_std::{
     ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
     objects::{
-        account::ACCOUNT_ID,
-        common_namespace::{ADMIN_NAMESPACE, OWNERSHIP_STORAGE_KEY},
-        gov_type::GovernanceDetails,
-        ownership::Ownership,
-        AccountId, AssetEntry, ChannelEntry, ContractEntry,
+        account::ACCOUNT_ID, common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails,
+        ownership::Ownership, AccountId, AssetEntry, ChannelEntry, ContractEntry,
     },
-    version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
+    version_control::{state::ACCOUNT_ADDRESSES, Account},
 };
 use cosmwasm_std::{testing::MockApi, Addr};
 use cw_asset::AssetInfo;
@@ -30,19 +27,13 @@ impl AbstractMockQuerierBuilder {
     }
 
     /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the account to version control.
-    pub fn account(mut self, account_base: &AccountBase, account_id: AccountId) -> Self {
+    pub fn account(mut self, account_base: &Account, account_id: AccountId) -> Self {
         self.builder = self
             .builder
-            .with_contract_item(&account_base.proxy, ACCOUNT_ID, &account_id)
-            .with_contract_item(&account_base.manager, ACCOUNT_ID, &account_id)
-            .with_contract_item(
-                &account_base.proxy,
-                Item::new(ADMIN_NAMESPACE),
-                &Some(account_base.manager.clone()),
-            )
+            .with_contract_item(account_base.addr(), ACCOUNT_ID, &account_id)
             // Setup the account owner as the test owner
             .with_contract_item(
-                &account_base.manager,
+                account_base.addr(),
                 Item::new(OWNERSHIP_STORAGE_KEY),
                 &Some(Ownership {
                     owner: GovernanceDetails::Monarchy {

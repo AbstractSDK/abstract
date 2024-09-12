@@ -194,7 +194,7 @@ mod test {
         impl From<crate::mock::MockExecMsg> for CustomExecMsg {
             fn from(request: crate::mock::MockExecMsg) -> Self {
                 Self::Module(AdapterRequestMsg {
-                    proxy_address: None,
+                    account_address: None,
                     request,
                 })
             }

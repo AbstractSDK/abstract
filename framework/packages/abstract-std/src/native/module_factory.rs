@@ -11,7 +11,7 @@ pub mod state {
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
-    use crate::version_control::AccountBase;
+    use crate::version_control::Account;
 
     #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
     pub struct Config {
@@ -22,7 +22,7 @@ pub mod state {
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     /// Base of account on which modules getting installed right now
     /// It's set only if one of the modules is standalone
-    pub const CURRENT_BASE: Item<AccountBase> = Item::new("cur_manager");
+    pub const CURRENT_BASE: Item<Account> = Item::new("cur_manager");
 }
 
 use cosmwasm_schema::QueryResponses;

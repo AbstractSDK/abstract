@@ -17,7 +17,7 @@ pub mod state {
             account::{AccountId, AccountSequence},
             module::Module,
         },
-        version_control::AccountBase,
+        version_control::Account,
     };
 
     /// Account Factory configuration
@@ -31,9 +31,8 @@ pub mod state {
     /// Account Factory context for post-[`crate::manager`] [`crate::proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub account_base: AccountBase,
-        pub manager_module: Module,
-        pub proxy_module: Module,
+        pub account_base: Account,
+        pub account_module: Module,
         pub account_id: AccountId,
     }
 
@@ -46,7 +45,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
 use crate::{
-    manager::ModuleInstallConfig,
+    account::ModuleInstallConfig,
     objects::{
         account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,

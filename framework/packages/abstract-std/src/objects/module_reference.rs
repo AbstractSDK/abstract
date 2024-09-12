@@ -5,8 +5,8 @@ use crate::{error::AbstractError, AbstractResult};
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
 pub enum ModuleReference {
-    /// Core Abstract Contracts
-    AccountBase(u64),
+    /// Account Contract
+    Account(u64),
     /// Native Abstract Contracts
     Native(Addr),
     /// Installable adapters
@@ -35,7 +35,7 @@ impl ModuleReference {
 
     pub fn unwrap_account(&self) -> AbstractResult<u64> {
         match self {
-            ModuleReference::AccountBase(v) => Ok(*v),
+            ModuleReference::Account(v) => Ok(*v),
             _ => Err(AbstractError::Assert(
                 "module reference not an account module.".to_string(),
             )),
@@ -104,7 +104,7 @@ impl ModuleReference {
     // Throws an error if the module reference is not an code id
     pub fn unwrap_code_id(&self) -> AbstractResult<u64> {
         match self {
-            ModuleReference::AccountBase(code_id)
+            ModuleReference::Account(code_id)
             | ModuleReference::App(code_id)
             | ModuleReference::Standalone(code_id) => Ok(*code_id),
             _ => Err(AbstractError::Assert(
@@ -124,7 +124,7 @@ mod test {
 
     #[test]
     fn core() {
-        let account_base = ModuleReference::AccountBase(1);
+        let account_base = ModuleReference::Account(1);
         assert_eq!(account_base.unwrap_account().unwrap(), 1);
         assert!(account_base.unwrap_native().is_err());
         assert!(account_base.unwrap_adapter().is_err());
@@ -197,7 +197,7 @@ mod test {
         let service = ModuleReference::Service(Addr::unchecked("addr"));
         assert_eq!(service.unwrap_addr().unwrap(), Addr::unchecked("addr"));
 
-        let account_base = ModuleReference::AccountBase(1);
+        let account_base = ModuleReference::Account(1);
         assert!(account_base.unwrap_addr().is_err());
     }
 
@@ -214,7 +214,7 @@ mod test {
         let service = ModuleReference::Service(deps.api.addr_make("addr"));
         assert_that!(service.validate(deps.as_ref())).is_ok();
 
-        let account_base = ModuleReference::AccountBase(1);
+        let account_base = ModuleReference::Account(1);
         assert_that!(account_base.validate(deps.as_ref())).is_ok();
 
         let app = ModuleReference::App(1);

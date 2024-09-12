@@ -12,7 +12,7 @@ use abstract_std::{
 };
 use cw_orch::{contract::Contract, interface, prelude::*};
 
-use crate::AbstractAccount;
+use crate::AccountI;
 
 type VersionString = String;
 
@@ -191,31 +191,19 @@ impl<Chain: CwEnv> VersionControl<Chain> {
 
     pub fn register_base(
         &self,
-        account: &AbstractAccount<Chain>,
+        account: &AccountI<Chain>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let manager = account.manager.as_instance();
-        let manager_module = (
+        let account = account.as_instance();
+        let account_module = (
             ModuleInfo::from_id(
-                &manager.id,
-                ModuleVersion::Version(manager::contract::CONTRACT_VERSION.to_string()),
+                &account.id,
+                ModuleVersion::Version(account::contract::CONTRACT_VERSION.to_string()),
             )?,
-            ModuleReference::AccountBase(manager.code_id()?),
+            ModuleReference::Account(account.code_id()?),
         );
-        self.propose_modules(vec![manager_module])?;
+        self.propose_modules(vec![account_module])?;
 
-        log::info!("Module {} registered", manager.id);
-
-        let proxy = account.proxy.as_instance();
-        let proxy_module = (
-            ModuleInfo::from_id(
-                &proxy.id,
-                ModuleVersion::Version(proxy::contract::CONTRACT_VERSION.to_string()),
-            )?,
-            ModuleReference::AccountBase(proxy.code_id()?),
-        );
-        self.propose_modules(vec![proxy_module])?;
-
-        log::info!("Module {} registered", proxy.id);
+        log::info!("Module {} registered", account.id);
         Ok(())
     }
 
@@ -225,7 +213,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         apps: Vec<(&Contract<Chain>, VersionString)>,
     ) -> Result<(), crate::AbstractInterfaceError> {
         let to_register = self.contracts_into_module_entries(apps, |c| {
-            ModuleReference::AccountBase(c.code_id().unwrap())
+            ModuleReference::Account(c.code_id().unwrap())
         })?;
         self.propose_modules(to_register)?;
         Ok(())
@@ -348,8 +336,8 @@ impl<Chain: CwEnv> VersionControl<Chain> {
     pub fn get_account(
         &self,
         account_id: AccountId,
-    ) -> Result<AccountBase, crate::AbstractInterfaceError> {
-        let resp: AccountBaseResponse = self.query(&QueryMsg::AccountBase { account_id })?;
+    ) -> Result<Account, crate::AbstractInterfaceError> {
+        let resp: AccountResponse = self.query(&QueryMsg::Account { account_id })?;
         Ok(resp.account_base)
     }
 

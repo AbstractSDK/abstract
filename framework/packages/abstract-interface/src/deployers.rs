@@ -1,5 +1,5 @@
 use abstract_std::{
-    manager::ModuleInstallConfig,
+    account::ModuleInstallConfig,
     objects::{
         dependency::StaticDependency,
         module::{ModuleInfo, ModuleVersion},

@@ -319,9 +319,8 @@ mod tests {
     mod register_infrastructure {
         use std::str::FromStr;
 
-        use abstract_std::objects::TruncatedChainId;
+        use abstract_std::{ibc::polytone_callbacks::CallbackRequest, objects::TruncatedChainId};
         use cosmwasm_std::wasm_execute;
-        use polytone::callbacks::CallbackRequest;
 
         use super::*;
         use crate::commands::PACKET_LIFETIME;
@@ -386,7 +385,7 @@ mod tests {
 
             let note_proxy_msg = wasm_execute(
                 note_addr.to_string(),
-                &polytone_note::msg::ExecuteMsg::Execute {
+                &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![],
                     callback: Some(CallbackRequest {
                         receiver: mock_env().contract.address.to_string(),
@@ -468,8 +467,8 @@ mod tests {
         use std::str::FromStr;
 
         use abstract_std::{
+            account,
             ibc_host::{self, HostAction, InternalAction},
-            manager,
             objects::{version_control::VersionControlError, TruncatedChainId},
         };
 
@@ -491,7 +490,7 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name,
                 action: HostAction::Dispatch {
-                    manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
+                    account_msgs: vec![account::ExecuteMsg::UpdateInfo {
                         name: None,
                         description: None,
                         link: None,
@@ -565,7 +564,7 @@ mod tests {
             )?;
 
             let action = HostAction::Dispatch {
-                manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
+                account_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                     name: None,
                     description: None,
                     link: None,
@@ -581,12 +580,12 @@ mod tests {
 
             let note_message = wasm_execute(
                 note_addr.to_string(),
-                &polytone_note::msg::ExecuteMsg::Execute {
+                &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![wasm_execute(
                         // The note's remote proxy will call the ibc host
                         remote_ibc_host,
                         &ibc_host::ExecuteMsg::Execute {
-                            proxy_address: base.proxy.to_string(),
+                            account_address: base.proxy.to_string(),
                             account_id: TEST_ACCOUNT_ID,
                             action,
                         },
@@ -756,12 +755,12 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
         use abstract_std::{
+            ibc::polytone_callbacks::CallbackRequest,
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{version_control::VersionControlError, TruncatedChainId},
         };
         use cosmwasm_std::wasm_execute;
-        use polytone::callbacks::CallbackRequest;
         use std::str::FromStr;
 
         #[test]
@@ -840,12 +839,12 @@ mod tests {
 
             let note_message = wasm_execute(
                 note_contract.to_string(),
-                &polytone_note::msg::ExecuteMsg::Execute {
+                &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![wasm_execute(
                         // The note's remote proxy will call the ibc host
                         remote_ibc_host,
                         &ibc_host::ExecuteMsg::Execute {
-                            proxy_address: base.proxy.to_string(),
+                            account_address: base.proxy.to_string(),
                             account_id: TEST_ACCOUNT_ID,
                             action: HostAction::Internal(InternalAction::Register {
                                 description: None,
@@ -1038,9 +1037,11 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_std::objects::{account::TEST_ACCOUNT_ID, TruncatedChainId};
+        use abstract_std::{
+            ibc::polytone_callbacks::{Callback, CallbackMessage, ExecutionResponse},
+            objects::{account::TEST_ACCOUNT_ID, TruncatedChainId},
+        };
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
-        use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
 
         use super::*;
 

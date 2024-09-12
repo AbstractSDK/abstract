@@ -1,11 +1,9 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{
-        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
-    },
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps, StdError};
+use cosmwasm_std::{Deps, StdError};
 
 use crate::{state::ContractError, AdapterContract};
 
@@ -23,37 +21,13 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AccountIdentification
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+    fn account(&self, _deps: Deps) -> AbstractSdkResult<abstract_std::version_control::Account> {
         if let Some(target) = &self.target_account {
-            Ok(target.proxy.clone())
+            Ok(target.clone())
         } else {
             Err(StdError::generic_err("No target Account specified to execute on.").into())
         }
     }
-
-    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        if let Some(target) = &self.target_account {
-            Ok(target.manager.clone())
-        } else {
-            Err(StdError::generic_err("No Account manager specified.").into())
-        }
-    }
-
-    fn account_base(
-        &self,
-        _deps: Deps,
-    ) -> AbstractSdkResult<abstract_sdk::std::version_control::AccountBase> {
-        if let Some(target) = &self.target_account {
-            Ok(target.clone())
-        } else {
-            Err(StdError::generic_err("No Account base specified.").into())
-        }
-    }
-}
-
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg> AccountExecutor
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
-{
 }
 
 /// Get the version control contract
@@ -70,7 +44,7 @@ mod tests {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::{
         adapter::{AdapterRequestMsg, ExecuteMsg},
-        version_control::AccountBase,
+        version_control::Account,
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, DepsMut, Env, MessageInfo, Response};
@@ -91,20 +65,16 @@ mod tests {
     ) -> Result<Response, MockError> {
         let mock_api = MockApi::default();
         let abstr = AbstractMockAddrs::new(mock_api);
-        let expected_proxy = abstr.account.proxy;
-        let expected_manager = abstr.account.manager;
+        let expected_account = abstr.account;
         let expected_ans = abstr.ans_host;
         let expected_vc = abstr.version_control;
         // assert with test values
         let proxy = module.proxy_address(deps.as_ref())?;
         assert_that!(proxy).is_equal_to(&expected_proxy);
-        let manager = module.manager_address(deps.as_ref())?;
-        assert_that!(manager).is_equal_to(&expected_manager);
+        let account = module.account(deps.as_ref())?;
+        assert_that!(account).is_equal_to(&expected_account);
         let account = module.account_base(deps.as_ref())?;
-        assert_that!(account).is_equal_to(AccountBase {
-            manager: expected_manager,
-            proxy: expected_proxy,
-        });
+        assert_that!(account).is_equal_to(Account::new(expected_account));
         let ans = module.ans_host(deps.as_ref())?;
         assert_that!(ans).is_equal_to(AnsHost::new(expected_ans));
         let regist = module.abstract_registry(deps.as_ref())?;
@@ -132,7 +102,7 @@ mod tests {
         mock_init_custom(&mut deps, featured_adapter()).unwrap();
 
         let msg = ExecuteMsg::Module(AdapterRequestMsg {
-            proxy_address: None,
+            account_address: None,
             request: MockExecMsg {},
         });
 

@@ -9,7 +9,7 @@ use schemars::JsonSchema;
 
 use super::query_ownership;
 
-/// Max manager admin recursion
+/// Max account admin recursion
 pub const MAX_ADMIN_RECURSION: usize = 2;
 
 /// Abstract Admin object
@@ -119,7 +119,7 @@ impl NestedAdmin {
         let admin = match self.0.get(deps)? {
             Some(owner) => Some(query_top_level_owner_addr(&deps.querier, owner).map_err(|_| {
                 StdError::generic_err(
-                    "Failed to query top level owner. Make sure this module is owned by the manager",
+                    "Failed to query top level owner. Make sure this module is owned by the account",
                 )
             })?),
             None => None,
@@ -132,10 +132,10 @@ impl NestedAdmin {
 
 pub fn query_top_level_owner_addr<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
-    maybe_manager: Addr,
+    maybe_account: Addr,
 ) -> StdResult<Addr> {
     // Get top level account owner address
-    query_top_level_owner(querier, maybe_manager).and_then(|ownership| {
+    query_top_level_owner(querier, maybe_account).and_then(|ownership| {
         ownership
             .owner
             .owner_address(&querier.into_empty())
@@ -145,18 +145,18 @@ pub fn query_top_level_owner_addr<Q: CustomQuery>(
 
 pub fn query_top_level_owner<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
-    maybe_manager: Addr,
+    maybe_account: Addr,
 ) -> StdResult<Ownership<Addr>> {
-    // Starting from (potentially)manager that owns this module
-    let mut current = query_ownership(querier, maybe_manager);
+    // Starting from (potentially)account that owns this module
+    let mut current = query_ownership(querier, maybe_account);
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
     for _ in 0..MAX_ADMIN_RECURSION {
         match current {
             Ok(Ownership {
-                owner: GovernanceDetails::SubAccount { manager, .. },
+                owner: GovernanceDetails::SubAccount { account },
                 ..
             }) => {
-                current = query_ownership(querier, manager);
+                current = query_ownership(querier, account);
             }
             _ => break,
         }

@@ -26,7 +26,6 @@ thiserror = { workspace = true }
 abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 semver = { workspace = true }
-polytone = { workspace = true }
 abstract-ica = { workspace = true }
 abstract-macros = { workspace = true }
 

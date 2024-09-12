@@ -37,7 +37,7 @@ pub fn execute_create_modules(
     let version_control = VersionControlContract::new(config.version_control_address);
 
     // assert that sender is manager
-    let account_base = version_control.assert_manager(&info.sender, &deps.querier)?;
+    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
@@ -81,7 +81,7 @@ pub fn execute_create_modules(
                     // modules gets unregistered when namespace is unclaimed
                     .unwrap();
                 fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
-                    to_address: namespace_account.account_base.proxy.to_string(),
+                    to_address: namespace_account.account_base.addr().to_string(),
                     amount: vec![fee],
                 }));
             }
@@ -116,7 +116,7 @@ pub fn execute_create_modules(
                     *code_id,
                     to_json_binary(&app_init_msg)?,
                     salt.clone(),
-                    Some(account_base.manager.clone()),
+                    Some(account_base.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -137,7 +137,7 @@ pub fn execute_create_modules(
                     *code_id,
                     owner_init_msg.unwrap(),
                     salt.clone(),
-                    Some(account_base.manager.clone()),
+                    Some(account_base.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;

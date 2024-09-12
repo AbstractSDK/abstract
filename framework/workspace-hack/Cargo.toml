@@ -14,7 +14,6 @@ publish = false
 
 ### BEGIN HAKARI SECTION
 [dependencies]
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2", default-features = false, features = ["library"] }
 anstream = { version = "0.6" }
 anyhow = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
@@ -23,7 +22,6 @@ cw-orch = { version = "0.25", features = ["daemon", "snapshot-testing"] }
 cw-orch-interchain = { version = "0.4", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 cw721-base = { version = "0.18", default-features = false, features = ["library"] }
-log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 prost = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
 prost-types = { version = "0.13" }
@@ -31,7 +29,6 @@ semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["alloc", "derive"] }
 
 [build-dependencies]
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2", default-features = false, features = ["library"] }
 anstream = { version = "0.6" }
 anyhow = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
@@ -40,7 +37,6 @@ cw-orch = { version = "0.25", features = ["daemon", "snapshot-testing"] }
 cw-orch-interchain = { version = "0.4", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 cw721-base = { version = "0.18", default-features = false, features = ["library"] }
-log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 prost = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
 prost-types = { version = "0.13" }
@@ -93,7 +89,7 @@ ibc-relayer-types = { version = "0.29", default-features = false, features = ["c
 ics23 = { version = "0.12" }
 k256 = { version = "0.13" }
 libc = { version = "0.2" }
-log = { version = "0.4", default-features = false, features = ["serde"] }
+log = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
@@ -112,6 +108,7 @@ reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-feat
 sec1 = { version = "0.7", features = ["std", "subtle"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
+spki = { version = "0.7", default-features = false, features = ["std"] }
 subtle-encoding = { version = "0.5", features = ["bech32-preview"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
@@ -171,7 +168,7 @@ ibc-relayer-types = { version = "0.29", default-features = false, features = ["c
 ics23 = { version = "0.12" }
 k256 = { version = "0.13" }
 libc = { version = "0.2" }
-log = { version = "0.4", default-features = false, features = ["serde"] }
+log = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
@@ -190,6 +187,7 @@ reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-feat
 sec1 = { version = "0.7", features = ["std", "subtle"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
+spki = { version = "0.7", default-features = false, features = ["std"] }
 subtle-encoding = { version = "0.5", features = ["bech32-preview"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
@@ -248,7 +246,7 @@ ibc-relayer-types = { version = "0.29", default-features = false, features = ["c
 ics23 = { version = "0.12" }
 k256 = { version = "0.13" }
 libc = { version = "0.2", features = ["extra_traits"] }
-log = { version = "0.4", default-features = false, features = ["serde"] }
+log = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
@@ -267,6 +265,7 @@ reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-feat
 sec1 = { version = "0.7", features = ["std", "subtle"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
+spki = { version = "0.7", default-features = false, features = ["std"] }
 subtle-encoding = { version = "0.5", features = ["bech32-preview"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
@@ -325,7 +324,7 @@ ibc-relayer-types = { version = "0.29", default-features = false, features = ["c
 ics23 = { version = "0.12" }
 k256 = { version = "0.13" }
 libc = { version = "0.2", features = ["extra_traits"] }
-log = { version = "0.4", default-features = false, features = ["serde"] }
+log = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
@@ -344,6 +343,7 @@ reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-feat
 sec1 = { version = "0.7", features = ["std", "subtle"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
+spki = { version = "0.7", default-features = false, features = ["std"] }
 subtle-encoding = { version = "0.5", features = ["bech32-preview"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }

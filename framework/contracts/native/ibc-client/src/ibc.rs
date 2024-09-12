@@ -1,5 +1,8 @@
 use abstract_std::{
-    ibc::{IbcResponseMsg, IbcResult},
+    ibc::{
+        polytone_callbacks::{Callback as PolytoneCallback, CallbackMessage},
+        IbcResponseMsg, IbcResult,
+    },
     ibc_client::{
         state::{ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
@@ -7,7 +10,6 @@ use abstract_std::{
     objects::TruncatedChainId,
 };
 use cosmwasm_std::{from_json, Attribute, DepsMut, Env, MessageInfo};
-use polytone::callbacks::{Callback as PolytoneCallback, CallbackMessage};
 
 use crate::{
     contract::{IbcClientResponse, IbcClientResult},

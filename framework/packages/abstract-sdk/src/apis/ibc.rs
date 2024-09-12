@@ -3,13 +3,13 @@
 //!
 
 use abstract_std::{
+    account::ExecuteMsg,
+    account::ModuleInstallConfig,
     base,
     ibc::{Callback, ModuleQuery},
     ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
-    manager::ModuleInstallConfig,
     objects::{module::ModuleInfo, TruncatedChainId},
-    proxy::ExecuteMsg,
     ABSTRACT_VERSION, IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
@@ -33,8 +33,8 @@ pub trait IbcInterface:
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
         # let deps = mock_dependencies();
+        # let module = MockModule::new(deps.api);
 
         let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
         ```
@@ -73,8 +73,8 @@ impl<'a, T: IbcInterface> ApiIdentification for IbcClient<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
     # let deps = mock_dependencies();
+    # let module = MockModule::new(deps.api);
 
     let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
     ```
@@ -212,7 +212,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         host_chain: TruncatedChainId,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
@@ -232,7 +232,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         action: HostAction,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::RemoteAction { host_chain, action },
             },
@@ -249,7 +249,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         memo: Option<String>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::SendFunds {
                     host_chain,
@@ -273,7 +273,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(to_json_binary(&init_msg)?),
@@ -293,7 +293,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(module, None)],
                 }],
             },
@@ -312,7 +312,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ExecOnModule {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
                 }],
@@ -357,7 +357,7 @@ mod test {
         let msg = client.host_action(
             TEST_HOST_CHAIN.parse().unwrap(),
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateStatus {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::UpdateStatus {
                     is_suspended: None,
                 }],
             },
@@ -366,12 +366,12 @@ mod test {
 
         let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: base.proxy.to_string(),
+            contract_addr: base.addr().to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     action: HostAction::Dispatch {
-                        manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateStatus {
+                        account_msgs: vec![abstract_std::account::ExecuteMsg::UpdateStatus {
                             is_suspended: None,
                         }],
                     },
@@ -401,7 +401,7 @@ mod test {
 
         let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: base.proxy.to_string(),
+            contract_addr: base.addr().to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),

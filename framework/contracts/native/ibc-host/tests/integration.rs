@@ -13,7 +13,7 @@ use abstract_std::{
         module::ModuleInfo,
         AccountId, UncheckedChannelEntry,
     },
-    ACCOUNT_FACTORY, ICS20, MANAGER, PROXY,
+    ACCOUNT, ACCOUNT, ACCOUNT_FACTORY, ICS20,
 };
 use cosmwasm_std::Event;
 use cw_orch::prelude::*;
@@ -306,7 +306,7 @@ fn account_action() -> anyhow::Result<()> {
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("contract", MANAGER)
+            .add_attribute("contract", ACCOUNT)
             .add_attribute("action", "update_ownership")
             .add_attribute("owner", "abstract-ibc")
             .add_attribute("pending_owner", "monarch")
@@ -363,7 +363,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("contract", MANAGER)
+            .add_attribute("contract", ACCOUNT)
             .add_attribute("action", "update_ownership")
             .add_attribute("owner", "abstract-ibc")
             .add_attribute("pending_owner", "monarch")
@@ -427,9 +427,9 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     // Possible to verify that funds have been sent?
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("contract", MANAGER)
+            .add_attribute("contract", ACCOUNT)
             .add_attribute("action", "exec_on_module")
-            .add_attribute("module", PROXY)
+            .add_attribute("module", ACCOUNT)
     ));
 
     Ok(())

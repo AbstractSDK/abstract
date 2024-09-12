@@ -3,7 +3,8 @@ use abstract_sdk::{
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps};
+use abstract_std::version_control::Account;
+use cosmwasm_std::Deps;
 
 use crate::StandaloneContract;
 
@@ -23,8 +24,8 @@ impl AbstractRegistryAccess for StandaloneContract {
 }
 
 impl AccountIdentification for StandaloneContract {
-    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.base_state.load(deps.storage)?.proxy_address)
+    fn account(&self, deps: Deps) -> AbstractSdkResult<Account> {
+        Ok(self.base_state.load(deps.storage)?.account)
     }
 }
 

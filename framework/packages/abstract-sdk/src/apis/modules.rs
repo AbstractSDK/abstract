@@ -1,7 +1,7 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
-use abstract_std::{manager::state::ACCOUNT_MODULES, objects::module::ModuleId};
+use abstract_std::{account::state::ACCOUNT_MODULES, objects::module::ModuleId};
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
@@ -21,8 +21,8 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
         # let deps = mock_dependencies();
+        # let module = MockModule::new(deps.api);
 
         let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
@@ -57,8 +57,8 @@ impl<'a, T: ModuleInterface> ApiIdentification for Modules<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
     # let deps = mock_dependencies();
+    # let module = MockModule::new(deps.api);
 
     let modules: Modules<MockModule>  = module.modules(deps.as_ref());
     ```
@@ -74,9 +74,9 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// This should **not** be used to execute messages on an `Api`.
     /// Use `Modules::api_request(..)` instead.
     pub fn module_address(&self, module_id: ModuleId) -> AbstractSdkResult<Addr> {
-        let manager_addr = self.base.manager_address(self.deps)?;
+        let account_addr = self.base.account(self.deps)?;
         let maybe_module_addr =
-            ACCOUNT_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
+            ACCOUNT_MODULES.query(&self.deps.querier, account_addr.into_addr(), module_id)?;
         let Some(module_addr) = maybe_module_addr else {
             return Err(crate::AbstractSdkError::MissingModule {
                 module: module_id.to_string(),

@@ -29,7 +29,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AnsHost, IbcClient, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AccountI, AnsHost, IbcClient, ManagerQueryFns, RegisteredModule, VCQueryFns,
     VersionControl,
 };
 use abstract_std::objects::{
@@ -192,8 +192,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 }
             }
             AccountSource::AccountId(account_id) => {
-                let abstract_account: AbstractAccount<Chain> =
-                    AbstractAccount::new(&self.abstr, account_id.clone());
+                let abstract_account = AccountI::load_from(&self.abstr, account_id.clone());
                 Ok(Account::new(abstract_account, true))
             }
             AccountSource::App(app) => {
@@ -207,15 +206,14 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                     )
                     .map_err(Into::into)?;
 
-                let manager_config: abstract_std::manager::ConfigResponse = chain
+                let manager_config: abstract_std::account::ConfigResponse = chain
                     .query(
-                        &abstract_std::manager::QueryMsg::Config {},
+                        &abstract_std::account::QueryMsg::Config {},
                         &app_config.manager_address,
                     )
                     .map_err(Into::into)?;
                 // This function verifies the account-id is valid and returns an error if not.
-                let abstract_account: AbstractAccount<Chain> =
-                    AbstractAccount::new(&self.abstr, manager_config.account_id);
+                let abstract_account = AccountI::load_from(&self.abstr, manager_config.account_id);
                 Ok(Account::new(abstract_account, true))
             }
         }
@@ -282,8 +280,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             };
 
             // only take accounts that the current sender owns
-            let account = AbstractAccount::new(&self.abstr, account_id.clone());
-            if account.manager.top_level_owner()?.address != self.environment().sender_addr() {
+            let account = AccountI::load_from(&self.abstr, account_id.clone());
+            if account.top_level_owner()?.address != self.environment().sender_addr() {
                 continue;
             }
 
@@ -307,7 +305,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             if self
                 .abstr
                 .version_control
-                .account_base(potential_account_id)
+                .account(potential_account_id)
                 .is_err()
             {
                 return Ok(random_sequence);
@@ -342,8 +340,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         let wasm_querier = self.environment().wasm_querier();
         let module = self.version_control().module(module_info)?;
         let (code_id, creator) = match module.reference {
-            // If AccountBase - account factory is creator
-            ModuleReference::AccountBase(id) => (id, self.abstr.account_factory.addr_str()?),
+            // If Account - account factory is creator
+            ModuleReference::Account(id) => (id, self.abstr.account_factory.addr_str()?),
             // Else module factory is creator
             ModuleReference::App(id) | ModuleReference::Standalone(id) => {
                 (id, self.abstr.module_factory.addr_str()?)
@@ -392,7 +390,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 }
 
 pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
-    if !id.starts_with(abstract_std::MANAGER) {
+    if !id.starts_with(abstract_std::ACCOUNT) {
         return Ok(None);
     }
 

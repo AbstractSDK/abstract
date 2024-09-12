@@ -5,19 +5,20 @@ use abstract_sdk::{
     ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
+    account,
+    account::ModuleInstallConfig,
     app::AppState,
-    ibc::{Callback, ModuleQuery},
+    ibc::{polytone_callbacks::CallbackRequest, Callback, ModuleQuery},
     ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
-        IbcClientCallback, InstalledModuleIdentification,
+        IbcClientCallback, InstalledModuleIdentification, PolytoneNoteExecuteMsg,
     },
     ibc_host::{self, HostAction, InternalAction},
-    manager::{self, ModuleInstallConfig},
     objects::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
     },
-    version_control::AccountBase,
+    version_control::Account,
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
@@ -25,7 +26,6 @@ use cosmwasm_std::{
     Env, IbcMsg, MessageInfo, QueryRequest, Storage, WasmQuery,
 };
 use cw_storage_plus::Item;
-use polytone::callbacks::CallbackRequest;
 use prost::Name;
 
 use crate::{
@@ -100,7 +100,7 @@ pub fn execute_register_infrastructure(
 
     let note_proxy_msg = wasm_execute(
         note,
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![],
             callback: Some(CallbackRequest {
                 receiver: env.contract.address.to_string(),
@@ -137,7 +137,7 @@ pub fn execute_remove_host(
 fn send_remote_host_action(
     deps: Deps,
     account_id: AccountId,
-    account: AccountBase,
+    account: Account,
     host_chain: TruncatedChainId,
     action: HostAction,
     callback_request: Option<CallbackRequest>,
@@ -150,13 +150,13 @@ fn send_remote_host_action(
     // message that will be called on the local note contract
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![wasm_execute(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
                 &ibc_host::ExecuteMsg::Execute {
                     // TODO: consider removing this field
-                    proxy_address: account.proxy.to_string(),
+                    account_address: account.addr().to_string(),
                     account_id,
                     action,
                 },
@@ -192,7 +192,7 @@ pub fn execute_send_packet(
             // Verify that the sender is a proxy contract
             let account_base = cfg
                 .version_control
-                .assert_proxy(&info.sender, &deps.querier)?;
+                .assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
             let account_id = account_base.account_id(deps.as_ref())?;
@@ -239,7 +239,7 @@ pub fn execute_send_module_to_module_packet(
 
     // We need additional information depending on the module type
     let source_module = match module_info.reference {
-        ModuleReference::AccountBase(_)
+        ModuleReference::Account(_)
         | ModuleReference::Native(_)
         | ModuleReference::Standalone(_)
         | ModuleReference::Service(_) => return Err(IbcClientError::Unauthorized {}),
@@ -249,16 +249,16 @@ pub fn execute_send_module_to_module_packet(
         },
         ModuleReference::App(_) => {
             // We verify the associated account id
-            let proxy_addr = Item::<AppState>::new(BASE_STATE)
+            let account = Item::<AppState>::new(BASE_STATE)
                 .query(&deps.querier, info.sender.clone())?
-                .proxy_address;
-            let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
-            let account_base = cfg
+                .account;
+            let account_id = cfg
                 .version_control
-                .account_base(&account_id, &deps.querier)?;
-            let ibc_client = manager::state::ACCOUNT_MODULES.query(
+                .account_id(account.addr(), &deps.querier)?;
+            let account_base = cfg.version_control.account(&account_id, &deps.querier)?;
+            let ibc_client = account::state::ACCOUNT_MODULES.query(
                 &deps.querier,
-                account_base.manager,
+                account_base.into_addr(),
                 IBC_CLIENT,
             )?;
             // Check that ibc_client is installed on account
@@ -298,7 +298,7 @@ pub fn execute_send_module_to_module_packet(
     // message that will be called on the local note contract
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![wasm_execute(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
@@ -352,7 +352,7 @@ pub fn execute_send_query(
     let note_contract = ibc_infra.polytone_note;
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Query {
+        &PolytoneNoteExecuteMsg::Query {
             msgs: queries,
             callback: callback_request,
             timeout_seconds: PACKET_LIFETIME.into(),
@@ -378,15 +378,15 @@ pub fn execute_register_account(
     // Verify that the sender is a proxy contract
     let account_base = cfg
         .version_control
-        .assert_proxy(&info.sender, &deps.querier)?;
+        .assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
     let account_id = account_base.account_id(deps.as_ref())?;
     // get auxiliary information
 
-    let account_info: manager::InfoResponse = deps
+    let account_info: account::InfoResponse = deps
         .querier
-        .query_wasm_smart(account_base.manager.clone(), &manager::QueryMsg::Info {})?;
+        .query_wasm_smart(account_base.addr(), &account::QueryMsg::Info {})?;
     let account_info = account_info.info;
 
     let note_message = send_remote_host_action(
@@ -426,7 +426,7 @@ pub fn execute_send_funds(
 
     let account_base = cfg
         .version_control
-        .assert_proxy(&info.sender, &deps.querier)?;
+        .assert_account(&info.sender, &deps.querier)?;
 
     // get account_id of Account
     let account_id = account_base.account_id(deps.as_ref())?;

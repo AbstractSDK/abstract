@@ -19,8 +19,8 @@ pub trait AdapterInterface: ModuleInterface + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
         # let deps = mock_dependencies();
+        # let module = MockModule::new(deps.api);
 
         let adapters: Adapters<MockModule>  = module.adapters(deps.as_ref());
         ```
@@ -55,8 +55,8 @@ impl<'a, T: AdapterInterface> ApiIdentification for Adapters<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
     # let deps = mock_dependencies();
+    # let module = MockModule::new(deps.api);
 
     let adapters: Adapters<MockModule>  = module.adapters(deps.as_ref());
     ```
@@ -78,7 +78,7 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(adapter_id)?;
         let adapter_msg = abstract_std::adapter::ExecuteMsg::<_>::Module(AdapterRequestMsg::new(
-            Some(self.base.proxy_address(self.deps)?.into_string()),
+            Some(self.base.account(self.deps)?.into_addr().into_string()),
             message,
         ));
         let adapter_address = modules.module_address(adapter_id)?;
@@ -153,7 +153,7 @@ mod tests {
 
             let expected_msg: adapter::ExecuteMsg<_> =
                 adapter::ExecuteMsg::Module(AdapterRequestMsg {
-                    proxy_address: Some(abstr.account.proxy.to_string()),
+                    account_address: Some(abstr.account.addr().to_string()),
                     request: MockModuleExecuteMsg {},
                 });
 
