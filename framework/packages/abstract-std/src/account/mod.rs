@@ -122,7 +122,6 @@ pub struct CallbackMsg {}
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
-    // ## Old Proxy ##
     /// Executes the provided messages if sender is whitelisted
     ModuleAction { msgs: Vec<CosmosMsg<Empty>> },
     /// Execute a message and forward the Response data
@@ -136,7 +135,6 @@ pub enum ExecuteMsg {
         action_query_msg: Binary,
     },
 
-    // ## Old Manager ##
     /// Forward execution message to module
     #[cw_orch(payable)]
     ExecOnModule { module_id: String, exec_msg: Binary },
@@ -199,13 +197,10 @@ pub enum ExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
-    // ## Old Proxy ##
     /// Contains the enabled modules
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-
-    // ## Old Manager ##
     /// Query the versions of modules installed on the account given their `ids`.
     /// Returns [`ModuleVersionsResponse`]
     #[returns(ModuleVersionsResponse)]
@@ -273,8 +268,7 @@ pub enum UpdateSubAccountAction {
     UnregisterSubAccount { id: u32 },
     /// Register sub-account
     /// It will register new sub-account into the state
-    /// Could be called by the sub-account manager
-    /// Note: since it happens after the claim by this manager state won't have spam accounts
+    /// Could be called by the sub-account
     RegisterSubAccount { id: u32 },
 }
 
@@ -312,7 +306,7 @@ pub struct SubAccountIdsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub modules: Vec<String>,
+    pub modules: Vec<(String, Addr)>,
     pub account_id: AccountId,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,

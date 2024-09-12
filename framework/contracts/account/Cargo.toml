@@ -59,7 +59,6 @@ abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
 # abstract-integration-tests = { workspace = true }
 
-
 [profile.release]
 rpath = false
 lto = true
