@@ -25,7 +25,6 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 
-use cw721_base::OwnershipError;
 use manager::commands::*;
 use proxy::commands::*;
 
@@ -311,9 +310,9 @@ fn verify_nft_ownership(
     nft_id: String,
 ) -> Result<(), AccountError> {
     // get owner of token_id from collection
-    let owner: cw721::OwnerOfResponse = deps.querier.query_wasm_smart(
+    let owner: ownership::cw721::OwnerOfResponse = deps.querier.query_wasm_smart(
         nft_addr,
-        &cw721::Cw721QueryMsg::OwnerOf {
+        &ownership::cw721::Cw721QueryMsg::OwnerOf {
             token_id: nft_id,
             include_expired: None,
         },
