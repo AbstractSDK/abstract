@@ -1,19 +1,16 @@
 use abstract_sdk::{
     feature_objects::VersionControlContract,
     std::{
-        manager::InstantiateMsg as ManagerInstantiateMsg,
-        manager::ModuleInstallConfig,
+        account::InstantiateMsg as AccountInstantiateMsg,
+        account::ModuleInstallConfig,
         module_factory::SimulateInstallModulesResponse,
         objects::{
             account::AccountTrace, module::assert_module_data_validity,
             salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
         },
         objects::{
-            gov_type::GovernanceDetails,
-            module::{Module, ModuleInfo},
-            module_reference::ModuleReference,
+            gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference,
         },
-        proxy::InstantiateMsg as ProxyInstantiateMsg,
         version_control::{Account, ExecuteMsg as VCExecuteMsg},
         AbstractError, ACCOUNT, IBC_HOST,
     },
@@ -111,18 +108,10 @@ pub fn execute_create_account(
     };
 
     // Query version_control for code_id of Proxy and Module contract
-    let (manager_module, proxy_module) = {
-        let mut modules = version_control.query_modules_configs(
-            vec![
-                ModuleInfo::from_id_latest(ACCOUNT)?,
-                ModuleInfo::from_id_latest(ACCOUNT)?,
-            ],
-            &deps.querier,
-        )?;
-        let manager_module: Module = modules.pop().unwrap().module;
-        let proxy_module: Module = modules.pop().unwrap().module;
-
-        (manager_module, proxy_module)
+    let account_module = {
+        let mut modules = version_control
+            .query_modules_configs(vec![ModuleInfo::from_id_latest(ACCOUNT)?], &deps.querier)?;
+        modules.pop().unwrap().module
     };
 
     let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
@@ -159,52 +148,34 @@ pub fn execute_create_account(
     let salt = generate_instantiate_salt(&account_id);
 
     // Get code_ids
-    let (proxy_code_id, manager_code_id) = if let (
-        ModuleReference::Account(proxy_code_id),
-        ModuleReference::Account(manager_code_id),
-    ) = (
-        proxy_module.reference.clone(),
-        manager_module.reference.clone(),
-    ) {
-        (proxy_code_id, manager_code_id)
-    } else {
-        return Err(AccountFactoryError::WrongModuleKind(
-            proxy_module.info.to_string(),
-            "account_base".to_string(),
-        ));
-    };
+    let account_code_id =
+        if let ModuleReference::Account(account_code_id) = account_module.reference.clone() {
+            account_code_id
+        } else {
+            return Err(AccountFactoryError::WrongModuleKind(
+                account_module.info.to_string(),
+                "account_base".to_string(),
+            ));
+        };
 
     // Get checksums
-    let proxy_checksum = deps.querier.query_wasm_code_info(proxy_code_id)?.checksum;
-    let manager_checksum = deps.querier.query_wasm_code_info(manager_code_id)?.checksum;
+    let account_checksum = deps.querier.query_wasm_code_info(account_code_id)?.checksum;
 
-    let proxy_addr = instantiate2_address(
-        proxy_checksum.as_slice(),
+    let account_addr = instantiate2_address(
+        account_checksum.as_slice(),
         &deps.api.addr_canonicalize(env.contract.address.as_str())?,
         salt.as_slice(),
     )?;
-    let manager_addr = instantiate2_address(
-        manager_checksum.as_slice(),
-        &deps.api.addr_canonicalize(env.contract.address.as_str())?,
-        salt.as_slice(),
-    )?;
-    let manager_addr_human = deps.api.addr_humanize(&manager_addr)?;
+    let account_addr_human = deps.api.addr_humanize(&account_addr)?;
 
-    let account_base = Account::new(manager_addr_human);
+    let account_base = Account::new(account_addr_human);
     // save context for after-init check
     let context = Context {
         account_id,
         account_base: account_base.clone(),
-        manager_module,
-        proxy_module,
+        account_module,
     };
     CONTEXT.save(deps.storage, &context)?;
-
-    let proxy_message = ProxyInstantiateMsg {
-        account_id: context.account_id,
-        ans_host_address: config.ans_host_contract.to_string(),
-        manager_addr: context.account_base.addr().to_string(),
-    };
 
     // Add Account base to version_control
     let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -227,8 +198,8 @@ pub fn execute_create_account(
     if let Some(link) = &link {
         metadata_attributes.push(("link", link.clone()))
     }
-    if let Some(namespace) = namespace {
-        metadata_attributes.push(("namespace", namespace))
+    if let Some(namespace) = &namespace {
+        metadata_attributes.push(("namespace", namespace.clone()))
     }
 
     // The execution order here is important.
@@ -241,11 +212,8 @@ pub fn execute_create_account(
         "create_account",
         [
             vec![
-                (
-                    "account_sequence",
-                    proxy_message.account_id.seq().to_string(),
-                ),
-                ("trace", proxy_message.account_id.trace().to_string()),
+                ("account_sequence", context.account_id.seq().to_string()),
+                ("trace", context.account_id.trace().to_string()),
             ],
             metadata_attributes,
         ]
@@ -253,33 +221,25 @@ pub fn execute_create_account(
     )
     // So first register account on version control
     .add_message(add_account_to_version_control_msg)
-    // Then instantiate proxy
-    .add_message(WasmMsg::Instantiate2 {
-        code_id: proxy_code_id,
-        funds: funds_to_proxy.into_vec(),
-        admin: Some(account_base.addr().to_string()),
-        label: format!("Proxy of Account: {}", proxy_message.account_id),
-        msg: to_json_binary(&proxy_message)?,
-        salt: salt.clone(),
-    })
-    // Instantiate manager and install apps
+    // Instantiate account and install apps
     // And validate contract versions in a callback
     .add_submessage(SubMsg::reply_on_success(
         WasmMsg::Instantiate2 {
-            code_id: manager_code_id,
+            code_id: account_code_id,
             funds: funds_for_install,
             admin: Some(account_base.addr().to_string()),
-            label: format!("Manager of Account: {}", proxy_message.account_id),
-            msg: to_json_binary(&ManagerInstantiateMsg {
-                account_id: proxy_message.account_id,
+            label: format!("Manager of Account: {}", context.account_id),
+            msg: to_json_binary(&AccountInstantiateMsg {
+                account_id: Some(context.account_id),
                 owner: governance.into(),
                 version_control_address: config.version_control_contract.into_string(),
                 module_factory_address: config.module_factory_address.into_string(),
-                proxy_addr: account_base.into_addr().into_string(),
                 name,
                 description,
                 link,
                 install_modules,
+                namespace,
+                ans_host_address: config.ans_host_contract.into_string(),
             })?,
             salt,
         },
@@ -310,15 +270,10 @@ pub fn validate_instantiated_account(deps: DepsMut, _result: SubMsgResult) -> Ac
     let account_base = context.account_base;
     let account_id = context.account_id;
 
-    // assert proxy and manager contract information is correct
+    // assert account contract information is correct
     assert_module_data_validity(
         &deps.querier,
-        &context.manager_module,
-        Some(account_base.addr().clone()),
-    )?;
-    assert_module_data_validity(
-        &deps.querier,
-        &context.proxy_module,
+        &context.account_module,
         Some(account_base.addr().clone()),
     )?;
 

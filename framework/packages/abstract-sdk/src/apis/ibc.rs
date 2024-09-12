@@ -3,13 +3,13 @@
 //!
 
 use abstract_std::{
+    account::ExecuteMsg,
+    account::ModuleInstallConfig,
     base,
     ibc::{Callback, ModuleQuery},
     ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
-    manager::ModuleInstallConfig,
     objects::{module::ModuleInfo, TruncatedChainId},
-    proxy::ExecuteMsg,
     ABSTRACT_VERSION, IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
@@ -33,8 +33,8 @@ pub trait IbcInterface:
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
         # let deps = mock_dependencies();
+        # let module = MockModule::new(deps.api);
 
         let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
         ```
@@ -73,8 +73,8 @@ impl<'a, T: IbcInterface> ApiIdentification for IbcClient<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
     # let deps = mock_dependencies();
+    # let module = MockModule::new(deps.api);
 
     let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
     ```

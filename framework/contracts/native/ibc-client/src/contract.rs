@@ -467,8 +467,8 @@ mod tests {
         use std::str::FromStr;
 
         use abstract_std::{
+            account,
             ibc_host::{self, HostAction, InternalAction},
-            manager,
             objects::{version_control::VersionControlError, TruncatedChainId},
         };
 
@@ -490,7 +490,7 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name,
                 action: HostAction::Dispatch {
-                    manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
+                    manager_msgs: vec![account::ExecuteMsg::UpdateInfo {
                         name: None,
                         description: None,
                         link: None,

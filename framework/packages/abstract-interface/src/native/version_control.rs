@@ -197,7 +197,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         let account_module = (
             ModuleInfo::from_id(
                 &account.id,
-                ModuleVersion::Version(manager::contract::CONTRACT_VERSION.to_string()),
+                ModuleVersion::Version(account::contract::CONTRACT_VERSION.to_string()),
             )?,
             ModuleReference::Account(account.code_id()?),
         );

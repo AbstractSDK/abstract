@@ -3,11 +3,11 @@ use abstract_sdk::{
     Resolve,
 };
 use abstract_std::{
-    account, account_factory,
+    account,
+    account::ModuleInstallConfig,
+    account_factory,
     ibc_host::state::CONFIG,
-    manager::{self, ModuleInstallConfig},
     objects::{AccountId, TruncatedChainId},
-    proxy,
     version_control::Account,
     ACCOUNT,
 };
@@ -144,9 +144,9 @@ pub fn send_all_back(
     // call the message to send everything back through the manager
     let manager_msg = wasm_execute(
         account.into_addr(),
-        &manager::ExecuteMsg::ExecOnModule {
+        &account::ExecuteMsg::ExecOnModule {
             module_id: ACCOUNT.into(),
-            exec_msg: to_json_binary(&proxy::ExecuteMsg::ModuleAction { msgs })?,
+            exec_msg: to_json_binary(&account::ExecuteMsg::ModuleAction { msgs })?,
         },
         vec![],
     )?;

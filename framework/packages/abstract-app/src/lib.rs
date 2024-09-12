@@ -32,7 +32,7 @@ pub mod mock {
     use abstract_interface::{AppDeployer, DependencyCreation, RegisteredModule};
     pub use abstract_std::app;
     use abstract_std::{
-        manager::ModuleInstallConfig,
+        account::ModuleInstallConfig,
         objects::{dependency::StaticDependency, module::ModuleInfo},
         IBC_CLIENT,
     };

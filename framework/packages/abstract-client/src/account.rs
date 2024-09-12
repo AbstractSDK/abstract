@@ -28,8 +28,8 @@ use abstract_interface::{
 };
 use abstract_std::{
     account,
-    manager::{
-        state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
+    account::{
+        state::AccountInfo, AccountModuleInfo, InfoResponse, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
@@ -608,22 +608,13 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .account
-            .upgrade(vec![
-                (
-                    ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
-                    Some(
-                        to_json_binary(&abstract_std::manager::MigrateMsg {})
-                            .map_err(Into::<CwOrchError>::into)?,
-                    ),
+            .upgrade(vec![(
+                ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
+                Some(
+                    to_json_binary(&abstract_std::account::MigrateMsg {})
+                        .map_err(Into::<CwOrchError>::into)?,
                 ),
-                (
-                    ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version)?,
-                    Some(
-                        to_json_binary(&abstract_std::proxy::MigrateMsg {})
-                            .map_err(Into::<CwOrchError>::into)?,
-                    ),
-                ),
-            ])
+            )])
             .map_err(Into::into)
     }
 
@@ -652,14 +643,14 @@ impl<Chain: CwEnv> Account<Chain> {
         self.configure(
             &account::ExecuteMsg::ExecOnModule {
                 module_id: ACCOUNT.to_owned(),
-                exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
+                exec_msg: to_json_binary(&abstract_std::account::ExecuteMsg::ModuleAction { msgs })
                     .map_err(AbstractInterfaceError::from)?,
             },
             funds,
         )
     }
 
-    /// Executes a [`account::ExecuteMsg`] on the manager of the account.
+    /// Executes a [`account::ExecuteMsg`] on the account.
     pub fn configure(
         &self,
         execute_msg: &account::ExecuteMsg,
@@ -696,7 +687,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
-        let mut module_infos: Vec<ManagerModuleInfo> = vec![];
+        let mut module_infos: Vec<AccountModuleInfo> = vec![];
         loop {
             let last_module_id: Option<String> = module_infos
                 .last()

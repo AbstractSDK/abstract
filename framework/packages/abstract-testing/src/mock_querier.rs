@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ops::Deref};
 
 use abstract_std::{
-    manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
+    account::state::{ACCOUNT_ID, ACCOUNT_MODULES},
     objects::{
         common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
     },

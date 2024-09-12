@@ -157,7 +157,7 @@ pub mod mock {
             .save(
                 &mut deps.storage,
                 &standalone::StandaloneState {
-                    account: abstr.account.clone(),
+                    account: abstr.account,
                     ans_host: AnsHost::new(abstr.ans_host),
                     version_control: VersionControlContract::new(abstr.version_control),
                     is_migratable: true,
