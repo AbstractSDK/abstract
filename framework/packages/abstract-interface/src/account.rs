@@ -138,6 +138,65 @@ impl<Chain: CwEnv> AccountI<Chain> {
         )
         .map_err(Into::into)
     }
+    /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
+    /// Note that the proxy is automatically included in the assertions.
+    /// Returns the `Vec<AccountModuleInfo>` from the manager
+    pub fn expect_modules(
+        &self,
+        module_addrs: Vec<String>,
+    ) -> Result<Vec<AccountModuleInfo>, crate::AbstractInterfaceError> {
+        let abstract_std::account::ModuleInfosResponse {
+            module_infos: manager_modules,
+        } = self.module_infos(None, None)?;
+
+        // insert proxy in expected module addresses
+        let expected_module_addrs = module_addrs
+            .into_iter()
+            .map(Addr::unchecked)
+            .chain(std::iter::once(self.address()?))
+            .collect::<HashSet<_>>();
+
+        let actual_module_addrs = manager_modules
+            .iter()
+            .map(|module_info| module_info.address.clone())
+            .collect::<HashSet<_>>();
+
+        // assert that these modules are installed
+        assert_that!(expected_module_addrs).is_equal_to(actual_module_addrs);
+
+        Ok(manager_modules)
+    }
+
+    pub fn is_module_installed(
+        &self,
+        module_id: &str,
+    ) -> Result<bool, crate::AbstractInterfaceError> {
+        let module = self.module_info(module_id)?;
+        Ok(module.is_some())
+    }
+
+    /// Checks that the proxy's whitelist includes the expected module addresses.
+    /// Automatically includes the manager in the expected whitelist.
+    pub fn expect_whitelist(
+        &self,
+        whitelisted_addrs: Vec<String>,
+    ) -> Result<Vec<(String, Addr)>, crate::AbstractInterfaceError> {
+        // insert manager in expected whitelisted addresses
+        let expected_whitelisted_addrs = whitelisted_addrs
+            .into_iter()
+            .chain(std::iter::once(self.address()?.into_string()))
+            .collect::<HashSet<_>>();
+
+        // check proxy config
+        let abstract_std::account::ConfigResponse {
+            modules: whitelist, ..
+        } = self.config()?;
+
+        let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a| a.0.clone()));
+        assert_eq!(actual_whitelist, expected_whitelisted_addrs);
+
+        Ok(whitelist)
+    }
 
     /// Installs an adapter from an adapter object
     pub fn install_adapter<CustomInitMsg: Serialize, T: AdapterDeployer<Chain, CustomInitMsg>>(
@@ -232,66 +291,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
         Ok(self.module_addresses(vec![module_id.into()])?.modules[0]
             .1
             .clone())
-    }
-
-    pub fn is_module_installed(
-        &self,
-        module_id: &str,
-    ) -> Result<bool, crate::AbstractInterfaceError> {
-        let module = self.module_info(module_id)?;
-        Ok(module.is_some())
-    }
-
-    /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
-    /// Note that the proxy is automatically included in the assertions.
-    /// Returns the `Vec<AccountModuleInfo>` from the manager
-    pub fn expect_modules(
-        &self,
-        module_addrs: Vec<String>,
-    ) -> Result<Vec<AccountModuleInfo>, crate::AbstractInterfaceError> {
-        let abstract_std::account::ModuleInfosResponse {
-            module_infos: manager_modules,
-        } = self.module_infos(None, None)?;
-
-        // insert proxy in expected module addresses
-        let expected_module_addrs = module_addrs
-            .into_iter()
-            .map(Addr::unchecked)
-            .chain(std::iter::once(self.address()?))
-            .collect::<HashSet<_>>();
-
-        let actual_module_addrs = manager_modules
-            .iter()
-            .map(|module_info| module_info.address.clone())
-            .collect::<HashSet<_>>();
-
-        // assert that these modules are installed
-        assert_that!(expected_module_addrs).is_equal_to(actual_module_addrs);
-
-        Ok(manager_modules)
-    }
-
-    /// Checks that the proxy's whitelist includes the expected module addresses.
-    /// Automatically includes the manager in the expected whitelist.
-    pub fn expect_whitelist(
-        &self,
-        whitelisted_addrs: Vec<String>,
-    ) -> Result<Vec<String>, crate::AbstractInterfaceError> {
-        // insert manager in expected whitelisted addresses
-        let expected_whitelisted_addrs = whitelisted_addrs
-            .into_iter()
-            .chain(std::iter::once(self.address()?.into_string()))
-            .collect::<HashSet<_>>();
-
-        // check proxy config
-        let abstract_std::account::ConfigResponse {
-            modules: whitelist, ..
-        } = self.config()?;
-
-        let actual_whitelist = HashSet::from_iter(whitelist.clone());
-        assert_eq!(actual_whitelist, expected_whitelisted_addrs);
-
-        Ok(whitelist)
     }
 }
 
@@ -425,7 +424,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         version_control.register_base(self)
     }
 
-    /// Gets the account ID of the account.
+    /// Gets the account ID of the
     pub fn id(&self) -> Result<AccountId, crate::AbstractInterfaceError> {
         Ok(self.config()?.account_id)
     }

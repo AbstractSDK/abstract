@@ -45,6 +45,7 @@ account-factory = { version = "0.23.0", package = "abstract-account-factory", pa
 ans-host = { version = "0.23.0", package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false }
 version-control = { version = "0.23.0", package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false }
 account = { version = "0.23.0", package = "abstract-account", path = "../../contracts/account", default-features = false }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [build-dependencies]
 serde_json = "1.0.79"
