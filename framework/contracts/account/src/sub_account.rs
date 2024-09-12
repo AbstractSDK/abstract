@@ -5,19 +5,18 @@ use abstract_std::{
     },
     objects::{
         gov_type::GovernanceDetails,
-        module::ModuleInfo,
         ownership::{self, GovOwnershipError},
         AccountId,
     },
 };
 use cosmwasm_std::{
-    wasm_execute, wasm_instantiate, Attribute, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    instantiate2_address, to_json_binary, wasm_execute, Attribute, CosmosMsg, DepsMut, Empty, Env,
+    MessageInfo, WasmMsg,
 };
 
 use crate::{
     contract::{AccountResponse, AccountResult},
     error::AccountError,
-    modules::query_module,
 };
 #[allow(clippy::too_many_arguments)]
 /// Creates a sub-account for this account,
@@ -37,11 +36,14 @@ pub fn create_sub_account(
     let seq = abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE
         .query(&deps.querier, config.version_control_address.clone())?;
     let account_id = AccountId::local(seq);
+    let salt = cosmwasm_std::to_json_binary(&seq)?;
 
     let self_code_id = deps
         .querier
         .query_wasm_contract_info(env.contract.address.clone())?
         .code_id;
+    let checksum = deps.querier.query_wasm_code_info(self_code_id)?.checksum;
+    let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
 
     let create_account_msg = abstract_std::account::InstantiateMsg {
         account_id: None,
@@ -57,13 +59,19 @@ pub fn create_sub_account(
         version_control_address: config.version_control_address.to_string(),
     };
 
+    let account_canon_addr =
+        instantiate2_address(checksum.as_slice(), &self_canon_addr, salt.as_slice())?;
+    let account_addr = deps.api.addr_humanize(&account_canon_addr)?;
+
     // Call factory and attach all funds that were provided.
-    let account_creation_message = wasm_instantiate(
-        self_code_id,
-        &create_account_msg,
-        info.funds,
-        account_id.to_string(),
-    )?;
+    let account_creation_message = WasmMsg::Instantiate2 {
+        admin: Some(account_addr.to_string()),
+        code_id: self_code_id,
+        label: account_id.to_string(),
+        msg: to_json_binary(&create_account_msg)?,
+        funds: info.funds,
+        salt,
+    };
 
     let response = AccountResponse::new::<_, Attribute>("create_sub_account", vec![])
         .add_message(account_creation_message);
