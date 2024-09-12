@@ -28,5 +28,3 @@ pub const IBC_HOST_ADDR: [u8; 32] = [
     94, 139, 153, 218, 194, 102, 2, 190, 168, 30, 134, 30, 248, 148, 81, 51, 245, 173, 192, 135,
     100, 59, 55, 253, 93, 117, 91, 65, 202, 146, 36, 151,
 ];
-
-// TODO: construct native contracts with AnsHost::new(&deps)

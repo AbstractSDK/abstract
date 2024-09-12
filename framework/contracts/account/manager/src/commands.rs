@@ -7,12 +7,13 @@ use abstract_std::{
     },
     manager::{
         state::{
-            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO, SUB_ACCOUNTS,
+            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, DEPENDENTS, INFO, SUB_ACCOUNTS,
             SUSPENSION_STATUS,
         },
         CallbackMsg, ExecuteMsg, InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
     },
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
+    native_addrs,
     objects::{
         dependency::Dependency,
         gov_type::GovernanceDetails,
@@ -29,9 +30,9 @@ use abstract_std::{
     ACCOUNT,
 };
 use cosmwasm_std::{
-    ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
-    Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg,
-    SubMsgResult, WasmMsg,
+    ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, CanonicalAddr, Coin,
+    CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage,
+    SubMsg, SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -92,13 +93,9 @@ pub fn install_modules(
     // only owner can call this method
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
-    let config = CONFIG.load(deps.storage)?;
-
     let (install_msgs, install_attribute) = _install_modules(
         deps.branch(),
         modules,
-        config.module_factory_address,
-        config.version_control_address,
         info.funds, // We forward all the funds to the module_factory address for them to use in the install
     )?;
     let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
@@ -112,18 +109,15 @@ pub fn install_modules(
 pub fn _install_modules(
     mut deps: DepsMut,
     modules: Vec<ModuleInstallConfig>,
-    module_factory_address: Addr,
-    version_control_address: Addr,
     funds: Vec<Coin>,
 ) -> ManagerResult<(Vec<SubMsg>, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let version_control = VersionControlContract::new(version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
-    let canonical_module_factory = deps
-        .api
-        .addr_canonicalize(module_factory_address.as_str())?;
+    let canonical_module_factory = CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR);
+    let module_factory_address = deps.api.addr_humanize(&canonical_module_factory)?;
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
@@ -344,11 +338,11 @@ pub fn handle_sub_account_action(
 
 // Unregister sub-account from the state
 fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
-    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
-        config.version_control_address,
+        version_control.address,
         &AccountId::local(id),
     )?;
 
@@ -366,11 +360,11 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerR
 
 // Register sub-account to the state
 fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
-    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
-        config.version_control_address,
+        version_control.address,
         &AccountId::local(id),
     )?;
 
@@ -418,8 +412,7 @@ pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> 
     versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
     // Remove for proxy if needed
-    let config = CONFIG.load(deps.storage)?;
-    let vc = VersionControlContract::new(config.version_control_address);
+    let vc = VersionControlContract::new(deps.api)?;
 
     let module = vc.query_module(
         ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
@@ -516,8 +509,7 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> ManagerResult<Vec<CosmosM
         );
     }
 
-    let config = CONFIG.load(deps.storage)?;
-    let vc = VersionControlContract::new(config.version_control_address);
+    let vc = VersionControlContract::new(deps.api)?;
     let mut namespaces = vc
         .query_namespaces(vec![account_id], &deps.querier)?
         .namespaces;
@@ -610,8 +602,7 @@ pub(crate) fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), ManagerError> {
-    let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
     let old_module_cw2 =
@@ -821,9 +812,8 @@ fn query_module(
     module_info: ModuleInfo,
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, ManagerError> {
-    let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {

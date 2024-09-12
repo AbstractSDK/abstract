@@ -75,8 +75,7 @@ fn update_config(
 
     if let Some(version_control_address) = version_control_address {
         // validate address format
-        config.version_control =
-            VersionControlContract::new(deps.api.addr_validate(&version_control_address)?);
+        config.version_control = VersionControlContract::new(deps.api)?;
     }
 
     if let Some(account_factory_address) = account_factory_address {

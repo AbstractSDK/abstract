@@ -34,7 +34,7 @@ pub fn execute_create_modules(
     let block_height = env.block.height;
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
     // assert that sender is manager
     let account_base = version_control.assert_account(&info.sender, &deps.querier)?;

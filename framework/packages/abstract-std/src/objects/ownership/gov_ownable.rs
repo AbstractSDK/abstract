@@ -1,7 +1,10 @@
 #![doc = include_str!("README.md")]
 
 pub use crate::objects::gov_type::{GovAction, GovernanceDetails};
-use crate::{objects::common_namespace::OWNERSHIP_STORAGE_KEY, AbstractError};
+use crate::{
+    objects::{common_namespace::OWNERSHIP_STORAGE_KEY, version_control::VersionControlContract},
+    AbstractError,
+};
 
 use cosmwasm_std::{
     Addr, Attribute, BlockInfo, CustomQuery, DepsMut, QuerierWrapper, StdError, StdResult, Storage,

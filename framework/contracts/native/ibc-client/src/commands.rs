@@ -47,13 +47,10 @@ pub fn execute_update_config(
     let mut cfg = CONFIG.load(deps.storage)?;
 
     if let Some(ans_host) = new_ans_host {
-        cfg.ans_host = AnsHost {
-            address: deps.api.addr_validate(&ans_host)?,
-        };
+        cfg.ans_host = AnsHost::new(deps.api)?;
     }
     if let Some(version_control) = new_version_control {
-        cfg.version_control =
-            VersionControlContract::new(deps.api.addr_validate(&version_control)?);
+        cfg.version_control = VersionControlContract::new(deps.api)?;
         // New version control address implies new accounts.
         clear_accounts(deps.storage);
     }

@@ -108,13 +108,8 @@ pub fn instantiate(
 
     if !install_modules.is_empty() {
         // Install modules
-        let (install_msgs, install_attribute) = _install_modules(
-            deps.branch(),
-            install_modules,
-            config.module_factory_address,
-            config.version_control_address,
-            info.funds,
-        )?;
+        let (install_msgs, install_attribute) =
+            _install_modules(deps.branch(), install_modules, info.funds)?;
         response = response
             .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);

@@ -1,13 +1,18 @@
-use abstract_sdk::std::{
-    manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
-    manager::{
-        state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
-        CallbackMsg, ExecuteMsg, InstantiateMsg, QueryMsg,
+use abstract_sdk::{
+    feature_objects::VersionControlContract,
+    std::{
+        manager::{
+            state::{AccountInfo, Config, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS},
+            CallbackMsg, ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
+        },
+        objects::{
+            gov_type::GovernanceDetails,
+            ownership,
+            validation::{validate_description, validate_link, validate_name},
+        },
+        proxy::state::ACCOUNT_ID,
+        ACCOUNT,
     },
-    objects::validation::{validate_description, validate_link, validate_name},
-    objects::{gov_type::GovernanceDetails, ownership},
-    proxy::state::ACCOUNT_ID,
-    ACCOUNT,
 };
 
 use cosmwasm_std::{
@@ -88,13 +93,8 @@ pub fn instantiate(
 
     if !msg.install_modules.is_empty() {
         // Install modules
-        let (install_msgs, install_attribute) = _install_modules(
-            deps.branch(),
-            msg.install_modules,
-            config.module_factory_address,
-            config.version_control_address,
-            info.funds,
-        )?;
+        let (install_msgs, install_attribute) =
+            _install_modules(deps.branch(), msg.install_modules, info.funds)?;
         response = response
             .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);
@@ -180,12 +180,12 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                         }
                     };
 
-                    let config = CONFIG.load(deps.storage)?;
+                    let version_control = VersionControlContract::new(deps.api)?;
                     let new_owner_attributes = ownership::update_ownership(
                         deps,
                         &env.block,
                         &info.sender,
-                        config.version_control_address,
+                        version_control.address,
                         action,
                     )?
                     .into_attributes();

@@ -1,24 +1,22 @@
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
+    feature_objects::{AnsHost, VersionControlContract},
     std::{
-        manager::InstantiateMsg as ManagerInstantiateMsg,
-        manager::ModuleInstallConfig,
+        manager::{InstantiateMsg as ManagerInstantiateMsg, ModuleInstallConfig},
         module_factory::SimulateInstallModulesResponse,
         objects::{
-            account::AccountTrace, module::assert_module_data_validity,
-            salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
-        },
-        objects::{
+            account::AccountTrace,
             gov_type::GovernanceDetails,
-            module::{Module, ModuleInfo},
+            module::{assert_module_data_validity, Module, ModuleInfo},
             module_reference::ModuleReference,
+            salt::generate_instantiate_salt,
+            AccountId, ABSTRACT_ACCOUNT_ID,
         },
         proxy::InstantiateMsg as ProxyInstantiateMsg,
         version_control::{Account, ExecuteMsg as VCExecuteMsg},
         AbstractError, ACCOUNT, IBC_HOST,
     },
 };
-use abstract_std::objects::ownership::cw721;
+use abstract_std::objects::{module_factory::ModuleFactoryContract, ownership::cw721};
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
     Env, MessageInfo, Storage, SubMsg, SubMsgResult, WasmMsg,
@@ -47,10 +45,11 @@ pub fn execute_create_account(
     install_modules: Vec<ModuleInstallConfig>,
     account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
-    let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_contract.clone());
+    let version_control = VersionControlContract::new(deps.api)?;
+    let ans_host = AnsHost::new(deps.api)?;
+    let module_factory = ModuleFactoryContract::new(deps.api)?;
 
-    let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
+    let governance = governance.verify(deps.as_ref(), version_control.address.clone())?;
     // Check if the caller is the manager the proposed owner account when creating a sub-account.
     // This prevents other users from creating sub-accounts for accounts they don't own.
     if let GovernanceDetails::SubAccount { account } = &governance {
@@ -126,7 +125,7 @@ pub fn execute_create_account(
     };
 
     let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
-        config.module_factory_address.to_string(),
+        module_factory.address.to_string(),
         &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
             modules: install_modules.iter().map(|m| m.module.clone()).collect(),
         },
@@ -203,13 +202,13 @@ pub fn execute_create_account(
 
     let proxy_message = ProxyInstantiateMsg {
         account_id: context.account_id,
-        ans_host_address: config.ans_host_contract.to_string(),
+        ans_host_address: ans_host.address.to_string(),
         manager_addr: context.account_base.addr().to_string(),
     };
 
     // Add Account base to version_control
     let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: config.version_control_contract.to_string(),
+        contract_addr: version_control.address.to_string(),
         funds: funds_for_namespace_fee,
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: proxy_message.account_id.clone(),
@@ -275,8 +274,8 @@ pub fn execute_create_account(
             msg: to_json_binary(&ManagerInstantiateMsg {
                 account_id: proxy_message.account_id,
                 owner: governance.into(),
-                version_control_address: config.version_control_contract.into_string(),
-                module_factory_address: config.module_factory_address.into_string(),
+                version_control_address: version_control.address.into_string(),
+                module_factory_address: module_factory.address.into_string(),
                 proxy_addr: account_base.into_addr().into_string(),
                 name,
                 description,

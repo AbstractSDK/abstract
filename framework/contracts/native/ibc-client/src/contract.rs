@@ -36,12 +36,8 @@ pub fn instantiate(
         None::<String>,
     )?;
     let cfg = Config {
-        version_control: VersionControlContract::new(
-            deps.api.addr_validate(&msg.version_control_address)?,
-        ),
-        ans_host: AnsHost {
-            address: deps.api.addr_validate(&msg.ans_host_address)?,
-        },
+        version_control: VersionControlContract::new(deps.api)?,
+        ans_host: AnsHost::new(deps.api)?,
     };
     CONFIG.save(deps.storage, &cfg)?;
 

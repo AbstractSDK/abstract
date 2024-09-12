@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, QuerierWrapper};
+use cosmwasm_std::{Addr, Api, CanonicalAddr, QuerierWrapper, StdResult};
 use thiserror::Error;
 
 use super::{
@@ -8,10 +8,13 @@ use super::{
     namespace::Namespace,
     AccountId,
 };
-use crate::version_control::{
-    state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
-    Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
-    NamespacesResponse, QueryMsg,
+use crate::{
+    native_addrs,
+    version_control::{
+        state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
+        Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
+        NamespacesResponse, QueryMsg,
+    },
 };
 
 #[derive(Error, Debug, PartialEq)]
@@ -70,9 +73,11 @@ pub struct VersionControlContract {
 }
 
 impl VersionControlContract {
-    /// Construct a new version control feature object.
-    pub fn new(address: Addr) -> Self {
-        Self { address }
+    /// Retrieve address of the Version Control
+    pub fn new(api: &dyn Api) -> StdResult<Self> {
+        let address =
+            api.addr_humanize(&CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR))?;
+        Ok(Self { address })
     }
 
     // Module registry
