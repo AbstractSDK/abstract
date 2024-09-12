@@ -20,5 +20,3 @@ pub trait AccountExecutor: AccountIdentification {
             .map_err(Into::into)
     }
 }
-
-impl<T> AccountExecutor for T where T: AccountIdentification {}
