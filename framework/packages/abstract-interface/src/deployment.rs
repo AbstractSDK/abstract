@@ -5,8 +5,8 @@ use cw_orch::daemon::DeployedChains;
 use cw_orch::prelude::*;
 
 use crate::{
-    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
-    Account, AccountFactory, AnsHost, ModuleFactory, VersionControl,
+    get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountFactory,
+    AccountI, AnsHost, ModuleFactory, VersionControl,
 };
 use abstract_std::{ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL};
 
@@ -33,7 +33,7 @@ pub struct Abstract<Chain: CwEnv> {
     pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
     pub ibc: AbstractIbc<Chain>,
-    pub(crate) account: AbstractAccount<Chain>,
+    pub(crate) account: AccountI<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -46,9 +46,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-        let account = Account::new(ACCOUNT, chain.clone());
+        let account = AccountI::new(ACCOUNT, chain.clone());
 
-        let mut account = AbstractAccount { account: account };
         let ibc_infra = AbstractIbc::new(&chain);
 
         ans_host.upload()?;
@@ -94,7 +93,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let abstr_acc_addr = chain
             .wasm_querier()
             .instantiate2_addr(
-                deployment.account.account.code_id()?,
+                deployment.account.code_id()?,
                 &chain.sender_addr(),
                 salt.clone(),
             )
@@ -104,7 +103,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         #[cfg(feature = "integration")]
         use abstract_std::objects::gov_type::GovernanceDetails;
         #[cfg(feature = "integration")]
-        deployment.account.account.instantiate2(
+        deployment.account.instantiate2(
             &abstract_std::account::InstantiateMsg {
                 account_id: None,
                 owner: GovernanceDetails::Monarchy {
@@ -131,7 +130,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             Box::new(&mut self.version_control),
             Box::new(&mut self.account_factory),
             Box::new(&mut self.module_factory),
-            Box::new(&mut self.account.account),
+            Box::new(&mut self.account),
             Box::new(&mut self.ibc.client),
             Box::new(&mut self.ibc.host),
         ]
@@ -174,9 +173,9 @@ impl<Chain: CwEnv> Abstract<Chain> {
         let (ans_host, account_factory, version_control, module_factory) =
             get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
-        let account = Account::new(ACCOUNT, chain.clone());
+        let account = AccountI::new(ACCOUNT, chain.clone());
         Self {
-            account: AbstractAccount { account },
+            account,
             ans_host,
             version_control,
             account_factory,
