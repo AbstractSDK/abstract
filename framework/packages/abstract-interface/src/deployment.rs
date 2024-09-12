@@ -93,7 +93,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let abstr_acc_addr = chain
             .wasm_querier()
             .instantiate2_addr(
-                deployment.account.account.code_id()?,
+                deployment.account.code_id()?,
                 &chain.sender_addr(),
                 salt.clone(),
             )
@@ -103,7 +103,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         #[cfg(feature = "integration")]
         use abstract_std::objects::gov_type::GovernanceDetails;
         #[cfg(feature = "integration")]
-        deployment.account.account.instantiate2(
+        deployment.account.instantiate2(
             &abstract_std::account::InstantiateMsg {
                 account_id: None,
                 owner: GovernanceDetails::Monarchy {
