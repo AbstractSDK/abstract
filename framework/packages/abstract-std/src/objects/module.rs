@@ -358,8 +358,7 @@ impl Module {
     pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
             // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
-            ModuleReference::Adapter(_)
-            | ModuleReference::App(_) => true,
+            ModuleReference::Adapter(_) | ModuleReference::App(_) => true,
             _ => false,
         }
     }

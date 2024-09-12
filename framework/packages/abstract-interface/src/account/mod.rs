@@ -152,7 +152,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             modules: whitelist, ..
         } = self.account.config()?;
 
-        let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a|a.0.clone()));
+        let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a| a.0.clone()));
         assert_eq!(actual_whitelist, expected_whitelisted_addrs);
 
         Ok(whitelist)

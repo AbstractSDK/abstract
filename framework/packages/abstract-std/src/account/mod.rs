@@ -306,7 +306,7 @@ pub struct SubAccountIdsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub modules: Vec<(String,Addr)>,
+    pub modules: Vec<(String, Addr)>,
     pub account_id: AccountId,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,

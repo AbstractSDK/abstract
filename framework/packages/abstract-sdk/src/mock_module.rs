@@ -11,7 +11,8 @@ use cosmwasm_std::{testing::MockApi, Deps};
 
 use crate::{
     features::{
-        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification, Dependencies, ModuleIdentification
+        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
+        Dependencies, ModuleIdentification,
     },
     std::objects::module::ModuleId,
     AbstractSdkResult,
