@@ -675,69 +675,69 @@ mod tests {
 
     //     use cw_controllers::AdminError;
 
-        // #[test]
-        // fn only_admin_can_add_module() {
-        //     let mut deps = mock_dependencies();
-        //     mock_init(&mut deps);
+    // #[test]
+    // fn only_admin_can_add_module() {
+    //     let mut deps = mock_dependencies();
+    //     mock_init(&mut deps);
 
-        //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
-        //     let msg = ExecuteMsg::AddModules {
-        //         modules: vec![test_module_addr.to_string()],
-        //     };
-        //     let info = message_info(&deps.api.addr_make("not_admin"), &[]);
+    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
+    //     let msg = ExecuteMsg::AddModules {
+    //         modules: vec![test_module_addr.to_string()],
+    //     };
+    //     let info = message_info(&deps.api.addr_make("not_admin"), &[]);
 
-        //     let res = execute(deps.as_mut(), mock_env(), info, msg);
-        //     assert_that(&res)
-        //         .is_err()
-        //         .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
-        // }
-        // #[test]
-        // fn fails_adding_previously_added_module() {
-        //     let mut deps = mock_dependencies();
-        //     mock_init(&mut deps);
+    //     let res = execute(deps.as_mut(), mock_env(), info, msg);
+    //     assert_that(&res)
+    //         .is_err()
+    //         .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
+    // }
+    // #[test]
+    // fn fails_adding_previously_added_module() {
+    //     let mut deps = mock_dependencies();
+    //     mock_init(&mut deps);
 
-        //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
-        //     let msg = ExecuteMsg::AddModules {
-        //         modules: vec![test_module_addr.to_string()],
-        //     };
+    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
+    //     let msg = ExecuteMsg::AddModules {
+    //         modules: vec![test_module_addr.to_string()],
+    //     };
 
-        //     let res = execute_as_admin(&mut deps, msg.clone());
-        //     assert_that(&res).is_ok();
+    //     let res = execute_as_admin(&mut deps, msg.clone());
+    //     assert_that(&res).is_ok();
 
-        //     let res = execute_as_admin(&mut deps, msg);
-        //     assert_that(&res)
-        //         .is_err()
-        //         .is_equal_to(AccountError::AlreadyWhitelisted(
-        //             test_module_addr.to_string(),
-        //         ));
-        // }
+    //     let res = execute_as_admin(&mut deps, msg);
+    //     assert_that(&res)
+    //         .is_err()
+    //         .is_equal_to(AccountError::AlreadyWhitelisted(
+    //             test_module_addr.to_string(),
+    //         ));
+    // }
 
-        // #[test]
-        // fn fails_adding_module_when_list_is_full() {
-        //     let mut deps = mock_dependencies();
-        //     mock_init(&mut deps);
+    // #[test]
+    // fn fails_adding_module_when_list_is_full() {
+    //     let mut deps = mock_dependencies();
+    //     mock_init(&mut deps);
 
-        //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
-        //     let mut msg = ExecuteMsg::AddModules {
-        //         modules: vec![test_module_addr.to_string()],
-        //     };
+    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
+    //     let mut msg = ExecuteMsg::AddModules {
+    //         modules: vec![test_module_addr.to_string()],
+    //     };
 
-        //     // -1 because manager counts as module as well
-        //     for i in 0..LIST_SIZE_LIMIT - 1 {
-        //         let test_module = format!("module_{i}");
-        //         let test_module_addr = deps.api.addr_make(&test_module);
-        //         msg = ExecuteMsg::AddModules {
-        //             modules: vec![test_module_addr.to_string()],
-        //         };
-        //         let res = execute_as_admin(&mut deps, msg.clone());
-        //         assert_that(&res).is_ok();
-        //     }
+    //     // -1 because manager counts as module as well
+    //     for i in 0..LIST_SIZE_LIMIT - 1 {
+    //         let test_module = format!("module_{i}");
+    //         let test_module_addr = deps.api.addr_make(&test_module);
+    //         msg = ExecuteMsg::AddModules {
+    //             modules: vec![test_module_addr.to_string()],
+    //         };
+    //         let res = execute_as_admin(&mut deps, msg.clone());
+    //         assert_that(&res).is_ok();
+    //     }
 
-        //     let res = execute_as_admin(&mut deps, msg);
-        //     assert_that(&res)
-        //         .is_err()
-        //         .is_equal_to(AccountError::ModuleLimitReached {});
-        // }
+    //     let res = execute_as_admin(&mut deps, msg);
+    //     assert_that(&res)
+    //         .is_err()
+    //         .is_equal_to(AccountError::ModuleLimitReached {});
+    // }
     // }
 
     // mod remove_module {

@@ -105,15 +105,15 @@ mod tests {
         test_common::{execute_as, execute_as_admin, mock_init},
     };
     use abstract_std::account::state::ACCOUNT_MODULES;
+    use abstract_testing::module::TEST_MODULE_ID;
     use abstract_testing::prelude::*;
+    use abstract_testing::{mock_dependencies, prelude::AbstractMockAddrs};
     use cosmwasm_std::{
         testing::{message_info, mock_env, MockApi, MockQuerier, MockStorage},
         Order, OwnedDeps, StdError,
     };
     use cosmwasm_std::{Addr, Storage};
     use speculoos::prelude::*;
-    use abstract_testing::module::TEST_MODULE_ID;
-    use abstract_testing::{mock_dependencies, prelude::AbstractMockAddrs};
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
