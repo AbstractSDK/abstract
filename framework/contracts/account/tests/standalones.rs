@@ -1,6 +1,6 @@
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
-use abstract_manager::error::ManagerError;
+use abstract_account::error::AccountError;
 use abstract_standalone::{
     gen_standalone_mock,
     mock::{MockExecMsgFns, MockQueryMsgFns, MockQueryResponse},
@@ -70,7 +70,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     )?;
 
     // Reinstall
-    account.account.uninstall_module(STANDALONE_ID.to_owned())?;
+    account.uninstall_module(STANDALONE_ID.to_owned())?;
     let Err(AbstractInterfaceError::Orch(err)) = account.install_standalone(
         &standalone,
         &MockInitMsg {
@@ -84,7 +84,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     ) else {
         panic!("Expected error");
     };
-    let manager_err: ManagerError = err.downcast().unwrap();
-    assert_eq!(manager_err, ManagerError::ProhibitedReinstall {});
+    let manager_err: AccountError = err.downcast().unwrap();
+    assert_eq!(manager_err, AccountError::ProhibitedReinstall {});
     Ok(())
 }

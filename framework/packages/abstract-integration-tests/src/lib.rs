@@ -3,7 +3,7 @@
 //! This module contains testing functions that can be used in different environments.
 
 pub mod account_factory;
-pub mod manager;
+pub mod account;
 pub mod mock_modules;
 // pub mod proxy;
 

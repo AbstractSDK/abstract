@@ -1,13 +1,13 @@
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_integration_tests::{create_default_account, mock_modules::*, AResult, *};
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
+    Abstract, AccountI, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
     ManagerExecFns, ManagerQueryFns, VCExecFns,
 };
-use abstract_manager::error::ManagerError;
+use abstract_account::error::AccountError;
 use abstract_std::{
     app, ibc_client,
-    manager::{ModuleInstallConfig, ModuleVersionsResponse},
+    account::{ModuleInstallConfig, ModuleVersionsResponse},
     module_factory::SimulateInstallModulesResponse,
     objects::{
         fee::FixedFee,
@@ -32,7 +32,7 @@ fn install_app_successful() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -75,7 +75,7 @@ fn install_app_versions_not_met() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -105,7 +105,7 @@ fn upgrade_app() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -134,7 +134,7 @@ fn upgrade_app() -> AResult {
     );
     // fails because adapter 1 is not version 2
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        ManagerError::VersionRequirementNotMet {
+        AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V1.into(),
             comp: "^2.0.0".into(),
@@ -153,7 +153,7 @@ fn upgrade_app() -> AResult {
     );
     // fails because app v1 is not version 2 and depends on adapter 1 being version 1.
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        ManagerError::VersionRequirementNotMet {
+        AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V2.into(),
             comp: "^1.0.0".into(),
@@ -186,7 +186,7 @@ fn upgrade_app() -> AResult {
 
     // fails because app v1 is depends on adapter 1 being version 1.
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        ManagerError::Abstract(AbstractError::CannotDowngradeContract {
+        AccountError::Abstract(AbstractError::CannotDowngradeContract {
             contract: app_1::MOCK_APP_ID.into(),
             from: V1.parse().unwrap(),
             to: V1.parse().unwrap(),
@@ -205,7 +205,7 @@ fn upgrade_app() -> AResult {
 
     // fails because app v1 is depends on adapter 1 being version 2.
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        ManagerError::VersionRequirementNotMet {
+        AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V1.into(),
             comp: "^2.0.0".into(),
@@ -241,7 +241,7 @@ fn upgrade_app() -> AResult {
 
     // fails because app v1 is depends on adapter 1 being version 2.
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        ManagerError::VersionRequirementNotMet {
+        AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V1.into(),
             comp: "^2.0.0".into(),
@@ -277,7 +277,7 @@ fn uninstall_modules() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::manager::uninstall_modules(chain)
+    abstract_integration_tests::account::uninstall_modules(chain)
 }
 
 #[test]
@@ -285,7 +285,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::manager::update_adapter_with_authorized_addrs(
+    abstract_integration_tests::account::update_adapter_with_authorized_addrs(
         chain.clone(),
         chain.addr_make("authorizee"),
     )
@@ -297,7 +297,7 @@ fn upgrade_manager_last() -> AResult {
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &account;
+    let AccountI { manager, proxy: _ } = &account;
 
     abstr
         .version_control
@@ -325,7 +325,7 @@ fn upgrade_manager_last() -> AResult {
         ),
         (
             ModuleInfo::from_id_latest("abstract:manager")?,
-            Some(to_json_binary(&manager::MigrateMsg {})?),
+            Some(to_json_binary(&account::MigrateMsg {})?),
         ),
         (ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID)?, None),
         (ModuleInfo::from_id_latest(adapter_2::MOCK_ADAPTER_ID)?, None),
@@ -359,7 +359,7 @@ fn no_duplicate_migrations() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -389,7 +389,7 @@ fn no_duplicate_migrations() -> AResult {
     assert_that!(res).is_err();
 
     assert_that!(res.unwrap_err().root().to_string()).is_equal_to(
-        ManagerError::DuplicateModuleMigration {
+        AccountError::DuplicateModuleMigration {
             module_id: adapter_1::MOCK_ADAPTER_ID.to_string(),
         }
         .to_string(),
@@ -462,7 +462,7 @@ fn create_account_with_installed_module() -> AResult {
         .unwrap();
 
     // Make sure all installed
-    let account_module_versions = account.account.module_versions(vec![
+    let account_module_versions = account.module_versions(vec![
         String::from(adapter_1::MOCK_ADAPTER_ID),
         String::from(adapter_2::MOCK_ADAPTER_ID),
         String::from(app_1::MOCK_APP_ID),
@@ -494,7 +494,7 @@ fn create_sub_account_with_installed_module() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::manager::create_sub_account_with_modules_installed(chain)
+    abstract_integration_tests::account::create_sub_account_with_modules_installed(chain)
 }
 
 #[test]
@@ -611,10 +611,10 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
             Some(&[coin(10, "coin1"), coin(10, "coin2")]),
         )
         .unwrap();
-    let balances = chain.query_all_balances(&account.proxy.address()?)?;
+    let balances = chain.query_all_balances(&account.address()?)?;
     assert_eq!(balances, vec![coin(5, "coin2")]);
     // Make sure all installed
-    let account_module_versions = account.account.module_versions(vec![
+    let account_module_versions = account.module_versions(vec![
         String::from(adapter_1::MOCK_ADAPTER_ID),
         String::from(adapter_2::MOCK_ADAPTER_ID),
         String::from(app_1::MOCK_APP_ID),
@@ -893,7 +893,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
             &[coin(10, "coin1"), coin(10, "coin2")],
         )
         .unwrap();
-    let balances = chain.query_all_balances(&account.proxy.address()?)?;
+    let balances = chain.query_all_balances(&account.address()?)?;
     assert_eq!(balances, vec![coin(1, "coin1"), coin(5, "coin2")]);
     // Make sure all installed
     Ok(())
@@ -904,7 +904,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::manager::create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
+    abstract_integration_tests::account::create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
 }
 
 // See gen_app_mock for more details
@@ -913,7 +913,7 @@ fn install_app_with_proxy_action() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::manager::install_app_with_proxy_action(chain)
+    abstract_integration_tests::account::install_app_with_proxy_action(chain)
 }
 
 #[test]
@@ -921,18 +921,17 @@ fn native_not_migratable() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let abstr_account = AbstractAccount::new(&abstr, AccountId::local(0));
+    let abstr_account = AccountI::new(&abstr, AccountId::local(0));
     abstr_account.install_module::<ibc_client::InstantiateMsg>(IBC_CLIENT, None, None)?;
 
     let latest_ibc_client = ModuleInfo::from_id_latest(IBC_CLIENT).unwrap();
 
-    let err: ManagerError = abstr_account
-        .account
+    let err: AccountError = abstr_account
         .upgrade(vec![(latest_ibc_client.clone(), None)])
         .unwrap_err()
         .downcast()
         .unwrap();
-    assert_eq!(err, ManagerError::NotUpgradeable(latest_ibc_client));
+    assert_eq!(err, AccountError::NotUpgradeable(latest_ibc_client));
     Ok(())
 }
 

@@ -195,7 +195,7 @@ mod test {
     use super::*;
 
     use crate::contract::{execute, instantiate, query, ProxyResult};
-    use abstract_std::proxy::{ExecuteMsg, InstantiateMsg};
+    use abstract_std::account::{ExecuteMsg, InstantiateMsg};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies, mock_env, MockApi},
@@ -210,14 +210,14 @@ mod test {
         let msg = InstantiateMsg {
             account_id: TEST_ACCOUNT_ID,
             ans_host_address: abstr.ans_host.to_string(),
-            manager_addr: abstr.account.manager.to_string(),
+            manager_addr: abstr.account.to_string(),
         };
         let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
     }
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
         let abstr = AbstractMockAddrs::new(deps.api);
-        let info = message_info(&abstr.account.manager, &[]);
+        let info = message_info(&abstr.account, &[]);
         execute(deps.as_mut(), mock_env(), info, msg)
     }
 
@@ -240,7 +240,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_std::proxy::QueryMsg::Config {},
+                abstract_std::account::QueryMsg::Config {},
             )
             .unwrap(),
         )
@@ -249,7 +249,7 @@ mod test {
             config,
             ConfigResponse {
                 modules: vec![
-                    abstr.account.manager.to_string(),
+                    abstr.account.to_string(),
                     abstr.module_address.to_string()
                 ],
             }

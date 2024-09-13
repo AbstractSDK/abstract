@@ -1,9 +1,9 @@
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_integration_tests::*;
 use abstract_interface::*;
-use abstract_manager::{contract::CONTRACT_VERSION, error::ManagerError};
+use abstract_account::{contract::CONTRACT_VERSION, error::AccountError};
 use abstract_std::{
-    manager::{ManagerModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
+    account::{AccountModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
     objects::{
         fee::FixedFee,
         gov_type::{GovAction, GovernanceDetails},
@@ -83,12 +83,12 @@ fn instantiate() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
-    let modules = account.account.module_infos(None, None)?.module_infos;
+    let modules = account.module_infos(None, None)?.module_infos;
 
     // assert proxy module
     assert_that!(&modules).has_length(1);
-    assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
-        address: account.proxy.address()?,
+    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
+        address: account.address()?,
         id: ACCOUNT.to_string(),
         version: cw2::ContractVersion {
             contract: ACCOUNT.into(),
@@ -97,7 +97,8 @@ fn instantiate() -> AResult {
     });
 
     // assert manager config
-    assert_that!(account.account.config()?).is_equal_to(abstract_std::manager::ConfigResponse {
+    assert_that!(account.config()?).is_equal_to(abstract_std::account::ConfigResponse {
+        modules: vec![],
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         account_id: TEST_ACCOUNT_ID,
@@ -116,19 +117,19 @@ fn exec_through_manager() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
 
     // Mint coins to proxy address
-    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
+    chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
 
     let proxy_balance = chain
         .bank_querier()
-        .balance(account.proxy.address()?, None)?;
+        .balance(&account.address()?, None)?;
 
-    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TTOKEN)]);
+    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000u128, TTOKEN)]);
 
-    let burn_amount = vec![Coin::new(10_000, TTOKEN)];
+    let burn_amount = vec![Coin::new(10_000u128, TTOKEN)];
 
     // Burn coins from proxy
-    account.account.exec_on_module(
-        cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
+    account.exec_on_module(
+        cosmwasm_std::to_json_binary(&abstract_std::account::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],
@@ -140,8 +141,8 @@ fn exec_through_manager() -> AResult {
     // Assert balance has decreased
     let proxy_balance = chain
         .bank_querier()
-        .balance(account.proxy.address()?, None)?;
-    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TTOKEN)]);
+        .balance(&account.address()?, None)?;
+    assert_that!(proxy_balance).is_equal_to(vec![Coin::new((100_000 - 10_000) as u128, TTOKEN)]);
     take_storage_snapshot!(chain, "exec_through_manager");
 
     Ok(())
@@ -155,11 +156,11 @@ fn default_without_response_data() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
-    install_adapter(&account.account, TEST_MODULE_ID)?;
+    install_adapter(&account, TEST_MODULE_ID)?;
 
-    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
+    chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
 
-    let resp = account.account.execute_on_module(
+    let resp = account.execute_on_module(
         TEST_MODULE_ID,
         Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
@@ -174,7 +175,7 @@ fn with_response_data() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::manager::with_response_data(chain.clone())?;
+    abstract_integration_tests::account::with_response_data(chain.clone())?;
     take_storage_snapshot!(chain, "proxy_with_response_data");
 
     Ok(())
@@ -185,7 +186,7 @@ fn install_standalone_modules() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, AccountId::local(0));
+    let account = AccountI::new(AccountId::local(0), chain.clone());
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -233,7 +234,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, AccountId::local(0));
+    let account = AccountI::new(AccountId::local(0), chain.clone());
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -257,10 +258,10 @@ fn install_standalone_versions_not_met() -> AResult {
         .unwrap_err();
 
     if let AbstractInterfaceError::Orch(err) = err {
-        let err: ManagerError = err.downcast()?;
+        let err: AccountError = err.downcast()?;
         assert_eq!(
             err,
-            ManagerError::Abstract(abstract_std::AbstractError::UnequalModuleData {
+            AccountError::Abstract(abstract_std::AbstractError::UnequalModuleData {
                 cw2: mock_modules::V1.to_owned(),
                 module: mock_modules::V2.to_owned(),
             })
@@ -278,7 +279,7 @@ fn install_multiple_modules() -> AResult {
     let sender = chain.sender_addr();
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, ABSTRACT_ACCOUNT_ID);
+    let account = AccountI::new(&deployment, ABSTRACT_ACCOUNT_ID);
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -374,7 +375,7 @@ fn install_multiple_modules() -> AResult {
     ])?;
 
     // Make sure all installed
-    let account_module_versions = account.account.module_versions(vec![
+    let account_module_versions = account.module_versions(vec![
         String::from("abstract:standalone1"),
         String::from("abstract:standalone2"),
     ])?;
@@ -395,7 +396,7 @@ fn install_multiple_modules() -> AResult {
         }
     );
 
-    let account_module_addresses = account.account.module_addresses(vec![
+    let account_module_addresses = account.module_addresses(vec![
         String::from("abstract:standalone1"),
         String::from("abstract:standalone2"),
     ])?;
@@ -440,7 +441,6 @@ fn renounce_cleans_namespace() -> AResult {
     assert!(namespace_result.is_ok());
 
     account
-        .account
         .update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     let namespace_result = deployment
@@ -449,7 +449,7 @@ fn renounce_cleans_namespace() -> AResult {
     assert_eq!(namespace_result, NamespaceResponse::Unclaimed {});
 
     // Governance is in fact renounced
-    let ownership = account.account.ownership()?;
+    let ownership = account.ownership()?;
     assert_eq!(ownership.owner, GovernanceDetails::Renounced {});
 
     Ok(())
@@ -490,20 +490,20 @@ fn nft_owner_success() -> Result<(), Error> {
     let first_burn = Uint128::from(start_amnt).checked_sub(burn_amnt.into())?;
 
     // fund nft account
-    chain.set_balance(&account.proxy.address()?, start_balance.clone())?;
+    chain.set_balance(&account.address()?, start_balance.clone())?;
 
     // test sending msg as nft account by burning tokens from proxy
-    let burn_msg = abstract_std::proxy::ExecuteMsg::ModuleAction {
+    let burn_msg = abstract_std::account::ExecuteMsg::ModuleAction {
         msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
             amount: burn_amount,
         })],
     };
 
     // confirm sender (who owns this NFT) can execute on the account through the manager
-    account.account.execute_on_module(ACCOUNT, &burn_msg)?;
+    account.execute_on_module(ACCOUNT, &burn_msg)?;
 
     // confirm tokens were burnt
-    let balance = chain.query_balance(&account.proxy.address()?, TTOKEN)?;
+    let balance = chain.query_balance(&account.address()?, TTOKEN)?;
 
     assert_eq!(balance.clone(), first_burn.clone());
 
@@ -511,7 +511,6 @@ fn nft_owner_success() -> Result<(), Error> {
     let not_nft_holder = chain.addr_make_with_balance("test", vec![])?;
 
     let res = account
-        .account
         .call_as(&not_nft_holder)
         .execute_on_module(ACCOUNT, &burn_msg);
 
@@ -540,16 +539,15 @@ fn nft_owner_success() -> Result<(), Error> {
     assert_eq!(resp.owner, new_nft_owner);
 
     // try to call as the old owner (default sender)
-    let res = account.account.execute_on_module(ACCOUNT, &burn_msg);
+    let res = account.execute_on_module(ACCOUNT, &burn_msg);
     assert!(&res.is_err());
 
     // Now try with new NFT owner
     account
-        .account
         .call_as(&new_nft_owner)
         .execute_on_module(ACCOUNT, burn_msg)?;
 
-    let balance = chain.query_balance(&account.proxy.address()?, TTOKEN)?;
+    let balance = chain.query_balance(&account.address()?, TTOKEN)?;
     assert_eq!(balance, first_burn.checked_sub(burn_amnt.into())?);
 
     Ok(())
@@ -585,8 +583,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
     let not_nft_owner = chain.addr_make("not_nft_owner");
 
     // NFT owned account governance cannot be transferred
-    let err: ManagerError = account
-        .account
+    let err: AccountError = account
         .update_ownership(GovAction::TransferOwnership {
             new_owner: GovernanceDetails::Monarchy {
                 monarch: not_nft_owner.to_string(),
@@ -598,19 +595,18 @@ fn nft_owner_immutable() -> Result<(), Error> {
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
+        AccountError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
     // NFT owned account governance cannot be renounced
-    let err: ManagerError = account
-        .account
+    let err: AccountError = account
         .update_ownership(ownership::GovAction::RenounceOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
+        AccountError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
     // create nft-owned sub-account
@@ -627,8 +623,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
     )?;
 
     // NFT owned sub-account governance cannot be transferred
-    let err: ManagerError = sub_account
-        .account
+    let err: AccountError = sub_account
         .update_ownership(GovAction::TransferOwnership {
             new_owner: GovernanceDetails::Monarchy {
                 monarch: not_nft_owner.to_string(),
@@ -640,19 +635,18 @@ fn nft_owner_immutable() -> Result<(), Error> {
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
+        AccountError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
     // NFT owned sub-account governance cannot be renounced
-    let err: ManagerError = sub_account
-        .account
+    let err: AccountError = sub_account
         .update_ownership(ownership::GovAction::RenounceOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
+        AccountError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
     Ok(())
@@ -678,8 +672,7 @@ fn nft_pending_owner() -> Result<(), Error> {
                 monarch: chain.sender_addr().to_string(),
             })?;
     // Transferring to token id that pending governance don't own act same way as transferring to renounced governance
-    let err: ManagerError = account
-        .account
+    let err: AccountError = account
         .update_ownership(GovAction::TransferOwnership {
             new_owner: GovernanceDetails::NFT {
                 collection_addr: nft_addr.to_string(),
@@ -692,12 +685,11 @@ fn nft_pending_owner() -> Result<(), Error> {
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(ownership::GovOwnershipError::TransferToRenounced)
+        AccountError::Ownership(ownership::GovOwnershipError::TransferToRenounced)
     );
 
     // Now transfer to correct token id
     account
-        .account
         .update_ownership(GovAction::TransferOwnership {
             new_owner: gov.clone(),
             expiry: None,
@@ -710,18 +702,17 @@ fn nft_pending_owner() -> Result<(), Error> {
     )?;
     // Account have pending NFT governance
     // Note that there is no pending period
-    let ownership = account.account.ownership()?;
+    let ownership = account.ownership()?;
     assert_eq!(ownership.pending_owner.unwrap(), gov);
 
-    let err: ManagerError = account
-        .account
+    let err: AccountError = account
         .update_ownership(GovAction::AcceptOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(ownership::GovOwnershipError::TransferNotFound)
+        AccountError::Ownership(ownership::GovOwnershipError::TransferNotFound)
     );
 
     // Mint new NFT, since we burned previous one
@@ -730,7 +721,6 @@ fn nft_pending_owner() -> Result<(), Error> {
 
     // Propose NFT governance
     account
-        .account
         .update_ownership(GovAction::TransferOwnership {
             new_owner: (GovernanceDetails::NFT {
                 collection_addr: nft_addr.to_string(),
@@ -741,8 +731,7 @@ fn nft_pending_owner() -> Result<(), Error> {
         })?;
 
     // Only NFT owner can accept it
-    let err: ManagerError = account
-        .account
+    let err: AccountError = account
         .call_as(&chain.addr_make("not_nft_owner"))
         .update_ownership(GovAction::AcceptOwnership)
         .unwrap_err()
@@ -750,12 +739,11 @@ fn nft_pending_owner() -> Result<(), Error> {
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(ownership::GovOwnershipError::NotPendingOwner)
+        AccountError::Ownership(ownership::GovOwnershipError::NotPendingOwner)
     );
 
     // Now accept without accidents
     account
-        .account
         .update_ownership(GovAction::AcceptOwnership)?;
 
     // Burn NFT, to ensure account becomes unusable
@@ -767,15 +755,14 @@ fn nft_pending_owner() -> Result<(), Error> {
         &nft_addr,
     )?;
 
-    let err: ManagerError = account
-        .account
+    let err: AccountError = account
         .update_info(Some("RIP Account".to_owned()), None, None)
         .unwrap_err()
         .downcast()
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(ownership::GovOwnershipError::NoOwner)
+        AccountError::Ownership(ownership::GovOwnershipError::NoOwner)
     );
     Ok(())
 }
@@ -842,7 +829,7 @@ fn increment_not_effected_by_claiming() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[]
     )?;
 
     let next_account_id = deployment.account_factory.config()?.local_account_sequence;

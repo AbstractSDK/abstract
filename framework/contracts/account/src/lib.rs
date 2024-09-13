@@ -33,14 +33,14 @@ mod test_common {
             deps.as_mut(),
             mock_env(),
             info,
-            manager::InstantiateMsg {
+            account::InstantiateMsg {
                 account_id: AccountId::new(1, AccountTrace::Local).unwrap(),
                 owner: GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),
                 },
                 version_control_address: abstr.version_control.to_string(),
                 module_factory_address: abstr.account_factory.to_string(),
-                proxy_addr: abstr.account.proxy.to_string(),
+                proxy_addr: abstr.account.to_string(),
                 name: "test".to_string(),
                 description: None,
                 link: None,

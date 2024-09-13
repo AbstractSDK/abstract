@@ -11,7 +11,7 @@ use abstract_integration_tests::{
 use abstract_interface::*;
 use abstract_std::{
     adapter::{AdapterBaseMsg, AdapterRequestMsg, BaseExecuteMsg, BaseQueryMsgFns},
-    manager::{ManagerModuleInfo, ModuleInstallConfig},
+    account::{AccountModuleInfo, ModuleInstallConfig},
     objects::{
         fee::FixedFee,
         module::{ModuleInfo, ModuleVersion, Monetization},
@@ -32,11 +32,11 @@ fn installing_one_adapter_should_succeed() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
-    install_adapter(&account.account, TEST_MODULE_ID)?;
+    install_adapter(&account, TEST_MODULE_ID)?;
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
-    assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
+    assert_that(&modules[1]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -54,7 +54,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     });
 
     // no authorized addresses registered
-    let authorized = staking_adapter.authorized_addresses(account.proxy.addr_str()?)?;
+    let authorized = staking_adapter.authorized_addresses(account.addr_str()?)?;
     assert_that!(authorized)
         .is_equal_to(adapter::AuthorizedAddressesResponse { addresses: vec![] });
 
@@ -77,11 +77,11 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
         None,
     )?;
     // TODO, match the exact error
-    assert_that!(install_adapter(&account.account, TEST_MODULE_ID)).is_err();
+    assert_that!(install_adapter(&account, TEST_MODULE_ID)).is_err();
 
     // TODO, match the exact error
     assert_that!(install_adapter_with_funds(
-        &account.account,
+        &account,
         TEST_MODULE_ID,
         &coins(12, "ujunox")
     ))
@@ -95,7 +95,7 @@ fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::manager::installing_one_adapter_with_fee_should_succeed(
+    abstract_integration_tests::account::installing_one_adapter_with_fee_should_succeed(
         chain.clone(),
     )?;
     take_storage_snapshot!(chain, "install_one_adapter_with_fee");
@@ -109,7 +109,7 @@ fn install_non_existent_adapterid_should_fail() -> AResult {
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
-    let res = install_adapter(&account.account, "lol:no_chance");
+    let res = install_adapter(&account, "lol:no_chance");
 
     assert_that!(res).is_err();
     Ok(())
@@ -123,11 +123,11 @@ fn install_non_existent_version_should_fail() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_adapter(chain, &deployment, None, account.id()?)?;
 
-    let res = account.account.install_module_version(
+    let res = account.install_module_version(
         TEST_MODULE_ID,
         ModuleVersion::Version("1.2.3".to_string()),
         Some(&Empty {}),
-        None,
+        &[]
     );
 
     // testtodo: check error
@@ -144,13 +144,13 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain, &deployment, None, account.id()?)?;
 
-    install_adapter(&account.account, TEST_MODULE_ID)?;
+    install_adapter(&account, TEST_MODULE_ID)?;
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
     // assert proxy module
     // check staking adapter
-    assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
+    assert_that(&modules[1]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -160,7 +160,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
     });
 
     // install again
-    let second_install_res = install_adapter(&account.account, TEST_MODULE_ID);
+    let second_install_res = install_adapter(&account, TEST_MODULE_ID);
     assert_that!(second_install_res)
         .is_err()
         .matches(|e| e.to_string().contains("test-module-id"));
@@ -178,12 +178,12 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
-    install_adapter(&account.account, TEST_MODULE_ID)?;
+    install_adapter(&account, TEST_MODULE_ID)?;
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
     // check staking adapter
-    assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
+    assert_that(&modules[1]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -194,14 +194,13 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
 
     // uninstall
     account
-        .account
         .uninstall_module(TEST_MODULE_ID.to_string())?;
 
     // None expected
     account.expect_modules(vec![])?;
 
     // reinstall
-    install_adapter(&account.account, TEST_MODULE_ID)?;
+    install_adapter(&account, TEST_MODULE_ID)?;
 
     account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
     take_storage_snapshot!(chain, "reinstalling_adapter_should_be_allowed");
@@ -225,12 +224,12 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
         .unwrap();
 
-    install_adapter(&account.account, &adapter1.id())?;
+    install_adapter(&account, &adapter1.id())?;
 
     let modules = account.expect_modules(vec![adapter1.address()?.to_string()])?;
 
     // check staking adapter
-    assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
+    assert_that(&modules[1]).is_equal_to(&AccountModuleInfo {
         address: adapter1.address()?,
         id: adapter1.id(),
         version: cw2::ContractVersion {
@@ -240,7 +239,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     });
 
     // uninstall tendermint staking
-    account.account.uninstall_module(adapter1.id())?;
+    account.uninstall_module(adapter1.id())?;
 
     account.expect_modules(vec![])?;
 
@@ -259,11 +258,11 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     assert_that!(latest_staking.info.version).is_equal_to(ModuleVersion::Version(V2.to_string()));
 
     // reinstall
-    install_adapter(&account.account, &adapter2.id())?;
+    install_adapter(&account, &adapter2.id())?;
 
     let modules = account.expect_modules(vec![adapter2.address()?.to_string()])?;
 
-    assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
+    assert_that!(modules[1]).is_equal_to(&AccountModuleInfo {
         // the address stored for MockAdapterI was updated when we instantiated the new version, so this is the new address
         address: adapter2.address()?,
         id: adapter2.id(),
@@ -293,11 +292,11 @@ fn unauthorized_exec() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
-    install_adapter(&account.account, TEST_MODULE_ID)?;
+    install_adapter(&account, TEST_MODULE_ID)?;
     // non-authorized address cannot execute
     let res = staking_adapter
         .call_as(&unauthorized)
-        .execute(&MockExecMsg {}.into(), None)
+        .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(format!(
         "Sender: {} of request to tester:test-module-id is not a Manager or Authorized Address",
@@ -305,7 +304,7 @@ fn unauthorized_exec() -> AResult {
     ));
     // neither can the ROOT directly
     let res = staking_adapter
-        .execute(&MockExecMsg {}.into(), None)
+        .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
     assert_that!(&res.root().to_string()).contains(format!(
         "Sender: {} of request to tester:test-module-id is not a Manager or Authorized Address",
@@ -322,11 +321,11 @@ fn manager_adapter_exec() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
-    install_adapter(&account.account, TEST_MODULE_ID)?;
+    install_adapter(&account, TEST_MODULE_ID)?;
 
-    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
+    chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
 
-    account.account.execute_on_module(
+    account.execute_on_module(
         TEST_MODULE_ID,
         Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
@@ -360,7 +359,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let expected_version = "1.0.0".to_string();
 
     // install specific version
-    account.account.install_module_version(
+    account.install_module_version(
         &adapter1.id(),
         ModuleVersion::Version(expected_version),
         Some(&MockInitMsg {}),
@@ -368,7 +367,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     )?;
 
     let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;
-    let installed_module: ManagerModuleInfo = modules[1].clone();
+    let installed_module: AccountModuleInfo = modules[1].clone();
     assert_that!(installed_module.id).is_equal_to(adapter1.id());
     take_storage_snapshot!(chain, "installing_specific_version_should_install_expected");
 
@@ -390,7 +389,6 @@ fn account_install_adapter() -> AResult {
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
     let adapter_addr = account.install_adapter(&adapter, None)?;
     let module_addr = account
-        .account
         .module_info(adapter_1::MOCK_ADAPTER_ID)?
         .unwrap()
         .address;
@@ -414,7 +412,7 @@ fn account_adapter_ownership() -> AResult {
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
     account.install_adapter(&adapter, None)?;
 
-    let proxy_addr = account.proxy.address()?;
+    let proxy_addr = account.address()?;
 
     // Checking module requests
 
@@ -424,14 +422,14 @@ fn account_adapter_ownership() -> AResult {
             account_address: Some(proxy_addr.to_string()),
             request: MockExecMsg {},
         }),
-        None,
+        &[]
     )?;
-    adapter.call_as(&account.account.address()?).execute(
+    adapter.call_as(&account.address()?).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
             account_address: Some(proxy_addr.to_string()),
             request: MockExecMsg {},
         }),
-        None,
+        &[]
     )?;
 
     // Not admin or manager
@@ -443,7 +441,7 @@ fn account_adapter_ownership() -> AResult {
                 account_address: Some(proxy_addr.to_string()),
                 request: MockExecMsg {},
             }),
-            None,
+            &[]
         )
         .unwrap_err()
         .downcast()
@@ -467,9 +465,9 @@ fn account_adapter_ownership() -> AResult {
                 to_remove: vec![],
             },
         }),
-        None,
+        &[]
     )?;
-    adapter.call_as(&account.account.address()?).execute(
+    adapter.call_as(&account.address()?).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
             proxy_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -477,7 +475,7 @@ fn account_adapter_ownership() -> AResult {
                 to_remove: vec![],
             },
         }),
-        None,
+        &[]
     )?;
 
     // Not admin or manager
@@ -491,7 +489,7 @@ fn account_adapter_ownership() -> AResult {
                     to_remove: vec![],
                 },
             }),
-            None,
+            &[]
         )
         .unwrap_err()
         .downcast()
@@ -521,7 +519,7 @@ fn subaccount_adapter_ownership() -> AResult {
     let adapter = MockAdapterI1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
 
-    account.account.create_sub_account(
+    account.create_sub_account(
         vec![ModuleInstallConfig::new(
             ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID).unwrap(),
             None,
@@ -534,15 +532,14 @@ fn subaccount_adapter_ownership() -> AResult {
         &[],
     )?;
 
-    let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
+    let sub_account = AccountI::new(&deployment, AccountId::local(2));
 
     let module = sub_account
-        .account
         .module_info(adapter_1::MOCK_ADAPTER_ID)?
         .unwrap();
     adapter.set_address(&module.address);
 
-    let proxy_addr = sub_account.proxy.address()?;
+    let proxy_addr = sub_account.address()?;
 
     // Checking module requests
 
@@ -552,14 +549,14 @@ fn subaccount_adapter_ownership() -> AResult {
             account_address: Some(proxy_addr.to_string()),
             request: MockExecMsg {},
         }),
-        None,
+        &[]
     )?;
-    adapter.call_as(&sub_account.account.address()?).execute(
+    adapter.call_as(&sub_account.address()?).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
             account_address: Some(proxy_addr.to_string()),
             request: MockExecMsg {},
         }),
-        None,
+        &[]
     )?;
 
     // Not admin or manager
@@ -571,7 +568,7 @@ fn subaccount_adapter_ownership() -> AResult {
                 account_address: Some(proxy_addr.to_string()),
                 request: MockExecMsg {},
             }),
-            None,
+            &[]
         )
         .unwrap_err()
         .downcast()
@@ -595,9 +592,9 @@ fn subaccount_adapter_ownership() -> AResult {
                 to_remove: vec![],
             },
         }),
-        None,
+        &[]
     )?;
-    adapter.call_as(&sub_account.account.address()?).execute(
+    adapter.call_as(&sub_account.address()?).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
             proxy_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -605,7 +602,7 @@ fn subaccount_adapter_ownership() -> AResult {
                 to_remove: vec![],
             },
         }),
-        None,
+        &[]
     )?;
 
     // Not admin or manager
@@ -613,13 +610,13 @@ fn subaccount_adapter_ownership() -> AResult {
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(proxy_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],
                 },
             }),
-            None,
+            &[],
         )
         .unwrap_err()
         .downcast()

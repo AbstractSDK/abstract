@@ -161,7 +161,7 @@ mod tests {
     };
     use speculoos::prelude::*;
 
-    type ManagerTestResult = Result<(), ManagerError>;
+    type ManagerTestResult = Result<(), AccountError>;
 
     fn mock_installed_proxy(deps: &mut MockDeps) -> StdResult<()> {
         let base = test_account_base(deps.api);
@@ -191,7 +191,7 @@ mod tests {
         let res = execute_as(deps.as_mut(), &not_owner, msg);
         assert_that!(&res)
             .is_err()
-            .is_equal_to(ManagerError::Ownership(
+            .is_equal_to(AccountError::Ownership(
                 ownership::GovOwnershipError::NotOwner,
             ));
 
@@ -238,7 +238,7 @@ mod tests {
             assert_that!(res).is_err().matches(|err| {
                 matches!(
                     err,
-                    ManagerError::Ownership(GovOwnershipError::Abstract(
+                    AccountError::Ownership(GovOwnershipError::Abstract(
                         abstract_std::AbstractError::Std(StdError::GenericErr { .. })
                     ))
                 )
@@ -415,7 +415,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    ManagerError::Validation(ValidationError::TitleInvalidShort(_))
+                    AccountError::Validation(ValidationError::TitleInvalidShort(_))
                 )
             });
 
@@ -429,7 +429,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    ManagerError::Validation(ValidationError::TitleInvalidLong(_))
+                    AccountError::Validation(ValidationError::TitleInvalidLong(_))
                 )
             });
 
@@ -454,7 +454,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    ManagerError::Validation(ValidationError::LinkInvalidShort(_))
+                    AccountError::Validation(ValidationError::LinkInvalidShort(_))
                 )
             });
 
@@ -468,7 +468,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    ManagerError::Validation(ValidationError::LinkInvalidLong(_))
+                    AccountError::Validation(ValidationError::LinkInvalidLong(_))
                 )
             });
 
@@ -497,7 +497,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
+                .matches(|err| matches!(err, AccountError::Std(StdError::GenericErr { .. })));
 
             Ok(())
         }
@@ -544,7 +544,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::AccountSuspended {});
+                .is_equal_to(AccountError::AccountSuspended {});
 
             Ok(())
         }
@@ -589,7 +589,7 @@ mod tests {
     }
 
     mod update_internal_config {
-        use abstract_std::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
+        use abstract_std::account::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
 
         use super::*;
 
@@ -614,7 +614,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
+                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             let factory_res = execute_as(deps.as_mut(), &abstr.account_factory, msg.clone());
             assert_that!(&factory_res).is_err();
@@ -638,7 +638,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|e| matches!(e, ManagerError::InvalidConfigAction { .. }));
+                .matches(|e| matches!(e, AccountError::InvalidConfigAction { .. }));
 
             Ok(())
         }

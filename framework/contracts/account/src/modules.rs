@@ -435,7 +435,7 @@ mod tests {
             let res = update_module_addresses(deps.as_mut(), Some(to_add), Some(vec![]));
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::InvalidModuleName {});
+                .is_equal_to(AccountError::InvalidModuleName {});
 
             Ok(())
         }
@@ -475,7 +475,7 @@ mod tests {
             let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::CannotRemoveProxy {});
+                .is_equal_to(AccountError::CannotRemoveProxy {});
 
             Ok(())
         }
@@ -507,7 +507,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &not_account_factory, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
+                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
         }
@@ -533,7 +533,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &not_owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
+                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
         }
@@ -572,7 +572,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::ModuleHasDependents(Vec::from_iter(
+                .is_equal_to(AccountError::ModuleHasDependents(Vec::from_iter(
                     dependents,
                 )));
 
@@ -593,7 +593,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::CannotRemoveProxy {});
+                .is_equal_to(AccountError::CannotRemoveProxy {});
 
             Ok(())
         }
@@ -631,7 +631,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::ModuleNotFound(missing_module));
+                .is_equal_to(AccountError::ModuleNotFound(missing_module));
 
             Ok(())
         }
@@ -658,7 +658,7 @@ mod tests {
             assert_that!(&msgs).has_length(1);
 
             let expected_msg: CosmosMsg =
-                wasm_execute(abstr.account.proxy, &exec_msg, vec![])?.into();
+                wasm_execute(abstr.account, &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
             assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);
@@ -674,7 +674,7 @@ mod test {
     use super::*;
 
     use crate::{contract::execute, test_common::*};
-    use abstract_std::proxy::ExecuteMsg;
+    use abstract_std::account::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies, mock_env, MockApi, MOCK_CONTRACT_ADDR},
@@ -715,7 +715,7 @@ mod test {
             let res = execute(deps.as_mut(), mock_env(), info, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::Admin(AdminError::NotAdmin {}))
+                .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
         }
 
         #[test]
@@ -753,7 +753,7 @@ mod test {
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::AlreadyWhitelisted(test_module_addr.to_string()));
+                .is_equal_to(AccountError::AlreadyWhitelisted(test_module_addr.to_string()));
         }
 
         #[test]
@@ -780,14 +780,14 @@ mod test {
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::ModuleLimitReached {});
+                .is_equal_to(AccountError::ModuleLimitReached {});
         }
     }
 
-    type ProxyTestResult = Result<(), ProxyError>;
+    type ProxyTestResult = Result<(), AccountError>;
 
     mod remove_module {
-        use abstract_std::proxy::state::State;
+        use abstract_std::account::state::State;
         use cw_controllers::AdminError;
 
         use super::*;
@@ -805,7 +805,7 @@ mod test {
             let res = execute(deps.as_mut(), mock_env(), info, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::Admin(AdminError::NotAdmin {}))
+                .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
         }
 
         #[test]
@@ -846,7 +846,7 @@ mod test {
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::NotWhitelisted(test_module_addr.to_string()));
+                .is_equal_to(AccountError::NotWhitelisted(test_module_addr.to_string()));
         }
     }
 }

@@ -1,8 +1,8 @@
 use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-use abstract_interface::{Abstract, AbstractAccount, VCExecFns};
-use abstract_manager::error::ManagerError;
+use abstract_interface::{Abstract, AccountI, VCExecFns};
+use abstract_account::error::AccountError;
 use abstract_std::{
-    manager::{
+    account::{
         ExecuteMsg as ManagerMsg, ModuleAddressesResponse, ModuleInstallConfig,
         QueryMsg as ManagerQuery,
     },
@@ -19,7 +19,7 @@ fn cannot_reinstall_module() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -51,10 +51,10 @@ fn cannot_reinstall_module() -> AResult {
             None,
         )
         .unwrap_err();
-    let manager_err: ManagerError = err.downcast().unwrap();
+    let manager_err: AccountError = err.downcast().unwrap();
     assert_eq!(
         manager_err,
-        ManagerError::ModuleAlreadyInstalled(adapter_1::MOCK_ADAPTER_ID.to_owned())
+        AccountError::ModuleAlreadyInstalled(adapter_1::MOCK_ADAPTER_ID.to_owned())
     );
     Ok(())
 }
@@ -66,7 +66,7 @@ fn adds_module_to_account_modules() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -102,7 +102,7 @@ fn useful_error_module_not_found() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -119,10 +119,10 @@ fn useful_error_module_not_found() -> AResult {
         )
         .unwrap_err();
 
-    let manager_error: ManagerError = err.downcast().unwrap();
+    let manager_error: AccountError = err.downcast().unwrap();
     assert!(matches!(
         manager_error,
-        ManagerError::QueryModulesFailed { .. }
+        AccountError::QueryModulesFailed { .. }
     ));
     Ok(())
 }

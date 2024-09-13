@@ -1,5 +1,5 @@
 use abstract_integration_tests::{create_default_account, AResult};
-use abstract_interface::{Abstract, AbstractAccount, Account, ManagerQueryFns};
+use abstract_interface::{Abstract, AccountI, Account, ManagerQueryFns};
 use abstract_std::IBC_CLIENT;
 use anyhow::bail;
 use cw_orch::prelude::*;
@@ -20,7 +20,7 @@ fn throws_if_enabling_when_already_enabled() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -40,7 +40,7 @@ fn throws_if_disabling_without_ibc_client_installed() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
@@ -59,7 +59,7 @@ fn can_update_ibc_settings() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
-    let AbstractAccount {
+    let AccountI {
         account: manager,
         proxy: _,
     } = &account;
