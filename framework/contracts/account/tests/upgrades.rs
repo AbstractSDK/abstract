@@ -890,7 +890,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                 monarch: sender.to_string(),
             },
             // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
-            Some(&[coin(10, "coin1"), coin(10, "coin2")]),
+            &[coin(10, "coin1"), coin(10, "coin2")],
         )
         .unwrap();
     let balances = chain.query_all_balances(&account.proxy.address()?)?;

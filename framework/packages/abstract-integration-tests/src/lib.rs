@@ -21,7 +21,7 @@ pub type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 pub fn create_default_account<T: CwEnv>(
     factory: &AccountFactory<T>,
-) -> anyhow::Result<AbstractAccount<T>> {
+) -> anyhow::Result<AccountI<T>> {
     let sender = factory.as_instance().environment().sender_addr();
 
     let account = factory.create_default_account(GovernanceDetails::Monarchy {
@@ -31,18 +31,18 @@ pub fn create_default_account<T: CwEnv>(
 }
 
 pub fn install_module_version<T: CwEnv>(
-    manager: &Account<T>,
+    account: &AccountI<T>,
     module: &str,
     version: &str,
 ) -> anyhow::Result<String> {
-    manager.install_module_version(
+    account.install_module_version(
         module,
         ModuleVersion::Version(version.to_string()),
         Some(&MockInitMsg {}),
         &[],
     )?;
 
-    Ok(manager.module_info(module)?.unwrap().address.to_string())
+    Ok(account.module_info(module)?.unwrap().address.to_string())
 }
 
 pub fn init_mock_adapter<T: CwEnv>(
@@ -82,14 +82,14 @@ pub fn add_mock_adapter_install_fee<T: CwEnv>(
 }
 
 pub fn install_adapter_with_funds<T: CwEnv>(
-    manager: &Account<T>,
+    account: &AccountI<T>,
     adapter_id: &str,
     funds: &[Coin],
 ) -> AResult {
-    manager.install_module::<Empty>(adapter_id, None, funds)?;
+    account.install_module::<Empty>(adapter_id, None, funds)?;
     Ok(())
 }
 
-pub fn install_adapter<T: CwEnv>(manager: &Account<T>, adapter_id: &str) -> AResult {
-    install_adapter_with_funds(manager, adapter_id, &[])
+pub fn install_adapter<T: CwEnv>(account: &AccountI<T>, adapter_id: &str) -> AResult {
+    install_adapter_with_funds(account, adapter_id, &[])
 }

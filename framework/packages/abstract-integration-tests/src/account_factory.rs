@@ -21,7 +21,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
     chain
         .set_balance(&sender, vec![namespace_fee.clone()])
         .unwrap();
-    version_control.update_config(None, Some(Clearable::Set(namespace_fee.clone())), None)?;
+    version_control.update_config(Some(Clearable::Set(namespace_fee.clone())), None)?;
 
     let namespace_to_claim = "namespace-to-claim";
 
@@ -61,7 +61,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         &[namespace_fee],
     )?;
 
-    let account_addr = account.account.address()?;
+    let account_addr = account.address()?;
 
     // We need to check if the namespace is associated with this account
     let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;

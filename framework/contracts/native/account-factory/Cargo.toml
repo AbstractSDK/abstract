@@ -43,7 +43,7 @@ cw-orch = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }
 abstract-testing = { workspace = true }
-# abstract-integration-tests = { workspace = true }
+abstract-integration-tests = { workspace = true }
 
 [profile.release]
 rpath = false
