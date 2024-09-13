@@ -657,8 +657,7 @@ mod tests {
             let msgs = res.unwrap().messages;
             assert_that!(&msgs).has_length(1);
 
-            let expected_msg: CosmosMsg =
-                wasm_execute(abstr.account, &exec_msg, vec![])?.into();
+            let expected_msg: CosmosMsg = wasm_execute(abstr.account, &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
             assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);
@@ -753,7 +752,9 @@ mod test {
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(AccountError::AlreadyWhitelisted(test_module_addr.to_string()));
+                .is_equal_to(AccountError::AlreadyWhitelisted(
+                    test_module_addr.to_string(),
+                ));
         }
 
         #[test]

@@ -1,6 +1,6 @@
+use abstract_account::error::AccountError;
 use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 use abstract_interface::{Abstract, AccountI, VCExecFns};
-use abstract_account::error::AccountError;
 use abstract_std::{
     account::{
         ExecuteMsg as ManagerMsg, ModuleAddressesResponse, ModuleInstallConfig,

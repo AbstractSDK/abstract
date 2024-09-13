@@ -1,5 +1,5 @@
 use abstract_integration_tests::{create_default_account, AResult};
-use abstract_interface::{Abstract, AccountI, Account, ManagerQueryFns};
+use abstract_interface::{Abstract, Account, AccountI, ManagerQueryFns};
 use abstract_std::IBC_CLIENT;
 use anyhow::bail;
 use cw_orch::prelude::*;

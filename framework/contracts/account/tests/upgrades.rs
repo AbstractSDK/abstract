@@ -1,13 +1,13 @@
+use abstract_account::error::AccountError;
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_integration_tests::{create_default_account, mock_modules::*, AResult, *};
 use abstract_interface::{
-    Abstract, AccountI, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
-    ManagerExecFns, ManagerQueryFns, VCExecFns,
+    Abstract, AbstractInterfaceError, AccountDetails, AccountI, MFactoryQueryFns, ManagerExecFns,
+    ManagerQueryFns, VCExecFns,
 };
-use abstract_account::error::AccountError;
 use abstract_std::{
-    app, ibc_client,
     account::{ModuleInstallConfig, ModuleVersionsResponse},
+    app, ibc_client,
     module_factory::SimulateInstallModulesResponse,
     objects::{
         fee::FixedFee,

@@ -248,10 +248,7 @@ mod test {
         assert_eq!(
             config,
             ConfigResponse {
-                modules: vec![
-                    abstr.account.to_string(),
-                    abstr.module_address.to_string()
-                ],
+                modules: vec![abstr.account.to_string(), abstr.module_address.to_string()],
             }
         );
     }

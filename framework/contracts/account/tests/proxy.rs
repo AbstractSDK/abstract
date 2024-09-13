@@ -1,7 +1,7 @@
+use abstract_account::{contract::CONTRACT_VERSION, error::AccountError};
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_integration_tests::*;
 use abstract_interface::*;
-use abstract_account::{contract::CONTRACT_VERSION, error::AccountError};
 use abstract_std::{
     account::{AccountModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
     objects::{
@@ -119,9 +119,7 @@ fn exec_through_manager() -> AResult {
     // Mint coins to proxy address
     chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
 
-    let proxy_balance = chain
-        .bank_querier()
-        .balance(&account.address()?, None)?;
+    let proxy_balance = chain.bank_querier().balance(&account.address()?, None)?;
 
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000u128, TTOKEN)]);
 
@@ -139,9 +137,7 @@ fn exec_through_manager() -> AResult {
     )?;
 
     // Assert balance has decreased
-    let proxy_balance = chain
-        .bank_querier()
-        .balance(&account.address()?, None)?;
+    let proxy_balance = chain.bank_querier().balance(&account.address()?, None)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new((100_000 - 10_000) as u128, TTOKEN)]);
     take_storage_snapshot!(chain, "exec_through_manager");
 
@@ -440,8 +436,7 @@ fn renounce_cleans_namespace() -> AResult {
         .namespace(Namespace::unchecked("bar"));
     assert!(namespace_result.is_ok());
 
-    account
-        .update_ownership(ownership::GovAction::RenounceOwnership)?;
+    account.update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     let namespace_result = deployment
         .version_control
@@ -689,11 +684,10 @@ fn nft_pending_owner() -> Result<(), Error> {
     );
 
     // Now transfer to correct token id
-    account
-        .update_ownership(GovAction::TransferOwnership {
-            new_owner: gov.clone(),
-            expiry: None,
-        })?;
+    account.update_ownership(GovAction::TransferOwnership {
+        new_owner: gov.clone(),
+        expiry: None,
+    })?;
     // Burn nft, which will make it act like we don't have pending ownership
     chain.execute(
         &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Burn { token_id },
@@ -720,15 +714,14 @@ fn nft_pending_owner() -> Result<(), Error> {
     mint_nft(&chain, chain.sender_addr(), &new_token_id, &nft_addr)?;
 
     // Propose NFT governance
-    account
-        .update_ownership(GovAction::TransferOwnership {
-            new_owner: (GovernanceDetails::NFT {
-                collection_addr: nft_addr.to_string(),
-                // token minted to sender
-                token_id: new_token_id.clone(),
-            }),
-            expiry: None,
-        })?;
+    account.update_ownership(GovAction::TransferOwnership {
+        new_owner: (GovernanceDetails::NFT {
+            collection_addr: nft_addr.to_string(),
+            // token minted to sender
+            token_id: new_token_id.clone(),
+        }),
+        expiry: None,
+    })?;
 
     // Only NFT owner can accept it
     let err: AccountError = account
@@ -743,8 +736,7 @@ fn nft_pending_owner() -> Result<(), Error> {
     );
 
     // Now accept without accidents
-    account
-        .update_ownership(GovAction::AcceptOwnership)?;
+    account.update_ownership(GovAction::AcceptOwnership)?;
 
     // Burn NFT, to ensure account becomes unusable
     chain.execute(
@@ -829,7 +821,7 @@ fn increment_not_effected_by_claiming() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        &[]
+        &[],
     )?;
 
     let next_account_id = deployment.account_factory.config()?.local_account_sequence;

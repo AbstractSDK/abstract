@@ -1,7 +1,7 @@
+use abstract_account::error::AccountError;
 use abstract_app::{gen_app_mock, mock, mock::MockError};
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
-use abstract_account::error::AccountError;
 use abstract_std::{
     account::ModuleInstallConfig,
     objects::{

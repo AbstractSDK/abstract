@@ -1,6 +1,6 @@
+use abstract_account::error::AccountError;
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
-use abstract_account::error::AccountError;
 use abstract_std::{
     account::{self, SubAccountIdsResponse},
     objects::{
@@ -235,13 +235,12 @@ fn sub_account_move_ownership() -> AResult {
     );
 
     let sub_account = AccountI::new(&deployment, AccountId::local(2));
-    sub_account
-        .update_ownership(GovAction::TransferOwnership {
-            new_owner: GovernanceDetails::Monarchy {
-                monarch: new_owner.to_string(),
-            },
-            expiry: None,
-        })?;
+    sub_account.update_ownership(GovAction::TransferOwnership {
+        new_owner: GovernanceDetails::Monarchy {
+            monarch: new_owner.to_string(),
+        },
+        expiry: None,
+    })?;
 
     // Make sure it's not updated until claimed
     let sub_accounts: SubAccountIdsResponse = chain.query(
@@ -327,11 +326,10 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         manager: sub_manager_addr.to_string(),
         proxy: sub_proxy_addr.to_string(),
     };
-    new_account_sub_account
-        .update_ownership(GovAction::TransferOwnership {
-            new_owner: new_governance.clone(),
-            expiry: None,
-        })?;
+    new_account_sub_account.update_ownership(GovAction::TransferOwnership {
+        new_owner: new_governance.clone(),
+        expiry: None,
+    })?;
     let new_account_sub_account_manager = new_account_sub_account.address()?;
 
     let sub_account = AccountI::new(&deployment, AccountId::local(2));
@@ -422,14 +420,13 @@ fn account_updated_to_subaccount() -> AResult {
     let manager2_addr = account.address()?;
 
     // Setting account1 as pending owner of account2
-    account
-        .update_ownership(GovAction::TransferOwnership {
-            new_owner: GovernanceDetails::SubAccount {
-                manager: manager1_addr.to_string(),
-                proxy: proxy1_addr.to_string(),
-            },
-            expiry: None,
-        })?;
+    account.update_ownership(GovAction::TransferOwnership {
+        new_owner: GovernanceDetails::SubAccount {
+            manager: manager1_addr.to_string(),
+            proxy: proxy1_addr.to_string(),
+        },
+        expiry: None,
+    })?;
     account.set_address(&manager1_addr);
     account.set_address(&proxy1_addr);
 
@@ -465,17 +462,15 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
 
     // Setting account1 as pending owner of account2
-    account
-        .update_ownership(GovAction::TransferOwnership {
-            new_owner: GovernanceDetails::SubAccount {
-                manager: manager1_addr.to_string(),
-                proxy: proxy1_addr.to_string(),
-            },
-            expiry: None,
-        })?;
+    account.update_ownership(GovAction::TransferOwnership {
+        new_owner: GovernanceDetails::SubAccount {
+            manager: manager1_addr.to_string(),
+            proxy: proxy1_addr.to_string(),
+        },
+        expiry: None,
+    })?;
     // accepting ownership by sender instead of the manager
-    account
-        .update_ownership(ownership::GovAction::AcceptOwnership)?;
+    account.update_ownership(ownership::GovAction::AcceptOwnership)?;
 
     // Check manager knows about his new sub-account
     account.set_address(&manager1_addr);
@@ -558,11 +553,9 @@ fn can_renounce_sub_accounts() -> AResult {
 
     let sub_account = AccountI::new(&deployment, AccountId::local(sub_account_id));
 
-    sub_account
-        .update_ownership(ownership::GovAction::RenounceOwnership)?;
+    sub_account.update_ownership(ownership::GovAction::RenounceOwnership)?;
 
-    account
-        .update_ownership(ownership::GovAction::RenounceOwnership)?;
+    account.update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     // No owners
     // Renounced governance
@@ -653,8 +646,7 @@ fn sub_account_to_regular_account_without_recursion() -> AResult {
         },
     )?;
 
-    sub_account
-        .update_ownership(GovAction::AcceptOwnership)?;
+    sub_account.update_ownership(GovAction::AcceptOwnership)?;
     let ownership = sub_account.ownership()?;
     assert_eq!(
         ownership.owner,

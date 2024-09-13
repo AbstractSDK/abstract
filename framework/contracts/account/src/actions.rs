@@ -110,15 +110,15 @@ pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) ->
 
 #[cfg(test)]
 mod test {
-    use crate::test_common::mock_init;
-    use abstract_testing::{mock_dependencies, mock_querier_builder, prelude::*};
-    use abstract_std::account::{state::*, *};
-    use cosmwasm_std::testing::mock_env;
-    use cosmwasm_std::testing::message_info;
     use crate::contract::execute;
-    use speculoos::prelude::*;
     use crate::error::AccountError;
-    
+    use crate::test_common::mock_init;
+    use abstract_std::account::{state::*, *};
+    use abstract_testing::{mock_dependencies, mock_querier_builder, prelude::*};
+    use cosmwasm_std::testing::message_info;
+    use cosmwasm_std::testing::mock_env;
+    use speculoos::prelude::*;
+
     mod execute_action {
 
         use cosmwasm_std::{testing::MOCK_CONTRACT_ADDR, wasm_execute, CosmosMsg};
@@ -150,7 +150,7 @@ mod test {
             let module_addr = deps.api.addr_make(TEST_MODULE_ID);
             STATE.save(
                 &mut deps.storage,
-                &WhitelistedModules(vec![module_addr.clone()])
+                &WhitelistedModules(vec![module_addr.clone()]),
             )?;
 
             let action: CosmosMsg = wasm_execute(
@@ -189,7 +189,7 @@ mod test {
     mod execute_ibc {
         use super::*;
 
-        use abstract_std::{account};
+        use abstract_std::account;
         use cosmwasm_std::coins;
 
         #[test]
@@ -201,7 +201,7 @@ mod test {
             account::state::WHITELISTED_MODULES
                 .save(
                     &mut deps.storage,
-                    &WhitelistedModules(vec![abstr.account.addr().clone()])
+                    &WhitelistedModules(vec![abstr.account.addr().clone()]),
                 )
                 .unwrap();
 
@@ -254,7 +254,7 @@ mod test {
             account::state::WHITELISTED_MODULES
                 .save(
                     &mut deps.storage,
-                    &WhitelistedModules(vec![abstr.account.addr().clone()])
+                    &WhitelistedModules(vec![abstr.account.addr().clone()]),
                 )
                 .unwrap();
 
@@ -314,7 +314,7 @@ mod test {
             account::state::WHITELISTED_MODULES
                 .save(
                     &mut deps.storage,
-                    &WhitelistedModules(vec![abstr.account.addr().clone()])
+                    &WhitelistedModules(vec![abstr.account.addr().clone()]),
                 )
                 .unwrap();
 
