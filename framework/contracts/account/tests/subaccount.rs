@@ -170,7 +170,6 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
 
     let mock_app = chain.addr_make("mock_app");
     account
-        .proxy
         .call_as(&account.address()?)
         .add_modules(vec![mock_app.to_string()])?;
 
@@ -183,19 +182,16 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     // adding mock_app to whitelist on proxy
 
     // We call as installed app of the owner-proxy, it should also be possible
-    account
-        .proxy
-        .call_as(&mock_app)
-        .module_action(vec![wasm_execute(
-            sub_manager.addr_str()?,
-            &abstract_std::account::ExecuteMsg::UpdateInfo {
-                name: None,
-                description: Some(new_desc.to_owned()),
-                link: None,
-            },
-            vec![],
-        )?
-        .into()])?;
+    account.call_as(&mock_app).module_action(vec![wasm_execute(
+        sub_manager.addr_str()?,
+        &abstract_std::account::ExecuteMsg::UpdateInfo {
+            name: None,
+            description: Some(new_desc.to_owned()),
+            link: None,
+        },
+        vec![],
+    )?
+    .into()])?;
 
     assert_eq!(
         Some(new_desc.to_string()),
@@ -234,7 +230,7 @@ fn sub_account_move_ownership() -> AResult {
         }
     );
 
-    let sub_account = AccountI::new(&deployment, AccountId::local(2));
+    let sub_account = AccountI::new(AccountId::local(42), chain);
     sub_account.update_ownership(GovAction::TransferOwnership {
         new_owner: GovernanceDetails::Monarchy {
             monarch: new_owner.to_string(),
@@ -260,9 +256,9 @@ fn sub_account_move_ownership() -> AResult {
     // Claim ownership
     sub_account.call_as(&new_owner).execute(
         &abstract_std::account::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
-        None,
+        &[],
     )?;
-    let account = AccountI::new(&deployment, AccountId::local(1));
+    let account = AccountI::new(AccountId::local(42), chain);
 
     // After claim it's updated
     let sub_accounts = account.sub_account_ids(None, None)?;
@@ -302,7 +298,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         None,
         &[],
     )?;
-    let sub_account = AccountI::new(&deployment, AccountId::local(2));
+    let sub_account = AccountI::new(AccountId::local(42), chain);
     let sub_manager_addr = sub_account.address()?;
     let sub_proxy_addr = sub_account.address()?;
 
@@ -321,7 +317,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     let sub_ids = new_account.sub_account_ids(None, None)?;
     assert_eq!(sub_ids.sub_accounts, vec![4]);
 
-    let new_account_sub_account = AccountI::new(&deployment, AccountId::local(4));
+    let new_account_sub_account = AccountI::new(AccountId::local(42), chain);
     let new_governance = GovernanceDetails::SubAccount {
         manager: sub_manager_addr.to_string(),
         proxy: sub_proxy_addr.to_string(),
@@ -332,14 +328,12 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     })?;
     let new_account_sub_account_manager = new_account_sub_account.address()?;
 
-    let sub_account = AccountI::new(&deployment, AccountId::local(2));
+    let sub_account = AccountI::new(AccountId::local(42), chain);
     let mock_module = chain.addr_make("mock_module");
     sub_account
-        .proxy
         .call_as(&sub_manager_addr)
         .add_modules(vec![mock_module.to_string()])?;
     sub_account
-        .proxy
         .call_as(&mock_module)
         .module_action(vec![wasm_execute(
             new_account_sub_account_manager,
@@ -353,12 +347,12 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     // sub-accounts state updated
     let sub_ids = sub_account.sub_account_ids(None, None)?;
     assert_eq!(sub_ids.sub_accounts, vec![4]);
-    let new_account = AccountI::new(&deployment, AccountId::local(3));
+    let new_account = AccountI::new(AccountId::local(42), chain);
     // removed from the previous owner as well
     let sub_ids = new_account.sub_account_ids(None, None)?;
     assert_eq!(sub_ids.sub_accounts, Vec::<u32>::new());
 
-    let new_account_sub_account = AccountI::new(&deployment, AccountId::local(4));
+    let new_account_sub_account = AccountI::new(AccountId::local(42), chain);
     let info = new_account_sub_account.ownership()?;
     assert_eq!(new_governance, info.owner);
     take_storage_snapshot!(chain, "sub_account_move_ownership_to_sub_account");
@@ -383,7 +377,7 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
         None,
         &[],
     )?;
-    let sub_account = AccountI::new(&deployment, AccountId::local(2));
+    let sub_account = AccountI::new(AccountId::local(42), chain);
     let sub_manager_addr = sub_account.address()?;
 
     let new_account = create_default_account(&deployment.account_factory)?;

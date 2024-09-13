@@ -196,7 +196,7 @@ pub fn handle_app_migration(
 }
 
 /// Add the module upgrade to the migration context and check for duplicates
-fn add_module_upgrade_to_context(
+pub(crate) fn add_module_upgrade_to_context(
     storage: &mut dyn Storage,
     module_id: &str,
     module_deps: Vec<Dependency>,

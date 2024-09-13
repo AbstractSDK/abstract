@@ -114,9 +114,11 @@ mod test {
     use crate::error::AccountError;
     use crate::test_common::mock_init;
     use abstract_std::account::{state::*, *};
+    use abstract_std::{account, IBC_CLIENT};
     use abstract_testing::{mock_dependencies, mock_querier_builder, prelude::*};
     use cosmwasm_std::testing::message_info;
     use cosmwasm_std::testing::mock_env;
+    use cosmwasm_std::{coins, CosmosMsg, SubMsg};
     use speculoos::prelude::*;
 
     mod execute_action {
@@ -144,11 +146,11 @@ mod test {
         fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps);
-            let base = test_account_base(deps.api);
+            let account = test_account_base(deps.api);
 
             // stub a module
             let module_addr = deps.api.addr_make(TEST_MODULE_ID);
-            STATE.save(
+            WHITELISTED_MODULES.save(
                 &mut deps.storage,
                 &WhitelistedModules(vec![module_addr.clone()]),
             )?;
@@ -156,9 +158,9 @@ mod test {
             let action: CosmosMsg = wasm_execute(
                 MOCK_CONTRACT_ADDR.to_string(),
                 // example garbage
-                &ExecuteMsg::SetAdmin {
-                    admin: base.manager.to_string(),
-                },
+                &ExecuteMsg::UpdateOwnership(
+                    abstract_std::objects::gov_type::GovAction::RenounceOwnership,
+                ),
                 vec![],
             )?
             .into();
@@ -187,10 +189,9 @@ mod test {
     }
 
     mod execute_ibc {
-        use super::*;
+        use cosmwasm_std::Addr;
 
-        use abstract_std::account;
-        use cosmwasm_std::coins;
+        use super::*;
 
         #[test]
         fn add_module() {
@@ -216,14 +217,14 @@ mod test {
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
             execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
-            let manager_info = message_info(&abstr.account, &[]);
+            let manager_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
             execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
             // mock enabling ibc
             let ibc_client_addr = deps.api.addr_make("ibc_client_addr");
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
-                    &abstr.account,
+                    abstr.account.addr(),
                     account::state::ACCOUNT_MODULES,
                     (IBC_CLIENT, ibc_client_addr.clone()),
                 )
@@ -270,7 +271,7 @@ mod test {
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
             execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
-            let manager_info = message_info(&abstr.account, &[]);
+            let manager_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
             execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
             // mock enabling ibc
@@ -301,6 +302,8 @@ mod test {
 
     mod ica_action {
         use abstract_ica::msg::IcaActionResult;
+        use abstract_std::ICA_CLIENT;
+        use cosmwasm_std::{Binary, Empty};
 
         use super::*;
 
@@ -326,13 +329,13 @@ mod test {
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
             execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
-            let manager_info = message_info(&abstr.account, &[]);
+            let manager_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
             execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
             // mock enabling ibc
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
-                    &abstr.account,
+                    abstr.account.addr(),
                     account::state::ACCOUNT_MODULES,
                     (ICA_CLIENT, ica_client_addr.clone()),
                 )

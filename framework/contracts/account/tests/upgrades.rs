@@ -359,10 +359,6 @@ fn no_duplicate_migrations() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let account = create_default_account(&abstr.account_factory)?;
-    let AccountI {
-        account: manager,
-        proxy: _,
-    } = &account;
 
     abstr
         .version_control
@@ -418,7 +414,7 @@ fn create_account_with_installed_module() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
 
@@ -457,7 +453,7 @@ fn create_account_with_installed_module() -> AResult {
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            None,
+            &[],
         )
         .unwrap();
 
@@ -519,7 +515,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
     // Add monetization
@@ -663,7 +659,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
     // Add monetization
@@ -741,7 +737,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             monarch: sender.to_string(),
         },
         // we attach 1 less coin1
-        Some(&[coin(9, "coin1"), coin(10, "coin2")]),
+        &[coin(9, "coin1"), coin(10, "coin2")],
     );
     // Mock doesn't implement debug so we can't .unwrap_err, LOL
     let Err(AbstractInterfaceError::Orch(e)) = result else {
@@ -778,7 +774,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
     deploy_modules(&chain);
 
@@ -921,8 +917,8 @@ fn native_not_migratable() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let abstr_account = AccountI::new(&abstr, AccountId::local(0));
-    abstr_account.install_module::<ibc_client::InstantiateMsg>(IBC_CLIENT, None, None)?;
+    let abstr_account = AccountI::new(AccountId::local(0), chain);
+    abstr_account.install_module::<ibc_client::InstantiateMsg>(IBC_CLIENT, None, &[])?;
 
     let latest_ibc_client = ModuleInfo::from_id_latest(IBC_CLIENT).unwrap();
 

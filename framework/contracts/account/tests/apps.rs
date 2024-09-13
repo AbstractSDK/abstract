@@ -148,7 +148,7 @@ fn subaccount_app_ownership() -> AResult {
         &[],
     )?;
 
-    let sub_account = AccountI::new(&deployment, AccountId::local(2));
+    let sub_account = AccountI::new(AccountId::local(42), chain);
     let module = sub_account.module_info(APP_ID)?.unwrap();
     app.set_address(&module.address);
 

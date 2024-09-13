@@ -208,7 +208,7 @@ fn install_standalone_modules() -> AResult {
         ModuleReference::Standalone(standalone1_id),
     )])?;
 
-    account.install_module("abstract:standalone1", Some(&MockInitMsg {}), None)?;
+    account.install_module("abstract:standalone1", Some(&MockInitMsg {}), &[])?;
 
     // install second standalone
     deployment.version_control.propose_modules(vec![(
@@ -220,7 +220,7 @@ fn install_standalone_modules() -> AResult {
         ModuleReference::Standalone(standalone2_id),
     )])?;
 
-    account.install_module("abstract:standalone2", Some(&MockInitMsg {}), None)?;
+    account.install_module("abstract:standalone2", Some(&MockInitMsg {}), &[])?;
     take_storage_snapshot!(chain, "proxy_install_standalone_modules");
     Ok(())
 }
@@ -250,7 +250,7 @@ fn install_standalone_versions_not_met() -> AResult {
     )])?;
 
     let err = account
-        .install_module("abstract:standalone1", Some(&MockInitMsg {}), None)
+        .install_module("abstract:standalone1", Some(&MockInitMsg {}), &[])
         .unwrap_err();
 
     if let AbstractInterfaceError::Orch(err) = err {
@@ -428,7 +428,7 @@ fn renounce_cleans_namespace() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
 
     let namespace_result = deployment
@@ -474,7 +474,7 @@ fn nft_owner_success() -> Result<(), Error> {
             account_id: None,
         },
         gov,
-        None,
+        &[],
     )?;
 
     let start_amnt = 100_000;
@@ -572,7 +572,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
             account_id: None,
         },
         gov,
-        None,
+        &[],
     )?;
 
     let not_nft_owner = chain.addr_make("not_nft_owner");
@@ -777,7 +777,7 @@ fn can_take_any_last_two_billion_accounts() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     )?;
 
     let already_exists = deployment.account_factory.create_new_account(
@@ -793,7 +793,7 @@ fn can_take_any_last_two_billion_accounts() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        None,
+        &[],
     );
 
     assert!(already_exists.is_err());

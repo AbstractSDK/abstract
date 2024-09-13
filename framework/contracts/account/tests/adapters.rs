@@ -531,7 +531,7 @@ fn subaccount_adapter_ownership() -> AResult {
         &[],
     )?;
 
-    let sub_account = AccountI::new(&deployment, AccountId::local(2));
+    let sub_account = AccountI::new(AccountId::local(42), chain);
 
     let module = sub_account
         .module_info(adapter_1::MOCK_ADAPTER_ID)?

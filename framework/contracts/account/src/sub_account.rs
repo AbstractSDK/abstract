@@ -1,3 +1,4 @@
+use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
         state::{ACCOUNT_ID, CONFIG, SUB_ACCOUNTS},
@@ -10,7 +11,7 @@ use abstract_std::{
         AccountId,
     },
 };
-use cosmwasm_std::{wasm_execute, Attribute, CosmosMsg, DepsMut, Empty, Env, MessageInfo};
+use cosmwasm_std::{ensure, wasm_execute, Attribute, CosmosMsg, DepsMut, Empty, Env, MessageInfo};
 
 use crate::{
     contract::{AccountResponse, AccountResult},
@@ -165,5 +166,58 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
         msgs.push(register_message.into());
     }
 
+    Ok(msgs)
+}
+
+/// Renounce ownership of this account \
+/// **WARNING**: This will lock the account, making it unusable.
+pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosMsg>> {
+    let mut msgs = vec![];
+
+    let account_id = ACCOUNT_ID.load(deps.storage)?;
+    // Check for any sub accounts
+    let sub_account = SUB_ACCOUNTS
+        .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+        .next()
+        .transpose()?;
+    ensure!(
+        sub_account.is_none(),
+        AccountError::RenounceWithSubAccount {}
+    );
+
+    let ownership = ownership::get_ownership(deps.storage)?;
+    if let GovernanceDetails::SubAccount { account } = ownership.owner {
+        // Unregister itself (sub-account) from the owning account.
+        msgs.push(
+            wasm_execute(
+                account,
+                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
+                    id: account_id.seq(),
+                }),
+                vec![],
+            )?
+            .into(),
+        );
+    }
+
+    let config = CONFIG.load(deps.storage)?;
+    let vc = VersionControlContract::new(config.version_control_address);
+    let mut namespaces = vc
+        .query_namespaces(vec![account_id], &deps.querier)?
+        .namespaces;
+    let namespace = namespaces.pop();
+    if let Some((namespace, _)) = namespace {
+        // Remove the namespace that this account holds.
+        msgs.push(
+            wasm_execute(
+                vc.address,
+                &abstract_std::version_control::ExecuteMsg::RemoveNamespaces {
+                    namespaces: vec![namespace.to_string()],
+                },
+                vec![],
+            )?
+            .into(),
+        )
+    };
     Ok(msgs)
 }
