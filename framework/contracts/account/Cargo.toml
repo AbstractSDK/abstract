@@ -45,7 +45,6 @@ cw721 = { version = "0.18.0" }
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true, features = ["snapshot-testing"] }
 anyhow = { workspace = true }
-account-factory = { workspace = true }
 ans-host = { workspace = true }
 version-control = { workspace = true }
 module-factory = { workspace = true }

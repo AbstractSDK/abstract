@@ -12,8 +12,7 @@
 //! - upgrade module
 
 use crate::{
-    get_account_contracts, Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer,
-    VersionControl,
+    get_account_contracts, Abstract, AbstractInterfaceError, AdapterDeployer, VersionControl,
 };
 pub use abstract_std::account::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_std::{
@@ -37,6 +36,16 @@ use serde::Serialize;
 use speculoos::prelude::*;
 use std::collections::HashSet;
 
+/// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
+#[derive(Default)]
+pub struct AccountDetails {
+    pub name: String,
+    pub description: Option<String>,
+    pub link: Option<String>,
+    pub namespace: Option<String>,
+    pub install_modules: Vec<ModuleInstallConfig>,
+}
+
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountI<Chain>;
 
@@ -44,9 +53,10 @@ impl<Chain: CwEnv> AccountI<Chain> {
     pub fn load_from(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
         get_account_contracts(&abstract_deployment.version_control, account_id)
     }
+
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
-        let manager_id = format!("{ACCOUNT}-{account_id}");
-        Self::new(manager_id, chain)
+        let account_id = format!("{ACCOUNT}-{account_id}");
+        Self::new(account_id, chain)
     }
 }
 
@@ -312,7 +322,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     ModuleInfo::from_id_latest(IBC_CLIENT)?,
                     None,
                 )],
-                account_id: None,
             },
             host_chain,
         )
@@ -331,7 +340,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
             name: _,
             description: _,
             link: _,
-            account_id: _,
         } = account_details;
 
         self.execute_on_module(
@@ -440,18 +448,10 @@ impl<Chain: CwEnv> AccountI<Chain> {
             link,
             namespace,
             install_modules,
-            account_id,
         } = account_details;
 
-        let result = self.create_sub_account(
-            install_modules,
-            name,
-            account_id,
-            description,
-            link,
-            namespace,
-            funds,
-        )?;
+        let result =
+            self.create_sub_account(install_modules, name, description, link, namespace, funds)?;
 
         Self::from_tx_response(self.environment(), result)
     }

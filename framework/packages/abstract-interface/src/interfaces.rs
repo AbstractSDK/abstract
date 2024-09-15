@@ -1,28 +1,21 @@
 use abstract_std::{
-    objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
-    VERSION_CONTROL,
+    objects::AccountId, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
 };
 use cw_orch::{environment::Environment, prelude::*};
 
-use crate::{AccountFactory, AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, VersionControl};
+use crate::{AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, VersionControl};
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: CwEnv>(
     chain: Chain,
-) -> (
-    AnsHost<Chain>,
-    AccountFactory<Chain>,
-    VersionControl<Chain>,
-    ModuleFactory<Chain>,
-)
+) -> (AnsHost<Chain>, VersionControl<Chain>, ModuleFactory<Chain>)
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-    (ans_host, account_factory, version_control, module_factory)
+    (ans_host, version_control, module_factory)
 }
 
 pub fn get_account_contracts<Chain: CwEnv>(

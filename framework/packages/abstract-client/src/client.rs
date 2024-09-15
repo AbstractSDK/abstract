@@ -340,11 +340,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         let wasm_querier = self.environment().wasm_querier();
         let module = self.version_control().module(module_info)?;
         let (code_id, creator) = match module.reference {
-            // If Account - account factory is creator
-            ModuleReference::Account(id) => (id, self.abstr.account_factory.addr_str()?),
+            // If Account - signer is creator
+            ModuleReference::Account(id) => (id, self.environment().sender_addr()),
             // Else module factory is creator
             ModuleReference::App(id) | ModuleReference::Standalone(id) => {
-                (id, self.abstr.module_factory.addr_str()?)
+                (id, self.abstr.module_factory.address()?)
             }
             _ => {
                 return Err(AbstractClientError::Abstract(
@@ -356,7 +356,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         };
 
         let addr = wasm_querier
-            .instantiate2_addr(code_id, &Addr::unchecked(creator), salt)
+            .instantiate2_addr(code_id, &creator, salt)
             .map_err(Into::into)?;
         Ok(Addr::unchecked(addr))
     }

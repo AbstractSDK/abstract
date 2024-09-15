@@ -1,12 +1,7 @@
-#![allow(clippy::needless_borrows_for_generic_args)]
-
-mod common;
-
 use abstract_interface::{
     AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
 };
 use abstract_std::{
-    account_factory,
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
     },

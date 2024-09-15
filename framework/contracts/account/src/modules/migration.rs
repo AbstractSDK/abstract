@@ -11,7 +11,7 @@ use abstract_std::{
         module::ModuleInfo,
         module_reference::ModuleReference,
         ownership::{self},
-        version_control::VersionControlContract,
+        version_control::{VersionControlContract, VersionControlError},
     },
     ACCOUNT,
 };
@@ -290,7 +290,9 @@ pub(crate) fn self_upgrade_msg(
         });
         Ok(migration_msg)
     } else {
-        Err(AccountError::InvalidReference(module_info))
+        Err(AccountError::VersionControlError(
+            VersionControlError::InvalidReference(module_info),
+        ))
     }
 }
 

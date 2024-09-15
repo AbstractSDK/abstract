@@ -23,7 +23,9 @@ pub mod state {
 
     use super::{Account, Config, ModuleConfiguration, ModuleDefaultConfiguration};
     use crate::objects::{
-        account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
+        account::{AccountId, AccountSequence},
+        module::ModuleInfo,
+        module_reference::ModuleReference,
         namespace::Namespace,
     };
 
@@ -46,7 +48,8 @@ pub mod state {
         Map::new("dcfg");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<&AccountId, Account> = Map::new("accs");
-
+    /// Account sequences
+    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("acseq");
     /// Sub indexes for namespaces.
     // TODO: move to a two maps, we don't need multiindex for accountid
     pub struct NamespaceIndexes<'a> {
