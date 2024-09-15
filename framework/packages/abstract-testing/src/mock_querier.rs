@@ -409,7 +409,7 @@ pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
 #[cfg(test)]
 mod tests {
     use abstract_std::{
-        manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
+        account::state::ACCOUNT_ID, account::state::ACCOUNT_MODULES,
         version_control::state::ACCOUNT_ADDRESSES,
     };
     use cosmwasm_std::testing;

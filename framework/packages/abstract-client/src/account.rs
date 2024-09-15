@@ -88,7 +88,6 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
-    expected_local_account_id: Option<u32>,
 }
 
 /// Creation funds
@@ -113,7 +112,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: false,
-            expected_local_account_id: None,
         }
     }
 
@@ -282,14 +280,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(self)
     }
 
-    /// Assign expected local account_id on creation.
-    /// It's designed to be used in pair with [`crate::AbstractClient::random_account_id`].
-    /// The tx will error if this account id already claimed or it's less than 2147483648. Useful for instantiate2 address prediction.
-    pub fn expected_account_id(&mut self, local_account_id: u32) -> &mut Self {
-        self.expected_local_account_id = Some(local_account_id);
-        self
-    }
-
     /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         let install_modules = self.install_modules();
@@ -343,10 +333,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             install_modules,
         };
         let abstract_account = match self.owner_account {
-            None => {
-                // https://github.com/AbstractSDK/abstract/pull/446#discussion_r1756768435
-                todo!()
-            }
+            None => AccountI::create(self.abstr, account_details, ownership, &funds)?,
             Some(owner_account) => owner_account
                 .abstr_account
                 .create_sub_account_helper(account_details, &funds)?,
@@ -996,7 +983,7 @@ pub mod test {
         let abstr = AbstractClient::builder(mock.clone()).build()?;
 
         let my_namespace = "my-namespace";
-        let new_account = abstr_builder().build()?;
+        let new_account = abstr.account_builder().build()?;
         new_account.claim_namespace(my_namespace)?;
 
         // Verify the namespace exists
