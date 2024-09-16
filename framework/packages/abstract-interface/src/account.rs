@@ -23,9 +23,10 @@ use abstract_std::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
+        salt::generate_instantiate_salt,
         AccountId, TruncatedChainId,
     },
-    version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
+    version_control::{state::LOCAL_ACCOUNT_SEQUENCE, ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{from_json, to_json_binary};
@@ -45,6 +46,7 @@ pub struct AccountDetails {
     pub link: Option<String>,
     pub namespace: Option<String>,
     pub install_modules: Vec<ModuleInstallConfig>,
+    pub account_id: Option<u32>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -67,36 +69,15 @@ impl<Chain: CwEnv> AccountI<Chain> {
         governance_details: GovernanceDetails<String>,
         funds: &[cosmwasm_std::Coin],
     ) -> Result<Self, AbstractInterfaceError> {
-        let salt = Binary::from(b"abstract_account");
-
-        Self::_create_account(
-            abstract_deployment,
-            details,
-            governance_details,
-            salt,
-            funds,
-        )
-    }
-
-    pub fn create_default_account(
-        abstract_deployment: &Abstract<Chain>,
-        governance_details: GovernanceDetails<String>,
-    ) -> Result<Self, AbstractInterfaceError> {
-        let details = AccountDetails {
-            name: "Default Abstract Account".into(),
-            ..Default::default()
-        };
-        Self::create(abstract_deployment, details, governance_details, &[])
-    }
-
-    fn _create_account(
-        abstract_deployment: &Abstract<Chain>,
-        details: AccountDetails,
-        governance_details: GovernanceDetails<String>,
-        salt: Binary,
-        funds: &[Coin],
-    ) -> Result<Self, AbstractInterfaceError> {
         let chain = abstract_deployment.version_control.environment().clone();
+
+        // Generate salt from account id(or)
+        let salt = generate_instantiate_salt(&AccountId::local(details.account_id.unwrap_or(
+            chain.wasm_querier().item_query(
+                &abstract_deployment.version_control.address()?,
+                LOCAL_ACCOUNT_SEQUENCE,
+            )?,
+        )));
         let code_id = abstract_deployment.account.code_id().unwrap();
 
         let account_addr = chain
@@ -109,7 +90,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .instantiate2(
                 code_id,
                 &InstantiateMsg {
-                    account_id: None,
+                    account_id: details.account_id.map(AccountId::local),
                     owner: governance_details,
                     namespace: details.namespace,
                     install_modules: details.install_modules,
@@ -135,29 +116,16 @@ impl<Chain: CwEnv> AccountI<Chain> {
         account.set_address(&account_addr);
         Ok(account)
     }
-}
 
-#[cfg(feature = "daemon")]
-impl AccountI<Daemon> {
-    /// Create account, account sequence used as a salt
-    pub fn create_sequenced(
-        abstract_deployment: &Abstract<Daemon>,
-        details: AccountDetails,
+    pub fn create_default_account(
+        abstract_deployment: &Abstract<Chain>,
         governance_details: GovernanceDetails<String>,
-        funds: &[cosmwasm_std::Coin],
     ) -> Result<Self, AbstractInterfaceError> {
-        let chain = abstract_deployment.version_control.environment();
-
-        let base = chain.rt_handle.block_on(chain.sender().base_account())?;
-        let salt = cosmwasm_std::Binary::from(base.sequence.to_be_bytes());
-
-        Self::_create_account(
-            abstract_deployment,
-            details,
-            governance_details,
-            salt,
-            funds,
-        )
+        let details = AccountDetails {
+            name: "Default Abstract Account".into(),
+            ..Default::default()
+        };
+        Self::create(abstract_deployment, details, governance_details, &[])
     }
 }
 
@@ -423,6 +391,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     ModuleInfo::from_id_latest(IBC_CLIENT)?,
                     None,
                 )],
+                account_id: None,
             },
             host_chain,
         )
@@ -441,6 +410,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             name: _,
             description: _,
             link: _,
+            account_id: _,
         } = account_details;
 
         self.execute_on_module(
@@ -549,10 +519,18 @@ impl<Chain: CwEnv> AccountI<Chain> {
             link,
             namespace,
             install_modules,
+            account_id,
         } = account_details;
 
-        let result =
-            self.create_sub_account(install_modules, name, description, link, namespace, funds)?;
+        let result = self.create_sub_account(
+            install_modules,
+            name,
+            account_id,
+            description,
+            link,
+            namespace,
+            funds,
+        )?;
 
         Self::from_tx_response(self.environment(), result)
     }

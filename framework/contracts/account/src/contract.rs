@@ -232,6 +232,7 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     link,
                     namespace,
                     install_modules,
+                    account_id,
                 } => create_sub_account(
                     deps,
                     info,
@@ -241,6 +242,7 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     link,
                     namespace,
                     install_modules,
+                    account_id,
                 )
                 .map_err(AccountError::from),
                 ExecuteMsg::Upgrade { modules } => {

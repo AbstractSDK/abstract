@@ -29,12 +29,15 @@ pub fn create_sub_account(
     link: Option<String>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
+    account_id: Option<u32>,
 ) -> AccountResult {
     // only owner can create a subaccount
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
     let config = CONFIG.load(deps.storage)?;
-    let seq = abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE
-        .query(&deps.querier, config.version_control_address.clone())?;
+    let seq = account_id.unwrap_or(
+        abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE
+            .query(&deps.querier, config.version_control_address.clone())?,
+    );
     let account_id = AccountId::local(seq);
     let salt = cosmwasm_std::to_json_binary(&seq)?;
 
