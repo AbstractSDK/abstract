@@ -264,6 +264,7 @@ mod test {
     fn have_some_state() {
         State::get("state.json").unwrap();
         let state = State::load_state();
+        // TODO: remove ["juno"] after updating state, we only need chain_id now
         let vc_juno = &state["juno"]["juno-1"]["code_ids"].get(VERSION_CONTROL);
         assert!(vc_juno.is_some());
     }
