@@ -36,8 +36,8 @@ pub mod state {
     pub struct Config {
         /// AnsHost contract struct (address)
         pub ans_host: AnsHost,
-        /// Address of the account factory, used to create remote accounts
-        pub account_factory: Addr,
+        /// Address of the module factory, used to create remote accounts
+        pub module_factory_addr: Addr,
         /// Address of the local version control, for retrieving account information
         pub version_control: VersionControlContract,
     }
@@ -57,7 +57,7 @@ pub struct InstantiateMsg {
     /// Used to easily perform address translation on the app chain
     pub ans_host_address: String,
     /// Used to create remote abstract accounts
-    pub account_factory_address: String,
+    pub module_factory_address: String,
     /// Version control address
     pub version_control_address: String,
 }
@@ -108,7 +108,7 @@ pub enum ExecuteMsg {
     UpdateOwnership(cw_ownable::Action),
     UpdateConfig {
         ans_host_address: Option<String>,
-        account_factory_address: Option<String>,
+        module_factory_address: Option<String>,
         version_control_address: Option<String>,
     },
     /// Register the Polytone proxy for a specific chain.
@@ -173,7 +173,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub ans_host_address: Addr,
-    pub account_factory_address: Addr,
+    pub module_factory_address: Addr,
     pub version_control_address: Addr,
 }
 
