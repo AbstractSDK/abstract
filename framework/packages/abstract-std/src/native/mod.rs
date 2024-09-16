@@ -1,4 +1,3 @@
-pub mod account_factory;
 pub mod ans_host;
 pub mod ibc;
 pub mod ibc_client;

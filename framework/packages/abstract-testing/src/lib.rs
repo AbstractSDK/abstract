@@ -161,7 +161,6 @@ pub mod addresses {
                 owner: mock_api.addr_make(OWNER),
                 ans_host: mock_api.addr_make(TEST_ANS_HOST),
                 version_control: mock_api.addr_make(TEST_VERSION_CONTROL),
-                account_factory: mock_api.addr_make(TEST_ACCOUNT_FACTORY),
                 module_factory: mock_api.addr_make(TEST_MODULE_FACTORY),
                 module_address: mock_api.addr_make(TEST_MODULE_ADDRESS),
                 account: test_account_base(mock_api),
@@ -174,8 +173,6 @@ pub mod addresses {
         pub owner: Addr,
         pub ans_host: Addr,
         pub version_control: Addr,
-        #[deprecated(note = "Account factory will be removed")]
-        pub account_factory: Addr,
         pub module_factory: Addr,
         pub module_address: Addr,
         pub account: Account,
