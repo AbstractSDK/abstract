@@ -21,12 +21,14 @@ pub type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 pub fn create_default_account<T: CwEnv>(
     sender: &Addr,
+    abstr: &Abstract<T>,
 ) -> anyhow::Result<AccountI<T>> {
-    AccountI::create_and_return_sub_account(&self, account_details, funds)
-
-    let account = factory.create_default_account(GovernanceDetails::Monarchy {
-        monarch: sender.to_string(),
-    })?;
+    let account = AccountI::create_default_account(
+        abstr,
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+    )?;
     Ok(account)
 }
 

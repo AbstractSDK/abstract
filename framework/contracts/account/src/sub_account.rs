@@ -11,8 +11,8 @@ use abstract_std::{
     },
 };
 use cosmwasm_std::{
-    instantiate2_address, to_json_binary, wasm_execute, Attribute, CosmosMsg, DepsMut, Empty, Env,
-    MessageInfo, WasmMsg,
+    ensure, instantiate2_address, to_json_binary, wasm_execute, Attribute, CosmosMsg, DepsMut,
+    Empty, Env, MessageInfo, WasmMsg,
 };
 
 use crate::{

@@ -41,7 +41,7 @@ use mock_app::*;
 /// Test installing an app on an account
 pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
-    let account = crate::create_default_account(&deployment.account_factory)?;
+    let account = crate::create_default_account(&chain.sender_addr(), &deployment)?;
 
     deployment
         .version_control
@@ -59,9 +59,9 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
 pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
     let sender = chain.sender_addr();
-    let factory = &deployment.account_factory;
 
-    let deployer_acc = factory.create_new_account(
+    let deployer_acc = AccountI::create(
+        &deployment,
         AccountDetails {
             name: String::from("first_account"),
             description: Some(String::from("account_description")),
@@ -147,9 +147,9 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
         .add_balance(&sender, vec![coin(18, coin1), coin(20, coin2)])
         .unwrap();
     let deployment = Abstract::load_from(chain.clone())?;
-    let factory = &deployment.account_factory;
 
-    let _deployer_acc = factory.create_new_account(
+    let _deployer_acc = AccountI::create(
+        &deployment,
         AccountDetails {
             name: String::from("first_account"),
             description: Some(String::from("account_description")),
@@ -228,53 +228,50 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
         }
     );
 
-    let account = factory
-        .create_new_account(
-            AccountDetails {
-                name: String::from("second_account"),
-                description: None,
-                link: None,
-                namespace: None,
-                install_modules: vec![
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_1::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_2::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            app_1::MOCK_APP_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        Some(to_json_binary(&MockInitMsg {})?),
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo {
-                            namespace: Namespace::new("tester")?,
-                            name: "standalone".to_owned(),
-                            version: V1.into(),
-                        },
-                        Some(to_json_binary(&MockInitMsg {})?),
-                    ),
-                ],
-                account_id: None,
-            },
-            GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            },
-            // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
-            &[coin(18, coin1), coin(20, coin2)],
-        )
-        .unwrap();
+    let account = AccountI::create(
+        &deployment,
+        AccountDetails {
+            name: String::from("second_account"),
+            description: None,
+            link: None,
+            namespace: None,
+            install_modules: vec![
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_1::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_2::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
+                    Some(to_json_binary(&MockInitMsg {})?),
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo {
+                        namespace: Namespace::new("tester")?,
+                        name: "standalone".to_owned(),
+                        version: V1.into(),
+                    },
+                    Some(to_json_binary(&MockInitMsg {})?),
+                ),
+            ],
+            account_id: None,
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
+        &[coin(18, coin1), coin(20, coin2)],
+    )
+    .unwrap();
     let balances = chain
         .bank_querier()
         .balance(&account.address()?, None)
@@ -285,7 +282,12 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
 
 pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     let abstr = Abstract::load_from(chain.clone())?;
-    let account = create_default_account(&abstr.account_factory)?;
+    let account = AccountI::create_default_account(
+        &abstr,
+        GovernanceDetails::Monarchy {
+            monarch: chain.sender_addr().to_string(),
+        },
+    )?;
     abstr
         .version_control
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
@@ -316,7 +318,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
 
 pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr) -> AResult {
     let abstr = Abstract::load_from(chain.clone())?;
-    let account = create_default_account(&abstr.account_factory)?;
+    let account = create_default_account(&chain.sender_addr(), &abstr)?;
     abstr
         .version_control
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
@@ -361,7 +363,7 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
 
 pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&chain.sender_addr(), &deployment)?;
 
     deployment
         .version_control
@@ -394,7 +396,8 @@ pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
 pub fn installing_one_adapter_with_fee_should_succeed<T: MutCwEnv>(mut chain: T) -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::load_from(chain.clone())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&chain.sender_addr(), &deployment)?;
+
     chain.set_balance(&sender, coins(45, "ujunox")).unwrap();
 
     init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
@@ -416,7 +419,7 @@ pub fn installing_one_adapter_with_fee_should_succeed<T: MutCwEnv>(mut chain: T)
 
 pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&chain.sender_addr(), &deployment)?;
 
     let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
@@ -468,8 +471,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 
 pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
-    let account = create_default_account(&deployment.account_factory)?;
-
+    let account = create_default_account(&chain.sender_addr(), &deployment)?;
     account.create_sub_account(
         vec![],
         "My subaccount".to_string(),
@@ -484,7 +486,8 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     let sub_account = AccountI::new(AccountId::local(sub_account_id), chain.clone());
     let sub_account_addr = sub_account.address()?;
 
-    let new_account = create_default_account(&deployment.account_factory)?;
+    let new_account = create_default_account(&chain.sender_addr(), &deployment)?;
+
     let new_governance = GovernanceDetails::SubAccount {
         account: sub_account_addr.to_string(),
     };
