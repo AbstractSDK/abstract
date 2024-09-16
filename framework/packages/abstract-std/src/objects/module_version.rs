@@ -28,11 +28,14 @@ use cw_storage_plus::Item;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-use super::dependency::{Dependency, DependencyResponse, StaticDependency};
+use super::{
+    common_namespace::MODULE_STORAGE_KEY,
+    dependency::{Dependency, DependencyResponse, StaticDependency},
+};
 use crate::AbstractError;
 
 // ANCHOR: metadata
-pub const MODULE: Item<ModuleData> = Item::new("module_data");
+pub const MODULE: Item<ModuleData> = Item::new(MODULE_STORAGE_KEY);
 
 /// Represents metadata for abstract modules and abstract native contracts.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

@@ -22,14 +22,23 @@ pub mod state {
     use super::*;
     use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 
+    pub mod namespace {
+        pub const CHAIN_PROXIES: &str = "a";
+        pub const REVERSE_CHAIN_PROXIES: &str = "b";
+        pub const CONFIG: &str = "c";
+        pub const TEMP_ACTION_AFTER_CREATION: &str = "d";
+    }
+
     /// Maps a chain name to the proxy it uses to interact on this local chain
-    pub const CHAIN_PROXIES: Map<&TruncatedChainId, Addr> = Map::new("ccl");
-    pub const REVERSE_CHAIN_PROXIES: Map<&Addr, TruncatedChainId> = Map::new("rev-ccl");
+    pub const CHAIN_PROXIES: Map<&TruncatedChainId, Addr> = Map::new(namespace::CHAIN_PROXIES);
+    pub const REVERSE_CHAIN_PROXIES: Map<&Addr, TruncatedChainId> =
+        Map::new(namespace::REVERSE_CHAIN_PROXIES);
     /// Configuration of the IBC host
-    pub const CONFIG: Item<Config> = Item::new("cfg");
+    pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
 
     // Temporary structure to hold actions to be executed after account creation
-    pub const TEMP_ACTION_AFTER_CREATION: Item<ActionAfterCreationCache> = Item::new("act");
+    pub const TEMP_ACTION_AFTER_CREATION: Item<ActionAfterCreationCache> =
+        Item::new(namespace::TEMP_ACTION_AFTER_CREATION);
 
     /// The BaseState contains the main addresses needed for sending and verifying messages
     #[cosmwasm_schema::cw_serde]

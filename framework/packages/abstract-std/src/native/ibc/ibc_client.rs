@@ -13,7 +13,7 @@ use crate::{
     AbstractError,
 };
 
-use super::ibc::polytone_callbacks;
+use super::polytone_callbacks;
 
 pub mod state {
 
@@ -44,20 +44,29 @@ pub mod state {
         pub remote_proxy: Option<String>,
     }
 
+    pub mod namespace {
+        pub const IBC_INFRA: &str = "a";
+        pub const REVERSE_POLYTONE_NOTE: &str = "b";
+        pub const CONFIG: &str = "c";
+        pub const ACCOUNTS: &str = "d";
+        pub const ACKS: &str = "e";
+    }
+
     // Saves the local note deployed contract and the remote abstract host connected
     // This allows sending cross-chain messages
-    pub const IBC_INFRA: Map<&TruncatedChainId, IbcInfrastructure> = Map::new("ibci");
-    pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> = Map::new("revpn");
+    pub const IBC_INFRA: Map<&TruncatedChainId, IbcInfrastructure> = Map::new(namespace::IBC_INFRA);
+    pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> =
+        Map::new(namespace::REVERSE_POLYTONE_NOTE);
 
-    pub const CONFIG: Item<Config> = Item::new("config");
+    pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
     /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
     /// triple instead of including AccountId since nested tuples do not behave as expected due to
     /// a bug that will be fixed in a future release.
     pub const ACCOUNTS: Map<(&AccountTrace, AccountSequence, &TruncatedChainId), String> =
-        Map::new("accs");
+        Map::new(namespace::ACCOUNTS);
 
     // For callbacks tests
-    pub const ACKS: Item<Vec<String>> = Item::new("tmpc");
+    pub const ACKS: Item<Vec<String>> = Item::new(namespace::ACKS);
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.

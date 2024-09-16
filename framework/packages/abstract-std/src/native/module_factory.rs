@@ -19,10 +19,15 @@ pub mod state {
         pub ans_host_address: Addr,
     }
 
-    pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
+    pub mod namespace {
+        pub const CONFIG: &str = "a";
+        pub const CURRENT_BASE: &str = "b";
+    }
+
+    pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
     /// Base of account on which modules getting installed right now
     /// It's set only if one of the modules is standalone
-    pub const CURRENT_BASE: Item<Account> = Item::new("cur_manager");
+    pub const CURRENT_BASE: Item<Account> = Item::new(namespace::CURRENT_BASE);
 }
 
 use cosmwasm_schema::QueryResponses;
