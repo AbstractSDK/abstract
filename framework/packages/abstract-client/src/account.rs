@@ -351,7 +351,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             }
             Some(owner_account) => owner_account
                 .abstr_account
-                .create_sub_account_helper(account_details, &funds)?,
+                .create_and_return_sub_account(account_details, &funds)?,
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }

@@ -429,7 +429,26 @@ impl<Chain: CwEnv> AccountI<Chain> {
         Ok(self.config()?.account_id)
     }
 
-    pub fn create_sub_account_helper(
+    pub fn create(abstr: &Abstract<Chain>, account_seq: u32) -> Result<AccountI<Chain>, AbstractInterfaceError> {
+        // get code-id for account
+        let code_id = abstr.version_control.module(ModuleInfo::from_id_latest(ACCOUNT).unwrap())?.reference.unwrap_account()?;
+        // Manually instantiate account
+        let chain = abstr.version_control.environment().clone();
+        let account_id = AccountId::local(account_seq);
+        chain.instantiate2(code_id, &InstantiateMsg {
+            account_id: Some(account_id.clone()),
+            owner: abstract_std::objects::gov_type::GovernanceDetails::Monarchy { monarch: chain.sender().to_string() },
+            namespace: None,
+            install_modules: None,
+            name: None,
+            description: None,
+            link: None,
+            module_factory_address: abstr.module_factory.addr_str()?,
+            version_control_address: abstr.version_control.addr_str()?,
+        }, Some(account_id.to_string().as_str()), admin, coins, salt)
+    }
+
+    pub fn create_and_return_sub_account(
         &self,
         account_details: AccountDetails,
         funds: &[Coin],
