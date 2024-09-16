@@ -1,6 +1,4 @@
-use abstract_interface::{
-    Abstract, AccountDetails, AccountI, VCExecFns, VCQueryFns,
-};
+use abstract_interface::{Abstract, AccountDetails, AccountI, VCExecFns, VCQueryFns};
 use abstract_sdk::cw_helpers::Clearable;
 use abstract_std::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace},
