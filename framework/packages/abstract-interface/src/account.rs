@@ -12,8 +12,7 @@
 //! - upgrade module
 
 use crate::{
-    get_account_contracts, Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer,
-    VersionControl,
+    get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, VersionControl,
 };
 pub use abstract_std::account::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_std::{
@@ -22,10 +21,12 @@ use abstract_std::{
     ibc_host::{HelperAction, HostAction},
     module_factory::SimulateInstallModulesResponse,
     objects::{
+        gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
+        salt::generate_instantiate_salt,
         AccountId, TruncatedChainId,
     },
-    version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
+    version_control::{state::LOCAL_ACCOUNT_SEQUENCE, ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{from_json, to_json_binary};
@@ -37,16 +38,94 @@ use serde::Serialize;
 use speculoos::prelude::*;
 use std::collections::HashSet;
 
+/// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
+#[derive(Default)]
+pub struct AccountDetails {
+    pub name: String,
+    pub description: Option<String>,
+    pub link: Option<String>,
+    pub namespace: Option<String>,
+    pub install_modules: Vec<ModuleInstallConfig>,
+    pub account_id: Option<u32>,
+}
+
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountI<Chain>;
 
 impl<Chain: CwEnv> AccountI<Chain> {
     pub fn load_from(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
-        get_account_contracts(&abstract_deployment.version_control, account_id)
+        get_account_contract(&abstract_deployment.version_control, account_id)
     }
+
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
-        let manager_id = format!("{ACCOUNT}-{account_id}");
-        Self::new(manager_id, chain)
+        let account_id = format!("{ACCOUNT}-{account_id}");
+        Self::new(account_id, chain)
+    }
+
+    /// Create account, `b"abstract_account"` used as a salt
+    pub fn create(
+        abstract_deployment: &Abstract<Chain>,
+        details: AccountDetails,
+        governance_details: GovernanceDetails<String>,
+        funds: &[cosmwasm_std::Coin],
+    ) -> Result<Self, AbstractInterfaceError> {
+        let chain = abstract_deployment.version_control.environment().clone();
+
+        // Generate salt from account id(or)
+        let salt = generate_instantiate_salt(&AccountId::local(details.account_id.unwrap_or(
+            chain.wasm_querier().item_query(
+                &abstract_deployment.version_control.address()?,
+                LOCAL_ACCOUNT_SEQUENCE,
+            )?,
+        )));
+        let code_id = abstract_deployment.account.code_id().unwrap();
+
+        let account_addr = chain
+            .wasm_querier()
+            .instantiate2_addr(code_id, &chain.sender_addr(), salt.clone())
+            .map_err(Into::into)?;
+        let account_addr = Addr::unchecked(account_addr);
+
+        chain
+            .instantiate2(
+                code_id,
+                &InstantiateMsg {
+                    account_id: details.account_id.map(AccountId::local),
+                    owner: governance_details,
+                    namespace: details.namespace,
+                    install_modules: details.install_modules,
+                    name: details.name,
+                    description: details.description,
+                    link: details.link,
+                    module_factory_address: abstract_deployment.module_factory.addr_str()?,
+                    version_control_address: abstract_deployment.version_control.addr_str()?,
+                },
+                Some("Abstract Account"),
+                Some(&account_addr),
+                funds,
+                salt,
+            )
+            .map_err(Into::into)?;
+
+        let account_id = chain
+            .wasm_querier()
+            .item_query(&account_addr, state::ACCOUNT_ID)?;
+        let contract_id = format!("{ACCOUNT}_{account_id}");
+
+        let account = Self::new(contract_id, chain);
+        account.set_address(&account_addr);
+        Ok(account)
+    }
+
+    pub fn create_default_account(
+        abstract_deployment: &Abstract<Chain>,
+        governance_details: GovernanceDetails<String>,
+    ) -> Result<Self, AbstractInterfaceError> {
+        let details = AccountDetails {
+            name: "Default Abstract Account".into(),
+            ..Default::default()
+        };
+        Self::create(abstract_deployment, details, governance_details, &[])
     }
 }
 

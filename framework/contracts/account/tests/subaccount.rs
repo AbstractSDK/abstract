@@ -56,7 +56,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
-    let account_contracts = get_account_contracts(&deployment.version_control, AccountId::local(2));
+    let account_contracts = get_account_contract(&deployment.version_control, AccountId::local(2));
     let new_desc = "new desc";
     account_contracts
         .0
@@ -88,7 +88,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
-    let (sub_manager, _) = get_account_contracts(&deployment.version_control, AccountId::local(2));
+    let (sub_manager, _) = get_account_contract(&deployment.version_control, AccountId::local(2));
     let new_desc = "new desc";
 
     // We call as the proxy, it should also be possible
@@ -122,7 +122,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
-    let account_contracts = get_account_contracts(&deployment.version_control, AccountId::local(2));
+    let account_contracts = get_account_contract(&deployment.version_control, AccountId::local(2));
 
     // We call as the manager, it should also be possible
     account_contracts.0.create_sub_account(
@@ -134,7 +134,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
         None,
         &[],
     )?;
-    let account_contracts = get_account_contracts(&deployment.version_control, AccountId::local(3));
+    let account_contracts = get_account_contract(&deployment.version_control, AccountId::local(3));
     let new_desc = "new desc";
 
     account_contracts
@@ -174,7 +174,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
         .add_modules(vec![mock_app.to_string()])?;
 
     let (sub_manager, _sub_proxy) =
-        get_account_contracts(&deployment.version_control, AccountId::local(2));
+        get_account_contract(&deployment.version_control, AccountId::local(2));
     let new_desc = "new desc";
 
     // recover address on first proxy

@@ -12,12 +12,12 @@ use abstract_std::{
         },
         ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
     },
-    account_factory::state::LOCAL_ACCOUNT_SEQUENCE,
     objects::{
         gov_type::GovernanceDetails,
         ownership::{self, GovOwnershipError},
         AccountId,
     },
+    version_control::state::LOCAL_ACCOUNT_SEQUENCE,
     version_control::Account,
 };
 use cosmwasm_std::{

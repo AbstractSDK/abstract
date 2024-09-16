@@ -52,6 +52,9 @@ pub enum VersionControlError {
         service_addr: Addr,
         registry_addr: Addr,
     },
+
+    #[error("The provided module {0} has an invalid module reference.")]
+    InvalidReference(ModuleInfo),
 }
 
 pub type VersionControlResult<T> = Result<T, VersionControlError>;

@@ -34,6 +34,7 @@
 - Value calculation logic from proxy contract.
 - `cw-semver` dependency removed
 - Manager no longer able to migrate pre `0.19` abstract adapters
+- Account Factory native contract
 
 ### Fixed
 

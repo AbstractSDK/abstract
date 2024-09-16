@@ -344,11 +344,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             account_id: self.expected_local_account_id,
         };
         let abstract_account = match self.owner_account {
-            None => {
-                self.abstr
-                    .account_factory
-                    .create_new_account(account_details, ownership, &funds)?
-            }
+            None => AccountI::create(self.abstr, account_details, ownership, &funds)?,
             Some(owner_account) => owner_account
                 .abstr_account
                 .create_and_return_sub_account(account_details, &funds)?,
@@ -999,7 +995,7 @@ pub mod test {
         let abstr = AbstractClient::builder(mock.clone()).build()?;
 
         let my_namespace = "my-namespace";
-        let new_account = abstr_builder().build()?;
+        let new_account = abstr.account_builder().build()?;
         new_account.claim_namespace(my_namespace)?;
 
         // Verify the namespace exists

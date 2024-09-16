@@ -9,7 +9,6 @@ use abstract_std::{
     account::state::ACCOUNT_ID,
     account::state::ACCOUNT_MODULES,
     objects::{
-        account::TEST_ACCOUNT_ID,
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         ownership,
@@ -17,7 +16,6 @@ use abstract_std::{
     version_control::state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES},
     ACCOUNT,
 };
-use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
 use cosmwasm_std::{
     from_json,
     testing::{MockApi, MockQuerier, MockStorage},
@@ -28,7 +26,7 @@ pub use mock_querier::{
     map_key, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
 };
 use module::{TEST_MODULE_ID, TEST_MODULE_RESPONSE};
-use prelude::{AbstractMockAddrs, AbstractMockQuerierBuilder};
+use prelude::AbstractMockAddrs;
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
 pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
@@ -52,7 +50,7 @@ pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
     };
     let abstr = AbstractMockAddrs::new(mock_api);
 
-    MockQuerierBuilder::default()
+    MockQuerierBuilder::new(mock_api)
         .with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
             &abstr.version_control,
@@ -85,7 +83,7 @@ pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
                     let resp = AccountConfigResponse {
                         version_control_address: abstr.version_control,
                         module_factory_address: abstr.module_factory,
-                        account_id: TEST_ACCOUNT_ID, // mock value, not used
+                        account_id: ABSTRACT_ACCOUNT_ID, // mock value, not used
                         is_suspended: false,
                         modules: vec![],
                     };
@@ -142,17 +140,19 @@ pub mod addresses {
 
     // Test addr makers
     const OWNER: &str = "owner";
+    const ROOT_ACCOUNT: &str = "root_account_address";
     const TEST_ACCOUNT: &str = "account_address";
     const TEST_ANS_HOST: &str = "test_ans_host_address";
     const TEST_VERSION_CONTROL: &str = "version_control_address";
-    const TEST_ACCOUNT_FACTORY: &str = "account_factory_address";
     const TEST_MODULE_FACTORY: &str = "module_factory_address";
     const TEST_MODULE_ADDRESS: &str = "test_module_address";
-    // set in cosmwasm_std::MockApi
-    const ENV_CONTRACT_ADDRESS: &str = "cosmos2address";
+
+    pub fn root_account_base(mock_api: MockApi) -> Account {
+        Account::new(mock_api.addr_make(ROOT_ACCOUNT))
+    }
 
     pub fn test_account_base(mock_api: MockApi) -> Account {
-        Account::new(mock_api.addr_make(ENV_CONTRACT_ADDRESS))
+        Account::new(mock_api.addr_make(TEST_ACCOUNT))
     }
 
     impl AbstractMockAddrs {
@@ -161,10 +161,9 @@ pub mod addresses {
                 owner: mock_api.addr_make(OWNER),
                 ans_host: mock_api.addr_make(TEST_ANS_HOST),
                 version_control: mock_api.addr_make(TEST_VERSION_CONTROL),
-                account_factory: mock_api.addr_make(TEST_ACCOUNT_FACTORY),
                 module_factory: mock_api.addr_make(TEST_MODULE_FACTORY),
                 module_address: mock_api.addr_make(TEST_MODULE_ADDRESS),
-                account: test_account_base(mock_api),
+                account: root_account_base(mock_api),
             }
         }
     }
@@ -174,8 +173,6 @@ pub mod addresses {
         pub owner: Addr,
         pub ans_host: Addr,
         pub version_control: Addr,
-        #[deprecated(note = "Account factory will be removed")]
-        pub account_factory: Addr,
         pub module_factory: Addr,
         pub module_address: Addr,
         pub account: Account,
@@ -210,7 +207,7 @@ pub mod module {
 
 pub mod prelude {
     pub use super::{mock_dependencies, mock_querier};
-    pub use abstract_mock_querier::AbstractMockQuerierBuilder;
+    pub use abstract_mock_querier::AbstractMockQuerier;
     pub use abstract_std::objects::account::TEST_ACCOUNT_ID;
     pub use addresses::*;
     pub use ans::*;
