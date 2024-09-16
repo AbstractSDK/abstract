@@ -2,10 +2,12 @@ use crate::msg::*;
 use abstract_macros::abstract_response;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
-    ica_client::state::{Config, CONFIG}, objects::{
+    ica_client::state::{Config, CONFIG},
+    objects::{
         ans_host::AnsHost,
         module_version::{assert_cw_contract_upgrade, migrate_module_data},
-    }, ICA_CLIENT
+    },
+    ICA_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use semver::Version;
