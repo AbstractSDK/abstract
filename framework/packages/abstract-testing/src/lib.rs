@@ -147,7 +147,7 @@ pub mod addresses {
     const TEST_MODULE_FACTORY: &str = "module_factory_address";
     const TEST_MODULE_ADDRESS: &str = "test_module_address";
 
-    pub fn root_account_base(mock_api: MockApi) -> Account {
+    pub fn admin_account_base(mock_api: MockApi) -> Account {
         Account::new(mock_api.addr_make(ROOT_ACCOUNT))
     }
 
@@ -163,7 +163,7 @@ pub mod addresses {
                 version_control: mock_api.addr_make(TEST_VERSION_CONTROL),
                 module_factory: mock_api.addr_make(TEST_MODULE_FACTORY),
                 module_address: mock_api.addr_make(TEST_MODULE_ADDRESS),
-                account: root_account_base(mock_api),
+                account: admin_account_base(mock_api),
             }
         }
     }

@@ -430,7 +430,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn should_return_base_account_address() {
+        fn should_return_admin_account_address() {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -532,10 +532,10 @@ mod tests {
         use super::*;
 
         #[test]
-        fn should_return_root_acct_id_with_test_manager() {
+        fn should_return_admin_acct_id() {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier(deps.api);
-            let root_base = root_account_base(deps.api);
+            let root_base = admin_account_base(deps.api);
 
             let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), root_base.addr().clone());
 
@@ -543,7 +543,7 @@ mod tests {
         }
 
         #[test]
-        fn should_return_test_acct_id_with_test_manager() {
+        fn should_return_test_acct_id() {
             let mut deps = mock_dependencies();
             let test_base = test_account_base(deps.api);
             deps.querier = mock_querier_builder(deps.api)
