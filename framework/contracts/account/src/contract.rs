@@ -331,7 +331,6 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
     match msg {
         Reply {
             id: LOCAL_ACTION_REPLY_ID,
-            result: SubMsgResult::Ok(_),
             ..
         } => local_action_callback(deps, msg),
         Reply {

@@ -15,11 +15,12 @@ use cosmwasm_std::{from_json, DepsMut, Reply, Response, StdError};
 pub fn local_action_callback(deps: DepsMut, result: Reply) -> AccountResult {
     let payload: LocalActionPayload = from_json(&result.payload)?;
     if payload.ty == LocalActionAccess::Admin {
-        // If we have an admin result, we erase the local context
+        // If we have an admin result, we erase the local context.
+        // This needs to be done before any action to make sure that the context state is not propagated.
         CURRENT_ADMIN_CONTEXT.remove(deps.storage);
     }
 
-    // get the result from the reply
+    // Get the result from the reply
     let res = result.result.into_result().map_err(StdError::generic_err)?;
 
     let resp = if payload.forward_data {
