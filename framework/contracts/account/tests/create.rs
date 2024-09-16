@@ -1,6 +1,4 @@
-use abstract_interface::{
-    AbstractAccount, VCQueryFns, *,
-};
+use abstract_interface::{AbstractAccount, VCQueryFns, *};
 use abstract_std::{
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
@@ -38,7 +36,7 @@ fn create_one_account() -> AResult {
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let version_control = &deployment.version_control;
-    
+
     let account_creation = AccountI::create(
         &deployment,
         AccountDetails {
@@ -62,7 +60,6 @@ fn create_one_account() -> AResult {
     let expected = version_control::ConfigResponse {
         security_disabled: todo!(),
         namespace_registration_fee: todo!(),
-        
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
