@@ -93,9 +93,6 @@ pub enum VCError {
     #[error("Initialization funds can only be specified for apps and standalone modules")]
     RedundantInitFunds {},
 
-    #[error("Predictable local account id sequence can't be lower than 2147483648")]
-    PredictableAccountIdFailed {},
-
     #[error("Sender {0} is not the IBC host {1}")]
     SenderNotIbcHost(String, String),
 

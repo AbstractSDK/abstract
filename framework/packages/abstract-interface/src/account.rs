@@ -542,12 +542,8 @@ impl<Chain: CwEnv> AccountI<Chain> {
         result: <Chain as TxHandler>::Response,
     ) -> Result<AccountI<Chain>, crate::AbstractInterfaceError> {
         // Parse data from events
-        let acc_seq = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_sequence")?;
-        let trace = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "trace")?;
-        let id = AccountId::new(
-            acc_seq.parse().unwrap(),
-            abstract_std::objects::account::AccountTrace::try_from((*trace).as_str())?,
-        )?;
+        let acc_id = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_id")?;
+        let id: AccountId = acc_id.parse()?;
         // construct manager and proxy ids
         let account = Self::new_from_id(&id, chain.clone());
 
