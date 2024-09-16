@@ -4,8 +4,8 @@
 //!
 
 use abstract_interface::{
-    Abstract, AccountDetails, AccountI, DependencyCreation, IbcClient, InstallConfig,
-    ManagerQueryFns as _, RegisteredModule, VCQueryFns as _,
+    Abstract, AccountDetails, AccountI, AccountQueryFns as _, DependencyCreation, IbcClient,
+    InstallConfig, RegisteredModule, VCQueryFns as _,
 };
 use abstract_std::{
     account::{
@@ -19,7 +19,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership, AccountId, TruncatedChainId,
     },
-    ACCOUNT, IBC_CLIENT,
+    IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
 use cw_orch::{

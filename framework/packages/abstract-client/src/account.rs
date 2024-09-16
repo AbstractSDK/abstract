@@ -22,8 +22,8 @@
 use std::fmt::{Debug, Display};
 
 use abstract_interface::{
-    Abstract, AbstractInterfaceError, AccountDetails, AccountI, DependencyCreation, IbcClient,
-    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AbstractInterfaceError, AccountDetails, AccountExecFns, AccountI, AccountQueryFns,
+    DependencyCreation, IbcClient, InstallConfig, MFactoryQueryFns, RegisteredModule, VCQueryFns,
 };
 use abstract_std::{
     account,
@@ -40,7 +40,7 @@ use abstract_std::{
         AccountId,
     },
     version_control::{self, NamespaceResponse},
-    ACCOUNT, IBC_CLIENT,
+    IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{

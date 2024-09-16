@@ -29,8 +29,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AccountI, AnsHost, IbcClient, ManagerQueryFns, RegisteredModule, VCQueryFns,
-    VersionControl,
+    Abstract, AccountI, AnsHost, IbcClient, RegisteredModule, VCQueryFns, VersionControl,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleStatus, ModuleVersion},

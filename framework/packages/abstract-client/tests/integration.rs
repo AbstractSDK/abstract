@@ -29,8 +29,7 @@ use abstract_std::{
     ans_host::QueryMsgFns,
     objects::{
         dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
-        module_version::ModuleDataResponse, namespace::Namespace, version_control, AccountId,
-        AssetEntry,
+        module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
     },
     IBC_CLIENT,
 };

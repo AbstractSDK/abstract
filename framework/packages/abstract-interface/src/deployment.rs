@@ -1,4 +1,3 @@
-use cosmwasm_std::Binary;
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
 
@@ -8,9 +7,7 @@ use crate::{
     get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
     AnsHost, ModuleFactory, VersionControl,
 };
-use abstract_std::{
-    objects::ABSTRACT_ACCOUNT_ID, ACCOUNT, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL,
-};
+use abstract_std::{ACCOUNT, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL};
 
 use rust_embed::RustEmbed;
 

@@ -14,7 +14,7 @@
 use crate::{
     get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, VersionControl,
 };
-pub use abstract_std::account::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
+pub use abstract_std::account::{ExecuteMsgFns as AccountExecFns, QueryMsgFns as AccountQueryFns};
 use abstract_std::{
     account::{AccountModuleInfo, ModuleInstallConfig, *},
     adapter::{self, AdapterBaseMsg},
