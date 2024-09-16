@@ -7,11 +7,14 @@ use super::{
     namespace::Namespace,
     AccountId,
 };
-use crate::{account::state::ACCOUNT_ID, version_control::{
-    state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
-    Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
-    NamespacesResponse, QueryMsg,
-}};
+use crate::{
+    account::state::ACCOUNT_ID,
+    version_control::{
+        state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
+        Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
+        NamespacesResponse, QueryMsg,
+    },
+};
 
 #[derive(Error, Debug, PartialEq)]
 pub enum VersionControlError {
