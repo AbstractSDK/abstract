@@ -140,17 +140,18 @@ pub mod addresses {
 
     // Test addr makers
     const OWNER: &str = "owner";
-    const ROOT_ACCOUNT: &str = "root_account_address";
+    const ADMIN_ACCOUNT: &str = "admin_account_address";
     const TEST_ACCOUNT: &str = "account_address";
     const TEST_ANS_HOST: &str = "test_ans_host_address";
     const TEST_VERSION_CONTROL: &str = "version_control_address";
     const TEST_MODULE_FACTORY: &str = "module_factory_address";
     const TEST_MODULE_ADDRESS: &str = "test_module_address";
 
-    pub fn admin_account_base(mock_api: MockApi) -> Account {
-        Account::new(mock_api.addr_make(ROOT_ACCOUNT))
+    pub fn admin_account(mock_api: MockApi) -> Account {
+        Account::new(mock_api.addr_make(ADMIN_ACCOUNT))
     }
 
+    // TODO: remove it
     pub fn test_account_base(mock_api: MockApi) -> Account {
         Account::new(mock_api.addr_make(TEST_ACCOUNT))
     }
@@ -163,7 +164,7 @@ pub mod addresses {
                 version_control: mock_api.addr_make(TEST_VERSION_CONTROL),
                 module_factory: mock_api.addr_make(TEST_MODULE_FACTORY),
                 module_address: mock_api.addr_make(TEST_MODULE_ADDRESS),
-                account: admin_account_base(mock_api),
+                account: admin_account(mock_api),
             }
         }
     }

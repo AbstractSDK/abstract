@@ -535,7 +535,7 @@ mod tests {
         fn should_return_admin_acct_id() {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier(deps.api);
-            let root_base = admin_account_base(deps.api);
+            let root_base = admin_account(deps.api);
 
             let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), root_base.addr().clone());
 
