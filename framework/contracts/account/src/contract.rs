@@ -20,10 +20,12 @@ use abstract_std::{
     version_control::state::LOCAL_ACCOUNT_SEQUENCE,
     version_control::Account,
 };
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
     StdError, StdResult, SubMsgResult,
 };
+use cw_storage_plus::Item;
 
 pub use crate::migrate::migrate;
 use crate::{
@@ -44,7 +46,7 @@ use crate::{
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
         handle_top_level_owner_query,
     },
-    reply::{forward_response_data, register_dependencies},
+    reply::{local_action_callback, register_dependencies},
     sub_account::{
         create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
     },
@@ -57,7 +59,21 @@ pub type AccountResult<R = Response> = Result<R, AccountError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub const RESPONSE_REPLY_ID: u64 = 1;
+pub const LOCAL_ACTION_REPLY_ID: u64 = 1;
+#[cw_serde]
+pub enum LocalActionAccess {
+    Normal,
+    Admin,
+}
+
+#[cw_serde]
+pub struct LocalActionPayload {
+    pub ty: LocalActionAccess,
+    pub forward_data: bool,
+}
+
+pub const CURRENT_ADMIN_CONTEXT: Item<Addr> = Item::new("current_admin_context");
+
 pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 2;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -225,7 +241,9 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg,
-                } => exec_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
+                    is_admin_action,
+                } => exec_on_module(deps, info, module_id, exec_msg, is_admin_action)
+                    .map_err(AccountError::from),
                 ExecuteMsg::CreateSubAccount {
                     name,
                     description,
@@ -283,12 +301,16 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             .add_messages(msgs),
                     )
                 }
-                ExecuteMsg::ModuleAction { msgs } => {
-                    execute_module_action(deps, info, msgs).map_err(AccountError::from)
-                }
-                ExecuteMsg::ModuleActionWithData { msg } => {
-                    execute_module_action_response(deps, info, msg).map_err(AccountError::from)
-                }
+                ExecuteMsg::LocalActions {
+                    msgs,
+                    is_admin_action,
+                } => execute_module_action(deps, &info.sender, msgs, is_admin_action)
+                    .map_err(AccountError::from),
+                ExecuteMsg::LocalActionWithData {
+                    msg,
+                    is_admin_action,
+                } => execute_module_action_response(deps, &info.sender, msg, is_admin_action)
+                    .map_err(AccountError::from),
                 ExecuteMsg::IbcAction { msg } => {
                     execute_ibc_action(deps, info, msg).map_err(AccountError::from)
                 }
@@ -308,10 +330,10 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
     match msg {
         Reply {
-            id: RESPONSE_REPLY_ID,
+            id: LOCAL_ACTION_REPLY_ID,
             result: SubMsgResult::Ok(_),
             ..
-        } => forward_response_data(msg),
+        } => local_action_callback(deps, msg),
         Reply {
             id: REGISTER_MODULES_DEPENDENCIES_REPLY_ID,
             result: SubMsgResult::Ok(_),

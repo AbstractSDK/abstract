@@ -123,9 +123,15 @@ pub struct CallbackMsg {}
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Executes the provided messages if sender is whitelisted
-    ModuleAction { msgs: Vec<CosmosMsg<Empty>> },
+    LocalActions {
+        msgs: Vec<CosmosMsg<Empty>>,
+        is_admin_action: bool,
+    },
     /// Execute a message and forward the Response data
-    ModuleActionWithData { msg: CosmosMsg<Empty> },
+    LocalActionWithData {
+        msg: CosmosMsg<Empty>,
+        is_admin_action: bool,
+    },
     /// Execute IBC action on Client
     IbcAction { msg: crate::ibc_client::ExecuteMsg },
     /// Queries the Abstract Ica Client with the provided action query.
@@ -137,7 +143,11 @@ pub enum ExecuteMsg {
 
     /// Forward execution message to module
     #[cw_orch(payable)]
-    ExecOnModule { module_id: String, exec_msg: Binary },
+    ExecOnModule {
+        module_id: String,
+        exec_msg: Binary,
+        is_admin_action: bool,
+    },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),

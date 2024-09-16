@@ -1,31 +1,44 @@
 use crate::{
-    contract::{AccountResponse, AccountResult},
+    contract::{
+        AccountResponse, AccountResult, LocalActionAccess, LocalActionPayload,
+        CURRENT_ADMIN_CONTEXT,
+    },
     modules::INSTALL_MODULES_CONTEXT,
 };
 use abstract_std::objects::{
     module::{assert_module_data_validity, Module},
     module_reference::ModuleReference,
 };
-use cosmwasm_std::{DepsMut, Reply, Response, StdError};
+use cosmwasm_std::{from_json, DepsMut, Reply, Response, StdError};
 
 /// Add the message's data to the response
-pub fn forward_response_data(result: Reply) -> AccountResult {
+pub fn local_action_callback(deps: DepsMut, result: Reply) -> AccountResult {
+    let payload: LocalActionPayload = from_json(&result.payload)?;
+    if payload.ty == LocalActionAccess::Admin {
+        // If we have an admin result, we erase the local context
+        CURRENT_ADMIN_CONTEXT.remove(deps.storage);
+    }
+
     // get the result from the reply
     let res = result.result.into_result().map_err(StdError::generic_err)?;
 
-    // log and add data if needed
-    #[allow(deprecated)]
-    let resp = if let Some(data) = res.data {
-        AccountResponse::new(
-            "forward_response_data_reply",
-            vec![("response_data", "true")],
-        )
-        .set_data(data)
+    let resp = if payload.forward_data {
+        // log and add data if needed
+        #[allow(deprecated)]
+        if let Some(data) = res.data {
+            AccountResponse::new(
+                "forward_response_data_reply",
+                vec![("response_data", "true")],
+            )
+            .set_data(data)
+        } else {
+            AccountResponse::new(
+                "forward_response_data_reply",
+                vec![("response_data", "false")],
+            )
+        }
     } else {
-        AccountResponse::new(
-            "forward_response_data_reply",
-            vec![("response_data", "false")],
-        )
+        Response::new()
     };
 
     Ok(resp)

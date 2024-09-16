@@ -23,6 +23,7 @@ use cw_storage_plus::Item;
 use semver::Version;
 
 use crate::{
+    actions::execute_module_action,
     contract::{AccountResponse, AccountResult, REGISTER_MODULES_DEPENDENCIES_REPLY_ID},
     error::AccountError,
 };
@@ -235,26 +236,26 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
 }
 
 /// Execute the [`exec_msg`] on the provided [`module_id`],
+/// This is a simple wrapper around `LocalAction`
 pub fn exec_on_module(
     deps: DepsMut,
     info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
+    is_admin_action: bool,
 ) -> AccountResult {
-    // only owner can forward messages to modules
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
-    let response = AccountResponse::new("exec_on_module", vec![("module", module_id)]).add_message(
-        CosmosMsg::Wasm(WasmMsg::Execute {
+    execute_module_action(
+        deps,
+        &info.sender,
+        vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: module_addr.into(),
             msg: exec_msg,
             funds: info.funds,
-        }),
-    );
-
-    Ok(response)
+        })],
+        is_admin_action,
+    )
 }
 
 /// Checked load of a module address

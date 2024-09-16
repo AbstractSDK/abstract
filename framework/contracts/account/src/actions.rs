@@ -3,44 +3,88 @@ use abstract_sdk::std::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     IBC_CLIENT,
 };
-use abstract_std::ICA_CLIENT;
+use abstract_std::{objects::ownership, ICA_CLIENT};
 use cosmwasm_std::{
-    wasm_execute, Binary, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg, WasmQuery,
+    to_json_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, MessageInfo,
+    StdError, SubMsg, WasmQuery,
 };
 
 use crate::{
-    contract::{AccountResponse, AccountResult, RESPONSE_REPLY_ID},
+    contract::{
+        AccountResponse, AccountResult, LocalActionAccess, LocalActionPayload,
+        CURRENT_ADMIN_CONTEXT, LOCAL_ACTION_REPLY_ID,
+    },
     error::AccountError,
 };
+
+fn local_action_access_control(deps: Deps, sender: &Addr) -> AccountResult<()> {
+    // If owner or higher level owner, it's ok
+    if ownership::assert_nested_owner(deps.storage, &deps.querier, &sender).is_ok() {
+        return Ok(());
+    }
+
+    // If whitelisted address, ok
+    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
+    if whitelisted_modules.0.contains(&sender) {
+        return Ok(());
+    }
+
+    Err(AccountError::SenderNotAuthorized {})
+}
 
 /// Executes `Vec<CosmosMsg>` on the proxy.
 /// Permission: Module
 pub fn execute_module_action(
     deps: DepsMut,
-    msg_info: MessageInfo,
-    msgs: Vec<CosmosMsg<Empty>>,
+    msg_sender: &Addr,
+    mut msgs: Vec<CosmosMsg<Empty>>,
+    is_admin_action: bool,
 ) -> AccountResult {
-    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if !whitelisted_modules.0.contains(&msg_info.sender) {
-        return Err(AccountError::SenderNotWhitelisted {});
-    }
+    local_action_access_control(deps.as_ref(), msg_sender)?;
 
-    Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
+    let last_msg = msgs.pop().ok_or(AccountError::NoUpdates {})?;
+
+    let last_submsg = if is_admin_action {
+        CURRENT_ADMIN_CONTEXT.save(deps.storage, msg_sender)?;
+        SubMsg::reply_on_success(last_msg, LOCAL_ACTION_REPLY_ID).with_payload(to_json_binary(
+            &LocalActionPayload {
+                ty: LocalActionAccess::Admin,
+                forward_data: false,
+            },
+        )?)
+    } else {
+        SubMsg::new(last_msg)
+    };
+
+    Ok(AccountResponse::action("execute_module_action")
+        .add_messages(msgs)
+        .add_submessage(last_submsg))
 }
 
 /// Executes `CosmosMsg` on the proxy and forwards its response.
 /// Permission: Module
 pub fn execute_module_action_response(
     deps: DepsMut,
-    msg_info: MessageInfo,
+    msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
+    is_admin_action: bool,
 ) -> AccountResult {
-    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if !whitelisted_modules.0.contains(&msg_info.sender) {
-        return Err(AccountError::SenderNotWhitelisted {});
-    }
+    local_action_access_control(deps.as_ref(), msg_sender)?;
 
-    let submsg = SubMsg::reply_on_success(msg, RESPONSE_REPLY_ID);
+    let mut submsg = SubMsg::reply_on_success(msg, LOCAL_ACTION_REPLY_ID);
+
+    if is_admin_action {
+        submsg = submsg.with_payload(to_json_binary(&LocalActionPayload {
+            ty: LocalActionAccess::Admin,
+            forward_data: true,
+        })?);
+        CURRENT_ADMIN_CONTEXT.save(deps.storage, msg_sender)?;
+    } else {
+        submsg = submsg.with_payload(to_json_binary(&LocalActionPayload {
+            ty: LocalActionAccess::Normal,
+            forward_data: true,
+        })?)
+    }
 
     Ok(AccountResponse::action("execute_module_action_response").add_submessage(submsg))
 }

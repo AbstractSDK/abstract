@@ -633,10 +633,9 @@ impl<Chain: CwEnv> Account<Chain> {
     ) -> AbstractClientResult<Chain::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.configure(
-            &account::ExecuteMsg::ExecOnModule {
-                module_id: ACCOUNT.to_owned(),
-                exec_msg: to_json_binary(&abstract_std::account::ExecuteMsg::ModuleAction { msgs })
-                    .map_err(AbstractInterfaceError::from)?,
+            &account::ExecuteMsg::LocalActions {
+                msgs,
+                is_admin_action: false,
             },
             funds,
         )
