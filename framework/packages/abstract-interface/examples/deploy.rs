@@ -1,4 +1,4 @@
-use abstract_interface::Abstract;
+use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
 use cw_orch::{
     daemon::networks::LOCAL_JUNO,
@@ -13,9 +13,12 @@ fn full_deploy(networks: Vec<ChainInfo>) -> cw_orch::anyhow::Result<()> {
 
         let deployment = Abstract::deploy_on(chain, sender.to_string())?;
         // Create the Abstract Account because it's needed for the fees for the dex module
-        deployment.create_default_account(GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
-        })?;
+        AccountI::create_default_account(
+            &deployment,
+            GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+        )?;
     }
 
     Ok(())

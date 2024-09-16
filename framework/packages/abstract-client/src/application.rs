@@ -2,7 +2,7 @@
 //!
 //! [`Application`] represents a module installed on a (sub-)account
 
-use abstract_interface::{ManagerExecFns, RegisteredModule};
+use abstract_interface::{AccountExecFns, RegisteredModule};
 use abstract_std::objects::module::ModuleInfo;
 use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};

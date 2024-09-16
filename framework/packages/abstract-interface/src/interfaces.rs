@@ -18,7 +18,7 @@ where
     (ans_host, version_control, module_factory)
 }
 
-pub fn get_account_contracts<Chain: CwEnv>(
+pub fn get_account_contract<Chain: CwEnv>(
     version_control: &VersionControl<Chain>,
     account_id: AccountId,
 ) -> AccountI<Chain>

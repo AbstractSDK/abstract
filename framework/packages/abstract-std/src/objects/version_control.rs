@@ -2,16 +2,18 @@ use cosmwasm_std::{Addr, QuerierWrapper};
 use thiserror::Error;
 
 use super::{
-    account::ACCOUNT_ID,
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
     namespace::Namespace,
     AccountId,
 };
-use crate::version_control::{
-    state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
-    Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
-    NamespacesResponse, QueryMsg,
+use crate::{
+    account::state::ACCOUNT_ID,
+    version_control::{
+        state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
+        Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
+        NamespacesResponse, QueryMsg,
+    },
 };
 
 #[derive(Error, Debug, PartialEq)]
