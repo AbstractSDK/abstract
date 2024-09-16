@@ -1,3 +1,4 @@
+use ::version_control::error::VCError;
 use abstract_account::error::AccountError;
 use abstract_adapter::mock::{
     interface::MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
@@ -28,8 +29,7 @@ use abstract_std::{
     ans_host::QueryMsgFns,
     objects::{
         dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
-        module_version::ModuleDataResponse, namespace::Namespace, version_control, AccountId,
-        AssetEntry,
+        module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
     },
     IBC_CLIENT,
 };
@@ -718,7 +718,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 
 /// ANCHOR: mock_integration_test
 #[test]
-fn can_execute_on_proxy() -> anyhow::Result<()> {
+fn can_execute_on_account() -> anyhow::Result<()> {
     let denom = "denom";
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build()?;
@@ -1194,127 +1194,130 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
     Ok(())
 }
 
-// #[test]
-// fn create_account_with_expected_account_id() -> anyhow::Result<()> {
-//     let chain = MockBech32::new("mock");
-//     let client = AbstractClient::builder(chain).build()?;
+#[test]
+fn create_account_with_expected_account_id() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
 
-//     // Check it fails on wrong account_id
-//     let next_id = client.random_account_id()?;
-//     let err = client
-//         .account_builder()
-//         .expected_account_id(10)
-//         .build()
-//         .unwrap_err();
-//     let AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err)) = err
-//     else {
-//         panic!("Expected cw-orch error")
-//     };
-//     let err: AccountError = err.downcast().unwrap();
-//     assert_eq!(err, AccountError::PredictableAccountIdFailed {});
+    // Check it fails on wrong account_id
+    let next_id = client.random_account_id()?;
+    let err = client
+        .account_builder()
+        .expected_account_id(10)
+        .build()
+        .unwrap_err();
+    let AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err)) = err
+    else {
+        panic!("Expected cw-orch error")
+    };
+    let err: VCError = err.downcast().unwrap();
+    assert_eq!(
+        err,
+        VCError::InvalidAccountSequence {
+            expected: 1,
+            actual: 10,
+        }
+    );
 
-//     // Can create if right id
-//     let account = client
-//         .account_builder()
-//         .expected_account_id(next_id)
-//         .build()?;
+    // Can create if right id
+    let account = client
+        .account_builder()
+        .expected_account_id(next_id)
+        .build()?;
 
-//     // Check it fails on wrong account_id for sub-accounts
-//     let next_id = client.random_account_id()?;
-//     let err = client
-//         .account_builder()
-//         .sub_account(&account)
-//         .expected_account_id(0)
-//         .build()
-//         .unwrap_err();
-//     let AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err)) = err
-//     else {
-//         panic!("Expected cw-orch error")
-//     };
-//     let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
-//     assert_eq!(
-//         err,
-//         account_factory::error::AccountFactoryError::PredictableAccountIdFailed {}
-//     );
+    // Check it fails on wrong account_id for sub-accounts
+    let next_id = client.random_account_id()?;
+    let err = client
+        .account_builder()
+        .sub_account(&account)
+        .expected_account_id(0)
+        .build()
+        .unwrap_err();
+    let AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err)) = err
+    else {
+        panic!("Expected cw-orch error")
+    };
+    let err: VCError = err.downcast().unwrap();
+    assert_eq!(err, VCError::AccountAlreadyExists(AccountId::local(0)));
 
-//     // Can create sub-account if right id
-//     let sub_account = client
-//         .account_builder()
-//         .sub_account(&account)
-//         .expected_account_id(next_id)
-//         .build()?;
-//     let sub_accounts = account.sub_accounts()?;
-//     assert_eq!(sub_accounts[0].id()?, sub_account.id()?);
-//     Ok(())
-// }
+    // Can create sub-account if right id
+    let sub_account = client
+        .account_builder()
+        .sub_account(&account)
+        .expected_account_id(next_id)
+        .build()?;
+    let sub_accounts = account.sub_accounts()?;
+    assert_eq!(sub_accounts[0].id()?, sub_account.id()?);
+    Ok(())
+}
 
-// #[test]
-// fn instantiate2_addr() -> anyhow::Result<()> {
-//     let chain = MockBech32::new("mock");
-//     let client = AbstractClient::builder(chain).build()?;
+#[test]
+fn instantiate2_addr() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
 
-//     let publisher: Publisher<MockBech32> = client
-//         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-//         .build()?;
+    let publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
 
-//     publisher.publish_app::<MockAppI<MockBech32>>()?;
+    publisher.publish_app::<MockAppI<MockBech32>>()?;
 
-//     let account_id = AccountId::local(client.random_account_id()?);
-//     let expected_addr = client.module_instantiate2_address::<MockAppI<MockBech32>>(&account_id)?;
+    let account_id = AccountId::local(client.random_account_id()?);
+    let expected_addr = client.module_instantiate2_address::<MockAppI<MockBech32>>(&account_id)?;
 
-//     let sub_account = client
-//         .account_builder()
-//         .sub_account(publisher.account())
-//         .expected_account_id(account_id.seq())
-//         .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
-//         .build()?;
-//     let application = sub_account.application::<MockAppI<_>>()?;
+    let sub_account = client
+        .account_builder()
+        .sub_account(publisher.account())
+        .expected_account_id(account_id.seq())
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+    let application = sub_account.application::<MockAppI<_>>()?;
 
-//     assert_eq!(application.address()?, expected_addr);
-//     Ok(())
-// }
+    assert_eq!(application.address()?, expected_addr);
+    Ok(())
+}
 
-// #[test]
-// fn instantiate2_raw_addr() -> anyhow::Result<()> {
-//     let chain = MockBech32::new("mock");
-//     let client = AbstractClient::builder(chain).build()?;
+#[test]
+fn instantiate2_raw_addr() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
 
-//     let next_seq = client.random_account_id()?;
-//     let account_id = AccountId::local(next_seq);
+    let next_seq = client.random_account_id()?;
+    let account_id = AccountId::local(next_seq);
 
-//     let proxy_addr = client.module_instantiate2_address_raw(
-//         &account_id,
-//         ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
-//     )?;
-//     let account = client
-//         .account_builder()
-//         .expected_account_id(next_seq)
-//         .build()?;
+    let proxy_addr = client.module_instantiate2_address_raw(
+        &account_id,
+        ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
+    )?;
+    let account = client
+        .account_builder()
+        .expected_account_id(next_seq)
+        .build()?;
 
-//     assert_eq!(account.address()?, proxy_addr);
-//     Ok(())
-// }
+    assert_eq!(account.address()?, proxy_addr);
+    Ok(())
+}
 
-// #[test]
-// fn instantiate2_random_seq() -> anyhow::Result<()> {
-//     let chain = MockBech32::new("mock");
-//     let client = AbstractClient::builder(chain).build()?;
+#[test]
+fn instantiate2_random_seq() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
 
-//     let next_seq = client.random_account_id()?;
-//     let account_id = AccountId::local(next_seq);
+    let next_seq = client.random_account_id()?;
+    let account_id = AccountId::local(next_seq);
 
-//     let proxy_addr = client.module_instantiate2_address_raw(
-//         &account_id,
-//         ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
-//     )?;
-//     let account = client
-//         .account_builder()
-//         .expected_account_id(next_seq)
-//         .build()?;
+    let proxy_addr = client.module_instantiate2_address_raw(
+        &account_id,
+        ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
+    )?;
+    let account = client
+        .account_builder()
+        .expected_account_id(next_seq)
+        .build()?;
 
-//     assert_eq!(account.address()?, proxy_addr);
-//     Ok(())
-// }
+    assert_eq!(account.address()?, proxy_addr);
+    Ok(())
+}
 
 #[test]
 fn install_same_app_on_different_accounts() -> anyhow::Result<()> {

@@ -136,6 +136,7 @@ dependencies = [
  "abstract-polytone",
  "abstract-std",
  "abstract-testing",
+ "abstract-version-control",
  "anyhow",
  "cosmwasm-schema 2.1.3",
  "cosmwasm-std 2.1.3",

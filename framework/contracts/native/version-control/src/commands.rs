@@ -139,7 +139,7 @@ pub fn add_account(
         "add_account",
         vec![
             ("account_id", account_id.to_string().as_str()),
-            ("account", account.addr().as_str()),
+            ("account_address", account.addr().as_str()),
             ("namespace", &format!("{namespace:?}")),
         ],
     );

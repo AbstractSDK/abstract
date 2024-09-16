@@ -14,7 +14,7 @@
 use crate::{
     get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, VersionControl,
 };
-pub use abstract_std::account::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
+pub use abstract_std::account::{ExecuteMsgFns as AccountExecFns, QueryMsgFns as AccountQueryFns};
 use abstract_std::{
     account::{AccountModuleInfo, ModuleInstallConfig, *},
     adapter::{self, AdapterBaseMsg},
@@ -110,7 +110,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         let account_id = chain
             .wasm_querier()
             .item_query(&account_addr, state::ACCOUNT_ID)?;
-        let contract_id = format!("{ACCOUNT}_{account_id}");
+        let contract_id = format!("{ACCOUNT}-{account_id}");
 
         let account = Self::new(contract_id, chain);
         account.set_address(&account_addr);
@@ -413,16 +413,17 @@ impl<Chain: CwEnv> AccountI<Chain> {
             account_id: _,
         } = account_details;
 
-        self.execute_on_module(
-            abstract_std::ACCOUNT,
-            abstract_std::account::ExecuteMsg::IbcAction {
+        self.execute(
+            &abstract_std::account::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     namespace,
                     install_modules,
                 },
             },
+            &[],
         )
+        .map_err(Into::into)
     }
 
     pub fn set_ibc_status(
@@ -453,7 +454,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
         };
 
-        self.execute_on_module(ACCOUNT, msg)
+        self.execute(&msg, &[]).map_err(Into::into)
     }
 
     pub fn execute_on_remote_module(
@@ -475,7 +476,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
         };
 
-        self.execute_on_module(ACCOUNT, msg)
+        self.execute(&msg, &[]).map_err(Into::into)
     }
 
     pub fn send_all_funds_back(
@@ -490,7 +491,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
         };
 
-        self.execute_on_module(ACCOUNT, msg)
+        self.execute(&msg, &[]).map_err(Into::into)
     }
 }
 
@@ -542,12 +543,8 @@ impl<Chain: CwEnv> AccountI<Chain> {
         result: <Chain as TxHandler>::Response,
     ) -> Result<AccountI<Chain>, crate::AbstractInterfaceError> {
         // Parse data from events
-        let acc_seq = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_sequence")?;
-        let trace = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "trace")?;
-        let id = AccountId::new(
-            acc_seq.parse().unwrap(),
-            abstract_std::objects::account::AccountTrace::try_from((*trace).as_str())?,
-        )?;
+        let acc_id = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_id")?;
+        let id: AccountId = acc_id.parse()?;
         // construct manager and proxy ids
         let account = Self::new_from_id(&id, chain.clone());
 
@@ -602,7 +599,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
                 }
                 sub_account_ids.extend(sub_account_ids_page);
             }
-            dbg!(&sub_account_ids);
             for sub_account_id in sub_account_ids {
                 let abstract_account =
                     AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id));

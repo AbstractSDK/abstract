@@ -1,4 +1,3 @@
-use cosmwasm_std::Binary;
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
 
@@ -85,38 +84,22 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         // Approve abstract contracts if needed
         deployment.version_control.approve_any_abstract_modules()?;
 
-        let salt = Binary::from("abstract".as_bytes());
-        let abstr_acc_addr = chain
-            .wasm_querier()
-            .instantiate2_addr(
-                deployment.account.code_id()?,
-                &chain.sender_addr(),
-                salt.clone(),
-            )
-            .map_err(Into::<CwOrchError>::into)?;
-
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
-        use abstract_std::objects::gov_type::GovernanceDetails;
-        #[cfg(feature = "integration")]
-        deployment.account.instantiate2(
-            &abstract_std::account::InstantiateMsg {
-                account_id: None,
-                owner: GovernanceDetails::Monarchy {
+        {
+            use abstract_std::objects::gov_type::GovernanceDetails;
+            AccountI::create(
+                &deployment,
+                crate::AccountDetails {
+                    name: "Abstract".to_string(),
+                    ..Default::default()
+                },
+                GovernanceDetails::Monarchy {
                     monarch: chain.sender_addr().to_string(),
                 },
-                namespace: None,
-                install_modules: vec![],
-                name: "Abstract".to_string(),
-                description: None,
-                link: None,
-                module_factory_address: deployment.module_factory.address()?.into_string(),
-                version_control_address: deployment.version_control.address()?.into_string(),
-            },
-            Some(&Addr::unchecked(abstr_acc_addr)),
-            &[],
-            salt,
-        )?;
+                &[],
+            )?;
+        }
         Ok(deployment)
     }
 

@@ -62,7 +62,7 @@ pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 2;
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
     mut deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     InstantiateMsg {
         account_id,
@@ -160,6 +160,26 @@ pub fn instantiate(
         ],
     );
 
+    response = response.add_message(wasm_execute(
+        version_control_address,
+        &abstract_std::version_control::ExecuteMsg::AddAccount {
+            namespace,
+            creator: info.sender.to_string(),
+        },
+        vec![],
+    )?);
+
+    // Register on account if it's sub-account
+    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
+        response = response.add_message(wasm_execute(
+            account,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                id: ACCOUNT_ID.load(deps.storage)?.seq(),
+            }),
+            vec![],
+        )?);
+    }
+
     if !install_modules.is_empty() {
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
@@ -173,27 +193,6 @@ pub fn instantiate(
             .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);
     }
-
-    // Register on manager if it's sub-account
-    // TODO: Update sub-account creation logic
-    // if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
-    //     response = response.add_message(wasm_execute(
-    //         account,
-    //         &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-    //             id: ACCOUNT_ID.load(deps.storage)?.seq(),
-    //         }),
-    //         vec![],
-    //     )?);
-    // }
-
-    let response = response.add_message(wasm_execute(
-        version_control_address,
-        &abstract_std::version_control::ExecuteMsg::AddAccount {
-            namespace,
-            creator: info.sender.to_string(),
-        },
-        vec![],
-    )?);
 
     Ok(response)
 }

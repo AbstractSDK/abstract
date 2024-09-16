@@ -1,8 +1,9 @@
 use abstract_std::{
+    account::state::ACCOUNT_ID,
     ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
     objects::{
-        account::ACCOUNT_ID, common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails,
-        ownership::Ownership, AccountId, AssetEntry, ChannelEntry, ContractEntry,
+        common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
+        AccountId, AssetEntry, ChannelEntry, ContractEntry,
     },
     version_control::{state::ACCOUNT_ADDRESSES, Account},
 };
@@ -13,8 +14,8 @@ use cw_storage_plus::Item;
 use crate::prelude::*;
 
 pub trait AbstractMockQuerier {
-    /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the account to version control.
-    fn account(self, account_base: &Account, account_id: AccountId) -> Self;
+    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to version control.
+    fn account(self, account: &Account, account_id: AccountId) -> Self;
 
     /// Add mock assets into ANS
     fn assets(self, assets: Vec<(&AssetEntry, AssetInfo)>) -> Self;
@@ -27,13 +28,13 @@ pub trait AbstractMockQuerier {
 }
 
 impl AbstractMockQuerier for MockQuerierBuilder {
-    /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the account to version control.
-    fn account(self, account_base: &Account, account_id: AccountId) -> Self {
+    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to version control.
+    fn account(self, account: &Account, account_id: AccountId) -> Self {
         let abstract_addrs = self.addrs();
-        self.with_contract_item(account_base.addr(), ACCOUNT_ID, &account_id)
+        self.with_contract_item(account.addr(), ACCOUNT_ID, &account_id)
             // Setup the account owner as the test owner
             .with_contract_item(
-                account_base.addr(),
+                account.addr(),
                 Item::new(OWNERSHIP_STORAGE_KEY),
                 &Some(Ownership {
                     owner: GovernanceDetails::Monarchy {
@@ -46,7 +47,7 @@ impl AbstractMockQuerier for MockQuerierBuilder {
             .with_contract_map_entry(
                 &abstract_addrs.version_control,
                 ACCOUNT_ADDRESSES,
-                (&account_id, account_base.clone()),
+                (&account_id, account.clone()),
             )
     }
 

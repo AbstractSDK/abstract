@@ -106,10 +106,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
         }
         QueryMsg::Config {} => {
             let config = CONFIG.load(deps.storage)?;
+            let local_account_sequence = LOCAL_ACCOUNT_SEQUENCE.load(deps.storage)?;
             to_json_binary(&ConfigResponse {
                 account_factory_address: config.account_factory_address,
                 security_disabled: config.security_disabled,
                 namespace_registration_fee: config.namespace_registration_fee,
+                local_account_sequence,
             })
         }
         QueryMsg::ModuleList {
