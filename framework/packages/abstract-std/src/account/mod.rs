@@ -67,6 +67,7 @@ pub mod state {
         pub const DEPENDENTS: &str = "e";
         pub const SUB_ACCOUNTS: &str = "f";
         pub const WHITELISTED_MODULES: &str = "g";
+        pub const ADMIN_CALL_TO_CONTEXT: &str = "h";
     }
 
     pub const WHITELISTED_MODULES: Item<WhitelistedModules> =
@@ -87,6 +88,8 @@ pub mod state {
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new(namespace::DEPENDENTS);
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new(namespace::SUB_ACCOUNTS);
+    /// Temporary state variable that allows for checking access control on admin operation
+    pub const ADMIN_CALL_TO_CONTEXT: Item<Addr> = Item::new(namespace::ADMIN_CALL_TO_CONTEXT);
     // Additional states, not listed here: cw_gov_ownable::GovOwnership
 
     #[cosmwasm_schema::cw_serde]
@@ -123,17 +126,24 @@ pub struct CallbackMsg {}
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Executes the provided messages if sender is whitelisted
-    LocalActions {
+    AccountActions {
         msgs: Vec<CosmosMsg<Empty>>,
-        is_admin_action: bool,
     },
     /// Execute a message and forward the Response data
-    LocalActionWithData {
+    AccountActionWithData {
         msg: CosmosMsg<Empty>,
-        is_admin_action: bool,
     },
+    /// Forward execution message to module
+    #[cw_orch(payable)]
+    ExecOnModule {
+        module_id: String,
+        exec_msg: Binary,
+    },
+
     /// Execute IBC action on Client
-    IbcAction { msg: crate::ibc_client::ExecuteMsg },
+    IbcAction {
+        msg: crate::ibc_client::ExecuteMsg,
+    },
     /// Queries the Abstract Ica Client with the provided action query.
     /// Provides access to different ICA implementations for different ecosystems.
     IcaAction {
@@ -141,13 +151,6 @@ pub enum ExecuteMsg {
         action_query_msg: Binary,
     },
 
-    /// Forward execution message to module
-    #[cw_orch(payable)]
-    ExecOnModule {
-        module_id: String,
-        exec_msg: Binary,
-        is_admin_action: bool,
-    },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
@@ -158,7 +161,9 @@ pub enum ExecuteMsg {
         modules: Vec<ModuleInstallConfig>,
     },
     /// Uninstall a module given its ID.
-    UninstallModule { module_id: String },
+    UninstallModule {
+        module_id: String,
+    },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
@@ -185,7 +190,9 @@ pub enum ExecuteMsg {
         link: Option<String>,
     },
     /// Update account statuses
-    UpdateStatus { is_suspended: Option<bool> },
+    UpdateStatus {
+        is_suspended: Option<bool>,
+    },
     /// Actions called by internal or external sub-accounts
     UpdateSubAccount(UpdateSubAccountAction),
     /// Update the contract's ownership. The `action`
@@ -193,6 +200,15 @@ pub enum ExecuteMsg {
     /// accept a pending ownership transfer, or renounce the ownership
     /// of the account permanently.
     UpdateOwnership(GovAction),
+
+    ConfigureModule {
+        module_id: String,
+        msg: Binary,
+    },
+    Configure {
+        module_addr: String,
+        msg: Binary,
+    },
 
     /// Callback endpoint
     Callback(CallbackMsg),

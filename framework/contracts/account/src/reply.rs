@@ -1,48 +1,41 @@
 use crate::{
-    contract::{
-        AccountResponse, AccountResult, LocalActionAccess, LocalActionPayload,
-        CURRENT_ADMIN_CONTEXT,
-    },
+    contract::{AccountResponse, AccountResult},
     modules::INSTALL_MODULES_CONTEXT,
 };
-use abstract_std::objects::{
-    module::{assert_module_data_validity, Module},
-    module_reference::ModuleReference,
+use abstract_std::{
+    account::state::ADMIN_CALL_TO_CONTEXT,
+    objects::{
+        module::{assert_module_data_validity, Module},
+        module_reference::ModuleReference,
+    },
 };
-use cosmwasm_std::{from_json, DepsMut, Reply, Response, StdError};
+use cosmwasm_std::{DepsMut, Reply, Response, StdError};
 
 /// Add the message's data to the response
-pub fn local_action_callback(deps: DepsMut, result: Reply) -> AccountResult {
-    let payload: LocalActionPayload = from_json(&result.payload)?;
-    if payload.ty == LocalActionAccess::Admin {
-        // If we have an admin result, we erase the local context.
-        // This needs to be done before any action to make sure that the context state is not propagated.
-        CURRENT_ADMIN_CONTEXT.remove(deps.storage);
-    }
-
-    // Get the result from the reply
+pub fn forward_response_reply(result: Reply) -> AccountResult {
     let res = result.result.into_result().map_err(StdError::generic_err)?;
 
-    let resp = if payload.forward_data {
-        // log and add data if needed
-        #[allow(deprecated)]
-        if let Some(data) = res.data {
-            AccountResponse::new(
-                "forward_response_data_reply",
-                vec![("response_data", "true")],
-            )
-            .set_data(data)
-        } else {
-            AccountResponse::new(
-                "forward_response_data_reply",
-                vec![("response_data", "false")],
-            )
-        }
+    #[allow(deprecated)]
+    let resp = if let Some(data) = res.data {
+        AccountResponse::new(
+            "forward_response_data_reply",
+            vec![("response_data", "true")],
+        )
+        .set_data(data)
     } else {
-        Response::new()
+        AccountResponse::new(
+            "forward_response_data_reply",
+            vec![("response_data", "false")],
+        )
     };
-
     Ok(resp)
+}
+
+/// Remove the storage for an admin call after execution
+pub fn module_config_action_reply(deps: DepsMut) -> AccountResult {
+    ADMIN_CALL_TO_CONTEXT.remove(deps.storage);
+
+    Ok(Response::new())
 }
 
 /// Adds the modules dependencies

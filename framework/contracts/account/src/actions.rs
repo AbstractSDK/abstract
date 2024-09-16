@@ -5,86 +5,73 @@ use abstract_sdk::std::{
 };
 use abstract_std::{objects::ownership, ICA_CLIENT};
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, MessageInfo,
-    StdError, SubMsg, WasmQuery,
+    wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, MessageInfo, StdError, SubMsg,
+    WasmMsg, WasmQuery,
 };
 
 use crate::{
-    contract::{
-        AccountResponse, AccountResult, LocalActionAccess, LocalActionPayload,
-        CURRENT_ADMIN_CONTEXT, LOCAL_ACTION_REPLY_ID,
-    },
+    contract::{AccountResponse, AccountResult, FORWARD_RESPONSE_REPLY_ID},
     error::AccountError,
+    modules::load_module_addr,
 };
 
 fn local_action_access_control(deps: Deps, sender: &Addr) -> AccountResult<()> {
     // If owner or higher level owner, it's ok
-    if ownership::assert_nested_owner(deps.storage, &deps.querier, &sender).is_ok() {
+    if ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok() {
         return Ok(());
     }
 
     // If whitelisted address, ok
     let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if whitelisted_modules.0.contains(&sender) {
+    if whitelisted_modules.0.contains(sender) {
         return Ok(());
     }
 
     Err(AccountError::SenderNotAuthorized {})
 }
+/// Execute the [`exec_msg`] on the provided [`module_id`],
+/// This is a simple wrapper around `LocalAction`
+pub fn exec_on_module(
+    deps: DepsMut,
+    info: MessageInfo,
+    module_id: String,
+    exec_msg: Binary,
+) -> AccountResult {
+    let module_addr = load_module_addr(deps.storage, &module_id)?;
+
+    execute_account_action(
+        deps,
+        &info.sender,
+        vec![CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: module_addr.into(),
+            msg: exec_msg,
+            funds: info.funds,
+        })],
+    )
+}
 
 /// Executes `Vec<CosmosMsg>` on the proxy.
 /// Permission: Module
-pub fn execute_module_action(
+pub fn execute_account_action(
     deps: DepsMut,
     msg_sender: &Addr,
-    mut msgs: Vec<CosmosMsg<Empty>>,
-    is_admin_action: bool,
+    msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
     local_action_access_control(deps.as_ref(), msg_sender)?;
 
-    let last_msg = msgs.pop().ok_or(AccountError::NoUpdates {})?;
-
-    let last_submsg = if is_admin_action {
-        CURRENT_ADMIN_CONTEXT.save(deps.storage, msg_sender)?;
-        SubMsg::reply_on_success(last_msg, LOCAL_ACTION_REPLY_ID).with_payload(to_json_binary(
-            &LocalActionPayload {
-                ty: LocalActionAccess::Admin,
-                forward_data: false,
-            },
-        )?)
-    } else {
-        SubMsg::new(last_msg)
-    };
-
-    Ok(AccountResponse::action("execute_module_action")
-        .add_messages(msgs)
-        .add_submessage(last_submsg))
+    Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
 
 /// Executes `CosmosMsg` on the proxy and forwards its response.
 /// Permission: Module
-pub fn execute_module_action_response(
+pub fn execute_account_action_response(
     deps: DepsMut,
     msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
-    is_admin_action: bool,
 ) -> AccountResult {
     local_action_access_control(deps.as_ref(), msg_sender)?;
 
-    let mut submsg = SubMsg::reply_on_success(msg, LOCAL_ACTION_REPLY_ID);
-
-    if is_admin_action {
-        submsg = submsg.with_payload(to_json_binary(&LocalActionPayload {
-            ty: LocalActionAccess::Admin,
-            forward_data: true,
-        })?);
-        CURRENT_ADMIN_CONTEXT.save(deps.storage, msg_sender)?;
-    } else {
-        submsg = submsg.with_payload(to_json_binary(&LocalActionPayload {
-            ty: LocalActionAccess::Normal,
-            forward_data: true,
-        })?)
-    }
+    let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
     Ok(AccountResponse::action("execute_module_action_response").add_submessage(submsg))
 }

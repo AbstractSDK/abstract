@@ -170,10 +170,7 @@ pub fn send_all_back(
     // call the message to send everything back through the manager
     let manager_msg = wasm_execute(
         account.into_addr(),
-        &account::ExecuteMsg::LocalActions {
-            msgs,
-            is_admin_action: false,
-        },
+        &account::ExecuteMsg::AccountActions { msgs },
         vec![],
     )?;
     Ok(manager_msg.into())

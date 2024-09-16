@@ -1,12 +1,13 @@
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ModuleIbcEndpoint},
     features::ModuleIdentification,
-    AbstractResponse, AccountVerification,
+    AbstractResponse, AbstractSdkError, AccountVerification,
 };
 use abstract_std::{
-    account::state::ACCOUNT_MODULES,
+    account::state::{ACCOUNT_MODULES, ADMIN_CALL_TO_CONTEXT},
     adapter::{AdapterBaseMsg, AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     objects::ownership::nested_admin::query_top_level_owner_addr,
+    AbstractError,
 };
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response, StdResult};
 use schemars::JsonSchema;
@@ -59,7 +60,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     fn base_execute(
         &mut self,
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> AdapterResult {
@@ -90,12 +91,27 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                 }
             }
             // If not provided the sender must be the direct owner
-            None => account_registry.assert_account(&info.sender).map_err(|_| {
-                AdapterError::UnauthorizedAdapterRequest {
-                    adapter: self.module_id().to_string(),
-                    sender: info.sender.to_string(),
+            // In that case, because this is a admin call, we need to check that the ADMIN_CALL_TO on the account is indeed this contract
+            None => {
+                let account = account_registry.assert_account(&info.sender).map_err(|_| {
+                    AdapterError::UnauthorizedAdapterRequest {
+                        adapter: self.module_id().to_string(),
+                        sender: info.sender.to_string(),
+                    }
+                })?;
+
+                let admin_call_to = ADMIN_CALL_TO_CONTEXT
+                    .query(&deps.querier, account.addr().clone())
+                    .map_err(|_| -> AbstractSdkError { AbstractError::OnlyAdmin {}.into() })?;
+                if admin_call_to != env.contract.address {
+                    Err(AbstractError::NotAdminFor {
+                        admin_for: admin_call_to,
+                        current_contract: env.contract.address,
+                    })
+                    .map_err(|e| -> AbstractSdkError { e.into() })?;
                 }
-            })?,
+                account
+            }
         };
         self.target_account = Some(account_base);
         match msg {

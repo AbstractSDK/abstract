@@ -1,6 +1,9 @@
 use abstract_std::{
     account::{
-        state::{ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, DEPENDENTS, WHITELISTED_MODULES},
+        state::{
+            ACCOUNT_ID, ACCOUNT_MODULES, ADMIN_CALL_TO_CONTEXT, CONFIG, DEPENDENTS,
+            WHITELISTED_MODULES,
+        },
         ModuleInstallConfig,
     },
     adapter::{AdapterBaseMsg, BaseExecuteMsg, ExecuteMsg as AdapterExecMsg},
@@ -23,8 +26,10 @@ use cw_storage_plus::Item;
 use semver::Version;
 
 use crate::{
-    actions::execute_module_action,
-    contract::{AccountResponse, AccountResult, REGISTER_MODULES_DEPENDENCIES_REPLY_ID},
+    contract::{
+        AccountResponse, AccountResult, MODULE_CONFIG_ACTION_REPLY_ID,
+        REGISTER_MODULES_DEPENDENCIES_REPLY_ID,
+    },
     error::AccountError,
 };
 
@@ -235,27 +240,36 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
     Ok(response)
 }
 
-/// Execute the [`exec_msg`] on the provided [`module_id`],
-/// This is a simple wrapper around `LocalAction`
-pub fn exec_on_module(
+pub fn configure_module(
+    deps: DepsMut,
+    info: MessageInfo,
+    module_addr: Addr,
+    exec_msg: Binary,
+) -> AccountResult {
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+
+    ADMIN_CALL_TO_CONTEXT.save(deps.storage, &module_addr)?;
+
+    let msg = SubMsg::reply_on_success(
+        WasmMsg::Execute {
+            contract_addr: module_addr.to_string(),
+            msg: exec_msg,
+            funds: info.funds,
+        },
+        MODULE_CONFIG_ACTION_REPLY_ID,
+    );
+
+    Ok(AccountResponse::action("configure_module_action").add_submessage(msg))
+}
+
+pub fn configure_module_from_id(
     deps: DepsMut,
     info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
-    is_admin_action: bool,
 ) -> AccountResult {
     let module_addr = load_module_addr(deps.storage, &module_id)?;
-
-    execute_module_action(
-        deps,
-        &info.sender,
-        vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: module_addr.into(),
-            msg: exec_msg,
-            funds: info.funds,
-        })],
-        is_admin_action,
-    )
+    configure_module(deps, info, module_addr, exec_msg)
 }
 
 /// Checked load of a module address

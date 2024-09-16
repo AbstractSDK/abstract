@@ -259,7 +259,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         msg: impl Serialize,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        self.exec_on_module(to_json_binary(&msg).unwrap(), false, module, &[])
+        self.exec_on_module(to_json_binary(&msg).unwrap(), module, &[])
             .map_err(Into::into)
     }
 
@@ -399,7 +399,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     account_msgs: vec![ExecuteMsg::ExecOnModule {
                         module_id: module_id.to_string(),
                         exec_msg: msg,
-                        is_admin_action: false,
                     }],
                 },
             },

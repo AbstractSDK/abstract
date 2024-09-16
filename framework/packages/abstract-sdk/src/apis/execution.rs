@@ -81,10 +81,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
         let msg = self.base.execute_on_account(
             self.deps,
-            &ExecuteMsg::LocalActionWithData {
-                msg,
-                is_admin_action: false,
-            },
+            &ExecuteMsg::AccountActionWithData { msg },
             vec![],
         )?;
         Ok(ExecutorMsg(msg))
@@ -111,14 +108,9 @@ impl<'a, T: Execution> Executor<'a, T> {
             .into_iter()
             .flat_map(|a| a.into().messages())
             .collect();
-        let msg = self.base.execute_on_account(
-            self.deps,
-            &ExecuteMsg::LocalActions {
-                msgs,
-                is_admin_action: false,
-            },
-            funds,
-        )?;
+        let msg =
+            self.base
+                .execute_on_account(self.deps, &ExecuteMsg::AccountActions { msgs }, funds)?;
         Ok(ExecutorMsg(msg))
     }
 

@@ -315,7 +315,6 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
                 account_msgs: vec![abstract_std::account::ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
-                    is_admin_action: false,
                 }],
             },
         )

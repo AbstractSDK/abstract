@@ -30,14 +30,15 @@ use cw_storage_plus::Item;
 pub use crate::migrate::migrate;
 use crate::{
     actions::{
-        execute_ibc_action, execute_module_action, execute_module_action_response, ica_action,
+        exec_on_module, execute_account_action, execute_account_action_response,
+        execute_ibc_action, ica_action,
     },
     config::{
         remove_account_from_contracts, update_account_status, update_info, update_internal_config,
     },
     error::AccountError,
     modules::{
-        _install_modules, exec_on_module, install_modules,
+        _install_modules, configure_module, configure_module_from_id, install_modules,
         migration::{handle_callback, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
@@ -46,7 +47,7 @@ use crate::{
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
         handle_top_level_owner_query,
     },
-    reply::{local_action_callback, register_dependencies},
+    reply::{forward_response_reply, module_config_action_reply, register_dependencies},
     sub_account::{
         create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
     },
@@ -59,22 +60,9 @@ pub type AccountResult<R = Response> = Result<R, AccountError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub const LOCAL_ACTION_REPLY_ID: u64 = 1;
-#[cw_serde]
-pub enum LocalActionAccess {
-    Normal,
-    Admin,
-}
-
-#[cw_serde]
-pub struct LocalActionPayload {
-    pub ty: LocalActionAccess,
-    pub forward_data: bool,
-}
-
-pub const CURRENT_ADMIN_CONTEXT: Item<Addr> = Item::new("current_admin_context");
-
-pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 2;
+pub const FORWARD_RESPONSE_REPLY_ID: u64 = 1;
+pub const MODULE_CONFIG_ACTION_REPLY_ID: u64 = 2;
+pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 3;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -238,12 +226,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id).map_err(AccountError::from)
                 }
-                ExecuteMsg::ExecOnModule {
-                    module_id,
-                    exec_msg,
-                    is_admin_action,
-                } => exec_on_module(deps, info, module_id, exec_msg, is_admin_action)
-                    .map_err(AccountError::from),
                 ExecuteMsg::CreateSubAccount {
                     name,
                     description,
@@ -301,16 +283,18 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             .add_messages(msgs),
                     )
                 }
-                ExecuteMsg::LocalActions {
-                    msgs,
-                    is_admin_action,
-                } => execute_module_action(deps, &info.sender, msgs, is_admin_action)
-                    .map_err(AccountError::from),
-                ExecuteMsg::LocalActionWithData {
-                    msg,
-                    is_admin_action,
-                } => execute_module_action_response(deps, &info.sender, msg, is_admin_action)
-                    .map_err(AccountError::from),
+                ExecuteMsg::AccountActions { msgs } => {
+                    execute_account_action(deps, &info.sender, msgs).map_err(AccountError::from)
+                }
+                ExecuteMsg::AccountActionWithData { msg } => {
+                    execute_account_action_response(deps, &info.sender, msg)
+                        .map_err(AccountError::from)
+                }
+
+                ExecuteMsg::ExecOnModule {
+                    module_id,
+                    exec_msg,
+                } => exec_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
                 ExecuteMsg::IbcAction { msg } => {
                     execute_ibc_action(deps, info, msg).map_err(AccountError::from)
                 }
@@ -321,6 +305,13 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     unreachable!("Update status case is reached above")
                 }
                 ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
+                ExecuteMsg::ConfigureModule { module_id, msg } => {
+                    configure_module_from_id(deps, info, module_id, msg)
+                }
+                ExecuteMsg::Configure { module_addr, msg } => {
+                    let module_addr = deps.api.addr_validate(&module_addr)?;
+                    configure_module(deps, info, module_addr, msg)
+                }
             }
         }
     }
@@ -328,16 +319,11 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
-    match msg {
-        Reply {
-            id: LOCAL_ACTION_REPLY_ID,
-            ..
-        } => local_action_callback(deps, msg),
-        Reply {
-            id: REGISTER_MODULES_DEPENDENCIES_REPLY_ID,
-            result: SubMsgResult::Ok(_),
-            ..
-        } => register_dependencies(deps),
+    match msg.id {
+        FORWARD_RESPONSE_REPLY_ID => forward_response_reply(msg),
+        MODULE_CONFIG_ACTION_REPLY_ID => module_config_action_reply(deps),
+        REGISTER_MODULES_DEPENDENCIES_REPLY_ID => register_dependencies(deps),
+
         _ => Err(AccountError::UnexpectedReply {}),
     }
 }

@@ -1,4 +1,4 @@
-use cosmwasm_std::{OverflowError, StdError};
+use cosmwasm_std::{Addr, OverflowError, StdError};
 use cw_asset::AssetError;
 use semver::Version;
 use thiserror::Error;
@@ -78,6 +78,19 @@ pub enum AbstractError {
         from: Version,
         to: Version,
     },
+
+    // The caller can only execute admin operations on one module
+    #[error(
+        "The action triggered can only execute admin operations on {admin_for} and not {current_contract}"
+    )]
+    NotAdminFor {
+        admin_for: Addr,
+        current_contract: Addr,
+    },
+
+    // This call needs to be an admin call
+    #[error("This action can only be triggered via an Account Admin call")]
+    OnlyAdmin {},
 }
 
 impl From<semver::Error> for AbstractError {
