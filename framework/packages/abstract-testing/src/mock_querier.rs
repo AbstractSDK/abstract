@@ -129,7 +129,7 @@ impl MockQuerierBuilder {
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
     ///
     /// let api = MockApi::default();
-    /// let contract_address = deps.api.addr_make("contract_address");
+    /// let contract_address = api.addr_make("contract_address");
     /// let querier = MockQuerierBuilder::default().with_smart_handler(&contract_address, |msg| {
     ///    // handle the message
     ///     let res = match from_json::<MockModuleQueryMsg>(msg).unwrap() {
@@ -302,7 +302,7 @@ impl MockQuerierBuilder {
     /// let contract_address = api.addr_make("contract1");
     ///
     /// MockQuerierBuilder::default()
-    ///    .with_contract_version(&contract_address, "v1.0.0");
+    ///    .with_contract_version(&contract_address, "contract1", "v1.0.0");
     /// ```
     pub fn with_contract_version(
         self,
