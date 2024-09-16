@@ -15,7 +15,8 @@ use crate::{
     modules::load_module_addr,
 };
 
-fn local_action_access_control(deps: Deps, sender: &Addr) -> AccountResult<()> {
+/// Internal function used to ensure the call originate either from the owner or from a whitelisted module
+fn account_action_access_control(deps: Deps, sender: &Addr) -> AccountResult<()> {
     // If owner or higher level owner, it's ok
     if ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok() {
         return Ok(());
@@ -57,7 +58,7 @@ pub fn execute_account_action(
     msg_sender: &Addr,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    local_action_access_control(deps.as_ref(), msg_sender)?;
+    account_action_access_control(deps.as_ref(), msg_sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
@@ -69,7 +70,7 @@ pub fn execute_account_action_response(
     msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    local_action_access_control(deps.as_ref(), msg_sender)?;
+    account_action_access_control(deps.as_ref(), msg_sender)?;
 
     let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
