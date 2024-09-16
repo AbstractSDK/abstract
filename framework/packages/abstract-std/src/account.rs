@@ -37,8 +37,7 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
-    pub use crate::objects::account::ACCOUNT_ID;
-    use crate::objects::{common_namespace::ADMIN_NAMESPACE, module::ModuleId};
+    use crate::objects::{common_namespace::ADMIN_NAMESPACE, module::ModuleId, AccountId};
 
     pub type SuspensionStatus = bool;
 
@@ -67,7 +66,8 @@ pub mod state {
         pub const DEPENDENTS: &str = "e";
         pub const SUB_ACCOUNTS: &str = "f";
         pub const WHITELISTED_MODULES: &str = "g";
-        pub const ADMIN_CALL_TO_CONTEXT: &str = "h";
+        pub const ACCOUNT_ID: &str = "h";
+        pub const ADMIN_CALL_TO_CONTEXT: &str = "i";
     }
 
     pub const WHITELISTED_MODULES: Item<WhitelistedModules> =
@@ -88,6 +88,8 @@ pub mod state {
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new(namespace::DEPENDENTS);
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new(namespace::SUB_ACCOUNTS);
+    /// Account Id storage key
+    pub const ACCOUNT_ID: Item<AccountId> = Item::new(namespace::ACCOUNT_ID);
     /// Temporary state variable that allows for checking access control on admin operation
     pub const ADMIN_CALL_TO_CONTEXT: Item<Addr> = Item::new(namespace::ADMIN_CALL_TO_CONTEXT);
     // Additional states, not listed here: cw_gov_ownable::GovOwnership

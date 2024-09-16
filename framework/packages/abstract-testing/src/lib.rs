@@ -9,7 +9,6 @@ use abstract_std::{
     account::state::ACCOUNT_ID,
     account::state::ACCOUNT_MODULES,
     objects::{
-        account::TEST_ACCOUNT_ID,
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         ownership,
@@ -28,7 +27,7 @@ pub use mock_querier::{
     map_key, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
 };
 use module::{TEST_MODULE_ID, TEST_MODULE_RESPONSE};
-use prelude::{AbstractMockAddrs, AbstractMockQuerierBuilder};
+use prelude::{AbstractMockAddrs, AbstractMockQuerierBuilder, TEST_ACCOUNT_ID};
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
 pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
@@ -208,7 +207,7 @@ pub mod module {
 pub mod prelude {
     pub use super::{mock_dependencies, mock_querier};
     pub use abstract_mock_querier::AbstractMockQuerierBuilder;
-    pub use abstract_std::objects::account::TEST_ACCOUNT_ID;
+    use abstract_std::objects::{AccountId, AccountTrace};
     pub use addresses::*;
     pub use ans::*;
     pub use cosmwasm_std::{
@@ -221,4 +220,5 @@ pub mod prelude {
 
     use super::*;
     pub use super::{MockAnsHost, MockDeps, TEST_VERSION};
+    pub const TEST_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
 }
