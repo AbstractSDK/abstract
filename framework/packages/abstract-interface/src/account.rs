@@ -413,16 +413,17 @@ impl<Chain: CwEnv> AccountI<Chain> {
             account_id: _,
         } = account_details;
 
-        self.execute_on_module(
-            abstract_std::ACCOUNT,
-            abstract_std::account::ExecuteMsg::IbcAction {
+        self.execute(
+            &abstract_std::account::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     namespace,
                     install_modules,
                 },
             },
+            &[],
         )
+        .map_err(Into::into)
     }
 
     pub fn set_ibc_status(
@@ -453,7 +454,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
         };
 
-        self.execute_on_module(ACCOUNT, msg)
+        self.execute(&msg, &[]).map_err(Into::into)
     }
 
     pub fn execute_on_remote_module(
@@ -475,7 +476,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
         };
 
-        self.execute_on_module(ACCOUNT, msg)
+        self.execute(&msg, &[]).map_err(Into::into)
     }
 
     pub fn send_all_funds_back(
@@ -490,7 +491,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
         };
 
-        self.execute_on_module(ACCOUNT, msg)
+        self.execute(&msg, &[]).map_err(Into::into)
     }
 }
 
@@ -598,7 +599,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
                 }
                 sub_account_ids.extend(sub_account_ids_page);
             }
-            dbg!(&sub_account_ids);
             for sub_account_id in sub_account_ids {
                 let abstract_account =
                     AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id));

@@ -71,7 +71,6 @@ pub mod state {
 
     pub const WHITELISTED_MODULES: Item<WhitelistedModules> =
         Item::new(namespace::WHITELISTED_MODULES);
-    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 
     /// Suspension status
     // TODO: Pull it inside Config as `suspended: Option<String>`, with reason of suspension inside a string?

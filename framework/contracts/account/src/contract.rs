@@ -171,7 +171,6 @@ pub fn instantiate(
     )?);
 
     // Register on account if it's sub-account
-    // TODO: Update sub-account creation logic
     if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
         response = response.add_message(wasm_execute(
             account,

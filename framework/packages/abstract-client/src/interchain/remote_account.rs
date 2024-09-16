@@ -532,7 +532,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msg = account::ExecuteMsg::IbcAction { msg: exec_msg };
 
-        let tx_response = self.abstr_owner_account.execute_on_module(ACCOUNT, msg)?;
+        let tx_response = self.abstr_owner_account.execute(&msg, &[])?;
         let packets = self
             .ibc_env
             .await_packets(&self.origin_chain().chain_id(), tx_response)

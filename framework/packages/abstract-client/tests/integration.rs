@@ -719,7 +719,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 
 /// ANCHOR: mock_integration_test
 #[test]
-fn can_execute_on_proxy() -> anyhow::Result<()> {
+fn can_execute_on_account() -> anyhow::Result<()> {
     let denom = "denom";
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build()?;
