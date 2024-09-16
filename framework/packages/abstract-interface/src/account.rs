@@ -110,7 +110,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         let account_id = chain
             .wasm_querier()
             .item_query(&account_addr, state::ACCOUNT_ID)?;
-        let contract_id = format!("{ACCOUNT}_{account_id}");
+        let contract_id = format!("{ACCOUNT}-{account_id}");
 
         let account = Self::new(contract_id, chain);
         account.set_address(&account_addr);
