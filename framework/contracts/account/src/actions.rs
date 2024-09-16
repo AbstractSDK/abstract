@@ -3,14 +3,16 @@ use abstract_sdk::std::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     IBC_CLIENT,
 };
-use abstract_std::{objects::ownership, ICA_CLIENT};
+use abstract_std::{account::state::ADMIN_CALL_TO_CONTEXT, objects::ownership, ICA_CLIENT};
 use cosmwasm_std::{
     wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, MessageInfo, StdError, SubMsg,
     WasmMsg, WasmQuery,
 };
 
 use crate::{
-    contract::{AccountResponse, AccountResult, FORWARD_RESPONSE_REPLY_ID},
+    contract::{
+        AccountResponse, AccountResult, FORWARD_RESPONSE_REPLY_ID, MODULE_CONFIG_ACTION_REPLY_ID,
+    },
     error::AccountError,
     modules::load_module_addr,
 };
@@ -75,6 +77,38 @@ pub fn execute_account_action_response(
     let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
     Ok(AccountResponse::action("execute_module_action_response").add_submessage(submsg))
+}
+
+pub fn admin_account_action(
+    deps: DepsMut,
+    info: MessageInfo,
+    addr: Addr,
+    exec_msg: Binary,
+) -> AccountResult {
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+
+    ADMIN_CALL_TO_CONTEXT.save(deps.storage, &addr)?;
+
+    let msg = SubMsg::reply_on_success(
+        WasmMsg::Execute {
+            contract_addr: addr.to_string(),
+            msg: exec_msg,
+            funds: info.funds,
+        },
+        MODULE_CONFIG_ACTION_REPLY_ID,
+    );
+
+    Ok(AccountResponse::action("admin_account_action").add_submessage(msg))
+}
+
+pub fn exec_admin_on_module(
+    deps: DepsMut,
+    info: MessageInfo,
+    module_id: String,
+    exec_msg: Binary,
+) -> AccountResult {
+    let module_addr = load_module_addr(deps.storage, &module_id)?;
+    admin_account_action(deps, info, module_addr, exec_msg)
 }
 
 /// Executes IBC actions on the IBC client.

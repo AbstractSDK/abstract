@@ -10,7 +10,7 @@ use abstract_std::{
             AccountInfo, Config, WhitelistedModules, CONFIG, INFO, SUSPENSION_STATUS,
             WHITELISTED_MODULES,
         },
-        ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
+        ExecuteMsg, InstantiateMsg, QueryMsg,
     },
     objects::{
         gov_type::GovernanceDetails,
@@ -18,27 +18,24 @@ use abstract_std::{
         AccountId,
     },
     version_control::state::LOCAL_ACCOUNT_SEQUENCE,
-    version_control::Account,
 };
-use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult, SubMsgResult,
+    StdResult,
 };
-use cw_storage_plus::Item;
 
 pub use crate::migrate::migrate;
 use crate::{
     actions::{
-        exec_on_module, execute_account_action, execute_account_action_response,
-        execute_ibc_action, ica_action,
+        admin_account_action, exec_admin_on_module, exec_on_module, execute_account_action,
+        execute_account_action_response, execute_ibc_action, ica_action,
     },
     config::{
         remove_account_from_contracts, update_account_status, update_info, update_internal_config,
     },
     error::AccountError,
     modules::{
-        _install_modules, configure_module, configure_module_from_id, install_modules,
+        _install_modules, install_modules,
         migration::{handle_callback, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
@@ -305,12 +302,12 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     unreachable!("Update status case is reached above")
                 }
                 ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
-                ExecuteMsg::ConfigureModule { module_id, msg } => {
-                    configure_module_from_id(deps, info, module_id, msg)
+                ExecuteMsg::ExecAdminOnModule { module_id, msg } => {
+                    exec_admin_on_module(deps, info, module_id, msg)
                 }
-                ExecuteMsg::Configure { module_addr, msg } => {
-                    let module_addr = deps.api.addr_validate(&module_addr)?;
-                    configure_module(deps, info, module_addr, msg)
+                ExecuteMsg::AdminAccountAction { addr, msg } => {
+                    let addr = deps.api.addr_validate(&addr)?;
+                    admin_account_action(deps, info, addr, msg)
                 }
             }
         }

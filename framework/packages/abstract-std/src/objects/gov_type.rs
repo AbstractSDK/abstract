@@ -1,6 +1,6 @@
 //! # Governance structure object
 
-use crate::{account::state::ACCOUNT_ID, objects::account, version_control};
+use crate::{account::state::ACCOUNT_ID, version_control};
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw_address_like::AddressLike;
 use cw_utils::Expiration;
