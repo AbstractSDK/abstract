@@ -60,7 +60,7 @@ pub mod ibc_host {
     pub const CHAIN_PROXIES: &str = "fa";
     pub const REVERSE_CHAIN_PROXIES: &str = "fb";
     pub const CONFIG: &str = "fc";
-    pub const TEMP_ACTION_AFTER_CREATION: &str = "afd";
+    pub const TEMP_ACTION_AFTER_CREATION: &str = "fd";
 }
 
 pub mod ica_client {
