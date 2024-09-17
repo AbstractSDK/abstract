@@ -191,7 +191,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 }
             }
             AccountSource::AccountId(account_id) => {
-                let abstract_account = AccountI::load_from(&self.abstr, account_id.clone());
+                let abstract_account = AccountI::load_from(&self.abstr, account_id.clone())?;
                 Ok(Account::new(abstract_account, true))
             }
             AccountSource::App(app) => {
@@ -212,7 +212,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                     )
                     .map_err(Into::into)?;
                 // This function verifies the account-id is valid and returns an error if not.
-                let abstract_account = AccountI::load_from(&self.abstr, manager_config.account_id);
+                let abstract_account = AccountI::load_from(&self.abstr, manager_config.account_id)?;
                 Ok(Account::new(abstract_account, true))
             }
         }

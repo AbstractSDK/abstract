@@ -19,7 +19,8 @@ use abstract_std::{
     },
 };
 use cosmwasm_std::{
-    ensure, from_json, wasm_execute, Binary, CosmosMsg, DepsMut, MessageInfo, Response, StdError,
+    ensure, from_json, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, MessageInfo, Response,
+    StdError,
 };
 
 pub fn update_account_status(
@@ -67,6 +68,20 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
             })
         }
     };
+
+    let api = deps.api;
+
+    // validate addresses
+    let add = add
+        .map(|vec| {
+            vec.into_iter()
+                .map(|(a, b)| {
+                    let addr = api.addr_validate(&b)?;
+                    Ok::<(String, Addr), StdError>((a, addr))
+                })
+                .collect()
+        })
+        .transpose()?;
 
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
     update_module_addresses(deps, add, remove)

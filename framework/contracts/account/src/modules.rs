@@ -83,8 +83,8 @@ pub fn _install_modules(
         .map_err(|error| AccountError::QueryModulesFailed { error })?;
 
     let mut install_context = Vec::with_capacity(modules.len());
-    let mut add_to_whitelist = Vec::with_capacity(modules.len());
-    let mut add_to_manager = Vec::with_capacity(modules.len());
+    let mut add_to_whitelist: Vec<Addr> = Vec::with_capacity(modules.len());
+    let mut add_to_manager: Vec<(String, Addr)> = Vec::with_capacity(modules.len());
 
     let salt: Binary = generate_instantiate_salt(&account_id);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
@@ -97,19 +97,19 @@ pub fn _install_modules(
         }
         installed_modules.push(module.info.id_with_version());
 
-        let init_msg_salt = match &module.reference {
-            ModuleReference::Adapter(module_address)
-            | ModuleReference::Native(module_address)
-            | ModuleReference::Service(module_address) => {
+        let init_msg_salt = match module.reference {
+            ModuleReference::Adapter(ref module_address)
+            | ModuleReference::Native(ref module_address)
+            | ModuleReference::Service(ref module_address) => {
                 if module.should_be_whitelisted() {
-                    add_to_whitelist.push(module_address.to_string());
+                    add_to_whitelist.push(module_address.clone());
                 }
-                add_to_manager.push((module.info.id(), module_address.to_string()));
+                add_to_manager.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), None));
                 None
             }
             ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
-                let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
+                let checksum = deps.querier.query_wasm_code_info(code_id)?.checksum;
                 let module_address = cosmwasm_std::instantiate2_address(
                     checksum.as_slice(),
                     &canonical_module_factory,
@@ -123,9 +123,9 @@ pub fn _install_modules(
                     AccountError::ProhibitedReinstall {}
                 );
                 if module.should_be_whitelisted() {
-                    add_to_whitelist.push(module_address.to_string());
+                    add_to_whitelist.push(module_address.clone());
                 }
-                add_to_manager.push((module.info.id(), module_address.to_string()));
+                add_to_manager.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), Some(module_address)));
 
                 Some(init_msg.unwrap())
@@ -167,7 +167,7 @@ pub fn _install_modules(
 /// Factory is admin on init
 pub fn update_module_addresses(
     deps: DepsMut,
-    to_add: Option<Vec<(String, String)>>,
+    to_add: Option<Vec<(String, Addr)>>,
     to_remove: Option<Vec<String>>,
 ) -> AccountResult {
     if let Some(modules_to_add) = to_add {
@@ -176,11 +176,7 @@ pub fn update_module_addresses(
                 return Err(AccountError::InvalidModuleName {});
             };
             // validate addr
-            ACCOUNT_MODULES.save(
-                deps.storage,
-                id.as_str(),
-                &deps.api.addr_validate(&new_address)?,
-            )?;
+            ACCOUNT_MODULES.save(deps.storage, id.as_str(), &new_address)?;
         }
     }
 
@@ -226,11 +222,14 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
 
     // Remove module from whitelist if it supposed to be removed
     if module.should_be_whitelisted() {
-        _remove_whitelist_module(deps.branch(), module_id.clone())?;
+        let module_addr = ACCOUNT_MODULES.load(deps.storage, &module_id)?;
+        _remove_whitelist_module(deps.branch(), module_addr)?;
     }
+
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
 
     let response = AccountResponse::new("uninstall_module", vec![("module", &module_id)]);
+
     Ok(response)
 }
 
@@ -322,7 +321,7 @@ fn configure_adapter(
 }
 
 /// Add a contract to the whitelist
-fn _whitelist_modules(deps: DepsMut, modules: Vec<String>) -> AccountResult<()> {
+fn _whitelist_modules(deps: DepsMut, module_addresses: Vec<Addr>) -> AccountResult<()> {
     let mut whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
 
     // This is a limit to prevent potentially running out of gas when doing lookups on the modules list
@@ -330,11 +329,9 @@ fn _whitelist_modules(deps: DepsMut, modules: Vec<String>) -> AccountResult<()> 
         return Err(AccountError::ModuleLimitReached {});
     }
 
-    for module in modules.iter() {
-        let module_addr = deps.api.addr_validate(module)?;
-
+    for module_addr in module_addresses.into_iter() {
         if whitelisted_modules.0.contains(&module_addr) {
-            return Err(AccountError::AlreadyWhitelisted(module.clone()));
+            return Err(AccountError::AlreadyWhitelisted(module_addr.into()));
         }
 
         // Add contract to whitelist.
@@ -347,12 +344,10 @@ fn _whitelist_modules(deps: DepsMut, modules: Vec<String>) -> AccountResult<()> 
 }
 
 /// Remove a contract from the whitelist
-fn _remove_whitelist_module(deps: DepsMut, module: String) -> AccountResult<()> {
+fn _remove_whitelist_module(deps: DepsMut, module_address: Addr) -> AccountResult<()> {
     WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
-        let module_address = deps.api.addr_validate(&module)?;
-
         if !whitelisted_modules.0.contains(&module_address) {
-            return Err(AccountError::NotWhitelisted(module.clone()));
+            return Err(AccountError::NotWhitelisted(module_address.to_string()));
         }
         // Remove contract from whitelist.
         whitelisted_modules.0.retain(|addr| *addr != module_address);

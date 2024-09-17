@@ -53,7 +53,10 @@ pub struct AccountDetails {
 pub struct AccountI<Chain>;
 
 impl<Chain: CwEnv> AccountI<Chain> {
-    pub fn load_from(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
+    pub fn load_from(
+        abstract_deployment: &Abstract<Chain>,
+        account_id: AccountId,
+    ) -> Result<Self, AbstractInterfaceError> {
         get_account_contract(&abstract_deployment.version_control, account_id)
     }
 
@@ -601,7 +604,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             }
             for sub_account_id in sub_account_ids {
                 let abstract_account =
-                    AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id));
+                    AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id))?;
                 if abstract_account.upgrade_account(abstract_deployment)? {
                     one_migration_was_successful = true;
                 }

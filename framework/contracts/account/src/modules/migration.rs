@@ -160,7 +160,7 @@ pub fn handle_adapter_migration(
     // Update the address of the adapter internally
     update_module_addresses(
         deps.branch(),
-        Some(vec![(module_id.clone(), new_adapter_addr.to_string())]),
+        Some(vec![(module_id.clone(), new_adapter_addr.clone())]),
         None,
     )?;
 
@@ -264,9 +264,9 @@ pub fn replace_adapter(
         },
     )?);
     // Remove adapter permissions from proxy
-    _remove_whitelist_module(deps.branch(), old_adapter_addr.into_string())?;
+    _remove_whitelist_module(deps.branch(), old_adapter_addr)?;
     // Add new adapter to proxy
-    _whitelist_modules(deps.branch(), vec![new_adapter_addr.into_string()])?;
+    _whitelist_modules(deps.branch(), vec![new_adapter_addr])?;
 
     Ok(msgs)
 }

@@ -88,7 +88,7 @@ fn create_one_account() -> AResult {
 }
 
 #[test]
-fn create_two_account_s() -> AResult {
+fn create_two_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
