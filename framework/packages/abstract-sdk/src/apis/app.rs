@@ -108,7 +108,7 @@ mod tests {
         fake_module: ModuleId,
     ) {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier(deps.api);
+        deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let app = MockModule::new(deps.api);
 
         let _mods = app.apps(deps.as_ref());
@@ -138,7 +138,7 @@ mod tests {
         #[test]
         fn expected_app_request() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier(deps.api);
+            deps.querier = abstract_testing::abstract_mock_querier(deps.api);
             let app = MockModule::new(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -175,7 +175,7 @@ mod tests {
         #[test]
         fn expected_app_query() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier(deps.api);
+            deps.querier = abstract_testing::abstract_mock_querier(deps.api);
             let app = MockModule::new(deps.api);
 
             let mods = app.apps(deps.as_ref());
