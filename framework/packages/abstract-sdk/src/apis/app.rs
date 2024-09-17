@@ -19,8 +19,10 @@ pub trait AppInterface: ModuleInterface + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
-        # let module = MockModule::new(deps.api);
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let apps: Apps<MockModule>  = module.apps(deps.as_ref());
         ```
@@ -55,8 +57,10 @@ impl<'a, T: AppInterface> ApiIdentification for Apps<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
-    # let module = MockModule::new(deps.api);
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let apps: Apps<MockModule>  = module.apps(deps.as_ref());
     ```
@@ -96,20 +100,31 @@ impl<'a, T: AppInterface> Apps<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::prelude::*;
+    use abstract_std::version_control::Account;
+    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
 
     pub use super::*;
     use crate::mock_module::*;
+
+    pub fn setup() -> (MockDeps, Account, MockModule) {
+        let mut deps = mock_dependencies();
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let app = MockModule::new(deps.api, account.clone());
+
+        (deps, account, app)
+    }
+
     /// Helper to check that the method is not callable when the module is not a dependency
     fn fail_when_not_dependency_test<T: std::fmt::Debug>(
         modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,
         fake_module: ModuleId,
     ) {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::abstract_mock_querier(deps.api);
-        let app = MockModule::new(deps.api);
+        let (deps, _, app) = setup();
 
         let _mods = app.apps(deps.as_ref());
 
@@ -137,9 +152,8 @@ mod tests {
 
         #[test]
         fn expected_app_request() {
-            let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::abstract_mock_querier(deps.api);
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = setup();
+
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let mods = app.apps(deps.as_ref());
@@ -174,9 +188,7 @@ mod tests {
 
         #[test]
         fn expected_app_query() {
-            let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::abstract_mock_querier(deps.api);
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = setup();
 
             let mods = app.apps(deps.as_ref());
 

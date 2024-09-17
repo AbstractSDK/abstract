@@ -32,19 +32,22 @@ use super::stargate::{
 use crate::{features::AccountExecutor, AbstractSdkResult};
 /// An interface to the CosmosSDK AuthZ module which allows for granting authorizations to perform actions on behalf of one account to other accounts.
 pub trait AuthZInterface: AccountExecutor {
-    /// API for accessing the Cosmos SDK AuthZ module.
-    /// The **granter** is the address of the user **granting** an authorization to perform an action on their behalf.
-    /// By default, it is the proxy address of the Account.
+    /**
+     API for accessing the Cosmos SDK AuthZ module.
+     The **granter** is the address of the user **granting** an authorization to perform an action on their behalf.
+     By default, it is the proxy address of the Account.
 
-    /// ```
-    /// use abstract_sdk::prelude::*;
-    /// # use cosmwasm_std::testing::mock_dependencies;
-    /// # use abstract_sdk::mock_module::MockModule;
-    /// # let module = MockModule::new();
-    /// # let deps = mock_dependencies();
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
 
-    /// let authz: AuthZ = module.auth_z(deps.as_ref(), None)?;
-    /// ```
+    let authz: AuthZ = module.auth_z(deps.as_ref(), None)?;
+    ```
+    */
     fn auth_z<'a>(
         &'a self,
         deps: cosmwasm_std::Deps<'a>,
@@ -460,13 +463,26 @@ impl AuthZ {
 mod tests {
     use super::*;
 
+    use crate::std::version_control::Account;
     use crate::{apis::stargate::convert_stamp, mock_module::*};
+    use abstract_testing::abstract_mock_querier_builder;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::mock_dependencies;
+
+    pub fn setup() -> (MockDeps, Account, MockModule) {
+        let mut deps = mock_dependencies();
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let app = MockModule::new(deps.api, account.clone());
+
+        (deps, account, app)
+    }
 
     #[test]
     fn generic_authorization() {
-        let deps = mock_dependencies();
-        let app = MockModule::new(deps.api);
+        let (deps, _, app) = setup();
 
         let granter = deps.api.addr_make("granter");
         let grantee = deps.api.addr_make("grantee");
@@ -506,8 +522,7 @@ mod tests {
 
     #[test]
     fn revoke_authorization() {
-        let deps = mock_dependencies();
-        let app = MockModule::new(deps.api);
+        let (deps, _, app) = setup();
 
         let granter = deps.api.addr_make("granter");
         let grantee = deps.api.addr_make("grantee");

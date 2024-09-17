@@ -184,12 +184,25 @@ impl From<ExecutorMsg> for CosmosMsg {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::account::ExecuteMsg;
+    use abstract_std::version_control::Account;
+    use abstract_testing::abstract_mock_querier_builder;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;
+
+    pub fn setup() -> (MockDeps, Account, MockModule) {
+        let mut deps = mock_dependencies();
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let app = MockModule::new(deps.api, account.clone());
+
+        (deps, account, app)
+    }
 
     fn mock_bank_send(amount: Vec<Coin>) -> AccountAction {
         AccountAction::from(CosmosMsg::Bank(BankMsg::Send {
@@ -208,8 +221,7 @@ mod test {
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new(deps.api);
+            let (deps, account, stub) = setup();
             let executor = stub.executor(deps.as_ref());
 
             let messages = vec![];
@@ -217,7 +229,6 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let account = test_account_base(deps.api);
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
@@ -231,8 +242,7 @@ mod test {
 
         #[test]
         fn with_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new(deps.api);
+            let (deps, account, stub) = setup();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -241,7 +251,6 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let account = test_account_base(deps.api);
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
@@ -256,13 +265,13 @@ mod test {
     }
 
     mod execute_with_reply {
+
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new(deps.api);
+            let (deps, account, stub) = setup();
             let executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
@@ -276,7 +285,6 @@ mod test {
             );
             assert_that!(actual_res).is_ok();
 
-            let account = test_account_base(deps.api);
             let expected = SubMsg {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
@@ -296,8 +304,7 @@ mod test {
 
         #[test]
         fn with_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new(deps.api);
+            let (deps, account, stub) = setup();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -313,7 +320,6 @@ mod test {
             );
             assert_that!(actual_res).is_ok();
 
-            let account = test_account_base(deps.api);
             let expected = SubMsg {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
@@ -339,8 +345,7 @@ mod test {
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new(deps.api);
+            let (deps, account, stub) = setup();
             let executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
@@ -348,7 +353,6 @@ mod test {
 
             let actual_res = executor.execute_with_response(empty_actions.clone(), expected_action);
 
-            let account = test_account_base(deps.api);
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
@@ -371,8 +375,8 @@ mod test {
 
         #[test]
         fn with_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new(deps.api);
+            let (deps, account, stub) = setup();
+
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -381,7 +385,6 @@ mod test {
 
             let actual_res = executor.execute_with_response(action.clone(), expected_action);
 
-            let account = test_account_base(deps.api);
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
@@ -398,7 +401,7 @@ mod test {
                         .add_attribute("action", expected_action),
                 )
                 .add_message(expected_msg);
-            assert_that!(actual_res).is_ok().is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
     }
 }

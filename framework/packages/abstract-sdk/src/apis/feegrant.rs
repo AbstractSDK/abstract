@@ -177,6 +177,19 @@ mod test {
 
     use super::*;
     use crate::{apis::stargate::StargateMessage, mock_module::*};
+    use abstract_testing::abstract_mock_querier_builder;
+    use abstract_testing::prelude::*;
+
+    pub fn setup() -> (MockDeps, MockModule) {
+        let mut deps = mock_dependencies();
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let app = MockModule::new(deps.api, account.clone());
+
+        (deps, app)
+    }
 
     fn grant_allowance_msg(
         granter: Addr,
@@ -202,8 +215,7 @@ mod test {
 
         #[test]
         fn basic_allowance() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, app) = setup();
 
             let granter = deps.api.addr_make("granter");
             let grantee = deps.api.addr_make("grantee");
@@ -235,8 +247,7 @@ mod test {
 
         #[test]
         fn periodic_allowance() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, app) = setup();
 
             let granter = deps.api.addr_make("granter");
             let grantee = deps.api.addr_make("grantee");
@@ -279,8 +290,7 @@ mod test {
 
         #[test]
         fn revoke_all() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, app) = setup();
 
             let granter = deps.api.addr_make("granter");
             let grantee = deps.api.addr_make("grantee");

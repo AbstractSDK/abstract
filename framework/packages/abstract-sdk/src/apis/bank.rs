@@ -267,12 +267,24 @@ impl Transferable for Coin {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
+    use abstract_std::version_control::Account;
+    use abstract_testing::abstract_mock_querier_builder;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;
+
+    pub fn setup() -> (MockDeps, Account, MockModule) {
+        let mut deps = mock_dependencies();
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let app = MockModule::new(deps.api, account.clone());
+        (deps, account, app)
+    }
 
     mod transfer_coins {
         use abstract_std::account::ExecuteMsg;
@@ -282,8 +294,7 @@ mod test {
 
         #[test]
         fn transfer_asset_to_sender() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, account, app) = setup();
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
@@ -301,7 +312,6 @@ mod test {
                 amount: coins,
             });
 
-            let account = test_account_base(deps.api);
             assert_that!(response.messages[0].msg).is_equal_to(
                 &wasm_execute(
                     account.addr(),
@@ -319,13 +329,13 @@ mod test {
     // transfer must be tested via integration test
 
     mod deposit {
+
         use super::*;
         use crate::apis::respond::AbstractResponse;
 
         #[test]
         fn deposit() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, account, app) = setup();
 
             // ANCHOR: deposit
             // Get bank API struct from the app
@@ -338,7 +348,6 @@ mod test {
             let response: Response = app.response("deposit").add_messages(deposit_msgs);
             // ANCHOR_END: deposit
 
-            let account = test_account_base(deps.api);
             let bank_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: account.addr().to_string(),
                 amount: coins,
@@ -353,8 +362,8 @@ mod test {
 
         #[test]
         fn withdraw_coins() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = setup();
+
             let expected_amount = 100u128;
             let env = mock_env();
 
@@ -379,8 +388,8 @@ mod test {
 
         #[test]
         fn send_cw20() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = setup();
+
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 
@@ -406,8 +415,8 @@ mod test {
 
         #[test]
         fn send_coins() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = setup();
+
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 

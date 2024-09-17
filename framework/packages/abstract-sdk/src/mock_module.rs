@@ -21,8 +21,7 @@ use crate::{
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {
     fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
-        let abstr = AbstractMockAddrs::new(self.mock_api);
-        Ok(abstr.account)
+        Ok(self.account.clone())
     }
 }
 
@@ -65,12 +64,13 @@ pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 /// Identifies itself as [`TEST_MODULE_ID`].
 pub struct MockModule {
     mock_api: MockApi,
+    account: Account,
 }
 
 impl MockModule {
     /// mock constructor
-    pub fn new(mock_api: MockApi) -> Self {
-        Self { mock_api }
+    pub fn new(mock_api: MockApi, account: Account) -> Self {
+        Self { mock_api, account }
     }
 }
 

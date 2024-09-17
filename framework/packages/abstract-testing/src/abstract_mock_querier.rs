@@ -49,6 +49,11 @@ impl AbstractMockQuerier for MockQuerierBuilder {
                 ACCOUNT_ADDRESSES,
                 (&account_id, account.clone()),
             )
+            .with_contract_map_entry(
+                account.addr(),
+                abstract_std::account::state::ACCOUNT_MODULES,
+                (TEST_MODULE_ID, abstract_addrs.module_address),
+            )
     }
 
     fn assets(self, assets: Vec<(&AssetEntry, AssetInfo)>) -> Self {
