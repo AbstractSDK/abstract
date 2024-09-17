@@ -36,7 +36,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
-    assert_that(&modules[1]).is_equal_to(&AccountModuleInfo {
+    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -150,7 +150,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
 
     // assert proxy module
     // check staking adapter
-    assert_that(&modules[1]).is_equal_to(&AccountModuleInfo {
+    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -183,7 +183,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
     // check staking adapter
-    assert_that(&modules[1]).is_equal_to(&AccountModuleInfo {
+    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -228,7 +228,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let modules = account.expect_modules(vec![adapter1.address()?.to_string()])?;
 
     // check staking adapter
-    assert_that(&modules[1]).is_equal_to(&AccountModuleInfo {
+    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: adapter1.address()?,
         id: adapter1.id(),
         version: cw2::ContractVersion {
@@ -261,7 +261,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let modules = account.expect_modules(vec![adapter2.address()?.to_string()])?;
 
-    assert_that!(modules[1]).is_equal_to(&AccountModuleInfo {
+    assert_that!(modules[0]).is_equal_to(&AccountModuleInfo {
         // the address stored for MockAdapterI was updated when we instantiated the new version, so this is the new address
         address: adapter2.address()?,
         id: adapter2.id(),
@@ -275,7 +275,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     // assert that the new staking adapter has a different address
     assert_ne!(old_adapter_addr, adapter2.address()?);
 
-    assert_that!(modules[1].address).is_equal_to(adapter2.as_instance().address()?);
+    assert_that!(modules[0].address).is_equal_to(adapter2.as_instance().address()?);
     take_storage_snapshot!(chain, "reinstalling_new_version_should_install_latest");
 
     Ok(())
@@ -362,11 +362,11 @@ fn installing_specific_version_should_install_expected() -> AResult {
         &adapter1.id(),
         ModuleVersion::Version(expected_version),
         Some(&MockInitMsg {}),
-        None,
+        &[],
     )?;
 
     let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;
-    let installed_module: AccountModuleInfo = modules[1].clone();
+    let installed_module: AccountModuleInfo = modules[0].clone();
     assert_that!(installed_module.id).is_equal_to(adapter1.id());
     take_storage_snapshot!(chain, "installing_specific_version_should_install_expected");
 
@@ -386,7 +386,7 @@ fn account_install_adapter() -> AResult {
 
     let adapter = MockAdapterI1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
-    let adapter_addr = account.install_adapter(&adapter, None)?;
+    let adapter_addr = account.install_adapter(&adapter, &[])?;
     let module_addr = account
         .module_info(adapter_1::MOCK_ADAPTER_ID)?
         .unwrap()
@@ -409,7 +409,7 @@ fn account_adapter_ownership() -> AResult {
 
     let adapter = MockAdapterI1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
-    account.install_adapter(&adapter, None)?;
+    account.install_adapter(&adapter, &[])?;
 
     let proxy_addr = account.address()?;
 
@@ -458,7 +458,7 @@ fn account_adapter_ownership() -> AResult {
     // Can call either by account owner or manager
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            proxy_address: Some(proxy_addr.to_string()),
+            account_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("123").to_string()],
                 to_remove: vec![],
@@ -468,7 +468,7 @@ fn account_adapter_ownership() -> AResult {
     )?;
     adapter.call_as(&account.address()?).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            proxy_address: Some(proxy_addr.to_string()),
+            account_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
@@ -482,7 +482,7 @@ fn account_adapter_ownership() -> AResult {
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(proxy_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],
@@ -518,20 +518,20 @@ fn subaccount_adapter_ownership() -> AResult {
     let adapter = MockAdapterI1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
 
-    account.create_sub_account(
-        vec![ModuleInstallConfig::new(
-            ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID).unwrap(),
-            None,
-        )],
-        "My subaccount".to_string(),
-        None,
-        None,
-        None,
-        None,
+    let sub_account = account.create_and_return_sub_account(
+        AccountDetails {
+            name: "My subaccount".to_string(),
+            description: None,
+            link: None,
+            namespace: None,
+            install_modules: vec![ModuleInstallConfig::new(
+                ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID).unwrap(),
+                None,
+            )],
+            account_id: None,
+        },
         &[],
     )?;
-
-    let sub_account = AccountI::new(AccountId::local(42), chain);
 
     let module = sub_account
         .module_info(adapter_1::MOCK_ADAPTER_ID)?
@@ -585,7 +585,7 @@ fn subaccount_adapter_ownership() -> AResult {
     // Can call either by account owner or manager
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            proxy_address: Some(proxy_addr.to_string()),
+            account_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("123").to_string()],
                 to_remove: vec![],
@@ -595,7 +595,7 @@ fn subaccount_adapter_ownership() -> AResult {
     )?;
     adapter.call_as(&sub_account.address()?).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            proxy_address: Some(proxy_addr.to_string()),
+            account_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],

@@ -231,11 +231,9 @@ impl<Chain: CwEnv> AccountI<Chain> {
             module_infos: manager_modules,
         } = self.module_infos(None, None)?;
 
-        // insert proxy in expected module addresses
         let expected_module_addrs = module_addrs
             .into_iter()
             .map(Addr::unchecked)
-            .chain(std::iter::once(self.address()?))
             .collect::<HashSet<_>>();
 
         let actual_module_addrs = manager_modules
@@ -261,12 +259,11 @@ impl<Chain: CwEnv> AccountI<Chain> {
     /// Automatically includes the manager in the expected whitelist.
     pub fn expect_whitelist(
         &self,
-        whitelisted_addrs: Vec<String>,
+        expected_whitelisted_addrs: Vec<String>,
     ) -> Result<Vec<(String, Addr)>, crate::AbstractInterfaceError> {
         // insert manager in expected whitelisted addresses
-        let expected_whitelisted_addrs = whitelisted_addrs
+        let expected_whitelisted_addrs = expected_whitelisted_addrs
             .into_iter()
-            .chain(std::iter::once(self.address()?.into_string()))
             .collect::<HashSet<_>>();
 
         // check proxy config

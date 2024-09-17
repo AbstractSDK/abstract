@@ -10,8 +10,7 @@ use abstract_sdk::{
 use abstract_std::{
     account::{
         state::{
-            AccountInfo, Config, WhitelistedModules, CONFIG, INFO, SUSPENSION_STATUS,
-            WHITELISTED_MODULES,
+            AccountInfo, Config, WhitelistedModules, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES
         },
         ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
     },
