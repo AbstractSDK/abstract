@@ -89,8 +89,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                     });
                 }
             }
-            // If not provided the sender must be the direct owner
-            // In that case, because this is a admin call, we need to check that the ADMIN_CALL_TO on the account is indeed this contract
+            // If not provided the sender must be the direct owner AND have admin execution rights
             None => account_registry
                 .assert_account_admin(&env, &info.sender)
                 .map_err(|_| AdapterError::UnauthorizedAdapterRequest {

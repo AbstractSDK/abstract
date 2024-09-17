@@ -303,7 +303,7 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     unreachable!("Update status case is reached above")
                 }
                 ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
-                ExecuteMsg::ExecAdminOnModule { module_id, msg } => {
+                ExecuteMsg::AdminExecOnModule { module_id, msg } => {
                     exec_admin_on_module(deps, info, module_id, msg)
                 }
                 ExecuteMsg::AdminAccountAction { addr, msg } => {

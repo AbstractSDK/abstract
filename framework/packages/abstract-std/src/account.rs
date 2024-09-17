@@ -136,7 +136,7 @@ pub enum ExecuteMsg {
     /// Execute a Wasm Message with Abstract Admin priviledges
     AdminAccountAction { addr: String, msg: Binary },
     /// Forward execution message to module with Abstract Admin priviledges
-    ExecAdminOnModule { module_id: String, msg: Binary },
+    AdminExecOnModule { module_id: String, msg: Binary },
 
     /// Execute IBC action on Client
     IbcAction { msg: crate::ibc_client::ExecuteMsg },

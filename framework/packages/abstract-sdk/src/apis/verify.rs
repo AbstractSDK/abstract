@@ -4,7 +4,6 @@ use abstract_std::{
     account::state::ADMIN_CALL_TO_CONTEXT,
     objects::{version_control::VersionControlContract, AccountId},
     version_control::Account,
-    AbstractError,
 };
 use cosmwasm_std::{Addr, Deps, Env};
 
@@ -12,7 +11,7 @@ use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery,
     features::{AbstractRegistryAccess, ModuleIdentification},
-    AbstractSdkResult,
+    AbstractSdkError, AbstractSdkResult,
 };
 
 /// Verify if an addresses is associated with an Abstract Account.
@@ -117,12 +116,12 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
         let account = self.assert_account(maybe_account)?;
         let admin_call_to = ADMIN_CALL_TO_CONTEXT
             .query(&self.deps.querier, account.addr().clone())
-            .map_err(|_| AbstractError::OnlyAdmin {})?;
+            .map_err(|_| AbstractSdkError::OnlyAdmin {})?;
         if admin_call_to != env.contract.address {
-            Err(AbstractError::NotAdminFor {
+            return Err(AbstractSdkError::NotAdminFor {
                 admin_for: admin_call_to,
                 current_contract: env.contract.address.clone(),
-            })?;
+            });
         }
         Ok(account)
     }

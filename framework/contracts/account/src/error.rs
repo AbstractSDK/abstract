@@ -103,9 +103,6 @@ pub enum AccountError {
     #[error("Sender is not whitelisted")]
     SenderNotWhitelisted {},
 
-    #[error("Sender not authorized to execute an action on the account")]
-    SenderNotAuthorized {},
-
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
 
