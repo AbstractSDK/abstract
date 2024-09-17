@@ -29,8 +29,8 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    common_namespace::MODULE_STORAGE_KEY,
     dependency::{Dependency, DependencyResponse, StaticDependency},
+    storage_namespaces::MODULE_STORAGE_KEY,
 };
 use crate::AbstractError;
 

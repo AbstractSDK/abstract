@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ops::Deref};
 
 use abstract_std::objects::{
-    common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
+    gov_type::GovernanceDetails, ownership::Ownership, storage_namespaces::OWNERSHIP_STORAGE_KEY,
 };
 use cosmwasm_std::{
     testing::MockApi, Addr, Binary, ContractInfoResponse, ContractResult, Empty, QuerierWrapper,

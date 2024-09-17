@@ -20,25 +20,21 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use super::*;
-    use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-
-    pub mod namespace {
-        pub const CHAIN_PROXIES: &str = "a";
-        pub const REVERSE_CHAIN_PROXIES: &str = "b";
-        pub const CONFIG: &str = "c";
-        pub const TEMP_ACTION_AFTER_CREATION: &str = "d";
-    }
+    use crate::objects::{
+        ans_host::AnsHost, storage_namespaces, version_control::VersionControlContract,
+    };
 
     /// Maps a chain name to the proxy it uses to interact on this local chain
-    pub const CHAIN_PROXIES: Map<&TruncatedChainId, Addr> = Map::new(namespace::CHAIN_PROXIES);
+    pub const CHAIN_PROXIES: Map<&TruncatedChainId, Addr> =
+        Map::new(storage_namespaces::ibc_host::CHAIN_PROXIES);
     pub const REVERSE_CHAIN_PROXIES: Map<&Addr, TruncatedChainId> =
-        Map::new(namespace::REVERSE_CHAIN_PROXIES);
+        Map::new(storage_namespaces::ibc_host::REVERSE_CHAIN_PROXIES);
     /// Configuration of the IBC host
-    pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::ibc_host::CONFIG);
 
     // Temporary structure to hold actions to be executed after account creation
     pub const TEMP_ACTION_AFTER_CREATION: Item<ActionAfterCreationCache> =
-        Item::new(namespace::TEMP_ACTION_AFTER_CREATION);
+        Item::new(storage_namespaces::ibc_host::TEMP_ACTION_AFTER_CREATION);
 
     /// The BaseState contains the main addresses needed for sending and verifying messages
     #[cosmwasm_schema::cw_serde]

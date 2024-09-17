@@ -40,8 +40,8 @@ pub mod state {
     use crate::{
         ans_host::{DexAssetPairing, DexName, UniquePoolId},
         objects::{
-            pool_metadata::PoolMetadata, pool_reference::PoolReference, AssetEntry, ChannelEntry,
-            ContractEntry,
+            pool_metadata::PoolMetadata, pool_reference::PoolReference, storage_namespaces,
+            AssetEntry, ChannelEntry, ContractEntry,
         },
     };
 
@@ -51,42 +51,35 @@ pub mod state {
         pub next_unique_pool_id: UniquePoolId,
     }
 
-    pub mod namespace {
-        pub const CONFIG: &str = "a";
-        pub const ASSET_ADDRESSES: &str = "b";
-        pub const REV_ASSET_ADDRESSES: &str = "c";
-        pub const CONTRACT_ADDRESSES: &str = "d";
-        pub const CHANNELS: &str = "e";
-        pub const REGISTERED_DEXES: &str = "f";
-        pub const ASSET_PAIRINGS: &str = "g";
-        pub const POOL_METADATA: &str = "h";
-    }
-
-    pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::ans_host::CONFIG);
     // ANCHOR: ans_state
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
-    pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> = Map::new(namespace::ASSET_ADDRESSES);
+    pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> =
+        Map::new(storage_namespaces::ans_host::ASSET_ADDRESSES);
     pub const REV_ASSET_ADDRESSES: Map<&AssetInfo, AssetEntry> =
-        Map::new(namespace::REV_ASSET_ADDRESSES);
+        Map::new(storage_namespaces::ans_host::REV_ASSET_ADDRESSES);
 
     /// Stores contract addresses
     pub const CONTRACT_ADDRESSES: Map<&ContractEntry, Addr> =
-        Map::new(namespace::CONTRACT_ADDRESSES);
+        Map::new(storage_namespaces::ans_host::CONTRACT_ADDRESSES);
 
     /// stores channel-ids
-    pub const CHANNELS: Map<&ChannelEntry, String> = Map::new(namespace::CHANNELS);
+    pub const CHANNELS: Map<&ChannelEntry, String> =
+        Map::new(storage_namespaces::ans_host::CHANNELS);
 
     /// Stores the registered dex names
-    pub const REGISTERED_DEXES: Item<Vec<DexName>> = Item::new(namespace::REGISTERED_DEXES);
+    pub const REGISTERED_DEXES: Item<Vec<DexName>> =
+        Item::new(storage_namespaces::ans_host::REGISTERED_DEXES);
 
     /// Stores the asset pairing entries to their pool ids
     /// (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
     pub const ASSET_PAIRINGS: Map<&DexAssetPairing, Vec<PoolReference>> =
-        Map::new(namespace::ASSET_PAIRINGS);
+        Map::new(storage_namespaces::ans_host::ASSET_PAIRINGS);
 
     /// Stores the metadata for the pools using the unique pool id as the key
-    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new(namespace::POOL_METADATA);
+    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> =
+        Map::new(storage_namespaces::ans_host::POOL_METADATA);
     // ANCHOR_END: ans_state
 }
 

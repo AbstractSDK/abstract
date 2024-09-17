@@ -11,7 +11,7 @@ pub mod state {
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
-    use crate::version_control::Account;
+    use crate::{objects::storage_namespaces, version_control::Account};
 
     #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
     pub struct Config {
@@ -19,15 +19,11 @@ pub mod state {
         pub ans_host_address: Addr,
     }
 
-    pub mod namespace {
-        pub const CONFIG: &str = "a";
-        pub const CURRENT_BASE: &str = "b";
-    }
-
-    pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::module_factory::CONFIG);
     /// Base of account on which modules getting installed right now
     /// It's set only if one of the modules is standalone
-    pub const CURRENT_BASE: Item<Account> = Item::new(namespace::CURRENT_BASE);
+    pub const CURRENT_BASE: Item<Account> =
+        Item::new(storage_namespaces::module_factory::CURRENT_BASE);
 }
 
 use cosmwasm_schema::QueryResponses;
