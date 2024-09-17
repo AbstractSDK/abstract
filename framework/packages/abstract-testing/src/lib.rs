@@ -120,7 +120,7 @@ pub fn mock_querier(mock_api: MockApi) -> MockQuerier {
 /// Abstract-specific mock dependencies.
 ///
 /// Sets the required queries for native contracts and the root Abstract Account.
-pub fn mock_dependencies() -> MockDeps {
+pub fn mock_deps() -> MockDeps {
     let api = MockApi::default();
     let querier = mock_querier(api.clone());
 
@@ -207,7 +207,7 @@ pub mod module {
 }
 
 pub mod prelude {
-    pub use super::{mock_dependencies, mock_querier};
+    pub use super::{mock_deps, mock_querier};
     pub use abstract_mock_querier::AbstractMockQuerier;
     use abstract_std::objects::{AccountId, AccountTrace};
     pub use addresses::*;
