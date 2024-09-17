@@ -365,7 +365,10 @@ fn validate_pool_assets(
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::{map_tester::CwMapTester, prelude::*};
-    use cosmwasm_std::{testing::*, Addr, DepsMut};
+    use cosmwasm_std::{
+        testing::{message_info, mock_env, MockApi},
+        Addr, DepsMut,
+    };
     use speculoos::prelude::*;
 
     use super::*;
