@@ -73,7 +73,8 @@ impl<T> AuthZInterface for T where T: AccountExecutor {}
 /// # let account = admin_account(deps.api);
 /// # let module = MockModule::new(deps.api, account);
 ///
-/// let authz: Authz  = module.auth_z(deps.as_ref(), None)?;
+/// let authz: AuthZ  = module.auth_z(deps.as_ref(), None)?;
+///
 /// # AbstractSdkResult::Ok(())
 /// ```
 /// */

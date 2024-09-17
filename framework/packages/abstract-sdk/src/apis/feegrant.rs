@@ -26,13 +26,15 @@ pub trait GrantInterface: AccountExecutor {
     /// ```
     /// use abstract_sdk::prelude::*;
     /// # use cosmwasm_std::testing::mock_dependencies;
-    /// # use abstract_sdk::{mock_module::MockModule, FeeGranter, GrantInterface};
+    /// # use abstract_sdk::{mock_module::MockModule, FeeGranter, GrantInterface, AbstractSdkResult};
     /// # use abstract_testing::prelude::*;
     /// # let deps = mock_dependencies();
     /// # let account = admin_account(deps.api);
     /// # let module = MockModule::new(deps.api, account);
-
+    ///
     /// let grant: FeeGranter = module.fee_granter(deps.as_ref(), None)?;
+    ///
+    /// # AbstractSdkResult::Ok(())
     /// ```
     fn fee_granter<'a>(
         &'a self,
