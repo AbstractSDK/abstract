@@ -1,9 +1,9 @@
 use abstract_macros::abstract_response;
-use abstract_sdk::std::{
+use abstract_sdk::{feature_objects::VersionControlContract, std::{
     account::state::ACCOUNT_ID,
     objects::validation::{validate_description, validate_link, validate_name},
     ACCOUNT,
-};
+}};
 use abstract_std::{
     account::{
         state::{
@@ -11,18 +11,14 @@ use abstract_std::{
             WHITELISTED_MODULES,
         },
         ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
-    },
-    objects::{
+    }, module_factory::SimulateInstallModulesResponse, objects::{
         gov_type::GovernanceDetails,
         ownership::{self, GovOwnershipError},
         AccountId,
-    },
-    version_control::state::LOCAL_ACCOUNT_SEQUENCE,
-    version_control::Account,
+    }, version_control::{state::LOCAL_ACCOUNT_SEQUENCE, Account}
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult, SubMsgResult,
+    ensure, ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError, StdResult, SubMsgResult
 };
 
 pub use crate::migrate::migrate;
@@ -160,13 +156,24 @@ pub fn instantiate(
         ],
     );
 
+    let version_control = VersionControlContract::new(config.version_control_address.clone());
+
+    let funds_for_namespace_fee = if namespace.is_some() {
+        version_control
+            .namespace_registration_fee(&deps.querier)?
+            .into_iter()
+            .collect()
+    } else {
+        vec![]
+    };
+
     response = response.add_message(wasm_execute(
         version_control_address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
             namespace,
             creator: info.sender.to_string(),
         },
-        vec![],
+        funds_for_namespace_fee,
     )?);
 
     // Register on account if it's sub-account
@@ -181,13 +188,20 @@ pub fn instantiate(
     }
 
     if !install_modules.is_empty() {
+        let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
+            config.module_factory_address.to_string(),
+            &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
+                modules: install_modules.iter().map(|m| m.module.clone()).collect(),
+            },
+        )?;
+
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
             install_modules,
             config.module_factory_address,
-            config.version_control_address,
-            info.funds,
+            config.version_control_address.clone(),
+            simulate_resp.total_required_funds,
         )?;
         response = response
             .add_submessages(install_msgs)

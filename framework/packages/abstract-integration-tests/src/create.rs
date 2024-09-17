@@ -40,12 +40,14 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         // Account creation fee not covered
         &[],
     );
+
     assert!(err
         .unwrap_err()
         // Error type is inside contract, not the package
         .root()
         .to_string()
-        .contains("Invalid fee payment sent."));
+        // Overflow because required funds not provided
+        .contains("Cannot Sub with given operands"));
 
     // Now cover account creation fee
     let account = AccountI::create(
