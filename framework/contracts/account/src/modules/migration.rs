@@ -32,7 +32,7 @@ use crate::{
     queries::query_module_version,
 };
 
-pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
+pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("mcontext");
 
 /// Migrate modules through address updates or contract migrations
 /// The dependency store is updated during migration

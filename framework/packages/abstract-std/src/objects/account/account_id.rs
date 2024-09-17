@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
@@ -110,10 +110,10 @@ impl AccountId {
     }
 }
 
-impl TryFrom<&str> for AccountId {
-    type Error = AbstractError;
+impl FromStr for AccountId {
+    type Err = AbstractError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         let (trace_str, seq_str) = value
             .split_once('-')
             .ok_or(AbstractError::FormattingError {

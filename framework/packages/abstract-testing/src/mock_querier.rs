@@ -1,11 +1,7 @@
 use std::{collections::HashMap, ops::Deref};
 
-use abstract_std::{
-    account::state::{ACCOUNT_ID, ACCOUNT_MODULES},
-    objects::{
-        common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
-    },
-    version_control::state::ACCOUNT_ADDRESSES,
+use abstract_std::objects::{
+    common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
 };
 use cosmwasm_std::{
     testing::MockApi, Addr, Binary, ContractInfoResponse, ContractResult, Empty, QuerierWrapper,
@@ -51,11 +47,19 @@ pub struct MockQuerierBuilder {
     raw_handlers: HashMap<Addr, Box<RawHandler>>,
     raw_mappings: HashMap<Addr, HashMap<Binary, Binary>>,
     contract_admin: HashMap<Addr, Addr>,
+    // Used for Address generation
+    pub api: MockApi,
 }
 
 impl Default for MockQuerierBuilder {
     /// Create a default
     fn default() -> Self {
+        Self::new(MockApi::default())
+    }
+}
+
+impl MockQuerierBuilder {
+    pub fn new(api: MockApi) -> Self {
         let raw_fallback: fn(&Addr, &Binary) -> BinaryQueryResult = |addr, key| {
             let str_key = std::str::from_utf8(key.as_slice()).unwrap();
             Err(format!(
@@ -77,6 +81,7 @@ impl Default for MockQuerierBuilder {
             raw_handlers: HashMap::default(),
             raw_mappings: HashMap::default(),
             contract_admin: HashMap::default(),
+            api,
         }
     }
 }
@@ -124,7 +129,7 @@ impl MockQuerierBuilder {
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
     ///
     /// let api = MockApi::default();
-    /// let contract_address = deps.api.addr_make("contract_address");
+    /// let contract_address = api.addr_make("contract_address");
     /// let querier = MockQuerierBuilder::default().with_smart_handler(&contract_address, |msg| {
     ///    // handle the message
     ///     let res = match from_json::<MockModuleQueryMsg>(msg).unwrap() {
@@ -297,7 +302,7 @@ impl MockQuerierBuilder {
     /// let contract_address = api.addr_make("contract1");
     ///
     /// MockQuerierBuilder::default()
-    ///    .with_contract_version(&contract_address, "v1.0.0");
+    ///    .with_contract_version(&contract_address, "contract1", "v1.0.0");
     /// ```
     pub fn with_contract_version(
         self,
@@ -409,21 +414,45 @@ pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
 #[cfg(test)]
 mod tests {
     use abstract_std::{
-        manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
+        account::state::{ACCOUNT_ID, ACCOUNT_MODULES},
+        objects::ABSTRACT_ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
-    use cosmwasm_std::testing;
-    use speculoos::prelude::*;
 
     use super::*;
 
     mod account {
+
+        use abstract_std::version_control::Account;
+
+        use crate::mock_querier_builder;
+
         use super::*;
+
+        #[test]
+        fn should_return_admin_account_address() {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_querier(deps.api);
+            let abstr = AbstractMockAddrs::new(deps.api);
+
+            let actual = ACCOUNT_ADDRESSES.query(
+                &wrap_querier(&deps.querier),
+                abstr.version_control,
+                &ABSTRACT_ACCOUNT_ID,
+            );
+
+            let expected = abstr.account;
+
+            assert_eq!(actual, Ok(Some(expected)));
+        }
 
         #[test]
         fn should_return_account_address() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            let account_base = Account::new(deps.api.addr_make("my_account"));
+            deps.querier = mock_querier_builder(deps.api)
+                .account(&account_base, TEST_ACCOUNT_ID)
+                .build();
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let actual = ACCOUNT_ADDRESSES.query(
@@ -432,9 +461,7 @@ mod tests {
                 &TEST_ACCOUNT_ID,
             );
 
-            let expected = abstr.account;
-
-            assert_that!(actual).is_ok().is_some().is_equal_to(expected)
+            assert_eq!(actual, Ok(Some(account_base)));
         }
     }
 
@@ -467,7 +494,7 @@ mod tests {
                 .unwrap();
             let resp: MockModuleQueryResponse = from_json(resp_bin).unwrap();
 
-            assert_that!(resp).is_equal_to(MockModuleQueryResponse {})
+            assert_eq!(resp, MockModuleQueryResponse {});
         }
 
         #[test]
@@ -495,22 +522,37 @@ mod tests {
                 .unwrap();
             let resp: String = from_json(resp_bin).unwrap();
 
-            assert_that!(resp).is_equal_to("the_value".to_string())
+            assert_eq!(resp, "the_value");
         }
     }
 
     mod account_id {
+        use crate::mock_querier_builder;
+
         use super::*;
 
         #[test]
-        fn should_return_test_acct_id_with_test_manager() {
+        fn should_return_admin_acct_id() {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier(deps.api);
+            let root_base = admin_account(deps.api);
+
+            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), root_base.addr().clone());
+
+            assert_eq!(actual, Ok(ABSTRACT_ACCOUNT_ID));
+        }
+
+        #[test]
+        fn should_return_test_acct_id() {
+            let mut deps = mock_dependencies();
             let test_base = test_account_base(deps.api);
+            deps.querier = mock_querier_builder(deps.api)
+                .account(&test_base, TEST_ACCOUNT_ID)
+                .build();
 
             let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), test_base.addr().clone());
 
-            assert_that!(actual).is_ok().is_equal_to(TEST_ACCOUNT_ID);
+            assert_eq!(actual, Ok(TEST_ACCOUNT_ID));
         }
     }
 
@@ -529,10 +571,7 @@ mod tests {
                 TEST_MODULE_ID,
             );
 
-            assert_that!(actual)
-                .is_ok()
-                .is_some()
-                .is_equal_to(abstr.module_address);
+            assert_eq!(actual, Ok(Some(abstr.module_address)));
         }
 
         // #[test]
