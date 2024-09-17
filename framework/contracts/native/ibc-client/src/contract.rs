@@ -632,10 +632,10 @@ mod tests {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
             let account = test_account_base(deps.api);
-            let not_account = deps.api.addr_make("not_account");
+            let module = deps.api.addr_make("application");
             deps.querier = MockQuerierBuilder::new(deps.api)
-                // Account pretends as different account
-                .with_contract_item(&not_account, account::state::ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                // Module is not account
+                .with_contract_item(&module, account::state::ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     &abstract_addrs.version_control,
                     version_control::state::ACCOUNT_ADDRESSES,
@@ -652,7 +652,7 @@ mod tests {
                 memo: None,
             };
 
-            let res = execute_as(deps.as_mut(), &not_account, msg);
+            let res = execute_as(deps.as_mut(), &module, msg);
 
             assert!(matches!(
                 res,
