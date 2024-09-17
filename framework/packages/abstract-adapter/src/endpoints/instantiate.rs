@@ -82,7 +82,7 @@ mod test {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let info = message_info(&abstr.account.manager, &[]);
-        deps.querier = abstract_testing::mock_querier(deps.api);
+        deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),

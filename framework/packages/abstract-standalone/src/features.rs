@@ -39,7 +39,7 @@ impl Dependencies for StandaloneContract {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
-    use abstract_testing::{mock_querier, prelude::*};
+    use abstract_testing::{abstract_mock_querier, prelude::*};
     use speculoos::prelude::*;
 
     use super::*;
@@ -70,7 +70,7 @@ mod test {
     #[test]
     fn test_traits_generated() -> StandaloneTestResult {
         let mut deps = mock_init();
-        deps.querier = mock_querier(deps.api);
+        deps.querier = abstract_mock_querier(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         // AbstractNameService

@@ -680,7 +680,7 @@ mod tests {
         version_control::*,
         ACCOUNT,
     };
-    use abstract_testing::{mock_querier_builder, prelude::*, MockQuerierOwnership};
+    use abstract_testing::{abstract_mock_querier_builder, prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_env, MockApi},
@@ -733,7 +733,7 @@ mod tests {
 
         const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
 
-        mock_querier_builder(api)
+        abstract_mock_querier_builder(api)
             .with_contract_version(&first_acc_addr, ACCOUNT, TEST_VERSION)
             .with_contract_version(&second_acc_addr, ACCOUNT, TEST_VERSION)
             .with_contract_version(&third_acc_addr, ACCOUNT, TEST_VERSION)
@@ -942,7 +942,7 @@ mod tests {
         use super::*;
 
         use abstract_std::AbstractError;
-        use abstract_testing::mock_querier_builder;
+        use abstract_testing::abstract_mock_querier_builder;
         use cosmwasm_std::{coins, SubMsg};
 
         #[test]
@@ -1426,7 +1426,7 @@ mod tests {
 
         use crate::contract::query;
         use abstract_std::{objects::module::Monetization, AbstractError};
-        use abstract_testing::mock_querier_builder;
+        use abstract_testing::abstract_mock_querier_builder;
         use cosmwasm_std::coin;
 
         fn test_module() -> ModuleInfo {
