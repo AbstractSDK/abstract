@@ -32,7 +32,7 @@ pub fn forward_response_reply(result: Reply) -> AccountResult {
 }
 
 /// Remove the storage for an admin call after execution
-pub fn module_config_action_reply(deps: DepsMut) -> AccountResult {
+pub fn admin_action_reply(deps: DepsMut) -> AccountResult {
     ADMIN_CALL_TO_CONTEXT.remove(deps.storage);
 
     Ok(Response::new())

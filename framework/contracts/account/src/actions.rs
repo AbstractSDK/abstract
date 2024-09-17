@@ -12,9 +12,7 @@ use cosmwasm_std::{
 };
 
 use crate::{
-    contract::{
-        AccountResponse, AccountResult, FORWARD_RESPONSE_REPLY_ID, MODULE_CONFIG_ACTION_REPLY_ID,
-    },
+    contract::{AccountResponse, AccountResult, ADMIN_ACTION_REPLY_ID, FORWARD_RESPONSE_REPLY_ID},
     error::AccountError,
     modules::load_module_addr,
 };
@@ -93,7 +91,7 @@ pub fn admin_account_action(
             msg: exec_msg,
             funds: info.funds,
         },
-        MODULE_CONFIG_ACTION_REPLY_ID,
+        ADMIN_ACTION_REPLY_ID,
     );
 
     Ok(AccountResponse::action("admin_account_action").add_submessage(msg))

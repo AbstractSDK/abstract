@@ -44,7 +44,7 @@ use crate::{
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
         handle_top_level_owner_query,
     },
-    reply::{forward_response_reply, module_config_action_reply, register_dependencies},
+    reply::{admin_action_reply, forward_response_reply, register_dependencies},
     sub_account::{
         create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
     },
@@ -58,7 +58,7 @@ pub type AccountResult<R = Response> = Result<R, AccountError>;
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub const FORWARD_RESPONSE_REPLY_ID: u64 = 1;
-pub const MODULE_CONFIG_ACTION_REPLY_ID: u64 = 2;
+pub const ADMIN_ACTION_REPLY_ID: u64 = 2;
 pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 3;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -319,7 +319,7 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
     match msg.id {
         FORWARD_RESPONSE_REPLY_ID => forward_response_reply(msg),
-        MODULE_CONFIG_ACTION_REPLY_ID => module_config_action_reply(deps),
+        ADMIN_ACTION_REPLY_ID => admin_action_reply(deps),
         REGISTER_MODULES_DEPENDENCIES_REPLY_ID => register_dependencies(deps),
 
         _ => Err(AccountError::UnexpectedReply {}),
