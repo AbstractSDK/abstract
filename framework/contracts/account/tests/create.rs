@@ -1,8 +1,11 @@
-use abstract_interface::{*};
+use abstract_interface::*;
 use abstract_std::{
-    account, objects::{
+    account,
+    objects::{
         account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
-    }, version_control::{self, Account, NamespaceInfo, NamespaceResponse}, ABSTRACT_EVENT_TYPE, ACCOUNT
+    },
+    version_control::{self, Account, NamespaceInfo, NamespaceResponse},
+    ABSTRACT_EVENT_TYPE, ACCOUNT,
 };
 use abstract_testing::prelude::*;
 use cw_orch::prelude::*;
@@ -39,19 +42,23 @@ fn create_one_account() -> AResult {
 
     let account = AccountI::new(ACCOUNT, chain);
 
-    let account_creation = account.instantiate(&account::InstantiateMsg{
-        name: String::from("first_account"),
-        description: Some(String::from("account_description")),
-        link: Some(String::from("https://account_link_of_at_least_11_char")),
-        namespace: None,
-        install_modules: vec![],
-        account_id: None,
-        owner: GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
+    let account_creation = account.instantiate(
+        &account::InstantiateMsg {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: None,
+            install_modules: vec![],
+            account_id: None,
+            owner: GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            module_factory_address: deployment.module_factory.addr_str()?,
+            version_control_address: version_control.addr_str()?,
         },
-        module_factory_address: deployment.module_factory.addr_str()?,
-        version_control_address: version_control.addr_str()?,
-    }, None, &[])?;
+        None,
+        &[],
+    )?;
 
     let account = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
 
@@ -90,34 +97,42 @@ fn create_two_account_s() -> AResult {
 
     let account = AccountI::new(ACCOUNT, chain);
     // first account
-    let account_1 = account.instantiate(&account::InstantiateMsg{
-        name: String::from("first_account"),
-        description: Some(String::from("account_description")),
-        link: Some(String::from("https://account_link_of_at_least_11_char")),
-        namespace: None,
-        install_modules: vec![],
-        account_id: None,
-        owner: GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
+    let account_1 = account.instantiate(
+        &account::InstantiateMsg {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: None,
+            install_modules: vec![],
+            account_id: None,
+            owner: GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            module_factory_address: deployment.module_factory.addr_str()?,
+            version_control_address: version_control.addr_str()?,
         },
-        module_factory_address: deployment.module_factory.addr_str()?,
-        version_control_address: version_control.addr_str()?,
-    }, None, &[])?;
-    
+        None,
+        &[],
+    )?;
+
     // second account
-    let account_2 = account.instantiate(&account::InstantiateMsg{
-        name: String::from("second_account"),
-        description: Some(String::from("account_description")),
-        link: Some(String::from("https://account_link_of_at_least_11_char")),
-        namespace: None,
-        install_modules: vec![],
-        account_id: None,
-        owner: GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
+    let account_2 = account.instantiate(
+        &account::InstantiateMsg {
+            name: String::from("second_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: None,
+            install_modules: vec![],
+            account_id: None,
+            owner: GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            module_factory_address: deployment.module_factory.addr_str()?,
+            version_control_address: version_control.addr_str()?,
         },
-        module_factory_address: deployment.module_factory.addr_str()?,
-        version_control_address: version_control.addr_str()?,
-    }, None, &[])?;
+        None,
+        &[],
+    )?;
 
     let account1 = account_1.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     let account_1_id = TEST_ACCOUNT_ID;
@@ -152,28 +167,30 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account = AccountI::new(ACCOUNT, chain);
 
     let version_control = &deployment.version_control;
-    let account_creation = account.instantiate(&account::InstantiateMsg{
-        name: String::from("first_account"),
-        description: Some(String::from("account_description")),
-        link: Some(String::from("https://account_link_of_at_least_11_char")),
-        namespace: None,
-        install_modules: vec![],
-        account_id: None,
-        owner: GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
+    let account_creation = account.instantiate(
+        &account::InstantiateMsg {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: None,
+            install_modules: vec![],
+            account_id: None,
+            owner: GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            module_factory_address: deployment.module_factory.addr_str()?,
+            version_control_address: version_control.addr_str()?,
         },
-        module_factory_address: deployment.module_factory.addr_str()?,
-        version_control_address: version_control.addr_str()?,
-    }, None, &[])?;
+        None,
+        &[],
+    )?;
 
     let account_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     account.set_address(&Addr::unchecked(&account_addr));
 
     let registered_account = version_control.account(TEST_ACCOUNT_ID)?.account_base;
 
-    assert_that!(account_addr)
-    .is_equal_to(registered_account.addr().to_string());
-
+    assert_that!(account_addr).is_equal_to(registered_account.addr().to_string());
 
     let account_config = account.config()?;
 
@@ -196,20 +213,24 @@ fn sender_is_not_admin_external() -> AResult {
     let account = AccountI::new(ACCOUNT, chain);
     let version_control = &deployment.version_control;
 
-    let account_creation = account.instantiate(&account::InstantiateMsg{
-        name: String::from("first_account"),
-        description: Some(String::from("account_description")),
-        link: Some(String::from("https://account_link_of_at_least_11_char")),
-        namespace: None,
-        install_modules: vec![],
-        account_id: None,
-        owner: GovernanceDetails::External {
-            governance_address: sender.to_string(),
-            governance_type: "some-gov-type".to_string(),
+    let account_creation = account.instantiate(
+        &account::InstantiateMsg {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: None,
+            install_modules: vec![],
+            account_id: None,
+            owner: GovernanceDetails::External {
+                governance_address: sender.to_string(),
+                governance_type: "some-gov-type".to_string(),
+            },
+            module_factory_address: deployment.module_factory.addr_str()?,
+            version_control_address: version_control.addr_str()?,
         },
-        module_factory_address: deployment.module_factory.addr_str()?,
-        version_control_address: version_control.addr_str()?,
-    }, None, &[])?;
+        None,
+        &[],
+    )?;
 
     let account_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     account.set_address(&Addr::unchecked(&account_addr));
@@ -235,20 +256,24 @@ fn create_one_account_with_namespace() -> AResult {
     let account = AccountI::new(ACCOUNT, chain);
 
     let namespace_to_claim = "namespace-to-claim";
-    let account_creation = account.instantiate(&account::InstantiateMsg{
-        name: String::from("first_account"),
-        description: Some(String::from("account_description")),
-        link: Some(String::from("https://account_link_of_at_least_11_char")),
-        namespace: Some(namespace_to_claim.to_string()),
-        install_modules: vec![],
-        account_id: None,
-        owner: GovernanceDetails::External {
-            governance_address: sender.to_string(),
-            governance_type: "some-gov-type".to_string(),
+    let account_creation = account.instantiate(
+        &account::InstantiateMsg {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: Some(namespace_to_claim.to_string()),
+            install_modules: vec![],
+            account_id: None,
+            owner: GovernanceDetails::External {
+                governance_address: sender.to_string(),
+                governance_type: "some-gov-type".to_string(),
+            },
+            module_factory_address: deployment.module_factory.addr_str()?,
+            version_control_address: deployment.version_control.addr_str()?,
         },
-        module_factory_address: deployment.module_factory.addr_str()?,
-        version_control_address: deployment.version_control.addr_str()?,
-    }, None, &[])?;
+        None,
+        &[],
+    )?;
 
     let account_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     account.set_address(&Addr::unchecked(&account_addr));
@@ -263,7 +288,9 @@ fn create_one_account_with_namespace() -> AResult {
         modules: vec![],
     });
     // We need to check if the namespace is associated with this account
-    let namespace = deployment.version_control.namespace(Namespace::new(namespace_to_claim)?)?;
+    let namespace = deployment
+        .version_control
+        .namespace(Namespace::new(namespace_to_claim)?)?;
 
     assert_that!(&namespace).is_equal_to(&NamespaceResponse::Claimed(NamespaceInfo {
         account_id: TEST_ACCOUNT_ID,
