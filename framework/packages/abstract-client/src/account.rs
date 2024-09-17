@@ -22,8 +22,8 @@
 use std::fmt::{Debug, Display};
 
 use abstract_interface::{
-    Abstract, AbstractInterfaceError, AccountDetails, AccountI, DependencyCreation, IbcClient,
-    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AbstractInterfaceError, AccountDetails, AccountExecFns, AccountI, AccountQueryFns,
+    DependencyCreation, IbcClient, InstallConfig, MFactoryQueryFns, RegisteredModule, VCQueryFns,
 };
 use abstract_std::{
     account,
@@ -40,7 +40,7 @@ use abstract_std::{
         AccountId,
     },
     version_control::{self, NamespaceResponse},
-    ACCOUNT, IBC_CLIENT,
+    IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{
@@ -341,12 +341,10 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             link: self.link.clone(),
             namespace: self.namespace.as_ref().map(ToString::to_string),
             install_modules,
+            account_id: self.expected_local_account_id,
         };
         let abstract_account = match self.owner_account {
-            None => {
-                // https://github.com/AbstractSDK/abstract/pull/446#discussion_r1756768435
-                todo!()
-            }
+            None => AccountI::create(self.abstr, account_details, ownership, &funds)?,
             Some(owner_account) => owner_account
                 .abstr_account
                 .create_sub_account_helper(account_details, &funds)?,
@@ -831,6 +829,7 @@ impl<Chain: CwEnv> Account<Chain> {
             None,
             None,
             None,
+            None,
             funds,
         )?;
 
@@ -989,7 +988,7 @@ pub mod test {
         let abstr = AbstractClient::builder(mock.clone()).build()?;
 
         let my_namespace = "my-namespace";
-        let new_account = abstr_builder().build()?;
+        let new_account = abstr.account_builder().build()?;
         new_account.claim_namespace(my_namespace)?;
 
         // Verify the namespace exists

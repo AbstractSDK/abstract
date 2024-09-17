@@ -1,9 +1,11 @@
 use abstract_sdk::std::{
-    account::state::{ADMIN, WHITELISTED_MODULES},
-    ibc_client::ExecuteMsg as IbcClientMsg,
-    IBC_CLIENT,
+    account::state::WHITELISTED_MODULES, ibc_client::ExecuteMsg as IbcClientMsg, IBC_CLIENT,
 };
-use abstract_std::{account::state::ADMIN_CALL_TO_CONTEXT, objects::ownership, ICA_CLIENT};
+use abstract_std::{
+    account::state::{ACCOUNT_MODULES, ADMIN_CALL_TO_CONTEXT},
+    objects::ownership,
+    ICA_CLIENT,
+};
 use cosmwasm_std::{
     wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, MessageInfo, StdError, SubMsg,
     WasmMsg, WasmQuery,
@@ -17,21 +19,6 @@ use crate::{
     modules::load_module_addr,
 };
 
-/// Internal function used to ensure the call originate either from the owner or from a whitelisted module
-fn account_action_access_control(deps: Deps, sender: &Addr) -> AccountResult<()> {
-    // If owner or higher level owner, it's ok
-    if ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok() {
-        return Ok(());
-    }
-
-    // If whitelisted address, ok
-    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if whitelisted_modules.0.contains(sender) {
-        return Ok(());
-    }
-
-    Err(AccountError::SenderNotAuthorized {})
-}
 /// Execute the [`exec_msg`] on the provided [`module_id`],
 /// This is a simple wrapper around `LocalAction`
 pub fn exec_on_module(
@@ -52,6 +39,17 @@ pub fn exec_on_module(
         })],
     )
 }
+/// Check that sender either whitelisted or governance
+pub(crate) fn assert_whitelisted(deps: Deps, sender: &Addr) -> AccountResult<()> {
+    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
+    if whitelisted_modules.0.contains(sender)
+        || ownership::is_owner(deps.storage, &deps.querier, sender)?
+    {
+        Ok(())
+    } else {
+        Err(AccountError::SenderNotWhitelisted {})
+    }
+}
 
 /// Executes `Vec<CosmosMsg>` on the proxy.
 /// Permission: Module
@@ -60,7 +58,7 @@ pub fn execute_account_action(
     msg_sender: &Addr,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    account_action_access_control(deps.as_ref(), msg_sender)?;
+    assert_whitelisted(deps.as_ref(), msg_sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
@@ -72,7 +70,7 @@ pub fn execute_account_action_response(
     msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    account_action_access_control(deps.as_ref(), msg_sender)?;
+    assert_whitelisted(deps.as_ref(), msg_sender)?;
 
     let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
@@ -118,16 +116,13 @@ pub fn execute_ibc_action(
     msg_info: MessageInfo,
     msg: IbcClientMsg,
 ) -> AccountResult {
-    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if !whitelisted_modules.0.contains(&msg_info.sender) {
-        return Err(AccountError::SenderNotWhitelisted {});
-    }
-    let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
-    let ibc_client_address = abstract_sdk::std::account::state::ACCOUNT_MODULES
-        .query(&deps.querier, manager_address, IBC_CLIENT)?
+    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+
+    let ibc_client_address = ACCOUNT_MODULES
+        .may_load(deps.storage, IBC_CLIENT)?
         .ok_or_else(|| {
             StdError::generic_err(format!(
-                "ibc_client not found on manager. Add it under the {IBC_CLIENT} name."
+                "ibc_client not found on account. Add it under the {IBC_CLIENT} name."
             ))
         })?;
 
@@ -149,17 +144,13 @@ pub fn execute_ibc_action(
 ///
 /// The resulting `Vec<CosmosMsg>` are then executed on the proxy contract.
 pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> AccountResult {
-    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if !whitelisted_modules.0.contains(&msg_info.sender) {
-        return Err(AccountError::SenderNotWhitelisted {});
-    }
+    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
 
-    let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
-    let ica_client_address = abstract_sdk::std::account::state::ACCOUNT_MODULES
-        .query(&deps.querier, manager_address, ICA_CLIENT)?
+    let ica_client_address = ACCOUNT_MODULES
+        .may_load(deps.storage, ICA_CLIENT)?
         .ok_or_else(|| {
             StdError::generic_err(format!(
-                "ica_client not found on manager. Add it under the {ICA_CLIENT} name."
+                "ica_client not found on account. Add it under the {ICA_CLIENT} name."
             ))
         })?;
 
