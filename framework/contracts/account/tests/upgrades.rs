@@ -31,7 +31,7 @@ fn install_app_successful() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
     let AccountI {
         account: manager,
         proxy: _,
@@ -74,7 +74,7 @@ fn install_app_versions_not_met() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
     let AccountI {
         account: manager,
         proxy: _,
@@ -104,7 +104,7 @@ fn upgrade_app() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
     let AccountI {
         account: manager,
         proxy: _,
@@ -358,7 +358,7 @@ fn no_duplicate_migrations() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
 
     abstr
         .version_control

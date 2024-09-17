@@ -18,7 +18,7 @@ fn throws_if_enabling_when_already_enabled() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
 
     manager.set_ibc_status(true)?;
     let res = manager.set_ibc_status(true);
@@ -33,7 +33,7 @@ fn throws_if_disabling_without_ibc_client_installed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
 
     let AccountI {
         account: manager,
@@ -52,7 +52,7 @@ fn can_update_ibc_settings() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
 
     let AccountI {
         account: manager,

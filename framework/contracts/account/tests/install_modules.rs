@@ -6,7 +6,7 @@ use abstract_std::{
         ExecuteMsg as AccountMsg, ModuleAddressesResponse, ModuleInstallConfig,
         QueryMsg as AccountQuery,
     },
-    objects::{module::ModuleInfo},
+    objects::module::ModuleInfo,
 };
 use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 use cw_orch::{prelude::*, take_storage_snapshot};
@@ -17,7 +17,7 @@ fn cannot_reinstall_module() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
 
     abstr
         .version_control
@@ -59,7 +59,7 @@ fn adds_module_to_account_modules() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
 
     abstr
         .version_control
@@ -90,7 +90,7 @@ fn useful_error_module_not_found() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&sender,&abstr)?;
+    let account = create_default_account(&sender, &abstr)?;
 
     let err = account
         .execute(
