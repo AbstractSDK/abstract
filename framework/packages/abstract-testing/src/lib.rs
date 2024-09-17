@@ -117,21 +117,6 @@ pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
     abstract_mock_querier_builder(mock_api).build()
 }
 
-/// Abstract-specific mock dependencies.
-///
-/// Sets the required queries for native contracts and the root Abstract Account.
-pub fn abstract_mock_dependencies() -> MockDeps {
-    let api = MockApi::default();
-    let querier = abstract_mock_querier(api.clone());
-
-    OwnedDeps {
-        storage: MockStorage::default(),
-        api,
-        querier,
-        custom_query_type: std::marker::PhantomData,
-    }
-}
-
 /// use the package version as test version, breaks tests otherwise.
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
@@ -207,7 +192,7 @@ pub mod module {
 }
 
 pub mod prelude {
-    pub use super::{abstract_mock_dependencies, abstract_mock_querier};
+    pub use super::{abstract_mock_querier, abstract_mock_querier_builder};
     pub use abstract_mock_querier::AbstractMockQuerier;
     use abstract_std::objects::{AccountId, AccountTrace};
     pub use addresses::*;

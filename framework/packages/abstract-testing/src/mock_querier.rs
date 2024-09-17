@@ -420,6 +420,7 @@ mod tests {
     };
 
     use super::*;
+    use cosmwasm_std::testing::mock_dependencies;
 
     mod account {
 
@@ -431,7 +432,7 @@ mod tests {
 
         #[test]
         fn should_return_admin_account_address() {
-            let mut deps = abstract_mock_dependencies();
+            let mut deps = mock_dependencies();
             deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -448,7 +449,7 @@ mod tests {
 
         #[test]
         fn should_return_account_address() {
-            let mut deps = abstract_mock_dependencies();
+            let mut deps = mock_dependencies();
             let account_base = Account::new(deps.api.addr_make("my_account"));
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account_base, TEST_ACCOUNT_ID)
@@ -533,7 +534,7 @@ mod tests {
 
         #[test]
         fn should_return_admin_acct_id() {
-            let mut deps = abstract_mock_dependencies();
+            let mut deps = mock_dependencies();
             deps.querier = abstract_mock_querier(deps.api);
             let root_base = admin_account(deps.api);
 
@@ -544,7 +545,7 @@ mod tests {
 
         #[test]
         fn should_return_test_acct_id() {
-            let mut deps = abstract_mock_dependencies();
+            let mut deps = mock_dependencies();
             let test_base = test_account_base(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&test_base, TEST_ACCOUNT_ID)
@@ -561,7 +562,7 @@ mod tests {
 
         #[test]
         fn should_return_test_module_address_for_test_module() {
-            let mut deps = abstract_mock_dependencies();
+            let mut deps = mock_dependencies();
             deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
