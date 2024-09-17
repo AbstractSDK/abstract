@@ -30,7 +30,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
     install_adapter(&account, TEST_MODULE_ID)?;
 
@@ -69,7 +69,7 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
     let sender = chain.sender_addr();
     chain.set_balance(&sender, coins(12, "ujunox"))?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
     add_mock_adapter_install_fee(
         &deployment,
@@ -107,7 +107,7 @@ fn install_non_existent_adapterid_should_fail() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     let res = install_adapter(&account, "lol:no_chance");
 
@@ -120,7 +120,7 @@ fn install_non_existent_version_should_fail() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     init_mock_adapter(chain, &deployment, None, account.id()?)?;
 
     let res = account.install_module_version(
@@ -141,7 +141,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let staking_adapter = init_mock_adapter(chain, &deployment, None, account.id()?)?;
 
     install_adapter(&account, TEST_MODULE_ID)?;
@@ -175,7 +175,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account, TEST_MODULE_ID)?;
@@ -213,7 +213,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     deployment
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
@@ -289,7 +289,7 @@ fn unauthorized_exec() -> AResult {
     let sender = chain.sender_addr();
     let unauthorized = chain.addr_make("unauthorized");
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
     install_adapter(&account, TEST_MODULE_ID)?;
     // non-authorized address cannot execute
@@ -317,7 +317,7 @@ fn manager_adapter_exec() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account, TEST_MODULE_ID)?;
@@ -337,7 +337,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     deployment
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
@@ -378,7 +378,7 @@ fn account_install_adapter() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     deployment
         .version_control
@@ -401,7 +401,7 @@ fn account_adapter_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     deployment
         .version_control
@@ -509,7 +509,7 @@ fn subaccount_adapter_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     deployment
         .version_control

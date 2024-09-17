@@ -10,7 +10,8 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
-        ownership, AccountId, ABSTRACT_ACCOUNT_ID,
+        ownership::{self, cw721::OwnerOfResponse},
+        AccountId, ABSTRACT_ACCOUNT_ID,
     },
     version_control::{NamespaceResponse, UpdateModule},
     ACCOUNT,
@@ -81,7 +82,7 @@ fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     let modules = account.module_infos(None, None)?.module_infos;
 
@@ -114,7 +115,7 @@ fn exec_through_manager() -> AResult {
     let sender = chain.sender_addr();
     // This testing environments allows you to use simple deploy contraptions:
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     // Mint coins to proxy address
     chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
@@ -149,7 +150,7 @@ fn default_without_response_data() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account, TEST_MODULE_ID)?;
@@ -275,7 +276,7 @@ fn install_multiple_modules() -> AResult {
     let sender = chain.sender_addr();
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AccountI::new(&deployment, ABSTRACT_ACCOUNT_ID);
+    let account = AccountI::load_from(&deployment, ABSTRACT_ACCOUNT_ID);
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -349,7 +350,7 @@ fn install_multiple_modules() -> AResult {
                     Some(to_json_binary(&MockInitMsg {}).unwrap()),
                 ),
             ],
-            Some(&[coin(86, "token1"), coin(500, "token2")]),
+            &[coin(86, "token1"), coin(500, "token2")],
         )
         .unwrap_err();
     assert!(err.root().to_string().contains(&format!(
@@ -416,7 +417,8 @@ fn renounce_cleans_namespace() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let account = deployment.account_factory.create_new_account(
+    let account = AccountI::create(
+        &deployment,
         AccountDetails {
             name: "foo".to_string(),
             description: None,
@@ -464,7 +466,8 @@ fn nft_owner_success() -> Result<(), Error> {
     };
 
     // create nft-owned account
-    let account = deployment.account_factory.create_new_account(
+    let account = AccountI::create(
+        &deployment,
         AccountDetails {
             name: "foo".to_string(),
             description: None,
@@ -477,7 +480,7 @@ fn nft_owner_success() -> Result<(), Error> {
         &[],
     )?;
 
-    let start_amnt = 100_000;
+    let start_amnt = 100_000u128;
     let burn_amnt = 10_000u128;
     let start_balance = vec![Coin::new(start_amnt, TTOKEN)];
     let burn_amount: Vec<Coin> = vec![Coin::new(burn_amnt, TTOKEN)];
@@ -531,7 +534,7 @@ fn nft_owner_success() -> Result<(), Error> {
             include_expired: None,
         },
     )?;
-    assert_eq!(resp.owner, new_nft_owner);
+    assert_eq!(resp.owner, new_nft_owner.to_string());
 
     // try to call as the old owner (default sender)
     let res = account.execute_on_module(ACCOUNT, &burn_msg);
@@ -562,7 +565,8 @@ fn nft_owner_immutable() -> Result<(), Error> {
     };
 
     // create nft-owned account
-    let account = deployment.account_factory.create_new_account(
+    let account = AccountI::create(
+        &deployment,
         AccountDetails {
             name: "foo".to_string(),
             description: None,
@@ -605,7 +609,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
     );
 
     // create nft-owned sub-account
-    let sub_account = account.create_sub_account(
+    let sub_account = account.create_and_return_sub_account(
         AccountDetails {
             name: "sub-foo".to_string(),
             description: None,
@@ -614,7 +618,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
             install_modules: vec![],
             account_id: None,
         },
-        None,
+        &[],
     )?;
 
     // NFT owned sub-account governance cannot be transferred
@@ -660,12 +664,12 @@ fn nft_pending_owner() -> Result<(), Error> {
         token_id: token_id.clone(),
     };
 
-    let account =
-        deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender_addr().to_string(),
-            })?;
+    let account = AccountI::create_default_account(
+        &deployment,
+        GovernanceDetails::Monarchy {
+            monarch: chain.sender_addr().to_string(),
+        },
+    )?;
     // Transferring to token id that pending governance don't own act same way as transferring to renounced governance
     let err: AccountError = account
         .update_ownership(GovAction::TransferOwnership {
@@ -765,7 +769,8 @@ fn can_take_any_last_two_billion_accounts() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    deployment.account_factory.create_new_account(
+    AccountI::create(
+        &deployment,
         AccountDetails {
             name: "foo".to_string(),
             description: None,
@@ -780,7 +785,8 @@ fn can_take_any_last_two_billion_accounts() -> AResult {
         &[],
     )?;
 
-    let already_exists = deployment.account_factory.create_new_account(
+    let already_exists = AccountI::create(
+        &deployment,
         AccountDetails {
             name: "foo".to_string(),
             description: None,
@@ -806,10 +812,11 @@ fn increment_not_effected_by_claiming() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let next_account_id = deployment.account_factory.config()?.local_account_sequence;
+    let next_account_id = deployment.version_control.config()?.local_account_sequence;
     assert_eq!(next_account_id, 1);
 
-    deployment.account_factory.create_new_account(
+    AccountI::create(
+        &deployment,
         AccountDetails {
             name: "foo".to_string(),
             description: None,
@@ -824,17 +831,18 @@ fn increment_not_effected_by_claiming() -> AResult {
         &[],
     )?;
 
-    let next_account_id = deployment.account_factory.config()?.local_account_sequence;
+    let next_account_id = deployment.version_control.config()?.local_account_sequence;
     assert_eq!(next_account_id, 1);
 
     // create new account
-    deployment
-        .account_factory
-        .create_default_account(GovernanceDetails::Monarchy {
+    AccountI::create_default_account(
+        &deployment,
+        GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
-        })?;
+        },
+    )?;
 
-    let next_account_id = deployment.account_factory.config()?.local_account_sequence;
+    let next_account_id = deployment.version_control.config()?.local_account_sequence;
     assert_eq!(next_account_id, 2);
 
     Ok(())

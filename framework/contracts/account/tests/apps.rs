@@ -27,7 +27,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     // mint coins to proxy address
     chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
@@ -83,7 +83,7 @@ fn account_app_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     deployment
         .version_control
@@ -126,7 +126,7 @@ fn subaccount_app_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     deployment
         .version_control
@@ -172,7 +172,7 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     deployment
         .version_control
@@ -198,7 +198,7 @@ fn deploy_strategy_uploaded() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let _account = create_default_account(&deployment.account_factory)?;
+    let _account = create_default_account(&sender, &deployment)?;
 
     deployment
         .version_control
@@ -271,7 +271,7 @@ fn deploy_strategy_deployed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let _account = create_default_account(&deployment.account_factory)?;
+    let _account = create_default_account(&sender, &deployment)?;
 
     deployment
         .version_control

@@ -17,7 +17,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     account.create_sub_account(
         vec![],
         "My subaccount".to_string(),
@@ -44,7 +44,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     account.create_sub_account(
         vec![],
         "My subaccount".to_string(),
@@ -75,7 +75,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let proxy_address = account.address()?;
     account.create_sub_account(
         vec![],
@@ -110,7 +110,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     account.create_sub_account(
         vec![],
         "My subaccount".to_string(),
@@ -156,7 +156,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     account.create_sub_account(
         vec![],
         "My subaccount".to_string(),
@@ -208,7 +208,7 @@ fn sub_account_move_ownership() -> AResult {
     let sender = chain.sender_addr();
     let new_owner = chain.addr_make("new_owner");
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     // Store manager address, it will be used for querying
     let manager_addr = account.address()?;
 
@@ -287,7 +287,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     account.create_sub_account(
         vec![],
@@ -302,7 +302,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     let sub_manager_addr = sub_account.address()?;
     let sub_proxy_addr = sub_account.address()?;
 
-    let new_account = create_default_account(&deployment.account_factory)?;
+    let new_account = create_default_account(&sender, &deployment)?;
     new_account.create_sub_account(
         vec![],
         "My second subaccount".to_string(),
@@ -365,7 +365,7 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let proxy_addr = account.address()?;
 
     account.create_sub_account(
@@ -380,7 +380,7 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
     let sub_account = AccountI::new(AccountId::local(42), chain);
     let sub_manager_addr = sub_account.address()?;
 
-    let new_account = create_default_account(&deployment.account_factory)?;
+    let new_account = create_default_account(&sender, &deployment)?;
     // proxy and manager of different accounts
     let new_governance = GovernanceDetails::SubAccount {
         manager: sub_manager_addr.to_string(),
@@ -405,12 +405,12 @@ fn account_updated_to_subaccount() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     // Creating account1
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let proxy1_addr = account.address()?;
     let manager1_addr = account.address()?;
 
     // Creating account2
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let manager2_addr = account.address()?;
 
     // Setting account1 as pending owner of account2
@@ -448,12 +448,12 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     // Creating account1
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let proxy1_addr = account.address()?;
     let manager1_addr = account.address()?;
 
     // Creating account2
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
 
     // Setting account1 as pending owner of account2
     account.update_ownership(GovAction::TransferOwnership {
@@ -479,7 +479,7 @@ fn top_level_owner() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     // Creating sub account
     account.create_sub_account(
         vec![],
@@ -504,7 +504,7 @@ fn cant_renounce_with_sub_accounts() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     // Creating sub account
     account.create_sub_account(
         vec![],
@@ -531,7 +531,7 @@ fn can_renounce_sub_accounts() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     // Creating sub account
     account.create_sub_account(
         vec![],
@@ -568,10 +568,10 @@ fn account_updated_to_subaccount_without_recursion() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     // Creating account1
-    let account_1 = create_default_account(&deployment.account_factory)?;
+    let account_1 = create_default_account(&sender, &deployment)?;
 
     // Creating account2
-    let account_2 = create_default_account(&deployment.account_factory)?;
+    let account_2 = create_default_account(&sender, &deployment)?;
 
     // Setting account1 as pending owner of account2
     account_2
@@ -612,7 +612,7 @@ fn sub_account_to_regular_account_without_recursion() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     // Creating account1
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&sender, &deployment)?;
     let sub_account = account.create_sub_account(
         AccountDetails {
             name: "sub_account".to_owned(),
