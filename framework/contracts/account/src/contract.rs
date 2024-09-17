@@ -27,13 +27,11 @@ use cosmwasm_std::{
 
 pub use crate::migrate::migrate;
 use crate::{
-    actions::{
+    config::{update_account_status, update_info, update_internal_config},
+    error::AccountError,
+    execution::{
         execute_ibc_action, execute_module_action, execute_module_action_response, ica_action,
     },
-    config::{
-        remove_account_from_contracts, update_account_status, update_info, update_internal_config,
-    },
-    error::AccountError,
     modules::{
         _install_modules, exec_on_module, install_modules,
         migration::{handle_callback, upgrade_modules},
@@ -47,6 +45,7 @@ use crate::{
     reply::{forward_response_data, register_dependencies},
     sub_account::{
         create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
+        remove_account_from_contracts,
     },
 };
 

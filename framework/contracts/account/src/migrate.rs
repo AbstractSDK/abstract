@@ -26,7 +26,7 @@ mod tests {
     use crate::error::AccountError;
     use crate::{contract, test_common::mock_init};
 
-    use abstract_std::{manager::MigrateMsg, AbstractError};
+    use abstract_std::{account::MigrateMsg, AbstractError};
     use cw2::get_contract_version;
 
     use super::*;

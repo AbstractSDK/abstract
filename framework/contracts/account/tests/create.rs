@@ -1,11 +1,9 @@
-use abstract_interface::{
-    AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
-};
+use abstract_interface::{AbstractAccount, VCQueryFns, *};
 use abstract_std::{
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
     },
-    version_control::{Account, NamespaceInfo, NamespaceResponse},
+    version_control::{self, Account, NamespaceInfo, NamespaceResponse},
     ABSTRACT_EVENT_TYPE,
 };
 use abstract_testing::prelude::*;
@@ -20,16 +18,14 @@ fn instantiate() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
-    let factory = deployment.account_factory;
-    let factory_config = factory.config()?;
-    let expected = account_factory::ConfigResponse {
-        ans_host_contract: deployment.ans_host.address()?,
-        version_control_contract: deployment.version_control.address()?,
-        module_factory_address: deployment.module_factory.address()?,
-        local_account_sequence: 1,
+    let vc = deployment.version_control;
+    let vc_config = vc.config()?;
+    let expected = abstract_std::version_control::ConfigResponse {
+        security_disabled: true,
+        namespace_registration_fee: None,
     };
 
-    assert_that!(&factory_config).is_equal_to(&expected);
+    assert_that!(&vc_config).is_equal_to(&expected);
     Ok(())
 }
 
@@ -39,37 +35,37 @@ fn create_one_account() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
-    let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    let account_creation = factory.create_account(
+
+    let account_creation = AccountI::create(
+        &deployment,
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: None,
+            install_modules: vec![],
+            account_id: None,
+        },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        vec![],
-        String::from("first_account"),
-        None,
-        Some(String::from("account_description")),
-        Some(String::from("https://account_link_of_at_least_11_char")),
-        None,
+        // Account creation fee not covered
         &[],
-    )?;
+    );
 
-    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
-    let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+    let account = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
 
-    let factory_config = factory.config()?;
-    let expected = account_factory::ConfigResponse {
-        ans_host_contract: deployment.ans_host.address()?,
-        version_control_contract: deployment.version_control.address()?,
-        module_factory_address: deployment.module_factory.address()?,
-        local_account_sequence: 2,
+    let version_control_config = version_control.config()?;
+    let expected = version_control::ConfigResponse {
+        security_disabled: todo!(),
+        namespace_registration_fee: todo!(),
     };
 
-    assert_that!(&factory_config).is_equal_to(&expected);
+    assert_that!(&version_control_config).is_equal_to(&expected);
 
     let vc_config = version_control.config()?;
     let expected = abstract_std::version_control::ConfigResponse {
-        account_factory_address: Some(factory.address()?),
         security_disabled: true,
         namespace_registration_fee: Default::default(),
     };
@@ -92,10 +88,10 @@ fn create_two_account_s() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
-    let factory = &deployment.account_factory;
+    let version_control = &deployment.account_factory;
     let version_control = &deployment.version_control;
     // first account
-    let account_1 = factory.create_account(
+    let account_1 = version_control.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
@@ -108,7 +104,7 @@ fn create_two_account_s() -> AResult {
         &[],
     )?;
     // second account
-    let account_2 = factory.create_account(
+    let account_2 = version_control.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
@@ -121,16 +117,14 @@ fn create_two_account_s() -> AResult {
         &[],
     )?;
 
-    let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
-    let proxy1 = account_1.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+    let account1 = account_1.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     let account_1_id = TEST_ACCOUNT_ID;
 
-    let manager2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
-    let proxy2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+    let account2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     let account_2_id = AccountId::new(TEST_ACCOUNT_ID.seq() + 1, AccountTrace::Local)?;
 
-    let factory_config = factory.config()?;
-    let expected = account_factory::ConfigResponse {
+    let version_control_config = version_control.config()?;
+    let expected = version_control::ConfigResponse {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
@@ -138,11 +132,11 @@ fn create_two_account_s() -> AResult {
         local_account_sequence: account_2_id.seq() + 1,
     };
 
-    assert_that!(&factory_config).is_equal_to(&expected);
+    assert_that!(&version_control_config).is_equal_to(&expected);
 
     let vc_config = version_control.config()?;
     let expected = abstract_std::version_control::ConfigResponse {
-        account_factory_address: Some(factory.address()?),
+        account_factory_address: Some(version_control.address()?),
         security_disabled: true,
         namespace_registration_fee: Default::default(),
     };
@@ -151,7 +145,7 @@ fn create_two_account_s() -> AResult {
 
     let account_1 = version_control.account_base(account_1_id)?.account_base;
     assert_that!(&account_1).is_equal_to(Account {
-        manager: Addr::unchecked(manager1),
+        manager: Addr::unchecked(account1),
         proxy: Addr::unchecked(proxy1),
     });
 
@@ -170,9 +164,9 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
-    let factory = &deployment.account_factory;
+    let version_control = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    let account_creation = factory.create_account(
+    let account_creation = version_control.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
@@ -185,8 +179,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         &[],
     )?;
 
-    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
-    let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
 
     let account = version_control.account_base(TEST_ACCOUNT_ID)?.account_base;
 
@@ -221,9 +214,9 @@ fn sender_is_not_admin_external() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
-    let factory = &deployment.account_factory;
+    let version_control = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    factory.create_account(
+    version_control.create_account(
         GovernanceDetails::External {
             governance_address: sender.to_string(),
             governance_type: "some-gov-type".to_string(),
@@ -256,12 +249,12 @@ fn create_one_account_with_namespace() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let factory = &deployment.account_factory;
+    let version_control = &deployment.account_factory;
     let version_control = &deployment.version_control;
 
     let namespace_to_claim = "namespace-to-claim";
 
-    let account_creation = factory.create_account(
+    let account_creation = version_control.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
@@ -274,8 +267,7 @@ fn create_one_account_with_namespace() -> AResult {
         &[],
     )?;
 
-    let manager_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
-    let proxy_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+    let manager_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
 
     // We need to check if the namespace is associated with this account
     let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;
@@ -296,5 +288,5 @@ fn create_one_account_with_namespace_fee() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::account_factory::create_one_account_with_namespace_fee(chain)
+    abstract_integration_tests::create::create_one_account_with_namespace_fee(chain)
 }

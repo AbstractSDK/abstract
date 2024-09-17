@@ -38,7 +38,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         deps.storage,
         &Config {
             // Account factory should be set by `update_config`
-            account_factory_address: None,
             security_disabled: security_disabled.unwrap_or(false),
             namespace_registration_fee,
         },
@@ -108,7 +107,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             let config = CONFIG.load(deps.storage)?;
             let local_account_sequence = LOCAL_ACCOUNT_SEQUENCE.load(deps.storage)?;
             to_json_binary(&ConfigResponse {
-                account_factory_address: config.account_factory_address,
                 security_disabled: config.security_disabled,
                 namespace_registration_fee: config.namespace_registration_fee,
                 local_account_sequence,

@@ -36,7 +36,7 @@ use cw_orch::{environment::Environment, interface, prelude::*};
 use semver::{Version, VersionReq};
 use serde::Serialize;
 use speculoos::prelude::*;
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::Debug};
 
 /// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
 #[derive(Default)]
@@ -509,7 +509,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         Ok(self.config()?.account_id)
     }
 
-    pub fn create_sub_account_helper(
+    pub fn create_and_return_sub_account(
         &self,
         account_details: AccountDetails,
         funds: &[Coin],
@@ -738,5 +738,11 @@ impl<Chain: CwEnv> std::fmt::Display for AccountI<Chain> {
             self.addr_str()
                 .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
         )
+    }
+}
+
+impl<Chain: CwEnv> Debug for AccountI<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Account: {:?}", self.id())
     }
 }
