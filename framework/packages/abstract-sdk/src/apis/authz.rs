@@ -32,22 +32,23 @@ use super::stargate::{
 use crate::{features::AccountExecutor, AbstractSdkResult};
 /// An interface to the CosmosSDK AuthZ module which allows for granting authorizations to perform actions on behalf of one account to other accounts.
 pub trait AuthZInterface: AccountExecutor {
-    /**
-     API for accessing the Cosmos SDK AuthZ module.
-     The **granter** is the address of the user **granting** an authorization to perform an action on their behalf.
-     By default, it is the proxy address of the Account.
+    /// API for accessing the Cosmos SDK AuthZ module.
+    /// The **granter** is the address of the user **granting** an authorization to perform an action on their behalf.
+    /// By default, it is the proxy address of the Account.
 
-    # Example
-    ```
-    use abstract_sdk::prelude::*;
-    # use cosmwasm_std::testing::mock_dependencies;
-    # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
-    # let deps = mock_dependencies();
-
-    let authz: AuthZ = module.auth_z(deps.as_ref(), None)?;
-    ```
-    */
+    /// ```
+    /// use abstract_sdk::prelude::*;
+    /// # use cosmwasm_std::testing::mock_dependencies;
+    /// # use abstract_sdk::{mock_module::MockModule, AuthZInterface, AuthZ, AbstractSdkResult};
+    /// # use abstract_testing::prelude::*;
+    /// # let deps = mock_dependencies();
+    /// # let account = admin_account(deps.api);
+    /// # let module = MockModule::new(deps.api, account);
+    ///
+    /// let authz: AuthZ = module.auth_z(deps.as_ref(), None)?;
+    ///
+    /// # AbstractSdkResult::Ok(())
+    /// ```
     fn auth_z<'a>(
         &'a self,
         deps: cosmwasm_std::Deps<'a>,
@@ -66,10 +67,14 @@ impl<T> AuthZInterface for T where T: AccountExecutor {}
 /// ```
 /// use abstract_sdk::prelude::*;
 /// # use cosmwasm_std::testing::mock_dependencies;
-/// # use abstract_sdk::mock_module::MockModule;
-/// # let module = MockModule::new();
+/// # use abstract_sdk::{AbstractSdkResult, mock_module::MockModule, AuthZInterface, AuthZ};
+/// # use abstract_testing::prelude::*;
+/// # let deps = mock_dependencies();
+/// # let account = admin_account(deps.api);
+/// # let module = MockModule::new(deps.api, account);
 ///
 /// let authz: Authz  = module.auth_z(deps.as_ref(), None)?;
+/// # AbstractSdkResult::Ok(())
 /// ```
 /// */
 #[derive(Clone)]

@@ -26,8 +26,10 @@ pub trait TransferInterface:
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
-        # let module = MockModule::new(deps.api);
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let bank: Bank<MockModule>  = module.bank(deps.as_ref());
         ```
@@ -65,8 +67,10 @@ impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
-    # let module = MockModule::new(deps.api);
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let bank: Bank<MockModule>  = module.bank(deps.as_ref());
     ```

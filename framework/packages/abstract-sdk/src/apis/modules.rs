@@ -21,8 +21,10 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
-        # let module = MockModule::new(deps.api);
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
@@ -57,8 +59,10 @@ impl<'a, T: ModuleInterface> ApiIdentification for Modules<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
-    # let module = MockModule::new(deps.api);
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let modules: Modules<MockModule>  = module.modules(deps.as_ref());
     ```

@@ -66,8 +66,10 @@ impl<'a, T: AccountVerification> ApiIdentification for AccountRegistry<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
-    # let module = MockModule::new(deps.api);
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
     ```
