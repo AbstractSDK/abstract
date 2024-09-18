@@ -8,7 +8,6 @@ use crate::{
 };
 use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 
-#[derive(Clone)]
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,

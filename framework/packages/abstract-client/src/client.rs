@@ -50,7 +50,6 @@ use crate::{
 };
 
 /// Client to interact with Abstract accounts and modules
-#[derive(Clone)]
 pub struct AbstractClient<Chain: CwEnv> {
     pub(crate) abstr: Abstract<Chain>,
 }
