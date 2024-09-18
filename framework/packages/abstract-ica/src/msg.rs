@@ -30,7 +30,7 @@ pub enum QueryMsg {
 
     #[returns(IcaActionResult)]
     IcaAction {
-        // Proxy address used to query polytone implementations or proxy itself.
+        // Account address used to query polytone implementations or account itself.
         account_address: String,
         // Chain to send to
         chain: TruncatedChainId,
