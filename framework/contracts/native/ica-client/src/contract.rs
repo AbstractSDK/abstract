@@ -61,13 +61,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> IcaClientResult<QueryRespon
             to_json_binary(&cw_ownable::get_ownership(deps.storage)?).map_err(Into::into)
         }
         QueryMsg::IcaAction {
-            proxy_address,
+            account_address,
             chain,
             actions,
         } => to_json_binary(&queries::ica_action(
             deps,
             env,
-            proxy_address,
+            account_address,
             chain,
             actions,
         )?)
