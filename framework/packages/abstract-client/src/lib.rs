@@ -80,6 +80,26 @@ mod interchain {
             })
         }
 
+        /// Loads Abstract from all the environments specified inside `interchain_env`
+        /// Use `get_abstract` to get a single abstract instance
+        pub fn new<Interchain: InterchainEnv<Chain>>(
+            interchain: &Interchain,
+        ) -> AbstractClientResult<Self> {
+            let clients = interchain
+                .chains()
+                .map_err(Into::into)?
+                .iter()
+                .map(|chain| AbstractClient::new(chain.clone()))
+                .collect::<Result<Vec<_>, _>>()?;
+
+            Ok(AbstractInterchainClient {
+                clients: clients
+                    .into_iter()
+                    .map(|c| (c.environment().chain_id(), c))
+                    .collect(),
+            })
+        }
+
         /// Getter for an abstract client within this object
         pub fn get_abstract(&self, chain_id: &str) -> AbstractClientResult<AbstractClient<Chain>> {
             self.clients
