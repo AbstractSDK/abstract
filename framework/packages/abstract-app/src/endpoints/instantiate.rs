@@ -74,7 +74,6 @@ mod test {
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_std::app::BaseInstantiateMsg;
     use abstract_testing::prelude::*;
-    use speculoos::{assert_that, prelude::*};
 
     #[test]
     fn test_instantiate() {
@@ -97,6 +96,6 @@ mod test {
         let res = MOCK_APP_WITH_DEP
             .instantiate(deps.as_mut(), mock_env(), info, msg)
             .unwrap();
-        assert_that!(res.messages).is_empty();
+        assert!(res.messages.is_empty());
     }
 }

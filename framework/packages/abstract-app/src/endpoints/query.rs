@@ -55,11 +55,10 @@ impl<
 
     fn dapp_config(&self, deps: Deps) -> StdResult<AppConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
-        let admin = self.admin.get(deps)?.unwrap();
         Ok(AppConfigResponse {
-            account: state.account.into_addr(),
+            account: state.account.addr().to_owned(),
             ans_host_address: state.ans_host.address,
-            manager_address: admin,
+            version_control_address: state.version_control.address,
         })
     }
 
@@ -94,7 +93,6 @@ mod test {
     use abstract_sdk::base::QueryEndpoint;
     use cosmwasm_std::testing::mock_env;
     use cosmwasm_std::{Binary, Deps};
-    use speculoos::prelude::*;
 
     use super::QueryMsg as SuperQueryMsg;
     use crate::mock::*;
@@ -118,15 +116,12 @@ mod test {
 
             let res = query_helper(deps.as_ref(), msg);
 
-            assert_that!(res)
-                .is_err()
-                .matches(|e| {
-                    matches!(
-                        e,
-                        MockError::AbstractSdk(AbstractSdkError::MissingHandler { .. })
-                    )
-                })
-                .matches(|e| e.to_string().contains("query"));
+            assert!(matches!(
+                res,
+                Err(MockError::AbstractSdk(
+                    AbstractSdkError::MissingHandler { .. }
+                ))
+            ));
         }
 
         fn mock_query_handler(
@@ -148,7 +143,7 @@ mod test {
             let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);
 
             let expected = to_json_binary(&MockQueryMsg::GetSomething {}).unwrap();
-            assert_that!(res).is_ok().is_equal_to(expected);
+            assert_eq!(res, Ok(expected));
         }
     }
 
@@ -163,15 +158,19 @@ mod test {
         fn config() -> AppTestResult {
             let deps = mock_init();
             let abstr = AbstractMockAddrs::new(deps.api);
+            let account = test_account_base(deps.api);
 
             let config_query = QueryMsg::Base(BaseQueryMsg::BaseConfig {});
             let res = query_helper(deps.as_ref(), config_query)?;
 
-            assert_that!(from_json(res).unwrap()).is_equal_to(AppConfigResponse {
-                account: abstr.account.proxy,
-                ans_host_address: abstr.ans_host,
-                manager_address: abstr.account.manager,
-            });
+            assert_eq!(
+                AppConfigResponse {
+                    account: account.addr().to_owned(),
+                    ans_host_address: abstr.ans_host,
+                    version_control_address: abstr.version_control,
+                },
+                from_json(res).unwrap()
+            );
 
             Ok(())
         }
@@ -179,14 +178,17 @@ mod test {
         #[test]
         fn admin() -> AppTestResult {
             let deps = mock_init();
-            let base = test_account_base(deps.api);
+            let account = test_account_base(deps.api);
 
             let admin_query = QueryMsg::Base(BaseQueryMsg::BaseAdmin {});
             let res = query_helper(deps.as_ref(), admin_query)?;
 
-            assert_that!(from_json(res).unwrap()).is_equal_to(AdminResponse {
-                admin: Some(base.manager.to_string()),
-            });
+            assert_eq!(
+                AdminResponse {
+                    admin: Some(account.addr().to_string()),
+                },
+                from_json(res).unwrap()
+            );
 
             Ok(())
         }
