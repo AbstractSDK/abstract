@@ -1,6 +1,8 @@
 use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, VersionControl};
 use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
+
+#[derive(Clone)]
 pub struct AbstractIbc<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
     pub host: IbcHost<Chain>,
