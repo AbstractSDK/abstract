@@ -6,63 +6,57 @@ pub const ADMIN_NAMESPACE: &str = "admin";
 pub const OWNERSHIP_STORAGE_KEY: &str = "ownership";
 /// storage key for ModuleData
 pub const MODULE_STORAGE_KEY: &str = "mod";
+/// Storage key for config in all modules
+pub const CONFIG_STORAGE_KEY: &str = "cfg";
 
 pub mod account {
     pub const SUSPENSION_STATUS: &str = "aa";
-    pub const CONFIG: &str = "ab";
-    pub const INFO: &str = "ac";
-    pub const ACCOUNT_MODULES: &str = "ad";
-    pub const DEPENDENTS: &str = "ae";
-    pub const SUB_ACCOUNTS: &str = "af";
-    pub const WHITELISTED_MODULES: &str = "ag";
-    pub const ACCOUNT_ID: &str = "ah";
-    pub const INSTALL_MODULES_CONTEXT: &str = "ai";
-    pub const MIGRATE_CONTEXT: &str = "aj";
+    pub const INFO: &str = "ab";
+    pub const ACCOUNT_MODULES: &str = "ac";
+    pub const DEPENDENTS: &str = "ad";
+    pub const SUB_ACCOUNTS: &str = "ae";
+    pub const WHITELISTED_MODULES: &str = "af";
+    pub const ACCOUNT_ID: &str = "ag";
+    pub const INSTALL_MODULES_CONTEXT: &str = "ah";
+    pub const MIGRATE_CONTEXT: &str = "ai";
 }
 
 pub mod ans_host {
-    pub const CONFIG: &str = "ba";
-    pub const ASSET_ADDRESSES: &str = "bb";
-    pub const REV_ASSET_ADDRESSES: &str = "bc";
-    pub const CONTRACT_ADDRESSES: &str = "bd";
-    pub const CHANNELS: &str = "be";
-    pub const REGISTERED_DEXES: &str = "bf";
-    pub const ASSET_PAIRINGS: &str = "bg";
-    pub const POOL_METADATA: &str = "bh";
+    pub const ASSET_ADDRESSES: &str = "ba";
+    pub const REV_ASSET_ADDRESSES: &str = "bb";
+    pub const CONTRACT_ADDRESSES: &str = "bc";
+    pub const CHANNELS: &str = "bd";
+    pub const REGISTERED_DEXES: &str = "be";
+    pub const ASSET_PAIRINGS: &str = "bf";
+    pub const POOL_METADATA: &str = "bg";
 }
 
 pub mod version_control {
-    pub const CONFIG: &str = "ca";
-    pub const PENDING_MODULES: &str = "cb";
-    pub const REGISTERED_MODULES: &str = "cc";
-    pub const STANDALONE_INFOS: &str = "cd";
-    pub const SERVICE_INFOS: &str = "ce";
-    pub const YANKED_MODULES: &str = "cf";
-    pub const MODULE_CONFIG: &str = "cg";
-    pub const MODULE_DEFAULT_CONFIG: &str = "ch";
-    pub const ACCOUNT_ADDRESSES: &str = "ci";
-    pub const LOCAL_ACCOUNT_SEQUENCE: &str = "cj";
+    pub const PENDING_MODULES: &str = "ca";
+    pub const REGISTERED_MODULES: &str = "cb";
+    pub const STANDALONE_INFOS: &str = "cc";
+    pub const SERVICE_INFOS: &str = "cd";
+    pub const YANKED_MODULES: &str = "ce";
+    pub const MODULE_CONFIG: &str = "cf";
+    pub const MODULE_DEFAULT_CONFIG: &str = "cg";
+    pub const ACCOUNT_ADDRESSES: &str = "ch";
+    pub const LOCAL_ACCOUNT_SEQUENCE: &str = "ci";
 }
 
 pub mod module_factory {
-    pub const CONFIG: &str = "da";
-    pub const CURRENT_BASE: &str = "db";
+    pub const CURRENT_BASE: &str = "da";
 }
 pub mod ibc_client {
     pub const IBC_INFRA: &str = "ea";
     pub const REVERSE_POLYTONE_NOTE: &str = "eb";
-    pub const CONFIG: &str = "ec";
-    pub const ACCOUNTS: &str = "ed";
-    pub const ACKS: &str = "ee";
+    pub const ACCOUNTS: &str = "ec";
+    pub const ACKS: &str = "ed";
 }
 
 pub mod ibc_host {
     pub const CHAIN_PROXIES: &str = "fa";
     pub const REVERSE_CHAIN_PROXIES: &str = "fb";
-    pub const CONFIG: &str = "fc";
-    pub const TEMP_ACTION_AFTER_CREATION: &str = "fd";
+    pub const TEMP_ACTION_AFTER_CREATION: &str = "fc";
 }
 
-pub mod ica_client {
-    pub const CONFIG: &str = "ga";
-}
+pub mod ica_client {}

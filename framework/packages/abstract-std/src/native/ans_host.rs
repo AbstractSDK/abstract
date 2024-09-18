@@ -51,7 +51,7 @@ pub mod state {
         pub next_unique_pool_id: UniquePoolId,
     }
 
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::ans_host::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     // ANCHOR: ans_state
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically

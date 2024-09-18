@@ -19,7 +19,7 @@ pub mod state {
         pub ans_host_address: Addr,
     }
 
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::module_factory::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     /// Base of account on which modules getting installed right now
     /// It's set only if one of the modules is standalone
     pub const CURRENT_BASE: Item<Account> =

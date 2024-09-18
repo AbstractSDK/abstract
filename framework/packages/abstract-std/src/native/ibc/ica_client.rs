@@ -5,7 +5,7 @@ pub mod state {
         ans_host::AnsHost, storage_namespaces, version_control::VersionControlContract,
     };
 
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::ica_client::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {

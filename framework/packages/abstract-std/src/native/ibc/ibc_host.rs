@@ -30,7 +30,7 @@ pub mod state {
     pub const REVERSE_CHAIN_PROXIES: Map<&Addr, TruncatedChainId> =
         Map::new(storage_namespaces::ibc_host::REVERSE_CHAIN_PROXIES);
     /// Configuration of the IBC host
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::ibc_host::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
 
     // Temporary structure to hold actions to be executed after account creation
     pub const TEMP_ACTION_AFTER_CREATION: Item<ActionAfterCreationCache> =

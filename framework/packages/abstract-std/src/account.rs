@@ -70,7 +70,7 @@ pub mod state {
     pub const SUSPENSION_STATUS: Item<SuspensionStatus> =
         Item::new(storage_namespaces::account::SUSPENSION_STATUS);
     /// Configuration
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::account::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     /// Info about the Account
     pub const INFO: Item<AccountInfo> = Item::new(storage_namespaces::account::INFO);
     /// Enabled Abstract modules

@@ -52,7 +52,7 @@ pub mod state {
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> =
         Map::new(storage_namespaces::ibc_client::REVERSE_POLYTONE_NOTE);
 
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::ibc_client::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
     /// triple instead of including AccountId since nested tuples do not behave as expected due to
     /// a bug that will be fixed in a future release.

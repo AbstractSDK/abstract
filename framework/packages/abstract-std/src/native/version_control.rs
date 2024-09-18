@@ -30,7 +30,7 @@ pub mod state {
         storage_namespaces::{self},
     };
 
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::version_control::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
 
     // Modules waiting for approvals
     pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> =
