@@ -3,7 +3,9 @@ use abstract_app::objects::namespace::Namespace;
 use abstract_app::objects::AccountId;
 
 use abstract_app::std::ABSTRACT_EVENT_TYPE;
-use abstract_client::{AbstractClient, Application, Environment, RemoteAccount};
+use abstract_client::{
+    AbstractClient, AbstractInterchainClient, Application, Environment, RemoteAccount,
+};
 
 use abstract_app::std::objects::account::AccountTrace;
 use abstract_app::std::objects::TruncatedChainId;
@@ -31,13 +33,10 @@ impl<'a> PingPong<'a, MockBech32, MockBech32InterchainEnv> {
     fn setup(
         mock_interchain: &'a MockBech32InterchainEnv,
     ) -> anyhow::Result<PingPong<'a, MockBech32, MockBech32InterchainEnv>> {
-        let mock_juno = mock_interchain.get_chain(JUNO).unwrap();
-        let mock_stargaze = mock_interchain.get_chain(STARGAZE).unwrap();
+        let interchain_abstract = AbstractInterchainClient::build(mock_interchain)?;
 
-        let abs_juno = AbstractClient::builder(mock_juno.clone()).build()?;
-        let abs_stargaze = AbstractClient::builder(mock_stargaze.clone()).build()?;
-
-        abs_juno.connect_to(&abs_stargaze, mock_interchain)?;
+        let abs_juno = interchain_abstract.get_abstract(JUNO)?;
+        let abs_stargaze = interchain_abstract.get_abstract(STARGAZE)?;
 
         let namespace = Namespace::from_id(APP_ID)?;
         // Publish and install on both chains

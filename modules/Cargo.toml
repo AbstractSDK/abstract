@@ -110,6 +110,19 @@ abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", 
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", branch = "buckram/update-interface-package" }
 
+# cw-orch-interchain-core = { path = "../../cw-orchestrator/packages/interchain/interchain-core" }
+# cw-orch-interchain-daemon = { path = "../../cw-orchestrator/packages/interchain/interchain-daemon" }
+# cw-orch-interchain-mock = { path = "../../cw-orchestrator/packages/interchain/interchain-mock" }
+# cw-orch-core = { path = "../../cw-orchestrator/packages/cw-orch-core" }
+# cw-orch-daemon = { path = "../../cw-orchestrator/cw-orch-daemon" }
+# cw-orch-mock = { path = "../../cw-orchestrator/packages/cw-orch-mock" }
+cw-orch-interchain-core = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
+cw-orch-interchain-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
+cw-orch-interchain-mock = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
+cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
+cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
+cw-orch-mock = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
+
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
