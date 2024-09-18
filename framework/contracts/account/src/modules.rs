@@ -687,7 +687,7 @@ mod test {
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
-        let base = test_account(deps.api);
+        let base = test_account_base(deps.api);
         let info = message_info(&base.manager, &[]);
         execute(deps.as_mut(), mock_env(), info, msg)
     }

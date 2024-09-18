@@ -164,7 +164,7 @@ mod tests {
     type ManagerTestResult = Result<(), ManagerError>;
 
     fn mock_installed_proxy(deps: &mut MockDeps) -> StdResult<()> {
-        let base = test_account(deps.api);
+        let base = test_account_base(deps.api);
         ACCOUNT_MODULES.save(deps.as_mut().storage, ACCOUNT, &base.proxy)
     }
 

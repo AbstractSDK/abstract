@@ -364,7 +364,7 @@ mod test {
         );
         assert_that!(msg).is_ok();
 
-        let base = test_account(deps.api);
+        let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
@@ -399,7 +399,7 @@ mod test {
         );
         assert_that!(msg).is_ok();
 
-        let base = test_account(deps.api);
+        let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
