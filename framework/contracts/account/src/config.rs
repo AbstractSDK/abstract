@@ -1,7 +1,7 @@
 use crate::{
     contract::{AccountResponse, AccountResult},
     error::AccountError,
-    modules::update_module_addresses,
+    modules::{_remove_whitelist_modules, _whitelist_modules, update_module_addresses},
 };
 use abstract_sdk::{cw_helpers::AbstractAttributes, feature_objects::VersionControlContract};
 use abstract_std::{
@@ -55,36 +55,51 @@ pub fn update_suspension_status(
 
 /// Allows the owner to manually update the internal configuration of the account.
 /// This can be used to unblock the account and its modules in case of a bug/lock on the account.
-pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) -> AccountResult {
-    // deserialize the config action
-    let action: InternalConfigAction =
-        from_json(config).map_err(|error| AccountError::InvalidConfigAction { error })?;
+pub fn update_internal_config(
+    mut deps: DepsMut,
+    info: MessageInfo,
+    action: InternalConfigAction,
+) -> AccountResult {
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
-    let (add, remove) = match action {
-        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => (to_add, to_remove),
+    match action {
+        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => {
+            let api = deps.api;
+
+            // validate addresses
+            let add: Result<Vec<(String, Addr)>, _> = to_add
+                .into_iter()
+                .map(|(a, b)| {
+                    let addr = api.addr_validate(&b)?;
+                    Ok::<(String, Addr), StdError>((a, addr))
+                })
+                .collect();
+            let add = add?;
+
+            update_module_addresses(deps, add, to_remove)
+        }
+        // TODO: Add tests for this action
+        InternalConfigAction::UpdateWhitelist { to_add, to_remove } => {
+            let module_addresses_to_add: Result<Vec<Addr>, _> = to_add
+                .into_iter()
+                .map(|str_addr| Ok::<Addr, StdError>(deps.api.addr_validate(&str_addr)?))
+                .collect();
+            let module_addresses_to_remove: Result<Vec<Addr>, _> = to_remove
+                .into_iter()
+                .map(|str_addr| Ok::<Addr, StdError>(deps.api.addr_validate(&str_addr)?))
+                .collect();
+
+            _whitelist_modules(deps.branch(), module_addresses_to_add?)?;
+            _remove_whitelist_modules(deps, module_addresses_to_remove?)?;
+
+            Ok(AccountResponse::action("update_whitelist"))
+        }
         _ => {
             return Err(AccountError::InvalidConfigAction {
                 error: StdError::generic_err("Unknown config action"),
             })
         }
-    };
-
-    let api = deps.api;
-
-    // validate addresses
-    let add = add
-        .map(|vec| {
-            vec.into_iter()
-                .map(|(a, b)| {
-                    let addr = api.addr_validate(&b)?;
-                    Ok::<(String, Addr), StdError>((a, addr))
-                })
-                .collect()
-        })
-        .transpose()?;
-
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    update_module_addresses(deps, add, remove)
+    }
 }
 
 /// Update the Account information

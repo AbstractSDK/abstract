@@ -141,7 +141,7 @@ pub fn _install_modules(
     let mut messages = vec![];
 
     // Update module addrs
-    update_module_addresses(deps.branch(), Some(add_to_manager), None)?;
+    update_module_addresses(deps.branch(), add_to_manager, vec![])?;
 
     // Install modules message
     messages.push(SubMsg::reply_on_success(
@@ -164,26 +164,21 @@ pub fn _install_modules(
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
-/// Factory is admin on init
 pub fn update_module_addresses(
     deps: DepsMut,
-    to_add: Option<Vec<(String, Addr)>>,
-    to_remove: Option<Vec<String>>,
+    to_add: Vec<(String, Addr)>,
+    to_remove: Vec<String>,
 ) -> AccountResult {
-    if let Some(modules_to_add) = to_add {
-        for (id, new_address) in modules_to_add.into_iter() {
-            if id.is_empty() {
-                return Err(AccountError::InvalidModuleName {});
-            };
-            // validate addr
-            ACCOUNT_MODULES.save(deps.storage, id.as_str(), &new_address)?;
-        }
+    for (id, new_address) in to_add.into_iter() {
+        if id.is_empty() {
+            return Err(AccountError::InvalidModuleName {});
+        };
+        // validate addr
+        ACCOUNT_MODULES.save(deps.storage, id.as_str(), &new_address)?;
     }
 
-    if let Some(modules_to_remove) = to_remove {
-        for id in modules_to_remove.into_iter() {
-            ACCOUNT_MODULES.remove(deps.storage, id.as_str());
-        }
+    for id in to_remove.into_iter() {
+        ACCOUNT_MODULES.remove(deps.storage, id.as_str());
     }
 
     Ok(AccountResponse::action("update_module_addresses"))
@@ -223,7 +218,7 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
     // Remove module from whitelist if it supposed to be removed
     if module.should_be_whitelisted() {
         let module_addr = ACCOUNT_MODULES.load(deps.storage, &module_id)?;
-        _remove_whitelist_module(deps.branch(), module_addr)?;
+        _remove_whitelist_modules(deps.branch(), vec![module_addr])?;
     }
 
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
@@ -321,7 +316,7 @@ fn configure_adapter(
 }
 
 /// Add a contract to the whitelist
-fn _whitelist_modules(deps: DepsMut, module_addresses: Vec<Addr>) -> AccountResult<()> {
+pub(crate) fn _whitelist_modules(deps: DepsMut, module_addresses: Vec<Addr>) -> AccountResult<()> {
     let mut whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
 
     // This is a limit to prevent potentially running out of gas when doing lookups on the modules list
@@ -344,16 +339,20 @@ fn _whitelist_modules(deps: DepsMut, module_addresses: Vec<Addr>) -> AccountResu
 }
 
 /// Remove a contract from the whitelist
-fn _remove_whitelist_module(deps: DepsMut, module_address: Addr) -> AccountResult<()> {
-    WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
-        if !whitelisted_modules.0.contains(&module_address) {
-            return Err(AccountError::NotWhitelisted(module_address.to_string()));
-        }
-        // Remove contract from whitelist.
-        whitelisted_modules.0.retain(|addr| *addr != module_address);
-        Ok(whitelisted_modules)
-    })?;
-
+pub(crate) fn _remove_whitelist_modules(
+    deps: DepsMut,
+    module_addresses: Vec<Addr>,
+) -> AccountResult<()> {
+    for module_addr in module_addresses.into_iter() {
+        WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
+            if !whitelisted_modules.0.contains(&module_addr) {
+                return Err(AccountError::NotWhitelisted(module_addr.to_string()));
+            }
+            // Remove contract from whitelist.
+            whitelisted_modules.0.retain(|addr| *addr != module_addr);
+            Ok(whitelisted_modules)
+        })?;
+    }
     Ok(())
 }
 

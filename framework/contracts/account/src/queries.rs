@@ -3,8 +3,7 @@ use std::collections::BTreeMap;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
-        state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO},
-        state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS},
+        state::{AccountInfo, Config, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO, SUB_ACCOUNTS, SUSPENSION_STATUS, WHITELISTED_MODULES},
         AccountModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleVersionsResponse, SubAccountIdsResponse,
     },
@@ -51,9 +50,8 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
         is_suspended,
         version_control_address,
         module_factory_address,
-        modules: ACCOUNT_MODULES
-            .range(deps.storage, None, None, Order::Ascending)
-            .collect::<Result<_, _>>()?,
+        whitelisted_addresses: WHITELISTED_MODULES
+            .load(deps.storage)?.0,
     })
 }
 

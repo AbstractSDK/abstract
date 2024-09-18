@@ -23,7 +23,7 @@ use cw2::get_contract_version;
 use cw_storage_plus::Item;
 
 use super::{
-    _remove_whitelist_module, _whitelist_modules, configure_adapter, load_module_addr,
+    _remove_whitelist_modules, _whitelist_modules, configure_adapter, load_module_addr,
     query_module, update_module_addresses,
 };
 use crate::{
@@ -160,8 +160,8 @@ pub fn handle_adapter_migration(
     // Update the address of the adapter internally
     update_module_addresses(
         deps.branch(),
-        Some(vec![(module_id.clone(), new_adapter_addr.clone())]),
-        None,
+        vec![(module_id.clone(), new_adapter_addr.clone())],
+        Vec::default(),
     )?;
 
     add_module_upgrade_to_context(deps.storage, &module_id, old_deps)?;
@@ -264,7 +264,7 @@ pub fn replace_adapter(
         },
     )?);
     // Remove adapter permissions from proxy
-    _remove_whitelist_module(deps.branch(), old_adapter_addr)?;
+    _remove_whitelist_modules(deps.branch(), vec![old_adapter_addr])?;
     // Add new adapter to proxy
     _whitelist_modules(deps.branch(), vec![new_adapter_addr])?;
 

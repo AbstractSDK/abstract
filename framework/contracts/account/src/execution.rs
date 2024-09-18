@@ -13,14 +13,14 @@ use crate::{
 };
 
 /// Check that sender either whitelisted or governance
-pub(crate) fn assert_whitelisted(deps: Deps, sender: &Addr) -> AccountResult<()> {
+pub(crate) fn assert_whitelisted_or_owner(deps: Deps, sender: &Addr) -> AccountResult<()> {
     let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
     if whitelisted_modules.0.contains(sender)
-        || ownership::is_owner(deps.storage, &deps.querier, sender)?
+        || ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok()
     {
         Ok(())
     } else {
-        Err(AccountError::SenderNotWhitelisted {})
+        Err(AccountError::SenderNotWhitelistedOrOwner {})
     }
 }
 
@@ -31,7 +31,7 @@ pub fn execute_module_action(
     msg_info: MessageInfo,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
@@ -43,7 +43,7 @@ pub fn execute_module_action_response(
     msg_info: MessageInfo,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
 
     let submsg = SubMsg::reply_on_success(msg, RESPONSE_REPLY_ID);
 
@@ -57,7 +57,7 @@ pub fn execute_ibc_action(
     msg_info: MessageInfo,
     msg: IbcClientMsg,
 ) -> AccountResult {
-    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
 
     let ibc_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, IBC_CLIENT)?
@@ -85,7 +85,7 @@ pub fn execute_ibc_action(
 ///
 /// The resulting `Vec<CosmosMsg>` are then executed on the proxy contract.
 pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> AccountResult {
-    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
 
     let ica_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, ICA_CLIENT)?
@@ -137,7 +137,7 @@ mod test {
             let res = execute(deps.as_mut(), mock_env(), info, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(AccountError::SenderNotWhitelisted {});
+                .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
         }
 
         #[test]

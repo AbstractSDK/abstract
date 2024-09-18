@@ -141,7 +141,7 @@ pub enum ExecuteMsg {
     ExecOnModule { module_id: String, exec_msg: Binary },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
-    UpdateInternalConfig(Binary),
+    UpdateInternalConfig(InternalConfigAction),
     /// Install module using module factory, callable by Owner
     #[cw_orch(payable)]
     InstallModules {
@@ -252,10 +252,18 @@ impl ModuleInstallConfig {
 #[non_exhaustive]
 pub enum InternalConfigAction {
     /// Updates the [`state::ACCOUNT_MODULES`] map
-    /// Only callable by account factory or owner.
+    /// Only callable by owner.
     UpdateModuleAddresses {
-        to_add: Option<Vec<(String, String)>>,
-        to_remove: Option<Vec<String>>,
+        to_add: Vec<(String, String)>,
+        to_remove: Vec<String>,
+    },
+    /// Update the execution whitelist in [`state::WHITELISTED_MODULES`]
+    /// Only callable by owner.
+    UpdateWhitelist {
+        /// Addresses to add to the Account's execution whitelist
+        to_add: Vec<String>,
+        /// Addresses to remove from the Account's execution whitelist
+        to_remove: Vec<String>,
     },
 }
 
@@ -306,7 +314,7 @@ pub struct SubAccountIdsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub modules: Vec<(String, Addr)>,
+    pub whitelisted_addresses: Vec<Addr>,
     pub account_id: AccountId,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,

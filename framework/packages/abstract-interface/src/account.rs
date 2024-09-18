@@ -132,25 +132,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
     }
 }
 
-impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
-    fn wrapper() -> <Mock as TxHandler>::ContractSource {
-        Box::new(
-            ContractWrapper::new_with_empty(
-                ::account::contract::execute,
-                ::account::contract::instantiate,
-                ::account::contract::query,
-            )
-            .with_migrate(::account::contract::migrate)
-            .with_reply(::account::contract::reply),
-        )
-    }
-    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
-        artifacts_dir_from_workspace!()
-            .find_wasm_path("account")
-            .unwrap()
-    }
-}
-
 // Module related operations
 impl<Chain: CwEnv> AccountI<Chain> {
     pub fn upgrade_module<M: Serialize>(
@@ -256,11 +237,10 @@ impl<Chain: CwEnv> AccountI<Chain> {
     }
 
     /// Checks that the proxy's whitelist includes the expected module addresses.
-    /// Automatically includes the manager in the expected whitelist.
     pub fn expect_whitelist(
         &self,
-        expected_whitelisted_addrs: Vec<String>,
-    ) -> Result<Vec<(String, Addr)>, crate::AbstractInterfaceError> {
+        expected_whitelisted_addrs: Vec<Addr>,
+    ) -> Result<(), crate::AbstractInterfaceError> {
         // insert manager in expected whitelisted addresses
         let expected_whitelisted_addrs = expected_whitelisted_addrs
             .into_iter()
@@ -268,13 +248,13 @@ impl<Chain: CwEnv> AccountI<Chain> {
 
         // check proxy config
         let abstract_std::account::ConfigResponse {
-            modules: whitelist, ..
+            whitelisted_addresses: whitelist, ..
         } = self.config()?;
 
-        let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a| a.0.clone()));
+        let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a| a.clone()));
         assert_eq!(actual_whitelist, expected_whitelisted_addrs);
 
-        Ok(whitelist)
+        Ok(())
     }
 
     /// Installs an adapter from an adapter object
@@ -726,6 +706,34 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .version_control
             .claim_namespace(self.id()?, namespace.into())
             .map_err(Into::into)
+    }
+
+    pub fn update_whitelist(
+        &self,
+        to_add: Vec<String>,
+        to_remove: Vec<String>,
+    ) -> Result<(), AbstractInterfaceError> {
+        self.update_internal_config(InternalConfigAction::UpdateWhitelist { to_add, to_remove })?;
+        Ok(())
+    }
+}
+
+impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
+    fn wrapper() -> <Mock as TxHandler>::ContractSource {
+        Box::new(
+            ContractWrapper::new_with_empty(
+                ::account::contract::execute,
+                ::account::contract::instantiate,
+                ::account::contract::query,
+            )
+            .with_migrate(::account::contract::migrate)
+            .with_reply(::account::contract::reply),
+        )
+    }
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
+        artifacts_dir_from_workspace!()
+            .find_wasm_path("account")
+            .unwrap()
     }
 }
 

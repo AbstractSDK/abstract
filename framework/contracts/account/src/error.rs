@@ -100,8 +100,8 @@ pub enum AccountError {
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
 
-    #[error("Sender is not whitelisted")]
-    SenderNotWhitelisted {},
+    #[error("Sender is not whitelisted and is not a valid owner")]
+    SenderNotWhitelistedOrOwner {},
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),

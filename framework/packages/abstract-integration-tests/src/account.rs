@@ -472,18 +472,14 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&chain.sender_addr(), &deployment)?;
-    account.create_sub_account(
-        vec![],
-        "My subaccount".to_string(),
-        None,
-        None,
-        None,
-        None,
+
+    let sub_account = account.create_and_return_sub_account(
+        AccountDetails {
+            name: "My subaccount".to_string(),
+            ..Default::default()
+        },
         &[],
     )?;
-    let ids = account.sub_account_ids(None, None)?;
-    let sub_account_id = ids.sub_accounts[0];
-    let sub_account = AccountI::new(AccountId::local(sub_account_id), chain.clone());
     let sub_account_addr = sub_account.address()?;
 
     let new_account = create_default_account(&chain.sender_addr(), &deployment)?;
@@ -498,9 +494,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     let new_account_account = new_account.address()?;
     let new_account_id = new_account.id()?;
 
-    let sub_account = AccountI::new(AccountId::local(sub_account_id), chain.clone());
     sub_account
-        .call_as(&sub_account_addr)
         .module_action(vec![wasm_execute(
             new_account_account,
             &abstract_std::account::ExecuteMsg::UpdateOwnership(
@@ -515,7 +509,6 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     assert_eq!(sub_ids.sub_accounts, vec![new_account_id.seq()]);
 
     // owner of new_account updated
-    let new_account = AccountI::new(AccountId::local(new_account_id.seq()), chain);
     let owner = new_account.ownership()?.owner;
     assert_eq!(new_governance, owner);
 
