@@ -34,7 +34,7 @@ mod test {
 
     impl AccountIdentification for MockBinding {
         fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
-            let account_base = test_account_base(self.mock_api);
+            let account_base = test_account(self.mock_api);
             Ok(account_base)
         }
     }
@@ -49,7 +49,7 @@ mod test {
             let deps = mock_dependencies();
             let binding = MockBinding { mock_api: deps.api };
 
-            let account_base = test_account_base(deps.api);
+            let account_base = test_account(deps.api);
 
             let res = binding.account(deps.as_ref());
             assert_that!(res).is_ok().is_equal_to(account_base);
@@ -58,7 +58,7 @@ mod test {
         #[test]
         fn account_id() {
             let mut deps = mock_dependencies();
-            let account_base = test_account_base(deps.api);
+            let account_base = test_account(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(account_base.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)

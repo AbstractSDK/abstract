@@ -546,7 +546,7 @@ mod tests {
         #[test]
         fn should_return_test_acct_id() {
             let mut deps = mock_dependencies();
-            let test_base = test_account_base(deps.api);
+            let test_base = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&test_base, TEST_ACCOUNT_ID)
                 .build();

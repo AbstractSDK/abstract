@@ -57,7 +57,6 @@ dependencies = [
  "cw2 2.0.0",
  "schemars",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]

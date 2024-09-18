@@ -479,7 +479,7 @@ mod tests {
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
             deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 .account(&base, TEST_ACCOUNT_ID)
                 .build();
@@ -512,7 +512,7 @@ mod tests {
         #[test]
         fn cannot_make_internal_call() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
             deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 .account(&base, TEST_ACCOUNT_ID)
                 .build();
@@ -542,7 +542,7 @@ mod tests {
         #[test]
         fn send_packet_with_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
             deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 .account(&base, TEST_ACCOUNT_ID)
                 .build();
@@ -621,7 +621,7 @@ mod tests {
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
             deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 .account(&base, TEST_ACCOUNT_ID)
                 .build();
@@ -656,7 +656,7 @@ mod tests {
             };
             let channel_id = String::from("1");
             let channels: Vec<(&ChannelEntry, String)> = vec![(&channel_entry, channel_id.clone())];
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
             deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 .account(&base, TEST_ACCOUNT_ID)
                 .channels(channels)
@@ -766,7 +766,7 @@ mod tests {
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
             deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 .account(&base, TEST_ACCOUNT_ID)
                 .build();
@@ -794,7 +794,7 @@ mod tests {
         #[test]
         fn works() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
             deps.querier = AbstractMockQuerierBuilder::new(deps.api)
                 .account(&base, TEST_ACCOUNT_ID)
                 .builder()

@@ -217,7 +217,7 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
@@ -241,7 +241,7 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
@@ -276,7 +276,7 @@ mod test {
             );
             assert_that!(actual_res).is_ok();
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let expected = SubMsg {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
@@ -313,7 +313,7 @@ mod test {
             );
             assert_that!(actual_res).is_ok();
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let expected = SubMsg {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
@@ -348,7 +348,7 @@ mod test {
 
             let actual_res = executor.execute_with_response(empty_actions.clone(), expected_action);
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {
@@ -381,7 +381,7 @@ mod test {
 
             let actual_res = executor.execute_with_response(action.clone(), expected_action);
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
                 msg: to_json_binary(&ExecuteMsg::ModuleAction {

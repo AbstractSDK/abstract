@@ -70,7 +70,6 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
     use cw2::{ContractVersion, CONTRACT};
-    use speculoos::prelude::*;
 
     use crate::mock::{AdapterMockResult, MockInitMsg, MOCK_ADAPTER, MOCK_DEP, TEST_METADATA};
 
@@ -81,7 +80,7 @@ mod test {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let info = message_info(&abstr.account.manager, &[]);
+        let info = message_info(abstr.account.addr(), &[]);
         deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
@@ -91,37 +90,46 @@ mod test {
             module: MockInitMsg {},
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;
-        assert_that!(&res.messages.len()).is_equal_to(0);
+        assert_eq!(res.messages.len(), 0);
         // confirm mock init handler executed
-        assert_that!(&res.data).is_equal_to(Some("mock_init".as_bytes().into()));
+        assert_eq!(res.data, Some("mock_init".as_bytes().into()));
 
         let module_data = MODULE.load(&deps.storage)?;
-        assert_that!(module_data).is_equal_to(ModuleData {
-            module: TEST_MODULE_ID.into(),
-            version: TEST_VERSION.into(),
-            dependencies: vec![(&crate::mock::MOCK_DEP).into()],
-            metadata: Some(TEST_METADATA.into()),
-        });
+        assert_eq!(
+            module_data,
+            ModuleData {
+                module: TEST_MODULE_ID.into(),
+                version: TEST_VERSION.into(),
+                dependencies: vec![(&crate::mock::MOCK_DEP).into()],
+                metadata: Some(TEST_METADATA.into()),
+            }
+        );
 
         let contract_version = CONTRACT.load(&deps.storage)?;
-        assert_that!(contract_version).is_equal_to(ContractVersion {
-            contract: TEST_MODULE_ID.into(),
-            version: TEST_VERSION.into(),
-        });
+        assert_eq!(
+            contract_version,
+            ContractVersion {
+                contract: TEST_MODULE_ID.into(),
+                version: TEST_VERSION.into(),
+            }
+        );
 
         let api = MOCK_ADAPTER;
         let none_authorized = api.authorized_addresses.is_empty(&deps.storage);
         assert!(none_authorized);
 
         let state = api.base_state.load(&deps.storage)?;
-        assert_that!(state).is_equal_to(AdapterState {
-            version_control: VersionControlContract {
-                address: abstr.version_control,
-            },
-            ans_host: AnsHost {
-                address: abstr.ans_host,
-            },
-        });
+        assert_eq!(
+            state,
+            AdapterState {
+                version_control: VersionControlContract {
+                    address: abstr.version_control,
+                },
+                ans_host: AnsHost {
+                    address: abstr.ans_host,
+                },
+            }
+        );
         Ok(())
     }
 }

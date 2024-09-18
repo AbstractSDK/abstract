@@ -1,5 +1,5 @@
 use abstract_std::{
-    account::state::ACCOUNT_ID,
+    account::state::{ACCOUNT_ID, ACCOUNT_MODULES},
     ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
     objects::{
         common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
@@ -48,6 +48,11 @@ impl AbstractMockQuerier for MockQuerierBuilder {
                 &abstract_addrs.version_control,
                 ACCOUNT_ADDRESSES,
                 (&account_id, account.clone()),
+            )
+            .with_contract_map_entry(
+                account.addr(),
+                ACCOUNT_MODULES,
+                (TEST_MODULE_ID, abstract_addrs.module_address),
             )
     }
 

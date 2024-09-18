@@ -301,7 +301,7 @@ mod test {
                 amount: coins,
             });
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             assert_that!(response.messages[0].msg).is_equal_to(
                 &wasm_execute(
                     account.addr(),
@@ -338,7 +338,7 @@ mod test {
             let response: Response = app.response("deposit").add_messages(deposit_msgs);
             // ANCHOR_END: deposit
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let bank_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: account.addr().to_string(),
                 amount: coins,
