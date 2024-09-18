@@ -6,6 +6,14 @@ license = { workspace = true }
 description = "Abstract deployment helpers with cw-orchestrator"
 repository = "https://github.com/AbstractSDK/abstract"
 
+[[example]]
+name = "mock-ibc-deploy"
+required-features = ["interchain"]
+
+[[example]]
+name = "starship-ibc-deploy"
+required-features = ["interchain"]
+
 [features]
 default = ["integration"]
 daemon = ["cw-orch/daemon"]

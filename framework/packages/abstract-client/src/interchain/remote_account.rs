@@ -4,8 +4,8 @@
 //!
 
 use abstract_interface::{
-    Abstract, AccountDetails, AccountI, DependencyCreation, IbcClient, InstallConfig,
-    ManagerQueryFns as _, RegisteredModule, VCQueryFns as _,
+    Abstract, AccountDetails, AccountI, AccountQueryFns as _, DependencyCreation, IbcClient,
+    InstallConfig, RegisteredModule, VCQueryFns as _,
 };
 use abstract_std::{
     account::{
@@ -19,7 +19,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership, AccountId, TruncatedChainId,
     },
-    ACCOUNT, IBC_CLIENT,
+    IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
 use cw_orch::{
@@ -532,7 +532,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msg = account::ExecuteMsg::IbcAction { msg: exec_msg };
 
-        let tx_response = self.abstr_owner_account.execute_on_module(ACCOUNT, msg)?;
+        let tx_response = self.abstr_owner_account.execute(&msg, &[])?;
         let packets = self
             .ibc_env
             .await_packets(&self.origin_chain().chain_id(), tx_response)

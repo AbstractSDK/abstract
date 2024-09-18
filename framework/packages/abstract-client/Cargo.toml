@@ -51,6 +51,8 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 [dev-dependencies]
 abstract-testing.workspace = true
 abstract-client = { path = ".", features = ["test-utils", "interchain"] }
+abstract-account = { workspace = true }
+version-control = { workspace = true }
 polytone = { workspace = true }
 cw-asset.workspace = true
 cw-controllers.workspace = true

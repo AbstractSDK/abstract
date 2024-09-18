@@ -288,7 +288,7 @@ mod tests {
         #[test]
         fn authorize_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            deps.querier = abstract_mock_querier(deps.api);
             let base = test_account_base(deps.api);
 
             mock_init(&mut deps)?;
@@ -318,7 +318,7 @@ mod tests {
         #[test]
         fn revoke_address_authorization() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            deps.querier = abstract_mock_querier(deps.api);
             let base = test_account_base(deps.api);
 
             mock_init(&mut deps)?;
@@ -354,7 +354,7 @@ mod tests {
         #[test]
         fn add_existing_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            deps.querier = abstract_mock_querier(deps.api);
             let base = test_account_base(deps.api);
 
             mock_init(&mut deps)?;
@@ -395,7 +395,7 @@ mod tests {
         #[test]
         fn add_module_id_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             mock_init(&mut deps)?;
@@ -423,7 +423,7 @@ mod tests {
         #[test]
         fn remove_authorized_address_dne() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            deps.querier = abstract_mock_querier(deps.api);
             let base = test_account_base(deps.api);
 
             mock_init(&mut deps)?;
