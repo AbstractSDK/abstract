@@ -248,7 +248,8 @@ impl<Chain: CwEnv> AccountI<Chain> {
 
         // check proxy config
         let abstract_std::account::ConfigResponse {
-            whitelisted_addresses: whitelist, ..
+            whitelisted_addresses: whitelist,
+            ..
         } = self.config()?;
 
         let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a| a.clone()));

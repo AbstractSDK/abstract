@@ -494,15 +494,12 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     let new_account_account = new_account.address()?;
     let new_account_id = new_account.id()?;
 
-    sub_account
-        .module_action(vec![wasm_execute(
-            new_account_account,
-            &abstract_std::account::ExecuteMsg::UpdateOwnership(
-                ownership::GovAction::AcceptOwnership,
-            ),
-            vec![],
-        )?
-        .into()])?;
+    sub_account.module_action(vec![wasm_execute(
+        new_account_account,
+        &abstract_std::account::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
+        vec![],
+    )?
+    .into()])?;
 
     // sub-accounts state updated
     let sub_ids = sub_account.sub_account_ids(None, None)?;

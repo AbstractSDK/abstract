@@ -148,8 +148,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     )?;
 
     let mock_app = chain.addr_make("mock_app");
-    account
-        .update_whitelist(vec![mock_app.to_string()], Vec::default())?;
+    account.update_whitelist(vec![mock_app.to_string()], Vec::default())?;
 
     let new_desc = "new desc";
     // adding mock_app to whitelist on proxy
@@ -296,17 +295,15 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     // Should error as the ownership is not accepted yet
     new_account_sub_account
         .call_as(&sub_account_addr)
-        .update_whitelist(vec![mock_module.to_string()], Vec::default()).expect_err("ownership not accepted yet.");
+        .update_whitelist(vec![mock_module.to_string()], Vec::default())
+        .expect_err("ownership not accepted yet.");
 
-    sub_account
-        .module_action(vec![wasm_execute(
-            new_account_sub_account_addr,
-            &abstract_std::account::ExecuteMsg::UpdateOwnership(
-                ownership::GovAction::AcceptOwnership,
-            ),
-            vec![],
-        )?
-        .into()])?;
+    sub_account.module_action(vec![wasm_execute(
+        new_account_sub_account_addr,
+        &abstract_std::account::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
+        vec![],
+    )?
+    .into()])?;
 
     // sub-accounts state updated
     let sub_ids = sub_account.sub_account_ids(None, None)?;
