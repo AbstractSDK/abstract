@@ -92,17 +92,10 @@ pub enum AbstractSdkError {
         err: String,
     },
 
-    // The caller can only execute admin operations on one module
-    #[error(
-        "The action triggered can only execute admin operations on {admin_for} and not {current_contract}"
-    )]
-    NotAdminFor {
-        admin_for: Addr,
-        current_contract: Addr,
-    },
-
     // This call needs to be an admin call
-    #[error("This action can only be triggered via an Account Admin call")]
+    #[error(
+        "Only the admin can execute this action. An admin is either the owner of an account of an account called by its owner"
+    )]
     OnlyAdmin {},
 }
 

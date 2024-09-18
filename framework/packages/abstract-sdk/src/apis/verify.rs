@@ -2,7 +2,10 @@
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use abstract_std::{
     account::state::ADMIN_CALL_TO_CONTEXT,
-    objects::{version_control::VersionControlContract, AccountId},
+    objects::{
+        ownership::nested_admin::account_has_admin_rights, version_control::VersionControlContract,
+        AccountId,
+    },
     version_control::Account,
 };
 use cosmwasm_std::{Addr, Deps, Env};
@@ -114,14 +117,9 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
         maybe_account: &Addr,
     ) -> AbstractSdkResult<Account> {
         let account = self.assert_account(maybe_account)?;
-        let admin_call_to = ADMIN_CALL_TO_CONTEXT
-            .query(&self.deps.querier, account.addr().clone())
-            .map_err(|_| AbstractSdkError::OnlyAdmin {})?;
-        if admin_call_to != env.contract.address {
-            return Err(AbstractSdkError::NotAdminFor {
-                admin_for: admin_call_to,
-                current_contract: env.contract.address.clone(),
-            });
+
+        if !account_has_admin_rights(&self.deps.querier, env, maybe_account) {
+            return Err(AbstractSdkError::OnlyAdmin {});
         }
         Ok(account)
     }

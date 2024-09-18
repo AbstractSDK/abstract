@@ -68,34 +68,39 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             msg,
         } = message;
         let account_registry = self.account_registry(deps.as_ref())?;
-        let account_base = match account_address {
-            // If account address provided, check if the sender is a direct or nested owner for this account.
-            Some(requested_account) => {
-                let account_address = deps.api.addr_validate(&requested_account)?;
-                let requested_core = account_registry.assert_account(&account_address)?;
-                if requested_core.addr() == info.sender
-                    || is_top_level_owner(
-                        &deps.querier,
-                        requested_core.addr().clone(),
-                        &info.sender,
-                    )
-                    .unwrap_or(false)
-                {
-                    requested_core
-                } else {
-                    return Err(AdapterError::UnauthorizedAdapterRequest {
-                        adapter: self.module_id().to_string(),
-                        sender: info.sender.to_string(),
-                    });
+        let account_base = match account_registry
+            .assert_account_admin(&env, &info.sender)
+            .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
+                adapter: self.module_id().to_string(),
+                sender: info.sender.to_string(),
+            }) {
+            // If the sender is an account with the admin functionality enabled, we are ok !
+            Ok(account) => account,
+            Err(e) => {
+                // If the sender is not an account or doesn't have the admin functionality enabled, the sender must be a top-level account owner
+                match account_address {
+                    Some(requested_account) => {
+                        let account_address = deps.api.addr_validate(&requested_account)?;
+                        let requested_core = account_registry.assert_account(&account_address)?;
+                        if is_top_level_owner(
+                            &deps.querier,
+                            requested_core.addr().clone(),
+                            &info.sender,
+                        )
+                        .unwrap_or(false)
+                        {
+                            requested_core
+                        } else {
+                            return Err(AdapterError::UnauthorizedAdapterRequest {
+                                adapter: self.module_id().to_string(),
+                                sender: info.sender.to_string(),
+                            });
+                        }
+                    }
+                    // If not provided the sender must be the direct owner AND have admin execution rights
+                    None => Err(e)?,
                 }
             }
-            // If not provided the sender must be the direct owner AND have admin execution rights
-            None => account_registry
-                .assert_account_admin(&env, &info.sender)
-                .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
-                    adapter: self.module_id().to_string(),
-                    sender: info.sender.to_string(),
-                })?,
         };
         self.target_account = Some(account_base);
         match msg {

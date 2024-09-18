@@ -55,7 +55,7 @@ impl<
     fn base_execute(
         &self,
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> AppResult {
@@ -63,20 +63,21 @@ impl<
             BaseExecuteMsg::UpdateConfig {
                 ans_host_address,
                 version_control_address,
-            } => self.update_config(deps, info, ans_host_address, version_control_address),
+            } => self.update_config(deps, env, info, ans_host_address, version_control_address),
         }
     }
 
     fn update_config(
         &self,
         deps: DepsMut,
+        env: Env,
         info: MessageInfo,
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
     ) -> AppResult {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
-        self.admin.assert_admin(deps.as_ref(), &info.sender)?;
+        self.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
 
         let mut state = self.base_state.load(deps.storage)?;
 
