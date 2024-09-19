@@ -56,7 +56,7 @@ impl<
     fn dapp_config(&self, deps: Deps) -> StdResult<AppConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
         Ok(AppConfigResponse {
-            account: state.account.addr().to_owned(),
+            account: state.account.into_addr(),
             ans_host_address: state.ans_host.address,
             version_control_address: state.version_control.address,
         })
@@ -165,7 +165,7 @@ mod test {
 
             assert_eq!(
                 AppConfigResponse {
-                    account: account.addr().to_owned(),
+                    account: account.into_addr(),
                     ans_host_address: abstr.ans_host,
                     version_control_address: abstr.version_control,
                 },
