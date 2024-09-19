@@ -188,25 +188,12 @@ impl From<ExecutorMsg> for CosmosMsg {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::account::ExecuteMsg;
-    use abstract_std::version_control::Account;
-    use abstract_testing::abstract_mock_querier_builder;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, *};
+    use cosmwasm_std::*;
     use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;
-
-    pub fn setup() -> (MockDeps, Account, MockModule) {
-        let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
-        deps.querier = abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
-        let app = MockModule::new(deps.api, account.clone());
-
-        (deps, account, app)
-    }
 
     fn mock_bank_send(amount: Vec<Coin>) -> AccountAction {
         AccountAction::from(CosmosMsg::Bank(BankMsg::Send {
@@ -225,7 +212,7 @@ mod test {
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_actions() {
-            let (deps, account, stub) = setup();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             let messages = vec![];
@@ -246,7 +233,7 @@ mod test {
 
         #[test]
         fn with_actions() {
-            let (deps, account, stub) = setup();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -275,7 +262,7 @@ mod test {
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_actions() {
-            let (deps, account, stub) = setup();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
@@ -308,7 +295,7 @@ mod test {
 
         #[test]
         fn with_actions() {
-            let (deps, account, stub) = setup();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -349,7 +336,7 @@ mod test {
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_actions() {
-            let (deps, account, stub) = setup();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
@@ -379,7 +366,7 @@ mod test {
 
         #[test]
         fn with_actions() {
-            let (deps, account, stub) = setup();
+            let (deps, account, stub) = mock_module_setup();
 
             let executor = stub.executor(deps.as_ref());
 

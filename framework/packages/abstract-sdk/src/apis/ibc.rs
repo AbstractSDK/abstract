@@ -344,29 +344,18 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
-    use cosmwasm_std::{testing::*, *};
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::*;
     use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;
     const TEST_HOST_CHAIN: &str = "hostchain";
 
-    pub fn setup() -> (MockDeps, MockModule) {
-        let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
-        deps.querier = abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
-        let app = MockModule::new(deps.api, account.clone());
-
-        (deps, app)
-    }
-
     /// Tests that a host_action can be built with no callback
     #[test]
     fn test_host_action_no_callback() {
-        let (deps, stub) = setup();
+        let (deps, _, stub) = mock_module_setup();
 
         let client = stub.ibc_client(deps.as_ref());
         let msg = client.host_action(
@@ -401,7 +390,7 @@ mod test {
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
     #[test]
     fn test_ics20_transfer() {
-        let (deps, stub) = setup();
+        let (deps, _, stub) = mock_module_setup();
 
         let client = stub.ibc_client(deps.as_ref());
 

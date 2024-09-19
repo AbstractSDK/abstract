@@ -105,30 +105,18 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
 #[cfg(test)]
 mod tests {
 
-    use abstract_std::version_control::Account;
-    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
-    use cosmwasm_std::{testing::*, *};
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::*;
     use speculoos::{assert_that, result::ResultAssertions};
 
     use super::*;
     use crate::mock_module::*;
 
-    pub fn setup() -> (MockDeps, Account, MockModule) {
-        let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
-        deps.querier = abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
-        let app = MockModule::new(deps.api, account.clone());
-
-        (deps, account, app)
-    }
-
     pub fn fail_when_not_dependency_test<T: std::fmt::Debug>(
         modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,
         fake_module: ModuleId,
     ) {
-        let (deps, _, app) = setup();
+        let (deps, _, app) = mock_module_setup();
 
         let _mods = app.adapters(deps.as_ref());
 
@@ -156,7 +144,7 @@ mod tests {
 
         #[test]
         fn expected_adapter_request() {
-            let (deps, account, app) = setup();
+            let (deps, account, app) = mock_module_setup();
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let mods = app.adapters(deps.as_ref());
@@ -195,7 +183,7 @@ mod tests {
 
         #[test]
         fn expected_adapter_query() {
-            let (deps, _, app) = setup();
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.adapters(deps.as_ref());
 

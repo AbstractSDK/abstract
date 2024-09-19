@@ -123,31 +123,18 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_testing::abstract_mock_querier_builder;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;
-
-    pub fn setup() -> (MockDeps, MockModule) {
-        let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
-        deps.querier = abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
-        let app = MockModule::new(deps.api, account.clone());
-
-        (deps, app)
-    }
 
     mod assert_module_dependency {
         use super::*;
 
         #[test]
         fn should_return_ok_if_dependency() {
-            let (deps, app) = setup();
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.modules(deps.as_ref());
 
@@ -157,7 +144,7 @@ mod test {
 
         #[test]
         fn should_return_err_if_not_dependency() {
-            let (deps, app) = setup();
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.modules(deps.as_ref());
 

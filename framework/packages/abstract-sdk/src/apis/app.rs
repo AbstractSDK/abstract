@@ -108,23 +108,12 @@ mod tests {
     pub use super::*;
     use crate::mock_module::*;
 
-    pub fn setup() -> (MockDeps, Account, MockModule) {
-        let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
-        deps.querier = abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
-        let app = MockModule::new(deps.api, account.clone());
-
-        (deps, account, app)
-    }
-
     /// Helper to check that the method is not callable when the module is not a dependency
     fn fail_when_not_dependency_test<T: std::fmt::Debug>(
         modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,
         fake_module: ModuleId,
     ) {
-        let (deps, _, app) = setup();
+        let (deps, _, app) = mock_module_setup();
 
         let _mods = app.apps(deps.as_ref());
 
@@ -152,7 +141,7 @@ mod tests {
 
         #[test]
         fn expected_app_request() {
-            let (deps, _, app) = setup();
+            let (deps, _, app) = mock_module_setup();
 
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -188,7 +177,7 @@ mod tests {
 
         #[test]
         fn expected_app_query() {
-            let (deps, _, app) = setup();
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.apps(deps.as_ref());
 

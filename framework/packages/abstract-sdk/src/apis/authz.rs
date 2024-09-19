@@ -469,26 +469,11 @@ impl AuthZ {
 mod tests {
     use super::*;
 
-    use crate::std::version_control::Account;
     use crate::{apis::stargate::convert_stamp, mock_module::*};
-    use abstract_testing::abstract_mock_querier_builder;
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::mock_dependencies;
-
-    pub fn setup() -> (MockDeps, Account, MockModule) {
-        let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
-        deps.querier = abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
-        let app = MockModule::new(deps.api, account.clone());
-
-        (deps, account, app)
-    }
 
     #[test]
     fn generic_authorization() {
-        let (deps, _, app) = setup();
+        let (deps, _, app) = mock_module_setup();
 
         let granter = deps.api.addr_make("granter");
         let grantee = deps.api.addr_make("grantee");
@@ -528,7 +513,7 @@ mod tests {
 
     #[test]
     fn revoke_authorization() {
-        let (deps, _, app) = setup();
+        let (deps, _, app) = mock_module_setup();
 
         let granter = deps.api.addr_make("granter");
         let grantee = deps.api.addr_make("grantee");
