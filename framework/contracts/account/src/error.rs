@@ -77,8 +77,8 @@ pub enum AccountError {
     #[error("Module with address {0} is already whitelisted")]
     AlreadyWhitelisted(String),
 
-    #[error("Module with address {0} not found in whitelist")]
-    NotWhitelisted(String),
+    #[error("can't remove module that is not whitelisted")]
+    NotWhitelisted{},
 
     // ** Sub Account ** //
     #[error("Removing sub account failed")]

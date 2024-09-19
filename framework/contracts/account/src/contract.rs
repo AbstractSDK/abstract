@@ -222,7 +222,7 @@ pub fn instantiate(
     }
 
     let mut total_received = Coins::try_from(info.funds.clone()).unwrap();
-    
+
     for fee in total_fee.clone() {
         total_received.sub(fee).map_err(|_| {
             abstract_std::AbstractError::Fee(format!(

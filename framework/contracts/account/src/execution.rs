@@ -199,12 +199,10 @@ mod test {
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
-            account::state::WHITELISTED_MODULES
-                .save(
-                    &mut deps.storage,
-                    &WhitelistedModules(vec![abstr.account.addr().clone()]),
-                )
-                ?;
+            account::state::WHITELISTED_MODULES.save(
+                &mut deps.storage,
+                &WhitelistedModules(vec![abstr.account.addr().clone()]),
+            )?;
 
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
@@ -234,8 +232,7 @@ mod test {
                 deps.as_mut(),
                 vec![(IBC_CLIENT.into(), ibc_client_addr.clone())],
                 vec![],
-            )
-            ?;
+            )?;
 
             let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
@@ -246,8 +243,7 @@ mod test {
                         host_chain: "juno".parse()?,
                         namespace: None,
                         install_modules: vec![],
-                    })
-                    ?,
+                    })?,
                     funds: vec![],
                 },
             )));
@@ -260,12 +256,10 @@ mod test {
             mock_init(&mut deps);
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
-            account::state::WHITELISTED_MODULES
-                .save(
-                    &mut deps.storage,
-                    &WhitelistedModules(vec![abstr.account.addr().clone()]),
-                )
-                ?;
+            account::state::WHITELISTED_MODULES.save(
+                &mut deps.storage,
+                &WhitelistedModules(vec![abstr.account.addr().clone()]),
+            )?;
 
             let funds = coins(10, "denom");
             let msg = ExecuteMsg::IbcAction {
@@ -295,8 +289,7 @@ mod test {
                 deps.as_mut(),
                 vec![(IBC_CLIENT.into(), ibc_client_addr.clone())],
                 vec![],
-            )
-            ?;
+            )?;
 
             let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
@@ -307,8 +300,7 @@ mod test {
                         host_chain: "juno".parse()?,
                         funds: funds.clone(),
                         memo: None,
-                    })
-                    ?,
+                    })?,
                     funds,
                 },
             )));
@@ -332,12 +324,10 @@ mod test {
             let ica_client_addr = deps.api.addr_make("ica_client_addr");
             mock_init(&mut deps)?;
             // whitelist creator
-            account::state::WHITELISTED_MODULES
-                .save(
-                    &mut deps.storage,
-                    &WhitelistedModules(vec![abstr.account.addr().clone()]),
-                )
-                ?;
+            account::state::WHITELISTED_MODULES.save(
+                &mut deps.storage,
+                &WhitelistedModules(vec![abstr.account.addr().clone()]),
+            )?;
 
             let action = Binary::from(b"some_action");
             let msg = ExecuteMsg::IcaAction {
@@ -355,8 +345,7 @@ mod test {
                 deps.as_mut(),
                 vec![(ICA_CLIENT.into(), ica_client_addr.clone())],
                 vec![],
-            )
-            ?;
+            )?;
 
             deps.querier = MockQuerierBuilder::default()
                 .with_smart_handler(&ica_client_addr, move |bin| {
