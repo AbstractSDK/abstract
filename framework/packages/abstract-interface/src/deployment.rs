@@ -242,6 +242,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
     }
 
     // Because of the mock tests limitations we expect that blob already uploaded
+    // TODO: replace with it `deploy_on`, when all tests will be passing
     pub fn deploy2(
         chain: Chain,
         deploy_data: <Self as Deploy<Chain>>::DeployData,
