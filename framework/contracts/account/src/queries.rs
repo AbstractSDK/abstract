@@ -209,13 +209,13 @@ mod test {
     };
 
     #[test]
-    fn query_config() {
+    fn query_config() -> anyhow::Result<()> {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
         deps.querier = mock_querier_builder(deps.api.clone())
             .with_contract_version(&abstr.module_address, TEST_MODULE_ID, "1.0.0")
             .build();
-        mock_init(&mut deps).unwrap();
+        mock_init(&mut deps)?;
 
         execute_as_admin(
             &mut deps,
@@ -224,7 +224,7 @@ mod test {
                 to_remove: vec![],
             }),
         )
-        .unwrap();
+        ?;
 
         let config: ConfigResponse = from_json(
             query(
@@ -232,9 +232,9 @@ mod test {
                 mock_env(),
                 abstract_std::account::QueryMsg::Config {},
             )
-            .unwrap(),
+            ?,
         )
-        .unwrap();
+        ?;
         assert_eq!(
             config,
             ConfigResponse {
@@ -255,9 +255,9 @@ mod test {
                     limit: None,
                 },
             )
-            .unwrap(),
+            ?,
         )
-        .unwrap();
+        ?;
 
         assert_eq!(
             module_infos,
@@ -280,7 +280,7 @@ mod test {
                 to_remove: vec![],
             }),
         )
-        .unwrap();
+        ?;
 
         let config: ConfigResponse = from_json(
             query(
@@ -288,9 +288,9 @@ mod test {
                 mock_env(),
                 abstract_std::account::QueryMsg::Config {},
             )
-            .unwrap(),
+            ?,
         )
-        .unwrap();
+        ?;
         assert_eq!(
             config,
             ConfigResponse {
@@ -301,5 +301,7 @@ mod test {
                 module_factory_address: abstr.module_factory
             }
         );
+
+        Ok(())
     }
 }
