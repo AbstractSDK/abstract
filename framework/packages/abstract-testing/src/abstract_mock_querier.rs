@@ -1,5 +1,5 @@
 use abstract_std::{
-    account::state::ACCOUNT_ID,
+    account::state::{ACCOUNT_ID, ACCOUNT_MODULES},
     ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
     objects::{
         common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
