@@ -126,9 +126,9 @@ mod test {
         use super::*;
 
         #[test]
-        fn only_whitelisted_can_execute() {
+        fn only_whitelisted_can_execute() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps).unwrap();
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::ModuleAction { msgs: vec![] };
 
@@ -138,12 +138,13 @@ mod test {
             assert_that(&res)
                 .is_err()
                 .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
+            Ok(())
         }
 
         #[test]
         fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps).unwrap();
+            mock_init(&mut deps)?;
 
             // stub a module
             let module_addr = deps.api.addr_make(TEST_MODULE_ID);
@@ -175,7 +176,7 @@ mod test {
             );
             assert_that(&res).is_ok();
 
-            let msgs = res.unwrap().messages;
+            let msgs = res?.messages;
             assert_that(&msgs).has_length(1);
 
             let msg = &msgs[0];
@@ -193,9 +194,9 @@ mod test {
         use super::*;
 
         #[test]
-        fn add_module() {
+        fn add_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps).unwrap();
+            mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
             account::state::WHITELISTED_MODULES
@@ -203,11 +204,11 @@ mod test {
                     &mut deps.storage,
                     &WhitelistedModules(vec![abstr.account.addr().clone()]),
                 )
-                .unwrap();
+                ?;
 
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
-                    host_chain: "juno".parse().unwrap(),
+                    host_chain: "juno".parse()?,
                     namespace: None,
                     install_modules: vec![],
                 },
@@ -234,26 +235,27 @@ mod test {
                 vec![(IBC_CLIENT.into(), ibc_client_addr.clone())],
                 vec![],
             )
-            .unwrap();
+            ?;
 
-            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: ibc_client_addr.to_string(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
-                        host_chain: "juno".parse().unwrap(),
+                        host_chain: "juno".parse()?,
                         namespace: None,
                         install_modules: vec![],
                     })
-                    .unwrap(),
+                    ?,
                     funds: vec![],
                 },
             )));
+            Ok(())
         }
 
         #[test]
-        fn send_funds() {
+        fn send_funds() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps);
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -263,12 +265,12 @@ mod test {
                     &mut deps.storage,
                     &WhitelistedModules(vec![abstr.account.addr().clone()]),
                 )
-                .unwrap();
+                ?;
 
             let funds = coins(10, "denom");
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                    host_chain: "juno".parse().unwrap(),
+                    host_chain: "juno".parse()?,
                     funds: funds.clone(),
                     memo: None,
                 },
@@ -294,22 +296,23 @@ mod test {
                 vec![(IBC_CLIENT.into(), ibc_client_addr.clone())],
                 vec![],
             )
-            .unwrap();
+            ?;
 
-            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: ibc_client_addr.into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                        host_chain: "juno".parse().unwrap(),
+                        host_chain: "juno".parse()?,
                         funds: funds.clone(),
                         memo: None,
                     })
-                    .unwrap(),
+                    ?,
                     funds,
                 },
             )));
+            Ok(())
         }
     }
 
@@ -323,18 +326,18 @@ mod test {
         use super::*;
 
         #[test]
-        fn ica_action() {
+        fn ica_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let ica_client_addr = deps.api.addr_make("ica_client_addr");
-            mock_init(&mut deps).unwrap();
+            mock_init(&mut deps)?;
             // whitelist creator
             account::state::WHITELISTED_MODULES
                 .save(
                     &mut deps.storage,
                     &WhitelistedModules(vec![abstr.account.addr().clone()]),
                 )
-                .unwrap();
+                ?;
 
             let action = Binary::from(b"some_action");
             let msg = ExecuteMsg::IcaAction {
@@ -353,24 +356,24 @@ mod test {
                 vec![(ICA_CLIENT.into(), ica_client_addr.clone())],
                 vec![],
             )
-            .unwrap();
+            ?;
 
             deps.querier = MockQuerierBuilder::default()
                 .with_smart_handler(&ica_client_addr, move |bin| {
                     if bin.eq(&action) {
                         Ok(to_json_binary(&IcaActionResult {
                             msgs: vec![CosmosMsg::Custom(Empty {})],
-                        })
-                        .unwrap())
+                        })?)
                     } else {
                         Err("Unexpected action query".to_owned())
                     }
                 })
                 .build();
 
-            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Custom(Empty {})));
+            Ok(())
         }
     }
 }
