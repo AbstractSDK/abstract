@@ -221,9 +221,9 @@ pub fn instantiate(
             .add_attribute(install_attribute.key, install_attribute.value);
     }
 
+    let mut total_received = Coins::try_from(info.funds.clone()).unwrap();
+    
     for fee in total_fee.clone() {
-        let mut total_received = Coins::try_from(info.funds.clone()).unwrap();
-
         total_received.sub(fee).map_err(|_| {
             abstract_std::AbstractError::Fee(format!(
                 "Invalid fee payment sent. Expected {}, sent {:?}",
