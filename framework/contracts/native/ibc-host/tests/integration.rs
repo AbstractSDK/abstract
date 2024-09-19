@@ -4,16 +4,16 @@ use abstract_interface::{
     Abstract, AdapterDeployer, DeployStrategy, ExecuteMsgFns as InterfaceExecuteMsgFns,
 };
 use abstract_std::{
+    account::ModuleInstallConfig,
     ibc_host::{
         ClientProxyResponse, ConfigResponse, ExecuteMsgFns, HostAction, InternalAction, QueryMsgFns,
     },
-    manager::ModuleInstallConfig,
     objects::{
         gov_type::{GovAction, GovernanceDetails},
         module::ModuleInfo,
-        AccountId, UncheckedChannelEntry,
+        AccountId, AccountTrace, TruncatedChainId, UncheckedChannelEntry,
     },
-    ACCOUNT, ACCOUNT, ACCOUNT_FACTORY, ICS20,
+    ACCOUNT, ICS20, VERSION_CONTROL,
 };
 use cosmwasm_std::Event;
 use cw_orch::prelude::*;
@@ -52,7 +52,7 @@ fn account_creation() -> anyhow::Result<()> {
         ConfigResponse {
             ans_host_address: abstr_origin.ans_host.address()?,
             version_control_address: abstr_origin.version_control.address()?,
-            account_factory_address: abstr_origin.account_factory.address()?,
+            module_factory_address: abstr_origin.module_factory.address()?,
         },
         config_response
     );
@@ -74,6 +74,7 @@ fn account_creation() -> anyhow::Result<()> {
         .ibc
         .host
         .ibc_execute(
+            "proxy_address",
             AccountId::local(account_sequence),
             HostAction::Internal(InternalAction::Register {
                 name: "Abstract remote account 1".to_string(),
@@ -82,17 +83,22 @@ fn account_creation() -> anyhow::Result<()> {
                 namespace: None,
                 install_modules: vec![],
             }),
-            "proxy_address".to_string(),
         )
         .unwrap();
 
     assert!(account_creation_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_address", abstr_remote.account_factory.address()?)
-            .add_attribute("contract", ACCOUNT_FACTORY)
-            .add_attribute("action", "create_account")
-            .add_attribute("account_sequence", account_sequence.to_string())
-            .add_attribute("trace", chain)
+            .add_attribute("_contract_address", abstr_remote.version_control.address()?)
+            .add_attribute("contract", VERSION_CONTROL)
+            .add_attribute("action", "add_account")
+            .add_attribute(
+                "account_id",
+                AccountId::new(
+                    account_sequence,
+                    AccountTrace::Remote(vec![TruncatedChainId::from_chain_id(chain)])
+                )?
+                .to_string()
+            )
     ));
 
     Ok(())
@@ -175,7 +181,7 @@ fn account_creation_full() -> anyhow::Result<()> {
         ConfigResponse {
             ans_host_address: abstr_origin.ans_host.address()?,
             version_control_address: abstr_origin.version_control.address()?,
-            account_factory_address: abstr_origin.account_factory.address()?,
+            module_factory_address: abstr_origin.module_factory.address()?,
         },
         config_response
     );
@@ -212,6 +218,7 @@ fn account_creation_full() -> anyhow::Result<()> {
         .ibc
         .host
         .ibc_execute(
+            "proxy_address",
             AccountId::local(account_sequence),
             HostAction::Internal(InternalAction::Register {
                 name: "Abstract remote account 1".to_string(),
@@ -220,17 +227,22 @@ fn account_creation_full() -> anyhow::Result<()> {
                 namespace: Some("namespace".to_owned()),
                 install_modules: vec![mock_module_install_config],
             }),
-            "proxy_address".to_string(),
         )
         .unwrap();
 
     assert!(account_creation_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_address", abstr_remote.account_factory.address()?)
-            .add_attribute("contract", ACCOUNT_FACTORY)
-            .add_attribute("action", "create_account")
-            .add_attribute("account_sequence", account_sequence.to_string())
-            .add_attribute("trace", chain_name)
+            .add_attribute("_contract_address", abstr_remote.version_control.address()?)
+            .add_attribute("contract", VERSION_CONTROL)
+            .add_attribute("action", "add_account")
+            .add_attribute(
+                "account_id",
+                AccountId::new(
+                    account_sequence,
+                    AccountTrace::Remote(vec![TruncatedChainId::from_chain_id(chain_name)])
+                )?
+                .to_string()
+            )
     ));
 
     Ok(())
@@ -263,6 +275,7 @@ fn account_action() -> anyhow::Result<()> {
         .ibc
         .host
         .ibc_execute(
+            proxy_addr.to_string(),
             AccountId::local(account_sequence),
             HostAction::Internal(InternalAction::Register {
                 name: "Abstract remote account 1".to_string(),
@@ -271,7 +284,6 @@ fn account_action() -> anyhow::Result<()> {
                 namespace: None,
                 install_modules: vec![],
             }),
-            proxy_addr.to_string(),
         )
         .unwrap();
 
@@ -280,9 +292,10 @@ fn account_action() -> anyhow::Result<()> {
         .ibc
         .host
         .ibc_execute(
+            proxy_addr,
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateOwnership(
+                account_msgs: vec![abstract_std::account::ExecuteMsg::UpdateOwnership(
                     GovAction::TransferOwnership {
                         new_owner: GovernanceDetails::Monarchy {
                             monarch: mock.addr_make("new_owner").to_string(),
@@ -291,18 +304,8 @@ fn account_action() -> anyhow::Result<()> {
                     },
                 )],
             },
-            proxy_addr.to_string(),
         )
         .unwrap();
-
-    assert!(!account_action_response.has_event(
-        &Event::new("wasm-abstract")
-            .add_attribute("_contract_address", abstr_remote.account_factory.address()?)
-            .add_attribute("contract", ACCOUNT_FACTORY)
-            .add_attribute("action", "create_account")
-            .add_attribute("account_sequence", account_sequence.to_string())
-            .add_attribute("trace", chain)
-    ));
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
@@ -337,9 +340,10 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
         .ibc
         .host
         .ibc_execute(
+            mock.addr_make("proxy_address"),
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateOwnership(
+                account_msgs: vec![abstract_std::account::ExecuteMsg::UpdateOwnership(
                     GovAction::TransferOwnership {
                         new_owner: GovernanceDetails::Monarchy {
                             monarch: mock.addr_make("new_owner").to_string(),
@@ -348,18 +352,8 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
                     },
                 )],
             },
-            mock.addr_make("proxy_address").to_string(),
         )
         .unwrap();
-
-    assert!(account_action_response.has_event(
-        &Event::new("wasm-abstract")
-            .add_attribute("_contract_address", abstr.account_factory.address()?)
-            .add_attribute("contract", ACCOUNT_FACTORY)
-            .add_attribute("action", "create_account")
-            .add_attribute("account_sequence", account_sequence.to_string())
-            .add_attribute("trace", chain)
-    ));
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
@@ -406,6 +400,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     let proxy_addr = mock.addr_make("proxy_address");
     // We create the account
     abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
+        proxy_addr.to_string(),
         AccountId::local(account_sequence),
         HostAction::Internal(InternalAction::Register {
             name: "Abstract remote account 1".to_string(),
@@ -414,22 +409,20 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
             namespace: None,
             install_modules: vec![],
         }),
-        proxy_addr.to_string(),
     )?;
 
     // We call the action and verify that it completes without issues.
     let account_action_response = abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
+        proxy_addr.to_string(),
         AccountId::local(account_sequence),
         HostAction::Helpers(abstract_std::ibc_host::HelperAction::SendAllBack {}),
-        proxy_addr.to_string(),
     )?;
 
     // Possible to verify that funds have been sent?
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
             .add_attribute("contract", ACCOUNT)
-            .add_attribute("action", "exec_on_module")
-            .add_attribute("module", ACCOUNT)
+            .add_attribute("action", "execute_module_action")
     ));
 
     Ok(())

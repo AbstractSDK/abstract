@@ -3,15 +3,119 @@ pub mod map_tester;
 pub mod mock_ans;
 pub(crate) mod mock_querier;
 
+use abstract_std::account::{ConfigResponse as AccountConfigResponse, QueryMsg as AccountQueryMsg};
+use abstract_std::objects::ABSTRACT_ACCOUNT_ID;
+use abstract_std::{
+    account::state::ACCOUNT_ID,
+    account::state::ACCOUNT_MODULES,
+    objects::{
+        module::{ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
+        ownership,
+    },
+    version_control::state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES},
+    ACCOUNT,
+};
 use cosmwasm_std::{
+    from_json,
     testing::{MockApi, MockQuerier, MockStorage},
-    OwnedDeps,
+    to_json_binary, Addr, Binary, Empty, OwnedDeps,
 };
 pub use mock_ans::MockAnsHost;
 pub use mock_querier::{
-    map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
+    map_key, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
 };
+use module::{TEST_MODULE_ID, TEST_MODULE_RESPONSE};
+use prelude::*;
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
+
+pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
+    let raw_handler = move |contract: &Addr, key: &Binary| {
+        // TODO: should we do something with the key?
+        let str_key = std::str::from_utf8(key.as_slice()).unwrap();
+        let abstr = AbstractMockAddrs::new(mock_api);
+
+        if contract == abstr.account.addr() {
+            // Return the default value
+            Ok(Binary::default())
+        } else if contract == abstr.version_control {
+            // Default value
+            Ok(Binary::default())
+        } else {
+            Err(format!(
+                "attempt to query {} with key {}",
+                contract, str_key
+            ))
+        }
+    };
+    let abstr = AbstractMockAddrs::new(mock_api);
+
+    MockQuerierBuilder::new(mock_api)
+        .with_fallback_raw_handler(raw_handler)
+        .with_contract_map_entry(
+            &abstr.version_control,
+            ACCOUNT_ADDRESSES,
+            (&ABSTRACT_ACCOUNT_ID, abstr.account.clone()),
+        )
+        .with_contract_map_entry(
+            &abstr.version_control,
+            REGISTERED_MODULES,
+            (
+                &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
+                ModuleReference::Account(1),
+            ),
+        )
+        .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &ABSTRACT_ACCOUNT_ID)
+        .with_contract_version(abstr.account.addr(), ACCOUNT, TEST_VERSION)
+        .with_smart_handler(&abstr.module_address, |msg| {
+            let Empty {} = from_json(msg).unwrap();
+            Ok(to_json_binary(TEST_MODULE_RESPONSE).unwrap())
+        })
+        .with_contract_map_entry(
+            abstr.account.addr(),
+            ACCOUNT_MODULES,
+            (TEST_MODULE_ID, abstr.module_address),
+        )
+        .with_smart_handler(abstr.account.addr(), move |msg| {
+            let abstr = AbstractMockAddrs::new(mock_api);
+            match from_json(msg).unwrap() {
+                AccountQueryMsg::Config {} => {
+                    let resp = AccountConfigResponse {
+                        version_control_address: abstr.version_control,
+                        module_factory_address: abstr.module_factory,
+                        account_id: ABSTRACT_ACCOUNT_ID, // mock value, not used
+                        is_suspended: false,
+                        modules: vec![],
+                    };
+                    Ok(to_json_binary(&resp).unwrap())
+                }
+                AccountQueryMsg::Ownership {} => {
+                    let resp = ownership::Ownership {
+                        owner: ownership::GovernanceDetails::Monarchy {
+                            monarch: abstr.owner,
+                        },
+                        pending_expiry: None,
+                        pending_owner: None,
+                    };
+                    Ok(to_json_binary(&resp).unwrap())
+                }
+                _ => panic!("unexpected message"),
+            }
+        })
+        .with_owner(abstr.account.addr(), Some(&abstr.owner))
+}
+
+/// A mock querier that returns the following responses for the following **RAW** contract -> queries:
+/// - TEST_PROXY
+///   - "admin" -> TEST_MANAGER
+/// - TEST_MANAGER
+///   - "modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
+///   - "account_id" -> TEST_ACCOUNT_ID
+/// - TEST_VERSION_CONTROL
+///   - "account" -> { TEST_PROXY, TEST_MANAGER }
+pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
+    abstract_mock_querier_builder(mock_api).build()
+}
 
 /// use the package version as test version, breaks tests otherwise.
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -19,8 +123,20 @@ pub mod addresses {
     use abstract_std::{native_addrs, version_control::Account};
     use cosmwasm_std::{testing::MockApi, Addr, Api, CanonicalAddr};
 
+    // Test addr makers
+    const OWNER: &str = "owner";
+    const ADMIN_ACCOUNT: &str = "admin_account_address";
     const TEST_ACCOUNT: &str = "account_address";
+    const TEST_ANS_HOST: &str = "test_ans_host_address";
+    const TEST_VERSION_CONTROL: &str = "version_control_address";
+    const TEST_MODULE_FACTORY: &str = "module_factory_address";
+    const TEST_MODULE_ADDRESS: &str = "test_module_address";
 
+    pub fn admin_account(mock_api: MockApi) -> Account {
+        Account::new(mock_api.addr_make(ADMIN_ACCOUNT))
+    }
+
+    // TODO: remove it
     pub fn test_account_base(mock_api: MockApi) -> Account {
         Account::new(mock_api.addr_make(TEST_ACCOUNT))
     }
@@ -36,9 +152,6 @@ pub mod addresses {
                     .unwrap(),
                 version_control: mock_api
                     .addr_humanize(&CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR))
-                    .unwrap(),
-                account_factory: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::ACCOUNT_FACTORY_ADDR))
                     .unwrap(),
                 module_factory: mock_api
                     .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
@@ -56,7 +169,6 @@ pub mod addresses {
         pub owner: Addr,
         pub ans_host: Addr,
         pub version_control: Addr,
-        pub account_factory: Addr,
         pub module_factory: Addr,
         pub module_address: Addr,
         pub account: Account,
@@ -89,74 +201,10 @@ pub mod module {
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 }
 
-pub mod mock {
-    use std::{cell::RefCell, rc::Rc};
-
-    use abstract_std::native_addrs::TEST_ABSTRACT_CREATOR;
-    use cosmwasm_std::{testing::MockApi, Api, CanonicalAddr, Checksum};
-    use cw_blob::interface::CwBlob;
-    use cw_orch::{
-        mock::{
-            cw_multi_test::{AppBuilder, ChecksumGenerator, MockApiBech32, WasmKeeper},
-            MockBase, MockBech32, MockState,
-        },
-        prelude::*,
-    };
-
-    pub struct AbstractChecksumGenerator {}
-
-    impl ChecksumGenerator for AbstractChecksumGenerator {
-        fn checksum(&self, _creator: &cosmwasm_std::Addr, code_id: u64) -> Checksum {
-            // Blob should be first uploaded contract
-            if code_id == 1 {
-                <CwBlob<MockBech32> as Uploadable>::wasm(&ChainInfoOwned::default())
-                    .checksum()
-                    .unwrap()
-            } else {
-                // from SimpleChecksumGenerator https://docs.rs/cw-multi-test/2.1.1/src/cw_multi_test/checksums.rs.html#19-28
-                Checksum::generate(format!("contract code {}", code_id).as_bytes())
-            }
-        }
-    }
-
-    fn create_mock<A: Api>(api: A) -> (MockBase<A, MockState>, u64) {
-        let state = Rc::new(RefCell::new(MockState::new()));
-        let checksum_generator = AbstractChecksumGenerator {};
-        // We create an address internally
-        let sender = api
-            .addr_humanize(&CanonicalAddr::from(TEST_ABSTRACT_CREATOR))
-            .unwrap();
-
-        let mut app = AppBuilder::new_custom()
-            .with_api(api)
-            .with_wasm(WasmKeeper::new().with_checksum_generator(checksum_generator))
-            .build(|_, _, _| {});
-        app.store_code(<CwBlob<MockBech32> as Uploadable>::wrapper());
-        let app = Rc::new(RefCell::new(app));
-
-        (MockBase { sender, state, app }, 1)
-    }
-
-    /// We use blob for uploading and need to upload it with defined checksum
-    /// Sender will be abstract creator
-    pub fn abstract_mock_bech32(prefix: &'static str) -> (MockBech32, u64) {
-        create_mock(MockApiBech32::new(prefix))
-    }
-
-    /// We use blob for uploading and need to upload it with defined checksum
-    /// Sender will be abstract creator
-    pub fn abstract_mock(prefix: Option<&'static str>) -> (Mock, u64) {
-        let api = match prefix {
-            Some(prefix) => MockApi::default().with_prefix(prefix),
-            None => MockApi::default(),
-        };
-        create_mock(api)
-    }
-}
-
 pub mod prelude {
-    pub use abstract_mock_querier::AbstractMockQuerierBuilder;
-    pub use abstract_std::objects::account::TEST_ACCOUNT_ID;
+    pub use super::{abstract_mock_querier, abstract_mock_querier_builder};
+    pub use abstract_mock_querier::AbstractMockQuerier;
+    use abstract_std::objects::{AccountId, AccountTrace};
     pub use addresses::*;
     pub use ans::*;
     pub use cosmwasm_std::{
@@ -164,10 +212,10 @@ pub mod prelude {
         testing::{MockApi as CwMockApi, MockQuerier, MockStorage},
         to_json_binary,
     };
-    pub use mock::*;
-    pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
+    pub use mock_querier::{map_key, raw_map_key, wrap_querier, MockQuerierBuilder};
     pub use module::*;
 
     use super::*;
     pub use super::{MockAnsHost, MockDeps, TEST_VERSION};
+    pub const TEST_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
 }

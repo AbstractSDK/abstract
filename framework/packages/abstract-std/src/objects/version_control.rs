@@ -2,7 +2,6 @@ use cosmwasm_std::{Addr, Api, CanonicalAddr, QuerierWrapper, StdResult};
 use thiserror::Error;
 
 use super::{
-    account::ACCOUNT_ID,
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
     namespace::Namespace,
@@ -38,13 +37,9 @@ pub enum VersionControlError {
         registry_addr: Addr,
     },
 
-    // caller not Manager error
-    #[error("Address {0} is not the Manager of Account {1}.")]
-    NotManager(Addr, AccountId),
-
-    // caller not Proxy error
-    #[error("Address {0} is not the Proxy of Account {1}.")]
-    NotProxy(Addr, AccountId),
+    // Caller is not a valid account
+    #[error("Address {0} is not the valid account address of {1}.")]
+    NotAccount(Addr, AccountId),
 
     // Query method failed
     #[error("Query during '{method_name}' failed: {error}")]
@@ -59,6 +54,9 @@ pub enum VersionControlError {
         service_addr: Addr,
         registry_addr: Addr,
     },
+
+    #[error("The provided module {0} has an invalid module reference.")]
+    InvalidReference(ModuleInfo),
 }
 
 pub type VersionControlResult<T> = Result<T, VersionControlError>;
@@ -143,7 +141,7 @@ impl VersionControlContract {
     }
 
     /// Queries the account that owns the namespace
-    /// Is also returns the base modules of that account (AccountBase)
+    /// Is also returns the base modules of that account (Account)
     #[function_name::named]
     pub fn query_namespace(
         &self,
@@ -282,7 +280,7 @@ impl VersionControlContract {
         Ok(config.namespace_registration_fee)
     }
 
-    /// Verify if the provided manager address is indeed a user.
+    /// Verify if the provided account address is indeed a user.
     pub fn assert_account(
         &self,
         maybe_account: &Addr,
@@ -291,7 +289,7 @@ impl VersionControlContract {
         let account_id = self.unchecked_account_id(maybe_account, querier)?;
         let account_base = self.account(&account_id, querier)?;
         if account_base.addr().ne(maybe_account) {
-            Err(VersionControlError::NotManager(
+            Err(VersionControlError::NotAccount(
                 maybe_account.clone(),
                 account_id,
             ))

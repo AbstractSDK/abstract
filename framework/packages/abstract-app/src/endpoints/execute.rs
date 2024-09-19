@@ -105,7 +105,6 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, DepsMut, Response};
     use cw_controllers::AdminError;
-    use speculoos::prelude::*;
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg>;
 
@@ -128,19 +127,19 @@ mod test {
 
             let not_manager = deps.api.addr_make("not_admin");
             let res = execute_as(deps.as_mut(), &not_manager, msg);
-            assert_that!(res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    MockError::DappError(AppError::Admin(AdminError::NotAdmin {}))
-                )
-            });
+            assert_eq!(
+                res,
+                Err(MockError::DappError(AppError::Admin(
+                    AdminError::NotAdmin {}
+                )))
+            );
             Ok(())
         }
 
         #[test]
         fn update_config_should_update_config() -> AppTestResult {
             let mut deps = mock_init();
-            let base = test_account_base(deps.api);
+            let account = test_account_base(deps.api);
 
             let new_ans_host = deps.api.addr_make("new_ans_host");
             let new_version_control = deps.api.addr_make("new_version_control");
@@ -149,17 +148,14 @@ mod test {
                 version_control_address: Some(new_version_control.to_string()),
             });
 
-            let res = execute_as(deps.as_mut(), &base.manager, update_ans);
+            let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
 
-            assert_that!(res).is_ok().map(|res| {
-                assert_that!(res.messages).is_empty();
-                res
-            });
+            assert!(res.messages.is_empty());
 
             let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
-            assert_that!(state.ans_host.address).is_equal_to(new_ans_host);
-            assert_that!(state.version_control.address).is_equal_to(new_version_control);
+            assert_eq!(state.ans_host.address, new_ans_host);
+            assert_eq!(state.version_control.address, new_version_control);
 
             Ok(())
         }
@@ -168,23 +164,21 @@ mod test {
         fn update_config_with_none_host_should_leave_existing_host() -> AppTestResult {
             let mut deps = mock_init();
             let abstr = AbstractMockAddrs::new(deps.api);
+            let account = test_account_base(deps.api);
 
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: None,
                 version_control_address: None,
             });
 
-            let res = execute_as(deps.as_mut(), &abstr.account.manager, update_ans);
+            let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
 
-            assert_that!(res).is_ok().map(|res| {
-                assert_that!(res.messages).is_empty();
-                res
-            });
+            assert!(res.messages.is_empty());
 
             let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
-            assert_that!(state.ans_host.address).is_equal_to(abstr.ans_host);
-            assert_that!(state.version_control.address).is_equal_to(abstr.version_control);
+            assert_eq!(state.ans_host.address, abstr.ans_host);
+            assert_eq!(state.version_control.address, abstr.version_control);
 
             Ok(())
         }

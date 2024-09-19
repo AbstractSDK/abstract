@@ -1,7 +1,7 @@
 use abstract_sdk::AbstractSdkError;
 use abstract_std::{
     objects::{module::ModuleInfo, namespace::Namespace, validation::ValidationError, AccountId},
-    AbstractError,
+    AbstractError, ACCOUNT,
 };
 use cosmwasm_std::{Addr, Coin, StdError};
 use thiserror::Error;
@@ -25,6 +25,21 @@ pub enum VCError {
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
+
+    #[error(
+        "Caller with info {} has code_id {} but expected {}",
+        account_info,
+        actual_code_id,
+        expected_code_id
+    )]
+    NotAccountCodeId {
+        account_info: ModuleInfo,
+        expected_code_id: u64,
+        actual_code_id: u64,
+    },
+
+    #[error("Caller has info {} but should be {}", caller_info, ACCOUNT)]
+    NotAccountInfo { caller_info: ModuleInfo },
 
     #[error("Module {0} does not have a stored module reference")]
     ModuleNotFound(ModuleInfo),
@@ -78,8 +93,11 @@ pub enum VCError {
     #[error("Initialization funds can only be specified for apps and standalone modules")]
     RedundantInitFunds {},
 
-    #[error("Only account factory is allowed to add new accounts")]
-    NotAccountFactory {},
+    #[error("Sender {0} is not the IBC host {1}")]
+    SenderNotIbcHost(String, String),
+
+    #[error("requested sequence is invalid. Expected: {expected}, actual: {actual}")]
+    InvalidAccountSequence { expected: u32, actual: u32 },
 }
 
 impl From<semver::Error> for VCError {

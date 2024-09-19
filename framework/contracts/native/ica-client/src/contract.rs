@@ -1,8 +1,8 @@
 use crate::msg::*;
-use crate::state::{Config, CONFIG};
 use abstract_macros::abstract_response;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
+    ica_client::state::{Config, CONFIG},
     objects::{
         ans_host::AnsHost,
         module_version::{assert_cw_contract_upgrade, migrate_module_data},
@@ -57,13 +57,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> IcaClientResult<QueryRespon
             to_json_binary(&cw_ownable::get_ownership(deps.storage)?).map_err(Into::into)
         }
         QueryMsg::IcaAction {
-            proxy_address,
+            account_address,
             chain,
             actions,
         } => to_json_binary(&queries::ica_action(
             deps,
             env,
-            proxy_address,
+            account_address,
             chain,
             actions,
         )?)

@@ -5,7 +5,7 @@ use abstract_sdk::{
     ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
-    account,
+    account::{self, ModuleInstallConfig},
     app::AppState,
     ibc::{polytone_callbacks::CallbackRequest, Callback, ModuleQuery},
     ibc_client::{
@@ -13,7 +13,6 @@ use abstract_std::{
         IbcClientCallback, InstalledModuleIdentification, PolytoneNoteExecuteMsg,
     },
     ibc_host::{self, HostAction, InternalAction},
-    manager::{self, ModuleInstallConfig},
     objects::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
@@ -236,7 +235,7 @@ pub fn execute_send_module_to_module_packet(
 
     // We need additional information depending on the module type
     let source_module = match module_info.reference {
-        ModuleReference::AccountBase(_)
+        ModuleReference::Account(_)
         | ModuleReference::Native(_)
         | ModuleReference::Standalone(_)
         | ModuleReference::Service(_) => return Err(IbcClientError::Unauthorized {}),
@@ -253,7 +252,7 @@ pub fn execute_send_module_to_module_packet(
                 .version_control
                 .account_id(account.addr(), &deps.querier)?;
             let account_base = cfg.version_control.account(&account_id, &deps.querier)?;
-            let ibc_client = manager::state::ACCOUNT_MODULES.query(
+            let ibc_client = account::state::ACCOUNT_MODULES.query(
                 &deps.querier,
                 account_base.into_addr(),
                 IBC_CLIENT,
@@ -383,7 +382,7 @@ pub fn execute_register_account(
 
     let account_info: account::InfoResponse = deps
         .querier
-        .query_wasm_smart(account_base.addr(), &manager::QueryMsg::Info {})?;
+        .query_wasm_smart(account_base.addr(), &account::QueryMsg::Info {})?;
     let account_info = account_info.info;
 
     let note_message = send_remote_host_action(

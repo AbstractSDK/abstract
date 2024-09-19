@@ -18,7 +18,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     let config = Config {
         version_control: VersionControlContract::new(deps.api)?,
         ans_host,
-        account_factory: deps.api.addr_validate(&msg.account_factory_address)?,
+        module_factory_addr: deps.api.addr_validate(&msg.module_factory_address)?,
     };
 
     set_contract_version(deps.storage, IBC_HOST, CONTRACT_VERSION)?;
