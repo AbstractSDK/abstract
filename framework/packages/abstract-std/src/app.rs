@@ -104,7 +104,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 pub struct AppConfigResponse {
     pub account: Addr,
     pub ans_host_address: Addr,
-    pub manager_address: Addr,
+    pub version_control_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
