@@ -16,7 +16,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
-    StdResult, Storage, SubMsg, WasmMsg,
+    StdError, StdResult, Storage, SubMsg, WasmMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;
@@ -341,17 +341,25 @@ pub(crate) fn _whitelist_modules(deps: DepsMut, module_addresses: Vec<Addr>) -> 
 /// Remove a contract from the whitelist
 pub(crate) fn _remove_whitelist_modules(
     deps: DepsMut,
-    module_addresses: Vec<Addr>,
+    addresses_to_remove: Vec<Addr>,
 ) -> AccountResult<()> {
-    for module_addr in module_addresses.into_iter() {
-        WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
-            if !whitelisted_modules.0.contains(&module_addr) {
-                return Err(AccountError::NotWhitelisted(module_addr.to_string()));
+    let mut len: i8 = addresses_to_remove.len() as i8;
+
+    WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
+        whitelisted_modules.0.retain(|addr| {
+            // retain any addresses that are not in the list of addresses to remove
+            if addresses_to_remove.contains(addr) {
+                len -= 1;
+                false
+            } else {
+                true
             }
-            // Remove contract from whitelist.
-            whitelisted_modules.0.retain(|addr| *addr != module_addr);
-            Ok(whitelisted_modules)
-        })?;
+        });
+        Ok::<_, StdError>(whitelisted_modules)
+    })?;
+
+    if len != 0 {
+        return Err(AccountError::NotWhitelisted{});
     }
     Ok(())
 }
