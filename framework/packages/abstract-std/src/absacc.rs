@@ -89,3 +89,13 @@ pub enum AccountSudoMsg {
         simulate: bool,
     },
 }
+
+#[cw_serde]
+pub enum Authenticator {
+    Secp256K1 { pubkey: Binary },
+    Ed25519 { pubkey: Binary },
+    EthWallet { address: String },
+    Jwt { aud: String, sub: String },
+    Secp256R1 { pubkey: Binary },
+    Passkey { url: String, passkey: Binary },
+}

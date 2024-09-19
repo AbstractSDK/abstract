@@ -6,7 +6,7 @@ use abstract_std::{
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use thiserror::Error;
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Error, Debug)]
 pub enum AccountError {
     #[error("{0}")]
     Std(#[from] StdError),
@@ -108,4 +108,65 @@ pub enum AccountError {
 
     #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
     SubAccountCreatorNotAccount { caller: String, account: String },
+
+    // TODO: Feature flag xion
+    #[error(transparent)]
+    EncodeError(#[from] cosmos_sdk_proto::prost::EncodeError),
+
+    #[error(transparent)]
+    DecodeError(#[from] cosmos_sdk_proto::prost::DecodeError),
+
+    #[error(transparent)]
+    Verification(#[from] cosmwasm_std::VerificationError),
+
+    #[error(transparent)]
+    FromHex(#[from] hex::FromHexError),
+
+    #[error(transparent)]
+    Bech32(#[from] bech32::Error),
+
+    #[error(transparent)]
+    Base64Decode(#[from] base64::DecodeError),
+
+    #[error(transparent)]
+    Rsa(#[from] rsa::Error),
+
+    #[error(transparent)]
+    P256EllipticCurve(#[from] p256::elliptic_curve::Error),
+
+    #[error(transparent)]
+    P256EcdsaCurve(#[from] p256::ecdsa::Error),
+
+    #[error(transparent)]
+    RecoverPubkey(#[from] cosmwasm_std::RecoverPubkeyError),
+
+    #[error("The pubkey recovered from the signature does not match")]
+    RecoveredPubkeyMismatch {},
+
+    #[error("Signature is empty")]
+    EmptySignature {},
+
+    #[error("Short signature")]
+    ShortSignature {},
+
+    #[error("Signature is invalid")]
+    InvalidSignature {},
+
+    #[error("Signature is invalid. expected: {expected}, received {received}")]
+    InvalidSignatureDetail { expected: String, received: String },
+
+    #[error("Recovery id can only be one of 0, 1, 27, 28")]
+    InvalidRecoveryId {},
+
+    #[error("Invalid token")]
+    InvalidToken {},
+
+    #[error("url parse error: {url}")]
+    URLParse { url: String },
+
+    #[error("cannot override existing authenticator at index {index}")]
+    OverridingIndex { index: u8 },
+
+    #[error(transparent)]
+    FromUTF8(#[from] std::string::FromUtf8Error),
 }

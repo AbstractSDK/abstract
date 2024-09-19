@@ -10,6 +10,8 @@ pub mod reply;
 pub mod sub_account;
 pub mod versioning;
 
+/// Abstract Account
+pub mod absacc;
 #[cfg(test)]
 mod test_common {
     use abstract_std::{

@@ -33,7 +33,12 @@ cw-clearable = { workspace = true }
 
 # XION absacc
 # account = { git = "https://github.com/burnt-labs/contracts", branch = "main" }
-cosmos-sdk-proto = { version = "0.24.0", default-features = false }
+cosmos-sdk-proto = { git = "https://github.com/burnt-labs/cosmos-rust.git", rev = "75e72f446629f98330e209e2f6268250d325cccb", default-features = false, features = [
+    "std",
+    "cosmwasm",
+    "xion",
+    "serde",
+] }
 prost = { version = "0.13.2", default-features = false }
 
 ## Stringify function names

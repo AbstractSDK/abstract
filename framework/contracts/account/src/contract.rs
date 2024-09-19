@@ -18,11 +18,10 @@ use abstract_std::{
         AccountId,
     },
     version_control::state::LOCAL_ACCOUNT_SEQUENCE,
-    version_control::Account,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult, SubMsgResult,
+    StdResult, SubMsgResult,
 };
 
 pub use crate::migrate::migrate;
