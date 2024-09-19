@@ -115,7 +115,6 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]

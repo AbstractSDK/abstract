@@ -21,8 +21,10 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
-        # let module = MockModule::new(deps.api);
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
@@ -57,8 +59,10 @@ impl<'a, T: ModuleInterface> ApiIdentification for Modules<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
-    # let module = MockModule::new(deps.api);
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let modules: Modules<MockModule>  = module.modules(deps.as_ref());
     ```
@@ -126,14 +130,11 @@ mod test {
     use crate::mock_module::*;
 
     mod assert_module_dependency {
-        use cosmwasm_std::testing::*;
-
         use super::*;
 
         #[test]
         fn should_return_ok_if_dependency() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.modules(deps.as_ref());
 
@@ -143,8 +144,7 @@ mod test {
 
         #[test]
         fn should_return_err_if_not_dependency() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.modules(deps.as_ref());
 

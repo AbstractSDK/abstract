@@ -207,6 +207,7 @@ pub mod mock {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.module_factory, &[]);
+        let account = test_account_base(deps.api);
 
         deps.querier = app_base_mock_querier(deps.api).build();
 
@@ -214,7 +215,7 @@ pub mod mock {
             base: app::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
                 version_control_address: abstr.version_control.to_string(),
-                account_base: abstr.account,
+                account_base: account,
             },
             module: MockInitMsg {},
         };

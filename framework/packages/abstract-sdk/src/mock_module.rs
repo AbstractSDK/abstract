@@ -7,7 +7,10 @@ use abstract_std::{
     version_control::Account,
 };
 use abstract_testing::prelude::*;
-use cosmwasm_std::{testing::MockApi, Deps};
+use cosmwasm_std::{
+    testing::{mock_dependencies, MockApi},
+    Deps,
+};
 
 use crate::{
     features::{
@@ -21,8 +24,7 @@ use crate::{
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {
     fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
-        let abstr = AbstractMockAddrs::new(self.mock_api);
-        Ok(abstr.account)
+        Ok(self.account.clone())
     }
 }
 
@@ -65,12 +67,13 @@ pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 /// Identifies itself as [`TEST_MODULE_ID`].
 pub struct MockModule {
     mock_api: MockApi,
+    account: Account,
 }
 
 impl MockModule {
     /// mock constructor
-    pub fn new(mock_api: MockApi) -> Self {
-        Self { mock_api }
+    pub fn new(mock_api: MockApi, account: Account) -> Self {
+        Self { mock_api, account }
     }
 }
 
@@ -93,3 +96,15 @@ impl abstract_std::adapter::AdapterQueryMsg for MockModuleQueryMsg {}
 impl abstract_std::app::AppExecuteMsg for MockModuleExecuteMsg {}
 
 impl abstract_std::app::AppQueryMsg for MockModuleQueryMsg {}
+
+/// [`MockModule`] test setup
+pub fn mock_module_setup() -> (MockDeps, Account, MockModule) {
+    let mut deps = mock_dependencies();
+    let account = test_account_base(deps.api);
+    deps.querier = abstract_mock_querier_builder(deps.api)
+        .account(&account, TEST_ACCOUNT_ID)
+        .build();
+    let app = MockModule::new(deps.api, account.clone());
+
+    (deps, account, app)
+}

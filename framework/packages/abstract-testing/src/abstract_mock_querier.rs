@@ -51,7 +51,7 @@ impl AbstractMockQuerier for MockQuerierBuilder {
             )
             .with_contract_map_entry(
                 account.addr(),
-                ACCOUNT_MODULES,
+                abstract_std::account::state::ACCOUNT_MODULES,
                 (TEST_MODULE_ID, abstract_addrs.module_address),
             )
     }
