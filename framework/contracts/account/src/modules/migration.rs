@@ -11,6 +11,7 @@ use abstract_std::{
         module::ModuleInfo,
         module_reference::ModuleReference,
         ownership::{self},
+        storage_namespaces,
         version_control::{VersionControlContract, VersionControlError},
     },
     ACCOUNT,
@@ -32,7 +33,8 @@ use crate::{
     queries::query_module_version,
 };
 
-pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
+pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> =
+    Item::new(storage_namespaces::account::MIGRATE_CONTEXT);
 
 /// Migrate modules through address updates or contract migrations
 /// The dependency store is updated during migration

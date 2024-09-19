@@ -1,6 +1,8 @@
-use crate::state::{Config, CONFIG};
 use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
-use abstract_std::objects::TruncatedChainId;
+use abstract_std::{
+    ica_client::state::{Config, CONFIG},
+    objects::TruncatedChainId,
+};
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
 use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};

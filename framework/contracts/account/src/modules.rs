@@ -10,6 +10,7 @@ use abstract_std::{
         module_reference::ModuleReference,
         ownership::{self},
         salt::generate_instantiate_salt,
+        storage_namespaces,
         version_control::VersionControlContract,
     },
     version_control::ModuleResponse,
@@ -28,7 +29,8 @@ use crate::{
 };
 
 pub use migration::MIGRATE_CONTEXT;
-pub(crate) const INSTALL_MODULES_CONTEXT: Item<Vec<(Module, Option<Addr>)>> = Item::new("icontext");
+pub(crate) const INSTALL_MODULES_CONTEXT: Item<Vec<(Module, Option<Addr>)>> =
+    Item::new(storage_namespaces::account::INSTALL_MODULES_CONTEXT);
 
 pub mod migration;
 
