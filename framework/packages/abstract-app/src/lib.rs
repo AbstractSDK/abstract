@@ -32,12 +32,12 @@ pub mod mock {
     use abstract_interface::{AppDeployer, DependencyCreation, RegisteredModule};
     pub use abstract_std::app;
     use abstract_std::{
-        manager::ModuleInstallConfig,
+        account::ModuleInstallConfig,
         objects::{dependency::StaticDependency, module::ModuleInfo},
         IBC_CLIENT,
     };
     use cosmwasm_schema::QueryResponses;
-    pub use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env, MockApi};
+    pub(crate) use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env, MockApi};
     use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
@@ -207,6 +207,7 @@ pub mod mock {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.module_factory, &[]);
+        let account = test_account_base(deps.api);
 
         deps.querier = app_base_mock_querier(deps.api).build();
 
@@ -214,7 +215,7 @@ pub mod mock {
             base: app::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
                 version_control_address: abstr.version_control.to_string(),
-                account_base: abstr.account,
+                account_base: account,
             },
             module: MockInitMsg {},
         };

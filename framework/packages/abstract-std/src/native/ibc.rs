@@ -1,3 +1,6 @@
+pub mod ibc_client;
+pub mod ibc_host;
+pub mod ica_client;
 pub mod polytone_callbacks;
 
 use cosmwasm_schema::cw_serde;
@@ -10,7 +13,6 @@ use serde::Serialize;
 
 use crate::{
     base::ExecuteMsg,
-    ibc_client,
     objects::{module::ModuleInfo, TruncatedChainId},
 };
 use polytone_callbacks::{Callback as PolytoneCallback, ErrorResponse, ExecutionResponse};

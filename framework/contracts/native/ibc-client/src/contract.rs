@@ -169,6 +169,7 @@ mod tests {
     use super::*;
 
     use crate::test_common::mock_init;
+    use abstract_std::{account, version_control};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         from_json,
@@ -399,7 +400,7 @@ mod tests {
                 host: host.clone(),
             };
 
-            let note_proxy_msg = wasm_execute(
+            let note_account_msg = wasm_execute(
                 note_addr.to_string(),
                 &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![],
@@ -415,7 +416,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             assert_eq!(
-                IbcClientResponse::action("allow_chain_port").add_message(note_proxy_msg),
+                IbcClientResponse::action("allow_chain_port").add_message(note_account_msg),
                 res
             );
 
@@ -483,8 +484,8 @@ mod tests {
         use std::str::FromStr;
 
         use abstract_std::{
+            account,
             ibc_host::{self, HostAction, InternalAction},
-            manager,
             objects::{version_control::VersionControlError, TruncatedChainId},
         };
 
@@ -493,11 +494,19 @@ mod tests {
         use crate::commands::PACKET_LIFETIME;
 
         #[test]
-        fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
+        fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let abstract_addrs = AbstractMockAddrs::new(deps.api);
+            let account = test_account_base(deps.api);
+            let not_account = deps.api.addr_make("not_account");
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                // Account pretends as different account
+                .with_contract_item(&not_account, account::state::ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_map_entry(
+                    &abstract_addrs.version_control,
+                    version_control::state::ACCOUNT_ADDRESSES,
+                    (&TEST_ACCOUNT_ID, account.clone()),
+                )
                 .build();
             mock_init(&mut deps)?;
 
@@ -506,7 +515,7 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name,
                 action: HostAction::Dispatch {
-                    manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
+                    account_msgs: vec![account::ExecuteMsg::UpdateInfo {
                         name: None,
                         description: None,
                         link: None,
@@ -514,12 +523,12 @@ mod tests {
                 },
             };
 
-            let res = execute_as(deps.as_mut(), &base.manager, msg);
+            let res = execute_as(deps.as_mut(), &not_account, msg);
 
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
+                    IbcClientError::VersionControlError(VersionControlError::NotAccount(..))
                 )
             });
             Ok(())
@@ -528,9 +537,9 @@ mod tests {
         #[test]
         fn cannot_make_internal_call() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let account = test_account_base(deps.api);
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
                 .build();
             mock_init(&mut deps)?;
 
@@ -547,7 +556,7 @@ mod tests {
                 }),
             };
 
-            let res = execute_as(deps.as_mut(), &base.proxy, msg);
+            let res = execute_as(deps.as_mut(), account.addr(), msg);
 
             assert_that!(res)
                 .is_err()
@@ -558,9 +567,9 @@ mod tests {
         #[test]
         fn send_packet_with_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let account = test_account_base(deps.api);
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
                 .build();
             mock_init(&mut deps)?;
 
@@ -580,7 +589,7 @@ mod tests {
             )?;
 
             let action = HostAction::Dispatch {
-                manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
+                account_msgs: vec![account::ExecuteMsg::UpdateInfo {
                     name: None,
                     description: None,
                     link: None,
@@ -592,16 +601,16 @@ mod tests {
                 action: action.clone(),
             };
 
-            let res = execute_as(deps.as_mut(), &base.proxy, msg)?;
+            let res = execute_as(deps.as_mut(), account.addr(), msg)?;
 
             let note_message = wasm_execute(
                 note_addr.to_string(),
                 &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![wasm_execute(
-                        // The note's remote proxy will call the ibc host
+                        // The note's remote account will call the ibc host
                         remote_ibc_host,
                         &ibc_host::ExecuteMsg::Execute {
-                            account_address: base.proxy.to_string(),
+                            account_address: account.addr().to_string(),
                             account_id: TEST_ACCOUNT_ID,
                             action,
                         },
@@ -635,11 +644,19 @@ mod tests {
         use std::str::FromStr;
 
         #[test]
-        fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
+        fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let abstract_addrs = AbstractMockAddrs::new(deps.api);
+            let account = test_account_base(deps.api);
+            let module = deps.api.addr_make("application");
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                // Module is not account
+                .with_contract_item(&module, account::state::ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_map_entry(
+                    &abstract_addrs.version_control,
+                    version_control::state::ACCOUNT_ADDRESSES,
+                    (&TEST_ACCOUNT_ID, account.clone()),
+                )
                 .build();
             mock_init(&mut deps)?;
 
@@ -651,14 +668,14 @@ mod tests {
                 memo: None,
             };
 
-            let res = execute_as(deps.as_mut(), &base.manager, msg);
+            let res = execute_as(deps.as_mut(), &module, msg);
 
-            assert_that!(res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(IbcClientError::VersionControlError(
+                    VersionControlError::NotAccount(..)
+                ))
+            ));
             Ok(())
         }
 
@@ -672,9 +689,9 @@ mod tests {
             };
             let channel_id = String::from("1");
             let channels: Vec<(&ChannelEntry, String)> = vec![(&channel_entry, channel_id.clone())];
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let account = test_account_base(deps.api);
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
                 .channels(channels)
                 .build();
             mock_init(&mut deps)?;
@@ -695,7 +712,7 @@ mod tests {
                 memo: None,
             };
 
-            let res = execute_as(deps.as_mut(), &base.proxy, msg)?;
+            let res = execute_as(deps.as_mut(), account.addr(), msg)?;
 
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()
@@ -725,7 +742,7 @@ mod tests {
                 memo: memo.clone(),
             };
 
-            let res = execute_as(deps.as_mut(), &base.proxy, msg)?;
+            let res = execute_as(deps.as_mut(), account.addr(), msg)?;
 
             use prost::Message;
             let transfer_msgs: Vec<CosmosMsg> = funds
@@ -771,20 +788,28 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
         use abstract_std::{
+            account,
             ibc::polytone_callbacks::CallbackRequest,
             ibc_host::{self, HostAction, InternalAction},
-            manager,
             objects::{version_control::VersionControlError, TruncatedChainId},
         };
         use cosmwasm_std::wasm_execute;
         use std::str::FromStr;
 
         #[test]
-        fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
+        fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let abstract_addrs = AbstractMockAddrs::new(deps.api);
+            let account = test_account_base(deps.api);
+            let not_account = deps.api.addr_make("not_account");
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                // Account pretends as different account
+                .with_contract_item(&not_account, account::state::ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_map_entry(
+                    &abstract_addrs.version_control,
+                    version_control::state::ACCOUNT_ADDRESSES,
+                    (&TEST_ACCOUNT_ID, account.clone()),
+                )
                 .build();
             mock_init(&mut deps)?;
 
@@ -796,12 +821,12 @@ mod tests {
                 install_modules: vec![],
             };
 
-            let res = execute_as(deps.as_mut(), &base.manager, msg);
+            let res = execute_as(deps.as_mut(), &not_account, msg);
 
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
+                    IbcClientError::VersionControlError(VersionControlError::NotAccount(..))
                 )
             });
             Ok(())
@@ -810,24 +835,23 @@ mod tests {
         #[test]
         fn works() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
-                .builder()
-                .with_smart_handler(&base.manager, |msg| {
-                    match from_json::<manager::QueryMsg>(msg).unwrap() {
-                        manager::QueryMsg::Info {} => to_json_binary(&manager::InfoResponse {
-                            info: manager::state::AccountInfo {
+            let account = test_account_base(deps.api);
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .with_smart_handler(
+                    account.addr(),
+                    |msg| match from_json::<account::QueryMsg>(msg).unwrap() {
+                        account::QueryMsg::Info {} => to_json_binary(&account::InfoResponse {
+                            info: account::state::AccountInfo {
                                 name: String::from("name"),
-                                chain_id: String::from("chain-id"),
                                 description: None,
                                 link: None,
                             },
                         })
                         .map_err(|e| e.to_string()),
                         _ => todo!(),
-                    }
-                })
+                    },
+                )
                 .build();
             mock_init(&mut deps)?;
 
@@ -851,16 +875,16 @@ mod tests {
                 install_modules: vec![],
             };
 
-            let res = execute_as(deps.as_mut(), &base.proxy, msg)?;
+            let res = execute_as(deps.as_mut(), account.addr(), msg)?;
 
             let note_message = wasm_execute(
                 note_contract.to_string(),
                 &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![wasm_execute(
-                        // The note's remote proxy will call the ibc host
+                        // The note's remote account will call the ibc host
                         remote_ibc_host,
                         &ibc_host::ExecuteMsg::Execute {
-                            account_address: base.proxy.to_string(),
+                            account_address: account.addr().to_string(),
                             account_id: TEST_ACCOUNT_ID,
                             action: HostAction::Internal(InternalAction::Register {
                                 description: None,
@@ -1055,7 +1079,7 @@ mod tests {
 
         use abstract_std::{
             ibc::polytone_callbacks::{Callback, CallbackMessage, ExecutionResponse},
-            objects::{account::TEST_ACCOUNT_ID, TruncatedChainId},
+            objects::TruncatedChainId,
         };
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
 
@@ -1202,13 +1226,13 @@ mod tests {
             )?;
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
 
-            let remote_proxy = String::from("remote_proxy");
+            let remote_account = String::from("remote_account");
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
                 initiator: env.contract.address,
                 initiator_msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
                 result: Callback::Execute(Ok(ExecutionResponse {
-                    executed_by: remote_proxy.clone(),
+                    executed_by: remote_account.clone(),
                     result: vec![],
                 })),
             });
@@ -1227,7 +1251,7 @@ mod tests {
                 IbcInfrastructure {
                     polytone_note: note_addr.clone(),
                     remote_abstract_host: remote_ibc_host.clone(),
-                    remote_proxy: Some(remote_proxy),
+                    remote_proxy: Some(remote_account),
                 },
                 updated_ibc_infra
             );
@@ -1272,7 +1296,7 @@ mod tests {
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
-            let remote_proxy = String::from("remote_proxy");
+            let remote_account = String::from("remote_account");
 
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
             let callback_msg = CallbackMessage {
@@ -1281,7 +1305,7 @@ mod tests {
                     account_id: TEST_ACCOUNT_ID,
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
-                    executed_by: remote_proxy.clone(),
+                    executed_by: remote_account.clone(),
                     #[allow(deprecated)]
                     result: vec![SubMsgResponse {
                         events: vec![],
@@ -1303,14 +1327,14 @@ mod tests {
         }
 
         #[test]
-        fn create_account_missing_proxy_address_attribute() -> IbcClientTestResult {
+        fn create_account_missing_account_address_attribute() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
             let env = mock_env();
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
-            let remote_proxy = String::from("remote_proxy");
+            let remote_account = String::from("remote_account");
 
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
             let callback_msg = CallbackMessage {
@@ -1319,7 +1343,7 @@ mod tests {
                     account_id: TEST_ACCOUNT_ID,
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
-                    executed_by: remote_proxy.clone(),
+                    executed_by: remote_account.clone(),
                     #[allow(deprecated)]
                     result: vec![SubMsgResponse {
                         events: vec![Event::new(String::from("wasm"))],
@@ -1348,7 +1372,7 @@ mod tests {
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
-            let remote_proxy = String::from("remote_proxy");
+            let remote_account = String::from("remote_account");
 
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note_addr, &chain_name)?;
             let callback_msg = CallbackMessage {
@@ -1357,12 +1381,12 @@ mod tests {
                     account_id: TEST_ACCOUNT_ID,
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
-                    executed_by: remote_proxy.clone(),
+                    executed_by: remote_account.clone(),
                     #[allow(deprecated)]
                     result: vec![SubMsgResponse {
                         events: vec![Event::new(String::from("wasm-abstract"))
-                            .add_attribute("action", "create_proxy")
-                            .add_attribute("proxy_address", remote_proxy.clone())],
+                            .add_attribute("action", "create_account")
+                            .add_attribute("proxy_address", remote_account.clone())],
                         data: None,
                         msg_responses: vec![],
                     }],
@@ -1385,7 +1409,7 @@ mod tests {
                 (TEST_ACCOUNT_ID.trace(), TEST_ACCOUNT_ID.seq(), &chain_name),
             )?;
 
-            assert_eq!(remote_proxy, saved_account);
+            assert_eq!(remote_account, saved_account);
 
             // Verify queries
             let account_response: AccountResponse = from_json(query(
@@ -1399,7 +1423,7 @@ mod tests {
 
             assert_eq!(
                 AccountResponse {
-                    remote_proxy_addr: Some(remote_proxy.clone())
+                    remote_proxy_addr: Some(remote_account.clone())
                 },
                 account_response
             );
@@ -1415,7 +1439,7 @@ mod tests {
 
             assert_eq!(
                 ListAccountsResponse {
-                    accounts: vec![(TEST_ACCOUNT_ID, chain_name.clone(), remote_proxy.clone())]
+                    accounts: vec![(TEST_ACCOUNT_ID, chain_name.clone(), remote_account.clone())]
                 },
                 accounts_response
             );
@@ -1430,7 +1454,7 @@ mod tests {
 
             assert_eq!(
                 ListRemoteProxiesResponse {
-                    proxies: vec![(chain_name, Some(remote_proxy))]
+                    proxies: vec![(chain_name, Some(remote_account))]
                 },
                 proxies_response
             );
@@ -1453,13 +1477,13 @@ mod tests {
             let (trace, seq) = TEST_ACCOUNT_ID.decompose();
 
             let chain1 = TruncatedChainId::from_str("chain-a")?;
-            let proxy1 = String::from("proxy1");
+            let account1 = String::from("account1");
 
             let chain2 = TruncatedChainId::from_str("chain-b")?;
-            let proxy2 = String::from("proxy2");
+            let account2 = String::from("account2");
 
-            ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain1), &proxy1)?;
-            ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain2), &proxy2)?;
+            ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain1), &account1)?;
+            ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain2), &account2)?;
 
             let proxies_response: ListRemoteProxiesResponse = from_json(query(
                 deps.as_ref(),
@@ -1471,7 +1495,7 @@ mod tests {
 
             assert_eq!(
                 ListRemoteProxiesResponse {
-                    proxies: vec![(chain1, Some(proxy1)), (chain2, Some(proxy2))]
+                    proxies: vec![(chain1, Some(account1)), (chain2, Some(account2))]
                 },
                 proxies_response
             );
@@ -1495,20 +1519,20 @@ mod tests {
             let (trace, seq) = account_id.clone().decompose();
 
             let terra_chain = TruncatedChainId::from_str("terra")?;
-            let terra_proxy = String::from("terra-proxy");
+            let terra_account = String::from("terra-account");
 
             let archway_chain = TruncatedChainId::from_str("archway")?;
-            let archway_proxy = String::from("archway-proxy");
+            let archway_account = String::from("archway-account");
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
                 (&trace, seq, &terra_chain),
-                &terra_proxy,
+                &terra_account,
             )?;
             ACCOUNTS.save(
                 deps.as_mut().storage,
                 (&trace, seq, &archway_chain),
-                &archway_proxy,
+                &archway_account,
             )?;
 
             let proxies_response: ListRemoteProxiesResponse = from_json(query(
@@ -1520,8 +1544,8 @@ mod tests {
             assert_eq!(
                 ListRemoteProxiesResponse {
                     proxies: vec![
-                        (archway_chain, Some(archway_proxy)),
-                        (terra_chain, Some(terra_proxy)),
+                        (archway_chain, Some(archway_account)),
+                        (terra_chain, Some(terra_account)),
                     ]
                 },
                 proxies_response

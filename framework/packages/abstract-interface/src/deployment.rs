@@ -6,13 +6,10 @@ use cw_orch::daemon::DeployedChains;
 use cw_orch::prelude::*;
 
 use crate::{
-    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
-    Account, AccountFactory, AnsHost, ModuleFactory, VersionControl,
+    get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
+    AnsHost, ModuleFactory, VersionControl,
 };
-use abstract_std::{
-    native_addrs, ACCOUNT, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
-    VERSION_CONTROL,
-};
+use abstract_std::{ACCOUNT, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL};
 
 use rust_embed::RustEmbed;
 
@@ -34,10 +31,9 @@ impl State {
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
-    pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
     pub ibc: AbstractIbc<Chain>,
-    pub(crate) account: AbstractAccount<Chain>,
+    pub(crate) account: AccountI<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -47,24 +43,20 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
     fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-        let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-        let account = Account::new(ACCOUNT, chain.clone());
+        let account = AccountI::new(ACCOUNT, chain.clone());
 
-        let mut account = AbstractAccount { account: account };
         let ibc_infra = AbstractIbc::new(&chain);
 
         ans_host.upload()?;
         version_control.upload()?;
-        account_factory.upload()?;
         module_factory.upload()?;
         account.upload()?;
         ibc_infra.upload()?;
 
         let deployment = Abstract {
             ans_host,
-            account_factory,
             version_control,
             module_factory,
             account,
@@ -81,16 +73,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         // ########### Instantiate ##############
         deployment.instantiate(data)?;
 
-        // Set Factory
-        deployment.version_control.execute(
-            &abstract_std::version_control::ExecuteMsg::UpdateConfig {
-                account_factory_address: Some(deployment.account_factory.address()?.into_string()),
-                namespace_registration_fee: None,
-                security_disabled: None,
-            },
-            &[],
-        )?;
-
         // ########### upload modules and token ##############
 
         deployment
@@ -106,13 +88,20 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
-        use abstract_std::objects::gov_type::GovernanceDetails;
-        #[cfg(feature = "integration")]
-        deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender_addr().to_string(),
-            })?;
+        {
+            use abstract_std::objects::gov_type::GovernanceDetails;
+            AccountI::create(
+                &deployment,
+                crate::AccountDetails {
+                    name: "Abstract".to_string(),
+                    ..Default::default()
+                },
+                GovernanceDetails::Monarchy {
+                    monarch: chain.sender_addr().to_string(),
+                },
+                &[],
+            )?;
+        }
         Ok(deployment)
     }
 
@@ -120,9 +109,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         vec![
             Box::new(&mut self.ans_host),
             Box::new(&mut self.version_control),
-            Box::new(&mut self.account_factory),
             Box::new(&mut self.module_factory),
-            Box::new(&mut self.account.account),
+            Box::new(&mut self.account),
             Box::new(&mut self.ibc.client),
             Box::new(&mut self.ibc.host),
         ]
@@ -162,15 +150,13 @@ impl<Chain: CwEnv> DeployedChains<Chain> for Abstract<Chain> {
 
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
-        let (ans_host, account_factory, version_control, module_factory) =
-            get_native_contracts(chain.clone());
+        let (ans_host, version_control, module_factory) = get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
-        let account = Account::new(ACCOUNT, chain.clone());
+        let account = AccountI::new(ACCOUNT, chain.clone());
         Self {
-            account: AbstractAccount { account },
+            account,
             ans_host,
             version_control,
-            account_factory,
             module_factory,
             ibc: AbstractIbc {
                 client: ibc_client,
@@ -213,17 +199,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
             &[],
         )?;
 
-        self.account_factory.instantiate(
-            &abstract_std::account_factory::InstantiateMsg {
-                admin: admin.to_string(),
-                version_control_address: self.version_control.address()?.into_string(),
-                ans_host_address: self.ans_host.address()?.into_string(),
-                module_factory_address: self.module_factory.address()?.into_string(),
-            },
-            Some(&admin),
-            &[],
-        )?;
-
         // We also instantiate ibc contracts
         self.ibc.instantiate(self, &admin)?;
         self.ibc.register(&self.version_control)?;
@@ -240,10 +215,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
             (
                 self.version_control.as_instance(),
                 version_control::contract::CONTRACT_VERSION.to_string(),
-            ),
-            (
-                self.account_factory.as_instance(),
-                account_factory::contract::CONTRACT_VERSION.to_string(),
             ),
             (
                 self.module_factory.as_instance(),
@@ -352,7 +323,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             &abstract_std::ibc_host::MigrateMsg::Instantiate(
                 abstract_std::ibc_host::InstantiateMsg {
                     ans_host_address: deployment.ans_host.addr_str()?,
-                    account_factory_address: deployment.account_factory.addr_str()?,
+                    module_factory_address: deployment.module_factory.addr_str()?,
                     version_control_address: deployment.version_control.addr_str()?,
                 },
             ),
@@ -385,6 +356,7 @@ mod test {
     fn have_some_state() {
         State::get("state.json").unwrap();
         let state = State::load_state();
+        // TODO: remove ["juno"] after updating state, we only need chain_id now
         let vc_juno = &state["juno"]["juno-1"]["code_ids"].get(VERSION_CONTROL);
         assert!(vc_juno.is_some());
     }

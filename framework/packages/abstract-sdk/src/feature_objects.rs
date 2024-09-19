@@ -6,7 +6,7 @@
 
 pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 use abstract_std::{version_control::Account, VERSION_CONTROL};
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::Deps;
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
@@ -53,7 +53,7 @@ mod tests {
     use super::*;
 
     mod version_control {
-        use cosmwasm_std::testing::mock_dependencies;
+        use cosmwasm_std::{testing::mock_dependencies, Addr};
 
         use super::*;
         use crate::features::AbstractRegistryAccess;
@@ -72,14 +72,14 @@ mod tests {
     }
 
     mod account {
-        use cosmwasm_std::testing::mock_dependencies;
+        use cosmwasm_std::{testing::mock_dependencies, Addr};
 
         use super::*;
 
         #[test]
         fn test_account() {
             let deps = mock_dependencies();
-            let account_base = test_account_base(deps.api);
+            let account_base = test_account(deps.api);
 
             assert_that!(account_base.account(deps.as_ref()))
                 .is_ok()
@@ -88,9 +88,9 @@ mod tests {
 
         #[test]
         fn should_identify_self_as_account() {
-            let proxy = Account::new(Addr::unchecked("test"));
+            let account_base = Account::new(Addr::unchecked("test"));
 
-            assert_that!(proxy.module_id()).is_equal_to(ACCOUNT);
+            assert_that!(account_base.module_id()).is_equal_to(ACCOUNT);
         }
     }
 }

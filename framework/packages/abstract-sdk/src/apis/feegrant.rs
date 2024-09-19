@@ -26,18 +26,22 @@ pub trait GrantInterface: AccountExecutor {
     /// ```
     /// use abstract_sdk::prelude::*;
     /// # use cosmwasm_std::testing::mock_dependencies;
-    /// # use abstract_sdk::mock_module::MockModule;
-    /// # let module = MockModule::new();
+    /// # use abstract_sdk::{mock_module::MockModule, FeeGranter, GrantInterface, AbstractSdkResult};
+    /// # use abstract_testing::prelude::*;
     /// # let deps = mock_dependencies();
-
+    /// # let account = admin_account(deps.api);
+    /// # let module = MockModule::new(deps.api, account);
+    ///
     /// let grant: FeeGranter = module.fee_granter(deps.as_ref(), None)?;
+    ///
+    /// # AbstractSdkResult::Ok(())
     /// ```
     fn fee_granter<'a>(
         &'a self,
         deps: cosmwasm_std::Deps<'a>,
         granter: Option<Addr>,
     ) -> AbstractSdkResult<FeeGranter> {
-        let granter = granter.unwrap_or(self.proxy_address(deps)?);
+        let granter = granter.unwrap_or(self.account(deps)?.addr().clone());
         Ok(FeeGranter { granter })
     }
 }
@@ -50,10 +54,14 @@ impl<T> GrantInterface for T where T: AccountExecutor {}
 /// ```
 /// use abstract_sdk::prelude::*;
 /// # use cosmwasm_std::testing::mock_dependencies;
-/// # use abstract_sdk::mock_module::MockModule;
-/// # let module = MockModule::new();
+/// # use abstract_sdk::{mock_module::MockModule, FeeGranter, GrantInterface, AbstractSdkResult};
+/// # use abstract_testing::prelude::*;
+/// # let deps = mock_dependencies();
+/// # let account = admin_account(deps.api);
+/// # let module = MockModule::new(deps.api, account);
 ///
 /// let grant: FeeGranter  = module.fee_granter(deps.as_ref(), None)?;
+/// # AbstractSdkResult::Ok(())
 /// ```
 /// */
 #[derive(Clone)]
@@ -172,7 +180,7 @@ impl FeeGranter {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use cosmwasm_std::{coins, testing::mock_dependencies};
+    use cosmwasm_std::coins;
 
     use super::*;
     use crate::{apis::stargate::StargateMessage, mock_module::*};
@@ -201,8 +209,7 @@ mod test {
 
         #[test]
         fn basic_allowance() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
 
             let granter = deps.api.addr_make("granter");
             let grantee = deps.api.addr_make("grantee");
@@ -234,8 +241,7 @@ mod test {
 
         #[test]
         fn periodic_allowance() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
 
             let granter = deps.api.addr_make("granter");
             let grantee = deps.api.addr_make("grantee");
@@ -278,8 +284,7 @@ mod test {
 
         #[test]
         fn revoke_all() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
 
             let granter = deps.api.addr_make("granter");
             let grantee = deps.api.addr_make("grantee");

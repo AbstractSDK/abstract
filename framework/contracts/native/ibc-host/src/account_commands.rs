@@ -3,16 +3,15 @@ use abstract_sdk::{
     Resolve,
 };
 use abstract_std::{
-    account, account_factory,
+    account::{self, ModuleInstallConfig},
     ibc_host::state::CONFIG,
-    manager::{self, ModuleInstallConfig},
-    objects::{AccountId, TruncatedChainId},
-    proxy,
+    objects::{module::ModuleInfo, module_reference::ModuleReference, AccountId, TruncatedChainId},
     version_control::Account,
     ACCOUNT,
 };
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
+    instantiate2_address, to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg,
+    Response, SubMsg, WasmMsg,
 };
 
 use crate::{
@@ -41,31 +40,58 @@ pub fn receive_register(
 
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
+    let salt = cosmwasm_std::to_json_binary(&account_id)?;
+
+    let account_module_info = ModuleInfo::from_id_latest(ACCOUNT)?;
+    let ModuleReference::Account(code_id) = cfg
+        .version_control
+        .query_module(account_module_info.clone(), &deps.querier)?
+        .reference
+    else {
+        return Err(HostError::VersionControlError(
+            abstract_std::objects::version_control::VersionControlError::InvalidReference(
+                account_module_info,
+            ),
+        ));
+    };
+    let checksum = deps.querier.query_wasm_code_info(code_id)?.checksum;
+    let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
+
+    let create_account_msg = account::InstantiateMsg {
+        owner: abstract_std::objects::gov_type::GovernanceDetails::External {
+            governance_address: env.contract.address.into_string(),
+            governance_type: "abstract-ibc".into(), // at least 4 characters
+        },
+        name,
+        description,
+        link,
+        // provide the origin chain id
+        account_id: Some(account_id.clone()),
+        install_modules,
+        namespace,
+        module_factory_address: cfg.module_factory_addr.to_string(),
+        version_control_address: cfg.version_control.address.to_string(),
+    };
+
+    let account_canon_addr =
+        instantiate2_address(checksum.as_slice(), &self_canon_addr, salt.as_slice())?;
+    let account_addr = deps.api.addr_humanize(&account_canon_addr)?;
 
     // create the message to instantiate the remote account
-    let factory_msg = wasm_execute(
-        cfg.account_factory,
-        &account_factory::ExecuteMsg::CreateAccount {
-            governance: abstract_std::objects::gov_type::GovernanceDetails::External {
-                governance_address: env.contract.address.into_string(),
-                governance_type: "abstract-ibc".into(), // at least 4 characters
-            },
-            name,
-            description,
-            link,
-            // provide the origin chain id
-            account_id: Some(account_id.clone()),
-            install_modules,
-            namespace,
-        },
-        vec![],
-    )?;
+    let account_creation_message = WasmMsg::Instantiate2 {
+        admin: Some(account_addr.to_string()),
+        code_id,
+        label: account_id.to_string(),
+        msg: to_json_binary(&create_account_msg)?,
+        funds: vec![],
+        salt,
+    };
 
     // If we were ordered to have a reply after account creation
     let sub_msg = if with_reply {
-        SubMsg::reply_on_success(factory_msg, INIT_BEFORE_ACTION_REPLY_ID)
+        SubMsg::reply_on_success(account_creation_message, INIT_BEFORE_ACTION_REPLY_ID)
     } else {
-        SubMsg::new(factory_msg)
+        SubMsg::new(account_creation_message)
     };
 
     Ok(Response::new()
@@ -73,13 +99,13 @@ pub fn receive_register(
         .add_attribute("action", "register"))
 }
 
-/// Execute manager message on local manager.
+/// Execute account message on local account.
 pub fn receive_dispatch(
     _deps: DepsMut,
     account: Account,
     account_msgs: Vec<account::ExecuteMsg>,
 ) -> HostResult {
-    // execute the message on the manager
+    // execute the message on the account
     let msgs = account_msgs
         .into_iter()
         .map(|msg| wasm_execute(account.addr(), &msg, vec![]))
@@ -141,16 +167,13 @@ pub fn send_all_back(
             .into(),
         )
     }
-    // call the message to send everything back through the manager
-    let manager_msg = wasm_execute(
+    // call the message to send everything back through the account
+    let account_msg = wasm_execute(
         account.into_addr(),
-        &manager::ExecuteMsg::ExecOnModule {
-            module_id: ACCOUNT.into(),
-            exec_msg: to_json_binary(&proxy::ExecuteMsg::ModuleAction { msgs })?,
-        },
+        &account::ExecuteMsg::ModuleAction { msgs },
         vec![],
     )?;
-    Ok(manager_msg.into())
+    Ok(account_msg.into())
 }
 
 /// get the account base from the version control contract

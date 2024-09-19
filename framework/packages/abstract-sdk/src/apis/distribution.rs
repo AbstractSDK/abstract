@@ -22,7 +22,10 @@ pub trait DistributionInterface: AccountExecutor {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
+        # use abstract_testing::prelude::*;
+        # let deps = mock_dependencies();
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let distr: Distribution  = module.distribution();
         ```
@@ -42,7 +45,10 @@ impl<T> DistributionInterface for T where T: AccountExecutor {}
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
+    # use abstract_testing::prelude::*;
+    # let deps = mock_dependencies();
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let distr: Distribution  = module.distribution();
     ```
@@ -143,6 +149,7 @@ mod test {
 
     use super::*;
     use crate::mock_module::*;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::MockApi;
 
     mod set_withdraw_address {
@@ -151,7 +158,7 @@ mod test {
         #[test]
         fn set_withdraw_address() {
             let mock_api = MockApi::default();
-            let app = MockModule::new(mock_api);
+            let app = MockModule::new(mock_api, test_account_base(mock_api));
 
             let distribution = app.distribution();
 
@@ -170,7 +177,7 @@ mod test {
         #[test]
         fn withdraw_delegator_reward() {
             let mock_api = MockApi::default();
-            let app = MockModule::new(mock_api);
+            let app = MockModule::new(mock_api, test_account_base(mock_api));
 
             let distribution = app.distribution();
 
@@ -189,7 +196,7 @@ mod test {
         #[test]
         fn withdraw_delegator_comission() {
             let mock_api = MockApi::default();
-            let app = MockModule::new(mock_api);
+            let app = MockModule::new(mock_api, test_account_base(mock_api));
 
             let distribution = app.distribution();
 
@@ -209,7 +216,7 @@ mod test {
         #[test]
         fn fund_community_pool() {
             let mock_api = MockApi::default();
-            let app = MockModule::new(mock_api);
+            let app = MockModule::new(mock_api, test_account_base(mock_api));
 
             let distribution = app.distribution();
 

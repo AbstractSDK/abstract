@@ -10,7 +10,6 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::testing::{mock_dependencies, mock_env};
-    use speculoos::prelude::*;
 
     use crate::mock::{sudo, AdapterMockResult};
 
@@ -18,12 +17,12 @@ mod tests {
     fn endpoint() -> AdapterMockResult {
         let env = mock_env();
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier(deps.api);
+        deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let sudo_msg = crate::mock::MockSudoMsg {};
         let res = sudo(deps.as_mut(), env, sudo_msg)?;
-        assert_that!(&res.messages.len()).is_equal_to(0);
+        assert_eq!(res.messages.len(), 0);
         // confirm data is set
-        assert_that!(res.data).is_equal_to(Some("mock_sudo".as_bytes().into()));
+        assert_eq!(res.data, Some("mock_sudo".as_bytes().into()));
 
         Ok(())
     }

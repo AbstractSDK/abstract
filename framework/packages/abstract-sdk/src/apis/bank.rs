@@ -26,8 +26,10 @@ pub trait TransferInterface:
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let bank: Bank<MockModule>  = module.bank(deps.as_ref());
         ```
@@ -65,8 +67,10 @@ impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let bank: Bank<MockModule>  = module.bank(deps.as_ref());
     ```
@@ -116,6 +120,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// Transfer the provided funds from the Account to the recipient.
     /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
+    /// # use abstract_std::version_control::Account;
     /// # use abstract_std::objects::AnsAsset;
     /// # use abstract_std::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
@@ -124,7 +129,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// # };
     /// # struct MockModule;
     /// # impl AccountIdentification for MockModule {
-    /// #    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+    /// #    fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
     /// #       unimplemented!("Not needed for this example")
     /// #   }
     /// # }
@@ -274,15 +279,14 @@ mod test {
     use crate::mock_module::*;
 
     mod transfer_coins {
-        use abstract_std::proxy::ExecuteMsg;
+        use abstract_std::account::ExecuteMsg;
 
         use super::*;
         use crate::{Execution, Executor, ExecutorMsg};
 
         #[test]
         fn transfer_asset_to_sender() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, account, app) = mock_module_setup();
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
@@ -300,10 +304,9 @@ mod test {
                 amount: coins,
             });
 
-            let base = test_account_base(deps.api);
             assert_that!(response.messages[0].msg).is_equal_to(
                 &wasm_execute(
-                    base.proxy,
+                    account.addr(),
                     &ExecuteMsg::ModuleAction {
                         msgs: vec![expected_msg],
                     },
@@ -318,13 +321,13 @@ mod test {
     // transfer must be tested via integration test
 
     mod deposit {
+
         use super::*;
         use crate::apis::respond::AbstractResponse;
 
         #[test]
         fn deposit() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, account, app) = mock_module_setup();
 
             // ANCHOR: deposit
             // Get bank API struct from the app
@@ -337,9 +340,8 @@ mod test {
             let response: Response = app.response("deposit").add_messages(deposit_msgs);
             // ANCHOR_END: deposit
 
-            let base = test_account_base(deps.api);
             let bank_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
-                to_address: base.proxy.to_string(),
+                to_address: account.addr().to_string(),
                 amount: coins,
             });
 
@@ -352,8 +354,8 @@ mod test {
 
         #[test]
         fn withdraw_coins() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
+
             let expected_amount = 100u128;
             let env = mock_env();
 
@@ -378,8 +380,8 @@ mod test {
 
         #[test]
         fn send_cw20() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
+
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 
@@ -405,8 +407,8 @@ mod test {
 
         #[test]
         fn send_coins() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
+
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 

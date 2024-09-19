@@ -75,6 +75,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::objects::AnsAsset;
+    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{testing::mock_dependencies, Addr, CosmosMsg, Response, StdError, Uint128};
 
     use crate::{
@@ -83,8 +84,12 @@ mod test {
     };
 
     fn split() -> Result<Response, AbstractSdkError> {
-        let deps = mock_dependencies();
-        let module = MockModule::new(deps.api);
+        let mut deps = mock_dependencies();
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let module = MockModule::new(deps.api, account.clone());
         // ANCHOR: usage
         let asset = AnsAsset {
             amount: Uint128::from(100u128),

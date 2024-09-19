@@ -44,7 +44,7 @@ pub use ans_resolve::Resolve;
 
 /// Common state-store namespaces.
 pub mod namespaces {
-    pub use abstract_std::objects::common_namespace::*;
+    pub use abstract_std::objects::storage_namespaces::*;
 }
 
 /// Abstract reserved version control entries.

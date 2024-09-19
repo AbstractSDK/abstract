@@ -34,7 +34,7 @@ fn config(deps: Deps) -> HostResult<ConfigResponse> {
     let state = CONFIG.load(deps.storage)?;
     Ok(ConfigResponse {
         ans_host_address: state.ans_host.address,
-        account_factory_address: state.account_factory,
+        module_factory_address: state.module_factory_addr,
         version_control_address: state.version_control.address,
     })
 }
@@ -83,7 +83,7 @@ mod test {
             mock_env(),
             info.clone(),
             InstantiateMsg {
-                account_factory_address: dummy.to_string(),
+                module_factory_address: dummy.to_string(),
                 version_control_address: foo.to_string(),
                 ans_host_address: bar.to_string(),
             },

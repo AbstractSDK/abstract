@@ -16,6 +16,7 @@
 - Ibc related renaming to add more consistency in namings
 - Account action on executor takes `impl IntoIter<Item = impl Into<AccountAction>>` instead of `Vec<AccountAction>`
 - Native abstract accounts uploaded with predictable canonical Addresses
+- Minified the storage keys and made them available via constants
 
 #### Abstract Client
 
@@ -35,6 +36,7 @@
 - Value calculation logic from proxy contract.
 - `cw-semver` dependency removed
 - Manager no longer able to migrate pre `0.19` abstract adapters
+- Account Factory native contract
 
 ### Fixed
 
