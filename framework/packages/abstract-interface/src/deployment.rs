@@ -9,9 +9,13 @@ use crate::{
     get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
     AnsHost, ModuleFactory, VersionControl,
 };
-use abstract_std::{ACCOUNT, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL};
+use abstract_std::{
+    native_addrs, ACCOUNT, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
+};
 
 use rust_embed::RustEmbed;
+
+const CW_BLOB: &str = "cw:blob";
 
 #[derive(RustEmbed)]
 // Can't use symlinks in debug mode
@@ -34,6 +38,7 @@ pub struct Abstract<Chain: CwEnv> {
     pub module_factory: ModuleFactory<Chain>,
     pub ibc: AbstractIbc<Chain>,
     pub(crate) account: AccountI<Chain>,
+    pub(crate) blob: CwBlob<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -42,6 +47,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     type DeployData = String;
 
     fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
+        let blob = CwBlob::new(CW_BLOB, chain.clone());
+
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
@@ -49,6 +56,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         let ibc_infra = AbstractIbc::new(&chain);
 
+        blob.upload()?;
         ans_host.upload()?;
         version_control.upload()?;
         module_factory.upload()?;
@@ -61,6 +69,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             module_factory,
             account,
             ibc: ibc_infra,
+            blob,
         };
 
         Ok(deployment)
@@ -162,6 +171,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 client: ibc_client,
                 host: ibc_host,
             },
+            blob: CwBlob::new(CW_BLOB, chain),
         }
     }
 
@@ -235,11 +245,11 @@ impl<Chain: CwEnv> Abstract<Chain> {
     pub fn deploy2(
         chain: Chain,
         deploy_data: <Self as Deploy<Chain>>::DeployData,
-        blob_code_id: u64,
     ) -> Result<Self, AbstractInterfaceError> {
         let admin = deploy_data.clone();
         // upload
         let deployment = Self::store_on(chain.clone())?;
+        let blob_code_id = deployment.blob.code_id()?;
         CwBlob::upload_and_migrate(
             chain.clone(),
             blob_code_id,
@@ -286,22 +296,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
             Binary::from(MODULE_FACTORY.as_bytes()),
         )?;
 
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.account_factory,
-            &abstract_std::account_factory::MigrateMsg::Instantiate(
-                abstract_std::account_factory::InstantiateMsg {
-                    admin: admin.to_string(),
-                    version_control_address: deployment.version_control.address()?.into_string(),
-                    ans_host_address: deployment.ans_host.address()?.into_string(),
-                    module_factory_address: deployment.module_factory.address()?.into_string(),
-                },
-            ),
-            CanonicalAddr::from(native_addrs::ACCOUNT_FACTORY_ADDR),
-            Binary::from(ACCOUNT_FACTORY.as_bytes()),
-        )?;
-
         // We also instantiate ibc contracts
         CwBlob::upload_and_migrate(
             chain.clone(),
@@ -341,8 +335,9 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use std::borrow::Cow;
 
-    use abstract_testing::mock::abstract_mock_bech32;
     use cosmwasm_std::Api;
+    use cw_orch::anyhow;
+    use native_addrs::TEST_ABSTRACT_CREATOR;
 
     use super::*;
 
@@ -362,47 +357,39 @@ mod test {
     }
 
     #[test]
-    fn deploy2() {
-        let (chain, blob_code_id) = abstract_mock_bech32("mock");
-        let abstr = Abstract::deploy2(chain.clone(), chain.sender_addr().to_string(), blob_code_id)
-            .unwrap();
+    fn deploy2() -> anyhow::Result<()> {
+        let mut chain = MockBech32::new("mock");
+        let sender = chain
+            .app
+            .borrow()
+            .api()
+            .addr_humanize(&CanonicalAddr::from(TEST_ABSTRACT_CREATOR))?;
+        chain.set_sender(sender);
+
+        let abstr = Abstract::deploy2(chain.clone(), chain.sender_addr().to_string())?;
         let app = chain.app.borrow();
         let api = app.api();
 
         // ANS
-        let ans_addr = api
-            .addr_canonicalize(&abstr.ans_host.addr_str().unwrap())
-            .unwrap();
+        let ans_addr = api.addr_canonicalize(&abstr.ans_host.addr_str()?)?;
         assert_eq!(*ans_addr, native_addrs::ANS_ADDR);
 
         // VC
-        let version_control = api
-            .addr_canonicalize(&abstr.version_control.addr_str().unwrap())
-            .unwrap();
+        let version_control = api.addr_canonicalize(&abstr.version_control.addr_str()?)?;
         assert_eq!(*version_control, native_addrs::VERSION_CONTROL_ADDR);
 
-        // ACCOUNT_FACTORY
-        let account_factory = api
-            .addr_canonicalize(&abstr.account_factory.addr_str().unwrap())
-            .unwrap();
-        assert_eq!(*account_factory, native_addrs::ACCOUNT_FACTORY_ADDR);
-
         // MODULE_FACTORY
-        let module_factory = api
-            .addr_canonicalize(&abstr.module_factory.addr_str().unwrap())
-            .unwrap();
+        let module_factory = api.addr_canonicalize(&abstr.module_factory.addr_str()?)?;
         assert_eq!(*module_factory, native_addrs::MODULE_FACTORY_ADDR);
 
         // IBC_CLIENT
-        let ibc_client = api
-            .addr_canonicalize(&abstr.ibc.client.addr_str().unwrap())
-            .unwrap();
+        let ibc_client = api.addr_canonicalize(&abstr.ibc.client.addr_str()?)?;
         assert_eq!(*ibc_client, native_addrs::IBC_CLIENT_ADDR);
 
         // IBC_HOST
-        let ibc_host = api
-            .addr_canonicalize(&abstr.ibc.host.addr_str().unwrap())
-            .unwrap();
+        let ibc_host = api.addr_canonicalize(&abstr.ibc.host.addr_str()?)?;
         assert_eq!(*ibc_host, native_addrs::IBC_HOST_ADDR);
+
+        Ok(())
     }
 }
