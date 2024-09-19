@@ -1,28 +1,23 @@
-use abstract_account::{contract::CONTRACT_VERSION, error::AccountError};
+use abstract_account::error::AccountError;
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_integration_tests::*;
 use abstract_interface::*;
 use abstract_std::{
-    account::{AccountModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
+    account::{ModuleInstallConfig, ModuleVersionsResponse},
     objects::{
         fee::FixedFee,
-        gov_type::{GovAction, GovernanceDetails},
+        gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
-        ownership::{self, cw721::OwnerOfResponse},
+        ownership::{self},
         AccountId, ABSTRACT_ACCOUNT_ID,
     },
     version_control::{NamespaceResponse, UpdateModule},
-    ACCOUNT,
 };
 use abstract_testing::prelude::*;
-use anyhow::Error;
-use cosmwasm_std::{coin, CosmosMsg, Uint128};
-use cw_orch::{
-    mock::{cw_multi_test::MockApiBech32, MockBase},
-    prelude::*,
-};
+use cosmwasm_std::{coin, CosmosMsg};
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 // /// Deploys and mints an NFT to *sender*.

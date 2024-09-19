@@ -15,7 +15,6 @@ use abstract_std::{
     objects::{
         fee::FixedFee,
         module::{ModuleInfo, ModuleVersion, Monetization},
-        AccountId,
     },
     *,
 };

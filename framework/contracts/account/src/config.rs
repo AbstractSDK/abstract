@@ -3,25 +3,18 @@ use crate::{
     error::AccountError,
     modules::{_remove_whitelist_modules, _whitelist_modules, update_module_addresses},
 };
-use abstract_sdk::{cw_helpers::AbstractAttributes, feature_objects::VersionControlContract};
+use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
     account::{
-        state::{
-            AccountInfo, SuspensionStatus, ACCOUNT_ID, CONFIG, INFO, SUB_ACCOUNTS,
-            SUSPENSION_STATUS,
-        },
-        ExecuteMsg, InternalConfigAction, UpdateSubAccountAction,
+        state::{AccountInfo, SuspensionStatus, INFO, SUSPENSION_STATUS},
+        InternalConfigAction,
     },
     objects::{
-        gov_type::GovernanceDetails,
         ownership,
         validation::{validate_description, validate_link, validate_name},
     },
 };
-use cosmwasm_std::{
-    ensure, from_json, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, MessageInfo, Response,
-    StdError,
-};
+use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdError};
 
 pub fn update_account_status(
     deps: DepsMut,
@@ -82,11 +75,11 @@ pub fn update_internal_config(
         InternalConfigAction::UpdateWhitelist { to_add, to_remove } => {
             let module_addresses_to_add: Result<Vec<Addr>, _> = to_add
                 .into_iter()
-                .map(|str_addr| Ok::<Addr, StdError>(deps.api.addr_validate(&str_addr)?))
+                .map(|str_addr| deps.api.addr_validate(&str_addr))
                 .collect();
             let module_addresses_to_remove: Result<Vec<Addr>, _> = to_remove
                 .into_iter()
-                .map(|str_addr| Ok::<Addr, StdError>(deps.api.addr_validate(&str_addr)?))
+                .map(|str_addr| deps.api.addr_validate(&str_addr))
                 .collect();
 
             _whitelist_modules(deps.branch(), module_addresses_to_add?)?;
@@ -94,11 +87,9 @@ pub fn update_internal_config(
 
             Ok(AccountResponse::action("update_whitelist"))
         }
-        _ => {
-            return Err(AccountError::InvalidConfigAction {
-                error: StdError::generic_err("Unknown config action"),
-            })
-        }
+        _ => Err(AccountError::InvalidConfigAction {
+            error: StdError::generic_err("Unknown config action"),
+        }),
     }
 }
 

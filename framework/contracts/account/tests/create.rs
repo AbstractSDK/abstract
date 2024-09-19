@@ -292,7 +292,7 @@ fn create_one_account_with_namespace() -> AResult {
         .version_control
         .namespace(Namespace::new(namespace_to_claim)?)?;
 
-    assert_that!(&namespace).is_equal_to(&NamespaceResponse::Claimed(NamespaceInfo {
+    assert_that!(&namespace).is_equal_to(NamespaceResponse::Claimed(NamespaceInfo {
         account_id: TEST_ACCOUNT_ID,
         account_base: Account::new(Addr::unchecked(account_addr)),
     }));

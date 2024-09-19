@@ -12,7 +12,6 @@ use abstract_std::{
         AccountId,
     },
     version_control::ModuleFilter,
-    ACCOUNT,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};

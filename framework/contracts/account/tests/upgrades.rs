@@ -730,7 +730,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
     assert!(e
         .root()
         .to_string()
-        .contains(&format!("Expected 10coin1,5coin2, sent")));
+        .contains(&"Expected 10coin1,5coin2, sent".to_string()));
 
     Ok(())
 }

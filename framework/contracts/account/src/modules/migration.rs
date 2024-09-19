@@ -1,8 +1,5 @@
 use abstract_std::{
-    account::{
-        state::{ACCOUNT_MODULES, CONFIG},
-        CallbackMsg, ExecuteMsg,
-    },
+    account::{state::CONFIG, CallbackMsg, ExecuteMsg},
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg as AdapterQuery,
     },
@@ -120,7 +117,7 @@ pub fn set_migrate_msgs_and_context(
         // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
         ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
             deps,
-            &env,
+            env,
             requested_module.module.info,
             old_module_addr,
             new_adapter_addr,

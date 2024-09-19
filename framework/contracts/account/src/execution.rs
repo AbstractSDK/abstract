@@ -128,7 +128,7 @@ mod test {
         #[test]
         fn only_whitelisted_can_execute() {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+            mock_init(&mut deps).unwrap();
 
             let msg = ExecuteMsg::ModuleAction { msgs: vec![] };
 
@@ -143,8 +143,7 @@ mod test {
         #[test]
         fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps);
-            let account = test_account_base(deps.api);
+            mock_init(&mut deps).unwrap();
 
             // stub a module
             let module_addr = deps.api.addr_make(TEST_MODULE_ID);
@@ -196,7 +195,7 @@ mod test {
         #[test]
         fn add_module() {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+            mock_init(&mut deps).unwrap();
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
             account::state::WHITELISTED_MODULES

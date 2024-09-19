@@ -2,12 +2,11 @@ use abstract_account::error::AccountError;
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_std::{
-    account::{self, InternalConfigAction, SubAccountIdsResponse},
+    account::{self, SubAccountIdsResponse},
     objects::{
         gov_type::{GovAction, GovernanceDetails},
-        ownership, AccountId,
+        ownership,
     },
-    ACCOUNT,
 };
 use cosmwasm_std::{to_json_binary, wasm_execute, WasmMsg};
 use cw_orch::prelude::*;
