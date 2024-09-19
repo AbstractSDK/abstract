@@ -426,20 +426,19 @@ mod tests {
 
             mock_init(&mut deps).unwrap();
 
-            let to_add: Vec<(String, String)> = vec![
-                ("test:module1".to_string(), module1_addr.to_string()),
-                ("test:module2".to_string(), module2_addr.to_string()),
+            let to_add: Vec<(String, Addr)> = vec![
+                ("test:module1".to_string(), module1_addr),
+                ("test:module2".to_string(), module2_addr),
             ];
 
-            let res = update_module_addresses(deps.as_mut(), Some(to_add.clone()), Some(vec![]));
+            let res = update_module_addresses(deps.as_mut(), to_add.clone(), vec![]);
             assert_that!(&res).is_ok();
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
             speculoos::prelude::VecAssertions::has_length(
                 &mut assert_that!(&actual_modules),
-                // Plus proxy
-                to_add.len() + 1,
+                to_add.len(),
             );
             for (module_id, addr) in to_add {
                 speculoos::iter::ContainingIntoIterAssertions::contains(
@@ -457,9 +456,10 @@ mod tests {
 
             mock_init(&mut deps).unwrap();
 
-            let to_add: Vec<(String, String)> = vec![("".to_string(), "module1_addr".to_string())];
+            let to_add: Vec<(String, Addr)> =
+                vec![("".to_string(), Addr::unchecked("module1_addr"))];
 
-            let res = update_module_addresses(deps.as_mut(), Some(to_add), Some(vec![]));
+            let res = update_module_addresses(deps.as_mut(), to_add, vec![]);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::InvalidModuleName {});
@@ -481,13 +481,12 @@ mod tests {
 
             let to_remove: Vec<String> = vec!["test:module".to_string()];
 
-            let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
+            let res = update_module_addresses(deps.as_mut(), vec![], to_remove);
             assert_that!(&res).is_ok();
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
-            // Only proxy left
-            speculoos::prelude::VecAssertions::has_length(&mut assert_that!(&actual_modules), 1);
+            speculoos::prelude::VecAssertions::has_length(&mut assert_that!(&actual_modules), 0);
 
             Ok(())
         }
@@ -503,10 +502,10 @@ mod tests {
 
             // add some thing
             let action_add = InternalConfigAction::UpdateModuleAddresses {
-                to_add: Some(vec![("module:other".to_string(), module_addr.to_string())]),
-                to_remove: None,
+                to_add: vec![("module:other".to_string(), module_addr.to_string())],
+                to_remove: vec![],
             };
-            let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&action_add).unwrap());
+            let msg = ExecuteMsg::UpdateInternalConfig(action_add);
 
             // the version control can not call this
             let res = execute_as(deps.as_mut(), &abstr.version_control, msg.clone());
@@ -637,12 +636,18 @@ mod tests {
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
+
+            update_module_addresses(
+                deps.as_mut(),
+                vec![("test_mod".to_string(), Addr::unchecked("module_addr"))],
+                vec![],
+            )?;
 
             let exec_msg = "some msg";
 
             let msg = ExecuteMsg::ExecOnModule {
-                module_id: ACCOUNT.to_string(),
+                module_id: "test_mod".to_string(),
                 exec_msg: to_json_binary(&exec_msg)?,
             };
 
@@ -652,8 +657,7 @@ mod tests {
             let msgs = res.unwrap().messages;
             assert_that!(&msgs).has_length(1);
 
-            let expected_msg: CosmosMsg =
-                wasm_execute(abstr.account.addr(), &exec_msg, vec![])?.into();
+            let expected_msg: CosmosMsg = wasm_execute("module_addr", &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
             assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);

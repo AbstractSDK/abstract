@@ -202,33 +202,27 @@ mod test {
         account::{ExecuteMsg, InstantiateMsg, InternalConfigAction},
         objects::AccountId,
     };
-    use abstract_testing::prelude::*;
+    use abstract_testing::{mock_querier_builder, prelude::*};
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies, mock_env, MockApi},
         OwnedDeps,
     };
 
-    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
-
     #[test]
     fn query_config() {
         let mut deps = mock_dependencies();
-        deps.querier = MockAnsHost::new(deps.api).with_defaults().to_querier();
-        mock_init(&mut deps);
         let abstr = AbstractMockAddrs::new(deps.api);
+        deps.querier = mock_querier_builder(deps.api.clone())
+            .with_contract_version(&abstr.module_address, TEST_MODULE_ID, "1.0.0")
+            .build();
+        mock_init(&mut deps).unwrap();
 
         execute_as_admin(
             &mut deps,
-            ExecuteMsg::UpdateInternalConfig(
-                to_json_binary(&InternalConfigAction::UpdateModuleAddresses {
-                    to_add: Some(vec![(
-                        TEST_MODULE_ID.into(),
-                        abstr.module_address.to_string(),
-                    )]),
-                    to_remove: None,
-                })
-                .unwrap(),
-            ),
+            ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateModuleAddresses {
+                to_add: vec![(TEST_MODULE_ID.into(), abstr.module_address.to_string())],
+                to_remove: vec![],
+            }),
         )
         .unwrap();
 
@@ -244,7 +238,63 @@ mod test {
         assert_eq!(
             config,
             ConfigResponse {
-                modules: vec![(TEST_MODULE_ID.to_string(), abstr.module_address)],
+                whitelisted_addresses: vec![],
+                account_id: AccountId::local(1),
+                is_suspended: false,
+                version_control_address: abstr.version_control.clone(),
+                module_factory_address: abstr.module_factory.clone()
+            }
+        );
+
+        let module_infos: ModuleInfosResponse = from_json(
+            query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_std::account::QueryMsg::ModuleInfos {
+                    start_after: None,
+                    limit: None,
+                },
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            module_infos,
+            ModuleInfosResponse {
+                module_infos: vec![AccountModuleInfo {
+                    id: TEST_MODULE_ID.into(),
+                    version: ContractVersion {
+                        contract: TEST_MODULE_ID.to_string(),
+                        version: "1.0.0".to_string(),
+                    },
+                    address: abstr.module_address.clone(),
+                }]
+            }
+        );
+
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                to_add: vec![abstr.module_address.to_string()],
+                to_remove: vec![],
+            }),
+        )
+        .unwrap();
+
+        let config: ConfigResponse = from_json(
+            query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_std::account::QueryMsg::Config {},
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            config,
+            ConfigResponse {
+                whitelisted_addresses: vec![abstr.module_address],
                 account_id: AccountId::local(1),
                 is_suspended: false,
                 version_control_address: abstr.version_control,

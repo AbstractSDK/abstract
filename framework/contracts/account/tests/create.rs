@@ -199,7 +199,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         is_suspended: false,
-        modules: vec![],
+        whitelisted_addresses: vec![],
     });
 
     Ok(())
@@ -242,7 +242,7 @@ fn sender_is_not_admin_external() -> AResult {
         is_suspended: false,
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        modules: vec![],
+        whitelisted_addresses: vec![],
     });
 
     Ok(())
@@ -285,7 +285,7 @@ fn create_one_account_with_namespace() -> AResult {
         is_suspended: false,
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        modules: vec![],
+        whitelisted_addresses: vec![],
     });
     // We need to check if the namespace is associated with this account
     let namespace = deployment

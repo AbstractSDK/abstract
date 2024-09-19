@@ -189,6 +189,8 @@ mod test {
     mod execute_ibc {
         use cosmwasm_std::Addr;
 
+        use crate::modules::update_module_addresses;
+
         use super::*;
 
         #[test]
@@ -227,6 +229,13 @@ mod test {
                     (IBC_CLIENT, ibc_client_addr.clone()),
                 )
                 .build();
+            // mock enabling ibc
+            update_module_addresses(
+                deps.as_mut(),
+                vec![(IBC_CLIENT.into(), ibc_client_addr.clone())],
+                vec![],
+            )
+            .unwrap();
 
             let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
             assert_that(&res.messages).has_length(1);
@@ -273,19 +282,26 @@ mod test {
             // ibc not enabled
             execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
             // mock enabling ibc
+            let ibc_client_addr = deps.api.addr_make("ibc_client_addr");
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
                     &abstr.account.addr().clone(),
                     account::state::ACCOUNT_MODULES,
-                    (IBC_CLIENT, Addr::unchecked("ibc_client_addr")),
+                    (IBC_CLIENT, ibc_client_addr.clone()),
                 )
                 .build();
+            update_module_addresses(
+                deps.as_mut(),
+                vec![(IBC_CLIENT.into(), ibc_client_addr.clone())],
+                vec![],
+            )
+            .unwrap();
 
             let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
-                    contract_addr: "ibc_client_addr".into(),
+                    contract_addr: ibc_client_addr.into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                         host_chain: "juno".parse().unwrap(),
                         funds: funds.clone(),
@@ -303,6 +319,8 @@ mod test {
         use abstract_std::ICA_CLIENT;
         use cosmwasm_std::{Binary, Empty};
 
+        use crate::modules::update_module_addresses;
+
         use super::*;
 
         #[test]
@@ -310,7 +328,7 @@ mod test {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let ica_client_addr = deps.api.addr_make("ica_client_addr");
-            mock_init(&mut deps);
+            mock_init(&mut deps).unwrap();
             // whitelist creator
             account::state::WHITELISTED_MODULES
                 .save(
@@ -331,12 +349,14 @@ mod test {
             // ibc not enabled
             execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
             // mock enabling ibc
+            update_module_addresses(
+                deps.as_mut(),
+                vec![(ICA_CLIENT.into(), ica_client_addr.clone())],
+                vec![],
+            )
+            .unwrap();
+
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_map_entry(
-                    abstr.account.addr(),
-                    account::state::ACCOUNT_MODULES,
-                    (ICA_CLIENT, ica_client_addr.clone()),
-                )
                 .with_smart_handler(&ica_client_addr, move |bin| {
                     if bin.eq(&action) {
                         Ok(to_json_binary(&IcaActionResult {

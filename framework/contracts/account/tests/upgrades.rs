@@ -2,8 +2,8 @@ use abstract_account::error::AccountError;
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_integration_tests::{create_default_account, mock_modules::*, AResult, *};
 use abstract_interface::{
-    Abstract, AbstractInterfaceError, AccountDetails, AccountI, MFactoryQueryFns, ManagerExecFns,
-    ManagerQueryFns, VCExecFns,
+    Abstract, AbstractInterfaceError, AccountDetails, AccountExecFns as _, AccountI,
+    AccountQueryFns, MFactoryQueryFns, VCExecFns,
 };
 use abstract_std::{
     account::{ModuleInstallConfig, ModuleVersionsResponse},
@@ -32,17 +32,14 @@ fn install_app_successful() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&sender, &abstr)?;
-    let AccountI {
-        account: manager,
-        proxy: _,
-    } = &account;
+
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // dependency for mock_adapter1 not met
-    let res = install_module_version(manager, app_1::MOCK_APP_ID, V1);
+    let res = install_module_version(&account, app_1::MOCK_APP_ID, V1);
     assert_that!(&res).is_err();
     assert_that!(res.unwrap_err().root_cause().to_string()).contains(
         // Error from macro
@@ -50,20 +47,20 @@ fn install_app_successful() -> AResult {
     );
 
     // install adapter 1
-    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(&account, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // second dependency still not met
-    let res = install_module_version(manager, app_1::MOCK_APP_ID, V1);
+    let res = install_module_version(&account, app_1::MOCK_APP_ID, V1);
     assert_that!(&res).is_err();
     assert_that!(res.unwrap_err().root_cause().to_string()).contains(
         "module tester:mock-adapter2 is a dependency of tester:mock-app1 and is not installed.",
     );
 
     // install adapter 2
-    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(&account, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // successfully install app 1
-    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
+    let app1 = install_module_version(&account, app_1::MOCK_APP_ID, V1)?;
 
     account.expect_modules(vec![adapter1, adapter2, app1])?;
     Ok(())
@@ -75,24 +72,21 @@ fn install_app_versions_not_met() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&sender, &abstr)?;
-    let AccountI {
-        account: manager,
-        proxy: _,
-    } = &account;
+
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // install adapter 2
-    let _adapter2 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let _adapter2 = install_module_version(&account, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // successfully install app 1
-    let _app1 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let _app1 = install_module_version(&account, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // attempt to install app with version 2
 
-    let res = install_module_version(manager, app_1::MOCK_APP_ID, V2);
+    let res = install_module_version(&account, app_1::MOCK_APP_ID, V2);
     assert_that!(&res).is_err();
     assert_that!(res.unwrap_err().root_cause().to_string())
         .contains("Module tester:mock-adapter1 with version 1.0.0 does not fit requirement ^2.0.0");
@@ -105,27 +99,24 @@ fn upgrade_app() -> AResult {
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&sender, &abstr)?;
-    let AccountI {
-        account: manager,
-        proxy: _,
-    } = &account;
+
     abstr
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // install adapter 1
-    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(&account, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // install adapter 2
-    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(&account, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // successfully install app 1
-    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
+    let app1 = install_module_version(&account, app_1::MOCK_APP_ID, V1)?;
     account.expect_modules(vec![adapter1, adapter2, app1])?;
 
     // attempt upgrade app 1 to version 2
-    let res = manager.upgrade_module(
+    let res = account.upgrade_module(
         app_1::MOCK_APP_ID,
         &app::MigrateMsg {
             base: app::BaseMigrateMsg {},
@@ -144,7 +135,7 @@ fn upgrade_app() -> AResult {
     );
 
     // upgrade adapter 1 to version 2
-    let res = manager.upgrade_module(
+    let res = account.upgrade_module(
         adapter_1::MOCK_ADAPTER_ID,
         &app::MigrateMsg {
             base: app::BaseMigrateMsg {},
@@ -166,7 +157,7 @@ fn upgrade_app() -> AResult {
     // Important: the order of the modules is important. The hightest-level dependents must be migrated first.
 
     // attempt to upgrade app 1 to identical version while updating other modules
-    let res = manager.upgrade(vec![
+    let res = account.upgrade(vec![
         (
             ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_string()))?,
             Some(to_json_binary(&app::MigrateMsg {
@@ -195,7 +186,7 @@ fn upgrade_app() -> AResult {
     );
 
     // attempt to upgrade app 1 to version 2 while not updating other modules
-    let res = manager.upgrade(vec![(
+    let res = account.upgrade(vec![(
         ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V2.to_string()))?,
         Some(to_json_binary(&app::MigrateMsg {
             base: app::BaseMigrateMsg {},
@@ -215,7 +206,7 @@ fn upgrade_app() -> AResult {
     );
 
     // attempt to upgrade app 1 to identical version while updating other modules
-    let res = manager.upgrade(vec![
+    let res = account.upgrade(vec![
         (
             ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V2.to_string()))?,
             Some(to_json_binary(&app::MigrateMsg {
@@ -251,7 +242,7 @@ fn upgrade_app() -> AResult {
     );
 
     // successfully upgrade all the modules
-    manager.upgrade(vec![
+    account.upgrade(vec![
         (
             ModuleInfo::from_id_latest(app_1::MOCK_APP_ID)?,
             Some(to_json_binary(&app::MigrateMsg {
@@ -297,7 +288,7 @@ fn upgrade_manager_last() -> AResult {
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&sender,&abstr)?;
-    let AccountI { manager, proxy: _ } = &account;
+    let AccountI { account, proxy: _ } = &account;
 
     abstr
         .version_control
@@ -305,17 +296,17 @@ fn upgrade_manager_last() -> AResult {
     deploy_modules(&chain);
 
     // install adapter 1
-    let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(&account, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // install adapter 2
-    let adapter2 = install_module_version(manager, &abstr, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(&account, &abstr, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // successfully install app 1
-    let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
+    let app1 = install_module_version(&account, &abstr, app_1::MOCK_APP_ID, V1)?;
     account.expect_modules(vec![adapter1, adapter2, app1])?;
 
-    // Upgrade all modules, including the manager module, but ensure the manager is upgraded last
-    let res = manager.upgrade(vec![
+    // Upgrade all modules, including the account module, but ensure the account is upgraded last
+    let res = account.upgrade(vec![
         (
             ModuleInfo::from_id_latest(app_1::MOCK_APP_ID)?,
             Some(to_json_binary(&app::MigrateMsg {
@@ -324,7 +315,7 @@ fn upgrade_manager_last() -> AResult {
             })?),
         ),
         (
-            ModuleInfo::from_id_latest("abstract:manager")?,
+            ModuleInfo::from_id_latest("abstract:account")?,
             Some(to_json_binary(&account::MigrateMsg {})?),
         ),
         (ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID)?, None),
@@ -336,7 +327,7 @@ fn upgrade_manager_last() -> AResult {
     events.pop();
     let migrate_event = events.pop().unwrap();
 
-    // the 2nd last event will be the manager execution
+    // the 2nd last event will be the account execution
     assert_that!(migrate_event.attributes).has_length(3);
     let mut attributes = migrate_event.attributes;
     // check that the action was migrate
@@ -344,10 +335,10 @@ fn upgrade_manager_last() -> AResult {
         .is_some()
         .is_equal_to(Attribute::from(("action", "migrate")));
 
-    // and that it was the manager
+    // and that it was the account
     assert_that!(attributes.pop())
         .is_some()
-        .is_equal_to(Attribute::from(("contract", "abstract:manager")));
+        .is_equal_to(Attribute::from(("contract", "abstract:account")));
 
     Ok(())
 }*/
@@ -366,12 +357,12 @@ fn no_duplicate_migrations() -> AResult {
     deploy_modules(&chain);
 
     // Install adapter 1
-    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(&account, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     account.expect_modules(vec![adapter1])?;
 
-    // Upgrade all modules, including the manager module
-    let res = manager.upgrade(vec![
+    // Upgrade all modules, including the account module
+    let res = account.upgrade(vec![
         (
             ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID)?,
             None,
@@ -400,9 +391,8 @@ fn create_account_with_installed_module() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let factory = &deployment.account_factory;
-
-    let _deployer_acc = factory.create_new_account(
+    let _deployer_acc = AccountI::create(
+        &deployment,
         AccountDetails {
             name: String::from("first_account"),
             description: Some(String::from("account_description")),
@@ -418,44 +408,41 @@ fn create_account_with_installed_module() -> AResult {
     )?;
     deploy_modules(&chain);
 
-    let account = factory
-        .create_new_account(
-            AccountDetails {
-                name: String::from("second_account"),
-                description: Some(String::from("account_description")),
-                link: Some(String::from("https://account_link_of_at_least_11_char")),
-                namespace: None,
-                install_modules: vec![
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_1::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_2::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            app_1::MOCK_APP_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        Some(to_json_binary(&MockInitMsg {})?),
-                    ),
-                ],
-                account_id: None,
-            },
-            GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            },
-            &[],
-        )
-        .unwrap();
+    let account = AccountI::create(
+        &deployment,
+        AccountDetails {
+            name: String::from("second_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: None,
+            install_modules: vec![
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_1::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_2::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
+                    Some(to_json_binary(&MockInitMsg {})?),
+                ),
+            ],
+            account_id: None,
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        &[],
+    )
+    .unwrap();
 
     // Make sure all installed
     let account_module_versions = account.module_versions(vec![
@@ -501,9 +488,8 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
     chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let factory = &deployment.account_factory;
-
-    let _deployer_acc = factory.create_new_account(
+    let _deployer_acc = AccountI::create(
+        &deployment,
         AccountDetails {
             name: String::from("first_account"),
             description: Some(String::from("account_description")),
@@ -568,45 +554,42 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         }
     );
 
-    let account = factory
-        .create_new_account(
-            AccountDetails {
-                name: String::from("second_account"),
-                description: None,
-                link: None,
-                namespace: None,
-                install_modules: vec![
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_1::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_2::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            app_1::MOCK_APP_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        Some(to_json_binary(&MockInitMsg {})?),
-                    ),
-                ],
-                account_id: None,
-            },
-            GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            },
-            // we attach 5 extra coin2, rest should go to proxy
-            Some(&[coin(10, "coin1"), coin(10, "coin2")]),
-        )
-        .unwrap();
+    let account = AccountI::create(
+        &deployment,
+        AccountDetails {
+            name: String::from("second_account"),
+            description: None,
+            link: None,
+            namespace: None,
+            install_modules: vec![
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_1::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_2::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
+                    Some(to_json_binary(&MockInitMsg {})?),
+                ),
+            ],
+            account_id: None,
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        // we attach 5 extra coin2, rest should go to proxy
+        &[coin(10, "coin1"), coin(10, "coin2")],
+    )
+    .unwrap();
     let balances = chain.query_all_balances(&account.address()?)?;
     assert_eq!(balances, vec![coin(5, "coin2")]);
     // Make sure all installed
@@ -645,9 +628,8 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
     chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let factory = &deployment.account_factory;
-
-    let _deployer_acc = factory.create_new_account(
+    let _deployer_acc = AccountI::create(
+        &deployment,
         AccountDetails {
             name: String::from("first_account"),
             description: Some(String::from("account_description")),
@@ -705,7 +687,8 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
         vec![coin(10, "coin1"), coin(5, "coin2")]
     );
 
-    let result = factory.create_new_account(
+    let result = AccountI::create(
+        &deployment,
         AccountDetails {
             name: String::from("second_account"),
             description: None,
@@ -743,11 +726,11 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
     let Err(AbstractInterfaceError::Orch(e)) = result else {
         panic!()
     };
-    assert!(e.root().to_string().contains(&format!(
-        "Expected {:?}, sent {:?}",
-        simulate_response.total_required_funds,
-        vec![coin(9, "coin1"), coin(10, "coin2")]
-    )));
+    eprintln!("{:?}", e);
+    assert!(e
+        .root()
+        .to_string()
+        .contains(&format!("Expected 10coin1,5coin2, sent")));
 
     Ok(())
 }
@@ -760,9 +743,8 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
     chain.add_balance(&sender, vec![coin(15, "coin1"), coin(10, "coin2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
-    let factory = &deployment.account_factory;
-
-    let _deployer_acc = factory.create_new_account(
+    let _deployer_acc = AccountI::create(
+        &deployment,
         AccountDetails {
             name: String::from("first_account"),
             description: Some(String::from("account_description")),
@@ -842,53 +824,50 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
         }
     );
 
-    let account = factory
-        .create_new_account(
-            AccountDetails {
-                name: String::from("second_account"),
-                description: None,
-                link: None,
-                namespace: None,
-                install_modules: vec![
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_1::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_2::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            app_1::MOCK_APP_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        Some(to_json_binary(&MockInitMsg {})?),
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo {
-                            namespace: Namespace::new("tester")?,
-                            name: "standalone".to_owned(),
-                            version: V1.into(),
-                        },
-                        Some(to_json_binary(&MockInitMsg {})?),
-                    ),
-                ],
-                account_id: None,
-            },
-            GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            },
-            // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
-            &[coin(10, "coin1"), coin(10, "coin2")],
-        )
-        .unwrap();
+    let account = AccountI::create(
+        &deployment,
+        AccountDetails {
+            name: String::from("second_account"),
+            description: None,
+            link: None,
+            namespace: None,
+            install_modules: vec![
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_1::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_2::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
+                    Some(to_json_binary(&MockInitMsg {})?),
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo {
+                        namespace: Namespace::new("tester")?,
+                        name: "standalone".to_owned(),
+                        version: V1.into(),
+                    },
+                    Some(to_json_binary(&MockInitMsg {})?),
+                ),
+            ],
+            account_id: None,
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
+        &[coin(10, "coin1"), coin(10, "coin2")],
+    )
+    .unwrap();
     let balances = chain.query_all_balances(&account.address()?)?;
     assert_eq!(balances, vec![coin(1, "coin1"), coin(5, "coin2")]);
     // Make sure all installed
@@ -917,7 +896,7 @@ fn native_not_migratable() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let abstr_account = AccountI::new(AccountId::local(0), chain);
+    let abstr_account = AccountI::load_from(&abstr, AccountId::local(0))?;
     abstr_account.install_module::<ibc_client::InstantiateMsg>(IBC_CLIENT, None, &[])?;
 
     let latest_ibc_client = ModuleInfo::from_id_latest(IBC_CLIENT).unwrap();

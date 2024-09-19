@@ -74,7 +74,7 @@ mod test_common {
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> AccountResult {
         let abstr = AbstractMockAddrs::new(deps.api);
-        let info = message_info(abstr.account.addr(), &[]);
+        let info = message_info(&abstr.owner, &[]);
         crate::contract::execute(deps.as_mut(), mock_env(), info, msg)
     }
 }

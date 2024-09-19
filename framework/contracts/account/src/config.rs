@@ -551,13 +551,10 @@ mod tests {
 
             mock_init(&mut deps)?;
 
-            let msg = ExecuteMsg::UpdateInternalConfig(
-                to_json_binary(&UpdateModuleAddresses {
-                    to_add: None,
-                    to_remove: None,
-                })
-                .unwrap(),
-            );
+            let msg = ExecuteMsg::UpdateInternalConfig(UpdateModuleAddresses {
+                to_add: vec![],
+                to_remove: vec![],
+            });
 
             let bad_sender = deps.api.addr_make("not_account_owner");
             let res = execute_as(deps.as_mut(), &bad_sender, msg.clone());
@@ -566,29 +563,11 @@ mod tests {
                 .is_err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
-            let factory_res = execute_as(deps.as_mut(), &abstr.account_factory, msg.clone());
-            assert_that!(&factory_res).is_err();
+            let vc_res = execute_as(deps.as_mut(), &abstr.version_control, msg.clone());
+            assert_that!(&vc_res).is_err();
 
             let owner_res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&owner_res).is_ok();
-
-            Ok(())
-        }
-
-        #[test]
-        fn should_return_err_unrecognized_action() -> anyhow::Result<()> {
-            let mut deps = mock_dependencies();
-            let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init(&mut deps)?;
-
-            let msg =
-                ExecuteMsg::UpdateInternalConfig(to_json_binary(&QueryMsg::Config {}).unwrap());
-
-            let res = execute_as(deps.as_mut(), &abstr.account_factory, msg);
-
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, AccountError::InvalidConfigAction { .. }));
 
             Ok(())
         }

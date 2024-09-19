@@ -21,7 +21,6 @@ cosmwasm-std-f595c2ba2a3f28df = { package = "cosmwasm-std", version = "2", featu
 cw-orch = { version = "0.25", features = ["daemon", "snapshot-testing"] }
 cw-orch-interchain = { version = "0.4", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
-cw721-base = { version = "0.18", default-features = false, features = ["library"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 prost = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
@@ -37,7 +36,6 @@ cosmwasm-std-f595c2ba2a3f28df = { package = "cosmwasm-std", version = "2", featu
 cw-orch = { version = "0.25", features = ["daemon", "snapshot-testing"] }
 cw-orch-interchain = { version = "0.4", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
-cw721-base = { version = "0.18", default-features = false, features = ["library"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 prost = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }

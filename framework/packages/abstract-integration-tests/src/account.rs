@@ -77,37 +77,34 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
     )?;
     crate::mock_modules::deploy_modules(&chain);
 
-    deployer_acc.create_sub_account(
-        vec![
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(
-                    adapter_1::MOCK_ADAPTER_ID,
-                    ModuleVersion::Version(V1.to_owned()),
-                )?,
-                None,
-            ),
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(
-                    adapter_2::MOCK_ADAPTER_ID,
-                    ModuleVersion::Version(V1.to_owned()),
-                )?,
-                None,
-            ),
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                Some(to_json_binary(&MockInitMsg {})?),
-            ),
-        ],
-        String::from("sub_account"),
-        None,
-        Some(String::from("account_description")),
-        None,
-        None,
+    // Test installing an app on an account
+    let sub_account = deployer_acc.create_and_return_sub_account(
+        AccountDetails {
+            name: "My subaccount".to_string(),
+            install_modules: vec![
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_1::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_2::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
+                    Some(to_json_binary(&MockInitMsg {})?),
+                ),
+            ],
+            ..Default::default()
+        },
         &[],
     )?;
-
-    let sub_account_id = deployer_acc.sub_account_ids(None, None)?.sub_accounts[0];
-    let sub_account = AccountI::new(AccountId::local(sub_account_id), chain);
 
     // Make sure all installed
     let account_module_versions = sub_account.module_versions(vec![
@@ -447,21 +444,16 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
         .module_info(TEST_MODULE_ID)?
         .expect("test module installed");
     // proxy should be final executor because of the reply
-    let resp = account.exec_on_module(
-        cosmwasm_std::to_json_binary(&abstract_std::account::ExecuteMsg::ModuleActionWithData {
-            // execute a message on the adapter, which sets some data in its response
-            msg: wasm_execute(
-                adapter_addr.address,
-                &abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Module(AdapterRequestMsg {
-                    account_address: Some(account.addr_str()?),
-                    request: MockExecMsg {},
-                }),
-                vec![],
-            )?
-            .into(),
-        })?,
-        ACCOUNT.to_string(),
-        &[],
+    let resp = account.module_action_with_data(
+        wasm_execute(
+            adapter_addr.address,
+            &abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Module(AdapterRequestMsg {
+                account_address: Some(account.addr_str()?),
+                request: MockExecMsg {},
+            }),
+            vec![],
+        )?
+        .into(),
     )?;
 
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;

@@ -47,7 +47,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         .root()
         .to_string()
         // Overflow because required funds not provided
-        .contains("Cannot Sub with given operands"));
+        .contains("Invalid fee payment sent."));
 
     // Now cover account creation fee
     let account = AccountI::create(

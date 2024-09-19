@@ -151,7 +151,7 @@ pub enum ExecuteMsg {
     /// Uninstall a module given its ID.
     UninstallModule { module_id: String },
     /// Upgrade the module to a new version
-    /// If module is `abstract::manager` then the contract will do a self-migration.
+    /// If module is `abstract::account` then the contract will do a self-migration.
     Upgrade {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },

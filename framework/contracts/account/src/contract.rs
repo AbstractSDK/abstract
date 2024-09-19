@@ -174,6 +174,8 @@ pub fn instantiate(
         vec![]
     };
 
+    let mut total_fee = Coins::try_from(funds_for_namespace_fee.clone()).unwrap();
+
     response = response.add_message(wasm_execute(
         version_control_address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
@@ -202,6 +204,10 @@ pub fn instantiate(
             },
         )?;
 
+        simulate_resp.total_required_funds.iter().for_each(|funds| {
+            total_fee.add(funds.clone()).unwrap();
+        });
+
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
@@ -213,6 +219,17 @@ pub fn instantiate(
         response = response
             .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);
+    }
+
+    for fee in total_fee.clone() {
+        let mut total_received = Coins::try_from(info.funds.clone()).unwrap();
+
+        total_received.sub(fee).map_err(|_| {
+            abstract_std::AbstractError::Fee(format!(
+                "Invalid fee payment sent. Expected {}, sent {:?}",
+                total_fee, info.funds
+            ))
+        })?;
     }
 
     Ok(response)

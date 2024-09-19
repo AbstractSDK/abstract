@@ -69,6 +69,7 @@ pub fn upgrade_modules(
         } else {
             set_migrate_msgs_and_context(
                 deps.branch(),
+                &env,
                 module_info,
                 migrate_msg,
                 &mut upgrade_msgs,
@@ -102,6 +103,7 @@ pub fn upgrade_modules(
 
 pub fn set_migrate_msgs_and_context(
     deps: DepsMut,
+    env: &Env,
     module_info: ModuleInfo,
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
@@ -118,6 +120,7 @@ pub fn set_migrate_msgs_and_context(
         // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
         ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
             deps,
+            &env,
             requested_module.module.info,
             old_module_addr,
             new_adapter_addr,
@@ -146,6 +149,7 @@ pub fn set_migrate_msgs_and_context(
 /// Handle Adapter module migration and return the migration messages
 pub fn handle_adapter_migration(
     mut deps: DepsMut,
+    env: &Env,
     module_info: ModuleInfo,
     old_adapter_addr: Addr,
     new_adapter_addr: Addr,
@@ -166,7 +170,7 @@ pub fn handle_adapter_migration(
 
     add_module_upgrade_to_context(deps.storage, &module_id, old_deps)?;
 
-    replace_adapter(deps, new_adapter_addr, old_adapter_addr)
+    replace_adapter(deps, env, new_adapter_addr, old_adapter_addr)
 }
 
 /// Handle app module migration and return the migration messages
@@ -229,18 +233,18 @@ pub(crate) fn build_module_migrate_msg(
 /// Also moves all the authorized address permissions to the new contract and removes them from the old
 pub fn replace_adapter(
     mut deps: DepsMut,
+    env: &Env,
     new_adapter_addr: Addr,
     old_adapter_addr: Addr,
 ) -> Result<Vec<CosmosMsg>, AccountError> {
     let mut msgs = vec![];
     // Makes sure we already have the adapter installed
-    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, ACCOUNT)?;
     let AuthorizedAddressesResponse {
         addresses: authorized_addresses,
     } = deps.querier.query_wasm_smart(
         old_adapter_addr.to_string(),
         &<AdapterQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
-            proxy_address: proxy_addr.to_string(),
+            proxy_address: env.contract.address.to_string(),
         }),
     )?;
     let authorized_to_migrate: Vec<String> = authorized_addresses
