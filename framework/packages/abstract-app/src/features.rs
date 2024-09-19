@@ -60,8 +60,7 @@ impl<
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
-    use abstract_testing::{mock_querier, prelude::*};
-    use speculoos::prelude::*;
+    use abstract_testing::prelude::*;
 
     use super::*;
     use crate::mock::*;
@@ -73,7 +72,7 @@ mod test {
 
         let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref())?;
 
-        assert_that!(ans_host.address).is_equal_to(abstr.ans_host);
+        assert_eq!(ans_host.address, abstr.ans_host);
         Ok(())
     }
 
@@ -84,19 +83,21 @@ mod test {
 
         let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref())?;
 
-        assert_that!(abstract_registry.address).is_equal_to(abstr.version_control);
+        assert_eq!(abstract_registry.address, abstr.version_control);
         Ok(())
     }
 
     #[test]
     fn test_traits_generated() -> AppTestResult {
         let mut deps = mock_init();
-        deps.querier = mock_querier(deps.api);
+        let test_account = test_account_base(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&test_account, TEST_ACCOUNT_ID)
+            .build();
         let abstr = AbstractMockAddrs::new(deps.api);
-        let test_account_base = abstr.account;
         // Account identification
-        let base = MOCK_APP_WITH_DEP.account_base(deps.as_ref())?;
-        assert_eq!(base, test_account_base.clone());
+        let base = MOCK_APP_WITH_DEP.account(deps.as_ref())?;
+        assert_eq!(base, test_account.clone());
 
         // AbstractNameService
         let host = MOCK_APP_WITH_DEP.name_service(deps.as_ref()).host().clone();
@@ -106,9 +107,9 @@ mod test {
         // TODO: really rust forces binding CONST variable here?
         // It's because of returning Result, most likely polonius bug
         let binding = MOCK_APP_WITH_DEP;
-        let account_registry = binding.account_registry(deps.as_ref()).unwrap();
+        let account_registry = binding.account_registry(deps.as_ref())?;
         let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
-        assert_eq!(base, test_account_base);
+        assert_eq!(base, test_account);
 
         // TODO: Make some of the module_registry queries raw as well?
         let _module_registry = MOCK_APP_WITH_DEP.module_registry(deps.as_ref());
@@ -120,11 +121,11 @@ mod test {
     #[test]
     fn test_proxy_address() -> AppTestResult {
         let deps = mock_init();
-        let base = test_account_base(deps.api);
+        let expected_account = test_account_base(deps.api);
 
-        let proxy_address = MOCK_APP_WITH_DEP.proxy_address(deps.as_ref())?;
+        let account = MOCK_APP_WITH_DEP.account(deps.as_ref())?;
 
-        assert_that!(proxy_address).is_equal_to(base.proxy);
+        assert_eq!(account, expected_account);
 
         Ok(())
     }
@@ -133,8 +134,7 @@ mod test {
     fn test_module_id() -> AppTestResult {
         let module_id = MOCK_APP_WITH_DEP.module_id();
 
-        assert_that!(module_id).is_equal_to(TEST_WITH_DEP_MODULE_ID);
-
+        assert_eq!(module_id, TEST_WITH_DEP_MODULE_ID);
         Ok(())
     }
 }

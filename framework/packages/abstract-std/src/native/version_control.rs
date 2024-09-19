@@ -26,29 +26,38 @@ pub mod state {
         module::ModuleInfo,
         module_reference::ModuleReference,
         namespace::Namespace,
+        storage_namespaces::{self},
     };
 
-    pub const CONFIG: Item<Config> = Item::new("config");
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
 
     // Modules waiting for approvals
-    pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pendm");
+    pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> =
+        Map::new(storage_namespaces::version_control::PENDING_MODULES);
     // We can iterate over the map giving just the prefix to get all the versions
-    pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("lib");
+    pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> =
+        Map::new(storage_namespaces::version_control::REGISTERED_MODULES);
     // Reverse map for module info of standalone modules
-    pub const STANDALONE_INFOS: Map<u64, ModuleInfo> = Map::new("stli");
+    pub const STANDALONE_INFOS: Map<u64, ModuleInfo> =
+        Map::new(storage_namespaces::version_control::STANDALONE_INFOS);
     // Reverse map for module info of service modules
-    pub const SERVICE_INFOS: Map<&cosmwasm_std::Addr, ModuleInfo> = Map::new("svci");
+    pub const SERVICE_INFOS: Map<&cosmwasm_std::Addr, ModuleInfo> =
+        Map::new(storage_namespaces::version_control::SERVICE_INFOS);
     // Yanked Modules
-    pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
+    pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> =
+        Map::new(storage_namespaces::version_control::YANKED_MODULES);
     // Modules Configuration
-    pub const MODULE_CONFIG: Map<&ModuleInfo, ModuleConfiguration> = Map::new("cfg");
+    pub const MODULE_CONFIG: Map<&ModuleInfo, ModuleConfiguration> =
+        Map::new(storage_namespaces::version_control::MODULE_CONFIG);
     // Modules Default Configuration
     pub const MODULE_DEFAULT_CONFIG: Map<(&Namespace, &str), ModuleDefaultConfiguration> =
-        Map::new("dcfg");
+        Map::new(storage_namespaces::version_control::MODULE_DEFAULT_CONFIG);
     /// Maps Account ID to the address of its core contracts
-    pub const ACCOUNT_ADDRESSES: Map<&AccountId, Account> = Map::new("accs");
+    pub const ACCOUNT_ADDRESSES: Map<&AccountId, Account> =
+        Map::new(storage_namespaces::version_control::ACCOUNT_ADDRESSES);
     /// Account sequences
-    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("acseq");
+    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> =
+        Item::new(storage_namespaces::version_control::LOCAL_ACCOUNT_SEQUENCE);
     /// Sub indexes for namespaces.
     // TODO: move to a two maps, we don't need multiindex for accountid
     pub struct NamespaceIndexes<'a> {

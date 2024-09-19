@@ -8,6 +8,7 @@ use abstract_std::{
         module::ModuleInfo,
         module_reference::ModuleReference,
         ownership::{self},
+        storage_namespaces,
         version_control::{VersionControlContract, VersionControlError},
     },
     ACCOUNT,
@@ -29,7 +30,8 @@ use crate::{
     queries::query_module_version,
 };
 
-pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
+pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> =
+    Item::new(storage_namespaces::account::MIGRATE_CONTEXT);
 
 /// Migrate modules through address updates or contract migrations
 /// The dependency store is updated during migration
@@ -46,7 +48,7 @@ pub fn upgrade_modules(
 
     let mut upgrade_msgs = vec![];
 
-    let mut manager_migrate_info = None;
+    let mut account_migrate_info = None;
 
     let mut upgraded_module_ids = Vec::new();
 
@@ -62,7 +64,7 @@ pub fn upgrade_modules(
         }
 
         if module_id == ACCOUNT {
-            manager_migrate_info = Some((module_info, migrate_msg));
+            account_migrate_info = Some((module_info, migrate_msg));
         } else {
             set_migrate_msgs_and_context(
                 deps.branch(),
@@ -74,13 +76,13 @@ pub fn upgrade_modules(
         }
     }
 
-    // Upgrade the manager last
-    if let Some((manager_info, manager_migrate_msg)) = manager_migrate_info {
+    // Upgrade the account last
+    if let Some((account_info, account_migrate_msg)) = account_migrate_info {
         upgrade_msgs.push(self_upgrade_msg(
             deps.branch(),
             &env.contract.address,
-            manager_info,
-            manager_migrate_msg.unwrap_or_default(),
+            account_info,
+            account_migrate_msg.unwrap_or_default(),
         )?);
     }
 
@@ -272,6 +274,9 @@ pub fn replace_adapter(
     Ok(msgs)
 }
 
+/// Generate message for upgrading account
+///
+/// Safety: Account cannot be upgraded to contract that is not confirmed by version control
 pub(crate) fn self_upgrade_msg(
     deps: DepsMut,
     self_addr: &Addr,

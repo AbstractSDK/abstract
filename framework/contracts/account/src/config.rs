@@ -566,6 +566,7 @@ mod tests {
 
     mod update_ownership {
         use cw_storage_plus::Item;
+        use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
 
         use super::*;
 
@@ -578,7 +579,7 @@ mod tests {
 
             let pending_owner = deps.api.addr_make("not_owner");
             // mock pending owner
-            Item::new("ownership").save(
+            Item::new(OWNERSHIP_STORAGE_KEY).save(
                 deps.as_mut().storage,
                 &ownership::Ownership {
                     owner: GovernanceDetails::Monarchy { monarch: owner },

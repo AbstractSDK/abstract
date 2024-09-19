@@ -29,7 +29,7 @@ use module::{TEST_MODULE_ID, TEST_MODULE_RESPONSE};
 use prelude::*;
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
-pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
+pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
     let raw_handler = move |contract: &Addr, key: &Binary| {
         // TODO: should we do something with the key?
         let str_key = std::str::from_utf8(key.as_slice()).unwrap();
@@ -113,23 +113,8 @@ pub fn mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
 ///   - "account_id" -> TEST_ACCOUNT_ID
 /// - TEST_VERSION_CONTROL
 ///   - "account" -> { TEST_PROXY, TEST_MANAGER }
-pub fn mock_querier(mock_api: MockApi) -> MockQuerier {
-    mock_querier_builder(mock_api).build()
-}
-
-/// Abstract-specific mock dependencies.
-///
-/// Sets the required queries for native contracts and the root Abstract Account.
-pub fn mock_dependencies() -> MockDeps {
-    let api = MockApi::default();
-    let querier = mock_querier(api.clone());
-
-    OwnedDeps {
-        storage: MockStorage::default(),
-        api,
-        querier,
-        custom_query_type: std::marker::PhantomData,
-    }
+pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
+    abstract_mock_querier_builder(mock_api).build()
 }
 
 /// use the package version as test version, breaks tests otherwise.
@@ -207,7 +192,7 @@ pub mod module {
 }
 
 pub mod prelude {
-    pub use super::{mock_dependencies, mock_querier};
+    pub use super::{abstract_mock_querier, abstract_mock_querier_builder};
     pub use abstract_mock_querier::AbstractMockQuerier;
     use abstract_std::objects::{AccountId, AccountTrace};
     pub use addresses::*;

@@ -278,7 +278,7 @@ impl VersionControlContract {
         Ok(config.namespace_registration_fee)
     }
 
-    /// Verify if the provided manager address is indeed a user.
+    /// Verify if the provided account address is indeed a user.
     pub fn assert_account(
         &self,
         maybe_account: &Addr,

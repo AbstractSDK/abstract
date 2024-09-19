@@ -13,7 +13,6 @@ use abstract_sdk::{
 use abstract_std::{
     account::state::ACCOUNT_ID,
     objects::{
-        account::AccountTrace,
         fee::FixedFee,
         module::{self, Module},
         ownership,
@@ -674,17 +673,12 @@ pub fn validate_account_owner(
 mod tests {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
-    use abstract_std::{
-        account::{ConfigResponse as AccountConfigResponse, QueryMsg as AccountQueryMsg},
-        objects::account::AccountTrace,
-        version_control::*,
-        ACCOUNT,
-    };
-    use abstract_testing::{mock_querier_builder, prelude::*, MockQuerierOwnership};
+    use abstract_std::{objects::account::AccountTrace, version_control::*, ACCOUNT};
+    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{
         from_json,
-        testing::{message_info, mock_env, MockApi},
-        to_json_binary, Addr, Coin, OwnedDeps,
+        testing::{message_info, mock_dependencies, mock_env, MockApi},
+        Addr, Coin, OwnedDeps,
     };
     use cw_ownable::OwnershipError;
     use cw_storage_plus::Item;
@@ -707,7 +701,6 @@ mod tests {
 
     fn vc_mock_deps() -> MockDeps {
         let mut deps = mock_dependencies();
-        let abstr = AbstractMockAddrs::new(deps.api);
 
         let querier = vc_mock_querier_builder(deps.api.clone()).build();
 
@@ -733,7 +726,7 @@ mod tests {
 
         const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
 
-        mock_querier_builder(api)
+        abstract_mock_querier_builder(api)
             .with_contract_version(&first_acc_addr, ACCOUNT, TEST_VERSION)
             .with_contract_version(&second_acc_addr, ACCOUNT, TEST_VERSION)
             .with_contract_version(&third_acc_addr, ACCOUNT, TEST_VERSION)
@@ -805,7 +798,7 @@ mod tests {
             &mut deps.storage,
             &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
             &ModuleReference::Account(1),
-        );
+        )?;
 
         execute_as(
             deps.as_mut(),
@@ -942,7 +935,6 @@ mod tests {
         use super::*;
 
         use abstract_std::AbstractError;
-        use abstract_testing::mock_querier_builder;
         use cosmwasm_std::{coins, SubMsg};
 
         #[test]
@@ -1140,7 +1132,6 @@ mod tests {
         fn cannot_claim_abstract() -> VCResult<()> {
             let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
-            let account_1 = deps.api.addr_make("account2");
 
             mock_init_with_account(&mut deps, true)?;
 
@@ -1426,7 +1417,6 @@ mod tests {
 
         use crate::contract::query;
         use abstract_std::{objects::module::Monetization, AbstractError};
-        use abstract_testing::mock_querier_builder;
         use cosmwasm_std::coin;
 
         fn test_module() -> ModuleInfo {
@@ -1588,7 +1578,7 @@ mod tests {
         #[test]
         fn try_add_module_to_approval_with_admin() -> VersionControlTestResult {
             let mut deps = vc_mock_deps();
-            let contract_addr = dbg!(deps.api.addr_make("contract"));
+            let contract_addr = deps.api.addr_make("contract");
             // create mock with ContractInfo response for contract with admin set
             deps.querier = vc_mock_querier_builder(deps.api)
                 .with_contract_admin(&contract_addr, &deps.api.addr_make("admin"))
@@ -2277,8 +2267,6 @@ mod tests {
     }
 
     mod register_account {
-        use abstract_std::ACCOUNT;
-
         use super::*;
 
         #[test]

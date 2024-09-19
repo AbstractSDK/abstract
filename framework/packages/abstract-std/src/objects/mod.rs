@@ -3,7 +3,7 @@
 
 pub(crate) mod ans_asset;
 pub mod ans_host;
-pub mod common_namespace;
+pub mod storage_namespaces;
 pub mod version_control;
 
 mod entry;

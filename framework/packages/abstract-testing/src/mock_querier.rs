@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ops::Deref};
 
 use abstract_std::objects::{
-    common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
+    gov_type::GovernanceDetails, ownership::Ownership, storage_namespaces::OWNERSHIP_STORAGE_KEY,
 };
 use cosmwasm_std::{
     testing::MockApi, Addr, Binary, ContractInfoResponse, ContractResult, Empty, QuerierWrapper,
@@ -420,19 +420,20 @@ mod tests {
     };
 
     use super::*;
+    use cosmwasm_std::testing::mock_dependencies;
 
     mod account {
 
         use abstract_std::version_control::Account;
 
-        use crate::mock_querier_builder;
+        use crate::abstract_mock_querier_builder;
 
         use super::*;
 
         #[test]
         fn should_return_admin_account_address() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let actual = ACCOUNT_ADDRESSES.query(
@@ -450,7 +451,7 @@ mod tests {
         fn should_return_account_address() {
             let mut deps = mock_dependencies();
             let account_base = Account::new(deps.api.addr_make("my_account"));
-            deps.querier = mock_querier_builder(deps.api)
+            deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account_base, TEST_ACCOUNT_ID)
                 .build();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -527,14 +528,14 @@ mod tests {
     }
 
     mod account_id {
-        use crate::mock_querier_builder;
+        use crate::abstract_mock_querier_builder;
 
         use super::*;
 
         #[test]
         fn should_return_admin_acct_id() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            deps.querier = abstract_mock_querier(deps.api);
             let root_base = admin_account(deps.api);
 
             let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), root_base.addr().clone());
@@ -546,7 +547,7 @@ mod tests {
         fn should_return_test_acct_id() {
             let mut deps = mock_dependencies();
             let test_base = test_account_base(deps.api);
-            deps.querier = mock_querier_builder(deps.api)
+            deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&test_base, TEST_ACCOUNT_ID)
                 .build();
 
@@ -562,7 +563,7 @@ mod tests {
         #[test]
         fn should_return_test_module_address_for_test_module() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let actual = ACCOUNT_MODULES.query(

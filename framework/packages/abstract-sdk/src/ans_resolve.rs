@@ -351,7 +351,7 @@ mod tests {
             let dex = "junoswap";
             let pool_type = PoolType::ConstantProduct;
             let test_pool_metadata = PoolMetadata::new(dex, pool_type, assets);
-            let querier = AbstractMockQuerierBuilder::new(mock_api)
+            let querier = MockQuerierBuilder::new(mock_api)
                 .assets(
                     resolved_assets
                         .iter()
