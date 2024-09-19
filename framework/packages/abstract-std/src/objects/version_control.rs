@@ -8,6 +8,7 @@ use super::{
     AccountId,
 };
 use crate::{
+    account::state::ACCOUNT_ID,
     native_addrs,
     version_control::{
         state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
