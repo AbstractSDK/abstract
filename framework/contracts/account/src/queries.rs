@@ -202,17 +202,14 @@ mod test {
         account::{ExecuteMsg, InstantiateMsg, InternalConfigAction},
         objects::AccountId,
     };
-    use abstract_testing::{mock_querier_builder, prelude::*};
-    use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env, MockApi},
-        OwnedDeps,
-    };
+    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use cosmwasm_std::{testing::*, OwnedDeps};
 
     #[test]
     fn query_config() -> anyhow::Result<()> {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
-        deps.querier = mock_querier_builder(deps.api.clone())
+        deps.querier = abstract_mock_querier_builder(deps.api.clone())
             .with_contract_version(&abstr.module_address, TEST_MODULE_ID, "1.0.0")
             .build();
         mock_init(&mut deps)?;
@@ -223,18 +220,13 @@ mod test {
                 to_add: vec![(TEST_MODULE_ID.into(), abstr.module_address.to_string())],
                 to_remove: vec![],
             }),
-        )
-        ?;
+        )?;
 
-        let config: ConfigResponse = from_json(
-            query(
-                deps.as_ref(),
-                mock_env(),
-                abstract_std::account::QueryMsg::Config {},
-            )
-            ?,
-        )
-        ?;
+        let config: ConfigResponse = from_json(query(
+            deps.as_ref(),
+            mock_env(),
+            abstract_std::account::QueryMsg::Config {},
+        )?)?;
         assert_eq!(
             config,
             ConfigResponse {
@@ -246,18 +238,14 @@ mod test {
             }
         );
 
-        let module_infos: ModuleInfosResponse = from_json(
-            query(
-                deps.as_ref(),
-                mock_env(),
-                abstract_std::account::QueryMsg::ModuleInfos {
-                    start_after: None,
-                    limit: None,
-                },
-            )
-            ?,
-        )
-        ?;
+        let module_infos: ModuleInfosResponse = from_json(query(
+            deps.as_ref(),
+            mock_env(),
+            abstract_std::account::QueryMsg::ModuleInfos {
+                start_after: None,
+                limit: None,
+            },
+        )?)?;
 
         assert_eq!(
             module_infos,
@@ -279,18 +267,13 @@ mod test {
                 to_add: vec![abstr.module_address.to_string()],
                 to_remove: vec![],
             }),
-        )
-        ?;
+        )?;
 
-        let config: ConfigResponse = from_json(
-            query(
-                deps.as_ref(),
-                mock_env(),
-                abstract_std::account::QueryMsg::Config {},
-            )
-            ?,
-        )
-        ?;
+        let config: ConfigResponse = from_json(query(
+            deps.as_ref(),
+            mock_env(),
+            abstract_std::account::QueryMsg::Config {},
+        )?)?;
         assert_eq!(
             config,
             ConfigResponse {

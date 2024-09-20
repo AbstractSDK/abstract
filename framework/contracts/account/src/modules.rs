@@ -361,7 +361,7 @@ pub(crate) fn _remove_whitelist_modules(
     })?;
 
     if len != 0 {
-        return Err(AccountError::NotWhitelisted{});
+        return Err(AccountError::NotWhitelisted {});
     }
     Ok(())
 }
@@ -377,9 +377,9 @@ mod tests {
     use abstract_std::account::{ExecuteMsg, InternalConfigAction};
     use abstract_std::objects::dependency::Dependency;
     use abstract_testing::module::TEST_MODULE_ID;
-    use abstract_testing::{mock_dependencies, prelude::AbstractMockAddrs};
+    use abstract_testing::prelude::AbstractMockAddrs;
     use cosmwasm_std::to_json_binary;
-    use cosmwasm_std::{Order, StdError};
+    use cosmwasm_std::{testing::*, Order, StdError};
     use ownership::GovOwnershipError;
     use speculoos::prelude::*;
 

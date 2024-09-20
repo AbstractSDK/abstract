@@ -295,7 +295,7 @@ mod test {
                             module_factory_address: abstr.module_factory,
                             account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
-                            modules: vec![],
+                            whitelisted_addresses: vec![],
                         };
                         Ok(to_json_binary(&resp).unwrap())
                     }
@@ -324,7 +324,7 @@ mod test {
                             module_factory_address: abstr.module_factory,
                             account_id: TEST_OTHER_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
-                            modules: vec![],
+                            whitelisted_addresses: vec![],
                         };
                         Ok(to_json_binary(&resp).unwrap())
                     }

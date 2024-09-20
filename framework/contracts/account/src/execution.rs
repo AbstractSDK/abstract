@@ -113,9 +113,8 @@ mod test {
     use crate::test_common::mock_init;
     use abstract_std::account::{state::*, *};
     use abstract_std::{account, IBC_CLIENT};
-    use abstract_testing::{mock_dependencies, mock_querier_builder, prelude::*};
-    use cosmwasm_std::testing::message_info;
-    use cosmwasm_std::testing::mock_env;
+    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use cosmwasm_std::testing::*;
     use cosmwasm_std::{coins, CosmosMsg, SubMsg};
     use speculoos::prelude::*;
 
@@ -352,7 +351,8 @@ mod test {
                     if bin.eq(&action) {
                         Ok(to_json_binary(&IcaActionResult {
                             msgs: vec![CosmosMsg::Custom(Empty {})],
-                        })?)
+                        })
+                        .unwrap())
                     } else {
                         Err("Unexpected action query".to_owned())
                     }

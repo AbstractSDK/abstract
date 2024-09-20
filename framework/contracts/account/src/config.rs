@@ -126,20 +126,20 @@ mod tests {
         test_common::{execute_as, execute_as_admin, mock_init},
     };
     use abstract_std::account::state::ACCOUNT_MODULES;
+    use abstract_std::account::ExecuteMsg;
     use abstract_testing::module::TEST_MODULE_ID;
     use abstract_testing::prelude::*;
-    use abstract_testing::{mock_dependencies, prelude::AbstractMockAddrs};
+    use cosmwasm_std::{testing::*, Addr, Storage};
     use cosmwasm_std::{
         testing::{message_info, mock_env, MockApi, MockQuerier, MockStorage},
         Order, OwnedDeps, StdError,
     };
-    use cosmwasm_std::{Addr, Storage};
+    use ownership::{GovAction, GovOwnershipError, GovernanceDetails};
     use speculoos::prelude::*;
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_owner_and_gov_type {
-        use ownership::{GovAction, GovOwnershipError};
 
         use super::*;
 
@@ -565,8 +565,8 @@ mod tests {
     }
 
     mod update_ownership {
-        use cw_storage_plus::Item;
         use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
+        use cw_storage_plus::Item;
 
         use super::*;
 

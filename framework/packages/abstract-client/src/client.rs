@@ -208,7 +208,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 let manager_config: abstract_std::account::ConfigResponse = chain
                     .query(
                         &abstract_std::account::QueryMsg::Config {},
-                        &app_config.manager_address,
+                        &app_config.account,
                     )
                     .map_err(Into::into)?;
                 // This function verifies the account-id is valid and returns an error if not.
