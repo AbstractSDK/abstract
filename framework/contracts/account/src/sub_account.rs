@@ -61,6 +61,7 @@ pub fn create_sub_account(
         link,
         module_factory_address: config.module_factory_address.to_string(),
         version_control_address: config.version_control_address.to_string(),
+        authenticator: None::<Empty>,
     };
 
     let account_canon_addr =

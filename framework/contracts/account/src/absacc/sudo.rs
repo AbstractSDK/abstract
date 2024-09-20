@@ -1,15 +1,12 @@
-use abstract_std::{
-    absacc::{AccountSudoMsg, Authenticator},
-    account::state::AUTHENTICATORS,
-};
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, Response};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env};
 
 use crate::{
     contract::{AccountResponse, AccountResult},
     error::AccountError,
+    state::AUTHENTICATORS,
 };
 
-use super::auth::verify_authenticator;
+use super::{auth::Authenticator, AccountSudoMsg};
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn sudo(deps: DepsMut, env: Env, msg: AccountSudoMsg) -> AccountResult {
@@ -84,7 +81,7 @@ pub fn before_tx(
             }
         }
 
-        return match verify_authenticator(&authenticator, deps, env, tx_bytes, sig_bytes)? {
+        return match authenticator.verify(deps, env, tx_bytes, sig_bytes)? {
             true => Ok(AccountResponse::action("before_tx")),
             false => Err(AccountError::InvalidSignature {}),
         };

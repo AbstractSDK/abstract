@@ -24,8 +24,8 @@ use abstract_std::{
     version_control::state::LOCAL_ACCOUNT_SEQUENCE,
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult, SubMsgResult,
+    ensure, ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply,
+    Response, StdResult, SubMsgResult,
 };
 
 pub use crate::migrate::migrate;
@@ -67,7 +67,7 @@ pub fn instantiate(
     mut deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    InstantiateMsg {
+    #[cfg(feature = "xion")] InstantiateMsg {
         account_id,
         owner,
         install_modules,
@@ -79,7 +79,20 @@ pub fn instantiate(
         namespace,
 
         authenticator,
-    }: InstantiateMsg,
+    }: InstantiateMsg<crate::absacc::auth::AddAuthenticator>,
+    #[cfg(not(feature = "xion"))] InstantiateMsg {
+        account_id,
+        owner,
+        install_modules,
+        name,
+        description,
+        link,
+        module_factory_address,
+        version_control_address,
+        namespace,
+
+        authenticator,
+    }: InstantiateMsg<cosmwasm_std::Empty>,
 ) -> AccountResult {
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
@@ -121,29 +134,37 @@ pub fn instantiate(
     let governance = owner
         .clone()
         .verify(deps.as_ref(), version_control_address.clone())?;
-    // Check if the caller is the manager the proposed owner account when creating a sub-account.
-    // This prevents other users from creating sub-accounts for accounts they don't own.
-    if let GovernanceDetails::SubAccount { account } = &governance {
+    if let Some(auth) = authenticator {
         ensure_eq!(
-            info.sender,
-            account,
-            AccountError::SubAccountCreatorNotAccount {
-                caller: info.sender.into(),
-                account: account.into(),
-            }
+            GovernanceDetails::Renounced {},
+            governance,
+            AccountError::GovernanceWithAuth {}
         )
-    }
-    if let GovernanceDetails::NFT {
-        collection_addr,
-        token_id,
-    } = governance
-    {
-        verify_nft_ownership(
-            deps.as_ref(),
-            info.sender.clone(),
-            collection_addr,
-            token_id,
-        )?
+    } else {
+        match governance {
+            // Check if the caller is the manager the proposed owner account when creating a sub-account.
+            // This prevents other users from creating sub-accounts for accounts they don't own.
+            GovernanceDetails::SubAccount { account } => {
+                ensure_eq!(
+                    info.sender,
+                    account,
+                    AccountError::SubAccountCreatorNotAccount {
+                        caller: info.sender.into(),
+                        account: account.into(),
+                    }
+                )
+            }
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => verify_nft_ownership(
+                deps.as_ref(),
+                info.sender.clone(),
+                collection_addr,
+                token_id,
+            )?,
+            _ => (),
+        };
     }
 
     // Set owner
@@ -378,9 +399,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Ownership {} => {
             cosmwasm_std::to_json_binary(&ownership::get_ownership(deps.storage)?)
         }
-        QueryMsg::AuthenticatorByID { id } => cosmwasm_std::to_json_binary(
-            &abstract_std::account::state::AUTHENTICATORS.load(deps.storage, id)?,
-        ),
+        QueryMsg::AuthenticatorByID { id } => {
+            cosmwasm_std::to_json_binary(&crate::state::AUTHENTICATORS.load(deps.storage, id)?)
+        }
     }
 }
 
@@ -447,6 +468,7 @@ mod tests {
                 description: None,
                 link: None,
                 install_modules: vec![],
+                authenticator: None,
             },
         );
 

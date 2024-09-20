@@ -78,7 +78,7 @@ pub enum AccountError {
     AlreadyWhitelisted(String),
 
     #[error("can't remove module that is not whitelisted")]
-    NotWhitelisted{},
+    NotWhitelisted {},
 
     // ** Sub Account ** //
     #[error("Removing sub account failed")]
@@ -108,6 +108,9 @@ pub enum AccountError {
 
     #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
     SubAccountCreatorNotAccount { caller: String, account: String },
+
+    #[error("Governance have to be renounced when authenticator is used")]
+    GovernanceWithAuth {},
 
     // TODO: Feature flag xion
     #[error(transparent)]
