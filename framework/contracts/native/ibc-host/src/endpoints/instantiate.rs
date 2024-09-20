@@ -16,9 +16,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         address: deps.api.addr_validate(&msg.ans_host_address)?,
     };
     let config = Config {
-        version_control: VersionControlContract::new(
-            deps.api.addr_validate(&msg.version_control_address)?,
-        ),
+        version_control: VersionControlContract::new(deps.api)?,
         ans_host,
         module_factory_addr: deps.api.addr_validate(&msg.module_factory_address)?,
     };

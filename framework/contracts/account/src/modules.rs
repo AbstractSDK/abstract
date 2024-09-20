@@ -5,6 +5,7 @@ use abstract_std::{
     },
     adapter::{AdapterBaseMsg, BaseExecuteMsg, ExecuteMsg as AdapterExecMsg},
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
+    native_addrs,
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
@@ -16,8 +17,8 @@ use abstract_std::{
     version_control::ModuleResponse,
 };
 use cosmwasm_std::{
-    ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
-    StdError, StdResult, Storage, SubMsg, WasmMsg,
+    ensure, wasm_execute, Addr, Attribute, Binary, CanonicalAddr, Coin, CosmosMsg, Deps, DepsMut,
+    MessageInfo, StdError, StdResult, Storage, SubMsg, WasmMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;
@@ -65,18 +66,14 @@ pub fn install_modules(
 pub fn _install_modules(
     mut deps: DepsMut,
     modules: Vec<ModuleInstallConfig>,
-    module_factory_address: Addr,
-    version_control_address: Addr,
     funds: Vec<Coin>,
 ) -> AccountResult<(Vec<SubMsg>, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let version_control = VersionControlContract::new(version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
-    let canonical_module_factory = deps
-        .api
-        .addr_canonicalize(module_factory_address.as_str())?;
+    let canonical_module_factory = CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR);
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();

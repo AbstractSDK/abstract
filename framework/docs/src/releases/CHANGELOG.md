@@ -16,6 +16,7 @@
 - Ibc related renaming to add more consistency in namings
 - Account action on executor takes `impl IntoIter<Item = impl Into<AccountAction>>` instead of `Vec<AccountAction>`
 - Native abstract accounts uploaded with predictable canonical Addresses
+- Native abstract accounts objects use predictable canonical Addresses for construction
 - Minified the storage keys and made them available via constants
 
 #### Abstract Client

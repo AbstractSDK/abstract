@@ -91,7 +91,7 @@ pub fn query_simulate_install_modules(
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
     let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let module_responses = version_control
         .query_modules_configs(modules, &deps.querier)
