@@ -17,7 +17,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
-    StdResult, Storage, SubMsg, WasmMsg,
+    StdError, StdResult, Storage, SubMsg, WasmMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;
@@ -85,8 +85,8 @@ pub fn _install_modules(
         .map_err(|error| AccountError::QueryModulesFailed { error })?;
 
     let mut install_context = Vec::with_capacity(modules.len());
-    let mut add_to_whitelist = Vec::with_capacity(modules.len());
-    let mut add_to_manager = Vec::with_capacity(modules.len());
+    let mut add_to_whitelist: Vec<Addr> = Vec::with_capacity(modules.len());
+    let mut add_to_manager: Vec<(String, Addr)> = Vec::with_capacity(modules.len());
 
     let salt: Binary = generate_instantiate_salt(&account_id);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
@@ -99,19 +99,19 @@ pub fn _install_modules(
         }
         installed_modules.push(module.info.id_with_version());
 
-        let init_msg_salt = match &module.reference {
-            ModuleReference::Adapter(module_address)
-            | ModuleReference::Native(module_address)
-            | ModuleReference::Service(module_address) => {
+        let init_msg_salt = match module.reference {
+            ModuleReference::Adapter(ref module_address)
+            | ModuleReference::Native(ref module_address)
+            | ModuleReference::Service(ref module_address) => {
                 if module.should_be_whitelisted() {
-                    add_to_whitelist.push(module_address.to_string());
+                    add_to_whitelist.push(module_address.clone());
                 }
-                add_to_manager.push((module.info.id(), module_address.to_string()));
+                add_to_manager.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), None));
                 None
             }
             ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
-                let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
+                let checksum = deps.querier.query_wasm_code_info(code_id)?.checksum;
                 let module_address = cosmwasm_std::instantiate2_address(
                     checksum.as_slice(),
                     &canonical_module_factory,
@@ -125,9 +125,9 @@ pub fn _install_modules(
                     AccountError::ProhibitedReinstall {}
                 );
                 if module.should_be_whitelisted() {
-                    add_to_whitelist.push(module_address.to_string());
+                    add_to_whitelist.push(module_address.clone());
                 }
-                add_to_manager.push((module.info.id(), module_address.to_string()));
+                add_to_manager.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), Some(module_address)));
 
                 Some(init_msg.unwrap())
@@ -143,7 +143,7 @@ pub fn _install_modules(
     let mut messages = vec![];
 
     // Update module addrs
-    update_module_addresses(deps.branch(), Some(add_to_manager), None)?;
+    update_module_addresses(deps.branch(), add_to_manager, vec![])?;
 
     // Install modules message
     messages.push(SubMsg::reply_on_success(
@@ -166,30 +166,21 @@ pub fn _install_modules(
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
-/// Factory is admin on init
 pub fn update_module_addresses(
     deps: DepsMut,
-    to_add: Option<Vec<(String, String)>>,
-    to_remove: Option<Vec<String>>,
+    to_add: Vec<(String, Addr)>,
+    to_remove: Vec<String>,
 ) -> AccountResult {
-    if let Some(modules_to_add) = to_add {
-        for (id, new_address) in modules_to_add.into_iter() {
-            if id.is_empty() {
-                return Err(AccountError::InvalidModuleName {});
-            };
-            // validate addr
-            ACCOUNT_MODULES.save(
-                deps.storage,
-                id.as_str(),
-                &deps.api.addr_validate(&new_address)?,
-            )?;
-        }
+    for (id, new_address) in to_add.into_iter() {
+        if id.is_empty() {
+            return Err(AccountError::InvalidModuleName {});
+        };
+        // validate addr
+        ACCOUNT_MODULES.save(deps.storage, id.as_str(), &new_address)?;
     }
 
-    if let Some(modules_to_remove) = to_remove {
-        for id in modules_to_remove.into_iter() {
-            ACCOUNT_MODULES.remove(deps.storage, id.as_str());
-        }
+    for id in to_remove.into_iter() {
+        ACCOUNT_MODULES.remove(deps.storage, id.as_str());
     }
 
     Ok(AccountResponse::action("update_module_addresses"))
@@ -228,11 +219,14 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
 
     // Remove module from whitelist if it supposed to be removed
     if module.should_be_whitelisted() {
-        _remove_whitelist_module(deps.branch(), module_id.clone())?;
+        let module_addr = ACCOUNT_MODULES.load(deps.storage, &module_id)?;
+        _remove_whitelist_modules(deps.branch(), vec![module_addr])?;
     }
+
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
 
     let response = AccountResponse::new("uninstall_module", vec![("module", &module_id)]);
+
     Ok(response)
 }
 
@@ -324,7 +318,7 @@ fn configure_adapter(
 }
 
 /// Add a contract to the whitelist
-fn _whitelist_modules(deps: DepsMut, modules: Vec<String>) -> AccountResult<()> {
+pub(crate) fn _whitelist_modules(deps: DepsMut, module_addresses: Vec<Addr>) -> AccountResult<()> {
     let mut whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
 
     // This is a limit to prevent potentially running out of gas when doing lookups on the modules list
@@ -332,11 +326,9 @@ fn _whitelist_modules(deps: DepsMut, modules: Vec<String>) -> AccountResult<()> 
         return Err(AccountError::ModuleLimitReached {});
     }
 
-    for module in modules.iter() {
-        let module_addr = deps.api.addr_validate(module)?;
-
+    for module_addr in module_addresses.into_iter() {
         if whitelisted_modules.0.contains(&module_addr) {
-            return Err(AccountError::AlreadyWhitelisted(module.clone()));
+            return Err(AccountError::AlreadyWhitelisted(module_addr.into()));
         }
 
         // Add contract to whitelist.
@@ -349,30 +341,57 @@ fn _whitelist_modules(deps: DepsMut, modules: Vec<String>) -> AccountResult<()> 
 }
 
 /// Remove a contract from the whitelist
-fn _remove_whitelist_module(deps: DepsMut, module: String) -> AccountResult<()> {
-    WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
-        let module_address = deps.api.addr_validate(&module)?;
+pub(crate) fn _remove_whitelist_modules(
+    deps: DepsMut,
+    addresses_to_remove: Vec<Addr>,
+) -> AccountResult<()> {
+    let mut len: i8 = addresses_to_remove.len() as i8;
 
-        if !whitelisted_modules.0.contains(&module_address) {
-            return Err(AccountError::NotWhitelisted(module.clone()));
-        }
-        // Remove contract from whitelist.
-        whitelisted_modules.0.retain(|addr| *addr != module_address);
-        Ok(whitelisted_modules)
+    WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
+        whitelisted_modules.0.retain(|addr| {
+            // retain any addresses that are not in the list of addresses to remove
+            if addresses_to_remove.contains(addr) {
+                len -= 1;
+                false
+            } else {
+                true
+            }
+        });
+        Ok::<_, StdError>(whitelisted_modules)
     })?;
 
+    if len != 0 {
+        return Err(AccountError::NotWhitelisted {});
+    }
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_common::test_only_owner;
+    use crate::test_common::{execute_as, mock_init};
+    use abstract_std::account::{ExecuteMsg, InternalConfigAction};
+    use abstract_std::objects::dependency::Dependency;
+    use abstract_testing::module::TEST_MODULE_ID;
+    use abstract_testing::prelude::AbstractMockAddrs;
+    use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
+    use ownership::GovOwnershipError;
+    use speculoos::prelude::*;
 
-    mod add_module_upgrade_to_context {
+    fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
+        ACCOUNT_MODULES
+            .range(storage, None, None, Order::Ascending)
+            .collect()
+    }
+
+    mod add_module_upgrade {
+        use crate::modules::migration::add_module_upgrade_to_context;
+
         use super::*;
 
         #[test]
-        fn should_allow_migrate_msg() -> ManagerTestResult {
+        fn should_allow_migrate_msg() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
             let storage = deps.as_mut().storage;
@@ -394,27 +413,26 @@ mod tests {
         use super::*;
 
         #[test]
-        fn manual_adds_module_to_account_modules() -> ManagerTestResult {
+        fn manual_adds_module_to_account_modules() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let module1_addr = deps.api.addr_make("module1");
             let module2_addr = deps.api.addr_make("module2");
 
             mock_init(&mut deps).unwrap();
 
-            let to_add: Vec<(String, String)> = vec![
-                ("test:module1".to_string(), module1_addr.to_string()),
-                ("test:module2".to_string(), module2_addr.to_string()),
+            let to_add: Vec<(String, Addr)> = vec![
+                ("test:module1".to_string(), module1_addr),
+                ("test:module2".to_string(), module2_addr),
             ];
 
-            let res = update_module_addresses(deps.as_mut(), Some(to_add.clone()), Some(vec![]));
+            let res = update_module_addresses(deps.as_mut(), to_add.clone(), vec![]);
             assert_that!(&res).is_ok();
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
             speculoos::prelude::VecAssertions::has_length(
                 &mut assert_that!(&actual_modules),
-                // Plus proxy
-                to_add.len() + 1,
+                to_add.len(),
             );
             for (module_id, addr) in to_add {
                 speculoos::iter::ContainingIntoIterAssertions::contains(
@@ -427,23 +445,24 @@ mod tests {
         }
 
         #[test]
-        fn missing_id() -> ManagerTestResult {
+        fn missing_id() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
 
             mock_init(&mut deps).unwrap();
 
-            let to_add: Vec<(String, String)> = vec![("".to_string(), "module1_addr".to_string())];
+            let to_add: Vec<(String, Addr)> =
+                vec![("".to_string(), Addr::unchecked("module1_addr"))];
 
-            let res = update_module_addresses(deps.as_mut(), Some(to_add), Some(vec![]));
+            let res = update_module_addresses(deps.as_mut(), to_add, vec![]);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::InvalidModuleName {});
+                .is_equal_to(AccountError::InvalidModuleName {});
 
             Ok(())
         }
 
         #[test]
-        fn manual_removes_module_from_account_modules() -> ManagerTestResult {
+        fn manual_removes_module_from_account_modules() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
 
@@ -456,34 +475,18 @@ mod tests {
 
             let to_remove: Vec<String> = vec!["test:module".to_string()];
 
-            let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
+            let res = update_module_addresses(deps.as_mut(), vec![], to_remove);
             assert_that!(&res).is_ok();
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
-            // Only proxy left
-            speculoos::prelude::VecAssertions::has_length(&mut assert_that!(&actual_modules), 1);
+            speculoos::prelude::VecAssertions::has_length(&mut assert_that!(&actual_modules), 0);
 
             Ok(())
         }
 
         #[test]
-        fn disallows_removing_proxy() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
-
-            let to_remove: Vec<String> = vec![ACCOUNT.to_string()];
-
-            let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(ManagerError::CannotRemoveProxy {});
-
-            Ok(())
-        }
-
-        #[test]
-        fn only_account_owner() -> ManagerTestResult {
+        fn only_account_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -493,13 +496,13 @@ mod tests {
 
             // add some thing
             let action_add = InternalConfigAction::UpdateModuleAddresses {
-                to_add: Some(vec![("module:other".to_string(), module_addr.to_string())]),
-                to_remove: None,
+                to_add: vec![("module:other".to_string(), module_addr.to_string())],
+                to_remove: vec![],
             };
-            let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&action_add).unwrap());
+            let msg = ExecuteMsg::UpdateInternalConfig(action_add);
 
-            // the factory can not call this
-            let res = execute_as(deps.as_mut(), &abstr.account_factory, msg.clone());
+            // the version control can not call this
+            let res = execute_as(deps.as_mut(), &abstr.version_control, msg.clone());
             assert_that!(&res).is_err();
 
             // only the owner can
@@ -509,7 +512,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &not_account_factory, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
+                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
         }
@@ -520,7 +523,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn only_account_owner() -> ManagerTestResult {
+        fn only_account_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let not_owner = deps.api.addr_make("not_owner");
             mock_init(&mut deps)?;
@@ -535,7 +538,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &not_owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
+                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
         }
@@ -547,7 +550,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn only_owner() -> ManagerTestResult {
+        fn only_owner() -> anyhow::Result<()> {
             let msg = ExecuteMsg::UninstallModule {
                 module_id: "test:module".to_string(),
             };
@@ -556,11 +559,11 @@ mod tests {
         }
 
         #[test]
-        fn errors_with_existing_dependents() -> ManagerTestResult {
+        fn errors_with_existing_dependents() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
-            init_with_proxy(&mut deps);
+            mock_init(&mut deps)?;
 
             let test_module = "test:module";
             let msg = ExecuteMsg::UninstallModule {
@@ -574,40 +577,22 @@ mod tests {
             let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::ModuleHasDependents(Vec::from_iter(
+                .is_equal_to(AccountError::ModuleHasDependents(Vec::from_iter(
                     dependents,
                 )));
 
             Ok(())
         }
-
-        #[test]
-        fn disallows_removing_proxy() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            let abstr = AbstractMockAddrs::new(deps.api);
-            let owner = abstr.owner;
-            init_with_proxy(&mut deps);
-
-            let msg = ExecuteMsg::UninstallModule {
-                module_id: ACCOUNT.to_string(),
-            };
-
-            let res = execute_as(deps.as_mut(), &owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(ManagerError::CannotRemoveProxy {});
-
-            Ok(())
-        }
-
-        // rest should be in integration tests
     }
 
     mod exec_on_module {
+        use abstract_std::account::ExecuteMsg;
+        use cosmwasm_std::to_json_binary;
+
         use super::*;
 
         #[test]
-        fn only_owner() -> ManagerTestResult {
+        fn only_owner() -> anyhow::Result<()> {
             let msg = ExecuteMsg::ExecOnModule {
                 module_id: "test:module".to_string(),
                 exec_msg: to_json_binary(&"some msg")?,
@@ -617,7 +602,7 @@ mod tests {
         }
 
         #[test]
-        fn fails_with_nonexistent_module() -> ManagerTestResult {
+        fn fails_with_nonexistent_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -633,23 +618,29 @@ mod tests {
             let res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::ModuleNotFound(missing_module));
+                .is_equal_to(AccountError::ModuleNotFound(missing_module));
 
             Ok(())
         }
 
         #[test]
-        fn forwards_exec_to_module() -> ManagerTestResult {
+        fn forwards_exec_to_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 
-            init_with_proxy(&mut deps);
+            mock_init(&mut deps)?;
+
+            update_module_addresses(
+                deps.as_mut(),
+                vec![("test_mod".to_string(), Addr::unchecked("module_addr"))],
+                vec![],
+            )?;
 
             let exec_msg = "some msg";
 
             let msg = ExecuteMsg::ExecOnModule {
-                module_id: ACCOUNT.to_string(),
+                module_id: "test_mod".to_string(),
                 exec_msg: to_json_binary(&exec_msg)?,
             };
 
@@ -659,8 +650,7 @@ mod tests {
             let msgs = res.unwrap().messages;
             assert_that!(&msgs).has_length(1);
 
-            let expected_msg: CosmosMsg =
-                wasm_execute(abstr.account.proxy, &exec_msg, vec![])?.into();
+            let expected_msg: CosmosMsg = wasm_execute("module_addr", &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
             assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);
@@ -668,187 +658,140 @@ mod tests {
             Ok(())
         }
     }
-}
 
-#[cfg(test)]
-mod test {
-    #![allow(clippy::needless_borrows_for_generic_args)]
-    use super::*;
+    // TODO: move these tests to integration tests
 
-    use crate::{contract::execute, test_common::*};
-    use abstract_std::proxy::ExecuteMsg;
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env, MockApi, MOCK_CONTRACT_ADDR},
-        Addr, OwnedDeps, Storage,
-    };
-    use speculoos::prelude::*;
+    // mod add_module {
+    //     use super::*;
 
-    const TEST_MODULE: &str = "module";
+    //     use cw_controllers::AdminError;
 
-    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
+    // #[test]
+    // fn only_admin_can_add_module() {
+    //     let mut deps = mock_dependencies();
+    //     mock_init(&mut deps);
 
-    pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
-        let base = test_account_base(deps.api);
-        let info = message_info(&base.manager, &[]);
-        execute(deps.as_mut(), mock_env(), info, msg)
-    }
+    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
+    //     let msg = ExecuteMsg::AddModules {
+    //         modules: vec![test_module_addr.to_string()],
+    //     };
+    //     let info = message_info(&deps.api.addr_make("not_admin"), &[]);
 
-    fn load_modules(storage: &dyn Storage) -> Vec<Addr> {
-        STATE.load(storage).unwrap().modules
-    }
+    //     let res = execute(deps.as_mut(), mock_env(), info, msg);
+    //     assert_that(&res)
+    //         .is_err()
+    //         .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
+    // }
+    // #[test]
+    // fn fails_adding_previously_added_module() {
+    //     let mut deps = mock_dependencies();
+    //     mock_init(&mut deps);
 
-    mod add_module {
-        use super::*;
+    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
+    //     let msg = ExecuteMsg::AddModules {
+    //         modules: vec![test_module_addr.to_string()],
+    //     };
 
-        use cw_controllers::AdminError;
+    //     let res = execute_as_admin(&mut deps, msg.clone());
+    //     assert_that(&res).is_ok();
 
-        #[test]
-        fn only_admin_can_add_module() {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+    //     let res = execute_as_admin(&mut deps, msg);
+    //     assert_that(&res)
+    //         .is_err()
+    //         .is_equal_to(AccountError::AlreadyWhitelisted(
+    //             test_module_addr.to_string(),
+    //         ));
+    // }
 
-            let test_module_addr = deps.api.addr_make(TEST_MODULE);
-            let msg = ExecuteMsg::AddModules {
-                modules: vec![test_module_addr.to_string()],
-            };
-            let info = message_info(&deps.api.addr_make("not_admin"), &[]);
+    // #[test]
+    // fn fails_adding_module_when_list_is_full() {
+    //     let mut deps = mock_dependencies();
+    //     mock_init(&mut deps);
 
-            let res = execute(deps.as_mut(), mock_env(), info, msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ProxyError::Admin(AdminError::NotAdmin {}))
-        }
+    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
+    //     let mut msg = ExecuteMsg::AddModules {
+    //         modules: vec![test_module_addr.to_string()],
+    //     };
 
-        #[test]
-        fn add_module() {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+    //     // -1 because manager counts as module as well
+    //     for i in 0..LIST_SIZE_LIMIT - 1 {
+    //         let test_module = format!("module_{i}");
+    //         let test_module_addr = deps.api.addr_make(&test_module);
+    //         msg = ExecuteMsg::AddModules {
+    //             modules: vec![test_module_addr.to_string()],
+    //         };
+    //         let res = execute_as_admin(&mut deps, msg.clone());
+    //         assert_that(&res).is_ok();
+    //     }
 
-            let test_module_addr = deps.api.addr_make(TEST_MODULE);
-            let msg = ExecuteMsg::AddModules {
-                modules: vec![test_module_addr.to_string()],
-            };
+    //     let res = execute_as_admin(&mut deps, msg);
+    //     assert_that(&res)
+    //         .is_err()
+    //         .is_equal_to(AccountError::ModuleLimitReached {});
+    // }
+    // }
 
-            let res = execute_as_admin(&mut deps, msg);
-            assert_that(&res).is_ok();
+    // mod remove_module {
+    //     use abstract_std::account::state::State;
+    //     use cw_controllers::AdminError;
 
-            let actual_modules = load_modules(&deps.storage);
-            // Plus manager
-            assert_that(&actual_modules).has_length(2);
-            assert_that(&actual_modules).contains(&test_module_addr);
-        }
+    //     use super::*;
 
-        #[test]
-        fn fails_adding_previously_added_module() {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+    //     #[test]
+    //     fn only_admin() {
+    //         let mut deps = mock_dependencies();
+    //         mock_init(&mut deps);
 
-            let test_module_addr = deps.api.addr_make(TEST_MODULE);
-            let msg = ExecuteMsg::AddModules {
-                modules: vec![test_module_addr.to_string()],
-            };
+    //         let msg = ExecuteMsg::RemoveModule {
+    //             module: TEST_MODULE.to_string(),
+    //         };
+    //         let info = message_info(&deps.api.addr_make("not_admin"), &[]);
 
-            let res = execute_as_admin(&mut deps, msg.clone());
-            assert_that(&res).is_ok();
+    //         let res = execute(deps.as_mut(), mock_env(), info, msg);
+    //         assert_that(&res)
+    //             .is_err()
+    //             .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
+    //     }
 
-            let res = execute_as_admin(&mut deps, msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ProxyError::AlreadyWhitelisted(test_module_addr.to_string()));
-        }
+    //     #[test]
+    //     fn remove_module() -> ProxyTestResult {
+    //         let mut deps = mock_dependencies();
+    //         mock_init(&mut deps);
 
-        #[test]
-        fn fails_adding_module_when_list_is_full() {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+    //         let test_module_addr = deps.api.addr_make(TEST_MODULE);
+    //         STATE.save(
+    //             &mut deps.storage,
+    //             &State {
+    //                 modules: vec![test_module_addr.clone()],
+    //             },
+    //         )?;
 
-            let test_module_addr = deps.api.addr_make(TEST_MODULE);
-            let mut msg = ExecuteMsg::AddModules {
-                modules: vec![test_module_addr.to_string()],
-            };
+    //         let msg = ExecuteMsg::RemoveModule {
+    //             module: test_module_addr.to_string(),
+    //         };
+    //         let res = execute_as_admin(&mut deps, msg);
+    //         assert_that(&res).is_ok();
 
-            // -1 because manager counts as module as well
-            for i in 0..LIST_SIZE_LIMIT - 1 {
-                let test_module = format!("module_{i}");
-                let test_module_addr = deps.api.addr_make(&test_module);
-                msg = ExecuteMsg::AddModules {
-                    modules: vec![test_module_addr.to_string()],
-                };
-                let res = execute_as_admin(&mut deps, msg.clone());
-                assert_that(&res).is_ok();
-            }
+    //         let actual_modules = load_modules(&deps.storage);
+    //         assert_that(&actual_modules).is_empty();
 
-            let res = execute_as_admin(&mut deps, msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ProxyError::ModuleLimitReached {});
-        }
-    }
+    //         Ok(())
+    //     }
 
-    type ProxyTestResult = Result<(), ProxyError>;
+    //     #[test]
+    //     fn fails_removing_non_existing_module() {
+    //         let mut deps = mock_dependencies();
+    //         mock_init(&mut deps);
 
-    mod remove_module {
-        use abstract_std::proxy::state::State;
-        use cw_controllers::AdminError;
+    //         let test_module_addr = deps.api.addr_make(TEST_MODULE);
+    //         let msg = ExecuteMsg::RemoveModule {
+    //             module: test_module_addr.to_string(),
+    //         };
 
-        use super::*;
-
-        #[test]
-        fn only_admin() {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps);
-
-            let msg = ExecuteMsg::RemoveModule {
-                module: TEST_MODULE.to_string(),
-            };
-            let info = message_info(&deps.api.addr_make("not_admin"), &[]);
-
-            let res = execute(deps.as_mut(), mock_env(), info, msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ProxyError::Admin(AdminError::NotAdmin {}))
-        }
-
-        #[test]
-        fn remove_module() -> ProxyTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps);
-
-            let test_module_addr = deps.api.addr_make(TEST_MODULE);
-            STATE.save(
-                &mut deps.storage,
-                &State {
-                    modules: vec![test_module_addr.clone()],
-                },
-            )?;
-
-            let msg = ExecuteMsg::RemoveModule {
-                module: test_module_addr.to_string(),
-            };
-            let res = execute_as_admin(&mut deps, msg);
-            assert_that(&res).is_ok();
-
-            let actual_modules = load_modules(&deps.storage);
-            assert_that(&actual_modules).is_empty();
-
-            Ok(())
-        }
-
-        #[test]
-        fn fails_removing_non_existing_module() {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps);
-
-            let test_module_addr = deps.api.addr_make(TEST_MODULE);
-            let msg = ExecuteMsg::RemoveModule {
-                module: test_module_addr.to_string(),
-            };
-
-            let res = execute_as_admin(&mut deps, msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ProxyError::NotWhitelisted(test_module_addr.to_string()));
-        }
-    }
+    //         let res = execute_as_admin(&mut deps, msg);
+    //         assert_that(&res)
+    //             .is_err()
+    //             .is_equal_to(AccountError::NotWhitelisted(test_module_addr.to_string()));
+    //     }
+    // }
 }

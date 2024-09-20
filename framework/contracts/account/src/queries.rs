@@ -3,8 +3,10 @@ use std::collections::BTreeMap;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
-        state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO},
-        state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS},
+        state::{
+            AccountInfo, Config, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO, SUB_ACCOUNTS,
+            SUSPENSION_STATUS, WHITELISTED_MODULES,
+        },
         AccountModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleVersionsResponse, SubAccountIdsResponse,
     },
@@ -51,9 +53,7 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
         is_suspended,
         version_control_address,
         module_factory_address,
-        modules: ACCOUNT_MODULES
-            .range(deps.storage, None, None, Order::Ascending)
-            .collect::<Result<_, _>>()?,
+        whitelisted_addresses: WHITELISTED_MODULES.load(deps.storage)?.0,
     })
 }
 
@@ -194,65 +194,97 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
 
-    use crate::contract::{execute, instantiate, query, ProxyResult};
-    use abstract_std::proxy::{ExecuteMsg, InstantiateMsg};
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env, MockApi},
-        OwnedDeps,
+    use crate::{
+        contract::query,
+        test_common::{execute_as_admin, mock_init},
     };
-
-    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
-
-    fn mock_init(deps: &mut MockDeps) {
-        let abstr = AbstractMockAddrs::new(deps.api);
-        let info = message_info(&abstr.owner, &[]);
-        let msg = InstantiateMsg {
-            account_id: TEST_ACCOUNT_ID,
-            ans_host_address: abstr.ans_host.to_string(),
-            manager_addr: abstr.account.manager.to_string(),
-        };
-        let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-    }
-
-    pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
-        let abstr = AbstractMockAddrs::new(deps.api);
-        let info = message_info(&abstr.account.manager, &[]);
-        execute(deps.as_mut(), mock_env(), info, msg)
-    }
+    use abstract_std::{
+        account::{ExecuteMsg, InternalConfigAction},
+        objects::AccountId,
+    };
+    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use cosmwasm_std::testing::*;
 
     #[test]
-    fn query_config() {
+    fn query_config() -> anyhow::Result<()> {
         let mut deps = mock_dependencies();
-        deps.querier = MockAnsHost::new(deps.api).with_defaults().to_querier();
-        mock_init(&mut deps);
         let abstr = AbstractMockAddrs::new(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .with_contract_version(&abstr.module_address, TEST_MODULE_ID, "1.0.0")
+            .build();
+        mock_init(&mut deps)?;
 
         execute_as_admin(
             &mut deps,
-            ExecuteMsg::AddModules {
-                modules: vec![abstr.module_address.to_string()],
-            },
-        )
-        .unwrap();
+            ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateModuleAddresses {
+                to_add: vec![(TEST_MODULE_ID.into(), abstr.module_address.to_string())],
+                to_remove: vec![],
+            }),
+        )?;
 
-        let config: ConfigResponse = from_json(
-            query(
-                deps.as_ref(),
-                mock_env(),
-                abstract_std::proxy::QueryMsg::Config {},
-            )
-            .unwrap(),
-        )
-        .unwrap();
+        let config: ConfigResponse = from_json(query(
+            deps.as_ref(),
+            mock_env(),
+            abstract_std::account::QueryMsg::Config {},
+        )?)?;
         assert_eq!(
             config,
             ConfigResponse {
-                modules: vec![
-                    abstr.account.manager.to_string(),
-                    abstr.module_address.to_string()
-                ],
+                whitelisted_addresses: vec![],
+                account_id: AccountId::local(1),
+                is_suspended: false,
+                version_control_address: abstr.version_control.clone(),
+                module_factory_address: abstr.module_factory.clone()
             }
         );
+
+        let module_infos: ModuleInfosResponse = from_json(query(
+            deps.as_ref(),
+            mock_env(),
+            abstract_std::account::QueryMsg::ModuleInfos {
+                start_after: None,
+                limit: None,
+            },
+        )?)?;
+
+        assert_eq!(
+            module_infos,
+            ModuleInfosResponse {
+                module_infos: vec![AccountModuleInfo {
+                    id: TEST_MODULE_ID.into(),
+                    version: ContractVersion {
+                        contract: TEST_MODULE_ID.to_string(),
+                        version: "1.0.0".to_string(),
+                    },
+                    address: abstr.module_address.clone(),
+                }]
+            }
+        );
+
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                to_add: vec![abstr.module_address.to_string()],
+                to_remove: vec![],
+            }),
+        )?;
+
+        let config: ConfigResponse = from_json(query(
+            deps.as_ref(),
+            mock_env(),
+            abstract_std::account::QueryMsg::Config {},
+        )?)?;
+        assert_eq!(
+            config,
+            ConfigResponse {
+                whitelisted_addresses: vec![abstr.module_address],
+                account_id: AccountId::local(1),
+                is_suspended: false,
+                version_control_address: abstr.version_control,
+                module_factory_address: abstr.module_factory
+            }
+        );
+
+        Ok(())
     }
 }

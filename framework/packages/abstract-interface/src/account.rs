@@ -36,7 +36,7 @@ use cw_orch::{environment::Environment, interface, prelude::*};
 use semver::{Version, VersionReq};
 use serde::Serialize;
 use speculoos::prelude::*;
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::Debug};
 
 /// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
 #[derive(Default)]
@@ -53,7 +53,10 @@ pub struct AccountDetails {
 pub struct AccountI<Chain>;
 
 impl<Chain: CwEnv> AccountI<Chain> {
-    pub fn load_from(abstract_deployment: &Abstract<Chain>, account_id: AccountId) -> Self {
+    pub fn load_from(
+        abstract_deployment: &Abstract<Chain>,
+        account_id: AccountId,
+    ) -> Result<Self, AbstractInterfaceError> {
         get_account_contract(&abstract_deployment.version_control, account_id)
     }
 
@@ -126,25 +129,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
             ..Default::default()
         };
         Self::create(abstract_deployment, details, governance_details, &[])
-    }
-}
-
-impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
-    fn wrapper() -> <Mock as TxHandler>::ContractSource {
-        Box::new(
-            ContractWrapper::new_with_empty(
-                ::account::contract::execute,
-                ::account::contract::instantiate,
-                ::account::contract::query,
-            )
-            .with_migrate(::account::contract::migrate)
-            .with_reply(::account::contract::reply),
-        )
-    }
-    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
-        artifacts_dir_from_workspace!()
-            .find_wasm_path("account")
-            .unwrap()
     }
 }
 
@@ -228,11 +212,9 @@ impl<Chain: CwEnv> AccountI<Chain> {
             module_infos: manager_modules,
         } = self.module_infos(None, None)?;
 
-        // insert proxy in expected module addresses
         let expected_module_addrs = module_addrs
             .into_iter()
             .map(Addr::unchecked)
-            .chain(std::iter::once(self.address()?))
             .collect::<HashSet<_>>();
 
         let actual_module_addrs = manager_modules
@@ -255,26 +237,25 @@ impl<Chain: CwEnv> AccountI<Chain> {
     }
 
     /// Checks that the proxy's whitelist includes the expected module addresses.
-    /// Automatically includes the manager in the expected whitelist.
     pub fn expect_whitelist(
         &self,
-        whitelisted_addrs: Vec<String>,
-    ) -> Result<Vec<(String, Addr)>, crate::AbstractInterfaceError> {
+        expected_whitelisted_addrs: Vec<Addr>,
+    ) -> Result<(), crate::AbstractInterfaceError> {
         // insert manager in expected whitelisted addresses
-        let expected_whitelisted_addrs = whitelisted_addrs
+        let expected_whitelisted_addrs = expected_whitelisted_addrs
             .into_iter()
-            .chain(std::iter::once(self.address()?.into_string()))
             .collect::<HashSet<_>>();
 
         // check proxy config
         let abstract_std::account::ConfigResponse {
-            modules: whitelist, ..
+            whitelisted_addresses: whitelist,
+            ..
         } = self.config()?;
 
-        let actual_whitelist = HashSet::from_iter(whitelist.iter().map(|a| a.0.clone()));
+        let actual_whitelist = HashSet::from_iter(whitelist);
         assert_eq!(actual_whitelist, expected_whitelisted_addrs);
 
-        Ok(whitelist)
+        Ok(())
     }
 
     /// Installs an adapter from an adapter object
@@ -509,7 +490,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         Ok(self.config()?.account_id)
     }
 
-    pub fn create_sub_account_helper(
+    pub fn create_and_return_sub_account(
         &self,
         account_details: AccountDetails,
         funds: &[Coin],
@@ -601,7 +582,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             }
             for sub_account_id in sub_account_ids {
                 let abstract_account =
-                    AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id));
+                    AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id))?;
                 if abstract_account.upgrade_account(abstract_deployment)? {
                     one_migration_was_successful = true;
                 }
@@ -727,6 +708,34 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .claim_namespace(self.id()?, namespace.into())
             .map_err(Into::into)
     }
+
+    pub fn update_whitelist(
+        &self,
+        to_add: Vec<String>,
+        to_remove: Vec<String>,
+    ) -> Result<(), AbstractInterfaceError> {
+        self.update_internal_config(InternalConfigAction::UpdateWhitelist { to_add, to_remove })?;
+        Ok(())
+    }
+}
+
+impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
+    fn wrapper() -> <Mock as TxHandler>::ContractSource {
+        Box::new(
+            ContractWrapper::new_with_empty(
+                ::account::contract::execute,
+                ::account::contract::instantiate,
+                ::account::contract::query,
+            )
+            .with_migrate(::account::contract::migrate)
+            .with_reply(::account::contract::reply),
+        )
+    }
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
+        artifacts_dir_from_workspace!()
+            .find_wasm_path("account")
+            .unwrap()
+    }
 }
 
 impl<Chain: CwEnv> std::fmt::Display for AccountI<Chain> {
@@ -738,5 +747,11 @@ impl<Chain: CwEnv> std::fmt::Display for AccountI<Chain> {
             self.addr_str()
                 .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
         )
+    }
+}
+
+impl<Chain: CwEnv> Debug for AccountI<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Account: {:?}", self.id())
     }
 }

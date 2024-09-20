@@ -13,14 +13,14 @@ use crate::{
 };
 
 /// Check that sender either whitelisted or governance
-pub(crate) fn assert_whitelisted(deps: Deps, sender: &Addr) -> AccountResult<()> {
+pub(crate) fn assert_whitelisted_or_owner(deps: Deps, sender: &Addr) -> AccountResult<()> {
     let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
     if whitelisted_modules.0.contains(sender)
-        || ownership::is_owner(deps.storage, &deps.querier, sender)?
+        || ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok()
     {
         Ok(())
     } else {
-        Err(AccountError::SenderNotWhitelisted {})
+        Err(AccountError::SenderNotWhitelistedOrOwner {})
     }
 }
 
@@ -31,7 +31,7 @@ pub fn execute_module_action(
     msg_info: MessageInfo,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
@@ -43,7 +43,7 @@ pub fn execute_module_action_response(
     msg_info: MessageInfo,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
 
     let submsg = SubMsg::reply_on_success(msg, RESPONSE_REPLY_ID);
 
@@ -57,7 +57,7 @@ pub fn execute_ibc_action(
     msg_info: MessageInfo,
     msg: IbcClientMsg,
 ) -> AccountResult {
-    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
 
     let ibc_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, IBC_CLIENT)?
@@ -85,7 +85,7 @@ pub fn execute_ibc_action(
 ///
 /// The resulting `Vec<CosmosMsg>` are then executed on the proxy contract.
 pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> AccountResult {
-    assert_whitelisted(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
 
     let ica_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, ICA_CLIENT)?
@@ -108,16 +108,26 @@ pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) ->
 
 #[cfg(test)]
 mod test {
+    use crate::contract::execute;
+    use crate::error::AccountError;
+    use crate::test_common::mock_init;
+    use abstract_std::account::{state::*, *};
+    use abstract_std::{account, IBC_CLIENT};
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::testing::*;
+    use cosmwasm_std::{coins, CosmosMsg, SubMsg};
+    use speculoos::prelude::*;
 
     mod execute_action {
-        use abstract_std::proxy::state::State;
+
+        use cosmwasm_std::{testing::MOCK_CONTRACT_ADDR, wasm_execute, CosmosMsg};
 
         use super::*;
 
         #[test]
-        fn only_whitelisted_can_execute() {
+        fn only_whitelisted_can_execute() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::ModuleAction { msgs: vec![] };
 
@@ -126,30 +136,28 @@ mod test {
             let res = execute(deps.as_mut(), mock_env(), info, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::SenderNotWhitelisted {});
+                .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
+            Ok(())
         }
 
         #[test]
-        fn forwards_action() -> ProxyTestResult {
+        fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps);
-            let base = test_account_base(deps.api);
+            mock_init(&mut deps)?;
 
             // stub a module
-            let module_addr = deps.api.addr_make(TEST_MODULE);
-            STATE.save(
+            let module_addr = deps.api.addr_make(TEST_MODULE_ID);
+            WHITELISTED_MODULES.save(
                 &mut deps.storage,
-                &State {
-                    modules: vec![module_addr.clone()],
-                },
+                &WhitelistedModules(vec![module_addr.clone()]),
             )?;
 
             let action: CosmosMsg = wasm_execute(
                 MOCK_CONTRACT_ADDR.to_string(),
                 // example garbage
-                &ExecuteMsg::SetAdmin {
-                    admin: base.manager.to_string(),
-                },
+                &ExecuteMsg::UpdateOwnership(
+                    abstract_std::objects::gov_type::GovAction::RenounceOwnership,
+                ),
                 vec![],
             )?
             .into();
@@ -167,7 +175,7 @@ mod test {
             );
             assert_that(&res).is_ok();
 
-            let msgs = res.unwrap().messages;
+            let msgs = res?.messages;
             assert_that(&msgs).has_length(1);
 
             let msg = &msgs[0];
@@ -178,29 +186,24 @@ mod test {
     }
 
     mod execute_ibc {
+        use crate::modules::update_module_addresses;
+
         use super::*;
 
-        use abstract_std::{manager, proxy::state::State};
-        use cosmwasm_std::coins;
-
         #[test]
-        fn add_module() {
+        fn add_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
-            STATE
-                .save(
-                    &mut deps.storage,
-                    &State {
-                        modules: vec![abstr.account.manager.clone()],
-                    },
-                )
-                .unwrap();
+            account::state::WHITELISTED_MODULES.save(
+                &mut deps.storage,
+                &WhitelistedModules(vec![abstr.account.addr().clone()]),
+            )?;
 
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
-                    host_chain: "juno".parse().unwrap(),
+                    host_chain: "juno".parse()?,
                     namespace: None,
                     install_modules: vec![],
                 },
@@ -209,54 +212,56 @@ mod test {
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
             execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
-            let manager_info = message_info(&abstr.account.manager, &[]);
+            let manager_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
             execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
             // mock enabling ibc
             let ibc_client_addr = deps.api.addr_make("ibc_client_addr");
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
-                    &abstr.account.manager,
-                    manager::state::ACCOUNT_MODULES,
+                    abstr.account.addr(),
+                    account::state::ACCOUNT_MODULES,
                     (IBC_CLIENT, ibc_client_addr.clone()),
                 )
                 .build();
+            // mock enabling ibc
+            update_module_addresses(
+                deps.as_mut(),
+                vec![(IBC_CLIENT.into(), ibc_client_addr.clone())],
+                vec![],
+            )?;
 
-            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: ibc_client_addr.to_string(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
-                        host_chain: "juno".parse().unwrap(),
+                        host_chain: "juno".parse()?,
                         namespace: None,
                         install_modules: vec![],
-                    })
-                    .unwrap(),
+                    })?,
                     funds: vec![],
                 },
             )));
+            Ok(())
         }
 
         #[test]
-        fn send_funds() {
+        fn send_funds() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
-            STATE
-                .save(
-                    &mut deps.storage,
-                    &State {
-                        modules: vec![abstr.account.manager.clone()],
-                    },
-                )
-                .unwrap();
+            account::state::WHITELISTED_MODULES.save(
+                &mut deps.storage,
+                &WhitelistedModules(vec![abstr.account.addr().clone()]),
+            )?;
 
             let funds = coins(10, "denom");
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                    host_chain: "juno".parse().unwrap(),
+                    host_chain: "juno".parse()?,
                     funds: funds.clone(),
                     memo: None,
                 },
@@ -265,91 +270,97 @@ mod test {
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
             execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
-            let manager_info = message_info(&abstr.account.manager, &[]);
+            let manager_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
             execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
             // mock enabling ibc
+            let ibc_client_addr = deps.api.addr_make("ibc_client_addr");
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
-                    &abstr.account.manager,
-                    manager::state::ACCOUNT_MODULES,
-                    (IBC_CLIENT, Addr::unchecked("ibc_client_addr")),
+                    &abstr.account.addr().clone(),
+                    account::state::ACCOUNT_MODULES,
+                    (IBC_CLIENT, ibc_client_addr.clone()),
                 )
                 .build();
+            update_module_addresses(
+                deps.as_mut(),
+                vec![(IBC_CLIENT.into(), ibc_client_addr.clone())],
+                vec![],
+            )?;
 
-            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
-                    contract_addr: "ibc_client_addr".into(),
+                    contract_addr: ibc_client_addr.into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                        host_chain: "juno".parse().unwrap(),
+                        host_chain: "juno".parse()?,
                         funds: funds.clone(),
                         memo: None,
-                    })
-                    .unwrap(),
+                    })?,
                     funds,
                 },
             )));
+            Ok(())
         }
     }
 
-    // TODO: uncomment
-    // mod ica_action {
-    //     use abstract_ica::msg::IcaActionResult;
-    //     use abstract_std::{manager, proxy::state::State};
+    mod ica_action {
+        use abstract_ica::msg::IcaActionResult;
+        use abstract_std::ICA_CLIENT;
+        use cosmwasm_std::{Binary, Empty};
 
-    //     use super::*;
+        use crate::modules::update_module_addresses;
 
-    //     #[test]
-    //     fn ica_action() {
-    //         let mut deps = mock_dependencies();
-    //         let abstr = AbstractMockAddrs::new(deps.api);
-    //         let ica_client_addr = deps.api.addr_make("ica_client_addr");
-    //         mock_init(&mut deps);
-    //         // whitelist creator
-    //         STATE
-    //             .save(
-    //                 &mut deps.storage,
-    //                 &State {
-    //                     modules: vec![abstr.account.manager.clone()],
-    //                 },
-    //             )
-    //             .unwrap();
+        use super::*;
 
-    //         let action = Binary::from(b"some_action");
-    //         let msg = ExecuteMsg::IcaAction {
-    //             action_query_msg: action.clone(),
-    //         };
+        #[test]
+        fn ica_action() -> anyhow::Result<()> {
+            let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let ica_client_addr = deps.api.addr_make("ica_client_addr");
+            mock_init(&mut deps)?;
+            // whitelist creator
+            account::state::WHITELISTED_MODULES.save(
+                &mut deps.storage,
+                &WhitelistedModules(vec![abstr.account.addr().clone()]),
+            )?;
 
-    //         let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
-    //         execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+            let action = Binary::from(b"some_action");
+            let msg = ExecuteMsg::IcaAction {
+                action_query_msg: action.clone(),
+            };
 
-    //         let manager_info = message_info(&abstr.account.manager, &[]);
-    //         // ibc not enabled
-    //         execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
-    //         // mock enabling ibc
-    //         deps.querier = MockQuerierBuilder::default()
-    //             .with_contract_map_entry(
-    //                 &abstr.account.manager,
-    //                 manager::state::ACCOUNT_MODULES,
-    //                 (ICA_CLIENT, ica_client_addr.clone()),
-    //             )
-    //             .with_smart_handler(&ica_client_addr, move |bin| {
-    //                 if bin.eq(&action) {
-    //                     Ok(to_json_binary(&IcaActionResult {
-    //                         msgs: vec![CosmosMsg::Custom(Empty {})],
-    //                     })
-    //                     .unwrap())
-    //                 } else {
-    //                     Err("Unexpected action query".to_owned())
-    //                 }
-    //             })
-    //             .build();
+            let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
+            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
 
-    //         let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
-    //         assert_that(&res.messages).has_length(1);
-    //         assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Custom(Empty {})));
-    //     }
-    // }
+            let manager_info = message_info(abstr.account.addr(), &[]);
+            // ibc not enabled
+            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            // mock enabling ibc
+            update_module_addresses(
+                deps.as_mut(),
+                vec![(ICA_CLIENT.into(), ica_client_addr.clone())],
+                vec![],
+            )?;
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_smart_handler(&ica_client_addr, move |bin| {
+                    if bin.eq(&action) {
+                        Ok(to_json_binary(&IcaActionResult {
+                            msgs: vec![CosmosMsg::Custom(Empty {})],
+                        })
+                        .unwrap())
+                    } else {
+                        Err("Unexpected action query".to_owned())
+                    }
+                })
+                .build();
+
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
+            assert_that(&res.messages).has_length(1);
+            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Custom(Empty {})));
+            Ok(())
+        }
+    }
 }

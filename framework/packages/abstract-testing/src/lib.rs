@@ -85,7 +85,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
                         module_factory_address: abstr.module_factory,
                         account_id: ABSTRACT_ACCOUNT_ID, // mock value, not used
                         is_suspended: false,
-                        modules: vec![],
+                        whitelisted_addresses: vec![],
                     };
                     Ok(to_json_binary(&resp).unwrap())
                 }

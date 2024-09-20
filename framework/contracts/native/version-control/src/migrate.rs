@@ -1,11 +1,9 @@
 use abstract_std::{
-    objects::module_version::assert_cw_contract_upgrade,
-    version_control::{state::CONFIG, Config, MigrateMsg},
+    objects::module_version::assert_cw_contract_upgrade, version_control::MigrateMsg,
     VERSION_CONTROL,
 };
 
-use cosmwasm_std::{DepsMut, Env, MessageInfo};
-use cw_storage_plus::Item;
+use cosmwasm_std::{DepsMut, Env};
 use semver::Version;
 
 use crate::contract::{VCResult, VcResponse, CONTRACT_VERSION};

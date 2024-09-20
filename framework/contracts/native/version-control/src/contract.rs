@@ -38,7 +38,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         deps.storage,
         &Config {
             // Account factory should be set by `update_config`
-            account_factory_address: None,
             security_disabled: security_disabled.unwrap_or(false),
             namespace_registration_fee,
         },
@@ -108,7 +107,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             let config = CONFIG.load(deps.storage)?;
             let local_account_sequence = LOCAL_ACCOUNT_SEQUENCE.load(deps.storage)?;
             to_json_binary(&ConfigResponse {
-                account_factory_address: config.account_factory_address,
                 security_disabled: config.security_disabled,
                 namespace_registration_fee: config.namespace_registration_fee,
                 local_account_sequence,
@@ -139,23 +137,19 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_std::objects::ABSTRACT_ACCOUNT_ID;
-    use cosmwasm_std::testing::*;
-    use speculoos::prelude::*;
-
     use super::*;
 
     #[cfg(test)]
     mod testing {
-        use abstract_std::version_control::{self, Config};
+        use abstract_std::version_control;
         use abstract_testing::prelude::*;
         use cosmwasm_std::{
-            testing::{message_info, mock_env, MockApi},
+            testing::{message_info, mock_dependencies, mock_env, MockApi},
             OwnedDeps, Response,
         };
         use speculoos::prelude::*;
 
-        use crate::{contract, error::VCError, migrate::CONFIG0_22};
+        use crate::{contract, error::VCError};
 
         /// Initialize the version_control with admin as creator and factory
         pub fn mock_init(
@@ -281,7 +275,6 @@ mod tests {
             };
             use abstract_testing::prelude::AbstractMockAddrs;
             use contract::{VCResult, VcResponse};
-            use cw_orch::core::serde_json::de;
             use version_control::state::NAMESPACES_INFO;
 
             use super::*;

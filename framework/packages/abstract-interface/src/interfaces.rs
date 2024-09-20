@@ -3,7 +3,9 @@ use abstract_std::{
 };
 use cw_orch::{environment::Environment, prelude::*};
 
-use crate::{AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, VersionControl};
+use crate::{
+    AbstractInterfaceError, AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, VersionControl,
+};
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: CwEnv>(
@@ -21,7 +23,7 @@ where
 pub fn get_account_contract<Chain: CwEnv>(
     version_control: &VersionControl<Chain>,
     account_id: AccountId,
-) -> AccountI<Chain>
+) -> Result<AccountI<Chain>, AbstractInterfaceError>
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
@@ -29,10 +31,10 @@ where
 
     let account = AccountI::new_from_id(&account_id, chain.clone());
 
-    let account_base = version_control.get_account(account_id.clone()).unwrap();
+    let account_base = version_control.get_account(account_id.clone())?;
     account.set_address(account_base.addr());
 
-    account
+    Ok(account)
 }
 
 pub fn get_ibc_contracts<Chain: CwEnv>(chain: Chain) -> (IbcClient<Chain>, IbcHost<Chain>)

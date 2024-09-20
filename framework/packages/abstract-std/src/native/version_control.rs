@@ -13,7 +13,6 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 /// Contains configuration info of version control.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
-    pub account_factory_address: Option<Addr>,
     pub security_disabled: bool,
     pub namespace_registration_fee: Option<Coin>,
 }
@@ -368,7 +367,6 @@ pub struct NamespaceListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub account_factory_address: Option<Addr>,
     pub security_disabled: bool,
     pub namespace_registration_fee: Option<Coin>,
     pub local_account_sequence: u32,

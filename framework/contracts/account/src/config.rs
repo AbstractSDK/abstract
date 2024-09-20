@@ -1,26 +1,20 @@
 use crate::{
     contract::{AccountResponse, AccountResult},
     error::AccountError,
-    modules::update_module_addresses,
+    modules::{_remove_whitelist_modules, _whitelist_modules, update_module_addresses},
 };
-use abstract_sdk::{cw_helpers::AbstractAttributes, feature_objects::VersionControlContract};
+use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
     account::{
-        state::{
-            AccountInfo, SuspensionStatus, ACCOUNT_ID, CONFIG, INFO, SUB_ACCOUNTS,
-            SUSPENSION_STATUS,
-        },
-        ExecuteMsg, InternalConfigAction, UpdateSubAccountAction,
+        state::{AccountInfo, SuspensionStatus, INFO, SUSPENSION_STATUS},
+        InternalConfigAction,
     },
     objects::{
-        gov_type::GovernanceDetails,
         ownership,
         validation::{validate_description, validate_link, validate_name},
     },
 };
-use cosmwasm_std::{
-    ensure, from_json, wasm_execute, Binary, CosmosMsg, DepsMut, MessageInfo, Response, StdError,
-};
+use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdError};
 
 pub fn update_account_status(
     deps: DepsMut,
@@ -54,22 +48,49 @@ pub fn update_suspension_status(
 
 /// Allows the owner to manually update the internal configuration of the account.
 /// This can be used to unblock the account and its modules in case of a bug/lock on the account.
-pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) -> AccountResult {
-    // deserialize the config action
-    let action: InternalConfigAction =
-        from_json(config).map_err(|error| AccountError::InvalidConfigAction { error })?;
-
-    let (add, remove) = match action {
-        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => (to_add, to_remove),
-        _ => {
-            return Err(AccountError::InvalidConfigAction {
-                error: StdError::generic_err("Unknown config action"),
-            })
-        }
-    };
-
+pub fn update_internal_config(
+    mut deps: DepsMut,
+    info: MessageInfo,
+    action: InternalConfigAction,
+) -> AccountResult {
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    update_module_addresses(deps, add, remove)
+
+    match action {
+        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => {
+            let api = deps.api;
+
+            // validate addresses
+            let add: Result<Vec<(String, Addr)>, _> = to_add
+                .into_iter()
+                .map(|(a, b)| {
+                    let addr = api.addr_validate(&b)?;
+                    Ok::<(String, Addr), StdError>((a, addr))
+                })
+                .collect();
+            let add = add?;
+
+            update_module_addresses(deps, add, to_remove)
+        }
+        // TODO: Add tests for this action
+        InternalConfigAction::UpdateWhitelist { to_add, to_remove } => {
+            let module_addresses_to_add: Result<Vec<Addr>, _> = to_add
+                .into_iter()
+                .map(|str_addr| deps.api.addr_validate(&str_addr))
+                .collect();
+            let module_addresses_to_remove: Result<Vec<Addr>, _> = to_remove
+                .into_iter()
+                .map(|str_addr| deps.api.addr_validate(&str_addr))
+                .collect();
+
+            _whitelist_modules(deps.branch(), module_addresses_to_add?)?;
+            _remove_whitelist_modules(deps, module_addresses_to_remove?)?;
+
+            Ok(AccountResponse::action("update_whitelist"))
+        }
+        _ => Err(AccountError::InvalidConfigAction {
+            error: StdError::generic_err("Unknown config action"),
+        }),
+    }
 }
 
 /// Update the Account information
@@ -96,117 +117,26 @@ pub fn update_info(
     Ok(AccountResponse::action("update_info"))
 }
 
-/// Renounce ownership of this account \
-/// **WARNING**: This will lock the account, making it unusable.
-pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosMsg>> {
-    let mut msgs = vec![];
-
-    let account_id = ACCOUNT_ID.load(deps.storage)?;
-    // Check for any sub accounts
-    let sub_account = SUB_ACCOUNTS
-        .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
-        .next()
-        .transpose()?;
-    ensure!(
-        sub_account.is_none(),
-        AccountError::RenounceWithSubAccount {}
-    );
-
-    let ownership = ownership::get_ownership(deps.storage)?;
-    if let GovernanceDetails::SubAccount { account } = ownership.owner {
-        // Unregister itself (sub-account) from the owning account.
-        msgs.push(
-            wasm_execute(
-                account,
-                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
-                    id: account_id.seq(),
-                }),
-                vec![],
-            )?
-            .into(),
-        );
-    }
-
-    let config = CONFIG.load(deps.storage)?;
-    let vc = VersionControlContract::new(config.version_control_address);
-    let mut namespaces = vc
-        .query_namespaces(vec![account_id], &deps.querier)?
-        .namespaces;
-    let namespace = namespaces.pop();
-    if let Some((namespace, _)) = namespace {
-        // Remove the namespace that this account holds.
-        msgs.push(
-            wasm_execute(
-                vc.address,
-                &abstract_std::version_control::ExecuteMsg::RemoveNamespaces {
-                    namespaces: vec![namespace.to_string()],
-                },
-                vec![],
-            )?
-            .into(),
-        )
-    };
-    Ok(msgs)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use crate::{contract, test_common::mock_init};
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage},
-        Order, OwnedDeps, StdError,
+    use crate::test_common::test_only_owner;
+    use crate::{
+        contract,
+        test_common::{execute_as, mock_init},
     };
+    use abstract_std::account::ExecuteMsg;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{testing::*, Addr, StdError};
+    use ownership::{GovAction, GovOwnershipError, GovernanceDetails};
     use speculoos::prelude::*;
 
-    type ManagerTestResult = Result<(), ManagerError>;
-
-    fn mock_installed_proxy(deps: &mut MockDeps) -> StdResult<()> {
-        let base = test_account_base(deps.api);
-        ACCOUNT_MODULES.save(deps.as_mut().storage, ACCOUNT, &base.proxy)
-    }
-
-    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ManagerResult {
-        contract::execute(deps, mock_env(), message_info(sender, &[]), msg)
-    }
-
-    fn init_with_proxy(deps: &mut MockDeps) {
-        mock_init(deps).unwrap();
-        mock_installed_proxy(deps).unwrap();
-    }
-
-    fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
-        ACCOUNT_MODULES
-            .range(storage, None, None, Order::Ascending)
-            .collect()
-    }
-
-    fn test_only_owner(msg: ExecuteMsg) -> ManagerTestResult {
-        let mut deps = mock_dependencies();
-        let not_owner = deps.api.addr_make("not_owner");
-        mock_init(&mut deps)?;
-
-        let res = execute_as(deps.as_mut(), &not_owner, msg);
-        assert_that!(&res)
-            .is_err()
-            .is_equal_to(ManagerError::Ownership(
-                ownership::GovOwnershipError::NotOwner,
-            ));
-
-        Ok(())
-    }
-
-    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
-
     mod set_owner_and_gov_type {
-        use ownership::GovAction;
 
         use super::*;
 
         #[test]
-        fn only_owner() -> ManagerTestResult {
+        fn only_owner() -> anyhow::Result<()> {
             let deps = mock_dependencies();
             let test_owner = deps.api.addr_make("test_owner");
 
@@ -221,7 +151,7 @@ mod tests {
         }
 
         #[test]
-        fn validates_new_owner_address() -> ManagerTestResult {
+        fn validates_new_owner_address() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -238,7 +168,7 @@ mod tests {
             assert_that!(res).is_err().matches(|err| {
                 matches!(
                     err,
-                    ManagerError::Ownership(GovOwnershipError::Abstract(
+                    AccountError::Ownership(GovOwnershipError::Abstract(
                         abstract_std::AbstractError::Std(StdError::GenericErr { .. })
                     ))
                 )
@@ -247,7 +177,7 @@ mod tests {
         }
 
         #[test]
-        fn updates_owner() -> ManagerTestResult {
+        fn updates_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -277,7 +207,7 @@ mod tests {
         }
 
         #[test]
-        fn updates_governance_type() -> ManagerTestResult {
+        fn updates_governance_type() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -323,7 +253,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn only_owner() -> ManagerTestResult {
+        fn only_owner() -> anyhow::Result<()> {
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
                 description: None,
@@ -335,11 +265,11 @@ mod tests {
         // integration tests
 
         #[test]
-        fn updates() -> ManagerTestResult {
+        fn updates() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
-            init_with_proxy(&mut deps);
+            mock_init(&mut deps)?;
 
             let name = "new name";
             let description = "new description";
@@ -364,11 +294,11 @@ mod tests {
         }
 
         #[test]
-        fn removals() -> ManagerTestResult {
+        fn removals() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
-            init_with_proxy(&mut deps);
+            mock_init(&mut deps)?;
 
             let prev_name = "name".to_string();
             INFO.save(
@@ -399,11 +329,11 @@ mod tests {
         }
 
         #[test]
-        fn validates_name() -> ManagerTestResult {
+        fn validates_name() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
-            init_with_proxy(&mut deps);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: Some("".to_string()),
@@ -415,7 +345,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    ManagerError::Validation(ValidationError::TitleInvalidShort(_))
+                    AccountError::Validation(ValidationError::TitleInvalidShort(_))
                 )
             });
 
@@ -429,7 +359,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    ManagerError::Validation(ValidationError::TitleInvalidLong(_))
+                    AccountError::Validation(ValidationError::TitleInvalidLong(_))
                 )
             });
 
@@ -437,12 +367,12 @@ mod tests {
         }
 
         #[test]
-        fn validates_link() -> ManagerTestResult {
+        fn validates_link() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 
-            init_with_proxy(&mut deps);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
@@ -454,7 +384,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    ManagerError::Validation(ValidationError::LinkInvalidShort(_))
+                    AccountError::Validation(ValidationError::LinkInvalidShort(_))
                 )
             });
 
@@ -468,7 +398,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    ManagerError::Validation(ValidationError::LinkInvalidLong(_))
+                    AccountError::Validation(ValidationError::LinkInvalidLong(_))
                 )
             });
 
@@ -477,10 +407,12 @@ mod tests {
     }
 
     mod handle_callback {
+        use abstract_std::account::CallbackMsg;
+
         use super::*;
 
         #[test]
-        fn only_by_contract() -> ManagerTestResult {
+        fn only_by_contract() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let not_contract = deps.api.addr_make("not_contract");
             mock_init(&mut deps)?;
@@ -497,7 +429,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
+                .matches(|err| matches!(err, AccountError::Std(StdError::GenericErr { .. })));
 
             Ok(())
         }
@@ -507,7 +439,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn only_owner() -> ManagerTestResult {
+        fn only_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
 
@@ -519,7 +451,7 @@ mod tests {
         }
 
         #[test]
-        fn exec_fails_when_suspended() -> ManagerTestResult {
+        fn exec_fails_when_suspended() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -544,13 +476,13 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::AccountSuspended {});
+                .is_equal_to(AccountError::AccountSuspended {});
 
             Ok(())
         }
 
         #[test]
-        fn suspend_account() -> ManagerTestResult {
+        fn suspend_account() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -569,7 +501,7 @@ mod tests {
         }
 
         #[test]
-        fn unsuspend_account() -> ManagerTestResult {
+        fn unsuspend_account() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -589,56 +521,36 @@ mod tests {
     }
 
     mod update_internal_config {
-        use abstract_std::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
+        use abstract_std::account::InternalConfigAction::UpdateModuleAddresses;
+        use ownership::GovOwnershipError;
 
         use super::*;
 
         #[test]
-        fn only_account_owner() -> ManagerTestResult {
+        fn only_account_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 
             mock_init(&mut deps)?;
 
-            let msg = ExecuteMsg::UpdateInternalConfig(
-                to_json_binary(&UpdateModuleAddresses {
-                    to_add: None,
-                    to_remove: None,
-                })
-                .unwrap(),
-            );
+            let msg = ExecuteMsg::UpdateInternalConfig(UpdateModuleAddresses {
+                to_add: vec![],
+                to_remove: vec![],
+            });
 
             let bad_sender = deps.api.addr_make("not_account_owner");
             let res = execute_as(deps.as_mut(), &bad_sender, msg.clone());
 
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
+                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
-            let factory_res = execute_as(deps.as_mut(), &abstr.account_factory, msg.clone());
-            assert_that!(&factory_res).is_err();
+            let vc_res = execute_as(deps.as_mut(), &abstr.version_control, msg.clone());
+            assert_that!(&vc_res).is_err();
 
             let owner_res = execute_as(deps.as_mut(), &owner, msg);
             assert_that!(&owner_res).is_ok();
-
-            Ok(())
-        }
-
-        #[test]
-        fn should_return_err_unrecognized_action() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init(&mut deps)?;
-
-            let msg =
-                ExecuteMsg::UpdateInternalConfig(to_json_binary(&QueryMsg::Config {}).unwrap());
-
-            let res = execute_as(deps.as_mut(), &abstr.account_factory, msg);
-
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, ManagerError::InvalidConfigAction { .. }));
 
             Ok(())
         }
@@ -646,11 +558,12 @@ mod tests {
 
     mod update_ownership {
         use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
+        use cw_storage_plus::Item;
 
         use super::*;
 
         #[test]
-        fn allows_ownership_acceptance() -> ManagerTestResult {
+        fn allows_ownership_acceptance() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
@@ -676,6 +589,4 @@ mod tests {
             Ok(())
         }
     }
-
-    // upgrade_modules tests are in the integration tests `upgrades`
 }

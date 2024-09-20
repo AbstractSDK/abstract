@@ -801,7 +801,7 @@ mod test {
 
             let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_one(&mut deps)?;
-            let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
+            let reverse_map = REV_ASSET_ADDRESSES;
             let test_entry =
                 reverse_map.load(&deps.storage, &AssetInfoBase::Native("utest".into()))?;
             assert_that!(test_entry).is_equal_to(AssetEntry::from("test"));
@@ -861,7 +861,7 @@ mod test {
                 (vec![new_entry_1, new_entry_2, new_entry_3.clone()], vec![]),
             )?;
 
-            let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
+            let reverse_map = REV_ASSET_ADDRESSES;
             let test_entry =
                 reverse_map.load(&deps.storage, &new_entry_3.1.check(&deps.api, None)?)?;
             assert_that!(test_entry.to_string()).is_equal_to(new_entry_3.0);
