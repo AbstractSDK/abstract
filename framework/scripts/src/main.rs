@@ -32,12 +32,10 @@ fn main() -> anyhow::Result<()> {
         .build_sender(CosmosOptions::default().mnemonic(LOCAL_MNEMONIC))?;
 
     let wallet = xiond.sender();
-    
+
     let abstr = AbstractClient::builder(xiond).build()?;
 
     let account = abstr.account_builder().build()?;
-
-
 
     Ok(())
 }
