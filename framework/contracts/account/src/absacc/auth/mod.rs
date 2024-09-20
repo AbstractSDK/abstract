@@ -2,7 +2,7 @@ use crate::{
     contract::{AccountResponse, AccountResult},
     error::AccountError,
 };
-use abstract_std::{absacc::Authenticator, account::state::AUTHENTICATORS};
+use abstract_std::{crate::state::AUTHENTICATORS, absacc::Authenticator};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, Event, Response};
 use schemars::JsonSchema;
 use secp256r1::verify;

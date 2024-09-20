@@ -1,8 +1,5 @@
 use abstract_std::{
-    account::{
-        state::{ACCOUNT_MODULES, CONFIG},
-        CallbackMsg, ExecuteMsg,
-    },
+    account::{state::CONFIG, CallbackMsg, ExecuteMsg},
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg as AdapterQuery,
     },
@@ -11,6 +8,7 @@ use abstract_std::{
         module::ModuleInfo,
         module_reference::ModuleReference,
         ownership::{self},
+        storage_namespaces,
         version_control::{VersionControlContract, VersionControlError},
     },
     ACCOUNT,
@@ -23,7 +21,7 @@ use cw2::get_contract_version;
 use cw_storage_plus::Item;
 
 use super::{
-    _remove_whitelist_module, _whitelist_modules, configure_adapter, load_module_addr,
+    _remove_whitelist_modules, _whitelist_modules, configure_adapter, load_module_addr,
     query_module, update_module_addresses,
 };
 use crate::{
@@ -32,7 +30,8 @@ use crate::{
     queries::query_module_version,
 };
 
-pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
+pub const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> =
+    Item::new(storage_namespaces::account::MIGRATE_CONTEXT);
 
 /// Migrate modules through address updates or contract migrations
 /// The dependency store is updated during migration
@@ -49,7 +48,7 @@ pub fn upgrade_modules(
 
     let mut upgrade_msgs = vec![];
 
-    let mut manager_migrate_info = None;
+    let mut account_migrate_info = None;
 
     let mut upgraded_module_ids = Vec::new();
 
@@ -65,10 +64,11 @@ pub fn upgrade_modules(
         }
 
         if module_id == ACCOUNT {
-            manager_migrate_info = Some((module_info, migrate_msg));
+            account_migrate_info = Some((module_info, migrate_msg));
         } else {
             set_migrate_msgs_and_context(
                 deps.branch(),
+                &env,
                 module_info,
                 migrate_msg,
                 &mut upgrade_msgs,
@@ -76,13 +76,13 @@ pub fn upgrade_modules(
         }
     }
 
-    // Upgrade the manager last
-    if let Some((manager_info, manager_migrate_msg)) = manager_migrate_info {
+    // Upgrade the account last
+    if let Some((account_info, account_migrate_msg)) = account_migrate_info {
         upgrade_msgs.push(self_upgrade_msg(
             deps.branch(),
             &env.contract.address,
-            manager_info,
-            manager_migrate_msg.unwrap_or_default(),
+            account_info,
+            account_migrate_msg.unwrap_or_default(),
         )?);
     }
 
@@ -102,6 +102,7 @@ pub fn upgrade_modules(
 
 pub fn set_migrate_msgs_and_context(
     deps: DepsMut,
+    env: &Env,
     module_info: ModuleInfo,
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
@@ -118,6 +119,7 @@ pub fn set_migrate_msgs_and_context(
         // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
         ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
             deps,
+            env,
             requested_module.module.info,
             old_module_addr,
             new_adapter_addr,
@@ -146,6 +148,7 @@ pub fn set_migrate_msgs_and_context(
 /// Handle Adapter module migration and return the migration messages
 pub fn handle_adapter_migration(
     mut deps: DepsMut,
+    env: &Env,
     module_info: ModuleInfo,
     old_adapter_addr: Addr,
     new_adapter_addr: Addr,
@@ -160,13 +163,13 @@ pub fn handle_adapter_migration(
     // Update the address of the adapter internally
     update_module_addresses(
         deps.branch(),
-        Some(vec![(module_id.clone(), new_adapter_addr.to_string())]),
-        None,
+        vec![(module_id.clone(), new_adapter_addr.clone())],
+        Vec::default(),
     )?;
 
     add_module_upgrade_to_context(deps.storage, &module_id, old_deps)?;
 
-    replace_adapter(deps, new_adapter_addr, old_adapter_addr)
+    replace_adapter(deps, env, new_adapter_addr, old_adapter_addr)
 }
 
 /// Handle app module migration and return the migration messages
@@ -196,7 +199,7 @@ pub fn handle_app_migration(
 }
 
 /// Add the module upgrade to the migration context and check for duplicates
-fn add_module_upgrade_to_context(
+pub(crate) fn add_module_upgrade_to_context(
     storage: &mut dyn Storage,
     module_id: &str,
     module_deps: Vec<Dependency>,
@@ -229,18 +232,18 @@ pub(crate) fn build_module_migrate_msg(
 /// Also moves all the authorized address permissions to the new contract and removes them from the old
 pub fn replace_adapter(
     mut deps: DepsMut,
+    env: &Env,
     new_adapter_addr: Addr,
     old_adapter_addr: Addr,
 ) -> Result<Vec<CosmosMsg>, AccountError> {
     let mut msgs = vec![];
     // Makes sure we already have the adapter installed
-    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, ACCOUNT)?;
     let AuthorizedAddressesResponse {
         addresses: authorized_addresses,
     } = deps.querier.query_wasm_smart(
         old_adapter_addr.to_string(),
         &<AdapterQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
-            proxy_address: proxy_addr.to_string(),
+            proxy_address: env.contract.address.to_string(),
         }),
     )?;
     let authorized_to_migrate: Vec<String> = authorized_addresses
@@ -264,13 +267,16 @@ pub fn replace_adapter(
         },
     )?);
     // Remove adapter permissions from proxy
-    _remove_whitelist_module(deps.branch(), old_adapter_addr.into_string())?;
+    _remove_whitelist_modules(deps.branch(), vec![old_adapter_addr])?;
     // Add new adapter to proxy
-    _whitelist_modules(deps.branch(), vec![new_adapter_addr.into_string()])?;
+    _whitelist_modules(deps.branch(), vec![new_adapter_addr])?;
 
     Ok(msgs)
 }
 
+/// Generate message for upgrading account
+///
+/// Safety: Account cannot be upgraded to contract that is not confirmed by version control
 pub(crate) fn self_upgrade_msg(
     deps: DepsMut,
     self_addr: &Addr,

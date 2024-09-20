@@ -15,7 +15,6 @@ mod test {
         testing::{mock_dependencies, mock_env},
         Binary, Reply, SubMsgResponse,
     };
-    use speculoos::prelude::*;
 
     use crate::mock::{reply, AdapterMockResult};
 
@@ -36,9 +35,9 @@ mod test {
             gas_used: 0,
         };
         let res = reply(deps.as_mut(), env, reply_msg)?;
-        assert_that!(&res.messages.len()).is_equal_to(0);
+        assert_eq!(res.messages.len(), 0);
         // confirm data is set
-        assert_that!(res.data).is_equal_to(Some("test_reply".as_bytes().into()));
+        assert_eq!(res.data, Some("test_reply".as_bytes().into()));
         Ok(())
     }
 
@@ -59,11 +58,12 @@ mod test {
             gas_used: 0,
         };
         let res = reply(deps.as_mut(), env, reply_msg);
-        assert_that!(res).is_err().is_equal_to(
-            &AbstractSdkError::MissingHandler {
+        assert_eq!(
+            res,
+            Err(AbstractSdkError::MissingHandler {
                 endpoint: "reply with id 0".into(),
             }
-            .into(),
+            .into())
         );
         Ok(())
     }

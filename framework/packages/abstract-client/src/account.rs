@@ -42,7 +42,7 @@ use abstract_std::{
     version_control::{self, NamespaceResponse},
     IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, StdError, Uint128};
 use cw_orch::{
     contract::Contract,
     environment::{Environment as _, MutCwEnv},
@@ -347,7 +347,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             None => AccountI::create(self.abstr, account_details, ownership, &funds)?,
             Some(owner_account) => owner_account
                 .abstr_account
-                .create_sub_account_helper(account_details, &funds)?,
+                .create_and_return_sub_account(account_details, &funds)?,
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }
@@ -444,7 +444,7 @@ impl<Chain: CwEnv> Account<Chain> {
             return Ok(None);
         };
 
-        let abstract_account: AccountI<Chain> = AccountI::load_from(abstr, info.account_id);
+        let abstract_account: AccountI<Chain> = AccountI::load_from(abstr, info.account_id)?;
 
         Ok(Some(Self::new(abstract_account, install_on_sub_account)))
     }
@@ -767,15 +767,17 @@ impl<Chain: CwEnv> Account<Chain> {
             sub_accounts.extend(sub_account_ids);
         }
 
-        Ok(sub_accounts
+        let sub_accounts = sub_accounts
             .into_iter()
             .map(|id| {
-                Account::new(
-                    AccountI::load_from(&abstr_deployment, AccountId::local(id)),
+                Ok(Account::new(
+                    AccountI::load_from(&abstr_deployment, AccountId::local(id))?,
                     false,
-                )
+                ))
             })
-            .collect())
+            .collect::<Result<Vec<_>, AbstractInterfaceError>>();
+
+        Ok(sub_accounts?)
     }
 
     /// Address of the account (proxy)
@@ -842,7 +844,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let sub_account: AccountI<Chain> = AccountI::load_from(
             &self.infrastructure()?,
             AccountId::local(parsed_account_creation_response.sub_account_id),
-        );
+        )?;
 
         let contract = Contract::new(
             M::installed_module_contract_id(&sub_account.id()?),

@@ -344,20 +344,20 @@ mod test {
         }
     }
 
-    mod try_from {
+    mod from_str {
         // test that the try_from implementation works
         use super::*;
 
         #[test]
         fn works_with_local() {
-            let account_id = AccountId::try_from("local-1").unwrap();
+            let account_id: AccountId = "local-1".parse().unwrap();
             assert_eq!(account_id.seq, 1);
             assert_eq!(account_id.trace, AccountTrace::Local);
         }
 
         #[test]
         fn works_with_remote() {
-            let account_id = AccountId::try_from("ethereum>bitcoin-1").unwrap();
+            let account_id: AccountId = "ethereum>bitcoin-1".parse().unwrap();
             assert_eq!(account_id.seq, 1);
             assert_eq!(
                 account_id.trace,
@@ -370,7 +370,7 @@ mod test {
 
         #[test]
         fn works_with_remote_with_multiple_chains() {
-            let account_id = AccountId::try_from("ethereum>bitcoin>cosmos-1").unwrap();
+            let account_id: AccountId = "ethereum>bitcoin>cosmos-1".parse().unwrap();
             assert_eq!(account_id.seq, 1);
             assert_eq!(
                 account_id.trace,
