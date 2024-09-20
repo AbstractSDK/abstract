@@ -88,8 +88,8 @@ pub mod state {
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new(namespace::SUB_ACCOUNTS);
     /// Account Id storage key
     pub const ACCOUNT_ID: Item<AccountId> = Item::new(namespace::ACCOUNT_ID);
-    // TODO: Is this namespace key standard or we can change it?
-    pub const AUTHENTICATORS: Map<u8, crate::absacc::Authenticator> = Map::new("authenticators");
+    // TODO: change namespace
+    pub const AUTHENTICATOR: Item<crate::absacc::Authenticator> = Item::new("authenticators");
     // Additional states, not listed here: cw_gov_ownable::GovOwnership
 
     #[cosmwasm_schema::cw_serde]
@@ -104,6 +104,7 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     // TODO: fork and make pub
+    pub authenticator: Option<crate::absacc::Authenticator>,
     // pub authenticator: Option<AddAuthenticator>,
     pub account_id: Option<AccountId>,
     pub owner: GovernanceDetails<String>,
@@ -234,6 +235,10 @@ pub enum QueryMsg {
     /// Query the contract's ownership information
     #[returns(Ownership<String>)]
     Ownership {},
+
+    /// Query the pubkey associated with this account.
+    #[returns(crate::absacc::Authenticator)]
+    Authenticator {},
 }
 
 /// Module info and init message

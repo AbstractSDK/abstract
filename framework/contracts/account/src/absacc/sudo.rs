@@ -1,6 +1,6 @@
 use abstract_std::{
     absacc::{AccountSudoMsg, Authenticator},
-    account::state::AUTHENTICATORS,
+    account::state::AUTHENTICATOR,
 };
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, Response};
 
@@ -18,8 +18,11 @@ pub fn sudo(deps: DepsMut, env: Env, msg: AccountSudoMsg) -> AccountResult {
             tx_bytes,
             cred_bytes,
             simulate,
-            ..
+            msgs,
         } => {
+            // TODO: what do we do with those messages?
+            dbg!(msgs);
+
             let cred_bytes = cred_bytes.ok_or(AccountError::EmptySignature {})?;
             before_tx(
                 deps.as_ref(),
@@ -56,7 +59,7 @@ pub fn before_tx(
             Some(i) => *i,
         };
         // retrieve the authenticator by index, or error
-        let authenticator = AUTHENTICATORS.load(deps.storage, cred_index)?;
+        let authenticator = AUTHENTICATOR.load(deps.storage)?;
 
         let sig_bytes = &Binary::from(&cred_bytes.as_slice()[1..]);
 

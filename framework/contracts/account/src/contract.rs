@@ -74,6 +74,8 @@ pub fn instantiate(
         module_factory_address,
         version_control_address,
         namespace,
+
+        authenticator,
     }: InstantiateMsg,
 ) -> AccountResult {
     // Use CW2 to set the contract version, this is needed for migrations
@@ -335,10 +337,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             handle_sub_accounts_query(deps, start_after, limit)
         }
         QueryMsg::TopLevelOwner {} => handle_top_level_owner_query(deps, env),
-
         QueryMsg::Ownership {} => {
             cosmwasm_std::to_json_binary(&ownership::get_ownership(deps.storage)?)
         }
+        QueryMsg::Authenticator {} => cosmwasm_std::to_json_binary(
+            &abstract_std::account::state::AUTHENTICATOR.load(deps.storage)?,
+        ),
     }
 }
 

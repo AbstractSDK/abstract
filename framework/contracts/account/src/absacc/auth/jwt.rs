@@ -33,7 +33,7 @@ struct QueryValidateJWTResponse {
 
 pub fn verify(
     deps: Deps,
-    tx_hash: &Vec<u8>,
+    tx_hash: &Binary,
     sig_bytes: &[u8],
     aud: &str,
     sub: &str,
