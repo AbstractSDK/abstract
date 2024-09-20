@@ -15,7 +15,13 @@ readme = "README.md"
 
 [features]
 default = ["test-utils"]
-test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
+test-utils = [
+  "cw-asset",
+  "cw20",
+  "cw20-base",
+  "cw-plus-interface",
+  "abstract-testing",
+]
 interchain = [
   "dep:cw-orch-interchain",
   "dep:cw-orch-polytone",
@@ -23,6 +29,7 @@ interchain = [
 ]
 
 [dependencies]
+abstract-testing = { workspace = true, optional = true }
 abstract-interface = { version = "0.23.0", path = "../abstract-interface" }
 cosmwasm-std.workspace = true
 abstract-std.workspace = true
@@ -49,7 +56,6 @@ rand = { version = "0.8.5" }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
-abstract-testing.workspace = true
 abstract-client = { path = ".", features = ["test-utils", "interchain"] }
 abstract-account = { workspace = true }
 version-control = { workspace = true }
