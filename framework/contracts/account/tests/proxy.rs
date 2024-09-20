@@ -151,7 +151,6 @@ fn default_without_response_data() -> AResult {
 #[test]
 fn with_response_data() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     abstract_integration_tests::account::with_response_data(chain.clone())?;
     take_storage_snapshot!(chain, "proxy_with_response_data");
@@ -161,9 +160,9 @@ fn with_response_data() -> AResult {
 
 #[test]
 fn install_standalone_modules() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let mut chain = MockBech32::new("mock");
+    chain.set_sender(mock_bech32_sender(&chain));
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     let account = AccountI::load_from(&deployment, AccountId::local(0))?;
 
     let standalone1_contract = Box::new(ContractWrapper::new(
@@ -209,9 +208,9 @@ fn install_standalone_modules() -> AResult {
 
 #[test]
 fn install_standalone_versions_not_met() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let mut chain = MockBech32::new("mock");
+    chain.set_sender(mock_bech32_sender(&chain));
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     let account = AccountI::load_from(&deployment, AccountId::local(0))?;
 
     let standalone1_contract = Box::new(ContractWrapper::new(
@@ -253,10 +252,11 @@ fn install_standalone_versions_not_met() -> AResult {
 
 #[test]
 fn install_multiple_modules() -> AResult {
-    let chain = MockBech32::new("mock");
+    let mut chain = MockBech32::new("mock");
+    chain.set_sender(mock_bech32_sender(&chain));
     let sender = chain.sender_addr();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.clone())?;
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = AccountI::load_from(&deployment, ABSTRACT_ACCOUNT_ID)?;
 
     let standalone1_contract = Box::new(ContractWrapper::new(

@@ -126,14 +126,11 @@ mod test {
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
-    struct MockBinding {
-        mock_api: MockApi,
-    }
+    struct MockBinding {}
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-            let abstr = AbstractMockAddrs::new(self.mock_api);
-            Ok(VersionControlContract::new(abstr.version_control))
+        fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+            Ok(VersionControlContract::new(deps.api)?)
         }
     }
 
@@ -163,7 +160,7 @@ mod test {
                 .with_contract_item(not_account.addr(), ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding { mock_api: deps.api };
+            let binding = MockBinding {};
 
             let res = binding
                 .account_registry(deps.as_ref())
@@ -194,7 +191,7 @@ mod test {
                 .with_contract_map_key(&abstr.version_control, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding { mock_api: deps.api };
+            let binding = MockBinding {};
 
             let res = binding
                 .account_registry(deps.as_ref())
@@ -230,7 +227,7 @@ mod test {
                 )
                 .build();
 
-            let binding = MockBinding { mock_api: deps.api };
+            let binding = MockBinding {};
 
             let res = binding
                 .account_registry(deps.as_ref())

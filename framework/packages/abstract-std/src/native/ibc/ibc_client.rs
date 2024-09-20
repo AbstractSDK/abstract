@@ -22,17 +22,8 @@ pub mod state {
 
     use crate::objects::{
         account::{AccountSequence, AccountTrace},
-        ans_host::AnsHost,
-        storage_namespaces,
-        version_control::VersionControlContract,
-        TruncatedChainId,
+        storage_namespaces, TruncatedChainId,
     };
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct Config {
-        pub version_control: VersionControlContract,
-        pub ans_host: AnsHost,
-    }
 
     /// Information about the deployed infrastructure we're connected to.
     #[cosmwasm_schema::cw_serde]
@@ -52,7 +43,6 @@ pub mod state {
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> =
         Map::new(storage_namespaces::ibc_client::REVERSE_POLYTONE_NOTE);
 
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
     /// triple instead of including AccountId since nested tuples do not behave as expected due to
     /// a bug that will be fixed in a future release.
@@ -92,11 +82,6 @@ pub enum ExecuteMsg {
         note: String,
         /// Address of the abstract host deployed on the remote chain
         host: String,
-    },
-    /// Owner method: Update the config on IBC client
-    UpdateConfig {
-        ans_host: Option<String>,
-        version_control: Option<String>,
     },
     /// Only callable by Account proxy
     /// Will attempt to forward the specified funds to the corresponding
@@ -337,8 +322,8 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub ans_host: String,
-    pub version_control_address: String,
+    pub ans_host: Addr,
+    pub version_control_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

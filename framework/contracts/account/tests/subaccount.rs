@@ -245,7 +245,6 @@ fn sub_account_move_ownership() -> AResult {
 #[test]
 fn account_move_ownership_to_sub_account() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     abstract_integration_tests::account::account_move_ownership_to_sub_account(chain)?;
     Ok(())

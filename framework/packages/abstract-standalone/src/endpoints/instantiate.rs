@@ -1,7 +1,4 @@
-use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
-    AbstractSdkResult,
-};
+use abstract_sdk::AbstractSdkResult;
 use abstract_std::{
     objects::module_version::set_module_data,
     standalone::{StandaloneInstantiateMsg, StandaloneState},
@@ -19,27 +16,15 @@ impl StandaloneContract {
         &self,
         deps: DepsMut,
         info: MessageInfo,
-        msg: StandaloneInstantiateMsg,
+        _msg: StandaloneInstantiateMsg,
         is_migratable: bool,
     ) -> AbstractSdkResult<()> {
-        let StandaloneInstantiateMsg {
-            ans_host_address,
-            version_control_address,
-        } = msg;
-        let ans_host = AnsHost {
-            address: deps.api.addr_validate(&ans_host_address)?,
-        };
-        let version_control = VersionControlContract {
-            address: deps.api.addr_validate(&version_control_address)?,
-        };
         let account =
             abstract_std::module_factory::state::CURRENT_BASE.query(&deps.querier, info.sender)?;
 
         // Base state
         let state = StandaloneState {
             account: account.clone(),
-            ans_host,
-            version_control,
             is_migratable,
         };
         let (name, version, metadata) = self.info;

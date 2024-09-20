@@ -27,16 +27,10 @@ pub mod state {
         Map::new(storage_namespaces::ibc_host::CHAIN_PROXIES);
     pub const REVERSE_CHAIN_PROXIES: Map<&Addr, TruncatedChainId> =
         Map::new(storage_namespaces::ibc_host::REVERSE_CHAIN_PROXIES);
-    /// Configuration of the IBC host
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
 
     // Temporary structure to hold actions to be executed after account creation
     pub const TEMP_ACTION_AFTER_CREATION: Item<ActionAfterCreationCache> =
         Item::new(storage_namespaces::ibc_host::TEMP_ACTION_AFTER_CREATION);
-
-    /// The BaseState contains the main addresses needed for sending and verifying messages
-    #[cosmwasm_schema::cw_serde]
-    pub struct Config {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct ActionAfterCreationCache {
@@ -49,14 +43,7 @@ pub mod state {
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg {
-    /// Used to easily perform address translation on the app chain
-    pub ans_host_address: String,
-    /// Used to create remote abstract accounts
-    pub module_factory_address: String,
-    /// Version control address
-    pub version_control_address: String,
-}
+pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum MigrateMsg {
@@ -107,11 +94,6 @@ pub enum HostAction {
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     UpdateOwnership(cw_ownable::Action),
-    UpdateConfig {
-        ans_host_address: Option<String>,
-        module_factory_address: Option<String>,
-        version_control_address: Option<String>,
-    },
     /// Register the Polytone proxy for a specific chain.
     /// proxy should be a local address (will be validated)
     RegisterChainProxy {

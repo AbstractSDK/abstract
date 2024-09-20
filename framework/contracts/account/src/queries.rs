@@ -4,8 +4,8 @@ use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
         state::{
-            AccountInfo, Config, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO, SUB_ACCOUNTS,
-            SUSPENSION_STATUS, WHITELISTED_MODULES,
+            AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, INFO, SUB_ACCOUNTS, SUSPENSION_STATUS,
+            WHITELISTED_MODULES,
         },
         AccountModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleVersionsResponse, SubAccountIdsResponse,
@@ -49,8 +49,8 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
     to_json_binary(&ConfigResponse {
         account_id,
         is_suspended,
-        version_control_address,
-        module_factory_address,
+        version_control_address: version_control.address,
+        module_factory_address: module_factory.address,
         whitelisted_addresses: WHITELISTED_MODULES.load(deps.storage)?.0,
     })
 }

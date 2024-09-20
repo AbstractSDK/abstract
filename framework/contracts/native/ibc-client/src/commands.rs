@@ -9,7 +9,7 @@ use abstract_std::{
     app::AppState,
     ibc::{polytone_callbacks::CallbackRequest, Callback, ModuleQuery},
     ibc_client::{
-        state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
+        state::{IbcInfrastructure, ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification, PolytoneNoteExecuteMsg,
     },
     ibc_host::{self, HostAction, InternalAction},
@@ -22,7 +22,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     ensure, to_json_binary, wasm_execute, AnyMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty,
-    Env, IbcMsg, MessageInfo, QueryRequest, Storage, WasmQuery,
+    Env, IbcMsg, MessageInfo, QueryRequest, WasmQuery,
 };
 use cw_storage_plus::Item;
 use prost::Name;
@@ -34,30 +34,6 @@ use crate::{
 
 /// Packet lifetime in seconds
 pub const PACKET_LIFETIME: u64 = 60 * 60;
-
-pub fn execute_update_config(
-    deps: DepsMut,
-    info: MessageInfo,
-    new_ans_host: Option<String>,
-    new_version_control: Option<String>,
-) -> IbcClientResult {
-    // auth check
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
-    let mut cfg = CONFIG.load(deps.storage)?;
-
-    if let Some(ans_host) = new_ans_host {
-        cfg.ans_host = AnsHost::new(deps.api)?;
-    }
-    if let Some(version_control) = new_version_control {
-        cfg.version_control = VersionControlContract::new(deps.api)?;
-        // New version control address implies new accounts.
-        clear_accounts(deps.storage);
-    }
-
-    CONFIG.save(deps.storage, &cfg)?;
-
-    Ok(IbcClientResponse::action("update_config"))
-}
 
 /// Registers a chain to the client.
 /// This registration includes the counterparty information (note and proxy address)
@@ -179,16 +155,13 @@ pub fn execute_send_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let cfg = CONFIG.load(deps.storage)?;
-
+    let version_control = VersionControlContract::new(deps.api)?;
     // The packet we need to send depends on the action we want to execute
 
     let note_message = match &action {
         HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
             // Verify that the sender is a proxy contract
-            let account_base = cfg
-                .version_control
-                .assert_account(&info.sender, &deps.querier)?;
+            let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
             let account_id = account_base.account_id(deps.as_ref())?;
@@ -225,11 +198,10 @@ pub fn execute_send_module_to_module_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let cfg = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(deps.api)?;
 
     // Query the sender module information
-    let module_info = cfg
-        .version_control
+    let module_info = version_control
         .module_registry(deps.as_ref())?
         .module_info(info.sender.clone())?;
 
@@ -248,10 +220,8 @@ pub fn execute_send_module_to_module_packet(
             let account = Item::<AppState>::new(BASE_STATE)
                 .query(&deps.querier, info.sender.clone())?
                 .account;
-            let account_id = cfg
-                .version_control
-                .account_id(account.addr(), &deps.querier)?;
-            let account_base = cfg.version_control.account(&account_id, &deps.querier)?;
+            let account_id = version_control.account_id(account.addr(), &deps.querier)?;
+            let account_base = version_control.account(&account_id, &deps.querier)?;
             let ibc_client = account::state::ACCOUNT_MODULES.query(
                 &deps.querier,
                 account_base.into_addr(),
@@ -369,12 +339,10 @@ pub fn execute_register_account(
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
     host_chain.verify()?;
-    let cfg = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(deps.api)?;
 
     // Verify that the sender is a proxy contract
-    let account_base = cfg
-        .version_control
-        .assert_account(&info.sender, &deps.querier)?;
+    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
     let account_id = account_base.account_id(deps.as_ref())?;
@@ -416,13 +384,11 @@ pub fn execute_send_funds(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let cfg = CONFIG.load(deps.storage)?;
-    let ans = cfg.ans_host;
+    let version_control = VersionControlContract::new(deps.api)?;
+    let ans = AnsHost::new(deps.api)?;
     // Verify that the sender is a proxy contract
 
-    let account_base = cfg
-        .version_control
-        .assert_account(&info.sender, &deps.querier)?;
+    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id of Account
     let account_id = account_base.account_id(deps.as_ref())?;
@@ -505,9 +471,6 @@ fn _ics_20_send_msg(
     }
 }
 
-fn clear_accounts(store: &mut dyn Storage) {
-    ACCOUNTS.clear(store);
-}
 // Map a ModuleQuery to a regular query.
 fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<Empty> {
     match query {

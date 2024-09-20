@@ -1,12 +1,7 @@
 use crate::msg::*;
 use abstract_macros::abstract_response;
-use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
-    ica_client::state::{Config, CONFIG},
-    objects::{
-        ans_host::AnsHost,
-        module_version::{assert_cw_contract_upgrade, migrate_module_data},
-    },
+    objects::module_version::{assert_cw_contract_upgrade, migrate_module_data},
     ICA_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
@@ -26,14 +21,9 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    msg: InstantiateMsg,
+    _msg: InstantiateMsg,
 ) -> IcaClientResult {
     cw2::set_contract_version(deps.storage, ICA_CLIENT, CONTRACT_VERSION)?;
-    let cfg = Config {
-        version_control: VersionControlContract::new(deps.api)?,
-        ans_host: AnsHost::new(deps.api)?,
-    };
-    CONFIG.save(deps.storage, &cfg)?;
 
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
     Ok(IcaClientResponse::action("instantiate"))
@@ -115,19 +105,10 @@ mod tests {
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_that!(res.messages).is_empty();
 
-        // config
-        let expected_config = Config {
-            version_control: VersionControlContract::new(abstr.version_control),
-            ans_host: AnsHost::new(abstr.ans_host),
-        };
-
         let ownership_resp: Ownership<Addr> =
             from_json(query(deps.as_ref(), mock_env(), QueryMsg::Ownership {})?)?;
 
         assert_eq!(ownership_resp.owner, Some(abstr.owner));
-
-        let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
-        assert_that!(actual_config).is_equal_to(expected_config);
 
         // CW2
         let cw2_info = CONTRACT.load(&deps.storage).unwrap();

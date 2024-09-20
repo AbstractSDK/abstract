@@ -9,15 +9,13 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account::{
-        state::{
-            AccountInfo, Config, WhitelistedModules, CONFIG, INFO, SUSPENSION_STATUS,
-            WHITELISTED_MODULES,
-        },
+        state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
         ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
     },
     module_factory::SimulateInstallModulesResponse,
     objects::{
         gov_type::GovernanceDetails,
+        module_factory::ModuleFactoryContract,
         ownership::{self, GovOwnershipError},
         AccountId,
     },
@@ -74,33 +72,24 @@ pub fn instantiate(
         name,
         description,
         link,
-        module_factory_address,
-        version_control_address,
         namespace,
     }: InstantiateMsg,
 ) -> AccountResult {
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
-    let version_control_address = deps.api.addr_validate(&version_control_address)?;
+    let version_control = VersionControlContract::new(deps.api)?;
+    let module_factory = ModuleFactoryContract::new(deps.api)?;
 
     let account_id = match account_id {
         Some(account_id) => account_id,
         None => AccountId::local(
-            LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, version_control_address.clone())?,
+            LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, version_control.address.clone())?,
         ),
     };
 
     ACCOUNT_ID.save(deps.storage, &account_id)?;
     WHITELISTED_MODULES.save(deps.storage, &WhitelistedModules(vec![]))?;
-
-    // Save config
-    let config = Config {
-        version_control_address: version_control_address.clone(),
-        module_factory_address: module_factory_address.clone(),
-    };
-    abstract_std::account::state::CONFIG.save(deps.storage, &config)?;
 
     // Verify info
     validate_description(description.as_deref())?;
@@ -118,7 +107,7 @@ pub fn instantiate(
 
     let governance = owner
         .clone()
-        .verify(deps.as_ref(), version_control_address.clone())?;
+        .verify(deps.as_ref(), version_control.address.clone())?;
     // Check if the caller is the manager the proposed owner account when creating a sub-account.
     // This prevents other users from creating sub-accounts for accounts they don't own.
     if let GovernanceDetails::SubAccount { account } = &governance {
@@ -150,7 +139,7 @@ pub fn instantiate(
         // TODO: support no owner here (ownership handled in SUDO)
         // Or do we want to add a `Sudo` governance type?
         owner.clone(),
-        config.version_control_address.clone(),
+        version_control.address.clone(),
     )?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
@@ -162,8 +151,6 @@ pub fn instantiate(
             ("owner".to_owned(), cw_gov_owner.owner.to_string()),
         ],
     );
-
-    let version_control = VersionControlContract::new(config.version_control_address.clone());
 
     let funds_for_namespace_fee = if namespace.is_some() {
         version_control
@@ -177,7 +164,7 @@ pub fn instantiate(
     let mut total_fee = Coins::try_from(funds_for_namespace_fee.clone()).unwrap();
 
     response = response.add_message(wasm_execute(
-        version_control_address,
+        version_control.address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
             namespace,
             creator: info.sender.to_string(),
@@ -198,7 +185,7 @@ pub fn instantiate(
 
     if !install_modules.is_empty() {
         let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
-            config.module_factory_address.to_string(),
+            module_factory.address,
             &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
                 modules: install_modules.iter().map(|m| m.module.clone()).collect(),
             },
@@ -210,7 +197,7 @@ pub fn instantiate(
 
         // Install modules
         let (install_msgs, install_attribute) =
-            _install_modules(deps.branch(), install_modules, info.funds)?;
+            _install_modules(deps.branch(), install_modules, info.funds.clone())?;
         response = response
             .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);
@@ -301,13 +288,13 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             remove_account_from_contracts(deps.branch())?
                         }
                     };
+                    let version_control = VersionControlContract::new(deps.api)?;
 
-                    let config = CONFIG.load(deps.storage)?;
                     let new_owner_attributes = ownership::update_ownership(
                         deps,
                         &env.block,
                         &info.sender,
-                        config.version_control_address,
+                        version_control.address,
                         action,
                     )?
                     .into_attributes();
@@ -429,8 +416,6 @@ mod tests {
                 owner: GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),
                 },
-                version_control_address: abstr.version_control.to_string(),
-                module_factory_address: abstr.module_factory.to_string(),
                 namespace: None,
                 name: "test".to_string(),
                 description: None,

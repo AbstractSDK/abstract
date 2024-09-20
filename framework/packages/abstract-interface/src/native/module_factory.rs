@@ -24,19 +24,3 @@ impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
             .unwrap()
     }
 }
-
-impl<Chain: CwEnv> ModuleFactory<Chain> {
-    pub fn change_ans_host_addr(
-        &self,
-        mem_addr: String,
-    ) -> Result<TxResponse<Chain>, crate::AbstractInterfaceError> {
-        self.execute(
-            &ExecuteMsg::UpdateConfig {
-                ans_host_address: Some(mem_addr),
-                version_control_address: None,
-            },
-            &[],
-        )
-        .map_err(Into::into)
-    }
-}

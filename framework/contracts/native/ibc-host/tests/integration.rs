@@ -371,9 +371,9 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 #[test]
 fn execute_send_all_back_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let admin = mock.sender_addr();
+    let admin = mock_bech32_sender(&mock);
 
-    let abstr = Abstract::deploy_on(mock.clone(), mock_bech32_sender(&mock))?;
+    let abstr = Abstract::deploy_on(mock.clone(), admin.clone())?;
 
     let account_sequence = 1;
     let chain = "juno";

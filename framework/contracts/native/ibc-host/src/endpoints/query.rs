@@ -1,12 +1,12 @@
 use std::str::FromStr;
 
-use abstract_sdk::std::ibc_host::QueryMsg;
+use abstract_sdk::{
+    feature_objects::{AnsHost, VersionControlContract},
+    std::ibc_host::QueryMsg,
+};
 use abstract_std::{
-    ibc_host::{
-        state::{CHAIN_PROXIES, CONFIG},
-        ClientProxiesResponse, ClientProxyResponse, ConfigResponse,
-    },
-    objects::TruncatedChainId,
+    ibc_host::{state::CHAIN_PROXIES, ClientProxiesResponse, ClientProxyResponse, ConfigResponse},
+    objects::{module_factory::ModuleFactoryContract, TruncatedChainId},
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_storage_plus::Bound;
@@ -31,11 +31,10 @@ pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
 }
 
 fn config(deps: Deps) -> HostResult<ConfigResponse> {
-    let state = CONFIG.load(deps.storage)?;
     Ok(ConfigResponse {
-        ans_host_address: state.ans_host.address,
-        module_factory_address: state.module_factory_addr,
-        version_control_address: state.version_control.address,
+        ans_host_address: AnsHost::new(deps.api)?.address,
+        module_factory_address: ModuleFactoryContract::new(deps.api)?.address,
+        version_control_address: VersionControlContract::new(deps.api)?.address,
     })
 }
 
@@ -75,20 +74,7 @@ mod test {
         // Instantiate
         let mut deps = mock_dependencies();
         let info = message_info(&deps.api.addr_make("admin"), &[]);
-        let dummy = deps.api.addr_make("dummy");
-        let foo = deps.api.addr_make("foo");
-        let bar = deps.api.addr_make("bar");
-        instantiate(
-            deps.as_mut(),
-            mock_env(),
-            info.clone(),
-            InstantiateMsg {
-                module_factory_address: dummy.to_string(),
-                version_control_address: foo.to_string(),
-                ans_host_address: bar.to_string(),
-            },
-        )
-        .unwrap();
+        instantiate(deps.as_mut(), mock_env(), info.clone(), InstantiateMsg {}).unwrap();
 
         // Register
         let proxy = deps.api.addr_make("juno-proxy");

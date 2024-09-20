@@ -1,6 +1,6 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
+    feature_objects::{AnsHost, VersionControlContract},
     std::{module_factory::*, MODULE_FACTORY},
 };
 use abstract_std::objects::{
@@ -13,7 +13,7 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 use semver::Version;
 
-use crate::{commands, error::ModuleFactoryError, state::*};
+use crate::{commands, error::ModuleFactoryError};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -29,13 +29,7 @@ pub fn instantiate(
     _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ModuleFactoryResult {
-    let config = Config {
-        version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
-        ans_host_address: deps.api.addr_validate(&msg.ans_host_address)?,
-    };
-
     set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
-    CONFIG.save(deps.storage, &config)?;
 
     // Set up the admin
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.admin))?;
@@ -46,16 +40,6 @@ pub fn instantiate(
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ModuleFactoryResult {
     match msg {
-        ExecuteMsg::UpdateConfig {
-            ans_host_address,
-            version_control_address,
-        } => commands::execute_update_config(
-            deps,
-            env,
-            info,
-            ans_host_address,
-            version_control_address,
-        ),
         ExecuteMsg::InstallModules { modules, salt } => {
             commands::execute_create_modules(deps, env, info, modules, salt)
         }
@@ -77,10 +61,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let state: Config = CONFIG.load(deps.storage)?;
     let resp = ConfigResponse {
-        version_control_address: state.version_control_address,
-        ans_host_address: state.ans_host_address,
+        version_control_address: VersionControlContract::new(deps.api)?.address,
+        ans_host_address: AnsHost::new(deps.api)?.address,
     };
 
     Ok(resp)
@@ -90,7 +73,6 @@ pub fn query_simulate_install_modules(
     deps: Deps,
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
-    let config = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract::new(deps.api)?;
 
     let module_responses = version_control

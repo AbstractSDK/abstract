@@ -83,7 +83,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         chain.set_sender(deploy_data);
         let admin = chain.sender_addr().to_string();
         // upload
-        let deployment = Self::store_on(chain.clone())?;
+        let mut deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
         CwBlob::upload_and_migrate(
             chain.clone(),
@@ -115,7 +115,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR),
             Binary::from(VERSION_CONTROL.as_bytes()),
         )?;
-
         CwBlob::upload_and_migrate(
             chain.clone(),
             blob_code_id,
@@ -123,8 +122,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             &abstract_std::module_factory::MigrateMsg::Instantiate(
                 abstract_std::module_factory::InstantiateMsg {
                     admin: admin.to_string(),
-                    version_control_address: deployment.version_control.address()?.into_string(),
-                    ans_host_address: deployment.ans_host.address()?.into_string(),
                 },
             ),
             CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR),
@@ -150,19 +147,34 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             blob_code_id,
             &deployment.ibc.host,
             &abstract_std::ibc_host::MigrateMsg::Instantiate(
-                abstract_std::ibc_host::InstantiateMsg {
-                    ans_host_address: deployment.ans_host.addr_str()?,
-                    module_factory_address: deployment.module_factory.addr_str()?,
-                    version_control_address: deployment.version_control.addr_str()?,
-                },
+                abstract_std::ibc_host::InstantiateMsg {},
             ),
             CanonicalAddr::from(native_addrs::IBC_HOST_ADDR),
             Binary::from(IBC_HOST.as_bytes()),
         )?;
-
         deployment.ibc.register(&deployment.version_control)?;
+
+        deployment
+            .version_control
+            .register_base(&deployment.account)?;
+        deployment
+            .version_control
+            .register_natives(deployment.contracts())?;
+        deployment.version_control.approve_any_abstract_modules()?;
+
+        // Create the first abstract account in integration environments
+        #[cfg(feature = "integration")]
+        use abstract_std::objects::gov_type::GovernanceDetails;
+        #[cfg(feature = "integration")]
+        AccountI::create_default_account(
+            &deployment,
+            GovernanceDetails::Monarchy {
+                monarch: chain.sender_addr().to_string(),
+            },
+        )?;
+
         // Return original sender
-        chain.set_sender(original_sender);
+        deployment.update_sender(&original_sender);
         Ok(deployment)
     }
 
@@ -254,8 +266,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
         self.module_factory.instantiate(
             &abstract_std::module_factory::InstantiateMsg {
                 admin: admin.to_string(),
-                version_control_address: self.version_control.address()?.into_string(),
-                ans_host_address: self.ans_host.address()?.into_string(),
             },
             Some(&admin),
             &[],
@@ -292,6 +302,23 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ),
         ]
     }
+
+    pub fn update_sender(&mut self, sender: &Chain::Sender) {
+        let Self {
+            ans_host,
+            version_control,
+            module_factory,
+            ibc,
+            account,
+            blob: _,
+        } = self;
+        ans_host.set_sender(sender);
+        version_control.set_sender(sender);
+        module_factory.set_sender(sender);
+        account.set_sender(sender);
+        ibc.client.set_sender(sender);
+        ibc.host.set_sender(sender);
+    }
 }
 
 #[cfg(test)]
@@ -299,7 +326,6 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use std::borrow::Cow;
 
-    use abstract_testing::prelude::AbstractMockAddrs;
     use cosmwasm_std::Api;
     use cw_orch::anyhow;
     use native_addrs::TEST_ABSTRACT_CREATOR;

@@ -92,7 +92,6 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
 #[test]
 fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     abstract_integration_tests::account::installing_one_adapter_with_fee_should_succeed(
         chain.clone(),
@@ -398,8 +397,10 @@ fn account_install_adapter() -> AResult {
 #[test]
 fn account_adapter_ownership() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let admin = mock_bech32_sender(&chain);
+    let sender = chain.sender();
+
+    let deployment = Abstract::deploy_on(chain.clone(), admin.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
     deployment

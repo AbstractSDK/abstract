@@ -28,10 +28,7 @@ fn account_install_standalone() -> AResult {
     account.install_standalone(
         &standalone,
         &MockInitMsg {
-            base: standalone::StandaloneInstantiateMsg {
-                ans_host_address: deployment.ans_host.addr_str()?,
-                version_control_address: deployment.version_control.addr_str()?,
-            },
+            base: standalone::StandaloneInstantiateMsg {},
             random_field: "LMAO".to_owned(),
         },
         &[],
@@ -60,10 +57,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     account.install_standalone(
         &standalone,
         &MockInitMsg {
-            base: standalone::StandaloneInstantiateMsg {
-                ans_host_address: deployment.ans_host.addr_str()?,
-                version_control_address: deployment.version_control.addr_str()?,
-            },
+            base: standalone::StandaloneInstantiateMsg {},
             random_field: "foo".to_owned(),
         },
         &[],
@@ -74,10 +68,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     let Err(AbstractInterfaceError::Orch(err)) = account.install_standalone(
         &standalone,
         &MockInitMsg {
-            base: standalone::StandaloneInstantiateMsg {
-                ans_host_address: deployment.ans_host.addr_str()?,
-                version_control_address: deployment.version_control.addr_str()?,
-            },
+            base: standalone::StandaloneInstantiateMsg {},
             random_field: "foo".to_owned(),
         },
         &[],
