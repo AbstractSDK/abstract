@@ -78,7 +78,7 @@ fn handle_ibc_request(
     // construct the action to be called on the host
     // construct the action to be called on the host
     let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
-        manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
+        manager_msgs: vec![abstract_adapter::std::account::ExecuteMsg::ExecOnModule {
             module_id: CW_STAKING_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &StakingExecuteMsg {

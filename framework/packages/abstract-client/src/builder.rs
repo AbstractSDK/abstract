@@ -161,7 +161,7 @@ pub mod cw20_builder {
     pub use cw20::*;
     pub use cw20_base::msg::InstantiateMarketingInfo;
     use cw_orch::{environment::CwEnv, prelude::*};
-    pub use cw_plus_interface::cw20_base::{
+    pub use cw_plus_orch::cw20_base::{
         Cw20Base, ExecuteMsgInterfaceFns, InstantiateMsg, QueryMsgInterfaceFns,
     };
 

@@ -13,7 +13,7 @@ use abstract_std::{
 use cosmwasm_std::{coin, Decimal, Uint128};
 use cw20::Cw20Coin;
 use cw_orch::prelude::*;
-use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
+use cw_plus_orch::cw20_base::Cw20Base as AbstractCw20Base;
 use wyndex::{
     asset::{AssetInfo, AssetInfoExt},
     factory::{DefaultStakeConfig, PartialStakeConfig},
