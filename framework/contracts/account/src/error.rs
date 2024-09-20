@@ -77,8 +77,8 @@ pub enum AccountError {
     #[error("Module with address {0} is already whitelisted")]
     AlreadyWhitelisted(String),
 
-    #[error("Module with address {0} not found in whitelist")]
-    NotWhitelisted(String),
+    #[error("can't remove module that is not whitelisted")]
+    NotWhitelisted{},
 
     // ** Sub Account ** //
     #[error("Removing sub account failed")]
@@ -100,8 +100,8 @@ pub enum AccountError {
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
 
-    #[error("Sender is not whitelisted")]
-    SenderNotWhitelisted {},
+    #[error("Sender is not whitelisted and is not a valid owner")]
+    SenderNotWhitelistedOrOwner {},
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
