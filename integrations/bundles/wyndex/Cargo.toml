@@ -24,4 +24,4 @@ cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-asset = { workspace = true }
 anyhow = { workspace = true }
-cw-plus-interface.workspace = true
+cw-plus-orch.workspace = true

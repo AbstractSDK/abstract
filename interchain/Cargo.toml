@@ -100,11 +100,12 @@ abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
 # TODO: remove after polytone release
-cw-orch-clone-testing = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "nicolas/orc-159-cw-orch-clone-testing-20" }
+cw-orch-clone-testing = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "main" }
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", branch = "buckram/update-interface-package" }
+cw-plus-orch = { version = "0.25.0" }
+
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
