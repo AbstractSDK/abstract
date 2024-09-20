@@ -154,7 +154,7 @@ pub mod addresses {
                 module_address: mock_api
                     .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
                     .unwrap(),
-                account: test_account_base(mock_api),
+                account: admin_account(mock_api),
             }
         }
     }
@@ -201,7 +201,7 @@ pub mod mock_bech32 {
     use cosmwasm_std::{Addr, Api, CanonicalAddr};
     use cw_orch::mock::MockBech32;
 
-    pub fn mock_bech32_sender(bech32: &MockBech32) -> Addr {
+    pub fn mock_bech32_admin(bech32: &MockBech32) -> Addr {
         bech32
             .app
             .borrow()
@@ -222,7 +222,7 @@ pub mod prelude {
         testing::{MockApi as CwMockApi, MockQuerier, MockStorage},
         to_json_binary,
     };
-    pub use mock_bech32::mock_bech32_sender;
+    pub use mock_bech32::mock_bech32_admin;
     pub use mock_querier::{map_key, raw_map_key, wrap_querier, MockQuerierBuilder};
     pub use module::*;
 

@@ -196,8 +196,11 @@ pub fn instantiate(
         });
 
         // Install modules
-        let (install_msgs, install_attribute) =
-            _install_modules(deps.branch(), install_modules, info.funds.clone())?;
+        let (install_msgs, install_attribute) = _install_modules(
+            deps.branch(),
+            install_modules,
+            simulate_resp.total_required_funds,
+        )?;
         response = response
             .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);

@@ -7,7 +7,7 @@ use abstract_std::{
     version_control::{self, Account, NamespaceInfo, NamespaceResponse},
     ABSTRACT_EVENT_TYPE, ACCOUNT,
 };
-use abstract_testing::{mock_bech32::mock_bech32_sender, prelude::*};
+use abstract_testing::{mock_bech32::mock_bech32_admin, prelude::*};
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
@@ -16,7 +16,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_admin(&chain))?;
 
     let vc = deployment.version_control;
     let vc_config = vc.config()?;
@@ -35,7 +35,7 @@ fn instantiate() -> AResult {
 fn create_one_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_admin(&chain))?;
 
     let version_control = &deployment.version_control;
 
@@ -88,7 +88,7 @@ fn create_one_account() -> AResult {
 fn create_two_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_admin(&chain))?;
 
     let version_control = &deployment.version_control;
 
@@ -156,7 +156,7 @@ fn create_two_accounts() -> AResult {
 fn sender_is_not_admin_monarchy() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_admin(&chain))?;
     let account = AccountI::new(ACCOUNT, chain);
 
     let version_control = &deployment.version_control;
@@ -200,7 +200,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 fn sender_is_not_admin_external() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_admin(&chain))?;
     let account = AccountI::new(ACCOUNT, chain);
     let version_control = &deployment.version_control;
 
@@ -241,7 +241,7 @@ fn sender_is_not_admin_external() -> AResult {
 fn create_one_account_with_namespace() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_admin(&chain))?;
     let account = AccountI::new(ACCOUNT, chain);
 
     let namespace_to_claim = "namespace-to-claim";
@@ -290,7 +290,7 @@ fn create_one_account_with_namespace() -> AResult {
 #[test]
 fn create_one_account_with_namespace_fee() -> AResult {
     let mut chain = MockBech32::new("mock");
-    chain.set_sender(mock_bech32_sender(&chain));
+    chain.set_sender(mock_bech32_admin(&chain));
     Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     abstract_integration_tests::create::create_one_account_with_namespace_fee(chain)
 }
