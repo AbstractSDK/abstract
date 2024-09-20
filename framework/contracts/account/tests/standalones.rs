@@ -17,7 +17,7 @@ gen_standalone_mock!(MockStandalone, STANDALONE_ID, STANDALONE_VERSION);
 fn account_install_standalone() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
@@ -48,7 +48,7 @@ fn account_install_standalone() -> AResult {
 fn cant_reinstall_standalone_after_uninstall() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender, &deployment)?;
 
     deployment

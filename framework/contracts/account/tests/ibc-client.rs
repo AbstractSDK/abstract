@@ -1,6 +1,7 @@
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::{Abstract, AccountI, AccountQueryFns};
 use abstract_std::IBC_CLIENT;
+use abstract_testing::prelude::mock_bech32_sender;
 use anyhow::bail;
 use cw_orch::prelude::*;
 use speculoos::{assert_that, result::ResultAssertions};
@@ -17,7 +18,7 @@ pub fn ibc_client_installed<Chain: CwEnv>(account: &AccountI<Chain>) -> AResult 
 fn throws_if_enabling_when_already_enabled() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender, &abstr)?;
 
     account.set_ibc_status(true)?;
@@ -32,7 +33,7 @@ fn throws_if_enabling_when_already_enabled() -> AResult {
 fn throws_if_disabling_without_ibc_client_installed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender, &abstr)?;
 
     let res = account.set_ibc_status(false);
@@ -46,7 +47,7 @@ fn throws_if_disabling_without_ibc_client_installed() -> AResult {
 fn can_update_ibc_settings() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender, &abstr)?;
 
     ibc_client_installed(&account).unwrap_err();

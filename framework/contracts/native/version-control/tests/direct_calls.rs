@@ -2,6 +2,7 @@ use abstract_interface::*;
 use abstract_std::{
     module_factory, module_factory::FactoryModuleInstallConfig, objects::module::ModuleInfo,
 };
+use abstract_testing::prelude::mock_bech32_sender;
 use cosmwasm_std::Binary;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
@@ -12,7 +13,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 
     let factory = deployment.module_factory;
     let factory_config = factory.config()?;
@@ -30,7 +31,7 @@ fn instantiate() -> AResult {
 fn caller_must_be_manager() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 
     let factory = &deployment.module_factory;
     let test_module = ModuleInfo::from_id(

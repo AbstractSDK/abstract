@@ -44,7 +44,7 @@ pub struct Abstract<Chain: CwEnv> {
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = AbstractInterfaceError;
-    type DeployData = String;
+    type DeployData = Chain::Sender;
 
     fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let blob = CwBlob::new(CW_BLOB, chain.clone());
@@ -76,10 +76,12 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     }
 
     fn deploy_on(
-        chain: Chain,
+        mut chain: Chain,
         deploy_data: Self::DeployData,
     ) -> Result<Self, AbstractInterfaceError> {
-        let admin = deploy_data.clone();
+        let original_sender = chain.sender().clone();
+        chain.set_sender(deploy_data);
+        let admin = chain.sender_addr().to_string();
         // upload
         let deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
@@ -159,6 +161,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         )?;
 
         deployment.ibc.register(&deployment.version_control)?;
+        // Return original sender
+        chain.set_sender(original_sender);
         Ok(deployment)
     }
 
@@ -295,6 +299,7 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use std::borrow::Cow;
 
+    use abstract_testing::prelude::AbstractMockAddrs;
     use cosmwasm_std::Api;
     use cw_orch::anyhow;
     use native_addrs::TEST_ABSTRACT_CREATOR;
@@ -326,7 +331,7 @@ mod test {
             .addr_humanize(&CanonicalAddr::from(TEST_ABSTRACT_CREATOR))?;
         chain.set_sender(sender);
 
-        let abstr = Abstract::deploy2(chain.clone(), chain.sender_addr().to_string())?;
+        let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
         let app = chain.app.borrow();
         let api = app.api();
 

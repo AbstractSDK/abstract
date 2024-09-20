@@ -5,6 +5,7 @@ use abstract_std::{
     objects::module::ModuleInfo,
     IBC_CLIENT,
 };
+use abstract_testing::prelude::mock_bech32_sender;
 use anyhow::bail;
 use cw_orch::prelude::*;
 
@@ -20,7 +21,7 @@ pub fn ibc_client_installed<Chain: CwEnv>(account: &AccountI<Chain>) -> AResult 
 fn can_install_and_uninstall_ibc_client() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
 
     ibc_client_installed(&account).unwrap_err();

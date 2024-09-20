@@ -129,8 +129,7 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
 
     /// Deploy abstract with current configuration
     pub fn build(&self) -> AbstractClientResult<AbstractClient<Chain>> {
-        let abstr =
-            Abstract::deploy_on(self.chain.clone(), self.chain.sender_addr().into_string())?;
+        let abstr = Abstract::deploy_on(self.chain.clone(), self.chain.sender().clone())?;
         self.update_ans(&abstr)?;
 
         AbstractClient::new(self.chain.clone())

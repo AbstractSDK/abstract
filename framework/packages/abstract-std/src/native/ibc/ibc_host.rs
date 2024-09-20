@@ -20,9 +20,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use super::*;
-    use crate::objects::{
-        ans_host::AnsHost, storage_namespaces, version_control::VersionControlContract,
-    };
+    use crate::objects::storage_namespaces;
 
     /// Maps a chain name to the proxy it uses to interact on this local chain
     pub const CHAIN_PROXIES: Map<&TruncatedChainId, Addr> =
@@ -38,14 +36,7 @@ pub mod state {
 
     /// The BaseState contains the main addresses needed for sending and verifying messages
     #[cosmwasm_schema::cw_serde]
-    pub struct Config {
-        /// AnsHost contract struct (address)
-        pub ans_host: AnsHost,
-        /// Address of the module factory, used to create remote accounts
-        pub module_factory_addr: Addr,
-        /// Address of the local version control, for retrieving account information
-        pub version_control: VersionControlContract,
-    }
+    pub struct Config {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct ActionAfterCreationCache {

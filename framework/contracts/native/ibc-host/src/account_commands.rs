@@ -1,4 +1,5 @@
 use abstract_sdk::{
+    feature_objects::VersionControlContract,
     std::{objects::ChannelEntry, ICS20},
     Resolve,
 };
@@ -69,8 +70,6 @@ pub fn receive_register(
         account_id: Some(account_id.clone()),
         install_modules,
         namespace,
-        module_factory_address: cfg.module_factory_addr.to_string(),
-        version_control_address: cfg.version_control.address.to_string(),
     };
 
     let account_canon_addr =

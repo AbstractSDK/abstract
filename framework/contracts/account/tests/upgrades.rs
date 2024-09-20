@@ -30,7 +30,7 @@ use speculoos::prelude::*;
 fn install_app_successful() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
@@ -70,7 +70,7 @@ fn install_app_successful() -> AResult {
 fn install_app_versions_not_met() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
@@ -97,7 +97,7 @@ fn install_app_versions_not_met() -> AResult {
 fn upgrade_app() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
@@ -267,7 +267,7 @@ fn upgrade_app() -> AResult {
 fn uninstall_modules() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     abstract_integration_tests::account::uninstall_modules(chain)
 }
 
@@ -275,7 +275,7 @@ fn uninstall_modules() -> AResult {
 fn update_adapter_with_authorized_addrs() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     abstract_integration_tests::account::update_adapter_with_authorized_addrs(
         chain.clone(),
         chain.addr_make("authorizee"),
@@ -286,7 +286,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
 fn upgrade_manager_last() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let account = create_default_account(&sender,&abstr)?;
     let AccountI { account, proxy: _ } = &account;
 
@@ -347,7 +347,7 @@ fn upgrade_manager_last() -> AResult {
 fn no_duplicate_migrations() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 
     let account = create_default_account(&sender, &abstr)?;
 
@@ -389,7 +389,7 @@ fn no_duplicate_migrations() -> AResult {
 fn create_account_with_installed_module() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 
     let _deployer_acc = AccountI::create(
         &deployment,
@@ -476,7 +476,7 @@ fn create_account_with_installed_module() -> AResult {
 fn create_sub_account_with_installed_module() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     abstract_integration_tests::account::create_sub_account_with_modules_installed(chain)
 }
 
@@ -486,7 +486,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
     let sender = chain.sender_addr();
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 
     let _deployer_acc = AccountI::create(
         &deployment,
@@ -626,7 +626,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
     let sender = chain.sender_addr();
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 
     let _deployer_acc = AccountI::create(
         &deployment,
@@ -741,7 +741,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
     let sender = chain.sender_addr();
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(15, "coin1"), coin(10, "coin2")])?;
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 
     let _deployer_acc = AccountI::create(
         &deployment,
@@ -878,7 +878,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
 fn create_account_with_installed_module_monetization_and_init_funds() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     abstract_integration_tests::account::create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
 }
 
@@ -887,7 +887,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
 fn install_app_with_proxy_action() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     abstract_integration_tests::account::install_app_with_proxy_action(chain)
 }
 
@@ -895,7 +895,7 @@ fn install_app_with_proxy_action() -> AResult {
 fn native_not_migratable() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
     let abstr_account = AccountI::load_from(&abstr, AccountId::local(0))?;
     abstr_account.install_module::<ibc_client::InstantiateMsg>(IBC_CLIENT, None, &[])?;
 

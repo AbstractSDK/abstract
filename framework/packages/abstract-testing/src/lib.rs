@@ -196,6 +196,21 @@ pub mod module {
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 }
 
+pub mod mock_bech32 {
+    use abstract_std::native_addrs::TEST_ABSTRACT_CREATOR;
+    use cosmwasm_std::{Addr, Api, CanonicalAddr};
+    use cw_orch::mock::MockBech32;
+
+    pub fn mock_bech32_sender(bech32: &MockBech32) -> Addr {
+        bech32
+            .app
+            .borrow()
+            .api()
+            .addr_humanize(&CanonicalAddr::from(TEST_ABSTRACT_CREATOR))
+            .unwrap()
+    }
+}
+
 pub mod prelude {
     pub use super::{abstract_mock_querier, abstract_mock_querier_builder};
     pub use abstract_mock_querier::AbstractMockQuerier;
@@ -207,6 +222,7 @@ pub mod prelude {
         testing::{MockApi as CwMockApi, MockQuerier, MockStorage},
         to_json_binary,
     };
+    pub use mock_bech32::mock_bech32_sender;
     pub use mock_querier::{map_key, raw_map_key, wrap_querier, MockQuerierBuilder};
     pub use module::*;
 
