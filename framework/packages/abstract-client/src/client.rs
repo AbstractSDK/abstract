@@ -15,9 +15,10 @@
 //! use abstract_app::mock::mock_app_dependency::interface::MockAppI;
 //! use cw_orch::prelude::*;
 //! use abstract_client::{AbstractClient, Publisher, Namespace};
+//! use abstract_testing::prelude::*;
 //!
 //! let chain = MockBech32::new("mock");
-//! let client = AbstractClient::builder(chain).build()?;
+//! let client = AbstractClient::builder(chain.clone()).build(mock_bech32_admin(&chain))?;
 //!
 //! let namespace = Namespace::new("tester")?;
 //! let publisher: Publisher<MockBech32> = client
@@ -63,9 +64,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     /// use abstract_client::AbstractClient;
     /// # use abstract_client::{Environment, AbstractClientError};
+    /// # use abstract_testing::prelude::*;
     /// # use cw_orch::prelude::*;
     /// # let chain = MockBech32::new("mock");
-    /// # let client = AbstractClient::builder(chain.clone()).build().unwrap(); // Deploy mock abstract
+    /// # let client = AbstractClient::builder(chain.clone()).build(mock_bech32_admin(&chain)).unwrap(); // Deploy mock abstract
     ///
     /// let client = AbstractClient::new(chain)?;
     /// # Ok::<(), AbstractClientError>(())
@@ -80,8 +82,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Version Control contract is a database contract that stores all module-related information.
     /// ```
     /// # use abstract_client::AbstractClientError;
+    /// # use abstract_testing::prelude::*;
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
-    /// # let client = abstract_client::AbstractClient::builder(chain).build().unwrap();
+    /// # let client = abstract_client::AbstractClient::builder(chain.clone()).build(mock_bech32_admin(&chain)).unwrap();
     /// use abstract_std::objects::{module_reference::ModuleReference, module::ModuleInfo};
     /// // For getting version control address
     /// use cw_orch::prelude::*;
@@ -100,6 +103,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Abstract Name Service contract is a database contract that stores all asset-related information.
     /// ```
     /// # use abstract_client::AbstractClientError;
+    /// # use abstract_testing::prelude::*;
     /// use abstract_client::{AbstractClient, ClientResolve};
     /// use cw_asset::AssetInfo;
     /// use abstract_app::objects::AssetEntry;
@@ -108,9 +112,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ///
     /// let denom = "test_denom";
     /// let entry = "denom";
-    /// # let client = AbstractClient::builder(MockBech32::new("mock"))
+    /// # let chain = MockBech32::new("mock");
+    /// # let client = AbstractClient::builder(chain.clone())
     /// #     .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
-    /// #     .build()?;
+    /// #     .build(mock_bech32_admin(&chain))?;
     ///
     /// let name_service = client.name_service();
     /// let asset_entry = AssetEntry::new(entry);

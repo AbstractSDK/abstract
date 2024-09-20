@@ -5,11 +5,12 @@
 //! Example of creating an account
 //! ```
 //! # use abstract_client::AbstractClientError;
+//! # use abstract_testing::prelude::*;
 //! use abstract_client::{AbstractClient, Account};
 //! use cw_orch::prelude::*;
 //!
 //! # let chain = MockBech32::new("mock");
-//! # let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+//! # let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone()).build(mock_bech32_admin(&chain))?;
 //!
 //! let alice_account: Account<MockBech32> = client
 //!     .account_builder()
@@ -62,8 +63,9 @@ use crate::{
 /// ```
 /// # use cw_orch::prelude::*;
 /// # use abstract_client::{AbstractClientError, Environment};
+/// # use abstract_testing::prelude::*;
 /// # let chain = MockBech32::new("mock");
-/// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
+/// # let abstr_client = abstract_client::AbstractClient::builder(chain.clone()).build(mock_bech32_admin(&chain)).unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::{AbstractClient, Account};
 ///

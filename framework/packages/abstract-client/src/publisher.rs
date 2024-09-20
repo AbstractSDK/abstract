@@ -23,8 +23,9 @@ use crate::{
 /// ```
 /// # use abstract_client::{AbstractClientError, Environment};
 /// # use cw_orch::prelude::*;
+/// # use abstract_testing::prelude::*;
 /// # let chain = MockBech32::new("mock");
-/// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
+/// # let abstr_client = abstract_client::AbstractClient::builder(chain.clone()).build(mock_bech32_admin(&chain)).unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::{AbstractClient, Publisher, Namespace};
 ///
