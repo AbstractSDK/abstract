@@ -195,21 +195,21 @@ mod test {
     use super::*;
 
     use crate::{
-        contract::{execute, instantiate, query, AccountResult},
+        contract::query,
         test_common::{execute_as_admin, mock_init},
     };
     use abstract_std::{
-        account::{ExecuteMsg, InstantiateMsg, InternalConfigAction},
+        account::{ExecuteMsg, InternalConfigAction},
         objects::AccountId,
     };
     use abstract_testing::{abstract_mock_querier_builder, prelude::*};
-    use cosmwasm_std::{testing::*, OwnedDeps};
+    use cosmwasm_std::testing::*;
 
     #[test]
     fn query_config() -> anyhow::Result<()> {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
-        deps.querier = abstract_mock_querier_builder(deps.api.clone())
+        deps.querier = abstract_mock_querier_builder(deps.api)
             .with_contract_version(&abstr.module_address, TEST_MODULE_ID, "1.0.0")
             .build();
         mock_init(&mut deps)?;

@@ -318,7 +318,7 @@ mod test {
             .with_smart_handler(&other_account, move |msg| {
                 match from_json(msg).unwrap() {
                     account::QueryMsg::Config {} => {
-                        let abstr = AbstractMockAddrs::new(mock_api.clone());
+                        let abstr = AbstractMockAddrs::new(mock_api);
                         let resp = account::ConfigResponse {
                             version_control_address: abstr.version_control,
                             module_factory_address: abstr.module_factory,
@@ -385,7 +385,7 @@ mod test {
 
         execute_as(
             deps.as_mut(),
-            &account.addr(),
+            account.addr(),
             ExecuteMsg::AddAccount {
                 namespace: None,
                 creator: abstr.owner.clone().into(),

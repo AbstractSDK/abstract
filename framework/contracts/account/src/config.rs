@@ -123,21 +123,13 @@ mod tests {
     use crate::test_common::test_only_owner;
     use crate::{
         contract,
-        test_common::{execute_as, execute_as_admin, mock_init},
+        test_common::{execute_as, mock_init},
     };
-    use abstract_std::account::state::ACCOUNT_MODULES;
     use abstract_std::account::ExecuteMsg;
-    use abstract_testing::module::TEST_MODULE_ID;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, Addr, Storage};
-    use cosmwasm_std::{
-        testing::{message_info, mock_env, MockApi, MockQuerier, MockStorage},
-        Order, OwnedDeps, StdError,
-    };
+    use cosmwasm_std::{testing::*, Addr, StdError};
     use ownership::{GovAction, GovOwnershipError, GovernanceDetails};
     use speculoos::prelude::*;
-
-    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_owner_and_gov_type {
 
@@ -277,7 +269,7 @@ mod tests {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
 
             let name = "new name";
             let description = "new description";
@@ -306,7 +298,7 @@ mod tests {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
 
             let prev_name = "name".to_string();
             INFO.save(
@@ -341,7 +333,7 @@ mod tests {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: Some("".to_string()),
@@ -380,7 +372,7 @@ mod tests {
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
@@ -529,7 +521,7 @@ mod tests {
     }
 
     mod update_internal_config {
-        use abstract_std::account::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
+        use abstract_std::account::InternalConfigAction::UpdateModuleAddresses;
         use ownership::GovOwnershipError;
 
         use super::*;

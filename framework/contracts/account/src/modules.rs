@@ -370,16 +370,12 @@ pub(crate) fn _remove_whitelist_modules(
 mod tests {
     use super::*;
     use crate::test_common::test_only_owner;
-    use crate::{
-        contract,
-        test_common::{execute_as, execute_as_admin, mock_init},
-    };
+    use crate::test_common::{execute_as, mock_init};
     use abstract_std::account::{ExecuteMsg, InternalConfigAction};
     use abstract_std::objects::dependency::Dependency;
     use abstract_testing::module::TEST_MODULE_ID;
     use abstract_testing::prelude::AbstractMockAddrs;
-    use cosmwasm_std::to_json_binary;
-    use cosmwasm_std::{testing::*, Order, StdError};
+    use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
     use ownership::GovOwnershipError;
     use speculoos::prelude::*;
 
@@ -388,18 +384,6 @@ mod tests {
             .range(storage, None, None, Order::Ascending)
             .collect()
     }
-
-    use crate::{contract::execute, test_common::*};
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{message_info, mock_env, MockApi, MOCK_CONTRACT_ADDR},
-        Addr, OwnedDeps, Storage,
-    };
-    use speculoos::prelude::*;
-
-    const TEST_MODULE: &str = "module";
-
-    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod add_module_upgrade {
         use crate::modules::migration::add_module_upgrade_to_context;
@@ -564,7 +548,6 @@ mod tests {
         use std::collections::HashSet;
 
         use super::*;
-        use abstract_std::ACCOUNT;
 
         #[test]
         fn only_owner() -> anyhow::Result<()> {
@@ -580,7 +563,7 @@ mod tests {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
 
             let test_module = "test:module";
             let msg = ExecuteMsg::UninstallModule {
@@ -603,7 +586,7 @@ mod tests {
     }
 
     mod exec_on_module {
-        use abstract_std::{account::ExecuteMsg, ACCOUNT};
+        use abstract_std::account::ExecuteMsg;
         use cosmwasm_std::to_json_binary;
 
         use super::*;

@@ -113,7 +113,7 @@ mod test {
     use crate::test_common::mock_init;
     use abstract_std::account::{state::*, *};
     use abstract_std::{account, IBC_CLIENT};
-    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
     use cosmwasm_std::{coins, CosmosMsg, SubMsg};
     use speculoos::prelude::*;
@@ -186,8 +186,6 @@ mod test {
     }
 
     mod execute_ibc {
-        use cosmwasm_std::Addr;
-
         use crate::modules::update_module_addresses;
 
         use super::*;
@@ -252,7 +250,7 @@ mod test {
         #[test]
         fn send_funds() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
-            mock_init(&mut deps);
+            mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
             account::state::WHITELISTED_MODULES.save(

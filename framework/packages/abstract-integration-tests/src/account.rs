@@ -13,10 +13,9 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
-        ownership, AccountId,
+        ownership,
     },
     version_control::UpdateModule,
-    ACCOUNT,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
