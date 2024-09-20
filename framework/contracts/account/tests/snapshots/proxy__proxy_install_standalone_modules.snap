@@ -3,43 +3,43 @@ source: contracts/account/tests/proxy.rs
 expression: all_storage
 ---
 "abstract:account-local-0":
-  - - "\u0000\u0001dabstract:standalone1"
+  - - "\u0000\u0002acabstract:standalone1"
     - "\"mock13g0wleelw3ca9wgkrskd0yd2x8evftv9pylfkhmsmwls3zgs0myqad7uta\""
-  - - "\u0000\u0001dabstract:standalone2"
+  - - "\u0000\u0002acabstract:standalone2"
     - "\"mock128hzl0unmgu7fxyx7kvp3khphksqgwj0kle7ywsjqqsgdpd2dl9s9hsxk8\""
-  - - a
+  - - aa
     - "false"
-  - - b
-    - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"module_factory_address\":\"mock1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sep3g9s\"}"
-  - - c
+  - - ab
     - "{\"name\":\"Abstract\"}"
-  - - context
+  - - af
     - "[]"
+  - - ag
+    - "{\"trace\":\"local\",\"seq\":0}"
+  - - ah
+    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":8}},\"mock128hzl0unmgu7fxyx7kvp3khphksqgwj0kle7ywsjqqsgdpd2dl9s9hsxk8\"]]"
+  - - ai
+    - "[]"
+  - - cfg
+    - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"module_factory_address\":\"mock1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sep3g9s\"}"
   - - contract_info
     - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
-  - - g
-    - "[]"
-  - - h
-    - "{\"trace\":\"local\",\"seq\":0}"
-  - - icontext
-    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":8}},\"mock128hzl0unmgu7fxyx7kvp3khphksqgwj0kle7ywsjqqsgdpd2dl9s9hsxk8\"]]"
   - - ownership
     - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:ans-host":
-  - - config
+  - - be
+    - "[]"
+  - - cfg
     - "{\"next_unique_pool_id\":1}"
   - - contract_info
     - "{\"contract\":\"abstract:ans-host\",\"version\":\"0.23.0\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
-  - - registered_dexes
-    - "[]"
 "abstract:ibc-client":
-  - - config
+  - - cfg
     - "{\"version_control\":{\"address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"},\"ans_host\":{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}}"
   - - contract_info
     - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.23.0\"}"
-  - - module_data
+  - - mod
     - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.23.0\",\"dependencies\":[],\"metadata\":null}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
@@ -51,45 +51,45 @@ expression: all_storage
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
-  - - "\u0000{5}config"
+  - - cfg
     - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - contract_info
     - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.23.0\"}"
-  - - cur_manager
+  - - da
     - "\"mock1z7qajs3haler54gl59dvtv2724uldm4adyvuv902wjaqy4c8rkasjkqa9y\""
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:version-control":
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u0007account0.23.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\u0007account0.23.0"
     - "{\"account\":4}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\bans-host0.23.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\bans-host0.23.0"
     - "{\"native\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\bibc-host0.23.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\bibc-host0.23.0"
     - "{\"native\":\"mock1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjqqk0lq9\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\nibc-client0.23.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\nibc-client0.23.0"
     - "{\"native\":\"mock1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqgfzm3q\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u000bstandalone11.0.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\u000bstandalone11.0.0"
     - "{\"standalone\":7}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u000bstandalone21.0.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\u000bstandalone21.0.0"
     - "{\"standalone\":8}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u000emodule-factory0.23.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\u000emodule-factory0.23.0"
     - "{\"native\":\"mock1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sep3g9s\"}"
-  - - "\u0000\u0003lib\u0000\babstract\u0000\u000fversion-control0.23.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\u000fversion-control0.23.0"
     - "{\"native\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"}"
-  - - "\u0000\u0004accs\u0000\u0005local\u0000\u0000\u0000\u0000"
-    - "\"mock1z7qajs3haler54gl59dvtv2724uldm4adyvuv902wjaqy4c8rkasjkqa9y\""
-  - - "\u0000\u0004stli\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007"
+  - - "\u0000\u0002cc\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0007"
     - "{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}}"
-  - - "\u0000\u0004stli\u0000\u0000\u0000\u0000\u0000\u0000\u0000\b"
+  - - "\u0000\u0002cc\u0000\u0000\u0000\u0000\u0000\u0000\u0000\b"
     - "{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}}"
+  - - "\u0000\u0002ch\u0000\u0005local\u0000\u0000\u0000\u0000"
+    - "\"mock1z7qajs3haler54gl59dvtv2724uldm4adyvuv902wjaqy4c8rkasjkqa9y\""
   - - "\u0000\u0005nmspcabstract"
     - "{\"trace\":\"local\",\"seq\":0}"
   - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0000abstract"
     - "8"
-  - - acseq
-    - "1"
-  - - config
+  - - cfg
     - "{\"security_disabled\":true,\"namespace_registration_fee\":null}"
+  - - ci
+    - "1"
   - - contract_info
     - "{\"contract\":\"abstract:version-control\",\"version\":\"0.23.0\"}"
   - - ownership

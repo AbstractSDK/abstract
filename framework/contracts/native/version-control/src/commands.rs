@@ -702,7 +702,7 @@ mod tests {
     fn vc_mock_deps() -> MockDeps {
         let mut deps = mock_dependencies();
 
-        let querier = vc_mock_querier_builder(deps.api.clone()).build();
+        let querier = vc_mock_querier_builder(deps.api).build();
 
         deps.querier = querier;
 
@@ -2274,7 +2274,7 @@ mod tests {
             let mut deps = vc_mock_deps();
 
             let other = deps.api.addr_make(TEST_OTHER);
-            deps.querier = vc_mock_querier_builder(deps.api.clone())
+            deps.querier = vc_mock_querier_builder(deps.api)
                 .with_contract_version(&other, "some:contract", "0.0.0")
                 .build();
 
@@ -2370,7 +2370,7 @@ mod tests {
         fn no_owner_returns_err() -> VersionControlTestResult {
             let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
-            deps.querier = vc_mock_querier_builder(deps.api.clone())
+            deps.querier = vc_mock_querier_builder(deps.api)
                 .with_contract_item(
                     &abstr.account.addr().clone(),
                     cw_storage_plus::Item::<ownership::Ownership<Addr>>::new(OWNERSHIP_STORAGE_KEY),

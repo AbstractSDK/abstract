@@ -42,7 +42,7 @@ use abstract_std::{
     version_control::{self, NamespaceResponse},
     IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, StdError, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{
     contract::Contract,
     environment::{Environment as _, MutCwEnv},

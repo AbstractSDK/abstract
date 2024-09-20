@@ -109,7 +109,7 @@ mod test {
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg>;
 
     fn execute_as(deps: DepsMut, sender: &Addr, msg: AppExecuteMsg) -> Result<Response, MockError> {
-        let info = message_info(&sender, &[]);
+        let info = message_info(sender, &[]);
         MOCK_APP_WITH_DEP.execute(deps, mock_env(), info, msg)
     }
 

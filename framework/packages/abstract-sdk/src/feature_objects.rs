@@ -79,7 +79,7 @@ mod tests {
         #[test]
         fn test_account() {
             let deps = mock_dependencies();
-            let account_base = test_account(deps.api);
+            let account_base = test_account_base(deps.api);
 
             assert_that!(account_base.account(deps.as_ref()))
                 .is_ok()
