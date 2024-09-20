@@ -75,42 +75,90 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    fn deploy_on(chain: Chain, data: Self::DeployData) -> Result<Self, AbstractInterfaceError> {
+    fn deploy_on(
+        chain: Chain,
+        deploy_data: Self::DeployData,
+    ) -> Result<Self, AbstractInterfaceError> {
+        let admin = deploy_data.clone();
         // upload
-        let mut deployment = Self::store_on(chain.clone())?;
-
-        // ########### Instantiate ##############
-        deployment.instantiate(data)?;
-
-        // ########### upload modules and token ##############
-
-        deployment
-            .version_control
-            .register_base(&deployment.account)?;
-
-        deployment
-            .version_control
-            .register_natives(deployment.contracts())?;
-
-        // Approve abstract contracts if needed
-        deployment.version_control.approve_any_abstract_modules()?;
-
-        // Create the first abstract account in integration environments
-        #[cfg(feature = "integration")]
-        {
-            use abstract_std::objects::gov_type::GovernanceDetails;
-            AccountI::create(
-                &deployment,
-                crate::AccountDetails {
-                    name: "Abstract".to_string(),
-                    ..Default::default()
+        let deployment = Self::store_on(chain.clone())?;
+        let blob_code_id = deployment.blob.code_id()?;
+        CwBlob::upload_and_migrate(
+            chain.clone(),
+            blob_code_id,
+            &deployment.ans_host,
+            &abstract_std::ans_host::MigrateMsg::Instantiate(
+                abstract_std::ans_host::InstantiateMsg {
+                    admin: admin.to_string(),
                 },
-                GovernanceDetails::Monarchy {
-                    monarch: chain.sender_addr().to_string(),
+            ),
+            CanonicalAddr::from(native_addrs::ANS_ADDR),
+            Binary::from(ANS_HOST.as_bytes()),
+        )?;
+
+        CwBlob::upload_and_migrate(
+            chain.clone(),
+            blob_code_id,
+            &deployment.version_control,
+            &abstract_std::version_control::MigrateMsg::Instantiate(
+                abstract_std::version_control::InstantiateMsg {
+                    admin: admin.to_string(),
+                    #[cfg(feature = "integration")]
+                    security_disabled: Some(true),
+                    #[cfg(not(feature = "integration"))]
+                    security_disabled: Some(false),
+                    namespace_registration_fee: None,
                 },
-                &[],
-            )?;
-        }
+            ),
+            CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR),
+            Binary::from(VERSION_CONTROL.as_bytes()),
+        )?;
+
+        CwBlob::upload_and_migrate(
+            chain.clone(),
+            blob_code_id,
+            &deployment.module_factory,
+            &abstract_std::module_factory::MigrateMsg::Instantiate(
+                abstract_std::module_factory::InstantiateMsg {
+                    admin: admin.to_string(),
+                    version_control_address: deployment.version_control.address()?.into_string(),
+                    ans_host_address: deployment.ans_host.address()?.into_string(),
+                },
+            ),
+            CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR),
+            Binary::from(MODULE_FACTORY.as_bytes()),
+        )?;
+
+        // We also instantiate ibc contracts
+        CwBlob::upload_and_migrate(
+            chain.clone(),
+            blob_code_id,
+            &deployment.ibc.client,
+            &abstract_std::ibc_client::MigrateMsg::Instantiate(
+                abstract_std::ibc_client::InstantiateMsg {
+                    ans_host_address: deployment.ans_host.addr_str()?,
+                    version_control_address: deployment.version_control.addr_str()?,
+                },
+            ),
+            CanonicalAddr::from(native_addrs::IBC_CLIENT_ADDR),
+            Binary::from(IBC_CLIENT.as_bytes()),
+        )?;
+        CwBlob::upload_and_migrate(
+            chain.clone(),
+            blob_code_id,
+            &deployment.ibc.host,
+            &abstract_std::ibc_host::MigrateMsg::Instantiate(
+                abstract_std::ibc_host::InstantiateMsg {
+                    ans_host_address: deployment.ans_host.addr_str()?,
+                    module_factory_address: deployment.module_factory.addr_str()?,
+                    version_control_address: deployment.version_control.addr_str()?,
+                },
+            ),
+            CanonicalAddr::from(native_addrs::IBC_HOST_ADDR),
+            Binary::from(IBC_HOST.as_bytes()),
+        )?;
+
+        deployment.ibc.register(&deployment.version_control)?;
         Ok(deployment)
     }
 
@@ -239,95 +287,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 ibc_host::contract::CONTRACT_VERSION.to_string(),
             ),
         ]
-    }
-
-    // Because of the mock tests limitations we expect that blob already uploaded
-    // TODO: replace with it `deploy_on`, when all tests will be passing
-    pub fn deploy2(
-        chain: Chain,
-        deploy_data: <Self as Deploy<Chain>>::DeployData,
-    ) -> Result<Self, AbstractInterfaceError> {
-        let admin = deploy_data.clone();
-        // upload
-        let deployment = Self::store_on(chain.clone())?;
-        let blob_code_id = deployment.blob.code_id()?;
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.ans_host,
-            &abstract_std::ans_host::MigrateMsg::Instantiate(
-                abstract_std::ans_host::InstantiateMsg {
-                    admin: admin.to_string(),
-                },
-            ),
-            CanonicalAddr::from(native_addrs::ANS_ADDR),
-            Binary::from(ANS_HOST.as_bytes()),
-        )?;
-
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.version_control,
-            &abstract_std::version_control::MigrateMsg::Instantiate(
-                abstract_std::version_control::InstantiateMsg {
-                    admin: admin.to_string(),
-                    #[cfg(feature = "integration")]
-                    security_disabled: Some(true),
-                    #[cfg(not(feature = "integration"))]
-                    security_disabled: Some(false),
-                    namespace_registration_fee: None,
-                },
-            ),
-            CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR),
-            Binary::from(VERSION_CONTROL.as_bytes()),
-        )?;
-
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.module_factory,
-            &abstract_std::module_factory::MigrateMsg::Instantiate(
-                abstract_std::module_factory::InstantiateMsg {
-                    admin: admin.to_string(),
-                    version_control_address: deployment.version_control.address()?.into_string(),
-                    ans_host_address: deployment.ans_host.address()?.into_string(),
-                },
-            ),
-            CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR),
-            Binary::from(MODULE_FACTORY.as_bytes()),
-        )?;
-
-        // We also instantiate ibc contracts
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.ibc.client,
-            &abstract_std::ibc_client::MigrateMsg::Instantiate(
-                abstract_std::ibc_client::InstantiateMsg {
-                    ans_host_address: deployment.ans_host.addr_str()?,
-                    version_control_address: deployment.version_control.addr_str()?,
-                },
-            ),
-            CanonicalAddr::from(native_addrs::IBC_CLIENT_ADDR),
-            Binary::from(IBC_CLIENT.as_bytes()),
-        )?;
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.ibc.host,
-            &abstract_std::ibc_host::MigrateMsg::Instantiate(
-                abstract_std::ibc_host::InstantiateMsg {
-                    ans_host_address: deployment.ans_host.addr_str()?,
-                    module_factory_address: deployment.module_factory.addr_str()?,
-                    version_control_address: deployment.version_control.addr_str()?,
-                },
-            ),
-            CanonicalAddr::from(native_addrs::IBC_HOST_ADDR),
-            Binary::from(IBC_HOST.as_bytes()),
-        )?;
-
-        deployment.ibc.register(&deployment.version_control)?;
-        Ok(deployment)
     }
 }
 
