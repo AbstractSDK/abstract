@@ -1,6 +1,6 @@
 use abstract_std::{
     absacc::{AccountSudoMsg, Authenticator},
-    account::state::AUTHENTICATOR,
+    account::state::AUTHENTICATORS,
 };
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, Response};
 
@@ -59,7 +59,7 @@ pub fn before_tx(
             Some(i) => *i,
         };
         // retrieve the authenticator by index, or error
-        let authenticator = AUTHENTICATOR.load(deps.storage)?;
+        let authenticator = AUTHENTICATORS.load(deps.storage, cred_index)?;
 
         let sig_bytes = &Binary::from(&cred_bytes.as_slice()[1..]);
 

@@ -89,7 +89,7 @@ pub mod state {
     /// Account Id storage key
     pub const ACCOUNT_ID: Item<AccountId> = Item::new(namespace::ACCOUNT_ID);
     // TODO: change namespace
-    pub const AUTHENTICATOR: Item<crate::absacc::Authenticator> = Item::new("authenticators");
+    pub const AUTHENTICATORS: Map<u8, crate::absacc::Authenticator> = Map::new("authenticators");
     // Additional states, not listed here: cw_gov_ownable::GovOwnership
 
     #[cosmwasm_schema::cw_serde]
@@ -238,7 +238,7 @@ pub enum QueryMsg {
 
     /// Query the pubkey associated with this account.
     #[returns(crate::absacc::Authenticator)]
-    Authenticator {},
+    AuthenticatorByID { id: u8 },
 }
 
 /// Module info and init message

@@ -36,6 +36,7 @@ dependencies = [
  "hex",
  "p256",
  "phf",
+ "prost 0.13.2",
  "ripemd",
  "rsa",
  "rstest",
@@ -573,7 +574,6 @@ version = "0.23.0"
 dependencies = [
  "abstract-testing",
  "anyhow",
- "cosmos-sdk-proto 0.24.0-pre",
  "cosmwasm-schema 2.1.3",
  "cosmwasm-std 2.1.3",
  "cw-address-like 2.0.0",
@@ -588,7 +588,6 @@ dependencies = [
  "cw20",
  "cw20-base",
  "function_name",
- "prost 0.13.2",
  "rstest",
  "schemars",
  "semver",

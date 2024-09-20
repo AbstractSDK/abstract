@@ -55,6 +55,7 @@ cosmos-sdk-proto = { git = "https://github.com/burnt-labs/cosmos-rust.git", rev 
     "xion",
     "serde",
 ] }
+prost = { version = "0.13.2", default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

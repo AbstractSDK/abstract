@@ -340,8 +340,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Ownership {} => {
             cosmwasm_std::to_json_binary(&ownership::get_ownership(deps.storage)?)
         }
-        QueryMsg::Authenticator {} => cosmwasm_std::to_json_binary(
-            &abstract_std::account::state::AUTHENTICATOR.load(deps.storage)?,
+        QueryMsg::AuthenticatorByID { id } => cosmwasm_std::to_json_binary(
+            &abstract_std::account::state::AUTHENTICATORS.load(deps.storage, id)?,
         ),
     }
 }

@@ -31,15 +31,6 @@ cw-ownable = { workspace = true }
 sha2 = { version = "0.10.8", default-features = false }
 cw-clearable = { workspace = true }
 
-# XION absacc
-# account = { git = "https://github.com/burnt-labs/contracts", branch = "main" }
-cosmos-sdk-proto = { git = "https://github.com/burnt-labs/cosmos-rust.git", rev = "75e72f446629f98330e209e2f6268250d325cccb", default-features = false, features = [
-    "std",
-    "cosmwasm",
-    "xion",
-    "serde",
-] }
-prost = { version = "0.13.2", default-features = false }
 
 ## Stringify function names
 function_name = { version = "0.3.0" }

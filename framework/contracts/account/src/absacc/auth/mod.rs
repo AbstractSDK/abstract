@@ -2,8 +2,8 @@ use crate::{
     contract::{AccountResponse, AccountResult},
     error::AccountError,
 };
-use abstract_std::{absacc::Authenticator, account::state::AUTHENTICATOR};
-use cosmwasm_std::{Binary, Deps, DepsMut, Env};
+use abstract_std::{absacc::Authenticator, account::state::AUTHENTICATORS};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, Event, Response};
 use schemars::JsonSchema;
 use secp256r1::verify;
 use serde::{Deserialize, Serialize};
@@ -15,33 +15,52 @@ mod secp256r1;
 mod sign_arb;
 pub mod util;
 
-#[derive(Serialize, Deserialize, Clone, JsonSchema, PartialEq, Debug)]
+#[cosmwasm_schema::cw_serde]
 pub enum AddAuthenticator {
     Secp256K1 {
+        id: u8,
         pubkey: Binary,
         signature: Binary,
     },
     Ed25519 {
+        id: u8,
         pubkey: Binary,
         signature: Binary,
     },
     EthWallet {
+        id: u8,
         address: String,
         signature: Binary,
     },
     Jwt {
+        id: u8,
         aud: String,
         sub: String,
         token: Binary,
     },
     Secp256R1 {
+        id: u8,
         pubkey: Binary,
         signature: Binary,
     },
     Passkey {
+        id: u8,
         url: String,
         credential: Binary,
     },
+}
+
+impl AddAuthenticator {
+    pub fn get_id(&self) -> u8 {
+        match self {
+            AddAuthenticator::Secp256K1 { id, .. } => *id,
+            AddAuthenticator::Ed25519 { id, .. } => *id,
+            AddAuthenticator::EthWallet { id, .. } => *id,
+            AddAuthenticator::Jwt { id, .. } => *id,
+            AddAuthenticator::Secp256R1 { id, .. } => *id,
+            AddAuthenticator::Passkey { id, .. } => *id,
+        }
+    }
 }
 
 pub fn verify_authenticator(
@@ -122,100 +141,156 @@ pub fn add_auth_method(
     env: &Env,
     add_authenticator: AddAuthenticator,
 ) -> AccountResult {
-    let authenticator = match add_authenticator {
-        AddAuthenticator::Secp256K1 { pubkey, signature } => {
-            let auth = Authenticator::Secp256K1 { pubkey };
+    match &mut add_authenticator {
+        AddAuthenticator::Secp256K1 {
+            id,
+            pubkey,
+            signature,
+        } => {
+            let auth = Authenticator::Secp256K1 {
+                pubkey: (*pubkey).clone(),
+            };
 
-            if !verify_authenticator(
-                &auth,
+            if !auth.verify(
                 deps.as_ref(),
                 &env,
                 &Binary::from(env.contract.address.as_bytes()),
-                &signature,
+                signature,
             )? {
                 Err(AccountError::InvalidSignature {})
             } else {
-                Ok(auth)
+                save_authenticator(deps, *id, &auth)?;
+                Ok(())
             }
         }
-        AddAuthenticator::Ed25519 { pubkey, signature } => {
-            let auth = Authenticator::Ed25519 { pubkey };
+        AddAuthenticator::Ed25519 {
+            id,
+            pubkey,
+            signature,
+        } => {
+            let auth = Authenticator::Ed25519 {
+                pubkey: (*pubkey).clone(),
+            };
 
-            if !verify_authenticator(
-                &auth,
+            if !auth.verify(
                 deps.as_ref(),
                 &env,
                 &Binary::from(env.contract.address.as_bytes()),
-                &signature,
+                signature,
             )? {
                 Err(AccountError::InvalidSignature {})
             } else {
-                Ok(auth)
+                save_authenticator(deps, *id, &auth)?;
+                Ok(())
             }
         }
-        AddAuthenticator::EthWallet { address, signature } => {
-            let auth = Authenticator::EthWallet { address };
+        AddAuthenticator::EthWallet {
+            id,
+            address,
+            signature,
+        } => {
+            let auth = Authenticator::EthWallet {
+                address: (*address).clone(),
+            };
 
-            if !verify_authenticator(
-                &auth,
+            if !auth.verify(
                 deps.as_ref(),
                 &env,
                 &Binary::from(env.contract.address.as_bytes()),
-                &signature,
+                signature,
             )? {
                 Err(AccountError::InvalidSignature {})
             } else {
-                Ok(auth)
+                save_authenticator(deps, *id, &auth)?;
+                Ok(())
             }
         }
-        AddAuthenticator::Jwt { aud, sub, token } => {
-            if !jwt::verify(
+        AddAuthenticator::Jwt {
+            id,
+            aud,
+            sub,
+            token,
+        } => {
+            let auth = Authenticator::Jwt {
+                aud: (*aud).clone(),
+                sub: (*sub).clone(),
+            };
+
+            jwt::verify(
                 deps.as_ref(),
                 &Binary::from(env.contract.address.as_bytes()),
-                &token,
-                &aud,
-                &sub,
-            )? {
-                Err(AccountError::InvalidSignature {})
-            } else {
-                Ok(Authenticator::Jwt { aud, sub })
-            }
-        }
-        AddAuthenticator::Secp256R1 { pubkey, signature } => {
-            let auth = Authenticator::Secp256R1 { pubkey };
+                token,
+                aud,
+                sub,
+            )?;
 
-            if !verify_authenticator(
-                &auth,
+            save_authenticator(deps, *id, &auth)?;
+            Ok(())
+        }
+        AddAuthenticator::Secp256R1 {
+            id,
+            pubkey,
+            signature,
+        } => {
+            let auth = Authenticator::Secp256R1 {
+                pubkey: (*pubkey).clone(),
+            };
+
+            if !auth.verify(
                 deps.as_ref(),
                 &env,
                 &Binary::from(env.contract.address.as_bytes()),
-                &signature,
+                signature,
             )? {
                 Err(AccountError::InvalidSignature {})
             } else {
-                Ok(auth)
+                AUTHENTICATORS.save(deps.storage, *id, &auth)?;
+                Ok(())
             }
         }
-        AddAuthenticator::Passkey { url, credential } => {
+        AddAuthenticator::Passkey {
+            id,
+            url,
+            credential,
+        } => {
             let passkey = passkey::register(
                 deps.as_ref(),
                 env.contract.address.clone(),
-                url.clone(),
-                credential,
+                (*url).clone(),
+                (*credential).clone(),
             )?;
 
-            let auth = Authenticator::Passkey { url, passkey };
-            Ok(auth)
+            let auth = Authenticator::Passkey {
+                url: (*url).clone(),
+                passkey: passkey.clone(),
+            };
+            save_authenticator(deps, *id, &auth)?;
+            // we replace the sent credential with the passkey for indexers and other
+            // observers to see
+            *(credential) = passkey;
+            Ok(())
         }
     }?;
-    AUTHENTICATOR.save(deps.storage, &authenticator)?;
     Ok(
-        AccountResponse::action("add_auth_method").add_attributes(vec![
+        Response::new().add_event(Event::new("add_auth_method").add_attributes(vec![
             ("contract_address", env.contract.address.clone().to_string()),
             (
                 "authenticator",
-                cosmwasm_std::to_json_string(&authenticator)?,
+                cosmwasm_std::to_json_string(&add_authenticator)?,
             ),
-        ]),
+        ])),
     )
+}
+
+pub fn save_authenticator(
+    deps: DepsMut,
+    id: u8,
+    authenticator: &Authenticator,
+) -> AccountResult<()> {
+    if AUTHENTICATORS.has(deps.storage, id) {
+        return Err(AccountError::OverridingIndex { index: id });
+    }
+
+    AUTHENTICATORS.save(deps.storage, id, authenticator)?;
+    Ok(())
 }
