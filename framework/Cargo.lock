@@ -1674,12 +1674,11 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 [[package]]
 name = "cosmos-sdk-proto"
 version = "0.24.0-pre"
-source = "git+https://github.com/burnt-labs/cosmos-rust.git?rev=75e72f446629f98330e209e2f6268250d325cccb#75e72f446629f98330e209e2f6268250d325cccb"
+source = "git+https://github.com/burnt-labs/cosmos-rust?branch=feat/xion-serde#75e72f446629f98330e209e2f6268250d325cccb"
 dependencies = [
- "informalsystems-pbjson",
  "prost 0.13.2",
- "serde",
  "tendermint-proto 0.39.1",
+ "tonic",
 ]
 
 [[package]]
@@ -6097,6 +6096,18 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+
+[[package]]
+name = "scripts"
+version = "0.23.0"
+dependencies = [
+ "abstract-client",
+ "anyhow",
+ "cosmos-sdk-proto 0.24.0-pre",
+ "cw-orch",
+ "dotenv",
+ "env_logger",
+]
 
 [[package]]
 name = "sct"

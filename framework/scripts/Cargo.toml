@@ -1,0 +1,18 @@
+[package]
+name = "scripts"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+abstract-client = { version = "0.23.0", path = "../packages/abstract-client" }
+anyhow.workspace = true
+cw-orch = { workspace = true, features = ["daemon"] }
+dotenv = "0.15.0"
+env_logger = "0.11.5"
+xion_sdk_proto = {package = "cosmos-sdk-proto", git = "https://github.com/burnt-labs/cosmos-rust", branch = "feat/xion-serde", features = ["xion"]}
