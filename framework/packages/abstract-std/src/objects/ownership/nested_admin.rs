@@ -59,7 +59,8 @@ impl NestedAdmin {
         admin: Addr,
     ) -> StdResult<bool> {
         // Initial check if directly called by the admin
-        if caller == admin && assert_account_calling_to_as_admin_is_self(querier, self_addr, caller) {
+        if caller == admin && assert_account_calling_to_as_admin_is_self(querier, self_addr, caller)
+        {
             // If the caller is the admin, we still need to check that
             // if it's an account it's authorized to act as an admin
 

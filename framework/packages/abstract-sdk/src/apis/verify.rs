@@ -2,8 +2,8 @@
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use abstract_std::{
     objects::{
-        ownership::nested_admin::assert_account_calling_to_as_admin_is_self, version_control::VersionControlContract,
-        AccountId,
+        ownership::nested_admin::assert_account_calling_to_as_admin_is_self,
+        version_control::VersionControlContract, AccountId,
     },
     version_control::Account,
 };
@@ -121,7 +121,11 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     ) -> AbstractSdkResult<Account> {
         let account = self.assert_account(maybe_account)?;
 
-        if !assert_account_calling_to_as_admin_is_self(&self.deps.querier, &env.contract.address, maybe_account) {
+        if !assert_account_calling_to_as_admin_is_self(
+            &self.deps.querier,
+            &env.contract.address,
+            maybe_account,
+        ) {
             return Err(AbstractSdkError::OnlyAdmin {});
         }
         Ok(account)
