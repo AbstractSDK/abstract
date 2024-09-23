@@ -80,12 +80,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                     Some(requested_account) => {
                         let account_address = deps.api.addr_validate(&requested_account)?;
                         let account = account_registry.assert_is_account(&account_address)?;
-                        if is_top_level_owner(
-                            &deps.querier,
-                            account.addr().clone(),
-                            &info.sender,
-                        )
-                        .unwrap_or(false)
+                        if is_top_level_owner(&deps.querier, account.addr().clone(), &info.sender)
+                            .unwrap_or(false)
                         {
                             Ok(account)
                         } else {
