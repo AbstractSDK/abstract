@@ -34,14 +34,9 @@ pub mod state {
     use std::collections::HashSet;
 
     use cosmwasm_std::Addr;
-    use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{
-        module::ModuleId,
-        storage_namespaces::{self, ADMIN_NAMESPACE},
-        AccountId,
-    };
+    use crate::objects::{module::ModuleId, storage_namespaces, AccountId};
 
     pub type SuspensionStatus = bool;
 

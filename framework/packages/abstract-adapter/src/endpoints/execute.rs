@@ -259,7 +259,7 @@ mod tests {
         sender: &Addr,
         msg: ExecuteMsg<MockExecMsg>,
     ) -> Result<Response, MockError> {
-        MOCK_ADAPTER.execute(deps, mock_env(), message_info(&sender, &[]), msg)
+        MOCK_ADAPTER.execute(deps, mock_env(), message_info(sender, &[]), msg)
     }
 
     fn base_execute_as(

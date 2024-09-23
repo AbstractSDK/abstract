@@ -39,7 +39,7 @@ impl Dependencies for StandaloneContract {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
-    use abstract_testing::{abstract_mock_querier, prelude::*};
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     use super::*;
@@ -70,7 +70,10 @@ mod test {
     #[test]
     fn test_traits_generated() -> StandaloneTestResult {
         let mut deps = mock_init();
-        deps.querier = abstract_mock_querier(deps.api);
+        let expected_account = test_account_base(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&expected_account, TEST_ACCOUNT_ID)
+            .build();
         let abstr = AbstractMockAddrs::new(deps.api);
 
         // AbstractNameService
@@ -84,8 +87,8 @@ mod test {
         // TODO: Why rust forces binding on static object what
         let binding = BASIC_MOCK_STANDALONE;
         let account_registry = binding.account_registry(deps.as_ref()).unwrap();
-        let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
-        assert_eq!(base, abstr.account);
+        let account = account_registry.account_base(&TEST_ACCOUNT_ID)?;
+        assert_eq!(account, expected_account);
 
         // TODO: Make some of the module_registry queries raw as well?
         let _module_registry = BASIC_MOCK_STANDALONE.module_registry(deps.as_ref());

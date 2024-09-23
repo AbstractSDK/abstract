@@ -24,12 +24,10 @@ mod tests {
 
     use super::*;
     use crate::error::AccountError;
-    use crate::{contract, test_common::mock_init};
+    use crate::test_common::mock_init;
 
     use abstract_std::{account::MigrateMsg, AbstractError};
     use cw2::get_contract_version;
-
-    use super::*;
 
     #[test]
     fn disallow_same_version() -> AccountResult<()> {

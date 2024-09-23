@@ -477,14 +477,12 @@ mod tests {
     use abstract_std::{
         account,
         objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
-        version_control::Account,
     };
     use abstract_testing::prelude::AbstractMockAddrs;
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies, mock_env},
-        wasm_execute, Addr, CosmosMsg, SubMsg,
+        wasm_execute, CosmosMsg, SubMsg,
     };
-    use speculoos::prelude::*;
 
     #[test]
     fn successful_instantiate() {
@@ -513,7 +511,7 @@ mod tests {
             },
         );
 
-        assert_that!(resp).is_ok();
+        assert!(resp.is_ok());
 
         let expected_msg: CosmosMsg = wasm_execute(
             abstr.version_control,
@@ -526,6 +524,6 @@ mod tests {
         .unwrap()
         .into();
 
-        assert_that!(&resp.unwrap().messages).is_equal_to(&vec![SubMsg::new(expected_msg)]);
+        assert_eq!(resp.unwrap().messages, vec![SubMsg::new(expected_msg)]);
     }
 }
