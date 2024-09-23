@@ -281,7 +281,7 @@ pub mod mock {
         .with_execute(|deps, env, info, module, msg| {
             match msg {
                 MockExecMsg::DoSomethingAdmin{} => {
-                    module.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
+                    module.admin.assert_admin(deps.as_ref(), &env.contract.address,, &info.sender)?;
                 },
                 _ => {},
             }

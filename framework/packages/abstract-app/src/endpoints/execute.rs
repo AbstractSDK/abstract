@@ -77,7 +77,8 @@ impl<
     ) -> AppResult {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
-        self.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
+        self.admin
+            .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
 
         let mut state = self.base_state.load(deps.storage)?;
 

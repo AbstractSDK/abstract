@@ -167,7 +167,7 @@ fn handle_stake(
 ) -> CalendarAppResult {
     module
         .admin
-        .assert_admin(deps.as_ref(), &env, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -244,7 +244,7 @@ fn update_config(
 ) -> CalendarAppResult {
     module
         .admin
-        .assert_admin(deps.as_ref(), &env, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut attrs = vec![];
     if let Some(price_per_minute) = price_per_minute {

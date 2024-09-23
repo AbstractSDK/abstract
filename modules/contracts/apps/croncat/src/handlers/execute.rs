@@ -61,7 +61,7 @@ fn update_config(
     // Only the admin should be able to call this
     module
         .admin
-        .assert_admin(deps.as_ref(), &env, &msg_info.sender)?;
+        .assert_admin(deps.as_ref(), &env.contract.address, &msg_info.sender)?;
 
     CONFIG.save(deps.storage, &Config {})?;
     Ok(module.response("update_config"))
@@ -79,7 +79,7 @@ fn create_task(
 ) -> CroncatResult {
     if module
         .admin
-        .assert_admin(deps.as_ref(), &env, &msg_info.sender)
+        .assert_admin(deps.as_ref(), &env.contract.address, &msg_info.sender)
         .is_err()
     {
         assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;
@@ -149,7 +149,7 @@ fn remove_task(
 ) -> CroncatResult {
     if module
         .admin
-        .assert_admin(deps.as_ref(), &env, &msg_info.sender)
+        .assert_admin(deps.as_ref(), &env.contract.address, &msg_info.sender)
         .is_err()
     {
         assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;
@@ -231,7 +231,7 @@ fn refill_task(
 ) -> CroncatResult {
     if module
         .admin
-        .assert_admin(deps, &env, &msg_info.sender)
+        .assert_admin(deps, &env.contract.address, &msg_info.sender)
         .is_err()
     {
         assert_module_installed(deps, &msg_info.sender, &module)?;
@@ -295,7 +295,7 @@ fn purge(
     // In case module got unregistered or admin got changed they have no reason to purge now
     if module
         .admin
-        .assert_admin(deps.as_ref(), &env, &msg_info.sender)
+        .assert_admin(deps.as_ref(), &env.contract.address, &msg_info.sender)
         .is_err()
     {
         assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;

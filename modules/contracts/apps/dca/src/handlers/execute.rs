@@ -129,7 +129,7 @@ fn update_config(
     // Only the admin should be able to call this
     module
         .admin
-        .assert_admin(deps.as_ref(), &env, &msg_info.sender)?;
+        .assert_admin(deps.as_ref(), &env.contract.address, &msg_info.sender)?;
     let old_config = CONFIG.load(deps.storage)?;
     let new_native_denom = new_native_asset
         .map(|asset| {
@@ -169,7 +169,7 @@ fn create_dca(
     // Only the admin should be able to create dca
     module
         .admin
-        .assert_admin(deps.as_ref(), &env, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -212,7 +212,7 @@ fn update_dca(
 ) -> AppResult {
     module
         .admin
-        .assert_admin(deps.as_ref(), &env, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
 
     // Only if frequency is changed we have to re-create a task
     let recreate_task = new_frequency.is_some();
@@ -255,7 +255,7 @@ fn cancel_dca(
 ) -> AppResult {
     module
         .admin
-        .assert_admin(deps.as_ref(), &env, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
 
     DCA_LIST.remove(deps.storage, dca_id);
 

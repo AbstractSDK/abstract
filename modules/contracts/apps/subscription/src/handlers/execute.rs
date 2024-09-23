@@ -303,7 +303,7 @@ pub fn update_subscription_config(
 ) -> SubscriptionResult {
     module
         .admin
-        .assert_admin(deps.as_ref(), &env, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
 
     let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 
