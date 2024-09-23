@@ -60,6 +60,7 @@ mod test_common {
                 description: None,
                 link: None,
                 install_modules: vec![],
+                authenticator: None,
             },
         )
     }

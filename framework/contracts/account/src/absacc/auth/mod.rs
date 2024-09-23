@@ -1,9 +1,5 @@
-use crate::{
-    contract::{AccountResponse, AccountResult},
-    error::AccountError,
-    state::AUTHENTICATORS,
-};
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, Event, Response};
+use crate::contract::AccountResult;
+use cosmwasm_std::{Binary, Deps, Env};
 use schemars::JsonSchema;
 use secp256r1::verify;
 use serde::{Deserialize, Serialize};
@@ -146,6 +142,13 @@ impl Authenticator {
             }
         }
     }
+}
+
+pub mod execute {
+    use super::*;
+
+    use crate::{contract::AccountResult, error::AccountError, state::AUTHENTICATORS};
+    use cosmwasm_std::{Binary, DepsMut, Env, Event, Order, Response};
 
     pub fn add_auth_method(
         deps: DepsMut,
@@ -292,17 +295,35 @@ impl Authenticator {
             ])),
         )
     }
-}
 
-pub fn save_authenticator(
-    deps: DepsMut,
-    id: u8,
-    authenticator: &Authenticator,
-) -> AccountResult<()> {
-    if AUTHENTICATORS.has(deps.storage, id) {
-        return Err(AccountError::OverridingIndex { index: id });
+    pub fn remove_auth_method(deps: DepsMut, env: Env, id: u8) -> AccountResult {
+        if AUTHENTICATORS
+            .keys(deps.storage, None, None, Order::Ascending)
+            .count()
+            <= 1
+        {
+            return Err(AccountError::MinimumAuthenticatorCount {});
+        }
+
+        AUTHENTICATORS.remove(deps.storage, id);
+        Ok(
+            Response::new().add_event(Event::new("remove_auth_method").add_attributes(vec![
+                ("contract_address", env.contract.address.to_string()),
+                ("authenticator_id", id.to_string()),
+            ])),
+        )
     }
 
-    AUTHENTICATORS.save(deps.storage, id, authenticator)?;
-    Ok(())
+    fn save_authenticator(
+        deps: DepsMut,
+        id: u8,
+        authenticator: &Authenticator,
+    ) -> AccountResult<()> {
+        if AUTHENTICATORS.has(deps.storage, id) {
+            return Err(AccountError::OverridingIndex { index: id });
+        }
+
+        AUTHENTICATORS.save(deps.storage, id, authenticator)?;
+        Ok(())
+    }
 }

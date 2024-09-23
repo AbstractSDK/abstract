@@ -170,6 +170,9 @@ pub enum AccountError {
     #[error("cannot override existing authenticator at index {index}")]
     OverridingIndex { index: u8 },
 
+    #[error("cannot delete the last authenticator")]
+    MinimumAuthenticatorCount,
+
     #[error(transparent)]
     FromUTF8(#[from] std::string::FromUtf8Error),
 }

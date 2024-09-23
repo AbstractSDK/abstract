@@ -157,9 +157,9 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
         let id = ACCOUNT_ID.load(deps.storage)?;
         let unregister_message = wasm_execute(
             account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
-                id: id.seq(),
-            }),
+            &ExecuteMsg::UpdateSubAccount::<cosmwasm_std::Empty>(
+                UpdateSubAccountAction::UnregisterSubAccount { id: id.seq() },
+            ),
             vec![],
         )?;
         // For optimizing the gas we save it, in case new owner is sub-account as well
@@ -176,9 +176,9 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
         };
         let register_message = wasm_execute(
             account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                id: id.seq(),
-            }),
+            &ExecuteMsg::UpdateSubAccount::<cosmwasm_std::Empty>(
+                UpdateSubAccountAction::RegisterSubAccount { id: id.seq() },
+            ),
             vec![],
         )?;
         msgs.push(register_message.into());
@@ -209,9 +209,11 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosM
         msgs.push(
             wasm_execute(
                 account,
-                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
-                    id: account_id.seq(),
-                }),
+                &ExecuteMsg::UpdateSubAccount::<cosmwasm_std::Empty>(
+                    UpdateSubAccountAction::UnregisterSubAccount {
+                        id: account_id.seq(),
+                    },
+                ),
                 vec![],
             )?
             .into(),

@@ -92,7 +92,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         chain
             .instantiate2(
                 code_id,
-                &InstantiateMsg {
+                &InstantiateMsg::<Empty> {
                     account_id: details.account_id.map(AccountId::local),
                     owner: governance_details,
                     namespace: details.namespace,
@@ -102,6 +102,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     link: details.link,
                     module_factory_address: abstract_deployment.module_factory.addr_str()?,
                     version_control_address: abstract_deployment.version_control.addr_str()?,
+                    authenticator: None,
                 },
                 Some("Abstract Account"),
                 Some(&account_addr),
