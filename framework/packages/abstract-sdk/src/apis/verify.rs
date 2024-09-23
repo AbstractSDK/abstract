@@ -1,7 +1,7 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use abstract_std::{
-    account::state::ADMIN_CALL_TO_CONTEXT,
+    account::state::CALLING_TO_AS_ADMIN,
     objects::{
         ownership::nested_admin::account_has_admin_rights, version_control::VersionControlContract,
         AccountId,

@@ -3,7 +3,7 @@ use crate::{
     modules::INSTALL_MODULES_CONTEXT,
 };
 use abstract_std::{
-    account::state::ADMIN_CALL_TO_CONTEXT,
+    account::state::CALLING_TO_AS_ADMIN,
     objects::{
         module::{assert_module_data_validity, Module},
         module_reference::ModuleReference,
@@ -33,7 +33,7 @@ pub fn forward_response_reply(result: Reply) -> AccountResult {
 
 /// Remove the storage for an admin call after execution
 pub fn admin_action_reply(deps: DepsMut) -> AccountResult {
-    ADMIN_CALL_TO_CONTEXT.remove(deps.storage);
+    CALLING_TO_AS_ADMIN.remove(deps.storage);
 
     Ok(Response::new())
 }

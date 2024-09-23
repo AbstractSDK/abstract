@@ -2,7 +2,7 @@ use abstract_sdk::std::{
     account::state::WHITELISTED_MODULES, ibc_client::ExecuteMsg as IbcClientMsg, IBC_CLIENT,
 };
 use abstract_std::{
-    account::state::{ACCOUNT_MODULES, ADMIN_CALL_TO_CONTEXT},
+    account::state::{ACCOUNT_MODULES, CALLING_TO_AS_ADMIN},
     objects::ownership,
     ICA_CLIENT,
 };
@@ -83,7 +83,7 @@ pub fn admin_account_action(
 ) -> AccountResult {
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
-    ADMIN_CALL_TO_CONTEXT.save(deps.storage, &addr)?;
+    CALLING_TO_AS_ADMIN.save(deps.storage, &addr)?;
 
     let msg = SubMsg::reply_on_success(
         WasmMsg::Execute {

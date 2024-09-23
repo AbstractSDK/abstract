@@ -67,7 +67,7 @@ pub mod state {
         pub const SUB_ACCOUNTS: &str = "f";
         pub const WHITELISTED_MODULES: &str = "g";
         pub const ACCOUNT_ID: &str = "h";
-        pub const ADMIN_CALL_TO_CONTEXT: &str = "i";
+        pub const CALLING_TO_AS_ADMIN: &str = "i";
     }
 
     pub const WHITELISTED_MODULES: Item<WhitelistedModules> =
@@ -90,7 +90,7 @@ pub mod state {
     /// Account Id storage key
     pub const ACCOUNT_ID: Item<AccountId> = Item::new(namespace::ACCOUNT_ID);
     /// Temporary state variable that allows for checking access control on admin operation
-    pub const ADMIN_CALL_TO_CONTEXT: Item<Addr> = Item::new(namespace::ADMIN_CALL_TO_CONTEXT);
+    pub const CALLING_TO_AS_ADMIN: Item<Addr> = Item::new(namespace::CALLING_TO_AS_ADMIN);
     // Additional states, not listed here: cw_gov_ownable::GovOwnership
 
     #[cosmwasm_schema::cw_serde]
@@ -127,16 +127,17 @@ pub struct CallbackMsg {}
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Executes the provided messages if sender is whitelisted
-    AccountActions { msgs: Vec<CosmosMsg<Empty>> },
+    #[cw_orch(fn_name("execute_msgs"), payable)]
+    Execute { msgs: Vec<CosmosMsg<Empty>> },
     /// Execute a message and forward the Response data
-    AccountActionWithData { msg: CosmosMsg<Empty> },
+    ExecuteWithData { msg: CosmosMsg<Empty> },
     /// Forward execution message to module
     #[cw_orch(payable)]
-    ExecOnModule { module_id: String, exec_msg: Binary },
+    ExecuteOnModule { module_id: String, exec_msg: Binary },
     /// Execute a Wasm Message with Abstract Admin priviledges
-    AdminAccountAction { addr: String, msg: Binary },
+    AdminExecute { addr: String, msg: Binary },
     /// Forward execution message to module with Abstract Admin priviledges
-    AdminExecOnModule { module_id: String, msg: Binary },
+    AdminExecuteOnModule { module_id: String, msg: Binary },
 
     /// Execute IBC action on Client
     IbcAction { msg: crate::ibc_client::ExecuteMsg },
