@@ -17,11 +17,11 @@ pub const MAX_ADMIN_RECURSION: usize = 2;
 
 /// # Abstract Admin Object
 /// This object has a similar api to the [cw_controllers::Admin] object but incorporates nested ownership and abstract-specific Admin checks.
-/// 
-/// The ownership of a contract can be nested, meaning that the owner of the contract can be owned by another contract (or address) and so on. 
-/// 
+///
+/// The ownership of a contract can be nested, meaning that the owner of the contract can be owned by another contract (or address) and so on.
+///
 /// By using this structure we allow both the direct owner as well as the top-level owner to have permissions to perform actions that are gated by this object.
-/// 
+///
 /// See [NestedAdmin::assert_admin] for more details on how the admin rights are checked.
 pub struct NestedAdmin(Admin);
 
@@ -73,9 +73,9 @@ impl NestedAdmin {
     }
 
     /// Assert that the caller is allowed to perform admin actions.
-    /// 
+    ///
     /// This method will pass in two specific scenarios:
-    /// 
+    ///
     /// - If the caller is the direct admin of the contract. I.e. the admin stored in this contract. AND the state `CALLING_TO_AS_ADMIN` is set to the contract address or a wildcard.
     /// - If the caller is the **top-level** admin of the chain of ownership, starting from this contract.
     pub fn assert_admin<Q: CustomQuery>(
@@ -92,9 +92,9 @@ impl NestedAdmin {
     }
 
     /// Assert that the caller is allowed to perform admin actions.
-    /// 
+    ///
     /// This method will pass in two specific scenarios:
-    /// 
+    ///
     /// - If the caller is the direct admin of the contract. I.e. the admin stored in this contract. AND the state `CALLING_TO_AS_ADMIN` is set to the contract address or a wildcard.
     /// - If the caller is the **top-level** admin of the chain of ownership, starting from this contract.
     pub fn assert_admin_custom<Q: CustomQuery>(
