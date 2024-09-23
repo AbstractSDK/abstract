@@ -115,7 +115,6 @@ pub enum ExecuteMsg {
         /// Query of type `abstract-ica-client::msg::QueryMsg`
         action_query_msg: Binary,
     },
-
     /// Forward execution message to module
     #[cw_orch(payable)]
     ExecOnModule { module_id: String, exec_msg: Binary },
