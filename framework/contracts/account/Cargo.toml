@@ -14,8 +14,7 @@ exclude = ["contract.wasm", "hash.txt"]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# TODO: remove xion from default
-default = ["export", "xion"]
+default = ["export"]
 export = []
 xion = [
     "tiny-keccak",
@@ -31,6 +30,16 @@ xion = [
     "ripemd",
     "cosmos-sdk-proto",
     "prost",
+]
+
+[package.metadata.optimizer]
+standard-build = true
+builds = [
+    { name = "default", features = [
+    ] },
+    { name = "xion", features = [
+        "xion",
+    ] },
 ]
 
 [dependencies]

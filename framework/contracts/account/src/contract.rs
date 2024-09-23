@@ -441,7 +441,24 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             cosmwasm_std::to_json_binary(&ownership::get_ownership(deps.storage)?)
         }
         QueryMsg::AuthenticatorByID { id } => {
-            cosmwasm_std::to_json_binary(&crate::state::AUTHENTICATORS.load(deps.storage, id)?)
+            #[cfg(feature = "xion")]
+            {
+                cosmwasm_std::to_json_binary(&crate::state::AUTHENTICATORS.load(deps.storage, id)?)
+            }
+            #[cfg(not(feature = "xion"))]
+            Ok(Binary::default())
+        }
+        QueryMsg::AuthenticatorIDs {} => {
+            #[cfg(feature = "xion")]
+            {
+                cosmwasm_std::to_json_binary(
+                    &crate::state::AUTHENTICATORS
+                        .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+                        .collect::<Result<Vec<_>, _>>()?,
+                )
+            }
+            #[cfg(not(feature = "xion"))]
+            Ok(Binary::default())
         }
     }
 }

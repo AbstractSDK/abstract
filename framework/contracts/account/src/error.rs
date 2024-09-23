@@ -112,67 +112,87 @@ pub enum AccountError {
     #[error("Governance have to be renounced when authenticator is used")]
     GovernanceWithAuth {},
 
-    // TODO: Feature flag xion
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     EncodeError(#[from] cosmos_sdk_proto::prost::EncodeError),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     DecodeError(#[from] cosmos_sdk_proto::prost::DecodeError),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     Verification(#[from] cosmwasm_std::VerificationError),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     FromHex(#[from] hex::FromHexError),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     Bech32(#[from] bech32::Error),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     Base64Decode(#[from] base64::DecodeError),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     Rsa(#[from] rsa::Error),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     P256EllipticCurve(#[from] p256::elliptic_curve::Error),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     P256EcdsaCurve(#[from] p256::ecdsa::Error),
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     RecoverPubkey(#[from] cosmwasm_std::RecoverPubkeyError),
 
+    #[cfg(feature = "xion")]
     #[error("The pubkey recovered from the signature does not match")]
     RecoveredPubkeyMismatch {},
 
+    #[cfg(feature = "xion")]
     #[error("Signature is empty")]
     EmptySignature {},
 
+    #[cfg(feature = "xion")]
     #[error("Short signature")]
     ShortSignature {},
 
+    #[cfg(feature = "xion")]
     #[error("Signature is invalid")]
     InvalidSignature {},
 
+    #[cfg(feature = "xion")]
     #[error("Signature is invalid. expected: {expected}, received {received}")]
     InvalidSignatureDetail { expected: String, received: String },
 
+    #[cfg(feature = "xion")]
     #[error("Recovery id can only be one of 0, 1, 27, 28")]
     InvalidRecoveryId {},
 
+    #[cfg(feature = "xion")]
     #[error("Invalid token")]
     InvalidToken {},
 
+    #[cfg(feature = "xion")]
     #[error("url parse error: {url}")]
     URLParse { url: String },
 
+    #[cfg(feature = "xion")]
     #[error("cannot override existing authenticator at index {index}")]
     OverridingIndex { index: u8 },
 
+    #[cfg(feature = "xion")]
     #[error("cannot delete the last authenticator")]
-    MinimumAuthenticatorCount,
+    MinimumAuthenticatorCount {},
 
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     FromUTF8(#[from] std::string::FromUtf8Error),
 }

@@ -13,10 +13,9 @@ pub mod versioning;
 pub mod state {
     pub use abstract_std::account::state::*;
 
-    use crate::absacc::auth::Authenticator;
-    use cw_storage_plus::Map;
-
-    pub const AUTHENTICATORS: Map<u8, Authenticator> = Map::new("authenticators");
+    #[cfg(feature = "xion")]
+    pub const AUTHENTICATORS: cw_storage_plus::Map<u8, crate::absacc::auth::Authenticator> =
+        cw_storage_plus::Map::new("authenticators");
 }
 
 /// Abstract Account

@@ -247,8 +247,11 @@ pub enum QueryMsg {
 
     /// Query the pubkey associated with this account.
     // TODO: return type?
-    #[returns(cosmwasm_std::Empty)]
+    #[returns(Binary)]
     AuthenticatorByID { id: u8 },
+    /// Query the pubkey associated with this account.
+    #[returns(Binary)]
+    AuthenticatorIDs {},
 }
 
 /// Module info and init message
