@@ -11,7 +11,9 @@ keywords.workspace = true
 
 [dependencies]
 abstract-client = { version = "0.23.0", path = "../packages/abstract-client" }
+abstract-std.workspace = true
 anyhow.workspace = true
+cosmwasm-std.workspace = true
 cw-orch = { workspace = true, features = ["daemon"] }
 dotenv = "0.15.0"
 env_logger = "0.11.5"
