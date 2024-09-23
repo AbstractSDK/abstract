@@ -51,8 +51,6 @@ pub fn execute_on_module(
     module_id: String,
     exec_msg: Binary,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(deps.as_ref(), &info.sender)?;
-
     let module_addr = load_module_addr(deps.storage, &module_id)?;
     execute_msgs(
         deps,
