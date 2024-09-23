@@ -90,14 +90,6 @@ impl MockQuerierBuilder {
             api,
         }
     }
-
-    pub fn with_account_admin_flag(self, account: &Account) -> Self {
-        self.with_contract_item(
-            account.addr(),
-            CALLING_TO_AS_ADMIN,
-            &mock_env().contract.address,
-        )
-    }
 }
 
 pub fn map_key<'a, K, V>(map: &Map<K, V>, key: K) -> String
