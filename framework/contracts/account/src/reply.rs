@@ -12,7 +12,7 @@ use abstract_std::{
 use cosmwasm_std::{DepsMut, Reply, Response, StdError};
 
 /// Add the message's data to the response
-pub fn forward_response_reply(result: Reply) -> AccountResult {
+pub(crate) fn forward_response_reply(result: Reply) -> AccountResult {
     let res = result.result.into_result().map_err(StdError::generic_err)?;
 
     #[allow(deprecated)]
@@ -32,7 +32,7 @@ pub fn forward_response_reply(result: Reply) -> AccountResult {
 }
 
 /// Remove the storage for an admin call after execution
-pub fn admin_action_reply(deps: DepsMut) -> AccountResult {
+pub(crate) fn admin_action_reply(deps: DepsMut) -> AccountResult {
     CALLING_TO_AS_ADMIN.remove(deps.storage);
 
     Ok(Response::new())

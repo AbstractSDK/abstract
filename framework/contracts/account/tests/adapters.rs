@@ -454,12 +454,6 @@ fn account_adapter_ownership() -> AResult {
 
     // Checking base requests
 
-    println!(
-        "{:?} - {:?} - {:?}",
-        sender,
-        adapter.address(),
-        account.address()
-    );
     // Can call either by account owner or through manager
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
@@ -471,6 +465,7 @@ fn account_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
+
     account.call_as(&sender).admin_execute(
         adapter.address()?,
         to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
@@ -482,7 +477,7 @@ fn account_adapter_ownership() -> AResult {
         }))?,
     )?;
 
-    // Raw account without the Calling_to_as_admin variable set
+    // Raw account without the calling_to_as_admin variable set, should err.
     adapter
         .call_as(&account.address()?)
         .execute(
@@ -578,7 +573,7 @@ fn subaccount_adapter_ownership() -> AResult {
         }))?,
     )?;
 
-    // Raw account without the Calling_to_as_admin variable set
+    // Raw account without the calling_to_as_admin variable set, should err
     adapter
         .call_as(&account.address()?)
         .execute(
@@ -639,7 +634,7 @@ fn subaccount_adapter_ownership() -> AResult {
         }))?,
     )?;
 
-    // Raw account without the Calling_to_as_admin variable set
+    // Raw account without the calling_to_as_admin variable set, should err
     adapter
         .call_as(&sub_account.address()?)
         .execute(

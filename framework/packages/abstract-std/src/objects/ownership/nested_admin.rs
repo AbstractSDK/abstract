@@ -59,7 +59,7 @@ impl NestedAdmin {
         admin: Addr,
     ) -> StdResult<bool> {
         // Initial check if directly called by the admin
-        if caller == admin && account_has_admin_rights(querier, self_addr, caller) {
+        if caller == admin && assert_account_calling_to_as_admin_is_self(querier, self_addr, caller) {
             // If the caller is the admin, we still need to check that
             // if it's an account it's authorized to act as an admin
 
@@ -193,7 +193,8 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     current
 }
 
-pub fn account_has_admin_rights<Q: CustomQuery>(
+/// Assert that the account has a valid calling to the contract as an admin.
+pub fn assert_account_calling_to_as_admin_is_self<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
     self_addr: &Addr,
     maybe_account: &Addr,
