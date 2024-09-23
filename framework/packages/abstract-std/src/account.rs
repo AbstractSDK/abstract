@@ -128,9 +128,9 @@ pub enum ExecuteMsg {
     /// Forward execution message to module
     #[cw_orch(payable)]
     ExecuteOnModule { module_id: String, exec_msg: Binary },
-    /// Execute a Wasm Message with Abstract Admin priviledges
+    /// Execute a Wasm Message with Account Admin privileges
     AdminExecute { addr: String, msg: Binary },
-    /// Forward execution message to module with Abstract Admin priviledges
+    /// Forward execution message to module with Account Admin privileges
     AdminExecuteOnModule { module_id: String, msg: Binary },
 
     /// Execute IBC action on Client
