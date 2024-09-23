@@ -143,7 +143,7 @@ mod test {
             let mut deps = mock_init();
             let account = test_account_base(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             let new_ans_host = deps.api.addr_make("new_ans_host");
@@ -171,7 +171,7 @@ mod test {
             let abstr = AbstractMockAddrs::new(deps.api);
             let account = test_account_base(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {

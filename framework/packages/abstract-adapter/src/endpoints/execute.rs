@@ -289,7 +289,7 @@ mod tests {
             let account = test_account_base(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             mock_init(&mut deps)?;
@@ -323,7 +323,7 @@ mod tests {
             let account = test_account_base(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             mock_init(&mut deps)?;
@@ -364,7 +364,7 @@ mod tests {
             let account = test_account_base(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             mock_init(&mut deps)?;
@@ -407,7 +407,7 @@ mod tests {
             let account = test_account_base(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -441,7 +441,7 @@ mod tests {
             let account = test_account_base(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             mock_init(&mut deps)?;
@@ -513,7 +513,7 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&test_account_base(deps.api))
+                .set_account_admin_call_to(&test_account_base(deps.api))
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![]);
@@ -547,7 +547,7 @@ mod tests {
             let account = test_account_base(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![]);
@@ -567,7 +567,7 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&test_account_base(deps.api))
+                .set_account_admin_call_to(&test_account_base(deps.api))
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
@@ -589,7 +589,7 @@ mod tests {
             let account = test_account_base(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
@@ -616,7 +616,7 @@ mod tests {
                     &another_account,
                     AccountId::new(69420u32, AccountTrace::Local).unwrap(),
                 )
-                .with_account_admin_flag(&account)
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
