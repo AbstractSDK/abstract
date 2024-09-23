@@ -10,12 +10,15 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
-abstract-client = { version = "0.23.0", path = "../packages/abstract-client" }
+abstract-client = { path = "../packages/abstract-client" }
 abstract-std.workspace = true
-abstract-account ={ version = "0.23.0", path = "../contracts/account", features = ["xion"] }
+abstract-account = { path = "../contracts/account", features = ["xion"] }
 anyhow.workspace = true
 cosmwasm-std.workspace = true
 cw-orch = { workspace = true, features = ["daemon"] }
 dotenv = "0.15.0"
 env_logger = "0.11.5"
-xion_sdk_proto = {package = "cosmos-sdk-proto", git = "https://github.com/burnt-labs/cosmos-rust", branch = "feat/xion-serde", features = ["xion"]}
+xion_sdk_proto = { package = "cosmos-sdk-proto", git = "https://github.com/burnt-labs/cosmos-rust", branch = "feat/xion-serde", features = [
+    "xion",
+] }
+cosmrs = "0.20.0"

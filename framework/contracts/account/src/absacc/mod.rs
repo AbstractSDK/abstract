@@ -1,7 +1,8 @@
 pub mod auth;
 pub mod sudo;
 
-mod proto {
+// TODO move it xd
+pub mod proto {
 
     use cosmos_sdk_proto::cosmos;
     use cosmwasm_std::{AnyMsg, CosmosMsg};

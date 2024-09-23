@@ -11,6 +11,7 @@ mod secp256r1;
 mod sign_arb;
 pub mod util;
 
+/// Note: Instead of transaction bytes address of the Abstract Account used
 #[cosmwasm_schema::cw_serde]
 pub enum AddAuthenticator {
     Secp256K1 {
