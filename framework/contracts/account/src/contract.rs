@@ -244,13 +244,39 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
             is_suspended: suspension_status,
         } => update_account_status(deps, info, suspension_status).map_err(AccountError::from),
         msg => {
-            // Block actions if user is not subscribed
+            // Block actions if account is suspended
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
             if is_suspended {
                 return Err(AccountError::AccountSuspended {});
             }
 
             match msg {
+                // ## Execution ##
+                ExecuteMsg::Execute { msgs } => {
+                    execute_msgs(deps, &info.sender, msgs).map_err(AccountError::from)
+                }
+                ExecuteMsg::AdminExecute { addr, msg } => {
+                    let addr = deps.api.addr_validate(&addr)?;
+                    admin_execute(deps, info, addr, msg)
+                }
+                ExecuteMsg::ExecuteWithData { msg } => {
+                    execute_msgs_with_data(deps, &info.sender, msg).map_err(AccountError::from)
+                }
+                ExecuteMsg::ExecuteOnModule {
+                    module_id,
+                    exec_msg,
+                } => execute_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
+                ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
+                    admin_execute_on_module(deps, info, module_id, msg)
+                }
+                ExecuteMsg::IbcAction { msg } => {
+                    execute_ibc_action(deps, info, msg).map_err(AccountError::from)
+                }
+                ExecuteMsg::IcaAction { action_query_msg } => {
+                    ica_action(deps, info, action_query_msg).map_err(AccountError::from)
+                }
+
+                // ## Configuration ##
                 ExecuteMsg::UpdateInternalConfig(config) => {
                     update_internal_config(deps, info, config).map_err(AccountError::from)
                 }
@@ -260,25 +286,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id).map_err(AccountError::from)
                 }
-                ExecuteMsg::CreateSubAccount {
-                    name,
-                    description,
-                    link,
-                    namespace,
-                    install_modules,
-                    account_id,
-                } => create_sub_account(
-                    deps,
-                    info,
-                    env,
-                    name,
-                    description,
-                    link,
-                    namespace,
-                    install_modules,
-                    account_id,
-                )
-                .map_err(AccountError::from),
                 ExecuteMsg::Upgrade { modules } => {
                     upgrade_modules(deps, env, info, modules).map_err(AccountError::from)
                 }
@@ -287,12 +294,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     description,
                     link,
                 } => update_info(deps, info, name, description, link).map_err(AccountError::from),
-                ExecuteMsg::UpdateSubAccount(action) => {
-                    handle_sub_account_action(deps, info, action).map_err(AccountError::from)
-                }
-                // TODO: Update module migrate logic to not use callback!
-                // ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
-                // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
                     // If sub-account related it may require some messages to be constructed beforehand
                     let msgs = match &action {
@@ -319,33 +320,36 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             .add_messages(msgs),
                     )
                 }
-                ExecuteMsg::Execute { msgs } => {
-                    execute_msgs(deps, &info.sender, msgs).map_err(AccountError::from)
-                }
-                ExecuteMsg::ExecuteWithData { msg } => {
-                    execute_msgs_with_data(deps, &info.sender, msg).map_err(AccountError::from)
+
+                // ## Sub-Accounts ##
+                ExecuteMsg::CreateSubAccount {
+                    name,
+                    description,
+                    link,
+                    namespace,
+                    install_modules,
+                    account_id,
+                } => create_sub_account(
+                    deps,
+                    info,
+                    env,
+                    name,
+                    description,
+                    link,
+                    namespace,
+                    install_modules,
+                    account_id,
+                )
+                .map_err(AccountError::from),
+                ExecuteMsg::UpdateSubAccount(action) => {
+                    handle_sub_account_action(deps, info, action).map_err(AccountError::from)
                 }
 
-                ExecuteMsg::ExecuteOnModule {
-                    module_id,
-                    exec_msg,
-                } => execute_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
-                ExecuteMsg::IbcAction { msg } => {
-                    execute_ibc_action(deps, info, msg).map_err(AccountError::from)
-                }
-                ExecuteMsg::IcaAction { action_query_msg } => {
-                    ica_action(deps, info, action_query_msg).map_err(AccountError::from)
-                }
+                // ## Other ##
+                // TODO: Update module migrate logic to not use callback!
+                ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
                 ExecuteMsg::UpdateStatus { is_suspended: _ } => {
                     unreachable!("Update status case is reached above")
-                }
-                ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
-                ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
-                    admin_execute_on_module(deps, info, module_id, msg)
-                }
-                ExecuteMsg::AdminExecute { addr, msg } => {
-                    let addr = deps.api.addr_validate(&addr)?;
-                    admin_execute(deps, info, addr, msg)
                 }
             }
         }
