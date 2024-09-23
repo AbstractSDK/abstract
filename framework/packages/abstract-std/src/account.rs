@@ -37,7 +37,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{module::ModuleId, storage_namespaces, AccountId};
-    
+
     pub type SuspensionStatus = bool;
 
     /// Manager configuration

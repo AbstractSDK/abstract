@@ -17,7 +17,6 @@ use crate::{
     modules::load_module_addr,
 };
 
-
 /// Executes `Vec<CosmosMsg>` on the proxy.
 /// Permission: Module
 pub fn execute_msgs(
@@ -53,7 +52,7 @@ pub fn execute_on_module(
     exec_msg: Binary,
 ) -> AccountResult {
     assert_whitelisted_or_owner(deps.as_ref(), &info.sender)?;
-    
+
     let module_addr = load_module_addr(deps.storage, &module_id)?;
     execute_msgs(
         deps,
