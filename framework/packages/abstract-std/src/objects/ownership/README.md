@@ -1,8 +1,12 @@
-# CW Ownable
+# Abstract Ownership
+
+Abstract uses multiple ownership capabilities for different use cases.
+
+## CW Ownable
 
 Utility for controlling ownership of [CosmWasm](https://github.com/CosmWasm/cosmwasm) smart contracts.
 
-## How to use
+### How to use
 
 Initialize the owner during instantiation using the `initialize_owner` method provided by this crate:
 
@@ -92,11 +96,87 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 ```
 
-## Edge cases
+### Edge cases
 
-### NFT governance type
+## NFT governance type
 
-In case NFT contract does not return owner of `owner_of`, ownership will act as renounced. For example NFT got burned or something happened with NFT contract.
+Utility for querying the owner of a specific NFT. In case NFT contract does not return owner of `owner_of`, ownership will act as renounced. For example NFT got burned or something happened with NFT contract.
+
+## Abstract Account Controlled Module
+
+For modules and contracts controlled by Abstract Accounts, we present a mechanism that allows those contracts to make sure that an in-coming message from the Account was originally called by an admin and not another module. This prevents any module to call admin functions on other modules and thus makes the module system more resistent to malicious modules.
+
+### Mechanism
+
+Modules and Account Owners can execute actions through the Account using the `account::ExecuteMsg::Execute` message variant. In order to execute an admin call, owners need to call `account::ExecuteMsg::AdminExecute`. This function will in order:
+
+- Set the `CALLING_TO_AS_ADMIN` storage item to the target of the admin call.
+- Call the specified function on the target module or contract.
+- Remove the `CALLING_TO_AS_ADMIN` storage item.
+
+In order to check that the call is an admin call, the target module or contract needs to check that the `CALLING_TO_AS_ADMIN` storage item is set on the account contract. If it's not set, it should error, as the call is not an authorized admin call.
+
+### Usage inside a module
+
+To use this functionality, Abstract provides helpers in form of the `NestedAdmin` structure. This structure should be used to handle `Abstract Accounts` as admin of a contract.
+
+The `NestedAdmin::assert_admin` function will only return an `Result::Ok` if any of those conditions is true:
+
+- The caller is the saved Account AND the `CALLING_TO_AS_ADMIN` variable is set on the account to either:
+  - The contract account address (`env.contract.address` is supposed to be fed to the self_addr variable)
+  - The `CALLING_TO_AS_ADMIN_WILD_CARD`, that is used for contract migrations to avoid re-setting the flag during migration events.
+- The caller is the top-level owner of the saved Account
+
+So inside `Abstract Apps` for instance, one should write the following lines to flag admin actions:
+
+```rust
+app.admin.assert_admin(deps.as_ref(), &env.contract.address, info.sender)?;
+```
+
+### Graphical sequences
+
+#### Successful admin call
+
+```mermaid
+sequenceDiagram
+User ->> Account: ExecuteMsg::ConfigureModule<br/>{ module_id: Module, msg: ...}
+Account ->> Account: Store Module address as <br/>`CALLING_TO_AS_ADMIN`
+Account ->> Module: ExecuteMsg
+alt query
+Module ->> Account: Query `CALLING_TO_AS_ADMIN`
+Account ->> Module:  
+end
+Module ->> Module: Make sure `CALLING_TO_AS_ADMIN` == Module
+Module ->> Module: Execute Admin Message
+Account ->> Account: Remove `CALLING_TO_AS_ADMIN`
+```
+
+#### Error, not admin call
+
+```mermaid
+sequenceDiagram
+Bad Module ->> Account: ExecuteMsg::ExecuteOnModule <br/>{ module_id: Module, msg: ...}
+Account ->> Module: ExecuteMsg
+alt query
+Module -x Account: Query `CALLING_TO_AS_ADMIN`
+Account -x Module: Not set
+end
+```
+
+#### Malicious Module can’t execute Admin function of other Module
+
+```mermaid
+sequenceDiagram
+User ->> Account: ExecuteMsg::ConfigureModule<br/>{ module_id: Module, msg: ...}
+Account ->> Account: Store Bad Module address as <br/>`CALLING_TO_AS_ADMIN`
+Account ->> Bad Module: ExecuteMsg
+Bad Module ->> Module: ChangeConfig
+alt query
+Module ->> Account: Query `CALLING_TO_AS_ADMIN`
+Account ->> Module:  
+end
+Module ->> Module: `CALLING_TO_AS_ADMIN` != Module --> Error
+```
 
 ## License
 
