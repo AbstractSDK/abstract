@@ -1,5 +1,5 @@
 use cosmwasm_std::{Binary, CanonicalAddr};
-use cw_blob::interface::CwBlob;
+use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
 
@@ -85,23 +85,19 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.ans_host,
+
+        deployment.ans_host.deterministic_instantiate(
             &abstract_std::ans_host::MigrateMsg::Instantiate(
                 abstract_std::ans_host::InstantiateMsg {
                     admin: admin.to_string(),
                 },
             ),
+            blob_code_id,
             CanonicalAddr::from(native_addrs::ANS_ADDR),
             Binary::from(ANS_HOST.as_bytes()),
         )?;
 
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.version_control,
+        deployment.version_control.deterministic_instantiate(
             &abstract_std::version_control::MigrateMsg::Instantiate(
                 abstract_std::version_control::InstantiateMsg {
                     admin: admin.to_string(),
@@ -112,43 +108,38 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                     namespace_registration_fee: None,
                 },
             ),
+            blob_code_id,
             CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR),
             Binary::from(VERSION_CONTROL.as_bytes()),
         )?;
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.module_factory,
+        deployment.module_factory.deterministic_instantiate(
             &abstract_std::module_factory::MigrateMsg::Instantiate(
                 abstract_std::module_factory::InstantiateMsg {
                     admin: admin.to_string(),
                 },
             ),
+            blob_code_id,
             CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR),
             Binary::from(MODULE_FACTORY.as_bytes()),
         )?;
 
         // We also instantiate ibc contracts
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.ibc.client,
+        deployment.ibc.client.deterministic_instantiate(
             &abstract_std::ibc_client::MigrateMsg::Instantiate(
                 abstract_std::ibc_client::InstantiateMsg {
                     ans_host_address: deployment.ans_host.addr_str()?,
                     version_control_address: deployment.version_control.addr_str()?,
                 },
             ),
+            blob_code_id,
             CanonicalAddr::from(native_addrs::IBC_CLIENT_ADDR),
             Binary::from(IBC_CLIENT.as_bytes()),
         )?;
-        CwBlob::upload_and_migrate(
-            chain.clone(),
-            blob_code_id,
-            &deployment.ibc.host,
+        deployment.ibc.host.deterministic_instantiate(
             &abstract_std::ibc_host::MigrateMsg::Instantiate(
                 abstract_std::ibc_host::InstantiateMsg {},
             ),
+            blob_code_id,
             CanonicalAddr::from(native_addrs::IBC_HOST_ADDR),
             Binary::from(IBC_HOST.as_bytes()),
         )?;
@@ -318,6 +309,20 @@ impl<Chain: CwEnv> Abstract<Chain> {
         account.set_sender(sender);
         ibc.client.set_sender(sender);
         ibc.host.set_sender(sender);
+    }
+}
+
+impl Abstract<MockBech32> {
+    pub fn deploy_on_test(chain: MockBech32) -> Result<Self, AbstractInterfaceError> {
+        use cosmwasm_std::Api;
+
+        let sender = chain
+            .app
+            .borrow()
+            .api()
+            .addr_humanize(&CanonicalAddr::from(native_addrs::TEST_ABSTRACT_CREATOR))
+            .unwrap();
+        Self::deploy_on(chain, sender)
     }
 }
 

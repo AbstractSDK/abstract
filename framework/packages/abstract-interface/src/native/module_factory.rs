@@ -7,6 +7,8 @@ use cw_orch::{interface, prelude::*};
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;
 
+impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for ModuleFactory<Chain> {}
+
 impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
     fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
