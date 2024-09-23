@@ -17,17 +17,6 @@ use crate::{
     modules::load_module_addr,
 };
 
-/// Check that sender either whitelisted or governance
-pub(crate) fn assert_whitelisted_or_owner(deps: Deps, sender: &Addr) -> AccountResult<()> {
-    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if whitelisted_modules.0.contains(sender)
-        || ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok()
-    {
-        Ok(())
-    } else {
-        Err(AccountError::SenderNotWhitelistedOrOwner {})
-    }
-}
 
 /// Executes `Vec<CosmosMsg>` on the proxy.
 /// Permission: Module
@@ -56,15 +45,16 @@ pub fn execute_msgs_with_data(
 }
 
 /// Execute the [`exec_msg`] on the provided [`module_id`],
-/// This is a simple wrapper around `LocalAction`
+/// This is a simple wrapper around [`ExecuteMsg::Execute`](abstract_std::account::ExecuteMsg::Execute).
 pub fn execute_on_module(
     deps: DepsMut,
     info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
 ) -> AccountResult {
+    assert_whitelisted_or_owner(deps.as_ref(), &info.sender)?;
+    
     let module_addr = load_module_addr(deps.storage, &module_id)?;
-
     execute_msgs(
         deps,
         &info.sender,
@@ -162,6 +152,17 @@ pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) ->
     )?;
 
     Ok(AccountResponse::action("ica_action").add_messages(res.msgs))
+}
+/// Check that sender either whitelisted or governance
+pub(crate) fn assert_whitelisted_or_owner(deps: Deps, sender: &Addr) -> AccountResult<()> {
+    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
+    if whitelisted_modules.0.contains(sender)
+        || ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok()
+    {
+        Ok(())
+    } else {
+        Err(AccountError::SenderNotWhitelistedOrOwner {})
+    }
 }
 
 #[cfg(test)]

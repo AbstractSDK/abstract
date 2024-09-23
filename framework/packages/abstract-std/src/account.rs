@@ -37,7 +37,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{module::ModuleId, storage_namespaces, AccountId};
-
+    
     pub type SuspensionStatus = bool;
 
     /// Manager configuration
@@ -56,6 +56,9 @@ pub mod state {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub link: Option<String>,
     }
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct WhitelistedModules(pub Vec<Addr>);
 
     pub const WHITELISTED_MODULES: Item<WhitelistedModules> =
         Item::new(storage_namespaces::account::WHITELISTED_MODULES);
@@ -83,12 +86,10 @@ pub mod state {
     /// Temporary state variable that allows for checking access control on admin operation
     pub const CALLING_TO_AS_ADMIN: Item<Addr> =
         Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
-    // Additional states, not listed here: cw_gov_ownable::GovOwnership
 
     pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
-    #[cosmwasm_schema::cw_serde]
-    pub struct WhitelistedModules(pub Vec<Addr>);
+    // Additional states, not listed here: cw_gov_ownable::GovOwnership
 }
 
 #[cosmwasm_schema::cw_serde]
