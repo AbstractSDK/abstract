@@ -1,4 +1,3 @@
-// TODO: make private what we can and write module-level documentation
 pub mod config;
 pub mod contract;
 pub mod error;
@@ -19,6 +18,7 @@ pub mod state {
 }
 
 /// Abstract Account
+#[cfg(feature = "xion")]
 pub mod absacc;
 #[cfg(test)]
 mod test_common {

@@ -24,8 +24,8 @@ use abstract_std::{
     version_control::state::LOCAL_ACCOUNT_SEQUENCE,
 };
 use cosmwasm_std::{
-    ensure, ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply,
-    Response, StdResult, SubMsgResult,
+    ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response,
+    StdResult, SubMsgResult,
 };
 
 pub use crate::migrate::migrate;
@@ -62,8 +62,30 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const RESPONSE_REPLY_ID: u64 = 1;
 pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 2;
 
+// Need wrapper because cosmwasm_std::entry_point counts arguments in any feature
+#[cfg(feature = "xion")]
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg<crate::absacc::auth::AddAuthenticator>,
+) -> AccountResult {
+    _instantiate(deps, env, info, msg)
+}
+#[cfg(not(feature = "xion"))]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn instantiate(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg<cosmwasm_std::Empty>,
+) -> AccountResult {
+    _instantiate(deps, env, info, msg)
+}
+
+#[doc(hidden)]
+pub fn _instantiate(
     mut deps: DepsMut,
     _env: Env,
     info: MessageInfo,
@@ -271,8 +293,30 @@ pub fn instantiate(
     Ok(response)
 }
 
+// Need wrapper because cosmwasm_std::entry_point counts arguments in any feature
+#[cfg(feature = "xion")]
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg<crate::absacc::auth::AddAuthenticator>,
+) -> AccountResult {
+    _execute(deps, env, info, msg)
+}
+#[cfg(not(feature = "xion"))]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg<cosmwasm_std::Empty>,
+) -> AccountResult {
+    _execute(deps, env, info, msg)
+}
+
+#[doc(hidden)]
+pub fn _execute(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
