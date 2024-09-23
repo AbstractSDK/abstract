@@ -139,7 +139,7 @@ dependencies = [
  "cw-asset",
  "cw-controllers",
  "cw-orch",
- "cw-orch-interchain",
+ "cw-orch-interchain 0.5.0",
  "cw-plus-orch",
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
@@ -188,7 +188,7 @@ dependencies = [
  "abstract-polytone-voice",
  "cosmwasm-std 2.1.3",
  "cw-orch",
- "cw-orch-interchain",
+ "cw-orch-interchain 0.4.0",
 ]
 
 [[package]]
@@ -362,7 +362,7 @@ dependencies = [
  "cw-asset",
  "cw-controllers",
  "cw-orch",
- "cw-orch-interchain",
+ "cw-orch-interchain 0.5.0",
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "cw20",
@@ -2170,9 +2170,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a0245ab88afe7eb507091afb2e7621e42e9979b9a14a1898983c3156be20aa8b"
 dependencies = [
  "cosmwasm-std 2.1.3",
- "cw-orch-interchain-core",
- "cw-orch-interchain-daemon",
- "cw-orch-interchain-mock",
+ "cw-orch-interchain-core 0.5.0",
+ "cw-orch-interchain-daemon 0.5.0",
+ "cw-orch-interchain-mock 0.5.0",
+ "cw-orch-starship",
+ "cw1",
+ "cw1-whitelist",
+ "ibc-relayer-types",
+ "speculoos",
+]
+
+[[package]]
+name = "cw-orch-interchain"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87edcc5ea0a708b8b2b1802810427a594a0017364d3111c785c78d3e98f40782"
+dependencies = [
+ "cosmwasm-std 2.1.3",
+ "cw-orch-interchain-core 0.6.0",
+ "cw-orch-interchain-daemon 0.6.0",
+ "cw-orch-interchain-mock 0.6.0",
  "cw-orch-starship",
  "cw1",
  "cw1-whitelist",
@@ -2204,6 +2221,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "cw-orch-interchain-core"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25fccf66e80d8fea6ed90a4e040b52b0580ecbbacef426e583658166c9730c23"
+dependencies = [
+ "base64 0.22.1",
+ "cosmwasm-schema 2.1.3",
+ "cosmwasm-std 2.1.3",
+ "cw-orch-core",
+ "cw-orch-daemon",
+ "cw-orch-mock",
+ "futures",
+ "ibc-relayer-types",
+ "log",
+ "polytone",
+ "prost 0.13.2",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tonic",
+]
+
+[[package]]
 name = "cw-orch-interchain-daemon"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2216,7 +2256,36 @@ dependencies = [
  "cosmwasm-std 2.1.3",
  "cw-orch-core",
  "cw-orch-daemon",
- "cw-orch-interchain-core",
+ "cw-orch-interchain-core 0.5.0",
+ "cw-orch-starship",
+ "derive_builder 0.20.1",
+ "dialoguer",
+ "diff-struct",
+ "futures",
+ "futures-util",
+ "ibc-relayer-types",
+ "log",
+ "log4rs",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tonic",
+]
+
+[[package]]
+name = "cw-orch-interchain-daemon"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b4cef440393eaface765b3191b146993359614b8329cdaa626487017a627b24"
+dependencies = [
+ "async-recursion",
+ "base64 0.22.1",
+ "cosmrs",
+ "cosmwasm-schema 2.1.3",
+ "cosmwasm-std 2.1.3",
+ "cw-orch-core",
+ "cw-orch-daemon",
+ "cw-orch-interchain-core 0.6.0",
  "cw-orch-starship",
  "derive_builder 0.20.1",
  "dialoguer",
@@ -2242,7 +2311,27 @@ dependencies = [
  "cosmrs",
  "cosmwasm-std 2.1.3",
  "cw-orch-core",
- "cw-orch-interchain-core",
+ "cw-orch-interchain-core 0.5.0",
+ "cw-orch-mock",
+ "cw-utils 2.0.0",
+ "ibc-relayer-types",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "cw-orch-interchain-mock"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f8e3512730a5ce12cd3d67b925815ed93c0520b7447ab571bbe121b01a7821e"
+dependencies = [
+ "anyhow",
+ "cosmrs",
+ "cosmwasm-std 2.1.3",
+ "cw-orch-core",
+ "cw-orch-interchain-core 0.6.0",
  "cw-orch-mock",
  "cw-utils 2.0.0",
  "ibc-relayer-types",
@@ -7778,8 +7867,8 @@ dependencies = [
  "crossbeam-epoch",
  "crunchy",
  "cw-orch",
- "cw-orch-interchain",
- "cw-orch-interchain-core",
+ "cw-orch-interchain 0.4.0",
+ "cw-orch-interchain-core 0.5.0",
  "cw1-whitelist",
  "cw20-base",
  "der",
@@ -7906,33 +7995,3 @@ dependencies = [
  "quote",
  "syn 2.0.77",
 ]
-
-[[patch.unused]]
-name = "cw-orch-core"
-version = "1.2.4"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
-
-[[patch.unused]]
-name = "cw-orch-daemon"
-version = "0.24.5"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
-
-[[patch.unused]]
-name = "cw-orch-interchain-core"
-version = "0.4.2"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
-
-[[patch.unused]]
-name = "cw-orch-interchain-daemon"
-version = "0.4.1"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
-
-[[patch.unused]]
-name = "cw-orch-interchain-mock"
-version = "0.4.1"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
-
-[[patch.unused]]
-name = "cw-orch-mock"
-version = "0.23.2"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"

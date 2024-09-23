@@ -53,7 +53,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-orch = { version = "0.25.0" }
-cw-orch-interchain = { version = "0.4.0" }
+cw-orch-interchain = { version = "0.5.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "2.0.0" }
@@ -121,13 +121,6 @@ incremental = false
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-
-cw-orch-interchain-core = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
-cw-orch-interchain-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
-cw-orch-interchain-mock = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
-cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
-cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
-cw-orch-mock = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "nicolas/add-interchain-chains" }
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep
