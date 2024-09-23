@@ -33,8 +33,10 @@ pub trait IbcInterface:
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
-        # let module = MockModule::new(deps.api);
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
         ```
@@ -73,8 +75,10 @@ impl<'a, T: IbcInterface> ApiIdentification for IbcClient<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
-    # let module = MockModule::new(deps.api);
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
     ```
@@ -312,7 +316,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                account_msgs: vec![abstract_std::account::ExecuteMsg::ExecOnModule {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
                 }],
@@ -341,7 +345,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, *};
+    use cosmwasm_std::*;
     use speculoos::prelude::*;
 
     use super::*;
@@ -351,8 +355,8 @@ mod test {
     /// Tests that a host_action can be built with no callback
     #[test]
     fn test_host_action_no_callback() {
-        let deps = mock_dependencies();
-        let stub = MockModule::new(deps.api);
+        let (deps, _, stub) = mock_module_setup();
+
         let client = stub.ibc_client(deps.as_ref());
         let msg = client.host_action(
             TEST_HOST_CHAIN.parse().unwrap(),
@@ -386,8 +390,8 @@ mod test {
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
     #[test]
     fn test_ics20_transfer() {
-        let deps = mock_dependencies();
-        let stub = MockModule::new(deps.api);
+        let (deps, _, stub) = mock_module_setup();
+
         let client = stub.ibc_client(deps.as_ref());
 
         let expected_funds = coins(100, "denom");

@@ -5,8 +5,7 @@ use abstract_sdk::{
     ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
-    account,
-    account::ModuleInstallConfig,
+    account::{self, ModuleInstallConfig},
     app::AppState,
     ibc::{polytone_callbacks::CallbackRequest, Callback, ModuleQuery},
     ibc_client::{

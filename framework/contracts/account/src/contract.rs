@@ -1,8 +1,11 @@
 use abstract_macros::abstract_response;
-use abstract_sdk::std::{
-    account::state::ACCOUNT_ID,
-    objects::validation::{validate_description, validate_link, validate_name},
-    ACCOUNT,
+use abstract_sdk::{
+    feature_objects::VersionControlContract,
+    std::{
+        account::state::ACCOUNT_ID,
+        objects::validation::{validate_description, validate_link, validate_name},
+        ACCOUNT,
+    },
 };
 use abstract_std::{
     account::{
@@ -12,6 +15,7 @@ use abstract_std::{
         },
         ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
     },
+    module_factory::SimulateInstallModulesResponse,
     objects::{
         gov_type::GovernanceDetails,
         ownership::{self, GovOwnershipError},
@@ -20,20 +24,18 @@ use abstract_std::{
     version_control::state::LOCAL_ACCOUNT_SEQUENCE,
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
+    ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response,
     StdResult,
 };
 
 pub use crate::migrate::migrate;
 use crate::{
-    actions::{
-        admin_account_action, exec_admin_on_module, exec_on_module, execute_account_action,
-        execute_account_action_response, execute_ibc_action, ica_action,
-    },
-    config::{
-        remove_account_from_contracts, update_account_status, update_info, update_internal_config,
-    },
+    config::{update_account_status, update_info, update_internal_config},
     error::AccountError,
+    execution::{
+        admin_execute, admin_execute_on_module, execute_ibc_action, execute_msgs,
+        execute_msgs_with_data, execute_on_module, ica_action,
+    },
     modules::{
         _install_modules, install_modules,
         migration::{handle_callback, upgrade_modules},
@@ -47,6 +49,7 @@ use crate::{
     reply::{admin_action_reply, forward_response_reply, register_dependencies},
     sub_account::{
         create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
+        remove_account_from_contracts,
     },
 };
 
@@ -162,13 +165,26 @@ pub fn instantiate(
         ],
     );
 
+    let version_control = VersionControlContract::new(config.version_control_address.clone());
+
+    let funds_for_namespace_fee = if namespace.is_some() {
+        version_control
+            .namespace_registration_fee(&deps.querier)?
+            .into_iter()
+            .collect()
+    } else {
+        vec![]
+    };
+
+    let mut total_fee = Coins::try_from(funds_for_namespace_fee.clone()).unwrap();
+
     response = response.add_message(wasm_execute(
         version_control_address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
             namespace,
             creator: info.sender.to_string(),
         },
-        vec![],
+        funds_for_namespace_fee,
     )?);
 
     // Register on account if it's sub-account
@@ -183,17 +199,39 @@ pub fn instantiate(
     }
 
     if !install_modules.is_empty() {
+        let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
+            config.module_factory_address.to_string(),
+            &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
+                modules: install_modules.iter().map(|m| m.module.clone()).collect(),
+            },
+        )?;
+
+        simulate_resp.total_required_funds.iter().for_each(|funds| {
+            total_fee.add(funds.clone()).unwrap();
+        });
+
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
             install_modules,
             config.module_factory_address,
-            config.version_control_address,
-            info.funds,
+            config.version_control_address.clone(),
+            simulate_resp.total_required_funds,
         )?;
         response = response
             .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);
+    }
+
+    let mut total_received = Coins::try_from(info.funds.clone()).unwrap();
+
+    for fee in total_fee.clone() {
+        total_received.sub(fee).map_err(|_| {
+            abstract_std::AbstractError::Fee(format!(
+                "Invalid fee payment sent. Expected {}, sent {:?}",
+                total_fee, info.funds
+            ))
+        })?;
     }
 
     Ok(response)
@@ -281,18 +319,17 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             .add_messages(msgs),
                     )
                 }
-                ExecuteMsg::AccountActions { msgs } => {
-                    execute_account_action(deps, &info.sender, msgs).map_err(AccountError::from)
+                ExecuteMsg::Execute { msgs } => {
+                    execute_msgs(deps, &info.sender, msgs).map_err(AccountError::from)
                 }
-                ExecuteMsg::AccountActionWithData { msg } => {
-                    execute_account_action_response(deps, &info.sender, msg)
-                        .map_err(AccountError::from)
+                ExecuteMsg::ExecuteWithData { msg } => {
+                    execute_msgs_with_data(deps, &info.sender, msg).map_err(AccountError::from)
                 }
 
-                ExecuteMsg::ExecOnModule {
+                ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg,
-                } => exec_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
+                } => execute_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
                 ExecuteMsg::IbcAction { msg } => {
                     execute_ibc_action(deps, info, msg).map_err(AccountError::from)
                 }
@@ -303,12 +340,12 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     unreachable!("Update status case is reached above")
                 }
                 ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
-                ExecuteMsg::AdminExecOnModule { module_id, msg } => {
-                    exec_admin_on_module(deps, info, module_id, msg)
+                ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
+                    admin_execute_on_module(deps, info, module_id, msg)
                 }
-                ExecuteMsg::AdminAccountAction { addr, msg } => {
+                ExecuteMsg::AdminExecute { addr, msg } => {
                     let addr = deps.api.addr_validate(&addr)?;
-                    admin_account_action(deps, info, addr, msg)
+                    admin_execute(deps, info, addr, msg)
                 }
             }
         }
@@ -378,14 +415,12 @@ mod tests {
     use abstract_std::{
         account,
         objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
-        version_control::Account,
     };
     use abstract_testing::prelude::AbstractMockAddrs;
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies, mock_env},
-        wasm_execute, Addr, CosmosMsg, SubMsg,
+        wasm_execute, CosmosMsg, SubMsg,
     };
-    use speculoos::prelude::*;
 
     #[test]
     fn successful_instantiate() {
@@ -413,7 +448,7 @@ mod tests {
             },
         );
 
-        assert_that!(resp).is_ok();
+        assert!(resp.is_ok());
 
         let expected_msg: CosmosMsg = wasm_execute(
             abstr.version_control,
@@ -426,6 +461,6 @@ mod tests {
         .unwrap()
         .into();
 
-        assert_that!(&resp.unwrap().messages).is_equal_to(&vec![SubMsg::new(expected_msg)]);
+        assert_eq!(resp.unwrap().messages, vec![SubMsg::new(expected_msg)]);
     }
 }

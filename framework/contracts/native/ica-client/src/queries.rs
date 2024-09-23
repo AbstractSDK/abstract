@@ -1,6 +1,8 @@
-use crate::state::{Config, CONFIG};
 use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
-use abstract_std::objects::TruncatedChainId;
+use abstract_std::{
+    ica_client::state::{Config, CONFIG},
+    objects::TruncatedChainId,
+};
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
 use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
@@ -22,7 +24,7 @@ pub fn config(deps: Deps) -> IcaClientResult<ConfigResponse> {
 pub(crate) fn ica_action(
     deps: Deps,
     env: Env,
-    _proxy_address: String,
+    _account_address: String,
     chain: TruncatedChainId,
     actions: Vec<IcaAction>,
 ) -> IcaClientResult<IcaActionResponse> {
@@ -119,7 +121,7 @@ mod tests {
         let chain_name = TruncatedChainId::from_str(EVM_CHAIN).unwrap();
         let abstr = AbstractMockAddrs::new(api);
 
-        AbstractMockQuerierBuilder::new(api)
+        MockQuerierBuilder::new(api)
             .account(&abstr.account, TEST_ACCOUNT_ID)
             .contracts(vec![(
                 &ContractEntry {
@@ -135,7 +137,6 @@ mod tests {
                 },
                 "channel-1".into(),
             )])
-            .builder()
             .with_smart_handler(&env_note_addr(api), |bin| {
                 let msg = from_json::<evm_note::msg::QueryMsg>(bin).unwrap();
                 match msg {
@@ -223,7 +224,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: abstr.account.proxy.to_string(),
+                account_address: abstr.account.addr().to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
                     msgs: vec![EvmMsg::Call {
@@ -274,7 +275,7 @@ mod tests {
             let receiver = HexBinary::from_hex("123fff").unwrap();
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: abstr.account.proxy.to_string(),
+                account_address: abstr.account.addr().to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Fund {
                     funds: coins(1, "test"),
@@ -315,7 +316,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: abstr.account.proxy.to_string(),
+                account_address: abstr.account.addr().to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Fund {
                     funds: coins(1, "test"),
@@ -354,7 +355,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: abstr.account.proxy.to_string(),
+                account_address: abstr.account.addr().to_string(),
                 chain: chain_name.clone(),
                 actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
                     msgs: vec![EvmMsg::Call {

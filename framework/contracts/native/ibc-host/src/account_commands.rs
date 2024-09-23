@@ -99,13 +99,13 @@ pub fn receive_register(
         .add_attribute("action", "register"))
 }
 
-/// Execute manager message on local manager.
+/// Execute account message on local account.
 pub fn receive_dispatch(
     _deps: DepsMut,
     account: Account,
     account_msgs: Vec<account::ExecuteMsg>,
 ) -> HostResult {
-    // execute the message on the manager
+    // execute the message on the account
     let msgs = account_msgs
         .into_iter()
         .map(|msg| wasm_execute(account.addr(), &msg, vec![]))
@@ -167,13 +167,13 @@ pub fn send_all_back(
             .into(),
         )
     }
-    // call the message to send everything back through the manager
-    let manager_msg = wasm_execute(
+    // call the message to send everything back through the account
+    let account_msg = wasm_execute(
         account.into_addr(),
-        &account::ExecuteMsg::AccountActions { msgs },
+        &account::ExecuteMsg::Execute { msgs },
         vec![],
     )?;
-    Ok(manager_msg.into())
+    Ok(account_msg.into())
 }
 
 /// get the account base from the version control contract

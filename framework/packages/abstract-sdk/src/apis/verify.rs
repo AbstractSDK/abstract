@@ -1,7 +1,6 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use abstract_std::{
-    account::state::CALLING_TO_AS_ADMIN,
     objects::{
         ownership::nested_admin::account_has_admin_rights, version_control::VersionControlContract,
         AccountId,
@@ -27,8 +26,10 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
-        # let module = MockModule::new(deps.api);
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
         ```
@@ -68,8 +69,10 @@ impl<'a, T: AccountVerification> ApiIdentification for AccountRegistry<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
-    # let module = MockModule::new(deps.api);
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
     ```
@@ -118,7 +121,7 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     ) -> AbstractSdkResult<Account> {
         let account = self.assert_account(maybe_account)?;
 
-        if !account_has_admin_rights(&self.deps.querier, env, maybe_account) {
+        if !account_has_admin_rights(&self.deps.querier, &env.contract.address, maybe_account) {
             return Err(AbstractSdkError::OnlyAdmin {});
         }
         Ok(account)
@@ -169,12 +172,11 @@ mod test {
             let not_account = Account::new(deps.api.addr_make("not_account"));
             let base = test_account_base(deps.api);
 
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
+            deps.querier = MockQuerierBuilder::new(deps.api)
                 // Setup the addresses as if the Account was registered
                 .account(&not_account, TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
                 .account(&base, SECOND_TEST_ACCOUNT_ID)
-                .builder()
                 .with_contract_item(not_account.addr(), ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
                 .build();
 

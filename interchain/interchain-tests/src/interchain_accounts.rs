@@ -191,7 +191,7 @@ mod test {
         // The user on origin chain wants to change the account description
         let ibc_transfer_result = origin_account.manager.execute_on_module(
             PROXY,
-            &proxy::ExecuteMsg::ModuleAction {
+            &proxy::ExecuteMsg::Execute {
                 msgs: vec![cosmwasm_std::CosmosMsg::Ibc(
                     cosmwasm_std::IbcMsg::Transfer {
                         channel_id: interchain_channel
@@ -385,7 +385,7 @@ mod test {
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
             TruncatedChainId::from_chain_id(STARGAZE),
             PROXY,
-            to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
+            to_json_binary(&abstract_std::proxy::ExecuteMsg::Execute {
                 msgs: vec![wasm_execute(
                     abstr_remote.account_factory.address()?,
                     &abstract_std::account_factory::ExecuteMsg::CreateAccount {

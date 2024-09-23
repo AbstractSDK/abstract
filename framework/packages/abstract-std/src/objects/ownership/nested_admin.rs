@@ -1,5 +1,5 @@
 use crate::{
-    account::state::CALLING_TO_AS_ADMIN,
+    account::state::{CALLING_TO_AS_ADMIN, CALLING_TO_AS_ADMIN_WILD_CARD},
     objects::{gov_type::GovernanceDetails, ownership::Ownership},
 };
 
@@ -187,6 +187,8 @@ pub fn account_has_admin_rights<Q: CustomQuery>(
 ) -> bool {
     CALLING_TO_AS_ADMIN
         .query(querier, maybe_account.clone())
-        .map(|admin_call_to| admin_call_to == self_addr)
+        .map(|admin_call_to| {
+            admin_call_to == self_addr || admin_call_to.as_str() == CALLING_TO_AS_ADMIN_WILD_CARD
+        })
         .unwrap_or(false)
 }

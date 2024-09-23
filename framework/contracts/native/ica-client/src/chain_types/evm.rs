@@ -1,7 +1,9 @@
-use crate::state::Config;
 use abstract_ica::EVM_NOTE_ID;
 use abstract_sdk::{feature_objects::VersionControlContract, Resolve};
-use abstract_std::objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId};
+use abstract_std::{
+    ica_client::state::Config,
+    objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId},
+};
 use cosmwasm_std::{
     wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, Env, HexBinary, QuerierWrapper, WasmMsg,
 };

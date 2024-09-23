@@ -34,10 +34,9 @@ pub mod state {
     use std::collections::HashSet;
 
     use cosmwasm_std::Addr;
-    use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{common_namespace::ADMIN_NAMESPACE, module::ModuleId, AccountId};
+    use crate::objects::{module::ModuleId, storage_namespaces, AccountId};
 
     pub type SuspensionStatus = bool;
 
@@ -58,40 +57,35 @@ pub mod state {
         pub link: Option<String>,
     }
 
-    pub mod namespace {
-        pub const SUSPENSION_STATUS: &str = "a";
-        pub const CONFIG: &str = "b";
-        pub const INFO: &str = "c";
-        pub const ACCOUNT_MODULES: &str = "d";
-        pub const DEPENDENTS: &str = "e";
-        pub const SUB_ACCOUNTS: &str = "f";
-        pub const WHITELISTED_MODULES: &str = "g";
-        pub const ACCOUNT_ID: &str = "h";
-        pub const CALLING_TO_AS_ADMIN: &str = "i";
-    }
-
     pub const WHITELISTED_MODULES: Item<WhitelistedModules> =
-        Item::new(namespace::WHITELISTED_MODULES);
+        Item::new(storage_namespaces::account::WHITELISTED_MODULES);
 
     /// Suspension status
     // TODO: Pull it inside Config as `suspended: Option<String>`, with reason of suspension inside a string?
-    pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new(namespace::SUSPENSION_STATUS);
+    pub const SUSPENSION_STATUS: Item<SuspensionStatus> =
+        Item::new(storage_namespaces::account::SUSPENSION_STATUS);
     /// Configuration
-    pub const CONFIG: Item<Config> = Item::new(namespace::CONFIG);
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     /// Info about the Account
-    pub const INFO: Item<AccountInfo> = Item::new(namespace::INFO);
+    pub const INFO: Item<AccountInfo> = Item::new(storage_namespaces::account::INFO);
     /// Enabled Abstract modules
-    pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new(namespace::ACCOUNT_MODULES);
+    pub const ACCOUNT_MODULES: Map<ModuleId, Addr> =
+        Map::new(storage_namespaces::account::ACCOUNT_MODULES);
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
-    pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new(namespace::DEPENDENTS);
+    pub const DEPENDENTS: Map<ModuleId, HashSet<String>> =
+        Map::new(storage_namespaces::account::DEPENDENTS);
     /// List of sub-accounts
-    pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new(namespace::SUB_ACCOUNTS);
+    pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> =
+        Map::new(storage_namespaces::account::SUB_ACCOUNTS);
     /// Account Id storage key
-    pub const ACCOUNT_ID: Item<AccountId> = Item::new(namespace::ACCOUNT_ID);
+    pub const ACCOUNT_ID: Item<AccountId> = Item::new(storage_namespaces::account::ACCOUNT_ID);
     /// Temporary state variable that allows for checking access control on admin operation
-    pub const CALLING_TO_AS_ADMIN: Item<Addr> = Item::new(namespace::CALLING_TO_AS_ADMIN);
+    pub const CALLING_TO_AS_ADMIN: Item<Addr> =
+        Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
     // Additional states, not listed here: cw_gov_ownable::GovOwnership
+
+    pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
     #[cosmwasm_schema::cw_serde]
     pub struct WhitelistedModules(pub Vec<Addr>);
@@ -150,7 +144,7 @@ pub enum ExecuteMsg {
 
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
-    UpdateInternalConfig(Binary),
+    UpdateInternalConfig(InternalConfigAction),
     /// Install module using module factory, callable by Owner
     #[cw_orch(payable)]
     InstallModules {
@@ -160,7 +154,8 @@ pub enum ExecuteMsg {
     /// Uninstall a module given its ID.
     UninstallModule { module_id: String },
     /// Upgrade the module to a new version
-    /// If module is `abstract::manager` then the contract will do a self-migration.
+    /// If module is `abstract::account` then the contract will do a self-migration.
+    /// Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Version Control
     Upgrade {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
@@ -261,10 +256,18 @@ impl ModuleInstallConfig {
 #[non_exhaustive]
 pub enum InternalConfigAction {
     /// Updates the [`state::ACCOUNT_MODULES`] map
-    /// Only callable by account factory or owner.
+    /// Only callable by owner.
     UpdateModuleAddresses {
-        to_add: Option<Vec<(String, String)>>,
-        to_remove: Option<Vec<String>>,
+        to_add: Vec<(String, String)>,
+        to_remove: Vec<String>,
+    },
+    /// Update the execution whitelist in [`state::WHITELISTED_MODULES`]
+    /// Only callable by owner.
+    UpdateWhitelist {
+        /// Addresses to add to the Account's execution whitelist
+        to_add: Vec<String>,
+        /// Addresses to remove from the Account's execution whitelist
+        to_remove: Vec<String>,
     },
 }
 
@@ -315,7 +318,7 @@ pub struct SubAccountIdsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub modules: Vec<(String, Addr)>,
+    pub whitelisted_addresses: Vec<Addr>,
     pub account_id: AccountId,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,

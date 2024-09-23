@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, OverflowError, StdError};
+use cosmwasm_std::{OverflowError, StdError};
 use cw_asset::AssetError;
 use semver::Version;
 use thiserror::Error;

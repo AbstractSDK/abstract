@@ -7,7 +7,7 @@ Utility for controlling ownership of [CosmWasm](https://github.com/CosmWasm/cosm
 Initialize the owner during instantiation using the `initialize_owner` method provided by this crate:
 
 ```rust
-use cosmwasm_std::{entry_point, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{entry_point, DepsMut, Env, MessageInfo, Response, Empty};
 use abstract_std::objects::ownership::OwnershipError;
 
 #[entry_point]
