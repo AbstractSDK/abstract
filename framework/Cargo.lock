@@ -22,7 +22,7 @@ dependencies = [
  "anyhow",
  "base64 0.22.1",
  "bech32 0.9.1",
- "cosmos-sdk-proto 0.24.0-pre",
+ "cosmos-sdk-proto 0.24.0-pre (git+https://github.com/burnt-labs/cosmos-rust.git?rev=75e72f446629f98330e209e2f6268250d325cccb)",
  "cosmwasm-schema 2.1.3",
  "cosmwasm-std 2.1.3",
  "cw-asset",
@@ -1679,6 +1679,17 @@ dependencies = [
  "prost 0.13.2",
  "tendermint-proto 0.39.1",
  "tonic",
+]
+
+[[package]]
+name = "cosmos-sdk-proto"
+version = "0.24.0-pre"
+source = "git+https://github.com/burnt-labs/cosmos-rust.git?rev=75e72f446629f98330e209e2f6268250d325cccb#75e72f446629f98330e209e2f6268250d325cccb"
+dependencies = [
+ "informalsystems-pbjson",
+ "prost 0.13.2",
+ "serde",
+ "tendermint-proto 0.39.1",
 ]
 
 [[package]]
@@ -6104,7 +6115,7 @@ dependencies = [
  "abstract-client",
  "abstract-std",
  "anyhow",
- "cosmos-sdk-proto 0.24.0-pre",
+ "cosmos-sdk-proto 0.24.0-pre (git+https://github.com/burnt-labs/cosmos-rust?branch=feat/xion-serde)",
  "cosmwasm-std 2.1.3",
  "cw-orch",
  "dotenv",
