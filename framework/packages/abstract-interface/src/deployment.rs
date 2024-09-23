@@ -3,7 +3,7 @@ use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
 
-use cw_orch::prelude::*;
+use cw_orch::{mock::MockBase, prelude::*};
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
@@ -312,17 +312,19 @@ impl<Chain: CwEnv> Abstract<Chain> {
     }
 }
 
-impl Abstract<MockBech32> {
-    pub fn deploy_on_test(chain: MockBech32) -> Result<Self, AbstractInterfaceError> {
-        use cosmwasm_std::Api;
+impl<A: cosmwasm_std::Api, S: StateInterface> Abstract<MockBase<A, S>> {
+    pub fn deploy_on_test(chain: MockBase<A, S>) -> Result<Self, AbstractInterfaceError> {
+        let admin = Self::mock_admin(&chain);
+        Self::deploy_on(chain, admin)
+    }
 
-        let sender = chain
+    pub fn mock_admin(chain: &MockBase<A, S>) -> Addr {
+        chain
             .app
             .borrow()
             .api()
             .addr_humanize(&CanonicalAddr::from(native_addrs::TEST_ABSTRACT_CREATOR))
-            .unwrap();
-        Self::deploy_on(chain, sender)
+            .unwrap()
     }
 }
 
