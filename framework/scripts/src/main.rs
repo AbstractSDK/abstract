@@ -51,10 +51,10 @@ fn main() -> anyhow::Result<()> {
 
     let wallet = xiond.sender();
 
-    let abstr = AbstractClient::new(xiond.clone())?;
+    let abstr = AbstractClient::builder(xiond.clone()).build()?;
 
     // normal account
-    // let account = abstr.account_builder().build()?;
+    let account = abstr.account_builder().build()?;
 
     // Signature for xion account
     let next_account = abstr.random_account_id()?;
