@@ -7906,3 +7906,33 @@ dependencies = [
  "quote",
  "syn 2.0.77",
 ]
+
+[[patch.unused]]
+name = "cw-orch-core"
+version = "1.2.4"
+source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
+
+[[patch.unused]]
+name = "cw-orch-daemon"
+version = "0.24.5"
+source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
+
+[[patch.unused]]
+name = "cw-orch-interchain-core"
+version = "0.4.2"
+source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
+
+[[patch.unused]]
+name = "cw-orch-interchain-daemon"
+version = "0.4.1"
+source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
+
+[[patch.unused]]
+name = "cw-orch-interchain-mock"
+version = "0.4.1"
+source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
+
+[[patch.unused]]
+name = "cw-orch-mock"
+version = "0.23.2"
+source = "git+https://github.com/AbstractSDK/cw-orchestrator/?branch=nicolas/add-interchain-chains#501b3245e7930ccfd8a317f7d4539bd061a46cbb"
