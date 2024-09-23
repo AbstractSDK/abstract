@@ -12,6 +12,7 @@ keywords.workspace = true
 [dependencies]
 abstract-client = { version = "0.23.0", path = "../packages/abstract-client" }
 abstract-std.workspace = true
+abstract-account ={ version = "0.23.0", path = "../contracts/account", features = ["xion"] }
 anyhow.workspace = true
 cosmwasm-std.workspace = true
 cw-orch = { workspace = true, features = ["daemon"] }

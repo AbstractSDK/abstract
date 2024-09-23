@@ -1,5 +1,6 @@
 use std::{env::set_var, sync::Arc};
 
+use abstract_account::absacc::auth::AddAuthenticator;
 use abstract_client::AbstractClient;
 use cw_orch::{
     daemon::{
@@ -40,19 +41,23 @@ fn main() -> anyhow::Result<()> {
 
     let code_id = account.as_ref().code_id()?;
 
+    let Secp256k1 = secp256k1::Secp256k1::new();
+
     let create_msg = proto::MsgRegisterAccount {
         sender: wallet.pub_addr_str(),
         code_id,
         msg: to_json_binary(&abstract_std::account::InstantiateMsg {
-            account_id: todo!(),
-            owner: todo!(),
-            namespace: todo!(),
-            install_modules: todo!(),
-            name: todo!(),
-            description: todo!(),
-            link: todo!(),
-            module_factory_address: todo!(),
-            version_control_address: todo!(),
+            authenticator: AddAuthenticator::Ed25519 { id: 1, pubkey: wallet.private_key.public_key(secp), signature: () },
+            name: "test".to_string(),
+            account_id: None,
+            // TODO: add new type for external Authenticator 
+            owner: abstract_client::GovernanceDetails::Renounced {  },
+            namespace: None,
+            install_modules: None,
+            description: None,
+            link: None,
+            module_factory_address: None,
+            version_control_address: None,
         }),
         funds: vec![],
         salt: vec![],
