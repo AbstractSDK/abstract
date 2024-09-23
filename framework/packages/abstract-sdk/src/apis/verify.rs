@@ -86,7 +86,7 @@ pub struct AccountRegistry<'a, T: AccountVerification> {
 
 impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided address is indeed an Abstract Account.
-    pub fn assert_account(&self, maybe_account: &Addr) -> AbstractSdkResult<Account> {
+    pub fn assert_is_account(&self, maybe_account: &Addr) -> AbstractSdkResult<Account> {
         self.vc
             .assert_account(maybe_account, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
@@ -114,12 +114,12 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     }
 
     /// Verify if the provided address is indeed an Abstract Account AND if the current execution has admin rights.
-    pub fn assert_account_admin(
+    pub fn assert_is_account_admin(
         &self,
         env: &Env,
         maybe_account: &Addr,
     ) -> AbstractSdkResult<Account> {
-        let account = self.assert_account(maybe_account)?;
+        let account = self.assert_is_account(maybe_account)?;
 
         if !assert_account_calling_to_as_admin_is_self(
             &self.deps.querier,
@@ -189,7 +189,7 @@ mod test {
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_account(not_account.addr());
+                .assert_is_account(not_account.addr());
 
             let expected_err = AbstractSdkError::ApiQuery {
                 api: AccountRegistry::<MockBinding>::api_id(),
@@ -220,7 +220,7 @@ mod test {
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_account(abstr.account.addr());
+                .assert_is_account(abstr.account.addr());
 
             assert_that!(res)
                 .is_err()
@@ -256,7 +256,7 @@ mod test {
             let res = binding
                 .account_registry(deps.as_ref())
                 .unwrap()
-                .assert_account(account.addr());
+                .assert_is_account(account.addr());
 
             assert_that!(res).is_ok().is_equal_to(account);
         }

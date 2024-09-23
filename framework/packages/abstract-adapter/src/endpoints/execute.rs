@@ -69,7 +69,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         } = message;
         let account_registry = self.account_registry(deps.as_ref())?;
         let account = account_registry
-            .assert_account_admin(&env, &info.sender)
+            .assert_is_account_admin(&env, &info.sender)
             .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
                 adapter: self.module_id().to_string(),
                 sender: info.sender.to_string(),
@@ -79,15 +79,15 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                 match account_address {
                     Some(requested_account) => {
                         let account_address = deps.api.addr_validate(&requested_account)?;
-                        let requested_core = account_registry.assert_account(&account_address)?;
+                        let account = account_registry.assert_is_account(&account_address)?;
                         if is_top_level_owner(
                             &deps.querier,
-                            requested_core.addr().clone(),
+                            account.addr().clone(),
                             &info.sender,
                         )
                         .unwrap_or(false)
                         {
-                            Ok(requested_core)
+                            Ok(account)
                         } else {
                             Err(AdapterError::UnauthorizedAdapterRequest {
                                 adapter: self.module_id().to_string(),
@@ -131,7 +131,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             // The sender must either be an authorized address or account.
             Some(requested_account) => {
                 let account_address = deps.api.addr_validate(&requested_account)?;
-                let requested_core = account_registry.assert_account(&account_address)?;
+                let requested_core = account_registry.assert_is_account(&account_address)?;
 
                 if requested_core.addr() == sender {
                     // If the caller is the account of the indicated proxy_address, it's authorized to do the operation
@@ -157,7 +157,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                 }
             }
             None => account_registry
-                .assert_account(sender)
+                .assert_is_account(sender)
                 .map_err(|_| unauthorized_sender())?,
         };
         self.target_account = Some(account);
