@@ -1,8 +1,12 @@
 use std::{env::set_var, sync::Arc};
 
-use abstract_account::absacc::{auth::AddAuthenticator, proto::MsgRegisterAccount};
+use abstract_account::absacc::{
+    auth::{AddAuthenticator, Authenticator},
+    proto::MsgRegisterAccount,
+};
 use abstract_client::AbstractClient;
 use abstract_std::{
+    account::QueryMsgFns,
     objects::{
         module::{Module, ModuleInfo},
         module_reference::ModuleReference,
@@ -55,9 +59,10 @@ fn main() -> anyhow::Result<()> {
     // Signature for xion account
     let next_account = abstr.random_account_id()?;
     let account_module = ModuleInfo::from_id_latest(ACCOUNT)?;
-    let account_addr = abstr
-        .module_instantiate2_address_raw(&AccountId::local(next_account), account_module.clone())?;
-    let salt = generate_instantiate_salt(&AccountId::local(next_account));
+    let account_id = AccountId::local(next_account);
+    let account_addr =
+        abstr.module_instantiate2_address_raw(&account_id, account_module.clone())?;
+    let salt = generate_instantiate_salt(&account_id);
     // get the account number of the wallet
     let signing_key =
         cosmrs::crypto::secp256k1::SigningKey::from_slice(&wallet.private_key.raw_key()).unwrap();
@@ -74,24 +79,18 @@ fn main() -> anyhow::Result<()> {
         sender: wallet.pub_addr_str(),
         code_id,
         msg: to_json_binary(&abstract_std::account::InstantiateMsg {
-            authenticator: Some(AddAuthenticator::Ed25519 {
-                id: 1,
-                pubkey: Binary::new(
-                    wallet
-                        .private_key
-                        .public_key(&wallet.secp)
-                        .raw_pub_key
-                        .unwrap(),
-                ),
+            authenticator: Some(AddAuthenticator::Secp256K1 {
+                id: 123,
+                pubkey: Binary::new(signing_key.public_key().to_bytes()),
                 signature: Binary::new(signature.to_vec()),
             }),
             name: "test".to_string(),
-            account_id: None,
+            account_id: Some(account_id.clone()),
             // TODO: add new type for external Authenticator
             owner: abstract_client::GovernanceDetails::Renounced {},
             namespace: None,
             install_modules: vec![],
-            description: None,
+            description: Some("foo bar".to_owned()),
             link: None,
             module_factory_address: abstr.module_factroy().addr_str()?,
             version_control_address: abstr.version_control().addr_str()?,
@@ -108,6 +107,13 @@ fn main() -> anyhow::Result<()> {
         }],
         None,
     ))?;
+
+    let account = abstr.account_from(account_id)?;
+    let auths: Vec<u8> = xiond.wasm_querier().smart_query(
+        &account.address()?,
+        &abstract_std::account::QueryMsg::AuthenticatorIDs {},
+    )?;
+    dbg!(auths);
 
     Ok(())
 }
