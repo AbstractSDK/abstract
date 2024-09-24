@@ -101,7 +101,7 @@ struct DeployedApps {
 #[allow(clippy::type_complexity)]
 fn setup() -> anyhow::Result<(
     MockBech32,
-    AbstractAccount<MockBech32>,
+    AccountI<MockBech32>,
     Abstract<MockBech32>,
     DeployedApps,
 )> {
@@ -138,7 +138,8 @@ fn setup() -> anyhow::Result<(
         account_id: None,
     };
 
-    let account = abstr_deployment.account_factory.create_new_account(
+    let account = AccountI::create(
+        &abstr_deployment,
         account_details,
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -157,9 +158,9 @@ fn setup() -> anyhow::Result<(
         &[],
     )?;
 
-    challenge_app.set_sender(&account.manager.address()?);
+    challenge_app.set_sender(&account.address()?);
     mock.set_balance(
-        &account.proxy.address()?,
+        &account.address()?,
         vec![coin(50_000_000, DENOM), coin(10_000, "eur")],
     )?;
 
@@ -304,12 +305,12 @@ fn test_add_single_friend_for_challenge() -> anyhow::Result<()> {
     apps.challenge_app
         .create_challenge(challenge_req_func(&mock).clone())?;
 
-    let new_account =
-        abstr
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender_addr().to_string(),
-            })?;
+    let new_account = AccountI::create_default_account(
+        &abstr,
+        GovernanceDetails::Monarchy {
+            monarch: mock.sender_addr().to_string(),
+        },
+    )?;
     let new_friend: Friend<String> = Friend::AbstractAccount(new_account.id()?);
 
     apps.challenge_app.update_friends_for_challenge(
@@ -511,7 +512,7 @@ fn test_not_charge_penalty_for_voting_false() -> anyhow::Result<()> {
         )]
     );
 
-    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(&account.address()?, DENOM)?;
     // if no one voted true, no penalty should be charged, so balance will be 50_000_000
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE));
     Ok(())
@@ -548,7 +549,7 @@ fn test_charge_penalty_for_voting_true() -> anyhow::Result<()> {
     ];
     run_challenge_vote_sequence(&mock, &apps, votes)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(&account.address()?, DENOM)?;
     // Initial balance - strike
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE - 30_000_000));
     Ok(())
@@ -641,7 +642,7 @@ fn test_vetoed() -> anyhow::Result<()> {
     assert_eq!(status, ProposalStatus::Finished(ProposalOutcome::Vetoed));
 
     // balance unchanged
-    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(&account.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE));
     Ok(())
 }
@@ -701,7 +702,7 @@ fn test_veto_expired() -> anyhow::Result<()> {
     );
 
     // balance updated
-    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(&account.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE - 30_000_000));
     Ok(())
 }

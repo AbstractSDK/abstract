@@ -51,7 +51,7 @@ fn setup_mock() -> anyhow::Result<(
     let account = create_default_account(&deployment.account_factory)?;
 
     // mint to proxy
-    chain.set_balance(&account.proxy.address()?, vec![coin(10_000, EUR)])?;
+    chain.set_balance(&account.address()?, vec![coin(10_000, EUR)])?;
     // install exchange on OS
     account.install_adapter(&dex_adapter, None)?;
 

@@ -133,12 +133,10 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     let remote_app = env.remote_account.application::<AppInterface<_>>()?;
 
     // Ensure account created
-    env.abs_stargaze
-        .version_control()
-        .account_base(AccountId::new(
-            0,
-            AccountTrace::Remote(vec![TruncatedChainId::from_chain_id(JUNO)]),
-        )?)?;
+    env.abs_stargaze.version_control().account(AccountId::new(
+        0,
+        AccountTrace::Remote(vec![TruncatedChainId::from_chain_id(JUNO)]),
+    )?)?;
 
     let game_status = app.game_status()?;
     assert_eq!(game_status, GameStatusResponse { losses: 0, wins: 0 });

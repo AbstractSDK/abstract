@@ -123,7 +123,7 @@ fn setup_native<'a>(
 
     emissions.transfer(
         Uint128::new(1_000_000),
-        subscription_app.account().proxy()?.to_string(),
+        subscription_app.account().address()?.to_string(),
     )?;
 
     Ok(NativeSubscription {
@@ -347,7 +347,7 @@ fn claim_emissions_none() -> anyhow::Result<()> {
     } = setup_native(&mock, [(&subscriber1, sub_amount.as_slice())])?;
 
     subscription_app
-        .call_as(&subscription_app.account().manager()?)
+        .call_as(&subscription_app.account().address()?)
         .update_subscription_config(None, None, Some(EmissionType::None), None)?;
 
     // 1 user subscribe
@@ -387,7 +387,7 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     )?;
 
     subscription_app
-        .call_as(&subscription_app.account().manager()?)
+        .call_as(&subscription_app.account().address()?)
         .update_subscription_config(
             None,
             None,

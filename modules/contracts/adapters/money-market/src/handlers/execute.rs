@@ -99,8 +99,8 @@ pub fn execute_handler(
             if let Some(account_id) = recipient_account_id {
                 let recipient = module
                     .account_registry(deps.as_ref())?
-                    .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
-                fee.set_recipient(recipient);
+                    .account_base(&AccountId::new(account_id, AccountTrace::Local)?)?;
+                fee.set_recipient(recipient.into_addr());
             }
 
             MONEY_MARKET_FEES.save(deps.storage, &fee)?;
@@ -119,12 +119,12 @@ fn handle_local_request(
     action: MoneyMarketRawAction,
 ) -> MoneyMarketResult {
     let money_market = platform_resolver::resolve_money_market(&money_market)?;
-    let target_account = module.account_base(deps.as_ref())?;
+    let target_account = module.account(deps.as_ref())?;
 
     let (msgs, _) = crate::adapter::MoneyMarketAdapter::resolve_money_market_action(
         module,
         deps.as_ref(),
-        target_account.proxy,
+        target_account.into_addr(),
         action,
         money_market,
     )?;
