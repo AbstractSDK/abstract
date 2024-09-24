@@ -15,7 +15,7 @@ use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
 use cw_orch::environment::Environment;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
-use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
+use cw_plus_orch::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{
