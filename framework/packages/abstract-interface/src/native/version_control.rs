@@ -373,6 +373,13 @@ impl<Chain: CwEnv> VersionControl<Chain> {
 
         Ok(module.reference.unwrap_standalone()?)
     }
+
+    /// Retrieves latest Account's code id from version control.
+    pub fn get_account_code(&self) -> Result<u64, crate::AbstractInterfaceError> {
+        let module: Module = self.module(ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?)?;
+
+        Ok(module.reference.unwrap_account()?)
+    }
 }
 
 impl VersionControl<Mock> {

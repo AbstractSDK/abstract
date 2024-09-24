@@ -68,9 +68,9 @@ pub fn receive_action_callback(
                     .flat_map(|e| e.attributes)
                     .collect();
 
-                let remote_proxy_address = &wasm_abstract_attributes
+                let remote_account_address = &wasm_abstract_attributes
                     .iter()
-                    .find(|e| e.key == "proxy_address")
+                    .find(|e| e.key == "abstract_address")
                     .ok_or(IbcClientError::IbcFailed(polytone_callback))?
                     .value;
 
@@ -78,7 +78,7 @@ pub fn receive_action_callback(
                 ACCOUNTS.save(
                     deps.storage,
                     (account_id.trace(), account_id.seq(), &host_chain),
-                    remote_proxy_address,
+                    remote_account_address,
                 )?;
             } else {
                 return Err(IbcClientError::IbcFailed(polytone_callback));
