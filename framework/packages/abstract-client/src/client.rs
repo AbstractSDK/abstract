@@ -124,7 +124,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     /// Abstract Module Factory contract API
-    pub fn module_factroy(&self) -> &ModuleFactory<Chain> {
+    pub fn module_factory(&self) -> &ModuleFactory<Chain> {
         &self.abstr.module_factory
     }
 

@@ -92,7 +92,7 @@ fn main() -> anyhow::Result<()> {
             install_modules: vec![],
             description: Some("foo bar".to_owned()),
             link: None,
-            module_factory_address: abstr.module_factroy().addr_str()?,
+            module_factory_address: abstr.module_factory().addr_str()?,
             version_control_address: abstr.version_control().addr_str()?,
         })?
         .to_vec(),
