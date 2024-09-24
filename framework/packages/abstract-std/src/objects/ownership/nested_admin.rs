@@ -4,7 +4,7 @@ use crate::{
 };
 
 use cosmwasm_std::{
-    attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, QuerierWrapper, Response, StdError,
+    attr, Addr, CustomQuery, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response, StdError,
     StdResult,
 };
 use cw_controllers::{Admin, AdminError, AdminResponse};
@@ -42,11 +42,11 @@ impl NestedAdmin {
     pub fn is_admin<Q: CustomQuery>(
         &self,
         deps: Deps<Q>,
-        self_addr: &Addr,
+        env: &Env,
         caller: &Addr,
     ) -> StdResult<bool> {
         match self.0.get(deps)? {
-            Some(admin) => Self::is_admin_custom(&deps.querier, self_addr, caller, admin),
+            Some(admin) => Self::is_admin_custom(&deps.querier, env, caller, admin),
             None => Ok(false),
         }
     }
@@ -54,13 +54,12 @@ impl NestedAdmin {
     /// See [NestedAdmin::assert_admin] for more details.
     pub fn is_admin_custom<Q: CustomQuery>(
         querier: &QuerierWrapper<Q>,
-        self_addr: &Addr,
+        env: &Env,
         caller: &Addr,
         admin: Addr,
     ) -> StdResult<bool> {
         // Initial check if directly called by the admin
-        if caller == admin && assert_account_calling_to_as_admin_is_self(querier, self_addr, caller)
-        {
+        if caller == admin && assert_account_calling_to_as_admin_is_self(querier, env, caller) {
             // If the caller is the admin, we still need to check that
             // if it's an account it's authorized to act as an admin
 
@@ -82,10 +81,10 @@ impl NestedAdmin {
     pub fn assert_admin<Q: CustomQuery>(
         &self,
         deps: Deps<Q>,
-        self_addr: &Addr,
+        env: &Env,
         caller: &Addr,
     ) -> Result<(), AdminError> {
-        if !self.is_admin(deps, self_addr, caller)? {
+        if !self.is_admin(deps, env, caller)? {
             Err(AdminError::NotAdmin {})
         } else {
             Ok(())
@@ -100,11 +99,11 @@ impl NestedAdmin {
     /// - If the caller is the **top-level** admin of the chain of ownership, starting from this contract.
     pub fn assert_admin_custom<Q: CustomQuery>(
         querier: &QuerierWrapper<Q>,
-        self_addr: &Addr,
+        env: &Env,
         caller: &Addr,
         admin: Addr,
     ) -> Result<(), AdminError> {
-        if !Self::is_admin_custom(querier, self_addr, caller, admin)? {
+        if !Self::is_admin_custom(querier, env, caller, admin)? {
             Err(AdminError::NotAdmin {})
         } else {
             Ok(())
@@ -114,14 +113,14 @@ impl NestedAdmin {
     pub fn execute_update_admin<C, Q: CustomQuery>(
         &self,
         deps: DepsMut<Q>,
-        self_addr: &Addr,
+        env: &Env,
         info: MessageInfo,
         new_admin: Option<Addr>,
     ) -> Result<Response<C>, AdminError>
     where
         C: Clone + core::fmt::Debug + PartialEq + JsonSchema,
     {
-        self.assert_admin(deps.as_ref(), self_addr, &info.sender)?;
+        self.assert_admin(deps.as_ref(), env, &info.sender)?;
 
         let admin_str = match new_admin.as_ref() {
             Some(admin) => admin.to_string(),
@@ -197,13 +196,14 @@ pub fn query_top_level_owner<Q: CustomQuery>(
 /// Assert that the account has a valid calling to the contract as an admin.
 pub fn assert_account_calling_to_as_admin_is_self<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
-    self_addr: &Addr,
+    env: &Env,
     maybe_account: &Addr,
 ) -> bool {
     CALLING_TO_AS_ADMIN
         .query(querier, maybe_account.clone())
         .map(|admin_call_to| {
-            admin_call_to == self_addr || admin_call_to.as_str() == CALLING_TO_AS_ADMIN_WILD_CARD
+            admin_call_to == env.contract.address
+                || admin_call_to.as_str() == CALLING_TO_AS_ADMIN_WILD_CARD
         })
         .unwrap_or(false)
 }

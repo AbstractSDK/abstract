@@ -123,14 +123,14 @@ To use this functionality, Abstract provides helpers in form of the `NestedAdmin
 The `NestedAdmin::assert_admin` function will only return an `Result::Ok` if any of those conditions is true:
 
 - The caller is the saved Account AND the `CALLING_TO_AS_ADMIN` variable is set on the account to either:
-  - The contract account address (`env.contract.address` is supposed to be fed to the self_addr variable)
+  - The contract account address
   - The `CALLING_TO_AS_ADMIN_WILD_CARD`, that is used for contract migrations to avoid re-setting the flag during migration events.
 - The caller is the top-level owner of the saved Account
 
 So inside `Abstract Apps` for instance, one should write the following lines to flag admin actions:
 
 ```rust
-app.admin.assert_admin(deps.as_ref(), &env.contract.address, info.sender)?;
+app.admin.assert_admin(deps.as_ref(), &env, info.sender)?;
 ```
 
 ### Graphical sequences

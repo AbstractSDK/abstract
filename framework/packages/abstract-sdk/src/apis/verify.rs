@@ -121,11 +121,7 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     ) -> AbstractSdkResult<Account> {
         let account = self.assert_is_account(maybe_account)?;
 
-        if !assert_account_calling_to_as_admin_is_self(
-            &self.deps.querier,
-            &env.contract.address,
-            maybe_account,
-        ) {
+        if !assert_account_calling_to_as_admin_is_self(&self.deps.querier, env, maybe_account) {
             return Err(AbstractSdkError::OnlyAdmin {});
         }
         Ok(account)
