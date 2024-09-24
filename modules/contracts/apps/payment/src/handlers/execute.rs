@@ -194,7 +194,7 @@ fn update_config(
     // Only the admin should be able to call this
     module
         .admin
-        .assert_admin(deps.as_ref(), &env.contract.address, msg_info.sender)?;
+        .assert_admin(deps.as_ref(), &env, msg_info.sender)?;
     let name_service = module.name_service(deps.as_ref());
 
     let mut config = CONFIG.load(deps.storage)?;

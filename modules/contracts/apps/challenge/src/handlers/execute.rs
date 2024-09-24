@@ -73,7 +73,7 @@ fn create_challenge(
     // Only the admin should be able to create a challenge.
     module
         .admin
-        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     ensure!(
         challenge_req.init_friends.len() < MAX_AMOUNT_OF_FRIENDS as usize,
         AppError::TooManyFriends {}
@@ -121,7 +121,7 @@ fn update_challenge(
 ) -> AppResult {
     module
         .admin
-        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     // will return an error if the challenge doesn't exist
     let mut loaded_challenge: ChallengeEntry = CHALLENGES
@@ -154,7 +154,7 @@ fn cancel_challenge(
 ) -> AppResult {
     module
         .admin
-        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let mut challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     // Check if this challenge still active
     if env.block.time >= challenge.end_timestamp {
@@ -187,7 +187,7 @@ fn update_friends_for_challenge(
 ) -> AppResult {
     module
         .admin
-        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     // Validate friend addr and account ids
     let friends_validated: Vec<(Addr, Friend<Addr>)> = friends
         .iter()
@@ -346,7 +346,7 @@ fn veto(
 
     module
         .admin
-        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let proposal_info = SIMPLE_VOTING.veto_proposal(deps.storage, &env.block, proposal_id)?;
 
     Ok(module

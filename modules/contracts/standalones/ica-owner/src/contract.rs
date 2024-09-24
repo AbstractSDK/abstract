@@ -76,7 +76,7 @@ fn create_ica_contract(
 ) -> MyStandaloneResult {
     standalone
         .admin
-        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let config = CONFIG.load(deps.storage)?;
 
     let ica_code = CwIcaControllerCode::new(config.ica_controller_code_id);
@@ -158,7 +158,7 @@ pub fn send_action(
 ) -> MyStandaloneResult {
     standalone
         .admin
-        .assert_admin(deps.as_ref(), &env.contract.address, &info.sender)?;
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     let ica_state = ICA_STATES.load(deps.storage, ica_id)?;
 
