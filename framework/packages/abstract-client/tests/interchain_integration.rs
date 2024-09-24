@@ -17,8 +17,8 @@ fn create_remote_account() -> anyhow::Result<()> {
     let mut mock_osmo = mock_interchain.get_chain("osmo-1")?;
     mock_osmo.set_sender(AbstractClient::mock_admin(&mock_osmo));
 
-    let juno_abstr = AbstractClient::builder(mock_juno.clone()).build_test()?;
-    let osmo_abstr = AbstractClient::builder(mock_osmo.clone()).build_test()?;
+    let juno_abstr = AbstractClient::builder(mock_juno.clone()).build_mock()?;
+    let osmo_abstr = AbstractClient::builder(mock_osmo.clone()).build_mock()?;
 
     juno_abstr.connect_to(&osmo_abstr, &mock_interchain)?;
 

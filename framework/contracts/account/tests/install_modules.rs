@@ -16,7 +16,7 @@ use mock_modules::{adapter_1, deploy_modules, V1};
 fn cannot_reinstall_module() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on_test(chain.clone())?;
+    let abstr = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
@@ -58,7 +58,7 @@ fn cannot_reinstall_module() -> AResult {
 fn adds_module_to_account_modules() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on_test(chain.clone())?;
+    let abstr = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
@@ -89,7 +89,7 @@ fn adds_module_to_account_modules() -> AResult {
 fn useful_error_module_not_found() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on_test(chain.clone())?;
+    let abstr = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &abstr)?;
 
     let err = account

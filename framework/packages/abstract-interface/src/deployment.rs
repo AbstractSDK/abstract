@@ -315,7 +315,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
 }
 
 impl<A: cosmwasm_std::Api, S: StateInterface> Abstract<MockBase<A, S>> {
-    pub fn deploy_on_test(chain: MockBase<A, S>) -> Result<Self, AbstractInterfaceError> {
+    pub fn deploy_on_mock(chain: MockBase<A, S>) -> Result<Self, AbstractInterfaceError> {
         let admin = Self::mock_admin(&chain);
         Self::deploy_on(chain, admin)
     }

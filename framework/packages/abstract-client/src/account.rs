@@ -991,7 +991,7 @@ pub mod test {
     #[test]
     fn namespace_after_creation() -> cw_orch::anyhow::Result<()> {
         let mock = MockBech32::new("mock");
-        let abstr = AbstractClient::builder(mock.clone()).build_test()?;
+        let abstr = AbstractClient::builder(mock.clone()).build_mock()?;
 
         let my_namespace = "my-namespace";
         let new_account = abstr.account_builder().build()?;

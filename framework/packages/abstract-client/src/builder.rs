@@ -157,7 +157,7 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
 
 impl<A: cosmwasm_std::Api, S: StateInterface> AbstractClientBuilder<MockBase<A, S>> {
     /// Deploy mock abstract with current configuration
-    pub fn build_test(&self) -> AbstractClientResult<AbstractClient<MockBase<A, S>>> {
+    pub fn build_mock(&self) -> AbstractClientResult<AbstractClient<MockBase<A, S>>> {
         self.build(Abstract::mock_admin(&self.chain))
     }
 }

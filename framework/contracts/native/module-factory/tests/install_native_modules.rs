@@ -19,7 +19,7 @@ pub fn ibc_client_installed<Chain: CwEnv>(account: &AccountI<Chain>) -> AResult 
 #[test]
 fn can_install_and_uninstall_ibc_client() -> AResult {
     let chain = MockBech32::new("mock");
-    let abstr = Abstract::deploy_on_test(chain.clone())?;
+    let abstr = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
 
     ibc_client_installed(&account).unwrap_err();

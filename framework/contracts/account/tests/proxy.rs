@@ -76,7 +76,7 @@ use speculoos::prelude::*;
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_test(chain.clone())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
     let modules = account.module_infos(None, None)?.module_infos;
@@ -101,7 +101,7 @@ fn exec_on_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     // This testing environments allows you to use simple deploy contraptions:
-    let deployment = Abstract::deploy_on_test(chain.clone())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
     // Mint coins to proxy address
@@ -130,7 +130,7 @@ fn exec_on_account() -> AResult {
 fn default_without_response_data() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_test(chain.clone())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
@@ -151,7 +151,7 @@ fn default_without_response_data() -> AResult {
 #[test]
 fn with_response_data() -> AResult {
     let chain = MockBech32::new("mock");
-    Abstract::deploy_on_test(chain.clone())?;
+    Abstract::deploy_on_mock(chain.clone())?;
     abstract_integration_tests::account::with_response_data(chain.clone())?;
     take_storage_snapshot!(chain, "proxy_with_response_data");
 
@@ -396,7 +396,7 @@ fn install_multiple_modules() -> AResult {
 fn renounce_cleans_namespace() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_test(chain.clone())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let account = AccountI::create(
         &deployment,
@@ -748,7 +748,7 @@ fn renounce_cleans_namespace() -> AResult {
 fn can_take_any_last_two_billion_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_test(chain.clone())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     AccountI::create(
         &deployment,
@@ -791,7 +791,7 @@ fn can_take_any_last_two_billion_accounts() -> AResult {
 fn increment_not_effected_by_claiming() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_test(chain.clone())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let next_account_id = deployment.version_control.config()?.local_account_sequence;
     assert_eq!(next_account_id, 1);
