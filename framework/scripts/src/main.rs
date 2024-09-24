@@ -69,7 +69,7 @@ fn main() -> anyhow::Result<()> {
     let wallet = xiond.sender();
     // let abstr = AbstractClient::new(xiond.clone())
     //     .or_else(|_| AbstractClient::builder(xiond.clone()).build());
-    let abstr =  AbstractClient::builder(xiond.clone()).build();
+    let abstr = AbstractClient::builder(xiond.clone()).build();
     let abstr = abstr?;
     let maybe_account = abstr.account_from(Namespace::new("test")?);
 
