@@ -2,7 +2,6 @@
 use abstract_client::AbstractClient;
 use abstract_client::GovernanceDetails;
 use abstract_interface::IbcClient;
-use abstract_testing::prelude::mock_bech32_admin;
 use cw_orch::mock::MockBase;
 use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
@@ -14,14 +13,12 @@ fn create_remote_account() -> anyhow::Result<()> {
         MockBech32InterchainEnv::new(vec![("juno-1", "juno"), ("osmo-1", "osmo")]);
 
     let mut mock_juno = mock_interchain.get_chain("juno-1")?;
-    mock_juno.set_sender(mock_bech32_admin(&mock_juno));
+    mock_juno.set_sender(AbstractClient::mock_admin(&mock_juno));
     let mut mock_osmo = mock_interchain.get_chain("osmo-1")?;
-    mock_osmo.set_sender(mock_bech32_admin(&mock_osmo));
+    mock_osmo.set_sender(AbstractClient::mock_admin(&mock_osmo));
 
-    let juno_abstr =
-        AbstractClient::builder(mock_juno.clone()).build(mock_juno.sender().clone())?;
-    let osmo_abstr =
-        AbstractClient::builder(mock_osmo.clone()).build(mock_osmo.sender().clone())?;
+    let juno_abstr = AbstractClient::builder(mock_juno.clone()).build_test()?;
+    let osmo_abstr = AbstractClient::builder(mock_osmo.clone()).build_test()?;
 
     juno_abstr.connect_to(&osmo_abstr, &mock_interchain)?;
 

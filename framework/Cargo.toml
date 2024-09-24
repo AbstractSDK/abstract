@@ -100,7 +100,7 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 # Predictable abstract addresses
-cw-blob = { git = "https://github.com/AbstractSDK/cw-packages.git", branch = "contract/cw-blob" } # TODO: replace with crates.io
+cw-blob = { version = "0.1.1" }
 
 [profile.dev]
 opt-level = 1

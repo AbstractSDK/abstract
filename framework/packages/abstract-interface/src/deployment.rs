@@ -75,6 +75,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
+    /// Deploys abstract using provided [`TxHandler::Sender`].
+    /// After deployment sender of abstract contracts is a sender of provided `chain`
     fn deploy_on(
         mut chain: Chain,
         deploy_data: Self::DeployData,
@@ -318,7 +320,7 @@ impl<A: cosmwasm_std::Api, S: StateInterface> Abstract<MockBase<A, S>> {
         Self::deploy_on(chain, admin)
     }
 
-    pub fn mock_admin(chain: &MockBase<A, S>) -> Addr {
+    pub fn mock_admin(chain: &MockBase<A, S>) -> <MockBase as TxHandler>::Sender {
         chain
             .app
             .borrow()

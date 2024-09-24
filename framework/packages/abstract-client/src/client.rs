@@ -18,7 +18,7 @@
 //! use abstract_testing::prelude::*;
 //!
 //! let chain = MockBech32::new("mock");
-//! let client = AbstractClient::builder(chain.clone()).build(mock_bech32_admin(&chain))?;
+//! let client = AbstractClient::builder(chain.clone()).build_test()?;
 //!
 //! let namespace = Namespace::new("tester")?;
 //! let publisher: Publisher<MockBech32> = client
@@ -40,7 +40,7 @@ use abstract_std::objects::{
     AccountId,
 };
 use cosmwasm_std::{BlockInfo, Uint128};
-use cw_orch::{contract::Contract, environment::Environment as _, prelude::*};
+use cw_orch::{contract::Contract, environment::Environment as _, mock::MockBase, prelude::*};
 use rand::Rng;
 
 use crate::{
@@ -115,7 +115,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # let chain = MockBech32::new("mock");
     /// # let client = AbstractClient::builder(chain.clone())
     /// #     .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
-    /// #     .build(mock_bech32_admin(&chain))?;
+    /// #     .build_test()?;
     ///
     /// let name_service = client.name_service();
     /// let asset_entry = AssetEntry::new(entry);
@@ -361,5 +361,12 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         self.abstr.connect_to(&remote_abstr.abstr, ibc)?;
 
         Ok(())
+    }
+}
+
+impl<A: cosmwasm_std::Api, S: StateInterface> AbstractClient<MockBase<A, S>> {
+    /// Admin of the abstract deployment
+    pub fn mock_admin(chain: &MockBase<A, S>) -> <MockBase<A, S> as TxHandler>::Sender {
+        Abstract::mock_admin(chain)
     }
 }

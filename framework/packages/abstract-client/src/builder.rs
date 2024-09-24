@@ -7,7 +7,7 @@ use abstract_std::objects::{
     pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,
 };
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::prelude::*;
+use cw_orch::{mock::MockBase, prelude::*};
 
 use self::cw20_builder::Cw20Builder;
 use crate::{
@@ -152,6 +152,13 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
         ans_host.update_pools(self.pools.clone(), vec![])?;
 
         Ok(())
+    }
+}
+
+impl<A: cosmwasm_std::Api, S: StateInterface> AbstractClientBuilder<MockBase<A, S>> {
+    /// Deploy mock abstract with current configuration
+    pub fn build_test(&self) -> AbstractClientResult<AbstractClient<MockBase<A, S>>> {
+        self.build(Abstract::mock_admin(&self.chain))
     }
 }
 

@@ -27,10 +27,6 @@ pub use publisher::{Publisher, PublisherBuilder};
 pub use service::Service;
 pub use source::AccountSource;
 
-// Re-export abstract testing for test-utils
-#[cfg(feature = "test-utils")]
-pub use abstract_testing;
-
 // Interchain stuff
 #[cfg(feature = "interchain")]
 mod interchain {

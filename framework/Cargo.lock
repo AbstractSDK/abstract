@@ -619,8 +619,6 @@ dependencies = [
  "cosmwasm-schema 2.1.3",
  "cosmwasm-std 2.1.3",
  "cw-asset",
- "cw-blob",
- "cw-orch",
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "derive_builder 0.12.0",
@@ -2046,8 +2044,9 @@ dependencies = [
 
 [[package]]
 name = "cw-blob"
-version = "0.1.0"
-source = "git+https://github.com/AbstractSDK/cw-packages.git?branch=contract/cw-blob#e0e66eaa4a67dae3044693f04a641fd146a11d63"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d906307ad934c0fcbe7ea8aecab93f8571bb32ca326de61168e945c7bc69f60"
 dependencies = [
  "cosmrs 0.20.0",
  "cosmwasm-std 2.1.3",
