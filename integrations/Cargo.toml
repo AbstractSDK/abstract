@@ -30,7 +30,7 @@ cosmwasm-std = { version = "2.0" }
 cosmwasm-schema = { version = "2.0" }
 cw-storage-plus = "2.0.0"
 cw2 = "2.0.0"
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "4.0.0" }
+cw-plus-orch = { version = "0.25.0" }
 cw20 = { version = "2.0.0" }
 cw20-base = { version = "2.0.0" }
 cw-utils = "2.0"
