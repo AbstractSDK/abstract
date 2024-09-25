@@ -1,19 +1,12 @@
 use std::{env::set_var, sync::Arc};
 
-use abstract_account::absacc::{auth::AddAuthenticator, proto::MsgRegisterAccount};
+use abstract_account::absacc::{auth::AddAuthenticator};
 use abstract_client::{AbstractClient, Namespace};
 use abstract_std::{
     objects::{module::ModuleInfo, salt::generate_instantiate_salt, AccountId},
     ACCOUNT,
 };
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
-use cosmrs::tx::Fee;
-use cosmrs::{
-    crypto::secp256k1::SigningKey,
-    tendermint::chain::Id,
-    tx::{self, ModeInfo, Msg, Raw, SignDoc, SignMode, SignerInfo},
-    Any,
-};
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_json_binary, Binary};
 use cw_orch::{
@@ -40,6 +33,12 @@ use xion_sdk_proto::abstract_account::v1::NilPubKey;
 use xion_sdk_proto::cosmos::auth::v1beta1::QueryAccountRequest;
 use xion_sdk_proto::traits::MessageExt;
 use xion_sdk_proto::{cosmos::bank::v1beta1::MsgSend, prost::Name, traits::Message};
+use xionrs::{
+    crypto::secp256k1::SigningKey,
+    tendermint::chain::Id,
+    // tx::{self, ModeInfo, Msg, Raw, SignDoc, SignMode, SignerInfo},
+    // Any,
+};
 
 const GAS_BUFFER: f64 = 1.3;
 const BUFFER_THRESHOLD: u64 = 200_000;
@@ -60,19 +59,21 @@ pub const LOCAL_XION: ChainInfo = ChainInfo {
 };
 
 fn main() -> anyhow::Result<()> {
-    set_var("RUST_LOG", "debug");
+    set_var("RUST_LOG", "info");
     env_logger::init();
 
     let xiond = Daemon::builder(LOCAL_XION)
         .build_sender(CosmosOptions::default().mnemonic(LOCAL_MNEMONIC))?;
 
     let wallet = xiond.sender();
-    // let abstr = AbstractClient::new(xiond.clone())
-    //     .or_else(|_| AbstractClient::builder(xiond.clone()).build());
-    let abstr = AbstractClient::builder(xiond.clone()).build();
+
+    let abstr = AbstractClient::new(xiond.clone())
+        .or_else(|_| AbstractClient::builder(xiond.clone()).build());
+
     let abstr = abstr?;
     let maybe_account = abstr.account_from(Namespace::new("test")?);
 
+    println!("Wallet Addr: {}", wallet.pub_addr_str());
     let account = match maybe_account {
         Ok(acc) => acc,
         Err(_) => {
@@ -85,7 +86,7 @@ fn main() -> anyhow::Result<()> {
 
             // get the account number of the wallet
             let signing_key =
-                cosmrs::crypto::secp256k1::SigningKey::from_slice(&wallet.private_key.raw_key())
+                xionrs::crypto::secp256k1::SigningKey::from_slice(&wallet.private_key.raw_key())
                     .unwrap();
             let signature = signing_key.sign(account_addr.as_bytes()).unwrap();
 
@@ -95,7 +96,9 @@ fn main() -> anyhow::Result<()> {
                 .reference
                 .unwrap_account()?;
 
-            let create_msg = MsgRegisterAccount {
+            let fund_init_amount = 1_000_000u128;
+
+            let create_msg = xion_sdk_proto::abstract_account::v1::MsgRegisterAccount {
                 sender: wallet.pub_addr_str(),
                 code_id,
                 msg: to_json_binary(&abstract_std::account::InstantiateMsg {
@@ -112,17 +115,20 @@ fn main() -> anyhow::Result<()> {
                     install_modules: vec![],
                     description: Some("foo bar".to_owned()),
                     link: None,
-                    module_factory_address: abstr.module_factroy().addr_str()?,
+                    module_factory_address: abstr.module_factory().addr_str()?,
                     version_control_address: abstr.version_control().addr_str()?,
                 })?
                 .to_vec(),
-                funds: vec![],
+                funds: vec![xion_sdk_proto::cosmos::base::v1beta1::Coin {
+                    denom: "uxion".to_string(),
+                    amount: fund_init_amount.to_string(),
+                }],
                 salt: salt.to_vec(),
             };
 
             xiond.rt_handle.block_on(wallet.commit_tx_any(
-                vec![cosmrs::Any {
-                    type_url: MsgRegisterAccount::type_url(),
+                vec![xionrs::Any {
+                    type_url: "/abstractaccount.v1.MsgRegisterAccount".to_string(),
                     value: create_msg.encode_to_vec(),
                 }],
                 None,
@@ -132,41 +138,12 @@ fn main() -> anyhow::Result<()> {
         }
     };
 
-    // Signature for xion account
-
-    let auths: Vec<u8> = xiond.wasm_querier().smart_query(
-        &account.address()?,
-        &abstract_std::account::QueryMsg::AuthenticatorIDs {},
-    )?;
-    dbg!(auths);
-
-    let old_balance = xiond.balance(&account.address()?, Some("uxion".to_string()))?[0]
-        .amount
-        .u128();
-
-    // Send funds to account
-    let bank_msg = xion_sdk_proto::cosmos::bank::v1beta1::MsgSend {
-        from_address: wallet.pub_addr_str(),
-        to_address: account.address()?.into_string(),
-        amount: vec![xion_sdk_proto::cosmos::base::v1beta1::Coin {
-            denom: "uxion".to_string(),
-            amount: "1000".to_string(),
-        }],
-    };
-
-    xiond.rt_handle.block_on(wallet.commit_tx_any(
-        vec![cosmrs::Any {
-            type_url: MsgSend::type_url(),
-            value: bank_msg.encode_to_vec(),
-        }],
-        None,
-    ))?;
+    println!("Account Addr: {}", account.address()?);
 
     // now query balance account
     let new_balance = xiond.balance(&account.address()?, Some("uxion".to_string()))?[0]
         .amount
         .u128();
-    assert_eq!(new_balance, old_balance + 1000);
 
     // Now attempt to burn with an account-abstracted TX
     let xion_sender = RUNTIME.block_on(xion_sender::Wallet::from_mnemonic(
@@ -189,7 +166,7 @@ fn main() -> anyhow::Result<()> {
     println!("Sending funds as signer");
 
     xiond.rt_handle.block_on(xion_sender.commit_tx_any(
-        vec![cosmrs::Any {
+        vec![xionrs::Any {
             type_url: MsgSend::type_url(),
             value: send_backmsg.encode_to_vec(),
         }],
@@ -206,6 +183,12 @@ fn main() -> anyhow::Result<()> {
 }
 
 mod xion_sender {
+    use xion_sdk_proto::cosmos::tx::v1beta1::{AuthInfo, SignDoc, SignerInfo, TxRaw};
+    use xionrs::{
+        tx::{Msg, Raw, SignMode},
+        Any,
+    };
+
     use super::*;
     /// A wallet is a sender of transactions, can be safely cloned and shared within the same thread.
     pub type Wallet = XionSender<All>;
@@ -268,7 +251,7 @@ mod xion_sender {
             };
 
             // ensure address is valid
-            cosmrs::AccountId::new(
+            xionrs::AccountId::new(
                 &chain_info.network_info.pub_address_prefix,
                 &pk.public_key(&secp).raw_address.unwrap(),
             )?;
@@ -333,7 +316,7 @@ mod xion_sender {
 
         pub async fn broadcast_tx(
             &self,
-            tx: Raw,
+            tx: TxRaw,
         ) -> Result<xion_sdk_proto::cosmos::base::abci::v1beta1::TxResponse, DaemonError> {
             let mut client =
                 xion_sdk_proto::cosmos::tx::v1beta1::service_client::ServiceClient::new(
@@ -341,59 +324,14 @@ mod xion_sender {
                 );
             let commit = client
                 .broadcast_tx(xion_sdk_proto::cosmos::tx::v1beta1::BroadcastTxRequest {
-                    tx_bytes: tx.to_bytes()?,
+                    tx_bytes: tx.to_bytes().unwrap(),
                     mode: xion_sdk_proto::cosmos::tx::v1beta1::BroadcastMode::Sync.into(),
                 })
                 .await?;
-
             let commit = commit.into_inner().tx_response.unwrap();
+
+            println!("Broadcasted TX: {:#?}", commit);
             Ok(commit)
-        }
-
-        pub async fn bank_send(
-            &self,
-            recipient: &Addr,
-            coins: Vec<cosmwasm_std::Coin>,
-        ) -> Result<CosmTxResponse, DaemonError> {
-            let acc_id = self.account_id();
-
-            let msg_send = cosmrs::bank::MsgSend {
-                from_address: acc_id,
-                to_address: cosmrs::AccountId::from_str(recipient.as_str())?,
-                amount: parse_cw_coins(&coins)?,
-            };
-
-            self.commit_tx(vec![msg_send], Some("sending tokens")).await
-        }
-
-        /// Computes the gas needed for submitting a transaction
-        pub async fn calculate_gas(
-            &self,
-            tx_body: &tx::Body,
-            sequence: u64,
-            account_number: u64,
-        ) -> Result<u64, DaemonError> {
-            let fee = TxBuilder::build_fee(0u8, &self.chain_info.gas_denom, 0, None)?;
-
-            let auth_info = SignerInfo {
-                public_key: self.private_key.get_signer_public_key(&self.secp),
-                mode_info: ModeInfo::single(SignMode::Direct),
-                sequence,
-            }
-            .auth_info(fee);
-
-            let sign_doc = SignDoc::new(
-                tx_body,
-                &auth_info,
-                &Id::try_from(self.chain_info.chain_id.to_string())?,
-                account_number,
-            )?;
-
-            let tx_raw = self.sign(sign_doc)?;
-
-            Node::new_async(self.channel())
-                ._simulate_tx(tx_raw.to_bytes()?)
-                .await
         }
 
         pub async fn commit_tx<T: Msg>(
@@ -410,51 +348,22 @@ mod xion_sender {
             self.commit_tx_any(msgs, memo).await
         }
 
-        pub fn sign(&self, sign_doc: SignDoc) -> Result<Raw, DaemonError> {
-            let sign_doc_bytes = sign_doc.clone().into_bytes()?;
+        pub fn sign(&self, sign_doc: SignDoc) -> Result<TxRaw, DaemonError> {
+            let sign_doc_bytes = xionrs::tx::SignDoc::from(sign_doc.clone()).into_bytes().unwrap();
             let signature = self.cosmos_private_key().sign(&sign_doc_bytes)?;
 
             let mut smart_contract_sig = vec![1u8];
             smart_contract_sig.extend(signature.to_vec());
 
-            Ok(Raw::from_bytes(
-                &xion_sdk_proto::cosmos::tx::v1beta1::TxRaw {
-                    body_bytes: sign_doc.body_bytes,
-                    auth_info_bytes: sign_doc.auth_info_bytes,
-                    signatures: vec![smart_contract_sig.to_vec()],
-                }
-                .to_bytes()
-                .unwrap(),
-            )
-            .unwrap()
-            .into())
-        }
-
-        pub(crate) fn get_fee_token(&self) -> String {
-            self.chain_info.gas_denom.to_string()
+            Ok(xion_sdk_proto::cosmos::tx::v1beta1::TxRaw {
+                body_bytes: sign_doc.body_bytes,
+                auth_info_bytes: sign_doc.auth_info_bytes,
+                signatures: vec![smart_contract_sig],
+            })
         }
 
         fn cosmos_private_key(&self) -> SigningKey {
             SigningKey::from_slice(&self.private_key.raw_key()).unwrap()
-        }
-
-        /// Compute the gas fee from the expected gas in the transaction
-        /// Applies a Gas Buffer for including signature verification
-        pub(crate) fn get_fee_from_gas(&self, gas: u64) -> Result<(u64, u128), DaemonError> {
-            let mut gas_expected = if let Some(gas_buffer) = DaemonEnvVars::gas_buffer() {
-                gas as f64 * gas_buffer
-            } else if gas < BUFFER_THRESHOLD {
-                gas as f64 * SMALL_GAS_BUFFER
-            } else {
-                gas as f64 * GAS_BUFFER
-            };
-
-            let min_gas = DaemonEnvVars::min_gas();
-            gas_expected = (min_gas as f64).max(gas_expected);
-
-            let fee_amount = gas_expected * (self.chain_info.gas_price + 0.00001);
-
-            Ok((gas_expected as u64, fee_amount as u128))
         }
     }
 
@@ -477,11 +386,14 @@ mod xion_sender {
 
             let tx_body = TxBuilder::build_body(msgs, memo, timeout_height);
 
-            let fee = Fee {
-                amount: vec![cosmrs::Coin::new(1000_000, "uxion").unwrap()],
-                gas_limit: 500_000,
-                payer: None,
-                granter: None,
+            let fee = xion_sdk_proto::cosmos::tx::v1beta1::Fee {
+                amount: vec![xion_sdk_proto::cosmos::base::v1beta1::Coin {
+                    amount: 7500.to_string(),
+                    denom: "uxion".into(),
+                }],
+                gas_limit: 300_000,
+                payer: Default::default(),
+                granter: Default::default(),
             };
 
             // log::debug!(
@@ -507,31 +419,38 @@ mod xion_sender {
 
             let account = AbstractAccount::decode(resp.value.as_ref()).unwrap();
 
+            let account_id: cosmrs::AccountId = str::parse(account.address.as_str()).unwrap();
+
             let account_number = account.account_number;
 
-            let any_pub_key = cosmrs::Any {
+            let any_pub_key = xionrs::Any {
                 // TODO: Does it make sense to have empty type url here?
-                type_url: "".to_string(),
+                type_url: "/abstractaccount.v1.NilPubKey".to_string(),
                 value: NilPubKey {
-                    address_bytes: self.account.as_bytes().to_vec(),
+                    address_bytes: account_id.to_bytes(),
                 }
                 .encode_to_vec(),
             };
 
-            let auth_info = SignerInfo {
-                public_key: Some(tx::SignerPublicKey::Any(any_pub_key)),
+            let signer_info: SignerInfo = SignerInfo {
+                public_key: Some(xionrs::tx::SignerPublicKey::Any(any_pub_key).into()),
                 // public_key: self.private_key.get_signer_public_key(&self.secp),
-                mode_info: ModeInfo::single(SignMode::Direct),
+                mode_info: Some(xionrs::tx::ModeInfo::single(SignMode::Direct).into()),
                 sequence: account.sequence,
-            }
-            .auth_info(fee);
+            };
 
-            let sign_doc = SignDoc::new(
-                &tx_body,
-                &auth_info,
-                &Id::try_from(self.chain_info.chain_id.to_string())?,
+            let auth_info = AuthInfo {
+                signer_infos: vec![signer_info],
+                fee: Some(fee),
+                tip: None,
+            };
+
+            let sign_doc = SignDoc {
+                body_bytes: tx_body.into_bytes().unwrap(),
+                auth_info_bytes: auth_info.encode_to_vec(),
+                chain_id: self.chain_info.chain_id.to_string(),
                 account_number,
-            )?;
+            };
 
             eprintln!("Sign doc: {:?}", sign_doc);
 
@@ -579,13 +498,13 @@ mod xion_sender {
 
     pub(crate) fn parse_cw_coins(
         coins: &[cosmwasm_std::Coin],
-    ) -> Result<Vec<cosmrs::Coin>, DaemonError> {
+    ) -> Result<Vec<xionrs::Coin>, DaemonError> {
         coins
             .iter()
             .map(|cosmwasm_std::Coin { amount, denom }| {
-                Ok(cosmrs::Coin {
+                Ok(xionrs::Coin {
                     amount: amount.u128(),
-                    denom: cosmrs::Denom::from_str(denom)?,
+                    denom: xionrs::Denom::from_str(denom)?,
                 })
             })
             .collect::<Result<Vec<_>, DaemonError>>()

@@ -1705,6 +1705,25 @@ dependencies = [
 
 [[package]]
 name = "cosmrs"
+version = "0.19.0-pre"
+source = "git+https://github.com/CyberHoward/cosmos-rust.git?branch=patch-1#f8adb4a80d0c99abd846361c884ca9f1a0844a5d"
+dependencies = [
+ "bip32",
+ "cosmos-sdk-proto 0.24.0-pre (git+https://github.com/CyberHoward/cosmos-rust.git?branch=patch-1)",
+ "ecdsa",
+ "eyre",
+ "k256",
+ "rand_core 0.6.4",
+ "serde",
+ "serde_json",
+ "signature",
+ "subtle-encoding",
+ "tendermint 0.39.1",
+ "thiserror",
+]
+
+[[package]]
+name = "cosmrs"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af28a0ee4149da7cea0486fd7e3fbddea7dd81625279fdc521141ffb07fbd482"
@@ -2077,7 +2096,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dd6f114ab0301b99ca0d8ba48036b87372ccc3ba0271dcd6f9533e4be578f65"
 dependencies = [
  "anyhow",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.4",
  "cw-orch-contract-derive",
  "cw-orch-core",
@@ -2141,7 +2160,7 @@ dependencies = [
  "bech32 0.11.0",
  "bitcoin 0.32.2",
  "chrono",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.4",
  "cw-orch-core",
  "cw-orch-networks",
@@ -2245,7 +2264,7 @@ checksum = "d86766fbb5572ec8edad00844a4375eb1cd00dc3d1af31fbb57d5b99cad49ff5"
 dependencies = [
  "async-recursion",
  "base64 0.22.1",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-orch-core",
@@ -2273,7 +2292,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0547c2ed6ba22914fa119bcb792641c67cf9b989314150d06f25742d601403e"
 dependencies = [
  "anyhow",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.4",
  "cw-orch-core",
  "cw-orch-interchain-core",
@@ -6086,13 +6105,15 @@ dependencies = [
  "anyhow",
  "bitcoin 0.32.2",
  "cosmos-sdk-proto 0.24.0-pre (git+https://github.com/CyberHoward/cosmos-rust.git?branch=patch-1)",
- "cosmrs",
+ "cosmrs 0.19.0",
+ "cosmrs 0.19.0-pre",
  "cosmwasm-std 2.1.4",
  "cw-orch",
  "cw-orch-core",
  "cw-orch-daemon",
  "dotenv",
  "env_logger",
+ "prost",
  "tokio",
  "tonic",
 ]
