@@ -1,6 +1,6 @@
 use std::net::TcpStream;
 
-use abstract_interface::Abstract;
+use abstract_interface::{Abstract, AccountI};
 use abstract_scripts::assert_wallet_balance;
 use abstract_std::objects::gov_type::GovernanceDetails;
 use clap::Parser;
@@ -37,10 +37,12 @@ fn manual_deploy(network: ChainInfoOwned) -> anyhow::Result<()> {
         Err(_) => {
             let abs = Abstract::deploy_on(chain.clone(), sender.to_string())?;
             // Create the Abstract Account because it's needed for the fees for the dex module
-            abs.account_factory
-                .create_default_account(GovernanceDetails::Monarchy {
+            AccountI::create_default_account(
+                &abs,
+                GovernanceDetails::Monarchy {
                     monarch: sender.to_string(),
-                })?;
+                },
+            )?;
 
             abs
         }

@@ -1,4 +1,4 @@
-use abstract_interface::Abstract;
+use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
 use std::{
     fs::{self, File},
@@ -67,11 +67,12 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
         };
 
         // Create the Abstract Account because it's needed for the fees for the dex module
-        deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
+        AccountI::create_default_account(
+            &deployment,
+            GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            })?;
+            },
+        )?;
     }
 
     // fs::copy(Path::new("~/.cw-orchestrator/state.json"), to)

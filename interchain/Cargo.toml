@@ -58,7 +58,7 @@ polytone-note = { package = "abstract-polytone-note", version = "4.0.0" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
 
 cw-orch = { version = "0.25.0" }
-cw-orch-interchain = { version = "0.4.0" }
+cw-orch-interchain = { version = "0.5.0" }
 cw-orch-clone-testing = { version = "0.7.0" }
 # cw-orch-proto = { version = "0.4.0" }
 
