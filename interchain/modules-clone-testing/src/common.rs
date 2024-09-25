@@ -18,7 +18,9 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
     app.add_balance(&sender, coins(1_000_000_000_000_000, gas_denom))?;
     app.set_sender(sender);
 
-    let abstr_deployment = AbstractClient::new(app)?;
+    // TODO: first version, nothing to load yet
+    // let abstr_deployment = AbstractClient::new(app)?;
+    let abstr_deployment = AbstractClient::builder(app).build()?;
 
     // Migrate if needed
     {

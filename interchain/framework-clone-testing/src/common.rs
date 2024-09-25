@@ -13,8 +13,10 @@ pub fn setup(
     // We set the state file to be able to clone test
     std::env::set_var("STATE_FILE", "../scripts/state.json");
     let mut app = CloneTesting::new(chain)?;
-    app.set_sender(sender);
+    app.set_sender(sender.clone());
 
-    let abstr_deployment = Abstract::load_from(app.clone())?;
+    // TODO: we have nothing to migrate yet, it's a first version of Abstract2
+    // let abstr_deployment = Abstract::load_from(app.clone())?;
+    let abstr_deployment = Abstract::deploy_on(app.clone(), sender.to_string())?;
     Ok((abstr_deployment, app))
 }
