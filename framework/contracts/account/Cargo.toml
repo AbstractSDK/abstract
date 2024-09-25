@@ -35,8 +35,6 @@ xion = [
 [package.metadata.optimizer]
 standard-build = true
 builds = [
-    { name = "default", features = [
-    ] },
     { name = "xion", features = [
         "xion",
     ] },
