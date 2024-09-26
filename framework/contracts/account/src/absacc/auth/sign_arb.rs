@@ -40,15 +40,6 @@ mod tests {
     use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env};
     use cosmwasm_std::{Addr, Api, Binary};
 
-    #[derive(serde::Serialize, serde::Deserialize, Clone, Debug, PartialEq)]
-    #[serde(rename_all = "snake_case")]
-    pub enum XionCustomQuery {
-        Verify(cosmos_sdk_proto::xion::v1::QueryWebAuthNVerifyRegisterRequest),
-        Authenticate(cosmos_sdk_proto::xion::v1::QueryWebAuthNVerifyAuthenticateRequest),
-    }
-
-    impl cosmwasm_std::CustomQuery for XionCustomQuery {}
-
     #[test]
     fn test_derive_addr() {
         let pub_key = "AxVQixKMvKkMWMgEBn5E+QjXxFLLiOUNs3EG3vvsgaGs";
