@@ -10,6 +10,10 @@ repository = "https://github.com/AbstractSDK/abstract"
 
 exclude = ["contract.wasm", "hash.txt"]
 
+[[example]]
+name = "schema"
+required-features = ["xion"]
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -34,11 +38,7 @@ xion = [
 
 [package.metadata.optimizer]
 standard-build = true
-builds = [
-    { name = "xion", features = [
-        "xion",
-    ] },
-]
+builds = [{ name = "xion", features = ["xion"] }]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
