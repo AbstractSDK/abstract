@@ -48,13 +48,14 @@ pub fn before_tx(
         }
 
         // the first byte of the signature is the index of the authenticator
-        let (cred_index, admin) = match cred_bytes.first() {
+        let cred_index = match cred_bytes.first() {
             None => return Err(AccountError::InvalidSignature {}),
-            Some(i) => super::auth::AuthId(*i).cred_id(),
+            Some(i) => *i,
         };
-        if admin {
-            crate::state::AUTH_ADMIN.save(deps.storage, &admin)?;
-        }
+        // TODO: should be conditional
+        // if admin {
+        crate::state::AUTH_ADMIN.save(deps.storage, &true)?;
+        // }
         // retrieve the authenticator by index, or error
         let authenticator = AUTHENTICATORS.load(deps.storage, cred_index)?;
 

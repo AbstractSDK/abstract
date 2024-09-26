@@ -9,6 +9,10 @@ pub mod reply;
 pub mod sub_account;
 pub mod versioning;
 
+/// Abstract Account
+#[cfg(feature = "xion")]
+pub mod absacc;
+
 pub mod state {
     pub use abstract_std::account::state::*;
 
@@ -22,7 +26,7 @@ pub mod state {
 
 // re-export based on the feature
 pub mod msg {
-    pub use abstract_std::account::QueryMsg;
+    pub use abstract_std::account::{MigrateMsg, QueryMsg};
 
     #[cfg(feature = "xion")]
     pub type Authenticator = crate::absacc::auth::AddAuthenticator;
@@ -33,9 +37,6 @@ pub mod msg {
     pub type InstantiateMsg = abstract_std::account::InstantiateMsg<Authenticator>;
 }
 
-/// Abstract Account
-#[cfg(feature = "xion")]
-pub mod absacc;
 #[cfg(test)]
 mod test_common {
     use abstract_std::{
