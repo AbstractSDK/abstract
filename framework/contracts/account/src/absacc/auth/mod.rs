@@ -11,6 +11,7 @@ mod secp256r1;
 mod sign_arb;
 pub mod util;
 
+/// Authentication id for the signature
 #[cosmwasm_schema::cw_serde]
 #[derive(Copy)]
 pub struct AuthId(pub(crate) u8);
