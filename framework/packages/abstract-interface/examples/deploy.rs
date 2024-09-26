@@ -9,14 +9,14 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 fn full_deploy(networks: Vec<ChainInfo>) -> cw_orch::anyhow::Result<()> {
     for network in networks {
         let chain = DaemonBuilder::new(network.clone()).build()?;
-        let sender = chain.sender_addr();
+        let sender = chain.sender();
 
-        let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+        let deployment = Abstract::deploy_on(chain.clone(), sender.clone())?;
         // Create the Abstract Account because it's needed for the fees for the dex module
         AccountI::create_default_account(
             &deployment,
             GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
+                monarch: chain.sender_addr().to_string(),
             },
         )?;
     }

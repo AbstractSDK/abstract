@@ -1,6 +1,6 @@
-use abstract_sdk::{feature_objects::VersionControlContract, std::ibc_host::ExecuteMsg};
+use abstract_sdk::std::ibc_host::ExecuteMsg;
 use abstract_std::{
-    ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
+    ibc_host::state::{CHAIN_PROXIES, REVERSE_CHAIN_PROXIES},
     objects::TruncatedChainId,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
@@ -13,17 +13,6 @@ use crate::{
 
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
     match msg {
-        ExecuteMsg::UpdateConfig {
-            ans_host_address,
-            module_factory_address,
-            version_control_address,
-        } => update_config(
-            deps,
-            info,
-            ans_host_address,
-            version_control_address,
-            module_factory_address,
-        ),
         ExecuteMsg::RegisterChainProxy { chain, proxy } => {
             register_chain_proxy(deps, info, chain, proxy)
         }
@@ -54,38 +43,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             handle_module_execute(deps, env, src_chain, source_module, target_module, msg)
         }
     }
-}
-
-/// Updates the host's configuration
-fn update_config(
-    deps: DepsMut,
-    info: MessageInfo,
-    ans_host_address: Option<String>,
-    version_control_address: Option<String>,
-    module_factory_address: Option<String>,
-) -> HostResult {
-    let mut config = CONFIG.load(deps.storage)?;
-
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
-
-    if let Some(ans_host_address) = ans_host_address {
-        // validate address format
-        config.ans_host.address = deps.api.addr_validate(&ans_host_address)?;
-    }
-
-    if let Some(version_control_address) = version_control_address {
-        // validate address format
-        config.version_control =
-            VersionControlContract::new(deps.api.addr_validate(&version_control_address)?);
-    }
-
-    if let Some(module_factory_address) = module_factory_address {
-        // validate address format
-        config.module_factory_addr = deps.api.addr_validate(&module_factory_address)?;
-    }
-
-    CONFIG.save(deps.storage, &config)?;
-    Ok(HostResponse::action("update_config"))
 }
 
 /// Register the polytone proxy address for a given chain

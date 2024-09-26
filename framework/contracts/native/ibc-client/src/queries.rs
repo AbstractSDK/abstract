@@ -1,8 +1,9 @@
 use std::str::FromStr;
 
+use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_std::{
     ibc_client::{
-        state::{Config, ACCOUNTS, CONFIG, IBC_INFRA},
+        state::{ACCOUNTS, IBC_INFRA},
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
         ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteProxiesResponse,
     },
@@ -91,13 +92,9 @@ pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructur
 }
 
 pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
-    let Config {
-        version_control,
-        ans_host,
-    } = CONFIG.load(deps.storage)?;
     Ok(ConfigResponse {
-        ans_host: ans_host.address.to_string(),
-        version_control_address: version_control.address.into_string(),
+        ans_host: AnsHost::new(deps.api)?.address,
+        version_control_address: VersionControlContract::new(deps.api)?.address,
     })
 }
 

@@ -23,11 +23,7 @@ mod test_common {
             deps.as_mut(),
             mock_env(),
             info,
-            abstract_std::module_factory::InstantiateMsg {
-                admin,
-                version_control_address: abstr.version_control.to_string(),
-                ans_host_address: abstr.ans_host.to_string(),
-            },
+            abstract_std::module_factory::InstantiateMsg { admin },
         )
     }
 }

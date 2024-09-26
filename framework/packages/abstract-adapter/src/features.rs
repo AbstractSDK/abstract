@@ -60,17 +60,14 @@ mod tests {
         _msg: MockExecMsg,
     ) -> Result<Response, MockError> {
         let mock_api = MockApi::default();
-        let abstr = AbstractMockAddrs::new(mock_api);
         let expected_account = test_account_base(mock_api);
-        let expected_ans = abstr.ans_host;
-        let expected_vc = abstr.version_control;
         // assert with test values
         let account = module.account(deps.as_ref())?;
         assert_eq!(account, expected_account);
         let ans = module.ans_host(deps.as_ref())?;
-        assert_eq!(ans, AnsHost::new(expected_ans));
+        assert_eq!(ans, AnsHost::new(deps.api)?);
         let regist = module.abstract_registry(deps.as_ref())?;
-        assert_eq!(regist, VersionControlContract::new(expected_vc));
+        assert_eq!(regist, VersionControlContract::new(deps.api)?);
 
         module.target()?;
 

@@ -71,10 +71,7 @@ pub mod mock {
     #[cw_orch::interface(MockInitMsg, MockExecMsg, MockQueryMsg, MockMigrateMsg)]
     pub struct MockStandaloneWithDepI;
 
-    use abstract_sdk::{
-        feature_objects::{AnsHost, VersionControlContract},
-        AbstractResponse, AbstractSdkError,
-    };
+    use abstract_sdk::{AbstractResponse, AbstractSdkError};
     use abstract_testing::{addresses::*, prelude::*};
     use thiserror::Error;
 
@@ -158,8 +155,6 @@ pub mod mock {
                 &mut deps.storage,
                 &standalone::StandaloneState {
                     account: abstr.account,
-                    ans_host: AnsHost::new(abstr.ans_host),
-                    version_control: VersionControlContract::new(abstr.version_control),
                     is_migratable: true,
                 },
             )

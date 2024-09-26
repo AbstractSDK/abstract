@@ -7,6 +7,8 @@ use cw_orch::{interface, prelude::*};
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;
 
+impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for ModuleFactory<Chain> {}
+
 impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
     fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
@@ -22,21 +24,5 @@ impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
         artifacts_dir_from_workspace!()
             .find_wasm_path("module_factory")
             .unwrap()
-    }
-}
-
-impl<Chain: CwEnv> ModuleFactory<Chain> {
-    pub fn change_ans_host_addr(
-        &self,
-        mem_addr: String,
-    ) -> Result<TxResponse<Chain>, crate::AbstractInterfaceError> {
-        self.execute(
-            &ExecuteMsg::UpdateConfig {
-                ans_host_address: Some(mem_addr),
-                version_control_address: None,
-            },
-            &[],
-        )
-        .map_err(Into::into)
     }
 }

@@ -94,14 +94,13 @@ mod test {
         deps.querier = abstract_mock_querier_builder(deps.api)
             .account(&test_account, TEST_ACCOUNT_ID)
             .build();
-        let abstr = AbstractMockAddrs::new(deps.api);
         // Account identification
         let base = MOCK_APP_WITH_DEP.account(deps.as_ref())?;
         assert_eq!(base, test_account.clone());
 
         // AbstractNameService
         let host = MOCK_APP_WITH_DEP.name_service(deps.as_ref()).host().clone();
-        assert_eq!(host, AnsHost::new(abstr.ans_host));
+        assert_eq!(host, AnsHost::new(&deps.api)?);
 
         // AccountRegistry
         // TODO: really rust forces binding CONST variable here?

@@ -15,6 +15,8 @@
 
 - Ibc related renaming to add more consistency in namings
 - Account action on executor takes `impl IntoIter<Item = impl Into<AccountAction>>` instead of `Vec<AccountAction>`
+- Native contracts now have pre-compiled addresses. This removes the need for storing addresses in an on-chain state.
+- Removed `UpdateConfig` endpoints from most native contracts and `App`/`Native` bases.
 - Minified the storage keys and made them available via constants
 
 #### Abstract Client

@@ -536,9 +536,10 @@ mod tests {
         fn should_return_admin_acct_id() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_mock_querier(deps.api);
-            let root_base = admin_account(deps.api);
+            let root_account = admin_account(deps.api);
 
-            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), root_base.addr().clone());
+            let actual =
+                ACCOUNT_ID.query(&wrap_querier(&deps.querier), root_account.addr().clone());
 
             assert_eq!(actual, Ok(ABSTRACT_ACCOUNT_ID));
         }
@@ -551,7 +552,7 @@ mod tests {
                 .account(&test_base, TEST_ACCOUNT_ID)
                 .build();
 
-            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), test_base.addr().clone());
+            let actual = ACCOUNT_ID.query(&wrap_querier(&deps.querier), test_base.into_addr());
 
             assert_eq!(actual, Ok(TEST_ACCOUNT_ID));
         }
@@ -568,7 +569,7 @@ mod tests {
 
             let actual = ACCOUNT_MODULES.query(
                 &wrap_querier(&deps.querier),
-                abstr.account.addr().clone(),
+                abstr.account.into_addr(),
                 TEST_MODULE_ID,
             );
 
