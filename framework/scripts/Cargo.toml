@@ -23,8 +23,10 @@ env_logger = "0.11.5"
 # ] }
 
 # Remove once fixed upstream
-xion_sdk_proto = {  version = "0.24.0-pre", package = "cosmos-sdk-proto", git = "https://github.com/CyberHoward/cosmos-rust.git", branch = "patch-1"}
-xionrs =  {  version = "0.19.0-pre", package = "cosmrs", git = "https://github.com/CyberHoward/cosmos-rust.git", branch = "patch-1"}
+xion_sdk_proto = { version = "0.24.0-pre", package = "cosmos-sdk-proto", git = "https://github.com/CyberHoward/cosmos-rust.git", branch = "patch-1", features = [
+    "cosmwasm",
+] }
+xionrs = { version = "0.19.0-pre", package = "cosmrs", git = "https://github.com/CyberHoward/cosmos-rust.git", branch = "patch-1" }
 
 cw-orch-daemon = "0.25.1"
 bitcoin = { version = "0.32.2" }
@@ -34,4 +36,3 @@ cosmrs = { version = "0.19.0", features = ["dev", "cosmwasm", "grpc"] }
 prost = { version = "0.13" }
 
 cw-orch-core = "2.0.0"
-

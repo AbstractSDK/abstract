@@ -1,4 +1,4 @@
-use cosmwasm_std::{Binary, Deps, DepsMut, Env};
+use cosmwasm_std::{Binary, DepsMut, Env};
 
 use crate::{
     contract::{AccountResponse, AccountResult},
@@ -15,14 +15,11 @@ pub fn sudo(deps: DepsMut, env: Env, msg: AccountSudoMsg) -> AccountResult {
             tx_bytes,
             cred_bytes,
             simulate,
-            msgs,
+            msgs: _,
         } => {
-            // TODO: what do we do with those messages?
-            dbg!(msgs);
-
             let cred_bytes = cred_bytes.ok_or(AccountError::EmptySignature {})?;
             before_tx(
-                deps.as_ref(),
+                deps,
                 &env,
                 &Binary::from(tx_bytes.as_slice()),
                 Some(Binary::from(cred_bytes.as_slice())).as_ref(),
@@ -34,7 +31,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: AccountSudoMsg) -> AccountResult {
 }
 
 pub fn before_tx(
-    deps: Deps,
+    deps: DepsMut,
     env: &Env,
     tx_bytes: &Binary,
     cred_bytes: Option<&Binary>,
@@ -51,10 +48,13 @@ pub fn before_tx(
         }
 
         // the first byte of the signature is the index of the authenticator
-        let cred_index: u8 = match cred_bytes.first() {
+        let (cred_index, admin) = match cred_bytes.first() {
             None => return Err(AccountError::InvalidSignature {}),
-            Some(i) => *i,
+            Some(i) => super::auth::AuthId(*i).cred_id(),
         };
+        if admin {
+            crate::state::AUTH_ADMIN.save(deps.storage, &admin)?;
+        }
         // retrieve the authenticator by index, or error
         let authenticator = AUTHENTICATORS.load(deps.storage, cred_index)?;
 
@@ -81,7 +81,7 @@ pub fn before_tx(
             }
         }
 
-        return match authenticator.verify(deps, env, tx_bytes, sig_bytes)? {
+        return match authenticator.verify(deps.as_ref(), env, tx_bytes, sig_bytes)? {
             true => Ok(AccountResponse::action("before_tx")),
             false => Err(AccountError::InvalidSignature {}),
         };

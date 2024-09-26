@@ -21,6 +21,7 @@ pub mod account {
     pub const MIGRATE_CONTEXT: &str = "ai";
 
     // XION authentificators, could be there could be not
+    pub const AUTH_ADMIN: &str = "ax";
     pub const AUTHENTICATORS: &str = "az";
 }
 

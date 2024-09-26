@@ -1,13 +1,18 @@
-use cosmwasm_std::Binary;
+use cosmwasm_std::{Binary, StdError};
 use p256::ecdsa::{signature::Verifier, Signature, VerifyingKey};
 
 use crate::contract::AccountResult;
 
+// TODO: this is the only error variant without partial eq
 pub fn verify(tx_hash: &[u8], sig_bytes: &[u8], pubkey_bytes: &Binary) -> AccountResult<bool> {
-    let verifying_key: VerifyingKey = VerifyingKey::from_sec1_bytes(pubkey_bytes.as_slice())?;
+    let verifying_key: VerifyingKey = VerifyingKey::from_sec1_bytes(pubkey_bytes.as_slice())
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
 
-    let signature: Signature = Signature::from_bytes(sig_bytes.into())?;
-    verifying_key.verify(tx_hash, &signature)?;
+    let signature: Signature = Signature::from_bytes(sig_bytes.into())
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
+    verifying_key
+        .verify(tx_hash, &signature)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
 
     Ok(true)
 }

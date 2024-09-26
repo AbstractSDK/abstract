@@ -6,7 +6,7 @@ use abstract_std::{
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum AccountError {
     #[error("{0}")]
     Std(#[from] StdError),
@@ -109,8 +109,14 @@ pub enum AccountError {
     #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
     SubAccountCreatorNotAccount { caller: String, account: String },
 
-    #[error("Governance have to be renounced when authenticator is used")]
-    GovernanceWithAuth {},
+    #[error("Abstract Account Address don't match to the Contract address")]
+    AbsAccInvalidAddr {
+        abstract_account: String,
+        contract: String,
+    },
+
+    #[error("Abstract Account don't have Authentication")]
+    AbsAccNoAuth {},
 
     #[cfg(feature = "xion")]
     #[error(transparent)]
@@ -144,10 +150,10 @@ pub enum AccountError {
     #[error(transparent)]
     P256EllipticCurve(#[from] p256::elliptic_curve::Error),
 
-    #[cfg(feature = "xion")]
-    #[error(transparent)]
-    P256EcdsaCurve(#[from] p256::ecdsa::Error),
-
+    // TODO: no PartialEq implemented for it, see `secp256r1.rs`
+    // #[cfg(feature = "xion")]
+    // #[error(transparent)]
+    // P256EcdsaCurve(#[from] p256::ecdsa::Error),
     #[cfg(feature = "xion")]
     #[error(transparent)]
     RecoverPubkey(#[from] cosmwasm_std::RecoverPubkeyError),

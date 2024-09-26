@@ -33,11 +33,21 @@ mod tests {
     use super::super::util;
     use crate::contract::instantiate;
     use abstract_std::account::InstantiateMsg;
+    use abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE;
+    use abstract_testing::abstract_mock_querier_builder;
+    use abstract_testing::prelude::AbstractMockAddrs;
     use base64::{engine::general_purpose, Engine as _};
-    use cosmwasm_std::testing::{
-        message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage,
-    };
-    use cosmwasm_std::{Addr, Api, Binary, OwnedDeps};
+    use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env};
+    use cosmwasm_std::{Addr, Api, Binary};
+
+    #[derive(serde::Serialize, serde::Deserialize, Clone, Debug, PartialEq)]
+    #[serde(rename_all = "snake_case")]
+    pub enum XionCustomQuery {
+        Verify(cosmos_sdk_proto::xion::v1::QueryWebAuthNVerifyRegisterRequest),
+        Authenticate(cosmos_sdk_proto::xion::v1::QueryWebAuthNVerifyAuthenticateRequest),
+    }
+
+    impl cosmwasm_std::CustomQuery for XionCustomQuery {}
 
     #[test]
     fn test_derive_addr() {
@@ -95,12 +105,12 @@ mod tests {
 
     #[test]
     fn test_init_sign_arb() {
-        let mut deps = OwnedDeps {
-            storage: MockStorage::default(),
-            api: MockApi::default().with_prefix("xion"),
-            querier: MockQuerier::<XionCustomQuery>::new(&[]),
-            custom_query_type: core::marker::PhantomData::<XionCustomQuery>,
-        };
+        let mut deps = mock_dependencies();
+        deps.api = deps.api.with_prefix("xion");
+        let abstr = AbstractMockAddrs::new(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .with_contract_item(&abstr.version_control, LOCAL_ACCOUNT_SEQUENCE, &0)
+            .build();
         let mut env = mock_env();
         // This is the local faucet address to simplify reuse
         env.contract.address = Addr::unchecked(
@@ -123,21 +133,31 @@ mod tests {
         let signature = "AKgG8slCFM78fE9tZzmf+L6yQskPQI0acUg3PBv/kNIO0i19i/RNaJtfFJ8A8MyHmg7Ate5imbwuzsP6mfbEaA==";
         let signature_bytes = general_purpose::STANDARD.decode(signature).unwrap();
 
-        // TODO:
-        // let instantiate_msg = InstantiateMsg {
-        //     authenticator: crate::auth::AddAuthenticator::Secp256K1 {
-        //         id: 0,
-        //         pubkey: Binary::from(pubkey_bytes),
-        //         signature: Binary::from(signature_bytes),
-        //     },
-        // };
+        let instantiate_msg = InstantiateMsg {
+            authenticator: Some(crate::absacc::auth::AddAuthenticator::Secp256K1 {
+                id: 0,
+                pubkey: Binary::from(pubkey_bytes),
+                signature: Binary::from(signature_bytes),
+            }),
+            owner: abstract_std::objects::gov_type::GovernanceDetails::AbstractAccount {
+                address: env.contract.address.clone(),
+            },
+            name: "account".to_owned(),
+            install_modules: vec![],
+            account_id: None,
+            namespace: None,
+            description: None,
+            link: None,
+            module_factory_address: abstr.module_factory.to_string(),
+            version_control_address: abstr.version_control.to_string(),
+        };
 
-        // instantiate(
-        //     deps.as_mut().into_empty(),
-        //     env.clone(),
-        //     info,
-        //     instantiate_msg,
-        // )
-        // .unwrap();
+        instantiate(
+            deps.as_mut().into_empty(),
+            env.clone(),
+            info,
+            instantiate_msg,
+        )
+        .unwrap();
     }
 }
