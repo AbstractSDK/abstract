@@ -12,14 +12,14 @@ use crate::StandaloneContract;
 impl AbstractNameService for StandaloneContract {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         // Retrieve the ANS host address from the base state.
-        Ok(self.base_state.load(deps.storage)?.ans_host)
+        Ok(AnsHost::new(deps.api)?)
     }
 }
 // ANCHOR_END: ans
 
 impl AbstractRegistryAccess for StandaloneContract {
     fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-        Ok(self.base_state.load(deps.storage)?.version_control)
+        Ok(VersionControlContract::new(deps.api)?)
     }
 }
 
@@ -74,14 +74,13 @@ mod test {
         deps.querier = abstract_mock_querier_builder(deps.api)
             .account(&expected_account, TEST_ACCOUNT_ID)
             .build();
-        let abstr = AbstractMockAddrs::new(deps.api);
 
         // AbstractNameService
         let host = BASIC_MOCK_STANDALONE
             .name_service(deps.as_ref())
             .host()
             .clone();
-        assert_eq!(host, AnsHost::new(abstr.ans_host));
+        assert_eq!(host, AnsHost::new(&deps.api)?);
 
         // AccountRegistry
         // TODO: Why rust forces binding on static object what

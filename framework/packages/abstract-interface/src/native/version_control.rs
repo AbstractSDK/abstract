@@ -19,6 +19,8 @@ type VersionString = String;
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;
 
+impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for VersionControl<Chain> {}
+
 impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
     #[cfg(feature = "integration")]
     fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {

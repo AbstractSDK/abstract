@@ -139,7 +139,7 @@ dependencies = [
  "cw-asset",
  "cw-controllers",
  "cw-orch",
- "cw-orch-interchain 0.5.0",
+ "cw-orch-interchain",
  "cw-plus-orch",
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
@@ -188,7 +188,7 @@ dependencies = [
  "abstract-polytone-voice",
  "cosmwasm-std 2.1.4",
  "cw-orch",
- "cw-orch-interchain 0.5.0",
+ "cw-orch-interchain",
 ]
 
 [[package]]
@@ -360,9 +360,10 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw-address-like 2.0.0",
  "cw-asset",
+ "cw-blob",
  "cw-controllers",
  "cw-orch",
- "cw-orch-interchain 0.5.0",
+ "cw-orch-interchain",
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "cw20",
@@ -504,7 +505,7 @@ dependencies = [
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
- "cosmos-sdk-proto",
+ "cosmos-sdk-proto 0.24.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-asset",
@@ -1670,13 +1671,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "cosmos-sdk-proto"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8ce7f4797cdf5cd18be6555ff3f0a8d37023c2d60f3b2708895d601b85c1c46"
+dependencies = [
+ "prost",
+ "tendermint-proto 0.39.1",
+]
+
+[[package]]
 name = "cosmrs"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af28a0ee4149da7cea0486fd7e3fbddea7dd81625279fdc521141ffb07fbd482"
 dependencies = [
  "bip32",
- "cosmos-sdk-proto",
+ "cosmos-sdk-proto 0.24.0",
  "ecdsa",
  "eyre",
  "k256",
@@ -1689,6 +1700,26 @@ dependencies = [
  "tendermint-rpc 0.39.1",
  "thiserror",
  "tokio",
+]
+
+[[package]]
+name = "cosmrs"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09f90935b72d9fa65a2a784e09f25778637b7e88e9d6f87c717081470f7fa726"
+dependencies = [
+ "bip32",
+ "cosmos-sdk-proto 0.25.0",
+ "ecdsa",
+ "eyre",
+ "k256",
+ "rand_core 0.6.4",
+ "serde",
+ "serde_json",
+ "signature",
+ "subtle-encoding",
+ "tendermint 0.39.1",
+ "thiserror",
 ]
 
 [[package]]
@@ -2012,6 +2043,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "cw-blob"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d906307ad934c0fcbe7ea8aecab93f8571bb32ca326de61168e945c7bc69f60"
+dependencies = [
+ "cosmrs 0.20.0",
+ "cosmwasm-std 2.1.4",
+ "cw-orch",
+]
+
+[[package]]
 name = "cw-clearable"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2043,7 +2085,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dd6f114ab0301b99ca0d8ba48036b87372ccc3ba0271dcd6f9533e4be578f65"
 dependencies = [
  "anyhow",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.4",
  "cw-orch-contract-derive",
  "cw-orch-core",
@@ -2082,7 +2124,7 @@ checksum = "8a9f5f99f52d7ed7c0f8c84580f2f78a15db9c7f2144d24dd485d9347917b6fa"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
- "cosmos-sdk-proto",
+ "cosmos-sdk-proto 0.24.0",
  "cosmwasm-std 2.1.4",
  "cw-storage-plus 2.0.0",
  "cw-utils 2.0.0",
@@ -2107,7 +2149,7 @@ dependencies = [
  "bech32 0.11.0",
  "bitcoin 0.32.2",
  "chrono",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.4",
  "cw-orch-core",
  "cw-orch-networks",
@@ -2165,59 +2207,19 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0245ab88afe7eb507091afb2e7621e42e9979b9a14a1898983c3156be20aa8b"
-dependencies = [
- "cosmwasm-std 2.1.4",
- "cw-orch-interchain-core 0.5.0",
- "cw-orch-interchain-daemon 0.5.0",
- "cw-orch-interchain-mock 0.5.0",
- "cw-orch-starship",
- "cw1",
- "cw1-whitelist",
- "ibc-relayer-types",
- "speculoos",
-]
-
-[[package]]
-name = "cw-orch-interchain"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "87edcc5ea0a708b8b2b1802810427a594a0017364d3111c785c78d3e98f40782"
 dependencies = [
  "cosmwasm-std 2.1.4",
- "cw-orch-interchain-core 0.6.1",
- "cw-orch-interchain-daemon 0.6.1",
- "cw-orch-interchain-mock 0.6.1",
+ "cw-orch-interchain-core",
+ "cw-orch-interchain-daemon",
+ "cw-orch-interchain-mock",
  "cw-orch-starship",
  "cw1",
  "cw1-whitelist",
  "ibc-relayer-types",
  "speculoos",
-]
-
-[[package]]
-name = "cw-orch-interchain-core"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60fe610359d49f7063a63cba42e2893bbbca045b20a7ee2bc74f0132af45da34"
-dependencies = [
- "base64 0.22.1",
- "cosmwasm-schema 2.1.4",
- "cosmwasm-std 2.1.4",
- "cw-orch-core",
- "cw-orch-daemon",
- "cw-orch-mock",
- "futures",
- "ibc-relayer-types",
- "log",
- "polytone",
- "prost",
- "serde_json",
- "thiserror",
- "tokio",
- "tonic",
 ]
 
 [[package]]
@@ -2245,47 +2247,18 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-daemon"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d86766fbb5572ec8edad00844a4375eb1cd00dc3d1af31fbb57d5b99cad49ff5"
-dependencies = [
- "async-recursion",
- "base64 0.22.1",
- "cosmrs",
- "cosmwasm-schema 2.1.4",
- "cosmwasm-std 2.1.4",
- "cw-orch-core",
- "cw-orch-daemon",
- "cw-orch-interchain-core 0.5.0",
- "cw-orch-starship",
- "derive_builder 0.20.1",
- "dialoguer",
- "diff-struct",
- "futures",
- "futures-util",
- "ibc-relayer-types",
- "log",
- "log4rs",
- "serde_json",
- "thiserror",
- "tokio",
- "tonic",
-]
-
-[[package]]
-name = "cw-orch-interchain-daemon"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c415c36697a83470dff921dcc68a1a0687b0618057a4aab2a9dc3113f90daf5f"
 dependencies = [
  "async-recursion",
  "base64 0.22.1",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-orch-core",
  "cw-orch-daemon",
- "cw-orch-interchain-core 0.6.1",
+ "cw-orch-interchain-core",
  "cw-orch-starship",
  "derive_builder 0.20.1",
  "dialoguer",
@@ -2299,26 +2272,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "tonic",
-]
-
-[[package]]
-name = "cw-orch-interchain-mock"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0547c2ed6ba22914fa119bcb792641c67cf9b989314150d06f25742d601403e"
-dependencies = [
- "anyhow",
- "cosmrs",
- "cosmwasm-std 2.1.4",
- "cw-orch-core",
- "cw-orch-interchain-core 0.5.0",
- "cw-orch-mock",
- "cw-utils 2.0.0",
- "ibc-relayer-types",
- "log",
- "serde",
- "serde_json",
- "thiserror",
 ]
 
 [[package]]
@@ -2328,10 +2281,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbb991b1094127f414407938d42eb1d66962f941a66d6385ef5d24cb68a1fe60"
 dependencies = [
  "anyhow",
- "cosmrs",
+ "cosmrs 0.19.0",
  "cosmwasm-std 2.1.4",
  "cw-orch-core",
- "cw-orch-interchain-core 0.6.1",
+ "cw-orch-interchain-core",
  "cw-orch-mock",
  "cw-utils 2.0.0",
  "ibc-relayer-types",
@@ -5526,9 +5479,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.5.5"
+version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62871f2d65009c0256aed1b9cfeeb8ac272833c404e13d53d400cd0dad7a2ac0"
+checksum = "355ae415ccd3a04315d3f8246e86d67689ea74d88d915576e1589a351062a13b"
 dependencies = [
  "bitflags 2.6.0",
 ]
@@ -6250,9 +6203,9 @@ dependencies = [
 
 [[package]]
 name = "serde_spanned"
-version = "0.6.7"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb5b1b31579f3811bf615c144393417496f152e12ac8b7663bf664f4a815306d"
+checksum = "87607cb1398ed59d48732e575a4c28a7a8ebf2454b964fe3f224f2afc07909e1"
 dependencies = [
  "serde",
 ]
@@ -7810,9 +7763,9 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "winnow"
-version = "0.6.19"
+version = "0.6.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c52ac009d615e79296318c1bcce2d422aaca15ad08515e344feeda07df67a587"
+checksum = "36c1fec1a2bb5866f07c25f68c26e565c4c200aebb96d7e55710c19d3e8ac49b"
 dependencies = [
  "memchr",
 ]
@@ -7842,14 +7795,14 @@ dependencies = [
  "bytes",
  "chrono",
  "console",
- "cosmos-sdk-proto",
+ "cosmos-sdk-proto 0.24.0",
  "cosmwasm-std 1.5.8",
  "cosmwasm-std 2.1.4",
  "crossbeam-epoch",
  "crunchy",
  "cw-orch",
- "cw-orch-interchain 0.4.0",
- "cw-orch-interchain-core 0.5.0",
+ "cw-orch-interchain",
+ "cw-orch-interchain-core",
  "cw1-whitelist",
  "cw20-base",
  "der",
@@ -7901,6 +7854,7 @@ dependencies = [
  "regex-syntax 0.8.4",
  "reqwest 0.11.27",
  "reqwest 0.12.7",
+ "ripemd",
  "sec1",
  "semver",
  "serde",

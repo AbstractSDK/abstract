@@ -7,7 +7,7 @@ use abstract_std::objects::{
     pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,
 };
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::prelude::*;
+use cw_orch::{mock::MockBase, prelude::*};
 
 use self::cw20_builder::Cw20Builder;
 use crate::{
@@ -128,28 +128,37 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     }
 
     /// Deploy abstract with current configuration
-    pub fn build(&self) -> AbstractClientResult<AbstractClient<Chain>> {
-        let abstr =
-            Abstract::deploy_on(self.chain.clone(), self.chain.sender_addr().into_string())?;
-        self.update_ans(&abstr)?;
+    pub fn build(
+        &self,
+        abstract_admin: Chain::Sender,
+    ) -> AbstractClientResult<AbstractClient<Chain>> {
+        let abstr = Abstract::deploy_on(self.chain.clone(), abstract_admin.clone())?;
+        self.update_ans(&abstr, abstract_admin)?;
 
         AbstractClient::new(self.chain.clone())
     }
 
-    fn update_ans(&self, abstr: &Abstract<Chain>) -> AbstractClientResult<()> {
-        abstr.ans_host.update_dexes(self.dexes.clone(), vec![])?;
-        abstr
-            .ans_host
-            .update_contract_addresses(self.contracts.clone(), vec![])?;
-        abstr
-            .ans_host
-            .update_asset_addresses(self.assets.clone(), vec![])?;
-        abstr
-            .ans_host
-            .update_channels(self.channels.clone(), vec![])?;
-        abstr.ans_host.update_pools(self.pools.clone(), vec![])?;
+    fn update_ans(
+        &self,
+        abstr: &Abstract<Chain>,
+        abstract_admin: Chain::Sender,
+    ) -> AbstractClientResult<()> {
+        let mut ans_host = abstr.ans_host.clone();
+        ans_host.set_sender(&abstract_admin);
+        ans_host.update_dexes(self.dexes.clone(), vec![])?;
+        ans_host.update_contract_addresses(self.contracts.clone(), vec![])?;
+        ans_host.update_asset_addresses(self.assets.clone(), vec![])?;
+        ans_host.update_channels(self.channels.clone(), vec![])?;
+        ans_host.update_pools(self.pools.clone(), vec![])?;
 
         Ok(())
+    }
+}
+
+impl<A: cosmwasm_std::Api, S: StateInterface> AbstractClientBuilder<MockBase<A, S>> {
+    /// Deploy mock abstract with current configuration
+    pub fn build_mock(&self) -> AbstractClientResult<AbstractClient<MockBase<A, S>>> {
+        self.build(Abstract::mock_admin(&self.chain))
     }
 }
 

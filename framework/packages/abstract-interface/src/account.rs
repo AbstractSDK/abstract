@@ -100,8 +100,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     name: details.name,
                     description: details.description,
                     link: details.link,
-                    module_factory_address: abstract_deployment.module_factory.addr_str()?,
-                    version_control_address: abstract_deployment.version_control.addr_str()?,
                 },
                 Some("Abstract Account"),
                 Some(&account_addr),

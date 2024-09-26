@@ -1,9 +1,9 @@
 use abstract_ica::EVM_NOTE_ID;
-use abstract_sdk::{feature_objects::VersionControlContract, Resolve};
-use abstract_std::{
-    ica_client::state::Config,
-    objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId},
+use abstract_sdk::{
+    feature_objects::{AnsHost, VersionControlContract},
+    Resolve,
 };
+use abstract_std::objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId};
 use cosmwasm_std::{
     wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, Env, HexBinary, QuerierWrapper, WasmMsg,
 };
@@ -35,7 +35,6 @@ pub fn send_funds(
     deps: Deps,
     env: &Env,
     evm_chain: &TruncatedChainId,
-    cfg: &Config,
     funds: Vec<Coin>,
     receiver: Option<Binary>,
     memo: Option<String>,
@@ -44,7 +43,8 @@ pub fn send_funds(
     let receiver: HexBinary = match receiver {
         Some(r) => r.into(),
         None => {
-            let note_addr = evm_note_addr(&cfg.version_control, &deps.querier)?;
+            let version_control = VersionControlContract::new(deps.api)?;
+            let note_addr = evm_note_addr(&version_control, &deps.querier)?;
 
             // TODO: could be turned into raw query!
             // If state objects will be public on evm_note
@@ -62,19 +62,21 @@ pub fn send_funds(
         }
     };
 
+    let ans_host = AnsHost::new(deps.api)?;
+
     // Resolve the transfer channel id for the given chain
     let ucs_channel_entry = ChannelEntry {
         connected_chain: evm_chain.clone(),
         protocol: types::UCS01_PROTOCOL.to_string(),
     };
-    let ics20_channel_id = ucs_channel_entry.resolve(&deps.querier, &cfg.ans_host)?;
+    let ics20_channel_id = ucs_channel_entry.resolve(&deps.querier, &ans_host)?;
 
     // Resolve the transfer channel id for the given chain
     let ucs_contract_entry = ContractEntry {
         contract: types::UCS01_FORWARDER_CONTRACT.to_string(),
         protocol: types::UCS01_PROTOCOL.to_string(),
     };
-    let ucs_forwarder_addr = ucs_contract_entry.resolve(&deps.querier, &cfg.ans_host)?;
+    let ucs_forwarder_addr = ucs_contract_entry.resolve(&deps.querier, &ans_host)?;
 
     // Construct forward packet on the forwarder
     let forwarder_msg = wasm_execute(

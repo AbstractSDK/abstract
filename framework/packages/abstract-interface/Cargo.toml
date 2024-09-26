@@ -54,6 +54,9 @@ version-control = { version = "0.23.0", package = "abstract-version-control", pa
 account = { version = "0.23.0", package = "abstract-account", path = "../../contracts/account", default-features = false }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
+# Predictable abstract addresses
+cw-blob = { workspace = true }
+
 [build-dependencies]
 serde_json = "1.0.79"
 
