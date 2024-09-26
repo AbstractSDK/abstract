@@ -16,23 +16,25 @@ pub mod util;
 pub struct AuthId(pub(crate) u8);
 
 impl AuthId {
-    /// Helper for signer, not designed to be used inside contract
+    /// Create AuthId from signature id and flag for admin call
+    /// Note: It's helper for signer, not designed to be used inside contract
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(id: u8, admin: bool) -> Option<Self> {
         let first_bit: u8 = 0b10000000;
-        // If first bit set - we panic
+        // If first bit occupied - we can't create AuthId
         if id & first_bit != 0 {
             return None;
         };
 
         Some(if admin {
-            Self(id ^ first_bit)
+            Self(id | first_bit)
         } else {
             Self(id)
         })
     }
 
-    /// Helper for signer, not designed to be used inside contract
+    /// Get signature bytes with this [`AuthId`]
+    /// Note: It's helper for signer, not designed to be used inside contract
     #[cfg(not(target_arch = "wasm32"))]
     pub fn signature(self, mut signature: Vec<u8>) -> Vec<u8> {
         signature.insert(0, self.0);
@@ -44,7 +46,7 @@ impl AuthId {
         if self.0 & first_bit == 0 {
             (self.0, false)
         } else {
-            (self.0 ^ first_bit, true)
+            (self.0 & !first_bit, true)
         }
     }
 }
@@ -388,9 +390,9 @@ mod test {
             assert_eq!(id, unmasked_id);
             assert_eq!(admin, true);
 
-            let (unmasked_id, admin) = AuthId::new(id, true).unwrap().cred_id();
+            let (unmasked_id, admin) = AuthId::new(id, false).unwrap().cred_id();
             assert_eq!(id, unmasked_id);
-            assert_eq!(admin, true);
+            assert_eq!(admin, false);
         }
     }
 }
