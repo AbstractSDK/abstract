@@ -358,6 +358,9 @@ pub mod execute {
         id: u8,
         authenticator: &Authenticator,
     ) -> AccountResult<()> {
+        if id > 127 {
+            return Err(AccountError::TooBigAuthId {});
+        }
         if AUTHENTICATORS.has(deps.storage, id) {
             return Err(AccountError::OverridingIndex { index: id });
         }

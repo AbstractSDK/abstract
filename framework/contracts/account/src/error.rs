@@ -199,6 +199,10 @@ pub enum AccountError {
     MinimumAuthenticatorCount {},
 
     #[cfg(feature = "xion")]
+    #[error("Authenticator id should be in range from 0 to 127")]
+    TooBigAuthId {},
+
+    #[cfg(feature = "xion")]
     #[error(transparent)]
     FromUTF8(#[from] std::string::FromUtf8Error),
 }
