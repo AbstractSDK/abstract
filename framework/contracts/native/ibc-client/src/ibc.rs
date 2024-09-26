@@ -70,7 +70,7 @@ pub fn receive_action_callback(
 
                 let remote_account_address = &wasm_abstract_attributes
                     .iter()
-                    .find(|e| e.key == "abstract_address")
+                    .find(|e| e.key == "account_address")
                     .ok_or(IbcClientError::IbcFailed(polytone_callback))?
                     .value;
 
