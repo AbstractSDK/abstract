@@ -106,13 +106,14 @@ fn setup() -> anyhow::Result<(
     DeployedApps,
 )> {
     // Create the mock
-    let mock = MockBech32::new("mock");
-    let sender = mock.sender_addr();
+    let mut mock = MockBech32::new("mock");
+    let sender = Abstract::mock_admin(&mock);
+    mock.set_sender(sender.clone());
     mock.set_balance(&sender, vec![coin(INITIAL_BALANCE, DENOM)])?;
 
     let mut challenge_app = Challenge::new(CHALLENGE_APP_ID, mock.clone());
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
+    let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.clone())?;
 
     challenge_app.deploy(CHALLENGE_APP_VERSION.parse()?, DeployStrategy::Try)?;
 

@@ -18,7 +18,7 @@
 //! use abstract_testing::prelude::*;
 //!
 //! let chain = MockBech32::new("mock");
-//! let client = AbstractClient::builder(chain.clone()).build_test()?;
+//! let client = AbstractClient::builder(chain.clone()).build_mock()?;
 //!
 //! let namespace = Namespace::new("tester")?;
 //! let publisher: Publisher<MockBech32> = client
@@ -66,7 +66,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # use abstract_client::{Environment, AbstractClientError};
     /// # use cw_orch::prelude::*;
     /// # let chain = MockBech32::new("mock");
-    /// # let client = AbstractClient::builder(chain.clone()).build_test().unwrap(); // Deploy mock abstract
+    /// # let client = AbstractClient::builder(chain.clone()).build_mock().unwrap(); // Deploy mock abstract
     ///
     /// let client = AbstractClient::new(chain)?;
     /// # Ok::<(), AbstractClientError>(())
@@ -82,7 +82,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     /// # use abstract_client::AbstractClientError;
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
-    /// # let client = abstract_client::AbstractClient::builder(chain.clone()).build_test().unwrap();
+    /// # let client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
     /// use abstract_std::objects::{module_reference::ModuleReference, module::ModuleInfo};
     /// // For getting version control address
     /// use cw_orch::prelude::*;
@@ -113,7 +113,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # let chain = MockBech32::new("mock");
     /// # let client = AbstractClient::builder(chain.clone())
     /// #     .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
-    /// #     .build_test()?;
+    /// #     .build_mock()?;
     ///
     /// let name_service = client.name_service();
     /// let asset_entry = AssetEntry::new(entry);

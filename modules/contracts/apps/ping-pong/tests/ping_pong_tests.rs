@@ -19,25 +19,30 @@ const JUNO: &str = "juno-1";
 const STARGAZE: &str = "stargaze-1";
 
 #[allow(unused)]
-struct PingPong<'a, Env: IbcQueryHandler, IbcEnv: InterchainEnv<Env>> {
+struct PingPong<Env: IbcQueryHandler, IbcEnv: InterchainEnv<Env>> {
     abs_juno: AbstractClient<Env>,
     abs_stargaze: AbstractClient<Env>,
     app: Application<Env, AppInterface<Env>>,
-    remote_account: RemoteAccount<'a, Env, IbcEnv>,
+    remote_account: RemoteAccount<Env, IbcEnv>,
+    mock_interchain: IbcEnv,
 }
 
-impl<'a> PingPong<'a, MockBech32, MockBech32InterchainEnv> {
+impl PingPong<MockBech32, MockBech32InterchainEnv> {
     /// Set up the test environment with two Accounts that has the App installed
-    fn setup(
-        mock_interchain: &'a MockBech32InterchainEnv,
-    ) -> anyhow::Result<PingPong<'a, MockBech32, MockBech32InterchainEnv>> {
-        let mock_juno = mock_interchain.get_chain(JUNO).unwrap();
-        let mock_stargaze = mock_interchain.get_chain(STARGAZE).unwrap();
+    fn setup() -> anyhow::Result<PingPong<MockBech32, MockBech32InterchainEnv>> {
+        // Create a sender and mock env
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        let abs_juno = AbstractClient::builder(mock_juno.clone()).build()?;
-        let abs_stargaze = AbstractClient::builder(mock_stargaze.clone()).build()?;
+        let mut mock_juno = mock_interchain.get_chain(JUNO).unwrap();
+        mock_juno.set_sender(AbstractClient::mock_admin(&mock_juno));
 
-        abs_juno.connect_to(&abs_stargaze, mock_interchain)?;
+        let mut mock_stargaze = mock_interchain.get_chain(STARGAZE).unwrap();
+        mock_stargaze.set_sender(AbstractClient::mock_admin(&mock_stargaze));
+
+        let abs_juno = AbstractClient::builder(mock_juno.clone()).build_mock()?;
+        let abs_stargaze = AbstractClient::builder(mock_stargaze.clone()).build_mock()?;
+        abs_juno.connect_to(&abs_stargaze, &mock_interchain)?;
 
         let namespace = Namespace::from_id(APP_ID)?;
         // Publish and install on both chains
@@ -56,15 +61,15 @@ impl<'a> PingPong<'a, MockBech32, MockBech32InterchainEnv> {
 
         let remote_account = app
             .account()
-            .remote_account_builder(mock_interchain, &abs_stargaze)
+            .remote_account_builder(mock_interchain.clone(), &abs_stargaze)
             .install_app_with_dependencies::<AppInterface<Daemon>>(&AppInstantiateMsg {}, Empty {})?
             .build()?;
-
         Ok(PingPong {
             abs_juno,
             abs_stargaze,
             app,
             remote_account,
+            mock_interchain,
         })
     }
 }
@@ -93,10 +98,7 @@ pub fn logger_test_init() {
 fn successful_install() -> anyhow::Result<()> {
     logger_test_init();
 
-    // Create a sender and mock env
-    let mock_interchain =
-        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-    let env = PingPong::setup(&mock_interchain)?;
+    let env = PingPong::setup()?;
     let app1 = env.app;
 
     let mock_stargaze = env.abs_stargaze.environment();
@@ -126,9 +128,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     logger_test_init();
 
     // Create a sender and mock env
-    let mock_interchain =
-        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-    let env = PingPong::setup(&mock_interchain)?;
+    let env = PingPong::setup()?;
     let app = env.app;
     let remote_app = env.remote_account.application::<AppInterface<_>>()?;
 
@@ -144,23 +144,23 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     assert_eq!(game_status, GameStatusResponse { losses: 0, wins: 0 });
 
     // let stargaze win
-    set_to_win(mock_interchain.get_chain(STARGAZE)?);
-    set_to_lose(mock_interchain.get_chain(JUNO)?);
+    set_to_win(env.mock_interchain.get_chain(STARGAZE)?);
+    set_to_lose(env.mock_interchain.get_chain(JUNO)?);
 
     // juno plays against stargaze
     let pp = app.ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
-    mock_interchain.await_and_check_packets(JUNO, pp)?;
+    env.mock_interchain.await_and_check_packets(JUNO, pp)?;
 
     // stargaze wins, juno lost.
     let game_status = app.game_status()?;
     assert_eq!(game_status, GameStatusResponse { losses: 1, wins: 0 });
 
     // now let juno win
-    set_to_lose(mock_interchain.get_chain(STARGAZE)?);
-    set_to_win(mock_interchain.get_chain(JUNO)?);
+    set_to_lose(env.mock_interchain.get_chain(STARGAZE)?);
+    set_to_win(env.mock_interchain.get_chain(JUNO)?);
 
     let pp = app.ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
-    mock_interchain.await_and_check_packets(JUNO, pp)?;
+    env.mock_interchain.await_and_check_packets(JUNO, pp)?;
 
     let game_status = app.game_status()?;
     assert_eq!(game_status.wins, 1);
@@ -176,15 +176,13 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
     logger_test_init();
 
     // Create a sender and mock env
-    let mock_interchain =
-        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-    let env = PingPong::setup(&mock_interchain)?;
+    let env = PingPong::setup()?;
     let app = env.app;
     let remote_app = env.remote_account.application::<AppInterface<_>>()?;
 
     // let stargaze win
-    set_to_win(mock_interchain.get_chain(STARGAZE)?);
-    set_to_lose(mock_interchain.get_chain(JUNO)?);
+    set_to_win(env.mock_interchain.get_chain(STARGAZE)?);
+    set_to_lose(env.mock_interchain.get_chain(JUNO)?);
 
     // stargaze plays against stargaze
     // Note that `RemoteApplication` takes care of waiting for ibc
@@ -200,8 +198,8 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
     assert_eq!(game_status, GameStatusResponse { losses: 0, wins: 1 });
 
     // now let juno win
-    set_to_lose(mock_interchain.get_chain(STARGAZE)?);
-    set_to_win(mock_interchain.get_chain(JUNO)?);
+    set_to_lose(env.mock_interchain.get_chain(STARGAZE)?);
+    set_to_win(env.mock_interchain.get_chain(JUNO)?);
 
     remote_app.execute(
         &ping_pong::msg::AppExecuteMsg::PingPong {
@@ -223,17 +221,15 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
 #[test]
 fn query_and_maybe_ping_pong() -> anyhow::Result<()> {
     // Create a sender and mock env
-    let mock_interchain =
-        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-    let env = PingPong::setup(&mock_interchain)?;
+    let env = PingPong::setup()?;
     let app = env.app;
 
     // Set stargaze to win
-    set_to_win(mock_interchain.get_chain(STARGAZE)?);
-    set_to_lose(mock_interchain.get_chain(JUNO)?);
+    set_to_win(env.mock_interchain.get_chain(STARGAZE)?);
+    set_to_lose(env.mock_interchain.get_chain(JUNO)?);
 
     let pp = app.query_and_maybe_ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
-    let response = mock_interchain.await_packets(JUNO, pp)?;
+    let response = env.mock_interchain.await_packets(JUNO, pp)?;
     response.into_result()?;
 
     // juno should query and not play, check events
@@ -245,11 +241,11 @@ fn query_and_maybe_ping_pong() -> anyhow::Result<()> {
     assert_eq!(game_status, GameStatusResponse { wins: 0, losses: 0 });
 
     // Set juno to win
-    set_to_win(mock_interchain.get_chain(JUNO)?);
-    set_to_lose(mock_interchain.get_chain(STARGAZE)?);
+    set_to_win(env.mock_interchain.get_chain(JUNO)?);
+    set_to_lose(env.mock_interchain.get_chain(STARGAZE)?);
 
     let pp = app.query_and_maybe_ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
-    let response = mock_interchain.await_packets(JUNO, pp)?;
+    let response = env.mock_interchain.await_packets(JUNO, pp)?;
     response.into_result()?;
 
     // juno should query and play, check events
