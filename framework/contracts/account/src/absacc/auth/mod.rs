@@ -209,7 +209,7 @@ pub mod execute {
 
                 if !auth.verify(
                     deps.as_ref(),
-                    &env,
+                    env,
                     &Binary::from(env.contract.address.as_bytes()),
                     signature,
                 )? {
@@ -230,7 +230,7 @@ pub mod execute {
 
                 if !auth.verify(
                     deps.as_ref(),
-                    &env,
+                    env,
                     &Binary::from(env.contract.address.as_bytes()),
                     signature,
                 )? {
@@ -251,7 +251,7 @@ pub mod execute {
 
                 if !auth.verify(
                     deps.as_ref(),
-                    &env,
+                    env,
                     &Binary::from(env.contract.address.as_bytes()),
                     signature,
                 )? {
@@ -294,7 +294,7 @@ pub mod execute {
 
                 if !auth.verify(
                     deps.as_ref(),
-                    &env,
+                    env,
                     &Binary::from(env.contract.address.as_bytes()),
                     signature,
                 )? {

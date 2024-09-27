@@ -139,8 +139,6 @@ mod tests {
             namespace: None,
             description: None,
             link: None,
-            module_factory_address: abstr.module_factory.to_string(),
-            version_control_address: abstr.version_control.to_string(),
         };
 
         instantiate(
