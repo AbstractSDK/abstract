@@ -1253,7 +1253,7 @@ mod tests {
                     result: vec![SubMsgResponse {
                         events: vec![Event::new(String::from("wasm-abstract"))
                             .add_attribute("action", "create_account")
-                            .add_attribute("proxy_address", remote_account.clone())],
+                            .add_attribute("account_address", remote_account.clone())],
                         data: None,
                         msg_responses: vec![],
                     }],

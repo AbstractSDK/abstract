@@ -19,7 +19,7 @@ anyhow = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
 cosmwasm-std-f595c2ba2a3f28df = { package = "cosmwasm-std", version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
 cw-orch = { version = "0.25", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.4", features = ["daemon"] }
+cw-orch-interchain = { version = "0.5", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
@@ -34,7 +34,7 @@ anyhow = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
 cosmwasm-std-f595c2ba2a3f28df = { package = "cosmwasm-std", version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
 cw-orch = { version = "0.25", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.4", features = ["daemon"] }
+cw-orch-interchain = { version = "0.5", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
@@ -58,7 +58,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmwasm-std-dff4ba8e3ae991db = { package = "cosmwasm-std", version = "1", features = ["ibc3"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.5", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.6", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "std", "zeroize"] }
 deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
@@ -105,6 +105,7 @@ regex-automata = { version = "0.4", default-features = false, features = ["dfa-o
 regex-syntax = { version = "0.8" }
 reqwest-5ef9efb8ec2df382 = { package = "reqwest", version = "0.12", features = ["json"] }
 reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+ripemd = { version = "0.1" }
 sec1 = { version = "0.7", features = ["std", "subtle"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
@@ -137,7 +138,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmwasm-std-dff4ba8e3ae991db = { package = "cosmwasm-std", version = "1", features = ["ibc3"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.5", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.6", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "std", "zeroize"] }
 deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
@@ -185,6 +186,7 @@ regex-automata = { version = "0.4", default-features = false, features = ["dfa-o
 regex-syntax = { version = "0.8" }
 reqwest-5ef9efb8ec2df382 = { package = "reqwest", version = "0.12", features = ["json"] }
 reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+ripemd = { version = "0.1" }
 sec1 = { version = "0.7", features = ["std", "subtle"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
@@ -217,7 +219,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmwasm-std-dff4ba8e3ae991db = { package = "cosmwasm-std", version = "1", features = ["ibc3"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.5", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.6", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "std", "zeroize"] }
 deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
@@ -264,6 +266,7 @@ regex-automata = { version = "0.4", default-features = false, features = ["dfa-o
 regex-syntax = { version = "0.8" }
 reqwest-5ef9efb8ec2df382 = { package = "reqwest", version = "0.12", features = ["json"] }
 reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+ripemd = { version = "0.1" }
 sec1 = { version = "0.7", features = ["std", "subtle"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
@@ -295,7 +298,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmwasm-std-dff4ba8e3ae991db = { package = "cosmwasm-std", version = "1", features = ["ibc3"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.5", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.6", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "std", "zeroize"] }
 deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
@@ -343,6 +346,7 @@ regex-automata = { version = "0.4", default-features = false, features = ["dfa-o
 regex-syntax = { version = "0.8" }
 reqwest-5ef9efb8ec2df382 = { package = "reqwest", version = "0.12", features = ["json"] }
 reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+ripemd = { version = "0.1" }
 sec1 = { version = "0.7", features = ["std", "subtle"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }

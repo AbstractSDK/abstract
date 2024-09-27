@@ -348,9 +348,9 @@ pub mod test {
     };
     use abstract_app::objects::{module::ModuleInfo, TruncatedChainId};
     use abstract_interface::{
-        AppDeployer, DeployStrategy, Manager, ManagerQueryFns, VCExecFns, VCQueryFns,
+        AccountI, AccountQueryFns, AppDeployer, DeployStrategy, VCExecFns, VCQueryFns,
     };
-    use abstract_std::manager::{self, ModuleInstallConfig};
+    use abstract_std::account::{self, ModuleInstallConfig};
     use abstract_testing::{
         module::{TEST_MODULE_ID, TEST_NAMESPACE},
         TEST_VERSION,
@@ -379,7 +379,7 @@ pub mod test {
         );
 
         abstr_origin.version_control.claim_namespace(
-            origin_account.manager.config()?.account_id,
+            origin_account.config()?.account_id,
             TEST_NAMESPACE.to_owned(),
         )?;
 
@@ -515,9 +515,9 @@ pub mod test {
 
         app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
 
-        let remote_install_response = origin_account.manager.execute_on_remote(
+        let remote_install_response = origin_account.execute_on_remote(
             remote_name.clone(),
-            manager::ExecuteMsg::InstallModules {
+            account::ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id_latest(TEST_MODULE_ID_REMOTE)?,
                     Some(to_json_binary(&MockInitMsg {})?),
@@ -528,17 +528,16 @@ pub mod test {
         mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
         // We get the object for handling the actual module on the remote account
-        let remote_manager = abstr_remote
+        let remote_account = abstr_remote
             .version_control
-            .account_base(remote_account_id)?
-            .account_base
-            .manager;
-        let manager = Manager::new(
+            .account(remote_account_id)?
+            .account_base;
+        let account = AccountI::new(
             "remote-account-manager",
             abstr_remote.version_control.environment().clone(),
         );
-        manager.set_address(&remote_manager);
-        let module_address = manager.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
+        account.set_address(remote_account.addr());
+        let module_address = account.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
         let remote_account_app = MockAppRemoteI::new(
             "remote-account-app",
             abstr_remote.version_control.environment().clone(),
@@ -699,9 +698,9 @@ pub mod test {
 
             app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
 
-            let remote_install_response = origin_account.manager.execute_on_remote(
+            let remote_install_response = origin_account.execute_on_remote(
                 remote_name.clone(),
-                manager::ExecuteMsg::InstallModules {
+                account::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(
                         ModuleInfo::from_id_latest(TEST_MODULE_ID_REMOTE)?,
                         Some(to_json_binary(&MockInitMsg {})?),
@@ -712,17 +711,16 @@ pub mod test {
             mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
             // We get the object for handling the actual module on the remote account
-            let remote_manager = abstr_remote
+            let remote_account = abstr_remote
                 .version_control
-                .account_base(remote_account_id)?
-                .account_base
-                .manager;
-            let manager = Manager::new(
+                .account(remote_account_id)?
+                .account_base;
+            let account = AccountI::new(
                 "remote-account-manager",
                 abstr_remote.version_control.environment().clone(),
             );
-            manager.set_address(&remote_manager);
-            let module_address = manager.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
+            account.set_address(remote_account.addr());
+            let module_address = account.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
             let remote_account_app = MockAppRemoteI::new(
                 "remote-account-app",
                 abstr_remote.version_control.environment().clone(),

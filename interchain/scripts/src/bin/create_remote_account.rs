@@ -116,7 +116,7 @@ fn connect(
 
     // We create remote account
     let _ = account
-        .remote_account_builder(&interchain, &remote_client)
+        .remote_account_builder(interchain, &remote_client)
         .build()?;
     Ok(())
 }
