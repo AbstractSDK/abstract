@@ -537,7 +537,7 @@ fn claim_namespace_internal(
     Ok(fee_msg)
 }
 
-/// Remove namespaces
+/// Forgo namespaces
 /// Only admin or the account owner can do this
 pub fn forgo_namespace(deps: DepsMut, msg_info: MessageInfo, namespaces: Vec<String>) -> VCResult {
     let is_admin = cw_ownable::is_owner(deps.storage, &msg_info.sender)?;
