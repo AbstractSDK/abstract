@@ -1,14 +1,15 @@
 use std::{env::set_var, sync::Arc};
 
-use abstract_account::absacc::{auth::AddAuthenticator};
+use abstract_account::absacc::auth::AddAuthenticator;
 use abstract_client::{AbstractClient, Namespace};
 use abstract_std::{
+    account,
     objects::{module::ModuleInfo, salt::generate_instantiate_salt, AccountId},
     ACCOUNT,
 };
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
-use cosmwasm_std::Addr;
 use cosmwasm_std::{to_json_binary, Binary};
+use cosmwasm_std::{to_json_vec, Addr};
 use cw_orch::{
     daemon::{networks::xion::XION_NETWORK, Daemon, TxSender, RUNTIME},
     prelude::*,
@@ -162,14 +163,27 @@ fn main() -> anyhow::Result<()> {
             amount: "2000".to_string(),
         }],
     };
+    let exec_on_acc = xion_sdk_proto::cosmwasm::wasm::v1::MsgExecuteContract {
+        sender: account.address()?.into_string(),
+        contract: account.address()?.into_string(),
+        msg: to_json_vec(&account::ExecuteMsg::<AddAuthenticator>::RemoveAuthMethod { id: 5 })?,
+        funds: vec![],
+    };
+    dbg!(account.address()?.into_string());
 
     println!("Sending funds as signer");
 
     xiond.rt_handle.block_on(xion_sender.commit_tx_any(
-        vec![xionrs::Any {
-            type_url: MsgSend::type_url(),
-            value: send_backmsg.encode_to_vec(),
-        }],
+        vec![
+            xionrs::Any {
+                type_url: MsgSend::type_url(),
+                value: send_backmsg.encode_to_vec(),
+            },
+            xionrs::Any {
+                type_url: xion_sdk_proto::cosmwasm::wasm::v1::MsgExecuteContract::type_url(),
+                value: exec_on_acc.encode_to_vec(),
+            },
+        ],
         None,
     ))?;
 
@@ -349,11 +363,15 @@ mod xion_sender {
         }
 
         pub fn sign(&self, sign_doc: SignDoc) -> Result<TxRaw, DaemonError> {
-            let sign_doc_bytes = xionrs::tx::SignDoc::from(sign_doc.clone()).into_bytes().unwrap();
+            let sign_doc_bytes = xionrs::tx::SignDoc::from(sign_doc.clone())
+                .into_bytes()
+                .unwrap();
             let signature = self.cosmos_private_key().sign(&sign_doc_bytes)?;
 
-            let mut smart_contract_sig = vec![1u8];
-            smart_contract_sig.extend(signature.to_vec());
+            // TODO: make it better, for now just always admin and one id
+            // Raising warning on purpose here, it's very bad to always set admin to true
+            let AUTHID = abstract_account::absacc::auth::AuthId::new(1u8, true).unwrap();
+            let smart_contract_sig = AUTHID.signature(signature.to_vec());
 
             Ok(xion_sdk_proto::cosmos::tx::v1beta1::TxRaw {
                 body_bytes: sign_doc.body_bytes,

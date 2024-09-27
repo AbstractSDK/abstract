@@ -1,7 +1,6 @@
 pub mod auth;
 pub mod sudo;
 
-
 /// Any contract must implement this sudo message (both variants) in order to
 /// qualify as an abstract account.
 #[cosmwasm_schema::cw_serde]

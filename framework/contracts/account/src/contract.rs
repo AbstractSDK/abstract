@@ -13,7 +13,7 @@ use abstract_std::{
             AccountInfo, Config, WhitelistedModules, CONFIG, INFO, SUSPENSION_STATUS,
             WHITELISTED_MODULES,
         },
-        ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
+        UpdateSubAccountAction,
     },
     module_factory::SimulateInstallModulesResponse,
     objects::{
@@ -33,13 +33,15 @@ use crate::{
     config::{update_account_status, update_info, update_internal_config},
     error::AccountError,
     execution::{
-        execute_ibc_action, execute_module_action, execute_module_action_response, ica_action,
+        add_auth_method, execute_ibc_action, execute_module_action, execute_module_action_response,
+        ica_action, remove_auth_method,
     },
     modules::{
         _install_modules, exec_on_module, install_modules,
         migration::{handle_callback, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
+    msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
     queries::{
         handle_account_info_query, handle_config_query, handle_module_address_query,
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
@@ -62,34 +64,12 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const RESPONSE_REPLY_ID: u64 = 1;
 pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 2;
 
-// Need wrapper because cosmwasm_std::entry_point counts arguments in any feature
-#[cfg(feature = "xion")]
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: InstantiateMsg<crate::absacc::auth::AddAuthenticator>,
-) -> AccountResult {
-    _instantiate(deps, env, info, msg)
-}
-#[cfg(not(feature = "xion"))]
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn instantiate(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: InstantiateMsg<cosmwasm_std::Empty>,
-) -> AccountResult {
-    _instantiate(deps, env, info, msg)
-}
-
-#[doc(hidden)]
-pub fn _instantiate(
     mut deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
-    #[cfg(feature = "xion")] InstantiateMsg {
+    InstantiateMsg {
         account_id,
         owner,
         install_modules,
@@ -101,20 +81,7 @@ pub fn _instantiate(
         namespace,
 
         authenticator,
-    }: InstantiateMsg<crate::absacc::auth::AddAuthenticator>,
-    #[cfg(not(feature = "xion"))] InstantiateMsg {
-        account_id,
-        owner,
-        install_modules,
-        name,
-        description,
-        link,
-        module_factory_address,
-        version_control_address,
-        namespace,
-
-        authenticator,
-    }: InstantiateMsg<cosmwasm_std::Empty>,
+    }: InstantiateMsg,
 ) -> AccountResult {
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
@@ -161,50 +128,58 @@ pub fn _instantiate(
     let governance = owner
         .clone()
         .verify(deps.as_ref(), version_control_address.clone())?;
-    if let Some(mut add_auth) = authenticator {
-        ensure_eq!(
-            GovernanceDetails::Renounced {},
-            governance,
-            AccountError::GovernanceWithAuth {}
-        );
-        #[cfg(feature = "xion")]
-        {
-            crate::absacc::auth::execute::add_auth_method(deps.branch(), &_env, &mut add_auth)?;
-
-            response = response.add_event(
-                cosmwasm_std::Event::new("create_abstract_account").add_attributes(vec![
-                    ("contract_address", _env.contract.address.to_string()),
-                    ("authenticator", cosmwasm_std::to_json_string(&add_auth)?),
-                    ("authenticator_id", add_auth.get_id().to_string()),
-                ]),
-            );
+    match governance {
+        // Check if the caller is the manager the proposed owner account when creating a sub-account.
+        // This prevents other users from creating sub-accounts for accounts they don't own.
+        GovernanceDetails::SubAccount { account } => {
+            ensure_eq!(
+                info.sender,
+                account,
+                AccountError::SubAccountCreatorNotAccount {
+                    caller: info.sender.into(),
+                    account: account.into(),
+                }
+            )
         }
-    } else {
-        match governance {
-            // Check if the caller is the manager the proposed owner account when creating a sub-account.
-            // This prevents other users from creating sub-accounts for accounts they don't own.
-            GovernanceDetails::SubAccount { account } => {
-                ensure_eq!(
-                    info.sender,
-                    account,
-                    AccountError::SubAccountCreatorNotAccount {
-                        caller: info.sender.into(),
-                        account: account.into(),
-                    }
-                )
+        GovernanceDetails::NFT {
+            collection_addr,
+            token_id,
+        } => verify_nft_ownership(
+            deps.as_ref(),
+            info.sender.clone(),
+            collection_addr,
+            token_id,
+        )?,
+        GovernanceDetails::AbstractAccount { address } => {
+            ensure_eq!(
+                address,
+                env.contract.address,
+                AccountError::AbsAccInvalidAddr {
+                    abstract_account: address.to_string(),
+                    contract: env.contract.address.to_string()
+                }
+            );
+            #[cfg(feature = "xion")]
+            {
+                let Some(mut add_auth) = authenticator else {
+                    return Err(AccountError::AbsAccNoAuth {});
+                };
+                crate::absacc::auth::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
+
+                response = response.add_event(
+                    cosmwasm_std::Event::new("create_abstract_account").add_attributes(vec![
+                        ("contract_address", env.contract.address.to_string()),
+                        ("authenticator", cosmwasm_std::to_json_string(&add_auth)?),
+                        ("authenticator_id", add_auth.get_id().to_string()),
+                    ]),
+                );
             }
-            GovernanceDetails::NFT {
-                collection_addr,
-                token_id,
-            } => verify_nft_ownership(
-                deps.as_ref(),
-                info.sender.clone(),
-                collection_addr,
-                token_id,
-            )?,
-            _ => (),
-        };
-    }
+            // No Auth possible - error
+            #[cfg(not(feature = "xion"))]
+            return Err(AccountError::AbsAccNoAuth {});
+        }
+        _ => (),
+    };
 
     // Set owner
     let cw_gov_owner = ownership::initialize_owner(
@@ -245,11 +220,9 @@ pub fn _instantiate(
     if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
         response = response.add_message(wasm_execute(
             account,
-            &ExecuteMsg::UpdateSubAccount::<cosmwasm_std::Empty>(
-                UpdateSubAccountAction::RegisterSubAccount {
-                    id: ACCOUNT_ID.load(deps.storage)?.seq(),
-                },
-            ),
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                id: ACCOUNT_ID.load(deps.storage)?.seq(),
+            }),
             vec![],
         )?);
     }
@@ -293,41 +266,13 @@ pub fn _instantiate(
     Ok(response)
 }
 
-// Need wrapper because cosmwasm_std::entry_point counts arguments in any feature
-#[cfg(feature = "xion")]
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg<crate::absacc::auth::AddAuthenticator>,
-) -> AccountResult {
-    _execute(deps, env, info, msg)
-}
-#[cfg(not(feature = "xion"))]
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg<cosmwasm_std::Empty>,
-) -> AccountResult {
-    _execute(deps, env, info, msg)
-}
-
-#[doc(hidden)]
-pub fn _execute(
-    mut deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    #[cfg(feature = "xion")] msg: ExecuteMsg<crate::absacc::auth::AddAuthenticator>,
-    #[cfg(not(feature = "xion"))] msg: ExecuteMsg,
-) -> AccountResult {
+pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> AccountResult {
     match msg {
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
         } => update_account_status(deps, info, suspension_status).map_err(AccountError::from),
-        mut msg => {
+        msg => {
             // Block actions if user is not subscribed
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
             if is_suspended {
@@ -422,28 +367,11 @@ pub fn _execute(
                 ExecuteMsg::UpdateStatus { is_suspended: _ } => {
                     unreachable!("Update status case is reached above")
                 }
-                ExecuteMsg::AddAuthMethod {
-                    ref mut add_authenticator,
-                } => {
-                    #[cfg(feature = "xion")]
-                    {
-                        crate::absacc::auth::execute::add_auth_method(deps, &env, add_authenticator)
-                    }
-                    #[cfg(not(feature = "xion"))]
-                    {
-                        Ok(AccountResponse::action("add_auth"))
-                    }
+                ExecuteMsg::AddAuthMethod { add_authenticator } => {
+                    add_auth_method(deps, env, add_authenticator)
                 }
-                ExecuteMsg::RemoveAuthMethod { id } => {
-                    #[cfg(feature = "xion")]
-                    {
-                        crate::absacc::auth::execute::remove_auth_method(deps, env, id)
-                    }
-                    #[cfg(not(feature = "xion"))]
-                    {
-                        Ok(AccountResponse::action("remove_auth"))
-                    }
-                }
+                #[allow(unused)]
+                ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
                 ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
             }
         }

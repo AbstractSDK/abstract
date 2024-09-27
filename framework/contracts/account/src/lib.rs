@@ -9,28 +9,45 @@ pub mod reply;
 pub mod sub_account;
 pub mod versioning;
 
+/// Abstract Account
+#[cfg(feature = "xion")]
+pub mod absacc;
+
 pub mod state {
     pub use abstract_std::account::state::*;
 
     #[cfg(feature = "xion")]
     pub const AUTHENTICATORS: cw_storage_plus::Map<u8, crate::absacc::auth::Authenticator> =
         cw_storage_plus::Map::new("authenticators");
+    #[cfg(feature = "xion")]
+    pub const AUTH_ADMIN: cw_storage_plus::Item<bool> =
+        cw_storage_plus::Item::new(abstract_std::objects::storage_namespaces::account::AUTH_ADMIN);
 }
 
-/// Abstract Account
-#[cfg(feature = "xion")]
-pub mod absacc;
+// re-export based on the feature
+pub mod msg {
+    pub use abstract_std::account::{MigrateMsg, QueryMsg};
+
+    #[cfg(feature = "xion")]
+    pub type Authenticator = crate::absacc::auth::AddAuthenticator;
+    #[cfg(not(feature = "xion"))]
+    pub type Authenticator = cosmwasm_std::Empty;
+
+    pub type ExecuteMsg = abstract_std::account::ExecuteMsg<Authenticator>;
+    pub type InstantiateMsg = abstract_std::account::InstantiateMsg<Authenticator>;
+}
+
 #[cfg(test)]
 mod test_common {
     use abstract_std::{
-        account::{self, ExecuteMsg},
+        account::{self},
         objects::{account::AccountTrace, gov_type::GovernanceDetails, ownership, AccountId},
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, DepsMut, Empty, OwnedDeps};
     use speculoos::prelude::*;
 
-    use crate::{contract::AccountResult, error::AccountError};
+    use crate::{contract::AccountResult, error::AccountError, msg::ExecuteMsg};
 
     /// Initialize the manager with the test owner as the owner
     pub(crate) fn mock_init(

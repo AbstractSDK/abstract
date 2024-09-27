@@ -1,0 +1,5 @@
+# We run cargo schema on every module. Account needs "xion" feature to be enabled
+# Tracking issue: https://github.com/rust-lang/cargo/issues/4663
+[alias]
+schema = "run --features xion --example schema"
+wasm = "build --release --target wasm32-unknown-unknown"
