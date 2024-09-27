@@ -3,29 +3,25 @@
 
 use abstract_app::mock::MockInitMsg;
 use abstract_framework_clone_testing::common;
-use abstract_integration_tests::manager::mock_app::{MockApp, APP_VERSION};
-use abstract_interface::{Abstract, AppDeployer, DeployStrategy, VCExecFns};
-use abstract_std::{objects::gov_type::GovernanceDetails, PROXY};
+use abstract_integration_tests::account::mock_app::{MockApp, APP_VERSION};
+use abstract_interface::{Abstract, AccountI, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_std::objects::gov_type::GovernanceDetails;
 use abstract_testing::prelude::*;
 use anyhow::Ok;
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
-// owner of the abstract infra
-const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
 
 fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
-    let (deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (deployment, chain) = common::setup(JUNO_1)?;
     deployment.migrate_if_version_changed()?;
-    deployment
-        .version_control
-        .update_config(None, None, Some(true))?;
+    deployment.version_control.update_config(None, Some(true))?;
     Ok((deployment, chain))
 }
 
 #[test]
 fn migrate_infra_success() -> anyhow::Result<()> {
-    let (abstr_deployment, _) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (abstr_deployment, _) = common::setup(JUNO_1)?;
 
     let pre_code_id = abstr_deployment.version_control.code_id()?;
     let migrated = abstr_deployment.migrate_if_version_changed()?;
@@ -41,21 +37,21 @@ fn migrate_infra_success() -> anyhow::Result<()> {
 
 #[test]
 fn old_account_migrate() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1)?;
 
-    let old_account =
-        abstr_deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender_addr().to_string(),
-            })?;
+    let old_account = AccountI::create_default_account(
+        &abstr_deployment,
+        GovernanceDetails::Monarchy {
+            monarch: chain.sender_addr().to_string(),
+        },
+    )?;
 
     let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
-        old_account.upgrade(&abstr_deployment)?;
-        let info = old_account.manager.module_info(PROXY)?.unwrap();
-        assert_eq!(info.version.version, TEST_VERSION)
+        old_account.upgrade_account(&abstr_deployment)?;
+        let info = old_account.item_query(cw2::CONTRACT)?;
+        assert_eq!(info.version, TEST_VERSION)
     } else {
         println!("Nothing to migrate")
     }
@@ -64,14 +60,14 @@ fn old_account_migrate() -> anyhow::Result<()> {
 
 #[test]
 fn old_account_functions() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1)?;
 
-    let old_account =
-        abstr_deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender_addr().to_string(),
-            })?;
+    let old_account = AccountI::create_default_account(
+        &abstr_deployment,
+        GovernanceDetails::Monarchy {
+            monarch: chain.sender_addr().to_string(),
+        },
+    )?;
     let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
@@ -82,7 +78,7 @@ fn old_account_functions() -> anyhow::Result<()> {
         // Allow registration
         abstr_deployment
             .version_control
-            .update_config(None, None, Some(true))?;
+            .update_config(None, Some(true))?;
         // Try to install
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
@@ -95,8 +91,8 @@ fn old_account_functions() -> anyhow::Result<()> {
     Ok(())
 }
 
-mod manager {
-    use abstract_integration_tests::manager::{
+mod account {
+    use abstract_integration_tests::account::{
         account_install_app, account_move_ownership_to_sub_account,
         create_account_with_installed_module_monetization_and_init_funds,
         create_sub_account_with_modules_installed, install_app_with_proxy_action,
@@ -170,7 +166,8 @@ mod manager {
 }
 
 mod account_factory {
-    use abstract_integration_tests::account_factory::create_one_account_with_namespace_fee;
+
+    use abstract_integration_tests::create::create_one_account_with_namespace_fee;
 
     use super::*;
 

@@ -1,4 +1,4 @@
-use abstract_adapter::std::version_control::AccountBase;
+use abstract_adapter::std::version_control::Account;
 
 use abstract_adapter::sdk::{
     features::{AbstractNameService, AbstractRegistryAccess},
@@ -19,7 +19,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         &self,
         deps: DepsMut,
         env: Env,
-        target_account: AccountBase,
+        target_account: Account,
         action: StakingAction,
         mut provider: Box<dyn CwStakingCommand>,
     ) -> Result<SubMsg, CwStakingError> {
@@ -28,7 +28,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         provider.fetch_data(
             deps.as_ref(),
             env,
-            Some(target_account.proxy),
+            Some(target_account.into_addr()),
             &self.ans_host(deps.as_ref())?,
             self.abstract_registry(deps.as_ref())?,
             staking_asset,

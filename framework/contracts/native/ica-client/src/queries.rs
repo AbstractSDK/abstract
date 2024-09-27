@@ -1,8 +1,6 @@
 use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
-use abstract_std::{
-    ica_client::state::{Config, CONFIG},
-    objects::TruncatedChainId,
-};
+use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_std::objects::TruncatedChainId;
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
 use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
@@ -11,13 +9,9 @@ use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 pub fn config(deps: Deps) -> IcaClientResult<ConfigResponse> {
-    let Config {
-        version_control,
-        ans_host,
-    } = CONFIG.load(deps.storage)?;
     Ok(ConfigResponse {
-        ans_host: ans_host.address.into_string(),
-        version_control_address: version_control.address.into_string(),
+        ans_host: AnsHost::new(deps.api)?.address,
+        version_control_address: VersionControlContract::new(deps.api)?.address,
     })
 }
 
@@ -34,8 +28,6 @@ pub(crate) fn ica_action(
         chain: chain.to_string(),
     })?;
 
-    let cfg = CONFIG.load(deps.storage)?;
-
     let process_action = |action: IcaAction| -> IcaClientResult<Vec<CosmosMsg>> {
         match action {
             IcaAction::Execute(ica_exec) => match ica_exec {
@@ -48,8 +40,9 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
+                    let version_control = VersionControlContract::new(deps.api)?;
 
-                    let msg = evm::execute(&deps.querier, &cfg.version_control, msgs, callback)?;
+                    let msg = evm::execute(&deps.querier, &version_control, msgs, callback)?;
 
                     Ok(vec![msg.into()])
                 }
@@ -61,7 +54,7 @@ pub(crate) fn ica_action(
                 memo,
             } => match chain_type {
                 ChainType::Evm => Ok(vec![evm::send_funds(
-                    deps, &env, &chain, &cfg, funds, receiver, memo,
+                    deps, &env, &chain, funds, receiver, memo,
                 )?]),
                 _ => unimplemented!(),
             },
@@ -206,8 +199,8 @@ mod tests {
             assert_eq!(
                 res,
                 ConfigResponse {
-                    ans_host: abstr.ans_host.to_string(),
-                    version_control_address: abstr.version_control.to_string()
+                    ans_host: abstr.ans_host,
+                    version_control_address: abstr.version_control
                 }
             );
             Ok(())

@@ -83,7 +83,7 @@ fn test_ibc(
     account.set_ibc_status(true)?;
 
     let remote_account = account
-        .remote_account_builder(&interchain, &dst_abstract)
+        .remote_account_builder(interchain, &dst_abstract)
         .build()?;
 
     let msgs: Vec<CosmosMsg> = vec![];

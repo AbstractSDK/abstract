@@ -1,7 +1,7 @@
 use crate::IcaAction;
 use abstract_sdk::std::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::CosmosMsg;
+use cosmwasm_std::{Addr, CosmosMsg};
 use cw_ownable::{cw_ownable_execute, cw_ownable_query};
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
@@ -12,7 +12,10 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    Instantiate(InstantiateMsg),
+    Migrate {},
+}
 
 #[cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
@@ -41,8 +44,8 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub ans_host: String,
-    pub version_control_address: String,
+    pub ans_host: Addr,
+    pub version_control_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

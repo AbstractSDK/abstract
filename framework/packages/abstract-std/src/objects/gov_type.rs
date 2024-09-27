@@ -77,6 +77,7 @@ impl GovernanceDetails<String> {
     pub fn verify(
         self,
         deps: Deps,
+        // TODO: remove!
         version_control_addr: Addr,
     ) -> Result<GovernanceDetails<Addr>, AbstractError> {
         match self {

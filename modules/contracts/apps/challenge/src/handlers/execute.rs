@@ -289,9 +289,9 @@ fn cast_vote(
 
     let voter = match module
         .account_registry(deps.as_ref())?
-        .assert_proxy(&info.sender)
+        .assert_account(&info.sender)
     {
-        Ok(base) => base.manager,
+        Ok(base) => base.into_addr(),
         Err(_) => info.sender,
     };
     let proposal_info =
@@ -403,12 +403,10 @@ fn charge_penalty(
         .map(|friend| {
             let recipent = match friend {
                 Friend::Addr(addr) => addr.address,
-                Friend::AbstractAccount(account_id) => {
-                    module
-                        .account_registry(deps.as_ref())?
-                        .account_base(&account_id)?
-                        .proxy
-                }
+                Friend::AbstractAccount(account_id) => module
+                    .account_registry(deps.as_ref())?
+                    .account_base(&account_id)?
+                    .into_addr(),
             };
             bank.transfer(vec![asset_per_friend.clone()], &recipent)
         })

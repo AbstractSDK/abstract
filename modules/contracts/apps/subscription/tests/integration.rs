@@ -52,8 +52,10 @@ fn deploy_emission(client: &AbstractClient<MockBech32>) -> anyhow::Result<Cw20Ba
 
 /// Set up the test environment with the contract installed
 fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
-    let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain.clone()).build()?;
+    let mut chain = MockBech32::new("mock");
+    let admin = AbstractClient::mock_admin(&chain);
+    chain.set_sender(admin);
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     // Deploy factory_token
     let cw20 = client
@@ -96,7 +98,10 @@ fn setup_native<'a>(
     chain: &MockBech32,
     balances: impl IntoIterator<Item = (&'a Addr, &'a [Coin])>,
 ) -> anyhow::Result<NativeSubscription> {
-    let client = AbstractClient::builder(chain.clone()).build()?;
+    let admin = AbstractClient::mock_admin(chain);
+    let mut chain = chain.clone();
+    chain.set_sender(admin);
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
     client.set_balances(balances)?;
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new("abstract")?)
@@ -123,7 +128,7 @@ fn setup_native<'a>(
 
     emissions.transfer(
         Uint128::new(1_000_000),
-        subscription_app.account().proxy()?.to_string(),
+        subscription_app.account().address()?.to_string(),
     )?;
 
     Ok(NativeSubscription {
@@ -347,7 +352,7 @@ fn claim_emissions_none() -> anyhow::Result<()> {
     } = setup_native(&mock, [(&subscriber1, sub_amount.as_slice())])?;
 
     subscription_app
-        .call_as(&subscription_app.account().manager()?)
+        .call_as(&subscription_app.account().address()?)
         .update_subscription_config(None, None, Some(EmissionType::None), None)?;
 
     // 1 user subscribe
@@ -387,7 +392,7 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     )?;
 
     subscription_app
-        .call_as(&subscription_app.account().manager()?)
+        .call_as(&subscription_app.account().address()?)
         .update_subscription_config(
             None,
             None,

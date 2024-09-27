@@ -120,17 +120,12 @@ pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
 /// use the package version as test version, breaks tests otherwise.
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
-    use abstract_std::version_control::Account;
-    use cosmwasm_std::{testing::MockApi, Addr};
+    use abstract_std::{native_addrs, version_control::Account};
+    use cosmwasm_std::{testing::MockApi, Addr, Api, CanonicalAddr};
 
     // Test addr makers
-    const OWNER: &str = "owner";
     const ADMIN_ACCOUNT: &str = "admin_account_address";
     const TEST_ACCOUNT: &str = "account_address";
-    const TEST_ANS_HOST: &str = "test_ans_host_address";
-    const TEST_VERSION_CONTROL: &str = "version_control_address";
-    const TEST_MODULE_FACTORY: &str = "module_factory_address";
-    const TEST_MODULE_ADDRESS: &str = "test_module_address";
 
     pub fn admin_account(mock_api: MockApi) -> Account {
         Account::new(mock_api.addr_make(ADMIN_ACCOUNT))
@@ -144,11 +139,21 @@ pub mod addresses {
     impl AbstractMockAddrs {
         pub fn new(mock_api: MockApi) -> AbstractMockAddrs {
             AbstractMockAddrs {
-                owner: mock_api.addr_make(OWNER),
-                ans_host: mock_api.addr_make(TEST_ANS_HOST),
-                version_control: mock_api.addr_make(TEST_VERSION_CONTROL),
-                module_factory: mock_api.addr_make(TEST_MODULE_FACTORY),
-                module_address: mock_api.addr_make(TEST_MODULE_ADDRESS),
+                owner: mock_api
+                    .addr_humanize(&CanonicalAddr::from(native_addrs::TEST_ABSTRACT_CREATOR))
+                    .unwrap(),
+                ans_host: mock_api
+                    .addr_humanize(&CanonicalAddr::from(native_addrs::ANS_ADDR))
+                    .unwrap(),
+                version_control: mock_api
+                    .addr_humanize(&CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR))
+                    .unwrap(),
+                module_factory: mock_api
+                    .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
+                    .unwrap(),
+                module_address: mock_api
+                    .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
+                    .unwrap(),
                 account: admin_account(mock_api),
             }
         }
@@ -190,7 +195,6 @@ pub mod module {
 
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 }
-
 pub mod prelude {
     pub use super::{abstract_mock_querier, abstract_mock_querier_builder};
     pub use abstract_mock_querier::AbstractMockQuerier;
