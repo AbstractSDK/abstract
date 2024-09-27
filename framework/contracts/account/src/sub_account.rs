@@ -225,7 +225,7 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosM
         msgs.push(
             wasm_execute(
                 vc.address,
-                &abstract_std::version_control::ExecuteMsg::RemoveNamespaces {
+                &abstract_std::version_control::ExecuteMsg::ForgoNamespace {
                     namespaces: vec![namespace.to_string()],
                 },
                 vec![],

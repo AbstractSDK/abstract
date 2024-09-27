@@ -171,9 +171,9 @@ pub enum ExecuteMsg {
         account_id: AccountId,
         namespace: String,
     },
-    /// Remove namespace claims
+    /// Forgo namespace claims
     /// Only admin or root user can call this
-    RemoveNamespaces { namespaces: Vec<String> },
+    ForgoNamespace { namespaces: Vec<String> },
     /// Register a new Account to the deployed Accounts.
     /// Claims namespace if provided.  
     /// Only new accounts can call this.
