@@ -314,19 +314,21 @@ impl<Chain: CwEnv> Abstract<Chain> {
     }
 }
 
-impl<A: cosmwasm_std::Api, S: StateInterface> Abstract<MockBase<A, S>> {
-    pub fn deploy_on_mock(chain: MockBase<A, S>) -> Result<Self, AbstractInterfaceError> {
+// Sender addr means it's mock or CloneTest(which is also mock)
+impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
+    pub fn deploy_on_mock(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let admin = Self::mock_admin(&chain);
         Self::deploy_on(chain, admin)
     }
 
-    pub fn mock_admin(chain: &MockBase<A, S>) -> <MockBase as TxHandler>::Sender {
-        chain
-            .app
-            .borrow()
-            .api()
-            .addr_humanize(&CanonicalAddr::from(native_addrs::TEST_ABSTRACT_CREATOR))
-            .unwrap()
+    pub fn mock_admin(chain: &Chain) -> <MockBase as TxHandler>::Sender {
+        // Getting prefix
+        let sender_addr: cosmrs::AccountId = chain.sender().as_str().parse().unwrap();
+        let prefix = sender_addr.prefix();
+        // Building mock_admin
+        let mock_admin =
+            cosmrs::AccountId::new(prefix, &native_addrs::TEST_ABSTRACT_CREATOR).unwrap();
+        Addr::unchecked(mock_admin)
     }
 }
 

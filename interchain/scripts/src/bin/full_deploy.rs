@@ -53,9 +53,10 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
             .handle(rt.handle())
             .build()?;
 
-        let sender = chain.sender_addr();
+        let sender = chain.sender().clone();
+        let monarch = chain.sender_addr();
 
-        let deployment = match Abstract::deploy_on(chain, sender.to_string()) {
+        let deployment = match Abstract::deploy_on(chain, sender) {
             Ok(deployment) => {
                 // write_deployment(&deployment_status)?;
                 deployment
@@ -70,7 +71,7 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
         AccountI::create_default_account(
             &deployment,
             GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
+                monarch: monarch.to_string(),
             },
         )?;
     }

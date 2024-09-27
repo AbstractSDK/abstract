@@ -9,11 +9,9 @@ use anyhow::{bail, Ok};
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
 use semver::Version;
-// owner of the abstract infra
-const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
 
 fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
-    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1)?;
 
     abstr_deployment.migrate_if_version_changed()?;
     // List accounts
@@ -59,7 +57,7 @@ fn upgrade_account_iteratively() -> anyhow::Result<()> {
 
 #[test]
 fn upgrade_accounts_and_sub_accounts() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1)?;
 
     let account = AccountI::create_default_account(
         &abstr_deployment,

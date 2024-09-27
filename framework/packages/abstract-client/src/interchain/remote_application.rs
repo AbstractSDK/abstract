@@ -14,34 +14,33 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::{client::AbstractClientResult, remote_account::RemoteAccount, IbcTxAnalysisV2};
 
 /// An application represents a module installed on a [`RemoteAccount`].
-pub struct RemoteApplication<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M> {
-    remote_account: &'a RemoteAccount<'a, Chain, IBC>,
+pub struct RemoteApplication<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M> {
+    remote_account: RemoteAccount<Chain, IBC>,
     module: M,
 }
 
 impl<
-        'a,
         Chain: IbcQueryHandler,
         IBC: InterchainEnv<Chain>,
         M: RegisteredModule + ExecutableContract + QueryableContract + ContractInstance<Chain>,
-    > RemoteApplication<'a, Chain, IBC, M>
+    > RemoteApplication<Chain, IBC, M>
 {
     /// Get module interface installed on provided remote account
     pub(crate) fn new(
-        account: &'a RemoteAccount<'a, Chain, IBC>,
+        remote_account: RemoteAccount<Chain, IBC>,
         module: M,
     ) -> AbstractClientResult<Self> {
         // Sanity check: the module must be installed on the account
-        account.module_addresses(vec![M::module_id().to_string()])?;
+        remote_account.module_addresses(vec![M::module_id().to_string()])?;
         Ok(Self {
-            remote_account: account,
+            remote_account,
             module,
         })
     }
 
     /// remote-account on which application is installed
     pub fn account(&self) -> &RemoteAccount<Chain, IBC> {
-        self.remote_account
+        &self.remote_account
     }
 
     /// Execute message on application
@@ -78,8 +77,8 @@ impl<
     }
 }
 
-impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chain>>
-    RemoteApplication<'a, Chain, IBC, M>
+impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chain>>
+    RemoteApplication<Chain, IBC, M>
 {
     /// Authorize this application on installed adapters. Accepts Module Id's of adapters
     pub fn authorize_on_adapters(&self, adapter_ids: &[&str]) -> AbstractClientResult<()> {
@@ -117,7 +116,7 @@ impl<
         Chain: IbcQueryHandler,
         IBC: InterchainEnv<Chain>,
         M: QueryableContract + ContractInstance<Chain>,
-    > QueryableContract for RemoteApplication<'a, Chain, IBC, M>
+    > QueryableContract for RemoteApplication<Chain, IBC, M>
 {
     type QueryMsg = M::QueryMsg;
 }
@@ -127,7 +126,7 @@ impl<
         Chain: IbcQueryHandler,
         IBC: InterchainEnv<Chain>,
         M: QueryableContract + ContractInstance<Chain>,
-    > ContractInstance<Chain> for RemoteApplication<'a, Chain, IBC, M>
+    > ContractInstance<Chain> for RemoteApplication<Chain, IBC, M>
 {
     fn as_instance(&self) -> &Contract<Chain> {
         self.module.as_instance()

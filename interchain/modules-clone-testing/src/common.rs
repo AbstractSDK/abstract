@@ -20,7 +20,7 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
 
     // TODO: first version, nothing to load yet
     // let abstr_deployment = AbstractClient::new(app)?;
-    let abstr_deployment = AbstractClient::builder(app).build()?;
+    let abstr_deployment = AbstractClient::builder(app).build_mock()?;
 
     // Migrate if needed
     {

@@ -29,18 +29,19 @@ fn manual_deploy(network: ChainInfoOwned) -> anyhow::Result<()> {
         .handle(rt.handle())
         .build()?;
 
-    let sender = chain.sender_addr();
+    let sender = chain.sender().clone();
+    let monarch = chain.sender_addr();
 
     // Abstract
     let _abstr = match Abstract::load_from(chain.clone()) {
         Ok(deployed) => deployed,
         Err(_) => {
-            let abs = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+            let abs = Abstract::deploy_on(chain.clone(), sender)?;
             // Create the Abstract Account because it's needed for the fees for the dex module
             AccountI::create_default_account(
                 &abs,
                 GovernanceDetails::Monarchy {
-                    monarch: sender.to_string(),
+                    monarch: monarch.to_string(),
                 },
             )?;
 

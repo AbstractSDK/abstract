@@ -10,12 +10,10 @@ use abstract_testing::prelude::*;
 use anyhow::Ok;
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
-// owner of the abstract infra
-const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
 
 fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
-    let (deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (deployment, chain) = common::setup(JUNO_1)?;
     deployment.migrate_if_version_changed()?;
     deployment.version_control.update_config(None, Some(true))?;
     Ok((deployment, chain))
@@ -23,7 +21,7 @@ fn setup_migrate_allowed_direct_module_registration(
 
 #[test]
 fn migrate_infra_success() -> anyhow::Result<()> {
-    let (abstr_deployment, _) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (abstr_deployment, _) = common::setup(JUNO_1)?;
 
     let pre_code_id = abstr_deployment.version_control.code_id()?;
     let migrated = abstr_deployment.migrate_if_version_changed()?;
@@ -39,7 +37,7 @@ fn migrate_infra_success() -> anyhow::Result<()> {
 
 #[test]
 fn old_account_migrate() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1)?;
 
     let old_account = AccountI::create_default_account(
         &abstr_deployment,
@@ -62,7 +60,7 @@ fn old_account_migrate() -> anyhow::Result<()> {
 
 #[test]
 fn old_account_functions() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1)?;
 
     let old_account = AccountI::create_default_account(
         &abstr_deployment,

@@ -241,11 +241,9 @@ mod test {
         let chain3 = mock_interchain.get_chain(OSMOSIS).unwrap();
 
         // Deploying abstract and the IBC abstract logic
-        let abstr_origin = Abstract::deploy_on(chain1.clone(), chain1.sender_addr().to_string())?;
-        let abstr_intermediate_remote =
-            Abstract::deploy_on(chain2.clone(), chain2.sender_addr().to_string())?;
-        let abstr_host_remote =
-            Abstract::deploy_on(chain3.clone(), chain3.sender_addr().to_string())?;
+        let abstr_origin = Abstract::deploy_on_mock(chain1.clone())?;
+        let abstr_intermediate_remote = Abstract::deploy_on_mock(chain2.clone())?;
+        let abstr_host_remote = Abstract::deploy_on_mock(chain3.clone())?;
 
         // Creating a connection between 2 abstract deployments
         abstr_origin.connect_to(&abstr_intermediate_remote, &mock_interchain)?;
@@ -395,8 +393,6 @@ mod test {
                 name: account_name.clone(),
                 description: None,
                 link: None,
-                module_factory_address: abstr_remote.module_factory.addr_str()?,
-                version_control_address: abstr_remote.version_control.addr_str()?,
             })?,
             funds: vec![],
             salt: b"salty_salt".into(),
@@ -468,8 +464,6 @@ mod test {
                 install_modules: vec![],
                 description: None,
                 link: None,
-                module_factory_address: abstr.module_factory.addr_str()?,
-                version_control_address: abstr.version_control.addr_str()?,
             },
             Some(&account_id.to_string()),
             Some(&sender),
