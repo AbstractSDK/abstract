@@ -236,9 +236,13 @@ mod test {
         ]);
 
         // SETUP
-        let chain1 = mock_interchain.get_chain(JUNO).unwrap();
-        let chain2 = mock_interchain.get_chain(STARGAZE).unwrap();
-        let chain3 = mock_interchain.get_chain(OSMOSIS).unwrap();
+        let mut chain1 = mock_interchain.get_chain(JUNO).unwrap();
+        let mut chain2 = mock_interchain.get_chain(STARGAZE).unwrap();
+        let mut chain3 = mock_interchain.get_chain(OSMOSIS).unwrap();
+
+        chain1.set_sender(Abstract::mock_admin(&chain1));
+        chain2.set_sender(Abstract::mock_admin(&chain2));
+        chain3.set_sender(Abstract::mock_admin(&chain3));
 
         // Deploying abstract and the IBC abstract logic
         let abstr_origin = Abstract::deploy_on_mock(chain1.clone())?;
