@@ -19,6 +19,8 @@ type VersionString = String;
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;
 
+impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for VersionControl<Chain> {}
+
 impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
     #[cfg(feature = "integration")]
     fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
@@ -372,6 +374,13 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
         Ok(module.reference.unwrap_standalone()?)
+    }
+
+    /// Retrieves latest Account's code id from version control.
+    pub fn get_account_code(&self) -> Result<u64, crate::AbstractInterfaceError> {
+        let module: Module = self.module(ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?)?;
+
+        Ok(module.reference.unwrap_account()?)
     }
 }
 

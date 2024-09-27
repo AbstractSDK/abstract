@@ -11,8 +11,8 @@ fn full_deploy() -> cw_orch::anyhow::Result<()> {
     let src_chain = interchain.get_chain("juno-1")?;
     let dst_chain = interchain.get_chain("stargaze-1")?;
 
-    let src_abstr = Abstract::deploy_on(src_chain.clone(), src_chain.sender_addr().to_string())?;
-    let dst_abstr = Abstract::deploy_on(dst_chain.clone(), dst_chain.sender_addr().to_string())?;
+    let src_abstr = Abstract::deploy_on(src_chain.clone(), src_chain.sender().clone())?;
+    let dst_abstr = Abstract::deploy_on(dst_chain.clone(), dst_chain.sender().clone())?;
 
     src_abstr.connect_to(&dst_abstr, &interchain)?;
 

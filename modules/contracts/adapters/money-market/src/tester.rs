@@ -102,36 +102,36 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             .account_builder()
             .install_adapter::<MoneyMarketAdapter<Chain>>()?
             .build()?;
-        let proxy_addr = new_account.proxy()?;
+        let account_addr = new_account.address()?;
 
-        self.add_proxy_balance(&proxy_addr, &asset_info_lending, amount)?;
+        self.add_account_balance(&account_addr, &asset_info_lending, amount)?;
 
         // Verify nothing was deposited using the moneymarket query
         let user_deposit = self.moneymarket_adapter.ans_user_deposit(
             AssetEntry::new(&ans_lending_asset),
             self.moneymarket.name(),
-            new_account.proxy()?.to_string(),
+            new_account.address()?.to_string(),
         )?;
 
         assert_eq!(user_deposit.amount.u128(), 0);
 
         // swap 1_000_000_000 asset_a to asset_b
         self.execute(
-            &proxy_addr,
+            &account_addr,
             MoneyMarketAnsAction::Deposit {
                 lending_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), amount),
             },
         )?;
 
         // Assert balances
-        let balance_lending = self.query_proxy_balance(&proxy_addr, &asset_info_lending)?;
+        let balance_lending = self.query_account_balance(&account_addr, &asset_info_lending)?;
         assert!(balance_lending.is_zero());
 
         // Verify the deposit using the moneymarket query
         let user_deposit = self.moneymarket_adapter.ans_user_deposit(
             AssetEntry::new(&ans_lending_asset),
             self.moneymarket.name(),
-            new_account.proxy()?.to_string(),
+            new_account.address()?.to_string(),
         )?;
 
         assert!(user_deposit.amount > Uint128::from(amount).mul_floor(Decimal::from_str("0.95")?));
@@ -139,7 +139,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             self.abstr_deployment
                 .environment()
                 .bank_querier()
-                .balance(&proxy_addr, None)
+                .balance(&account_addr, None)
                 .unwrap()
                 .len(),
             0
@@ -157,7 +157,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let user_deposit_value = self.moneymarket_adapter.ans_user_deposit(
             AssetEntry::new(&ans_lending_asset),
             self.moneymarket.name(),
-            account.proxy()?.to_string(),
+            account.address()?.to_string(),
         )?;
 
         assert!(
@@ -167,13 +167,14 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let withdraw_value = user_deposit_value.amount / Uint128::new(2);
         let withdraw_fee = withdraw_value.mul_floor(FEE);
         self.execute(
-            &account.proxy()?,
+            &account.address()?,
             MoneyMarketAnsAction::Withdraw {
                 lent_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), withdraw_value),
             },
         )?;
 
-        let current_balance = self.query_proxy_balance(&account.proxy()?, &asset_info_lending)?;
+        let current_balance =
+            self.query_account_balance(&account.address()?, &asset_info_lending)?;
         assert!(current_balance + withdraw_fee > withdraw_value.mul_floor(Decimal::percent(99)));
 
         Ok(account)
@@ -188,22 +189,22 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             .account_builder()
             .install_adapter::<MoneyMarketAdapter<Chain>>()?
             .build()?;
-        let proxy_addr = new_account.proxy()?;
+        let account_addr = new_account.address()?;
 
-        self.add_proxy_balance(&proxy_addr, &asset_info_collateral, DEPOSIT_VALUE)?;
+        self.add_account_balance(&account_addr, &asset_info_collateral, DEPOSIT_VALUE)?;
 
         // Verify nothing was deposited using the moneymarket query
         let user_collateral = self.moneymarket_adapter.ans_user_collateral(
             AssetEntry::new(&ans_lending_asset),
             AssetEntry::new(&ans_collateral_asset),
             self.moneymarket.name(),
-            new_account.proxy()?.to_string(),
+            new_account.address()?.to_string(),
         )?;
 
         assert_eq!(user_collateral.amount.u128(), 0);
 
         self.execute(
-            &proxy_addr,
+            &account_addr,
             MoneyMarketAnsAction::ProvideCollateral {
                 borrowable_asset: AssetEntry::new(&ans_lending_asset),
                 collateral_asset: AnsAsset::new(&ans_collateral_asset, DEPOSIT_VALUE),
@@ -211,7 +212,8 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         )?;
 
         // Assert balances
-        let balance_collateral = self.query_proxy_balance(&proxy_addr, &asset_info_collateral)?;
+        let balance_collateral =
+            self.query_account_balance(&account_addr, &asset_info_collateral)?;
         assert!(balance_collateral.is_zero());
 
         // Verify the deposit using the moneymarket query
@@ -219,7 +221,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             AssetEntry::new(&ans_lending_asset),
             AssetEntry::new(&ans_collateral_asset),
             self.moneymarket.name(),
-            new_account.proxy()?.to_string(),
+            new_account.address()?.to_string(),
         )?;
 
         assert!(
@@ -230,7 +232,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             self.abstr_deployment
                 .environment()
                 .bank_querier()
-                .balance(&proxy_addr, None)
+                .balance(&account_addr, None)
                 .unwrap()
                 .len(),
             0
@@ -250,7 +252,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             AssetEntry::new(&ans_lending_asset),
             AssetEntry::new(&ans_collateral_asset),
             self.moneymarket.name(),
-            account.proxy()?.to_string(),
+            account.address()?.to_string(),
         )?;
 
         assert!(
@@ -259,7 +261,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         );
 
         self.execute(
-            &account.proxy()?,
+            &account.address()?,
             MoneyMarketAnsAction::WithdrawCollateral {
                 borrowable_asset: AssetEntry::new(&ans_lending_asset),
                 collateral_asset: AnsAsset::new(&ans_collateral_asset, user_collateral.amount),
@@ -267,7 +269,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         )?;
 
         let current_balance =
-            self.query_proxy_balance(&account.proxy()?, &asset_info_collateral)?;
+            self.query_account_balance(&account.address()?, &asset_info_collateral)?;
         assert!(current_balance > user_collateral.amount.mul_floor(Decimal::percent(99)));
 
         Ok(account)
@@ -278,10 +280,10 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
 
         let account: Account<Chain> = self.test_provide_collateral()?;
-        let proxy_addr = account.proxy()?;
+        let account_addr = account.address()?;
 
         self.execute(
-            &proxy_addr,
+            &account_addr,
             MoneyMarketAnsAction::Borrow {
                 borrow_asset: AnsAsset::new(&ans_lending_asset, BORROW_VALUE),
                 collateral_asset: AssetEntry::new(&ans_collateral_asset),
@@ -292,7 +294,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             AssetEntry::new(&ans_lending_asset),
             AssetEntry::new(&ans_collateral_asset),
             self.moneymarket.name(),
-            account.proxy()?.to_string(),
+            account.address()?.to_string(),
         )?;
 
         assert!(user_borrow.amount > Uint128::from(BORROW_VALUE).mul_floor(Decimal::percent(99)));
@@ -304,11 +306,11 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let (ans_collateral_asset, _asset_info_collateral) = self.moneymarket.collateral_asset();
         let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
         let account: Account<Chain> = self.test_borrow()?;
-        let proxy_addr = account.proxy()?;
+        let account_addr = account.address()?;
 
         // Now we repay
         self.execute(
-            &proxy_addr,
+            &account_addr,
             MoneyMarketAnsAction::Repay {
                 borrowed_asset: AnsAsset::new(&ans_lending_asset, BORROW_VALUE),
                 collateral_asset: AssetEntry::new(&ans_collateral_asset),
@@ -318,7 +320,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             AssetEntry::new(&ans_lending_asset),
             AssetEntry::new(&ans_collateral_asset),
             self.moneymarket.name(),
-            proxy_addr.to_string(),
+            account_addr.to_string(),
         )?;
 
         assert_eq!(user_borrow.amount.u128(), 0);
@@ -348,7 +350,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             AssetEntry::new(&ans_lending_asset),
             AssetEntry::new(&ans_collateral_asset),
             self.moneymarket.name(),
-            account.proxy()?.to_string(),
+            account.address()?.to_string(),
         )?;
 
         assert!(ltv.current_ltv > Decimal::zero());
@@ -370,7 +372,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             AssetEntry::new(&ans_lending_asset),
             AssetEntry::new(&ans_collateral_asset),
             self.moneymarket.name(),
-            account.proxy()?.to_string(),
+            account.address()?.to_string(),
         )?;
 
         Ok(())
@@ -378,12 +380,12 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
 
     fn execute(
         &self,
-        proxy: &Addr,
+        account_addr: &Addr,
         action: MoneyMarketAnsAction,
     ) -> anyhow::Result<<Chain as TxHandler>::Response> {
         Ok(self.moneymarket_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: MoneyMarketExecuteMsg::AnsAction {
                     money_market: self.moneymarket.name(),
                     action,
@@ -393,9 +395,9 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         )?)
     }
 
-    fn add_proxy_balance(
+    fn add_account_balance(
         &self,
-        proxy_addr: &Addr,
+        account_addr: &Addr,
         asset: &AssetInfoUnchecked,
         amount: u128,
     ) -> anyhow::Result<()> {
@@ -403,12 +405,12 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
 
         match asset {
             cw_asset::AssetInfoBase::Native(denom) => {
-                chain.add_balance(proxy_addr, coins(amount, denom))?;
+                chain.add_balance(account_addr, coins(amount, denom))?;
             }
             cw_asset::AssetInfoBase::Cw20(addr) => {
                 chain.execute(
                     &cw20::Cw20ExecuteMsg::Mint {
-                        recipient: proxy_addr.to_string(),
+                        recipient: account_addr.to_string(),
                         amount: amount.into(),
                     },
                     &[],
@@ -420,9 +422,9 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         Ok(())
     }
 
-    fn query_proxy_balance(
+    fn query_account_balance(
         &self,
-        proxy_addr: &Addr,
+        account_addr: &Addr,
         asset: &AssetInfoUnchecked,
     ) -> anyhow::Result<Uint128> {
         let chain = self.abstr_deployment.environment();
@@ -431,7 +433,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             cw_asset::AssetInfoBase::Native(denom) => {
                 chain
                     .bank_querier()
-                    .balance(proxy_addr, Some(denom.to_owned()))
+                    .balance(account_addr, Some(denom.to_owned()))
                     .unwrap()
                     .pop()
                     .unwrap()
@@ -441,7 +443,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
                 let balance: cw20::BalanceResponse = chain
                     .query(
                         &cw20::Cw20QueryMsg::Balance {
-                            address: proxy_addr.to_string(),
+                            address: account_addr.to_string(),
                         },
                         &Addr::unchecked(addr),
                     )

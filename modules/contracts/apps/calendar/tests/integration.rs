@@ -89,10 +89,12 @@ fn setup_with_time(
     AbstractClient<MockBech32>,
     MockBech32,
 )> {
-    let chain = MockBech32::new("mock");
+    let mut chain = MockBech32::new("mock");
+    let admin = AbstractClient::mock_admin(&chain);
+    chain.set_sender(admin);
     let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone())
         .asset(DENOM, AssetInfoUnchecked::native(DENOM))
-        .build()?;
+        .build_mock()?;
 
     client.set_balances(vec![
         (

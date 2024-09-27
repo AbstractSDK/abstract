@@ -153,8 +153,7 @@ mod tests {
     }
 
     fn mock_ans_host(mock_api: MockApi) -> AnsHost {
-        let abstract_addrs = AbstractMockAddrs::new(mock_api);
-        AnsHost::new(abstract_addrs.ans_host)
+        AnsHost::new(&mock_api).unwrap()
     }
 
     /// Querier builder with the ans host contract known.

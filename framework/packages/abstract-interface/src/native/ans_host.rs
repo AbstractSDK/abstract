@@ -15,6 +15,8 @@ use cw_orch::{interface, prelude::*};
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
 
+impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for AnsHost<Chain> {}
+
 impl<Chain: CwEnv> AnsHost<Chain> {
     pub fn balance(&self, addr: &Addr, asset: &AssetEntry) -> Result<Uint128, CwOrchError> {
         let asset: AssetInfo = self.resolve(asset)?;

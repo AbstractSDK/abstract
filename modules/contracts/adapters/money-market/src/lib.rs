@@ -62,7 +62,7 @@ pub mod interface {
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<
-            Vec<abstract_adapter::std::manager::ModuleInstallConfig>,
+            Vec<abstract_adapter::std::account::ModuleInstallConfig>,
             abstract_adapter::abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])

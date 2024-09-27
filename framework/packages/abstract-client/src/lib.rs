@@ -1,6 +1,6 @@
+//! TODO: docs
+// #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-#![doc = include_str!("../README.md")]
-
 pub(crate) mod account;
 mod application;
 pub mod builder;

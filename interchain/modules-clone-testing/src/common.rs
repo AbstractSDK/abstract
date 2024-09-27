@@ -7,18 +7,22 @@ use cw_orch_clone_testing::CloneTesting;
 
 /// Sets up the CloneTesting for chain.
 /// Returns the abstract client
-pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClient<CloneTesting>> {
+pub fn load_abstr(chain: ChainInfo) -> anyhow::Result<AbstractClient<CloneTesting>> {
     let _ = env_logger::builder().is_test(true).try_init();
     // We set the state file to be able to clone test
     std::env::set_var("STATE_FILE", "../scripts/state.json");
     // We set the state file to be able to clone test
     let gas_denom = chain.gas_denom;
     let mut app = CloneTesting::new(chain)?;
+
+    let sender = AbstractClient::mock_admin(&app);
     // Make sure sender have enough gas
     app.add_balance(&sender, coins(1_000_000_000_000_000, gas_denom))?;
     app.set_sender(sender);
 
-    let abstr_deployment = AbstractClient::new(app)?;
+    // TODO: first version, nothing to load yet
+    // let abstr_deployment = AbstractClient::new(app)?;
+    let abstr_deployment = AbstractClient::builder(app).build_mock()?;
 
     // Migrate if needed
     {
@@ -31,7 +35,7 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
     // Allow registration of any module
     abstr_deployment
         .version_control()
-        .update_config(None, None, Some(true))?;
+        .update_config(None, Some(true))?;
 
     Ok(abstr_deployment)
 }

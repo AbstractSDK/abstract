@@ -59,4 +59,5 @@ pub mod account;
 mod native;
 pub use crate::native::*;
 
-pub(crate) mod constants;
+pub mod constants;
+pub mod native_addrs;

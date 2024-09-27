@@ -1,7 +1,7 @@
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
-        state::{ACCOUNT_ID, CONFIG, SUB_ACCOUNTS},
+        state::{ACCOUNT_ID, SUB_ACCOUNTS},
         ExecuteMsg, ModuleInstallConfig, UpdateSubAccountAction,
     },
     objects::{
@@ -34,10 +34,10 @@ pub fn create_sub_account(
 ) -> AccountResult {
     // only owner can create a subaccount
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(deps.api)?;
     let seq = account_id.unwrap_or(
         abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE
-            .query(&deps.querier, config.version_control_address.clone())?,
+            .query(&deps.querier, version_control.address.clone())?,
     );
     let account_id = AccountId::local(seq);
     let salt = salt::generate_instantiate_salt(&account_id);
@@ -59,8 +59,6 @@ pub fn create_sub_account(
         name,
         description,
         link,
-        module_factory_address: config.module_factory_address.to_string(),
-        version_control_address: config.version_control_address.to_string(),
         authenticator: None::<Empty>,
     };
 
@@ -100,11 +98,11 @@ pub fn handle_sub_account_action(
 
 // Unregister sub-account from the state
 fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
-        config.version_control_address,
+        version_control.address,
         &AccountId::local(id),
     )?;
 
@@ -122,11 +120,11 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountR
 
 // Register sub-account to the state
 fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
-        config.version_control_address,
+        version_control.address,
         &AccountId::local(id),
     )?;
 
@@ -220,8 +218,7 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosM
         );
     }
 
-    let config = CONFIG.load(deps.storage)?;
-    let vc = VersionControlContract::new(config.version_control_address);
+    let vc = VersionControlContract::new(deps.api)?;
     let mut namespaces = vc
         .query_namespaces(vec![account_id], &deps.querier)?
         .namespaces;

@@ -22,9 +22,6 @@ use abstract_dex_adapter::dex_tester::{DexTester, MockDex};
 // const RATIO_POOL_FACTORY: &str =
 //     "archway1zlc00gjw4ecan3tkk5g0lfd78gyfldh4hvkv2g8z5qnwlkz9vqmsdfvs7q";
 
-// mainnet addr of abstract
-const SENDER: &str = "archway1kjzpqv393k4g064xh04j4hwy5d0s03wf0exd9k";
-
 pub struct AstrovaultDex {
     // factory_owner: Addr,
     pool_addr: Addr,
@@ -140,8 +137,7 @@ mod standard_pool_tests {
 
     fn setup_standard_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
-        let sender = Addr::unchecked(SENDER);
-        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let abstr_deployment = load_abstr(chain_info)?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -297,8 +293,7 @@ mod xasset_stable_pool_tests {
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
-        let sender = Addr::unchecked(SENDER);
-        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let abstr_deployment = load_abstr(chain_info)?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -402,8 +397,7 @@ mod stable_pool_tests {
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
-        let sender = Addr::unchecked(SENDER);
-        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let abstr_deployment = load_abstr(chain_info)?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -596,8 +590,7 @@ mod ratio_pool_tests {
 
     fn setup_ratio_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
-        let sender = Addr::unchecked(SENDER);
-        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let abstr_deployment = load_abstr(chain_info)?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (

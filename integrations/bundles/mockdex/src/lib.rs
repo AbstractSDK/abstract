@@ -1,4 +1,4 @@
-use cw20::msg::Cw20ExecuteMsgFns;
+use cw_plus_orch::cw20_base::ExecuteMsgInterfaceFns;
 pub mod suite;
 
 use std::fmt::Debug;
@@ -111,7 +111,7 @@ pub fn create_new_cw20<Chain: CwEnv, T: Into<Uint128>>(
         marketing: None,
     };
 
-    cw20.instantiate(&msg, Some(minter), None)
+    cw20.instantiate(&msg, Some(minter), &[])
         .map_err(Into::into)
 }
 

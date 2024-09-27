@@ -53,17 +53,15 @@ mod tests {
     use super::*;
 
     mod version_control {
-        use cosmwasm_std::{testing::mock_dependencies, Addr};
+        use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
         use crate::features::AbstractRegistryAccess;
 
         #[test]
         fn test_registry() {
-            let address = Addr::unchecked("version");
-            let vc = VersionControlContract::new(address.clone());
-
             let deps = mock_dependencies();
+            let vc = VersionControlContract::new(&deps.api).unwrap();
 
             assert_that!(vc.abstract_registry(deps.as_ref()))
                 .is_ok()

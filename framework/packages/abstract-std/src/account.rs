@@ -40,13 +40,6 @@ pub mod state {
 
     pub type SuspensionStatus = bool;
 
-    /// Manager configuration
-    #[cosmwasm_schema::cw_serde]
-    pub struct Config {
-        pub version_control_address: Addr,
-        pub module_factory_address: Addr,
-    }
-
     /// Abstract Account details.
     #[cosmwasm_schema::cw_serde]
     pub struct AccountInfo {
@@ -64,8 +57,6 @@ pub mod state {
     // TODO: Pull it inside Config as `suspended: Option<String>`, with reason of suspension inside a string?
     pub const SUSPENSION_STATUS: Item<SuspensionStatus> =
         Item::new(storage_namespaces::account::SUSPENSION_STATUS);
-    /// Configuration
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     /// Info about the Account
     pub const INFO: Item<AccountInfo> = Item::new(storage_namespaces::account::INFO);
     /// Enabled Abstract modules
@@ -103,9 +94,6 @@ pub struct InstantiateMsg<Authenticator = Empty> {
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
-    // TODO: Compute these using instantiate2.
-    pub module_factory_address: String,
-    pub version_control_address: String,
 }
 
 /// Callback message to set the dependencies after module upgrades.
@@ -133,7 +121,6 @@ pub enum ExecuteMsg<Authenticator = Empty> {
         /// Query of type `abstract-ica-client::msg::QueryMsg`
         action_query_msg: Binary,
     },
-
     /// Forward execution message to module
     #[cw_orch(payable)]
     ExecOnModule {

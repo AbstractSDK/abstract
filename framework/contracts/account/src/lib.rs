@@ -67,8 +67,6 @@ mod test_common {
                     monarch: abstr.owner.to_string(),
                 },
                 namespace: None,
-                version_control_address: abstr.version_control.to_string(),
-                module_factory_address: abstr.module_factory.to_string(),
                 name: "test".to_string(),
                 description: None,
                 link: None,

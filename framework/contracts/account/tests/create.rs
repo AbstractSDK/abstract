@@ -16,8 +16,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let vc = deployment.version_control;
     let vc_config = vc.config()?;
@@ -36,7 +35,7 @@ fn instantiate() -> AResult {
 fn create_one_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let version_control = &deployment.version_control;
 
@@ -53,8 +52,6 @@ fn create_one_account() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            module_factory_address: deployment.module_factory.addr_str()?,
-            version_control_address: version_control.addr_str()?,
             authenticator: None,
         },
         None,
@@ -92,7 +89,7 @@ fn create_one_account() -> AResult {
 fn create_two_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let version_control = &deployment.version_control;
 
@@ -109,8 +106,6 @@ fn create_two_accounts() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            module_factory_address: deployment.module_factory.addr_str()?,
-            version_control_address: version_control.addr_str()?,
             authenticator: None,
         },
         None,
@@ -129,8 +124,6 @@ fn create_two_accounts() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            module_factory_address: deployment.module_factory.addr_str()?,
-            version_control_address: version_control.addr_str()?,
             authenticator: None,
         },
         None,
@@ -166,7 +159,7 @@ fn create_two_accounts() -> AResult {
 fn sender_is_not_admin_monarchy() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = AccountI::new(ACCOUNT, chain);
 
     let version_control = &deployment.version_control;
@@ -181,8 +174,6 @@ fn sender_is_not_admin_monarchy() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            module_factory_address: deployment.module_factory.addr_str()?,
-            version_control_address: version_control.addr_str()?,
             authenticator: None,
         },
         None,
@@ -213,7 +204,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 fn sender_is_not_admin_external() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = AccountI::new(ACCOUNT, chain);
     let version_control = &deployment.version_control;
 
@@ -229,8 +220,6 @@ fn sender_is_not_admin_external() -> AResult {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
             },
-            module_factory_address: deployment.module_factory.addr_str()?,
-            version_control_address: version_control.addr_str()?,
             authenticator: None,
         },
         None,
@@ -257,7 +246,7 @@ fn sender_is_not_admin_external() -> AResult {
 fn create_one_account_with_namespace() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = AccountI::new(ACCOUNT, chain);
 
     let namespace_to_claim = "namespace-to-claim";
@@ -273,8 +262,6 @@ fn create_one_account_with_namespace() -> AResult {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
             },
-            module_factory_address: deployment.module_factory.addr_str()?,
-            version_control_address: deployment.version_control.addr_str()?,
             authenticator: None,
         },
         None,
@@ -308,8 +295,8 @@ fn create_one_account_with_namespace() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace_fee() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let mut chain = MockBech32::new("mock");
+    Abstract::deploy_on_mock(chain.clone())?;
+    chain.set_sender(Abstract::mock_admin(&chain));
     abstract_integration_tests::create::create_one_account_with_namespace_fee(chain)
 }

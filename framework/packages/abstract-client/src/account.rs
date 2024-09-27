@@ -5,11 +5,12 @@
 //! Example of creating an account
 //! ```
 //! # use abstract_client::AbstractClientError;
+//! # use abstract_testing::prelude::*;
 //! use abstract_client::{AbstractClient, Account};
 //! use cw_orch::prelude::*;
 //!
 //! # let chain = MockBech32::new("mock");
-//! # let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+//! # let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone()).build_mock()?;
 //!
 //! let alice_account: Account<MockBech32> = client
 //!     .account_builder()
@@ -63,7 +64,7 @@ use crate::{
 /// # use cw_orch::prelude::*;
 /// # use abstract_client::{AbstractClientError, Environment};
 /// # let chain = MockBech32::new("mock");
-/// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
+/// # let abstr_client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::{AbstractClient, Account};
 ///
@@ -990,7 +991,7 @@ pub mod test {
     #[test]
     fn namespace_after_creation() -> cw_orch::anyhow::Result<()> {
         let mock = MockBech32::new("mock");
-        let abstr = AbstractClient::builder(mock.clone()).build()?;
+        let abstr = AbstractClient::builder(mock.clone()).build_mock()?;
 
         let my_namespace = "my-namespace";
         let new_account = abstr.account_builder().build()?;

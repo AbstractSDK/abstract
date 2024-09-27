@@ -1,9 +1,10 @@
+use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     base::ExecuteMsg as MiddlewareExecMsg,
     ibc::{ModuleIbcInfo, ModuleIbcMsg},
     ibc_client::InstalledModuleIdentification,
     ibc_host::{
-        state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
+        state::{ActionAfterCreationCache, TEMP_ACTION_AFTER_CREATION},
         HelperAction, HostAction, InternalAction,
     },
     objects::{
@@ -115,7 +116,7 @@ pub fn handle_module_execute(
     msg: Binary,
 ) -> HostResult {
     // We resolve the target module
-    let vc = CONFIG.load(deps.storage)?.version_control;
+    let vc = VersionControlContract::new(deps.api)?;
 
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
@@ -162,7 +163,7 @@ pub fn handle_host_module_query(
     msg: Binary,
 ) -> HostResult<Binary> {
     // We resolve the target module
-    let vc = CONFIG.load(deps.storage)?.version_control;
+    let vc = VersionControlContract::new(deps.api)?;
 
     let target_module_resolved = target_module.addr(deps, vc)?;
 

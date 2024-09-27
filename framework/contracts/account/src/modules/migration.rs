@@ -1,5 +1,5 @@
 use abstract_std::{
-    account::{state::CONFIG, CallbackMsg, ExecuteMsg},
+    account::{CallbackMsg, ExecuteMsg},
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg as AdapterQuery,
     },
@@ -107,8 +107,7 @@ pub fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), AccountError> {
-    let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
     let old_module_cw2 =
