@@ -11,6 +11,48 @@ mod secp256r1;
 mod sign_arb;
 pub mod util;
 
+/// Authentication id for the signature
+#[cosmwasm_schema::cw_serde]
+#[derive(Copy)]
+pub struct AuthId(pub(crate) u8);
+
+impl AuthId {
+    /// Create AuthId from signature id and flag for admin call
+    /// Note: It's helper for signer, not designed to be used inside contract
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn new(id: u8, admin: bool) -> Option<Self> {
+        let first_bit: u8 = 0b10000000;
+        // If first bit occupied - we can't create AuthId
+        if id & first_bit != 0 {
+            return None;
+        };
+
+        Some(if admin {
+            Self(id | first_bit)
+        } else {
+            Self(id)
+        })
+    }
+
+    /// Get signature bytes with this [`AuthId`]
+    /// Note: It's helper for signer, not designed to be used inside contract
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn signature(self, mut signature: Vec<u8>) -> Vec<u8> {
+        signature.insert(0, self.0);
+        signature
+    }
+
+    pub fn cred_id(self) -> (u8, bool) {
+        let first_bit: u8 = 0b10000000;
+        if self.0 & first_bit == 0 {
+            (self.0, false)
+        } else {
+            (self.0 & !first_bit, true)
+        }
+    }
+}
+
+/// Note: Instead of transaction bytes address of the Abstract Account used
 #[cosmwasm_schema::cw_serde]
 pub enum AddAuthenticator {
     Secp256K1 {
@@ -49,12 +91,12 @@ pub enum AddAuthenticator {
 impl AddAuthenticator {
     pub fn get_id(&self) -> u8 {
         match self {
-            AddAuthenticator::Secp256K1 { id, .. } => *id,
-            AddAuthenticator::Ed25519 { id, .. } => *id,
-            AddAuthenticator::EthWallet { id, .. } => *id,
-            AddAuthenticator::Jwt { id, .. } => *id,
-            AddAuthenticator::Secp256R1 { id, .. } => *id,
-            AddAuthenticator::Passkey { id, .. } => *id,
+            AddAuthenticator::Secp256K1 { id, .. }
+            | AddAuthenticator::Ed25519 { id, .. }
+            | AddAuthenticator::EthWallet { id, .. }
+            | AddAuthenticator::Jwt { id, .. }
+            | AddAuthenticator::Secp256R1 { id, .. }
+            | AddAuthenticator::Passkey { id, .. } => *id,
         }
     }
 }
@@ -319,11 +361,40 @@ pub mod execute {
         id: u8,
         authenticator: &Authenticator,
     ) -> AccountResult<()> {
+        // TODO: recover check after discussion with xion
+        // if id > 127 {
+        //     return Err(AccountError::TooBigAuthId {});
+        // }
         if AUTHENTICATORS.has(deps.storage, id) {
             return Err(AccountError::OverridingIndex { index: id });
         }
 
         AUTHENTICATORS.save(deps.storage, id, authenticator)?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn auth_id_err() {
+        for id in 128..=u8::MAX {
+            assert!(AuthId::new(id, true).is_none())
+        }
+    }
+
+    #[test]
+    fn auth_id() {
+        for id in 0..0b10000000 {
+            let (unmasked_id, admin) = AuthId::new(id, true).unwrap().cred_id();
+            assert_eq!(id, unmasked_id);
+            assert_eq!(admin, true);
+
+            let (unmasked_id, admin) = AuthId::new(id, false).unwrap().cred_id();
+            assert_eq!(id, unmasked_id);
+            assert_eq!(admin, false);
+        }
     }
 }
