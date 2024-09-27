@@ -15,8 +15,8 @@ use cw_orch::{
     prelude::*,
 };
 use cw_orch_core::{environment::ChainInfoOwned, CwEnvError};
-use cw_orch_daemon::senders::builder::SenderBuilder;
 use cw_orch_daemon::senders::CosmosWalletKey;
+use cw_orch_daemon::senders::{builder::SenderBuilder, CosmosSender};
 use cw_orch_daemon::CosmosOptions;
 use cw_orch_daemon::QuerySender;
 use cw_orch_daemon::{
@@ -48,6 +48,9 @@ const SMALL_GAS_BUFFER: f64 = 1.4;
 // Xiond validator seed
 const LOCAL_MNEMONIC: &str = "clinic tube choose fade collect fish original recipe pumpkin fantasy enrich sunny pattern regret blouse organ april carpet guitar skin work moon fatigue hurdle";
 
+// Juno default mnemonics (used for deployment of mock abstract)
+const JUNO_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
+
 pub const LOCAL_XION: ChainInfo = ChainInfo {
     kind: ChainKind::Local,
     chain_id: "xion-devnet-1",
@@ -68,8 +71,12 @@ fn main() -> anyhow::Result<()> {
 
     let wallet = xiond.sender();
 
+    let abstract_sender = xiond.rt_handle.block_on(CosmosSender::from_mnemonic(
+        &Arc::new(xiond.chain_info().to_owned()),
+        JUNO_MNEMONIC,
+    ))?;
     let abstr = AbstractClient::new(xiond.clone())
-        .or_else(|_| AbstractClient::builder(xiond.clone()).build());
+        .or_else(|_| AbstractClient::builder(xiond.clone()).build(abstract_sender));
 
     let abstr = abstr?;
     let maybe_account = abstr.account_from(Namespace::new("test")?);
@@ -116,8 +123,6 @@ fn main() -> anyhow::Result<()> {
                     install_modules: vec![],
                     description: Some("foo bar".to_owned()),
                     link: None,
-                    module_factory_address: abstr.module_factory().addr_str()?,
-                    version_control_address: abstr.version_control().addr_str()?,
                 })?
                 .to_vec(),
                 funds: vec![xion_sdk_proto::cosmos::base::v1beta1::Coin {
