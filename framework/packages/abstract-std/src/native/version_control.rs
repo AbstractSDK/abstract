@@ -260,7 +260,7 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
-    pub account_base: Account,
+    pub account: Account,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -352,7 +352,7 @@ impl NamespaceResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct NamespaceInfo {
     pub account_id: AccountId,
-    pub account_base: Account,
+    pub account: Account,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -161,19 +161,12 @@ pub fn execute_send_packet(
     let note_message = match &action {
         HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
             // Verify that the sender is a proxy contract
-            let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+            let account = version_control.assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
-            let account_id = account_base.account_id(deps.as_ref())?;
+            let account_id = account.account_id(deps.as_ref())?;
 
-            send_remote_host_action(
-                deps.as_ref(),
-                account_id,
-                account_base,
-                host_chain,
-                action,
-                None,
-            )?
+            send_remote_host_action(deps.as_ref(), account_id, account, host_chain, action, None)?
         }
         HostAction::Internal(_) => {
             // Can only call non-internal actions
@@ -221,10 +214,10 @@ pub fn execute_send_module_to_module_packet(
                 .query(&deps.querier, info.sender.clone())?
                 .account;
             let account_id = version_control.account_id(account.addr(), &deps.querier)?;
-            let account_base = version_control.account(&account_id, &deps.querier)?;
+            let account = version_control.account(&account_id, &deps.querier)?;
             let ibc_client = account::state::ACCOUNT_MODULES.query(
                 &deps.querier,
-                account_base.into_addr(),
+                account.into_addr(),
                 IBC_CLIENT,
             )?;
             // Check that ibc_client is installed on account
@@ -342,21 +335,21 @@ pub fn execute_register_account(
     let version_control = VersionControlContract::new(deps.api)?;
 
     // Verify that the sender is a proxy contract
-    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+    let account = version_control.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = account.account_id(deps.as_ref())?;
     // get auxiliary information
 
     let account_info: account::InfoResponse = deps
         .querier
-        .query_wasm_smart(account_base.addr(), &account::QueryMsg::Info {})?;
+        .query_wasm_smart(account.addr(), &account::QueryMsg::Info {})?;
     let account_info = account_info.info;
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
         account_id.clone(),
-        account_base,
+        account,
         host_chain,
         HostAction::Internal(InternalAction::Register {
             description: account_info.description,
@@ -388,10 +381,10 @@ pub fn execute_send_funds(
     let ans = AnsHost::new(deps.api)?;
     // Verify that the sender is a proxy contract
 
-    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+    let account = version_control.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id of Account
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = account.account_id(deps.as_ref())?;
     // load remote account
     let remote_addr = ACCOUNTS.load(
         deps.storage,

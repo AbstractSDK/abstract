@@ -405,7 +405,7 @@ fn charge_penalty(
                 Friend::Addr(addr) => addr.address,
                 Friend::AbstractAccount(account_id) => module
                     .account_registry(deps.as_ref())?
-                    .account_base(&account_id)?
+                    .account(&account_id)?
                     .into_addr(),
             };
             bank.transfer(vec![asset_per_friend.clone()], &recipent)

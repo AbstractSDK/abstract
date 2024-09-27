@@ -254,7 +254,7 @@ impl Friend<String> {
                 (checked.address.clone(), Friend::Addr(checked))
             }
             Friend::AbstractAccount(account_id) => {
-                let base = account_registry.account_base(&account_id)?;
+                let base = account_registry.account(&account_id)?;
                 (base.into_addr(), Friend::AbstractAccount(account_id))
             }
         };
@@ -268,7 +268,7 @@ impl Friend<Addr> {
             Friend::Addr(human) => human.address.clone(),
             Friend::AbstractAccount(account_id) => module
                 .account_registry(deps)?
-                .account_base(account_id)?
+                .account(account_id)?
                 .into_addr(),
         })
     }

@@ -75,7 +75,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         namespace,
         NamespaceResponse::Claimed(NamespaceInfo {
             account_id: account.id()?,
-            account_base: Account::new(account_addr.clone()),
+            account: Account::new(account_addr.clone()),
         })
     );
 

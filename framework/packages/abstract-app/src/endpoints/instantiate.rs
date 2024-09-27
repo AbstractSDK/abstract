@@ -34,7 +34,7 @@ impl<
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
-            account_base,
+            account,
         } = msg.base;
 
         let module_msg = msg.module;
@@ -48,7 +48,7 @@ impl<
 
         // Base state
         let state = AppState {
-            account: account_base.clone(),
+            account: account.clone(),
             ans_host,
             version_control,
         };
@@ -57,7 +57,7 @@ impl<
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
         self.admin
-            .set(deps.branch(), Some(account_base.into_addr()))?;
+            .set(deps.branch(), Some(account.into_addr()))?;
 
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new());
@@ -88,7 +88,7 @@ mod test {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
                 version_control_address: abstr.version_control.to_string(),
-                account_base: abstr.account,
+                account: abstr.account,
             },
             module: MockInitMsg {},
         };

@@ -59,7 +59,7 @@ pub fn execute_handler(
             // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
             let namespace_info = namespace.unwrap();
             ensure_eq!(
-                namespace_info.account_base,
+                namespace_info.account,
                 module.target_account.clone().unwrap(),
                 DexError::Unauthorized {}
             );
@@ -74,7 +74,7 @@ pub fn execute_handler(
             if let Some(account_id) = recipient_account_id {
                 let recipient = module
                     .account_registry(deps.as_ref())?
-                    .account_base(&AccountId::new(account_id, AccountTrace::Local)?)?;
+                    .account(&AccountId::new(account_id, AccountTrace::Local)?)?;
                 fee.recipient = recipient.into_addr();
             }
 

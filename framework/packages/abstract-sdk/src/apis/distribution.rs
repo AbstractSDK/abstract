@@ -158,7 +158,7 @@ mod test {
         #[test]
         fn set_withdraw_address() {
             let mock_api = MockApi::default();
-            let app = MockModule::new(mock_api, test_account_base(mock_api));
+            let app = MockModule::new(mock_api, test_account(mock_api));
 
             let distribution = app.distribution();
 
@@ -177,7 +177,7 @@ mod test {
         #[test]
         fn withdraw_delegator_reward() {
             let mock_api = MockApi::default();
-            let app = MockModule::new(mock_api, test_account_base(mock_api));
+            let app = MockModule::new(mock_api, test_account(mock_api));
 
             let distribution = app.distribution();
 
@@ -196,7 +196,7 @@ mod test {
         #[test]
         fn withdraw_delegator_comission() {
             let mock_api = MockApi::default();
-            let app = MockModule::new(mock_api, test_account_base(mock_api));
+            let app = MockModule::new(mock_api, test_account(mock_api));
 
             let distribution = app.distribution();
 
@@ -216,7 +216,7 @@ mod test {
         #[test]
         fn fund_community_pool() {
             let mock_api = MockApi::default();
-            let app = MockModule::new(mock_api, test_account_base(mock_api));
+            let app = MockModule::new(mock_api, test_account(mock_api));
 
             let distribution = app.distribution();
 
