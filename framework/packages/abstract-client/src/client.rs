@@ -40,7 +40,7 @@ use abstract_std::objects::{
     AccountId,
 };
 use cosmwasm_std::{BlockInfo, Uint128};
-use cw_orch::{contract::Contract, environment::Environment as _, mock::MockBase, prelude::*};
+use cw_orch::{contract::Contract, environment::Environment as _, prelude::*};
 use rand::Rng;
 
 use crate::{

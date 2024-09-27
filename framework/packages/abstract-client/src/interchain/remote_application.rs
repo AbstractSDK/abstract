@@ -112,7 +112,6 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chai
 // ## Traits to make generated queries work
 
 impl<
-        'a,
         Chain: IbcQueryHandler,
         IBC: InterchainEnv<Chain>,
         M: QueryableContract + ContractInstance<Chain>,
@@ -122,7 +121,6 @@ impl<
 }
 
 impl<
-        'a,
         Chain: IbcQueryHandler,
         IBC: InterchainEnv<Chain>,
         M: QueryableContract + ContractInstance<Chain>,

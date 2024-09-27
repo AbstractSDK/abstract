@@ -100,7 +100,7 @@ impl<Chain: IbcQueryHandler> Account<Chain> {
     }
 }
 
-impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder<Chain, IBC> {
+impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder<Chain, IBC> {
     pub(crate) fn new(owner_account: Account<Chain>, ibc_env: IBC, host_chain: Chain) -> Self {
         Self {
             ibc_env,
