@@ -3,19 +3,19 @@ use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
 
-pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
+pub fn ibc_abstract_setup<Chain: IbcQueryHandler<Sender = Addr>, IBC: InterchainEnv<Chain>>(
     interchain: &IBC,
     origin_chain_id: &str,
     remote_chain_id: &str,
 ) -> AnyResult<(Abstract<Chain>, Abstract<Chain>)> {
-    let origin_chain = interchain.get_chain(origin_chain_id).unwrap();
-    let remote_chain = interchain.get_chain(remote_chain_id).unwrap();
+    let mut origin_chain = interchain.get_chain(origin_chain_id).unwrap();
+    let mut remote_chain = interchain.get_chain(remote_chain_id).unwrap();
 
+    origin_chain.set_sender(Abstract::mock_admin(&origin_chain));
+    remote_chain.set_sender(Abstract::mock_admin(&remote_chain));
     // Deploying abstract and the IBC abstract logic
-    let abstr_origin =
-        Abstract::deploy_on(origin_chain.clone(), origin_chain.sender_addr().to_string())?;
-    let abstr_remote =
-        Abstract::deploy_on(remote_chain.clone(), remote_chain.sender_addr().to_string())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), origin_chain.sender().clone())?;
+    let abstr_remote = Abstract::deploy_on(remote_chain.clone(), remote_chain.sender().clone())?;
 
     abstr_origin.connect_to(&abstr_remote, interchain)?;
 

@@ -334,6 +334,9 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
     use crate::msg::ExecuteMsg;
+    use abstract_adapter::abstract_testing::prelude::{
+        test_account_base, AbstractMockQuerier, TEST_ACCOUNT_ID,
+    };
     use abstract_adapter::std::adapter::AdapterRequestMsg;
     use abstract_adapter::std::objects::pool_id::PoolAddressBase;
     use abstract_adapter::{
@@ -344,12 +347,12 @@ mod test {
 
     pub const POOL: u64 = 1278734;
 
-    fn expected_request_with_test_proxy(
+    fn expected_request_with_test_account(
         request: DexExecuteMsg,
-        proxy_address: &Addr,
+        account_address: &Addr,
     ) -> ExecuteMsg {
         AdapterRequestMsg {
-            proxy_address: Some(proxy_address.to_string()),
+            account_address: Some(account_address.to_string()),
             request,
         }
         .into()
@@ -360,8 +363,11 @@ mod test {
     #[test]
     fn swap_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_adapter::abstract_testing::mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let dex = stub
             .dex(deps.as_ref(), "junoswap".into())
             .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
@@ -374,7 +380,7 @@ mod test {
         let belief_price = Some(Decimal::percent(2));
         let pool = PoolAddressBase::Id(POOL);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             DexExecuteMsg::Action {
                 dex: dex_name,
                 action: DexAction::Swap {
@@ -385,7 +391,7 @@ mod test {
                     pool: pool.clone().into(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = dex.swap(offer_asset, ask_asset, max_spread, belief_price, pool);
@@ -404,8 +410,11 @@ mod test {
     #[test]
     fn provide_liquidity_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_adapter::abstract_testing::mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let dex_name = "junoswap".to_string();
         let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -417,7 +426,7 @@ mod test {
         let max_spread = Some(Decimal::percent(1));
         let pool = PoolAddressBase::Id(POOL);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             DexExecuteMsg::Action {
                 dex: dex_name,
                 action: DexAction::ProvideLiquidity {
@@ -426,7 +435,7 @@ mod test {
                     pool: pool.clone().into(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = dex.provide_liquidity(assets, max_spread, pool);
@@ -445,8 +454,11 @@ mod test {
     #[test]
     fn withdraw_liquidity_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_adapter::abstract_testing::mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account_base(deps.api);
+        deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let dex_name = "junoswap".to_string();
         let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -457,7 +469,7 @@ mod test {
         let lp_token = Asset::native("taco", 1000u128);
         let pool = PoolAddressBase::Id(POOL);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             DexExecuteMsg::Action {
                 dex: dex_name,
                 action: DexAction::WithdrawLiquidity {
@@ -465,7 +477,7 @@ mod test {
                     pool: pool.clone().into(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = dex.withdraw_liquidity(lp_token, pool);

@@ -58,8 +58,8 @@ polytone-note = { package = "abstract-polytone-note", version = "4.0.0" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
 
 cw-orch = { version = "0.25.0" }
-cw-orch-interchain = { version = "0.4.0" }
-cw-orch-clone-testing = { version = "0.7.0-alpha.1" }
+cw-orch-interchain = { version = "0.5.0" }
+cw-orch-clone-testing = { version = "0.7.0" }
 # cw-orch-proto = { version = "0.4.0" }
 
 # Keep these as path, creates cirular dependency otherwise
@@ -100,11 +100,9 @@ abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
 # TODO: remove after polytone release
-cw-orch-clone-testing = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "nicolas/orc-159-cw-orch-clone-testing-20" }
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", branch = "buckram/update-interface-package" }
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false

@@ -125,7 +125,7 @@ pub fn try_pay(
         .add_attribute("received_funds", asset.to_string())
         .add_message(
             // Send the received asset to the proxy
-            asset.transfer_msg(base_state.proxy_address)?,
+            asset.transfer_msg(base_state.account.into_addr())?,
         ))
 }
 

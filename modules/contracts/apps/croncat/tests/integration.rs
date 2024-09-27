@@ -258,9 +258,9 @@ fn setup() -> anyhow::Result<TestingSetup> {
     contract.deploy(CRONCAT_MODULE_VERSION.parse()?, DeployStrategy::Try)?;
     account.install_app(&contract, &AppInstantiateMsg {}, None)?;
 
-    let manager_addr = account.manager.address()?;
+    let manager_addr = account.address()?;
     contract.set_sender(&manager_addr);
-    mock.set_balance(&account.proxy.address()?, coins(500_000, DENOM))?;
+    mock.set_balance(&account.address()?, coins(500_000, DENOM))?;
 
     Ok(TestingSetup {
         account,
@@ -374,7 +374,7 @@ fn all_in_one() -> anyhow::Result<()> {
     assert!(module_cw20_balance.balance.is_zero());
 
     // Saving current proxy balances to check balance changes
-    let proxy_balance1 = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let proxy_balance1 = mock.query_balance(&account.address()?, DENOM)?;
     let proxy_cw20_balance1: cw20::BalanceResponse = mock.query(
         &Cw20QueryMsg::Balance {
             address: account.proxy.addr_str()?,
@@ -408,7 +408,7 @@ fn all_in_one() -> anyhow::Result<()> {
     assert!(module_cw20_balance.balance.is_zero());
 
     // Everything landed on proxy contract
-    let proxy_balance2 = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let proxy_balance2 = mock.query_balance(&account.address()?, DENOM)?;
     assert_eq!(proxy_balance2, proxy_balance1 + Uint128::new(45_100));
     let proxy_cw20_balance2: cw20::BalanceResponse = mock.query(
         &Cw20QueryMsg::Balance {
