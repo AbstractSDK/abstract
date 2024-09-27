@@ -215,7 +215,7 @@ pub mod mock {
             base: app::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
                 version_control_address: abstr.version_control.to_string(),
-                account: account,
+                account,
             },
             module: MockInitMsg {},
         };
