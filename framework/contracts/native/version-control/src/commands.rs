@@ -536,13 +536,9 @@ fn claim_namespace_internal(
     Ok(fee_msg)
 }
 
-/// Remove namespaces
+/// Forgo namespaces
 /// Only admin or the account owner can do this
-pub fn remove_namespaces(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    namespaces: Vec<String>,
-) -> VCResult {
+pub fn forgo_namespace(deps: DepsMut, msg_info: MessageInfo, namespaces: Vec<String>) -> VCResult {
     let is_admin = cw_ownable::is_owner(deps.storage, &msg_info.sender)?;
 
     let mut logs = vec![];
@@ -579,7 +575,7 @@ pub fn remove_namespaces(
     }
 
     Ok(VcResponse::new(
-        "remove_namespaces",
+        "forgo_namespace",
         vec![("namespaces", &logs.join(","))],
     ))
 }
@@ -1254,7 +1250,7 @@ mod tests {
         }
     }
 
-    mod remove_namespaces {
+    mod forgo_namespace {
         use super::*;
 
         use cosmwasm_std::attr;
@@ -1265,7 +1261,7 @@ mod tests {
         }
 
         #[test]
-        fn remove_namespaces_by_admin_or_owner() -> VersionControlTestResult {
+        fn forgo_namespace_by_admin_or_owner() -> VersionControlTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1281,7 +1277,7 @@ mod tests {
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             // remove as admin
-            let msg = ExecuteMsg::RemoveNamespaces {
+            let msg = ExecuteMsg::ForgoNamespace {
                 namespaces: vec![new_namespace1.to_string()],
             };
             let res = execute_as(deps.as_mut(), &abstr.owner, msg);
@@ -1296,7 +1292,7 @@ mod tests {
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             // remove as owner
-            let msg = ExecuteMsg::RemoveNamespaces {
+            let msg = ExecuteMsg::ForgoNamespace {
                 namespaces: vec![new_namespace2.to_string()],
             };
             let res = execute_as(deps.as_mut(), &abstr.owner, msg);
@@ -1330,7 +1326,7 @@ mod tests {
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             // remove as other
-            let msg = ExecuteMsg::RemoveNamespaces {
+            let msg = ExecuteMsg::ForgoNamespace {
                 namespaces: vec![new_namespace1.to_string()],
             };
             let other = deps.api.addr_make(TEST_OTHER);
@@ -1353,7 +1349,7 @@ mod tests {
             let new_namespace1 = Namespace::new("namespace1")?;
 
             // remove as owner
-            let msg = ExecuteMsg::RemoveNamespaces {
+            let msg = ExecuteMsg::ForgoNamespace {
                 namespaces: vec![new_namespace1.to_string()],
             };
             let res = execute_as(deps.as_mut(), &abstr.owner, msg.clone());
@@ -1398,7 +1394,7 @@ mod tests {
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
 
             // remove as admin
-            let msg = ExecuteMsg::RemoveNamespaces {
+            let msg = ExecuteMsg::ForgoNamespace {
                 namespaces: vec![new_namespace1.to_string()],
             };
             execute_as(deps.as_mut(), &abstr.owner, msg)?;

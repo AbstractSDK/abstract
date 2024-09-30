@@ -76,7 +76,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             namespace,
             account_id,
         } => claim_namespace(deps, info, account_id, namespace),
-        ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
+        ExecuteMsg::ForgoNamespace { namespaces } => forgo_namespace(deps, info, namespaces),
         ExecuteMsg::AddAccount { namespace, creator } => {
             add_account(deps, info, namespace, creator)
         }
