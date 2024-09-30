@@ -16,7 +16,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
   - - ownership
-    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\"}},\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":{\"monarchy\":{\"monarch\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:account-local-1":
   - - aa
     - "false"
@@ -31,7 +31,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
   - - ownership
-    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":{\"monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:account-local-2":
   - - aa
     - "false"
@@ -46,7 +46,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
   - - ownership
-    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock1lk0ans8sykcdtc2u6ep502pjm6m2ep4aqe9qsupg5hwpweg4mxxqjgke6h\"}},\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":{\"monarchy\":{\"monarch\":\"mock1lk0ans8sykcdtc2u6ep502pjm6m2ep4aqe9qsupg5hwpweg4mxxqjgke6h\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:ans-host":
   - - be
     - "[]"

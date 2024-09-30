@@ -133,7 +133,7 @@ mod tests {
             owner: abstract_std::objects::gov_type::GovernanceDetails::AbstractAccount {
                 address: env.contract.address.clone(),
             },
-            name: "account".to_owned(),
+            name: Some("account".to_owned()),
             install_modules: vec![],
             account_id: None,
             namespace: None,

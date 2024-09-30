@@ -831,10 +831,10 @@ impl<Chain: CwEnv> Account<Chain> {
         // Create sub account.
         let sub_account_response = self.abstr_account.create_sub_account(
             modules,
-            "Sub Account".to_owned(),
             None,
             None,
             None,
+            Some("Sub Account".to_owned()),
             None,
             funds,
         )?;

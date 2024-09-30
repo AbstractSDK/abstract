@@ -142,7 +142,6 @@ dependencies = [
  "abstract-client",
  "abstract-cw-orch-polytone",
  "abstract-interface",
- "abstract-polytone",
  "abstract-std",
  "abstract-testing",
  "abstract-version-control",

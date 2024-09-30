@@ -131,7 +131,7 @@ mod test {
 
         let account_info = remote_abstract_account.info()?;
 
-        assert_eq!(account_info.info.name, new_name.to_string());
+        assert_eq!(account_info.info.name.unwrap(), new_name.to_string());
         assert_eq!(
             account_info.info.description,
             Some(new_description.to_string())
@@ -365,7 +365,7 @@ mod test {
             manager_info,
             InfoResponse {
                 info: abstract_std::account::state::AccountInfo {
-                    name: account_name,
+                    name: Some(account_name),
                     description,
                     link
                 }
@@ -394,7 +394,7 @@ mod test {
                 },
                 namespace: None,
                 install_modules: vec![],
-                name: account_name.clone(),
+                name: Some(account_name.clone()),
                 description: None,
                 link: None,
                 authenticator: None::<Empty>,
@@ -422,7 +422,7 @@ mod test {
         assert_eq!(
             AccountInfo {
                 description: None,
-                name: account_name,
+                name: Some(account_name),
                 link: None,
             },
             account_info.into()
@@ -464,7 +464,7 @@ mod test {
                 owner: GovernanceDetails::Monarchy {
                     monarch: chain.addr_make("user").to_string(),
                 },
-                name: "name".to_owned(),
+                name: Some("name".to_owned()),
                 namespace: None,
                 install_modules: vec![],
                 description: None,
@@ -606,7 +606,7 @@ mod test {
                 account_id: remote_account_id,
                 account_address: origin_account.address()?.to_string(),
                 action: HostAction::Internal(InternalAction::Register {
-                    name: "name".to_owned(),
+                    name: Some("name".to_owned()),
                     description: None,
                     link: None,
                     namespace: None,

@@ -37,7 +37,7 @@ pub fn handle_module_versions_query(deps: Deps, ids: Vec<String>) -> StdResult<B
 }
 
 pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
-    let info: AccountInfo = INFO.load(deps.storage)?;
+    let info: AccountInfo = INFO.may_load(deps.storage)?.unwrap_or_default();
     to_json_binary(&InfoResponse { info })
 }
 

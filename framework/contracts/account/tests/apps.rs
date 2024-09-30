@@ -143,10 +143,10 @@ fn subaccount_app_ownership() -> AResult {
             ModuleInfo::from_id_latest(APP_ID).unwrap(),
             Some(to_json_binary(&MockInitMsg {}).unwrap()),
         )],
-        "My subaccount".to_string(),
         None,
         None,
         None,
+        Some("My subaccount".to_string()),
         None,
         &[],
     )?;

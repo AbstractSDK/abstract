@@ -22,7 +22,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
   - - ownership
-    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\"}},\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":{\"monarchy\":{\"monarch\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:ans-host":
   - - be
     - "[]"

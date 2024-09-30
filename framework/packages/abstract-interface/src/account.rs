@@ -97,7 +97,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     owner: governance_details,
                     namespace: details.namespace,
                     install_modules: details.install_modules,
-                    name: details.name,
+                    name: Some(details.name),
                     description: details.description,
                     link: details.link,
                     authenticator: None,
@@ -505,10 +505,10 @@ impl<Chain: CwEnv> AccountI<Chain> {
 
         let result = self.create_sub_account(
             install_modules,
-            name,
             account_id,
             description,
             link,
+            Some(name),
             namespace,
             funds,
         )?;

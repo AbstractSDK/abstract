@@ -103,7 +103,9 @@ pub fn instantiate(
     // Verify info
     validate_description(description.as_deref())?;
     validate_link(link.as_deref())?;
-    validate_name(&name)?;
+    if let Some(name) = name.as_deref() {
+        validate_name(&name)?;
+    }
 
     let account_info = AccountInfo {
         name,
@@ -111,7 +113,9 @@ pub fn instantiate(
         link,
     };
 
-    INFO.save(deps.storage, &account_info)?;
+    if account_info.have_info() {
+        INFO.save(deps.storage, &account_info)?;
+    }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
     let governance = owner
@@ -475,7 +479,7 @@ mod tests {
                     monarch: abstr.owner.to_string(),
                 },
                 namespace: None,
-                name: "test".to_string(),
+                name: Some("test".to_string()),
                 description: None,
                 link: None,
                 install_modules: vec![],
