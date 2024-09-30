@@ -113,7 +113,7 @@ pub fn instantiate(
         link,
     };
 
-    if account_info.have_info() {
+    if account_info.has_info() {
         INFO.save(deps.storage, &account_info)?;
     }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;

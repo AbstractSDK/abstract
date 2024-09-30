@@ -53,7 +53,7 @@ pub mod state {
     }
 
     impl AccountInfo {
-        pub fn have_info(&self) -> bool {
+        pub fn has_info(&self) -> bool {
             self.name.is_some() || self.description.is_some() || self.link.is_some()
         }
     }
