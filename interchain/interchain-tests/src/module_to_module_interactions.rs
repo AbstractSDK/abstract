@@ -141,7 +141,7 @@ pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<String> =
 
 pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContract {
     const IBC_CLIENT_DEP: StaticDependency =
-        StaticDependency::new(IBC_CLIENT, &[abstract_std::registry::ABSTRACT_VERSION]);
+        StaticDependency::new(IBC_CLIENT, &[abstract_std::constants::ABSTRACT_VERSION]);
 
     MockAppContract::new(id, version, None)
         .with_instantiate(|deps, _, _, _, _| {
@@ -519,10 +519,7 @@ pub mod test {
         mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
         // We get the object for handling the actual module on the remote account
-        let remote_account = abstr_remote
-            .registry
-            .account(remote_account_id)?
-            .account;
+        let remote_account = abstr_remote.registry.account(remote_account_id)?.account;
         let account = AccountI::new(
             "remote-account-manager",
             abstr_remote.registry.environment().clone(),
@@ -697,10 +694,7 @@ pub mod test {
             mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
             // We get the object for handling the actual module on the remote account
-            let remote_account = abstr_remote
-                .registry
-                .account(remote_account_id)?
-                .account;
+            let remote_account = abstr_remote.registry.account(remote_account_id)?.account;
             let account = AccountI::new(
                 "remote-account-manager",
                 abstr_remote.registry.environment().clone(),
