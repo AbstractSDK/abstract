@@ -52,6 +52,7 @@ fn create_one_account() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -105,6 +106,7 @@ fn create_two_accounts() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -122,6 +124,7 @@ fn create_two_accounts() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -171,6 +174,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -216,6 +220,7 @@ fn sender_is_not_admin_external() -> AResult {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -257,6 +262,7 @@ fn create_one_account_with_namespace() -> AResult {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],

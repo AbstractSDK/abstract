@@ -88,7 +88,7 @@ pub fn upgrade_modules(
 
     let callback_msg = wasm_execute(
         env.contract.address,
-        &ExecuteMsg::Callback(CallbackMsg {}),
+        &ExecuteMsg::Callback::<cosmwasm_std::Empty>(CallbackMsg {}),
         vec![],
     )?;
 

@@ -217,7 +217,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction {
+            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     namespace: None,
@@ -237,7 +237,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction {
+            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: IbcClientMsg::RemoteAction { host_chain, action },
             },
             vec![],
@@ -254,7 +254,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction {
+            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: IbcClientMsg::SendFunds {
                     host_chain,
                     funds,
@@ -371,7 +371,7 @@ mod test {
         let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
-            msg: to_json_binary(&ExecuteMsg::IbcAction {
+            msg: to_json_binary(&ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     action: HostAction::Dispatch {
@@ -406,7 +406,7 @@ mod test {
         let base = test_account_base(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
-            msg: to_json_binary(&ExecuteMsg::IbcAction {
+            msg: to_json_binary(&ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     funds: expected_funds,

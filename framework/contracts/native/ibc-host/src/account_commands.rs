@@ -55,7 +55,7 @@ pub fn receive_register(
     let checksum = deps.querier.query_wasm_code_info(code_id)?.checksum;
     let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
 
-    let create_account_msg = account::InstantiateMsg {
+    let create_account_msg = account::InstantiateMsg::<cosmwasm_std::Empty> {
         owner: abstract_std::objects::gov_type::GovernanceDetails::External {
             governance_address: env.contract.address.into_string(),
             governance_type: "abstract-ibc".into(), // at least 4 characters
@@ -67,6 +67,7 @@ pub fn receive_register(
         account_id: Some(account_id.clone()),
         install_modules,
         namespace,
+        authenticator: None,
     };
 
     let account_canon_addr =
@@ -166,7 +167,7 @@ pub fn send_all_back(
     // call the message to send everything back through the account
     let account_msg = wasm_execute(
         account.into_addr(),
-        &account::ExecuteMsg::ModuleAction { msgs },
+        &account::ExecuteMsg::ModuleAction::<cosmwasm_std::Empty> { msgs },
         vec![],
     )?;
     Ok(account_msg.into())
