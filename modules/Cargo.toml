@@ -4,7 +4,6 @@ members = [
   "contracts/adapters/*",
   "contracts/standalones/*",
 ]
-exclude = ["contracts/apps/croncat", "contracts/apps/dca"]
 
 resolver = "2"
 
