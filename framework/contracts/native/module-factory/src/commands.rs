@@ -4,7 +4,7 @@ use abstract_sdk::{
         module_factory::FactoryModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
-            version_control::VersionControlContract,
+            registry::RegistryContract,
         },
     },
     *,
@@ -34,7 +34,7 @@ pub fn execute_create_modules(
     let block_height = env.block.height;
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
     let ans_host = AnsHost::new(deps.api)?;
 
     // assert that sender is manager

@@ -140,7 +140,7 @@ pub mod mock {
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
+                version_control_address: abstr.registry.to_string(),
             },
             module: MockInitMsg {},
         };
@@ -157,7 +157,7 @@ pub mod mock {
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
+                version_control_address: abstr.registry.to_string(),
             },
             module: MockInitMsg {},
         };

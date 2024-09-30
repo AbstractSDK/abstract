@@ -13,7 +13,7 @@ use abstract_std::{
         module::ModuleInfo,
         AccountId, AccountTrace, TruncatedChainId, UncheckedChannelEntry,
     },
-    ACCOUNT, ICS20, VERSION_CONTROL,
+    ACCOUNT, ICS20, REGISTRY,
 };
 use cosmwasm_std::Event;
 use cw_orch::prelude::*;
@@ -51,7 +51,7 @@ fn account_creation() -> anyhow::Result<()> {
     assert_eq!(
         ConfigResponse {
             ans_host_address: abstr_origin.ans_host.address()?,
-            version_control_address: abstr_origin.version_control.address()?,
+            version_control_address: abstr_origin.registry.address()?,
             module_factory_address: abstr_origin.module_factory.address()?,
         },
         config_response
@@ -88,8 +88,8 @@ fn account_creation() -> anyhow::Result<()> {
 
     assert!(account_creation_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_address", abstr_remote.version_control.address()?)
-            .add_attribute("contract", VERSION_CONTROL)
+            .add_attribute("_contract_address", abstr_remote.registry.address()?)
+            .add_attribute("contract", REGISTRY)
             .add_attribute("action", "add_account")
             .add_attribute(
                 "account_id",
@@ -180,7 +180,7 @@ fn account_creation_full() -> anyhow::Result<()> {
     assert_eq!(
         ConfigResponse {
             ans_host_address: abstr_origin.ans_host.address()?,
-            version_control_address: abstr_origin.version_control.address()?,
+            version_control_address: abstr_origin.registry.address()?,
             module_factory_address: abstr_origin.module_factory.address()?,
         },
         config_response
@@ -232,8 +232,8 @@ fn account_creation_full() -> anyhow::Result<()> {
 
     assert!(account_creation_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_address", abstr_remote.version_control.address()?)
-            .add_attribute("contract", VERSION_CONTROL)
+            .add_attribute("_contract_address", abstr_remote.registry.address()?)
+            .add_attribute("contract", REGISTRY)
             .add_attribute("action", "add_account")
             .add_attribute(
                 "account_id",

@@ -1,5 +1,5 @@
 use crate::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
-use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
+use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, RegistryExecFns};
 use abstract_adapter::std::{
     adapter,
     objects::{

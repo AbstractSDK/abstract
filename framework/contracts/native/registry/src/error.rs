@@ -7,7 +7,7 @@ use cosmwasm_std::{Addr, Coin, StdError};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum VCError {
+pub enum RegistryError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -100,7 +100,7 @@ pub enum VCError {
     InvalidAccountSequence { expected: u32, actual: u32 },
 }
 
-impl From<semver::Error> for VCError {
+impl From<semver::Error> for RegistryError {
     fn from(err: semver::Error) -> Self {
         Self::SemVer(err.to_string())
     }

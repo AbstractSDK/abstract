@@ -13,7 +13,7 @@ use abstract_std::{
         ownership::{self},
         AccountId, ABSTRACT_ACCOUNT_ID,
     },
-    version_control::{NamespaceResponse, UpdateModule},
+    registry::{NamespaceResponse, UpdateModule},
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
@@ -87,7 +87,7 @@ fn instantiate() -> AResult {
     // assert account config
     assert_that!(account.config()?).is_equal_to(abstract_std::account::ConfigResponse {
         whitelisted_addresses: vec![],
-        version_control_address: deployment.version_control.address()?,
+        version_control_address: deployment.registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
@@ -180,7 +180,7 @@ fn install_standalone_modules() -> AResult {
     let standalone2_id = chain.app.borrow_mut().store_code(standalone2_contract);
 
     // install first standalone
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("abstract")?,
             name: "standalone1".to_owned(),
@@ -192,7 +192,7 @@ fn install_standalone_modules() -> AResult {
     account.install_module("abstract:standalone1", Some(&MockInitMsg {}), &[])?;
 
     // install second standalone
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("abstract")?,
             name: "standalone2".to_owned(),
@@ -221,7 +221,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let standalone1_id = chain.app.borrow_mut().store_code(standalone1_contract);
 
     // install first standalone
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("abstract")?,
             name: "standalone1".to_owned(),
@@ -274,7 +274,7 @@ fn install_multiple_modules() -> AResult {
     let standalone2_id = chain.app.borrow_mut().store_code(standalone2_contract);
 
     // install both standalone
-    deployment.version_control.propose_modules(vec![
+    deployment.registry.propose_modules(vec![
         (
             ModuleInfo {
                 namespace: Namespace::new("abstract")?,
@@ -295,7 +295,7 @@ fn install_multiple_modules() -> AResult {
 
     // add monetization on module1
     let monetization = Monetization::InstallFee(FixedFee::new(&coin(42, "token1")));
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "standalone1".to_owned(),
         Namespace::new("abstract").unwrap(),
         UpdateModule::Versioned {
@@ -307,7 +307,7 @@ fn install_multiple_modules() -> AResult {
     )?;
 
     // add init funds on module2
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "standalone2".to_owned(),
         Namespace::new("abstract").unwrap(),
         UpdateModule::Versioned {
@@ -415,14 +415,14 @@ fn renounce_cleans_namespace() -> AResult {
     )?;
 
     let namespace_result = deployment
-        .version_control
+        .registry
         .namespace(Namespace::unchecked("bar"));
     assert!(namespace_result.is_ok());
 
     account.update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     let namespace_result = deployment
-        .version_control
+        .registry
         .namespace(Namespace::unchecked("bar"))?;
     assert_eq!(namespace_result, NamespaceResponse::Unclaimed {});
 
@@ -793,7 +793,7 @@ fn increment_not_effected_by_claiming() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
-    let next_account_id = deployment.version_control.config()?.local_account_sequence;
+    let next_account_id = deployment.registry.config()?.local_account_sequence;
     assert_eq!(next_account_id, 1);
 
     AccountI::create(
@@ -812,7 +812,7 @@ fn increment_not_effected_by_claiming() -> AResult {
         &[],
     )?;
 
-    let next_account_id = deployment.version_control.config()?.local_account_sequence;
+    let next_account_id = deployment.registry.config()?.local_account_sequence;
     assert_eq!(next_account_id, 1);
 
     // create new account
@@ -823,7 +823,7 @@ fn increment_not_effected_by_claiming() -> AResult {
         },
     )?;
 
-    let next_account_id = deployment.version_control.config()?.local_account_sequence;
+    let next_account_id = deployment.registry.config()?.local_account_sequence;
     assert_eq!(next_account_id, 2);
 
     Ok(())

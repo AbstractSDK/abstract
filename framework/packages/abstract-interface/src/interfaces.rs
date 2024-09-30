@@ -1,27 +1,27 @@
 use abstract_std::{
-    objects::AccountId, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
+    objects::AccountId, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY,
 };
 use cw_orch::{environment::Environment, prelude::*};
 
 use crate::{
-    AbstractInterfaceError, AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, VersionControl,
+    AbstractInterfaceError, AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, Registry,
 };
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: CwEnv>(
     chain: Chain,
-) -> (AnsHost<Chain>, VersionControl<Chain>, ModuleFactory<Chain>)
+) -> (AnsHost<Chain>, Registry<Chain>, ModuleFactory<Chain>)
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+    let version_control = Registry::new(REGISTRY, chain.clone());
     let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
     (ans_host, version_control, module_factory)
 }
 
 pub fn get_account_contract<Chain: CwEnv>(
-    version_control: &VersionControl<Chain>,
+    version_control: &Registry<Chain>,
     account_id: AccountId,
 ) -> Result<AccountI<Chain>, AbstractInterfaceError>
 where

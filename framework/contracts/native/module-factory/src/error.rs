@@ -1,5 +1,5 @@
 use abstract_sdk::AbstractSdkError;
-use abstract_std::{objects::version_control::VersionControlError, AbstractError};
+use abstract_std::{objects::registry::RegistryError, AbstractError};
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_asset::AssetError;
 use cw_ownable::OwnershipError;
@@ -26,7 +26,7 @@ pub enum ModuleFactoryError {
     Instantiate2AddressError(#[from] Instantiate2AddressError),
 
     #[error("{0}")]
-    VersionControlError(#[from] VersionControlError),
+    RegistryError(#[from] RegistryError),
 
     #[error("Calling contract is not a registered Account Manager")]
     UnknownCaller(),

@@ -1,4 +1,4 @@
-use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::feature_objects::RegistryContract;
 use abstract_std::{
     account::{
         state::{ACCOUNT_ID, SUB_ACCOUNTS},
@@ -34,9 +34,9 @@ pub fn create_sub_account(
 ) -> AccountResult {
     // only owner can create a subaccount
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
     let seq = account_id.unwrap_or(
-        abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE
+        abstract_std::registry::state::LOCAL_ACCOUNT_SEQUENCE
             .query(&deps.querier, version_control.address.clone())?,
     );
     let account_id = AccountId::local(seq);
@@ -97,9 +97,9 @@ pub fn handle_sub_account_action(
 
 // Unregister sub-account from the state
 fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
 
-    let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
+    let account = abstract_std::registry::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         version_control.address,
         &AccountId::local(id),
@@ -119,9 +119,9 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountR
 
 // Register sub-account to the state
 fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
 
-    let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
+    let account = abstract_std::registry::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         version_control.address,
         &AccountId::local(id),
@@ -215,7 +215,7 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosM
         );
     }
 
-    let vc = VersionControlContract::new(deps.api)?;
+    let vc = RegistryContract::new(deps.api)?;
     let mut namespaces = vc
         .query_namespaces(vec![account_id], &deps.querier)?
         .namespaces;
@@ -225,7 +225,7 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosM
         msgs.push(
             wasm_execute(
                 vc.address,
-                &abstract_std::version_control::ExecuteMsg::RemoveNamespaces {
+                &abstract_std::registry::ExecuteMsg::RemoveNamespaces {
                     namespaces: vec![namespace.to_string()],
                 },
                 vec![],

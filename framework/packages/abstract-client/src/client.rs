@@ -30,7 +30,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AccountI, AnsHost, IbcClient, RegisteredModule, VCQueryFns, VersionControl,
+    Abstract, AccountI, AnsHost, IbcClient, RegisteredModule, Registry, RegistryQueryFns,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleStatus, ModuleVersion},
@@ -92,8 +92,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// assert_eq!(vc_module.reference, ModuleReference::Native(version_control.address()?));
     /// # Ok::<(), AbstractClientError>(())
     /// ```
-    pub fn version_control(&self) -> &VersionControl<Chain> {
-        &self.abstr.version_control
+    pub fn version_control(&self) -> &Registry<Chain> {
+        &self.abstr.registry
     }
 
     /// Abstract Name Service contract API
@@ -175,7 +175,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         source: T,
     ) -> AbstractClientResult<Account<Chain>> {
         let source = source.into();
-        let chain = self.abstr.version_control.environment();
+        let chain = self.abstr.registry.environment();
 
         match source {
             AccountSource::Namespace(namespace) => {
@@ -275,12 +275,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         loop {
             let random_sequence = rng.gen_range(2147483648..u32::MAX);
             let potential_account_id = AccountId::local(random_sequence);
-            if self
-                .abstr
-                .version_control
-                .account(potential_account_id)
-                .is_err()
-            {
+            if self.abstr.registry.account(potential_account_id).is_err() {
                 return Ok(random_sequence);
             };
         }

@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     features::AccountIdentification,
     namespaces::BASE_STATE,
     ModuleRegistryInterface, Resolve,
@@ -17,7 +17,7 @@ use abstract_std::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
     },
-    version_control::Account,
+    registry::Account,
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
@@ -155,7 +155,7 @@ pub fn execute_send_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
     // The packet we need to send depends on the action we want to execute
 
     let note_message = match &action {
@@ -198,7 +198,7 @@ pub fn execute_send_module_to_module_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
 
     // Query the sender module information
     let module_info = version_control
@@ -339,7 +339,7 @@ pub fn execute_register_account(
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
     host_chain.verify()?;
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
 
     // Verify that the sender is a proxy contract
     let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
@@ -384,7 +384,7 @@ pub fn execute_send_funds(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
     let ans = AnsHost::new(deps.api)?;
     // Verify that the sender is a proxy contract
 

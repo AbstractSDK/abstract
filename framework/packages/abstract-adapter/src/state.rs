@@ -5,7 +5,7 @@ use abstract_sdk::{
         ModuleIbcHandlerFn, QueryHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
     namespaces::BASE_STATE,
-    std::version_control::Account,
+    std::registry::Account,
     AbstractSdkError,
 };
 use abstract_std::{

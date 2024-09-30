@@ -8,7 +8,7 @@ use crate::{
     ibc_host::HostAction,
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
-        version_control::VersionControlContract, TruncatedChainId,
+        registry::RegistryContract, TruncatedChainId,
     },
     AbstractError,
 };
@@ -208,11 +208,7 @@ pub struct ModuleAddr {
 }
 
 impl InstalledModuleIdentification {
-    pub fn addr(
-        &self,
-        deps: Deps,
-        vc: VersionControlContract,
-    ) -> Result<ModuleAddr, AbstractError> {
+    pub fn addr(&self, deps: Deps, vc: RegistryContract) -> Result<ModuleAddr, AbstractError> {
         let target_module_resolved = vc.query_module(self.module_info.clone(), &deps.querier)?;
 
         let no_account_id_error =

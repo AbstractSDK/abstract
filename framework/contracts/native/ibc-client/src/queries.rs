@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::{
     ibc_client::{
         state::{ACCOUNTS, IBC_INFRA},
@@ -94,7 +94,7 @@ pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructur
 pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
     Ok(ConfigResponse {
         ans_host: AnsHost::new(deps.api)?.address,
-        version_control_address: VersionControlContract::new(deps.api)?.address,
+        version_control_address: RegistryContract::new(deps.api)?.address,
     })
 }
 

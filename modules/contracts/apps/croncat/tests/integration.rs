@@ -6,7 +6,7 @@ use abstract_app::std::{
         account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
     },
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, RegistryExecFns};
 use common::contracts;
 use cosmwasm_std::{coins, to_json_binary, BankMsg, Uint128, WasmMsg};
 use croncat_app::{

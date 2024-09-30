@@ -546,7 +546,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
-            let vc_res = execute_as(deps.as_mut(), &abstr.version_control, msg.clone());
+            let vc_res = execute_as(deps.as_mut(), &abstr.registry, msg.clone());
             assert_that!(&vc_res).is_err();
 
             let owner_res = execute_as(deps.as_mut(), &owner, msg);

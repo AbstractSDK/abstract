@@ -11,7 +11,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
         AccountId,
     },
-    version_control::ModuleFilter,
+    registry::ModuleFilter,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
@@ -87,7 +87,7 @@ fn account_app_ownership() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain.clone());
@@ -130,13 +130,13 @@ fn subaccount_app_ownership() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
 
-    let next_id = deployment.version_control.config()?.local_account_sequence;
+    let next_id = deployment.registry.config()?.local_account_sequence;
 
     account.create_sub_account(
         vec![ModuleInstallConfig::new(
@@ -178,7 +178,7 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain.clone());
@@ -206,10 +206,10 @@ fn deploy_strategy_uploaded() -> AResult {
     let _account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
     deployment
-        .version_control
+        .registry
         .call_as(&admin)
         .update_config(None, Some(false))?;
 
@@ -218,7 +218,7 @@ fn deploy_strategy_uploaded() -> AResult {
 
     // Deploy try
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let module_list = deployment.version_control.module_list(
+    let module_list = deployment.registry.module_list(
         Some(ModuleFilter {
             status: Some(ModuleStatus::Pending),
             ..Default::default()
@@ -230,7 +230,7 @@ fn deploy_strategy_uploaded() -> AResult {
 
     // Clean module
     deployment
-        .version_control
+        .registry
         .call_as(&admin)
         .approve_or_reject_modules(
             vec![],
@@ -242,7 +242,7 @@ fn deploy_strategy_uploaded() -> AResult {
 
     // Deploy Error
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Error)?;
-    let module_list = deployment.version_control.module_list(
+    let module_list = deployment.registry.module_list(
         Some(ModuleFilter {
             status: Some(ModuleStatus::Pending),
             ..Default::default()
@@ -254,7 +254,7 @@ fn deploy_strategy_uploaded() -> AResult {
 
     // Clean module
     deployment
-        .version_control
+        .registry
         .call_as(&admin)
         .approve_or_reject_modules(
             vec![],
@@ -265,7 +265,7 @@ fn deploy_strategy_uploaded() -> AResult {
         )?;
 
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Force)?;
-    let module_list = deployment.version_control.module_list(
+    let module_list = deployment.registry.module_list(
         Some(ModuleFilter {
             status: Some(ModuleStatus::Pending),
             ..Default::default()
@@ -287,10 +287,10 @@ fn deploy_strategy_deployed() -> AResult {
     let _account = create_default_account(sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
     deployment
-        .version_control
+        .registry
         .call_as(&admin)
         .update_config(None, Some(false))?;
 

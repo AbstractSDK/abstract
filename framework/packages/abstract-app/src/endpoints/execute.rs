@@ -178,7 +178,7 @@ mod test {
             let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
             assert_eq!(state.ans_host.address, abstr.ans_host);
-            assert_eq!(state.version_control.address, abstr.version_control);
+            assert_eq!(state.version_control.address, abstr.registry);
 
             Ok(())
         }

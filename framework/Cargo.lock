@@ -14,11 +14,11 @@ dependencies = [
  "abstract-interface",
  "abstract-macros",
  "abstract-module-factory",
+ "abstract-registry",
  "abstract-sdk",
  "abstract-standalone",
  "abstract-std",
  "abstract-testing",
- "abstract-version-control",
  "anyhow",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -130,9 +130,9 @@ dependencies = [
  "abstract-cw-orch-polytone",
  "abstract-interface",
  "abstract-polytone",
+ "abstract-registry",
  "abstract-std",
  "abstract-testing",
- "abstract-version-control",
  "anyhow",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -353,9 +353,9 @@ dependencies = [
  "abstract-ibc-client",
  "abstract-ibc-host",
  "abstract-module-factory",
+ "abstract-registry",
  "abstract-std",
  "abstract-testing",
- "abstract-version-control",
  "cosmrs 0.19.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -499,6 +499,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "abstract-registry"
+version = "0.23.0"
+dependencies = [
+ "abstract-interface",
+ "abstract-macros",
+ "abstract-sdk",
+ "abstract-std",
+ "abstract-testing",
+ "anyhow",
+ "cosmwasm-schema 2.1.4",
+ "cosmwasm-std 2.1.4",
+ "cw-orch",
+ "cw-ownable 2.1.0",
+ "cw-storage-plus 2.0.0",
+ "cw2 2.0.0",
+ "semver",
+ "serde",
+ "speculoos",
+ "thiserror",
+ "workspace-hack",
+]
+
+[[package]]
 name = "abstract-sdk"
 version = "0.23.0"
 dependencies = [
@@ -628,29 +651,6 @@ dependencies = [
  "serde",
  "serde_json",
  "speculoos",
- "workspace-hack",
-]
-
-[[package]]
-name = "abstract-version-control"
-version = "0.23.0"
-dependencies = [
- "abstract-interface",
- "abstract-macros",
- "abstract-sdk",
- "abstract-std",
- "abstract-testing",
- "anyhow",
- "cosmwasm-schema 2.1.4",
- "cosmwasm-std 2.1.4",
- "cw-orch",
- "cw-ownable 2.1.0",
- "cw-storage-plus 2.0.0",
- "cw2 2.0.0",
- "semver",
- "serde",
- "speculoos",
- "thiserror",
  "workspace-hack",
 ]
 

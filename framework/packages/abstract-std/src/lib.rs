@@ -44,11 +44,11 @@ pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
 pub mod base;
 
-pub use registry::*;
+pub use registry_names::*;
 pub mod adapter;
 pub mod app;
 pub mod objects;
-pub mod registry;
+pub mod registry_names;
 pub mod standalone;
 
 mod error;

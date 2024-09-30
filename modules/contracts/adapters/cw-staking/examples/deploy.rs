@@ -1,5 +1,5 @@
 use abstract_adapter::abstract_interface::{
-    AdapterDeployer, AnsHost, DeployStrategy, VCExecFns, VersionControl,
+    AdapterDeployer, AnsHost, DeployStrategy, RegistryExecFns, VersionControl,
 };
 use abstract_adapter::std::{
     adapter,

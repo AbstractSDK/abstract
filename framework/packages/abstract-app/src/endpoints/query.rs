@@ -167,7 +167,7 @@ mod test {
                 AppConfigResponse {
                     account: account.into_addr(),
                     ans_host_address: abstr.ans_host,
-                    version_control_address: abstr.version_control,
+                    version_control_address: abstr.registry,
                 },
                 from_json(res).unwrap()
             );

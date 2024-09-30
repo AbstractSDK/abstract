@@ -1,6 +1,6 @@
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
 };
 use abstract_std::{
     adapter::{AdapterState, InstantiateMsg},
@@ -35,7 +35,7 @@ impl<
             address: deps.api.addr_validate(&msg.base.ans_host_address)?,
         };
 
-        let version_control = VersionControlContract {
+        let version_control = RegistryContract {
             address: deps.api.addr_validate(&msg.base.version_control_address)?,
         };
 
@@ -61,7 +61,7 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{
         base::InstantiateEndpoint,
-        feature_objects::{AnsHost, VersionControlContract},
+        feature_objects::{AnsHost, RegistryContract},
     };
     use abstract_std::{
         adapter::{AdapterState, BaseInstantiateMsg, InstantiateMsg},
@@ -85,7 +85,7 @@ mod test {
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
+                version_control_address: abstr.registry.to_string(),
             },
             module: MockInitMsg {},
         };
@@ -122,8 +122,8 @@ mod test {
         assert_eq!(
             state,
             AdapterState {
-                version_control: VersionControlContract {
-                    address: abstr.version_control,
+                version_control: RegistryContract {
+                    address: abstr.registry,
                 },
                 ans_host: AnsHost {
                     address: abstr.ans_host,

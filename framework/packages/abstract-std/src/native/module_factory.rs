@@ -7,7 +7,7 @@
 pub mod state {
     use cw_storage_plus::Item;
 
-    use crate::{objects::storage_namespaces, version_control::Account};
+    use crate::{objects::storage_namespaces, registry::Account};
 
     /// Base of account on which modules getting installed right now
     /// It's set only if one of the modules is standalone

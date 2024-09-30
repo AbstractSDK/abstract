@@ -50,7 +50,7 @@ module-factory = { version = "0.23.0", package = "abstract-module-factory", path
 ibc-client = { version = "0.23.0", package = "abstract-ibc-client", path = "../../contracts/native/ibc-client", default-features = false }
 ibc-host = { version = "0.23.0", package = "abstract-ibc-host", path = "../../contracts/native/ibc-host", default-features = false }
 ans-host = { version = "0.23.0", package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false }
-version-control = { version = "0.23.0", package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false }
+registry = { version = "0.23.0", package = "abstract-registry", path = "../../contracts/native/registry", default-features = false }
 account = { version = "0.23.0", package = "abstract-account", path = "../../contracts/account", default-features = false }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 

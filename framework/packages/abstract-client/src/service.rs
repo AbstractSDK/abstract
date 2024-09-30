@@ -4,7 +4,7 @@
 
 use std::marker::PhantomData;
 
-use abstract_interface::{RegisteredModule, VersionControl};
+use abstract_interface::{RegisteredModule, Registry};
 use abstract_std::objects::{module::ModuleInfo, module_reference::ModuleReference};
 use cw_orch::{contract::Contract, prelude::*};
 
@@ -56,7 +56,7 @@ impl<Chain: CwEnv, M: ContractInstance<Chain>> ContractInstance<Chain> for Servi
 
 impl<Chain: CwEnv, M: RegisteredModule + From<Contract<Chain>>> Service<Chain, M> {
     /// Get module interface installed from version control
-    pub(crate) fn new(version_control: &VersionControl<Chain>) -> AbstractClientResult<Self> {
+    pub(crate) fn new(version_control: &Registry<Chain>) -> AbstractClientResult<Self> {
         // The module must be in version control and service
         let module_reference: ModuleReference = version_control
             .module(ModuleInfo::from_id(

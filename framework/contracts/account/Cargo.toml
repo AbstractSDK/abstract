@@ -46,7 +46,7 @@ abstract-interface = { workspace = true }
 cw-orch = { workspace = true, features = ["snapshot-testing"] }
 anyhow = { workspace = true }
 ans-host = { workspace = true }
-version-control = { workspace = true }
+registry = { workspace = true }
 module-factory = { workspace = true }
 rstest = { workspace = true }
 speculoos = { workspace = true }

@@ -91,7 +91,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
     /// Retrieve the version of an application in this Account.
     /// Note: this method makes use of the Cw2 query and may not coincide with the version of the
-    /// module listed in VersionControl.
+    /// module listed in Registry.
     pub fn module_version(&self, module_id: ModuleId) -> AbstractSdkResult<ContractVersion> {
         let module_address = self.module_address(module_id)?;
         let req = QueryRequest::Wasm(WasmQuery::Raw {

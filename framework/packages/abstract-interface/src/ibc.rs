@@ -1,4 +1,4 @@
-use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, VersionControl};
+use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, Registry};
 use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
 pub struct AbstractIbc<Chain: CwEnv> {
@@ -26,7 +26,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         self.client.instantiate(
             &abstract_std::ibc_client::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
-                version_control_address: abstr.version_control.addr_str()?,
+                version_control_address: abstr.registry.addr_str()?,
             },
             Some(admin),
             &[],
@@ -39,7 +39,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 
     pub fn register(
         &self,
-        version_control: &VersionControl<Chain>,
+        version_control: &Registry<Chain>,
     ) -> Result<(), AbstractInterfaceError> {
         version_control.register_natives(vec![
             (

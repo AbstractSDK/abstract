@@ -8,7 +8,7 @@
 
 use abstract_app::std::objects::{gov_type::GovernanceDetails, AssetEntry};
 use abstract_interface::{Abstract, AppDeployer, DeployStrategy};
-use abstract_interface::{AccountI, VCExecFns};
+use abstract_interface::{AccountI, RegistryExecFns};
 use calendar_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{CalendarInstantiateMsg, Time},
@@ -52,7 +52,7 @@ fn main() -> anyhow::Result<()> {
 
     // Claim namespace
     abstract_deployment
-        .version_control
+        .registry
         .claim_namespace(account.id()?, "my-namespace".to_owned())?;
 
     // Deploy

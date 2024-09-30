@@ -1,6 +1,6 @@
 use crate::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_adapter::abstract_interface::{
-    AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns,
+    AdapterDeployer, DeployStrategy, ExecuteMsgFns, RegistryExecFns,
 };
 use abstract_adapter::std::objects::{
     module::{ModuleInfo, ModuleVersion},

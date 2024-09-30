@@ -1,4 +1,4 @@
-use abstract_std::{account::state::ACCOUNT_ID, version_control::Account};
+use abstract_std::{account::state::ACCOUNT_ID, registry::Account};
 use cosmwasm_std::Deps;
 
 use crate::std::objects::AccountId;

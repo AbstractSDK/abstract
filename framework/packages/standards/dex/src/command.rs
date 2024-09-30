@@ -1,5 +1,5 @@
 use abstract_adapter_utils::identity::Identify;
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::objects::{AssetEntry, DexAssetPairing, PoolAddress, PoolReference};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
@@ -100,7 +100,7 @@ pub trait DexCommand: Identify {
         &mut self,
         _deps: Deps,
         _addr_as_sender: Addr,
-        _version_control_contract: VersionControlContract,
+        _version_control_contract: RegistryContract,
         _ans_host: AnsHost,
     ) -> Result<(), DexError> {
         // Dummy implementation, since most of dexes does not require this method

@@ -16,10 +16,7 @@ use crate::{
         ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
         QueryMsg as MiddlewareQueryMsg,
     },
-    objects::{
-        ans_host::AnsHost, module_version::ModuleDataResponse,
-        version_control::VersionControlContract,
-    },
+    objects::{ans_host::AnsHost, module_version::ModuleDataResponse, registry::RegistryContract},
 };
 
 pub type ExecuteMsg<Request = Empty> =
@@ -57,7 +54,7 @@ impl<T: AdapterQueryMsg> From<T> for QueryMsg<T> {
 impl AdapterQueryMsg for Empty {}
 
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
+/// The contract is then registered on the version control contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation
@@ -160,7 +157,7 @@ pub struct AuthorizedAddressesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterState {
     /// Used to verify requests
-    pub version_control: VersionControlContract,
+    pub version_control: RegistryContract,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
 }

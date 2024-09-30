@@ -6,7 +6,7 @@
 //! These fixed names can be used to provide name-addressable searches for complex logic.
 
 pub const ACCOUNT: &str = "abstract:account";
-pub const VERSION_CONTROL: &str = "abstract:version-control";
+pub const REGISTRY: &str = "abstract:version-control";
 pub const MODULE_FACTORY: &str = "abstract:module-factory";
 pub const ANS_HOST: &str = "abstract:ans-host";
 pub const IBC_CLIENT: &str = "abstract:ibc-client";
@@ -97,8 +97,8 @@ pub mod ethereum {
 pub use berachain::BERACHAIN;
 pub use ethereum::ETHEREUM;
 
-/// Useful when deploying version control
+/// Useful when deploying registry
 #[allow(unused)]
-pub static NATIVE_CONTRACTS: &[&str] = &[ANS_HOST, MODULE_FACTORY, VERSION_CONTROL, "cw20"];
+pub static NATIVE_CONTRACTS: &[&str] = &[ANS_HOST, MODULE_FACTORY, REGISTRY, "cw20"];
 pub static ACCOUNT_CONTRACTS: &[&str] = &[ACCOUNT, ACCOUNT];
 pub const ABSTRACT_EVENT_TYPE: &str = "wasm-abstract";

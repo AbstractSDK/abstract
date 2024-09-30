@@ -1,6 +1,6 @@
 //! # Governance structure object
 
-use crate::{account::state::ACCOUNT_ID, version_control};
+use crate::{account::state::ACCOUNT_ID, registry};
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw_address_like::AddressLike;
 use cw_utils::Expiration;
@@ -88,7 +88,7 @@ impl GovernanceDetails<String> {
             GovernanceDetails::SubAccount { account } => {
                 let account_addr = deps.api.addr_validate(&account)?;
                 let account_id = ACCOUNT_ID.query(&deps.querier, account_addr.clone())?;
-                let base = version_control::state::ACCOUNT_ADDRESSES.query(
+                let base = registry::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
                     version_control_addr,
                     &account_id,

@@ -1,6 +1,6 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     std::{module_factory::*, MODULE_FACTORY},
 };
 use abstract_std::objects::{
@@ -62,7 +62,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let resp = ConfigResponse {
-        version_control_address: VersionControlContract::new(deps.api)?.address,
+        version_control_address: RegistryContract::new(deps.api)?.address,
         ans_host_address: AnsHost::new(deps.api)?.address,
     };
 
@@ -73,7 +73,7 @@ pub fn query_simulate_install_modules(
     deps: Deps,
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
 
     let module_responses = version_control
         .query_modules_configs(modules, &deps.querier)

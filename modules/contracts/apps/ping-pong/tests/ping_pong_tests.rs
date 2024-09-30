@@ -1,4 +1,4 @@
-use abstract_app::abstract_interface::VCQueryFns;
+use abstract_app::abstract_interface::RegistryQueryFns;
 use abstract_app::objects::namespace::Namespace;
 use abstract_app::objects::AccountId;
 

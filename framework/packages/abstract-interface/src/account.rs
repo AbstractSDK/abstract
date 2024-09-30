@@ -12,7 +12,7 @@
 //! - upgrade module
 
 use crate::{
-    get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, VersionControl,
+    get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, Registry,
 };
 pub use abstract_std::account::{ExecuteMsgFns as AccountExecFns, QueryMsgFns as AccountQueryFns};
 use abstract_std::{
@@ -26,7 +26,7 @@ use abstract_std::{
         salt::generate_instantiate_salt,
         AccountId, TruncatedChainId,
     },
-    version_control::{state::LOCAL_ACCOUNT_SEQUENCE, ExecuteMsgFns, ModuleFilter, QueryMsgFns},
+    registry::{state::LOCAL_ACCOUNT_SEQUENCE, ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{from_json, to_json_binary};
@@ -57,7 +57,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         abstract_deployment: &Abstract<Chain>,
         account_id: AccountId,
     ) -> Result<Self, AbstractInterfaceError> {
-        get_account_contract(&abstract_deployment.version_control, account_id)
+        get_account_contract(&abstract_deployment.registry, account_id)
     }
 
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
@@ -72,12 +72,12 @@ impl<Chain: CwEnv> AccountI<Chain> {
         governance_details: GovernanceDetails<String>,
         funds: &[cosmwasm_std::Coin],
     ) -> Result<Self, AbstractInterfaceError> {
-        let chain = abstract_deployment.version_control.environment().clone();
+        let chain = abstract_deployment.registry.environment().clone();
 
         // Generate salt from account id(or)
         let salt = generate_instantiate_salt(&AccountId::local(details.account_id.unwrap_or(
             chain.wasm_querier().item_query(
-                &abstract_deployment.version_control.address()?,
+                &abstract_deployment.registry.address()?,
                 LOCAL_ACCOUNT_SEQUENCE,
             )?,
         )));
@@ -478,7 +478,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
     /// Register the account core contracts in the version control
     pub fn register(
         &self,
-        version_control: &VersionControl<Chain>,
+        version_control: &Registry<Chain>,
     ) -> Result<(), crate::AbstractInterfaceError> {
         version_control.register_base(self)
     }
@@ -536,7 +536,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
 
     pub fn upload_and_register_if_needed(
         &self,
-        version_control: &VersionControl<Chain>,
+        version_control: &Registry<Chain>,
     ) -> Result<bool, AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
@@ -623,7 +623,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         // We query all the module versions above the current one
         let abstr = Abstract::load_from(chain.clone())?;
         let all_next_module_versions = abstr
-            .version_control
+            .registry
             .module_list(
                 Some(ModuleFilter {
                     namespace: Some(module.namespace.to_string()),
@@ -702,7 +702,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
     ) -> Result<Chain::Response, AbstractInterfaceError> {
         let abstr = Abstract::load_from(self.environment().clone())?;
         abstr
-            .version_control
+            .registry
             .claim_namespace(self.id()?, namespace.into())
             .map_err(Into::into)
     }

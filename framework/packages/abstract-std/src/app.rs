@@ -11,9 +11,9 @@ use crate::{
     },
     objects::{
         ans_host::AnsHost, gov_type::TopLevelOwnerResponse, module_version::ModuleDataResponse,
-        version_control::VersionControlContract,
+        registry::RegistryContract,
     },
-    version_control::Account,
+    registry::Account,
 };
 
 pub type ExecuteMsg<ModuleMsg = Empty> = EndpointExecMsg<BaseExecuteMsg, ModuleMsg>;
@@ -118,5 +118,5 @@ pub struct AppState {
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
     /// Used to verify requests
-    pub version_control: VersionControlContract,
+    pub version_control: RegistryContract,
 }

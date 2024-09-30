@@ -10,11 +10,11 @@ use abstract_std::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         ownership::{self},
+        registry::RegistryContract,
         salt::generate_instantiate_salt,
         storage_namespaces,
-        version_control::VersionControlContract,
     },
-    version_control::ModuleResponse,
+    registry::ModuleResponse,
 };
 use cosmwasm_std::{
     ensure, wasm_execute, Addr, Attribute, Binary, CanonicalAddr, Coin, CosmosMsg, Deps, DepsMut,
@@ -67,7 +67,7 @@ pub fn _install_modules(
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
 
     let canonical_module_factory = CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR);
     let module_factory_address = deps.api.addr_humanize(&canonical_module_factory)?;
@@ -203,7 +203,7 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
     crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
     // Remove for proxy if needed
-    let vc = VersionControlContract::new(deps.api)?;
+    let vc = RegistryContract::new(deps.api)?;
 
     let module = vc.query_module(
         ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
@@ -260,7 +260,7 @@ pub fn query_module(
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, AccountError> {
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = RegistryContract::new(deps.api)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -494,7 +494,7 @@ mod tests {
             let msg = ExecuteMsg::UpdateInternalConfig(action_add);
 
             // the version control can not call this
-            let res = execute_as(deps.as_mut(), &abstr.version_control, msg.clone());
+            let res = execute_as(deps.as_mut(), &abstr.registry, msg.clone());
             assert_that!(&res).is_err();
 
             // only the owner can

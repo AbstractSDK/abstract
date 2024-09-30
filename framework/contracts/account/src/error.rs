@@ -1,6 +1,6 @@
 use abstract_sdk::{std::objects::module::ModuleInfo, AbstractSdkError};
 use abstract_std::{
-    objects::{validation::ValidationError, version_control::VersionControlError},
+    objects::{validation::ValidationError, registry::RegistryError},
     AbstractError,
 };
 use cosmwasm_std::{Instantiate2AddressError, StdError};
@@ -27,14 +27,14 @@ pub enum AccountError {
     Instantiate2AddressError(#[from] Instantiate2AddressError),
 
     #[error("{0}")]
-    VersionControlError(#[from] VersionControlError),
+    RegistryError(#[from] RegistryError),
 
     #[error("Your account is currently suspended")]
     AccountSuspended {},
 
     // ** Modules Error ** //
     #[error("Failed to query modules to install: {error}")]
-    QueryModulesFailed { error: VersionControlError },
+    QueryModulesFailed { error: RegistryError },
 
     #[error("Module with id: {0} is already installed")]
     ModuleAlreadyInstalled(String),

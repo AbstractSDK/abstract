@@ -473,7 +473,7 @@ mod tests {
         use crate::mock::TEST_AUTHORIZED_ADDR;
         use abstract_std::{
             objects::{account::AccountTrace, AccountId},
-            version_control::Account,
+            registry::Account,
         };
         use cosmwasm_std::OwnedDeps;
 

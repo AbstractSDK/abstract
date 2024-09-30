@@ -7,7 +7,7 @@ use abstract_app::std::{
 };
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
-    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
+    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, RegistryExecFns,
 };
 use cosmwasm_std::{coin, coins, to_json_binary, Decimal, Uint128};
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
