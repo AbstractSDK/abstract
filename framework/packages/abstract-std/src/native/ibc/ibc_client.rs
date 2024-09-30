@@ -221,18 +221,18 @@ impl InstalledModuleIdentification {
         let target_addr = match &target_module_resolved.reference {
             ModuleReference::Account(code_id) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account_base = vc.account(&target_account_id, &deps.querier)?;
+                let account = vc.account(&target_account_id, &deps.querier)?;
 
                 if deps
                     .querier
-                    .query_wasm_contract_info(account_base.addr().as_str())?
+                    .query_wasm_contract_info(account.addr().as_str())?
                     .code_id
                     == *code_id
                 {
-                    account_base.into_addr()
+                    account.into_addr()
                 } else {
                     Err(StdError::generic_err(
-                        "Account base contract doesn't correspond to any of the proxy or manager",
+                        "Account contract doesn't correspond to code id of the account",
                     ))?
                 }
             }
@@ -241,10 +241,10 @@ impl InstalledModuleIdentification {
             | ModuleReference::Service(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account_base = vc.account(&target_account_id, &deps.querier)?;
+                let account = vc.account(&target_account_id, &deps.querier)?;
 
                 let module_info: account::ModuleAddressesResponse = deps.querier.query_wasm_smart(
-                    account_base.into_addr(),
+                    account.into_addr(),
                     &account::QueryMsg::ModuleAddresses {
                         ids: vec![self.module_info.id()],
                     },

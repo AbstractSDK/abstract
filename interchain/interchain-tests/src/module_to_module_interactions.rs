@@ -531,7 +531,7 @@ pub mod test {
         let remote_account = abstr_remote
             .version_control
             .account(remote_account_id)?
-            .account_base;
+            .account;
         let account = AccountI::new(
             "remote-account-manager",
             abstr_remote.version_control.environment().clone(),
@@ -714,7 +714,7 @@ pub mod test {
             let remote_account = abstr_remote
                 .version_control
                 .account(remote_account_id)?
-                .account_base;
+                .account;
             let account = AccountI::new(
                 "remote-account-manager",
                 abstr_remote.version_control.environment().clone(),

@@ -17,7 +17,7 @@ pub fn instantiate_handler(
 ) -> DexResult {
     let recipient = module
         .account_registry(deps.as_ref())?
-        .account_base(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
+        .account(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
     let dex_fees = DexFees::new(msg.swap_fee, recipient.into_addr())?;
     DEX_FEES.save(deps.storage, &dex_fees)?;
     Ok(Response::default())

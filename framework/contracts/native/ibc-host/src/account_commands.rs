@@ -173,9 +173,9 @@ pub fn send_all_back(
     Ok(account_msg.into())
 }
 
-/// get the account base from the version control contract
+/// get the account from the version control contract
 pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<Account, HostError> {
     let version_control = VersionControlContract::new(deps.api)?;
-    let account_base = version_control.account(account_id, &deps.querier)?;
-    Ok(account_base)
+    let account = version_control.account(account_id, &deps.querier)?;
+    Ok(account)
 }

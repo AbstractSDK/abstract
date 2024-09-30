@@ -89,8 +89,8 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
             .map_err(|error| self.wrap_query_error(error))
     }
 
-    /// Get the account base for a given account id.
-    pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<Account> {
+    /// Get the account for a given account id.
+    pub fn account(&self, account_id: &AccountId) -> AbstractSdkResult<Account> {
         self.vc
             .account(account_id, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
@@ -150,7 +150,7 @@ mod test {
         fn not_account_fails() {
             let mut deps = mock_dependencies();
             let not_account = Account::new(deps.api.addr_make("not_account"));
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
 
             deps.querier = MockQuerierBuilder::new(deps.api)
                 // Setup the addresses as if the Account was registered
@@ -215,7 +215,7 @@ mod test {
         #[test]
         fn returns_account() {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()

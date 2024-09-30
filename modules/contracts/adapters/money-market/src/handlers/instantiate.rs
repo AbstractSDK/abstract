@@ -17,7 +17,7 @@ pub fn instantiate_handler(
 ) -> MoneyMarketResult {
     let recipient = module
         .account_registry(deps.as_ref())?
-        .account_base(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
+        .account(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
     let money_market_fees = UsageFee::new(msg.fee, recipient.into_addr())?;
     MONEY_MARKET_FEES.save(deps.storage, &money_market_fees)?;
     Ok(Response::default())

@@ -452,9 +452,8 @@ pub fn claim_namespace(
         cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
     } else {
         // If there is no security, only account owner can register a namespace
-        let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-        let account_owner =
-            query_account_owner(&deps.querier, account_base.into_addr(), &account_id)?;
+        let account = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+        let account_owner = query_account_owner(&deps.querier, account.into_addr(), &account_id)?;
 
         // The account owner as well as the account factory contract are able to claim namespaces
         if msg_info.sender != account_owner {
@@ -654,8 +653,8 @@ pub fn validate_account_owner(
         .ok_or_else(|| VCError::UnknownNamespace {
             namespace: namespace.to_owned(),
         })?;
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account = account_base.addr();
+    let account = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+    let account = account.addr();
     // Check manager first, manager can call this function to unregister a namespace when renouncing its ownership.
     if sender != account {
         let account_owner = query_account_owner(&deps.querier, account.clone(), &account_id)?;

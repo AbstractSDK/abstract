@@ -340,7 +340,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         account_id: AccountId,
     ) -> Result<Account, crate::AbstractInterfaceError> {
         let resp: AccountResponse = self.query(&QueryMsg::Account { account_id })?;
-        Ok(resp.account_base)
+        Ok(resp.account)
     }
 
     /// Retrieves an Adapter's address from version control given the module **id** and **version**.

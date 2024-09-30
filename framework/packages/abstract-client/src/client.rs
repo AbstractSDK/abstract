@@ -328,7 +328,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             _ => {
                 return Err(AbstractClientError::Abstract(
                     abstract_std::AbstractError::Assert(
-                        "module reference not account base, app or standalone".to_owned(),
+                        "module reference not account, app or standalone".to_owned(),
                     ),
                 ))
             }

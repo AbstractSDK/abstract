@@ -450,9 +450,9 @@ mod tests {
         #[test]
         fn should_return_account_address() {
             let mut deps = mock_dependencies();
-            let account_base = Account::new(deps.api.addr_make("my_account"));
+            let account = Account::new(deps.api.addr_make("my_account"));
             deps.querier = abstract_mock_querier_builder(deps.api)
-                .account(&account_base, TEST_ACCOUNT_ID)
+                .account(&account, TEST_ACCOUNT_ID)
                 .build();
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -462,7 +462,7 @@ mod tests {
                 &TEST_ACCOUNT_ID,
             );
 
-            assert_eq!(actual, Ok(Some(account_base)));
+            assert_eq!(actual, Ok(Some(account)));
         }
     }
 
@@ -547,7 +547,7 @@ mod tests {
         #[test]
         fn should_return_test_acct_id() {
             let mut deps = mock_dependencies();
-            let test_base = test_account_base(deps.api);
+            let test_base = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&test_base, TEST_ACCOUNT_ID)
                 .build();
