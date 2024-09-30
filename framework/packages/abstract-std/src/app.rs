@@ -55,7 +55,7 @@ impl AppQueryMsg for Empty {}
 pub struct BaseInstantiateMsg {
     pub ans_host_address: String,
     pub registry_address: String,
-    pub account_base: Account,
+    pub account: Account,
 }
 
 #[cosmwasm_schema::cw_serde]

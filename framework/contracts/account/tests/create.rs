@@ -52,6 +52,7 @@ fn create_one_account() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -79,7 +80,7 @@ fn create_one_account() -> AResult {
 
     let account_list = registry.account(TEST_ACCOUNT_ID)?;
 
-    assert_that!(&account_list.account_base.into()).is_equal_to(Account::new(account));
+    assert_that!(&account_list.account.into()).is_equal_to(Account::new(account));
 
     Ok(())
 }
@@ -105,6 +106,7 @@ fn create_two_accounts() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -122,6 +124,7 @@ fn create_two_accounts() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -143,10 +146,10 @@ fn create_two_accounts() -> AResult {
 
     assert_that!(&registry_config).is_equal_to(&expected);
 
-    let account_1 = registry.account(account_1_id)?.account_base;
+    let account_1 = registry.account(account_1_id)?.account;
     assert_that!(account_1.into()).is_equal_to(Account::new(account1));
 
-    let account_2 = registry.account(account_2_id)?.account_base;
+    let account_2 = registry.account(account_2_id)?.account;
     assert_that!(account_2.into()).is_equal_to(Account::new(account2));
 
     Ok(())
@@ -171,6 +174,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
             owner: GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -179,7 +183,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     account.set_address(&Addr::unchecked(&account_addr));
 
-    let registered_account = registry.account(TEST_ACCOUNT_ID)?.account_base;
+    let registered_account = registry.account(TEST_ACCOUNT_ID)?.account;
 
     assert_that!(account_addr).is_equal_to(registered_account.addr().to_string());
 
@@ -216,6 +220,7 @@ fn sender_is_not_admin_external() -> AResult {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -257,6 +262,7 @@ fn create_one_account_with_namespace() -> AResult {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
             },
+            authenticator: None,
         },
         None,
         &[],
@@ -281,7 +287,7 @@ fn create_one_account_with_namespace() -> AResult {
 
     assert_that!(&namespace).is_equal_to(NamespaceResponse::Claimed(NamespaceInfo {
         account_id: TEST_ACCOUNT_ID,
-        account_base: Account::new(Addr::unchecked(account_addr)),
+        account: Account::new(Addr::unchecked(account_addr)),
     }));
 
     Ok(())

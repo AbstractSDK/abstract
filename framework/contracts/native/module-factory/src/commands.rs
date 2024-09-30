@@ -3,8 +3,7 @@ use abstract_sdk::{
     std::{
         module_factory::FactoryModuleInstallConfig,
         objects::{
-            module::ModuleInfo, module_reference::ModuleReference,
-            registry::RegistryContract,
+            module::ModuleInfo, module_reference::ModuleReference, registry::RegistryContract,
         },
     },
     *,
@@ -38,7 +37,7 @@ pub fn execute_create_modules(
     let ans_host = AnsHost::new(deps.api)?;
 
     // assert that sender is manager
-    let account_base = registry.assert_account(&info.sender, &deps.querier)?;
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
@@ -82,7 +81,7 @@ pub fn execute_create_modules(
                     // modules gets unregistered when namespace is unclaimed
                     .unwrap();
                 fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
-                    to_address: namespace_account.account_base.addr().to_string(),
+                    to_address: namespace_account.account.addr().to_string(),
                     amount: vec![fee],
                 }));
             }
@@ -103,7 +102,7 @@ pub fn execute_create_modules(
                 let app_base_msg = abstract_std::app::BaseInstantiateMsg {
                     ans_host_address: ans_host.address.to_string(),
                     registry_address: registry.address.to_string(),
-                    account_base: account_base.clone(),
+                    account: account.clone(),
                 };
 
                 let app_init_msg = abstract_std::app::InstantiateMsg::<Value> {
@@ -117,7 +116,7 @@ pub fn execute_create_modules(
                     *code_id,
                     to_json_binary(&app_init_msg)?,
                     salt.clone(),
-                    Some(account_base.addr().clone()),
+                    Some(account.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -138,7 +137,7 @@ pub fn execute_create_modules(
                     *code_id,
                     owner_init_msg.unwrap(),
                     salt.clone(),
-                    Some(account_base.addr().clone()),
+                    Some(account.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -161,7 +160,7 @@ pub fn execute_create_modules(
     // Standalone may need this information for AccountIdentification \
     // Contract Info query does not work during instantiation on self contract, because contract does not exist yet.
     if at_least_one_standalone {
-        CURRENT_BASE.save(deps.storage, &account_base)?;
+        CURRENT_BASE.save(deps.storage, &account)?;
     }
 
     let sum_of_monetization = sum_of_monetization.into_vec();

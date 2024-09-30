@@ -146,7 +146,7 @@ mod test {
             base: app::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
                 registry_address: abstr.registry.to_string(),
-                account_base: abstr.account,
+                account: abstr.account,
             },
             module: MockInitMsg {},
         };
@@ -279,7 +279,7 @@ mod test {
             base: app::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
                 registry_address: abstr.registry.to_string(),
-                account_base: test_account_base(deps.api),
+                account: test_account(deps.api),
             },
             module: MockInitMsg {},
         };

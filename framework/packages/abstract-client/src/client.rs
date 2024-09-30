@@ -30,7 +30,8 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AccountI, AnsHost, IbcClient, RegisteredModule, Registry, RegistryQueryFns,
+    Abstract, AccountI, AnsHost, IbcClient, ModuleFactory, RegisteredModule, RegistryQueryFns,
+    VersionControl,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleStatus, ModuleVersion},
@@ -123,6 +124,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     pub fn name_service(&self) -> &AnsHost<Chain> {
         &self.abstr.ans_host
+    }
+
+    /// Abstract Module Factory contract API
+    pub fn module_factory(&self) -> &ModuleFactory<Chain> {
+        &self.abstr.module_factory
     }
 
     /// Abstract Ibc Client contract API
@@ -317,7 +323,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             _ => {
                 return Err(AbstractClientError::Abstract(
                     abstract_std::AbstractError::Assert(
-                        "module reference not account base, app or standalone".to_owned(),
+                        "module reference not account, app or standalone".to_owned(),
                     ),
                 ))
             }
@@ -334,9 +340,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// This function checks the status of a module within the version control contract.
     /// and returns appropriate `Some(ModuleStatus)`. If the module is not deployed, it returns `None`.
     pub fn module_status(&self, module: ModuleInfo) -> AbstractClientResult<Option<ModuleStatus>> {
-        self.registry()
-            .module_status(module)
-            .map_err(Into::into)
+        self.registry().module_status(module).map_err(Into::into)
     }
 
     #[cfg(feature = "interchain")]

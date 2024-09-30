@@ -522,7 +522,7 @@ pub mod test {
         let remote_account = abstr_remote
             .registry
             .account(remote_account_id)?
-            .account_base;
+            .account;
         let account = AccountI::new(
             "remote-account-manager",
             abstr_remote.registry.environment().clone(),
@@ -700,7 +700,7 @@ pub mod test {
             let remote_account = abstr_remote
                 .registry
                 .account(remote_account_id)?
-                .account_base;
+                .account;
             let account = AccountI::new(
                 "remote-account-manager",
                 abstr_remote.registry.environment().clone(),

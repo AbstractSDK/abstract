@@ -90,7 +90,7 @@ mod test {
     #[test]
     fn test_traits_generated() -> AppTestResult {
         let mut deps = mock_init();
-        let test_account = test_account_base(deps.api);
+        let test_account = test_account(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
             .account(&test_account, TEST_ACCOUNT_ID)
             .build();
@@ -107,7 +107,7 @@ mod test {
         // It's because of returning Result, most likely polonius bug
         let binding = MOCK_APP_WITH_DEP;
         let account_registry = binding.account_registry(deps.as_ref())?;
-        let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
+        let base = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account);
 
         // TODO: Make some of the module_registry queries raw as well?
@@ -120,7 +120,7 @@ mod test {
     #[test]
     fn test_proxy_address() -> AppTestResult {
         let deps = mock_init();
-        let expected_account = test_account_base(deps.api);
+        let expected_account = test_account(deps.api);
 
         let account = MOCK_APP_WITH_DEP.account(deps.as_ref())?;
 

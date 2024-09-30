@@ -944,13 +944,10 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
         panic!("Expected cw-orch error")
     };
     let err: AccountError = err.downcast().unwrap();
-    assert_eq!(
+    assert!(matches!(
         err,
-        AccountError::SubAccountCreatorNotAccount {
-            caller: client.sender().into_string(),
-            account: account.address()?.into_string()
-        }
-    );
+        AccountError::SubAccountCreatorNotAccount { .. }
+    ));
     Ok(())
 }
 

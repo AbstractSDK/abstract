@@ -1,6 +1,4 @@
-use abstract_std::{
-    objects::AccountId, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY,
-};
+use abstract_std::{objects::AccountId, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY};
 use cw_orch::{environment::Environment, prelude::*};
 
 use crate::{
@@ -29,12 +27,12 @@ where
 {
     let chain = registry.environment().clone();
 
-    let account = AccountI::new_from_id(&account_id, chain.clone());
+    let account_interface = AccountI::new_from_id(&account_id, chain.clone());
 
-    let account_base = registry.get_account(account_id.clone())?;
-    account.set_address(account_base.addr());
+    let account = registry.get_account(account_id.clone())?;
+    account_interface.set_address(account.addr());
 
-    Ok(account)
+    Ok(account_interface)
 }
 
 pub fn get_ibc_contracts<Chain: CwEnv>(chain: Chain) -> (IbcClient<Chain>, IbcHost<Chain>)

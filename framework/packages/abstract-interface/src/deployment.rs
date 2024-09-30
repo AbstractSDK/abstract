@@ -194,6 +194,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         // Check if abstract deployed, for successful load
         if let Err(CwOrchError::AddrNotInStore(_)) = abstr.registry.address() {
             return Err(AbstractInterfaceError::NotDeployed {});
+        } else if abstr.version_control.item_query(cw2::CONTRACT).is_err() {
+            return Err(AbstractInterfaceError::NotDeployed {});
         }
         Ok(abstr)
     }

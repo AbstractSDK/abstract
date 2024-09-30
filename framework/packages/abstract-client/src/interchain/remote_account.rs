@@ -252,7 +252,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
             .registry
             .account(self.remote_account_id.clone())?;
 
-        Ok(base_response.account_base.addr().clone())
+        Ok(base_response.account.addr().clone())
     }
 
     /// Query account balance of a given denom

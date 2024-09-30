@@ -139,7 +139,7 @@ mod test {
         #[test]
         fn update_config_should_update_config() -> AppTestResult {
             let mut deps = mock_init();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
 
             let new_ans_host = deps.api.addr_make("new_ans_host");
             let new_registry = deps.api.addr_make("new_registry");
@@ -164,7 +164,7 @@ mod test {
         fn update_config_with_none_host_should_leave_existing_host() -> AppTestResult {
             let mut deps = mock_init();
             let abstr = AbstractMockAddrs::new(deps.api);
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
 
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: None,

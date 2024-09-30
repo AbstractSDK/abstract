@@ -98,7 +98,7 @@ impl abstract_std::app::AppQueryMsg for MockModuleQueryMsg {}
 /// [`MockModule`] test setup
 pub fn mock_module_setup() -> (MockDeps, Account, MockModule) {
     let mut deps = mock_dependencies();
-    let account = test_account_base(deps.api);
+    let account = test_account(deps.api);
     deps.querier = abstract_mock_querier_builder(deps.api)
         .account(&account, TEST_ACCOUNT_ID)
         .build();

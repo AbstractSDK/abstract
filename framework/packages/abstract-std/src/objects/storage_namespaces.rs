@@ -19,6 +19,10 @@ pub mod account {
     pub const ACCOUNT_ID: &str = "ag";
     pub const INSTALL_MODULES_CONTEXT: &str = "ah";
     pub const MIGRATE_CONTEXT: &str = "ai";
+
+    // XION authentificators, could be there could be not
+    pub const AUTH_ADMIN: &str = "ax";
+    pub const AUTHENTICATORS: &str = "az";
 }
 
 pub mod ans_host {

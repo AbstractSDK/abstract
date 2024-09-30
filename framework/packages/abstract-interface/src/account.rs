@@ -92,7 +92,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         chain
             .instantiate2(
                 code_id,
-                &InstantiateMsg {
+                &InstantiateMsg::<Empty> {
                     account_id: details.account_id.map(AccountId::local),
                     owner: governance_details,
                     namespace: details.namespace,
@@ -100,6 +100,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     name: details.name,
                     description: details.description,
                     link: details.link,
+                    authenticator: None,
                 },
                 Some("Abstract Account"),
                 Some(&account_addr),
@@ -729,9 +730,12 @@ impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
             .with_reply(::account::contract::reply),
         )
     }
-    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
+    fn wasm(chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("account")
+            .find_wasm_path_with_build_postfix(
+                "account",
+                cw_orch::build::BuildPostfix::ChainName(chain),
+            )
             .unwrap()
     }
 }

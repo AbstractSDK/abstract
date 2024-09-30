@@ -236,8 +236,8 @@ impl RegistryContract {
     ) -> RegistryResult<AccountId> {
         let self_reported_account_id = self.unchecked_account_id(maybe_account_addr, querier)?;
         // now we need to verify that the account id is indeed correct
-        let account_base = self.account(&self_reported_account_id, querier)?;
-        if account_base.addr().ne(maybe_account_addr) {
+        let account = self.account(&self_reported_account_id, querier)?;
+        if account.addr().ne(maybe_account_addr) {
             Err(RegistryError::FailedToQueryAccountId {
                 contract_addr: maybe_account_addr.clone(),
             })
@@ -246,7 +246,7 @@ impl RegistryContract {
         }
     }
 
-    /// Get the account base for a given account id.
+    /// Get the account for a given account id.
     #[function_name::named]
     pub fn account(
         &self,
@@ -287,11 +287,11 @@ impl RegistryContract {
         querier: &QuerierWrapper,
     ) -> RegistryResult<Account> {
         let account_id = self.unchecked_account_id(maybe_account, querier)?;
-        let account_base = self.account(&account_id, querier)?;
-        if account_base.addr().ne(maybe_account) {
+        let account = self.account(&account_id, querier)?;
+        if account.addr().ne(maybe_account) {
             Err(RegistryError::NotAccount(maybe_account.clone(), account_id))
         } else {
-            Ok(account_base)
+            Ok(account)
         }
     }
 }

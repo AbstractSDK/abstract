@@ -35,7 +35,7 @@ pub fn handle_account_address_query(
         Err(_) => Err(StdError::generic_err(
             RegistryError::UnknownAccountId { id: account_id }.to_string(),
         )),
-        Ok(base) => Ok(AccountResponse { account_base: base }),
+        Ok(base) => Ok(AccountResponse { account: base }),
     }
 }
 
@@ -176,10 +176,10 @@ pub fn handle_namespace_query(deps: Deps, namespace: Namespace) -> StdResult<Nam
         return Ok(NamespaceResponse::Unclaimed {});
     };
 
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+    let account = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
     Ok(NamespaceResponse::Claimed(NamespaceInfo {
         account_id,
-        account_base,
+        account,
     }))
 }
 
@@ -282,7 +282,7 @@ mod test {
 
     pub fn mock_account_querier(mock_api: MockApi) -> MockQuerierBuilder {
         let abstr = AbstractMockAddrs::new(mock_api);
-        let account = test_account_base(mock_api);
+        let account = test_account(mock_api);
         let other_account = mock_api.addr_make(TEST_OTHER_ACCOUNT_ADDR);
         let other_owner = mock_api.addr_make(TEST_OTHER);
         MockQuerierBuilder::default()
@@ -370,7 +370,7 @@ mod test {
     /// Initialize the registry with admin as creator and test account
     fn mock_init_with_account(deps: &mut MockDeps) -> VCResult {
         let abstr = AbstractMockAddrs::new(deps.api);
-        let account = test_account_base(deps.api);
+        let account = test_account(deps.api);
         mock_init(deps)?;
 
         state::REGISTERED_MODULES.save(
@@ -1089,7 +1089,7 @@ mod test {
         }
 
         #[test]
-        fn registered_should_return_account_base() -> RegistryTestResult {
+        fn registered_should_return_account() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
             mock_init_with_account(&mut deps)?;
@@ -1102,8 +1102,8 @@ mod test {
             );
 
             assert_that!(res).is_ok().map(|res| {
-                let AccountResponse { account_base } = from_json(res).unwrap();
-                assert_that!(account_base).is_equal_to(test_account_base(deps.api));
+                let AccountResponse { account } = from_json(res).unwrap();
+                assert_that!(account).is_equal_to(test_account(deps.api));
                 res
             });
 

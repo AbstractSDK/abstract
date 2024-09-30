@@ -60,7 +60,7 @@ mod tests {
         _msg: MockExecMsg,
     ) -> Result<Response, MockError> {
         let mock_api = MockApi::default();
-        let expected_account = test_account_base(mock_api);
+        let expected_account = test_account(mock_api);
         // assert with test values
         let account = module.account(deps.as_ref())?;
         assert_eq!(account, expected_account);
@@ -82,7 +82,7 @@ mod tests {
     #[test]
     fn custom_exec() {
         let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
+        let account = test_account(deps.api);
 
         deps.querier = MockQuerierBuilder::new(deps.api)
             .account(&account, TEST_ACCOUNT_ID)
@@ -109,7 +109,7 @@ mod tests {
     fn targets_not_set() {
         let mut deps = mock_dependencies();
         deps.querier = MockQuerierBuilder::new(deps.api)
-            .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
+            .account(&test_account(deps.api), TEST_ACCOUNT_ID)
             .build();
 
         mock_init(&mut deps).unwrap();

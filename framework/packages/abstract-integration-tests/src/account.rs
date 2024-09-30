@@ -487,7 +487,9 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
 
     sub_account.module_action(vec![wasm_execute(
         new_account_account,
-        &abstract_std::account::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
+        &<abstract_std::account::ExecuteMsg>::UpdateOwnership(
+            ownership::GovAction::AcceptOwnership,
+        ),
         vec![],
     )?
     .into()])?;

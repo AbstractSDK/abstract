@@ -335,7 +335,7 @@ mod test {
     use super::*;
     use crate::msg::ExecuteMsg;
     use abstract_adapter::abstract_testing::prelude::{
-        test_account_base, AbstractMockQuerier, TEST_ACCOUNT_ID,
+        test_account, AbstractMockQuerier, TEST_ACCOUNT_ID,
     };
     use abstract_adapter::std::adapter::AdapterRequestMsg;
     use abstract_adapter::std::objects::pool_id::PoolAddressBase;
@@ -363,7 +363,7 @@ mod test {
     #[test]
     fn swap_msg() {
         let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
+        let account = test_account(deps.api);
         deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
             .account(&account, TEST_ACCOUNT_ID)
             .build();
@@ -410,7 +410,7 @@ mod test {
     #[test]
     fn provide_liquidity_msg() {
         let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
+        let account = test_account(deps.api);
         deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
             .account(&account, TEST_ACCOUNT_ID)
             .build();
@@ -454,7 +454,7 @@ mod test {
     #[test]
     fn withdraw_liquidity_msg() {
         let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
+        let account = test_account(deps.api);
         deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
             .account(&account, TEST_ACCOUNT_ID)
             .build();

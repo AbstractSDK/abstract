@@ -2,7 +2,7 @@ use abstract_account::error::AccountError;
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_std::{
-    account::{self, SubAccountIdsResponse},
+    account::SubAccountIdsResponse,
     objects::{
         gov_type::{GovAction, GovernanceDetails},
         ownership,
@@ -155,7 +155,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     // We call as installed app of the owner-proxy, it should also be possible
     account.call_as(&mock_app).module_action(vec![wasm_execute(
         sub_account.addr_str()?,
-        &abstract_std::account::ExecuteMsg::UpdateInfo {
+        &abstract_account::msg::ExecuteMsg::UpdateInfo {
             name: None,
             description: Some(new_desc.to_owned()),
             link: None,
@@ -298,7 +298,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
 
     sub_account.module_action(vec![wasm_execute(
         new_account_sub_account_addr,
-        &abstract_std::account::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
+        &abstract_account::msg::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
         vec![],
     )?
     .into()])?;
@@ -345,7 +345,7 @@ fn account_updated_to_subaccount() -> AResult {
 
     // account1 accepting account2 as a sub-account
     let accept_msg =
-        abstract_std::account::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
+        abstract_account::msg::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
     account_1.module_action(vec![wasm_execute(
         account_2.addr_str()?,
         &accept_msg,
@@ -485,7 +485,7 @@ fn account_updated_to_subaccount_without_recursion() -> AResult {
     // accepting ownership by sender instead of the manager
     account_1.module_action(vec![WasmMsg::Execute {
         contract_addr: account_2.addr_str()?,
-        msg: to_json_binary(&account::ExecuteMsg::UpdateOwnership(
+        msg: to_json_binary(&abstract_account::msg::ExecuteMsg::UpdateOwnership(
             GovAction::AcceptOwnership,
         ))?,
         funds: Vec::default(),
@@ -516,7 +516,7 @@ fn sub_account_to_regular_account_without_recursion() -> AResult {
 
     account.module_action(vec![WasmMsg::Execute {
         contract_addr: sub_account.addr_str()?,
-        msg: to_json_binary(&account::ExecuteMsg::UpdateOwnership(
+        msg: to_json_binary(&abstract_account::msg::ExecuteMsg::UpdateOwnership(
             GovAction::TransferOwnership {
                 new_owner: GovernanceDetails::Monarchy {
                     monarch: chain.sender_addr().to_string(),

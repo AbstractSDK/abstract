@@ -132,7 +132,7 @@ pub mod addresses {
     }
 
     // TODO: remove it
-    pub fn test_account_base(mock_api: MockApi) -> Account {
+    pub fn test_account(mock_api: MockApi) -> Account {
         Account::new(mock_api.addr_make(TEST_ACCOUNT))
     }
 
