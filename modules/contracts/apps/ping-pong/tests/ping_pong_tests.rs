@@ -133,7 +133,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     let remote_app = env.remote_account.application::<AppInterface<_>>()?;
 
     // Ensure account created
-    env.abs_stargaze.version_control().account(AccountId::new(
+    env.abs_stargaze.registry().account(AccountId::new(
         0,
         AccountTrace::Remote(vec![TruncatedChainId::from_chain_id(JUNO)]),
     )?)?;

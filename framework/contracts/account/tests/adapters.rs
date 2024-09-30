@@ -49,7 +49,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     assert_that!(adapter_config).is_equal_to(adapter::AdapterConfigResponse {
         ans_host_address: deployment.ans_host.address()?,
         dependencies: vec![],
-        version_control_address: deployment.registry.address()?,
+        registry_address: deployment.registry.address()?,
     });
 
     // no authorized addresses registered

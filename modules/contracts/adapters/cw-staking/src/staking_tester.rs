@@ -53,7 +53,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
     ) -> anyhow::Result<Self> {
         // Re-register cw-staking, to make sure it's latest
         let _ = abstr_deployment
-            .version_control()
+            .registry()
             .remove_module(ModuleInfo::from_id(
                 CW_STAKING_ADAPTER_ID,
                 ModuleVersion::Version(crate::contract::CONTRACT_VERSION.to_owned()),

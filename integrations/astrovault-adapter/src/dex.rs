@@ -23,7 +23,7 @@ use {
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::{
-        feature_objects::{AnsHost, VersionControlContract},
+        feature_objects::{AnsHost, RegistryContract},
         std::objects::PoolAddress,
     },
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, StdError, Uint128},
@@ -217,7 +217,7 @@ impl DexCommand for Astrovault {
         &mut self,
         _deps: Deps,
         addr_as_sender: Addr,
-        _version_control_contract: VersionControlContract,
+        _registry_contract: RegistryContract,
         _ans_host: AnsHost,
     ) -> Result<(), DexError> {
         self.addr_as_sender = Some(addr_as_sender);

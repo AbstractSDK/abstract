@@ -478,9 +478,9 @@ impl<Chain: CwEnv> AccountI<Chain> {
     /// Register the account core contracts in the version control
     pub fn register(
         &self,
-        version_control: &Registry<Chain>,
+        registry: &Registry<Chain>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        version_control.register_base(self)
+        registry.register_base(self)
     }
 
     /// Gets the account ID of the
@@ -536,7 +536,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
 
     pub fn upload_and_register_if_needed(
         &self,
-        version_control: &Registry<Chain>,
+        registry: &Registry<Chain>,
     ) -> Result<bool, AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
@@ -548,7 +548,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         };
 
         let migrated = if !modules_to_register.is_empty() {
-            version_control.register_account_mods(modules_to_register)?;
+            registry.register_account_mods(modules_to_register)?;
             true
         } else {
             false

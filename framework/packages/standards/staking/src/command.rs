@@ -38,7 +38,7 @@ pub trait CwStakingCommand: Identify {
         env: Env,
         addr_as_sender: Option<Addr>,
         ans_host: &AnsHost,
-        version_control_contract: RegistryContract,
+        registry_contract: RegistryContract,
         staking_assets: Vec<AssetEntry>,
     ) -> Result<(), CwStakingError>;
 

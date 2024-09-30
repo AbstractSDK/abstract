@@ -34,17 +34,17 @@ pub fn execute_create_modules(
     let block_height = env.block.height;
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
-    let version_control = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
     let ans_host = AnsHost::new(deps.api)?;
 
     // assert that sender is manager
-    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+    let account_base = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
 
-    let modules_responses = version_control.query_modules_configs(infos, &deps.querier)?;
+    let modules_responses = registry.query_modules_configs(infos, &deps.querier)?;
 
     // fees
     let mut fee_msgs = vec![];
@@ -76,7 +76,7 @@ pub fn execute_create_modules(
                 let fee = f.fee();
                 sum_of_monetization.add(fee.clone())?;
                 // We transfer that fee to the namespace owner if there is
-                let namespace_account = version_control
+                let namespace_account = registry
                     .query_namespace(new_module.info.namespace.clone(), &deps.querier)?
                     // It's safe to assume this namespace is claimed because
                     // modules gets unregistered when namespace is unclaimed
@@ -102,7 +102,7 @@ pub fn execute_create_modules(
                 // App base message
                 let app_base_msg = abstract_std::app::BaseInstantiateMsg {
                     ans_host_address: ans_host.address.to_string(),
-                    version_control_address: version_control.address.to_string(),
+                    registry_address: registry.address.to_string(),
                     account_base: account_base.clone(),
                 };
 

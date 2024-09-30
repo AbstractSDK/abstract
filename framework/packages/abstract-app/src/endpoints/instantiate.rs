@@ -33,7 +33,7 @@ impl<
     ) -> Result<Response, Error> {
         let BaseInstantiateMsg {
             ans_host_address,
-            version_control_address,
+            registry_address,
             account_base,
         } = msg.base;
 
@@ -42,15 +42,15 @@ impl<
         let ans_host = AnsHost {
             address: deps.api.addr_validate(&ans_host_address)?,
         };
-        let version_control = RegistryContract {
-            address: deps.api.addr_validate(&version_control_address)?,
+        let registry = RegistryContract {
+            address: deps.api.addr_validate(&registry_address)?,
         };
 
         // Base state
         let state = AppState {
             account: account_base.clone(),
             ans_host,
-            version_control,
+            registry,
         };
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
@@ -87,7 +87,7 @@ mod test {
         let msg = SuperInstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.registry.to_string(),
+                registry_address: abstr.registry.to_string(),
                 account_base: abstr.account,
             },
             module: MockInitMsg {},

@@ -100,7 +100,7 @@ pub trait DexCommand: Identify {
         &mut self,
         _deps: Deps,
         _addr_as_sender: Addr,
-        _version_control_contract: RegistryContract,
+        _registry_contract: RegistryContract,
         _ans_host: AnsHost,
     ) -> Result<(), DexError> {
         // Dummy implementation, since most of dexes does not require this method

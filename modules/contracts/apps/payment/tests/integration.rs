@@ -61,7 +61,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
 
     // claim the namespace so app can be deployed
     abstr_deployment
-        .version_control
+        .registry
         .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
 
     app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;

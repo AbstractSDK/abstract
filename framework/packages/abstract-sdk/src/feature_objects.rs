@@ -52,7 +52,7 @@ mod tests {
 
     use super::*;
 
-    mod version_control {
+    mod registry {
         use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;

@@ -94,7 +94,7 @@ pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructur
 pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
     Ok(ConfigResponse {
         ans_host: AnsHost::new(deps.api)?.address,
-        version_control_address: RegistryContract::new(deps.api)?.address,
+        registry_address: RegistryContract::new(deps.api)?.address,
     })
 }
 

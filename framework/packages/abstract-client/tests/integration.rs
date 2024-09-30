@@ -102,7 +102,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
 
     // Namespace is claimed.
     let account_id = client
-        .version_control()
+        .registry()
         .namespace(namespace)?
         .unwrap()
         .account_id;
@@ -212,7 +212,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
 
     // Namespace is claimed.
     let account_id = client
-        .version_control()
+        .registry()
         .namespace(namespace)?
         .unwrap()
         .account_id;
@@ -1047,7 +1047,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
         .build()?;
     let _: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
-    client.version_control().update_module_configuration(
+    client.registry().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
         abstract_std::registry::UpdateModule::Versioned {
@@ -1449,7 +1449,7 @@ fn module_status() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
     let admin = AbstractClient::mock_admin(&chain);
     client
-        .version_control()
+        .registry()
         .call_as(&admin)
         .update_config(None, Some(false))?;
 
@@ -1469,7 +1469,7 @@ fn module_status() -> anyhow::Result<()> {
     );
 
     client
-        .version_control()
+        .registry()
         .call_as(&admin)
         .approve_or_reject_modules(vec![module_info.clone()], vec![])?;
     let module_status = client.module_status(module_info.clone())?;
@@ -1478,7 +1478,7 @@ fn module_status() -> anyhow::Result<()> {
         Some(abstract_std::objects::module::ModuleStatus::Registered)
     );
 
-    client.version_control().yank_module(module_info.clone())?;
+    client.registry().yank_module(module_info.clone())?;
     let module_status = client.module_status(module_info)?;
     assert_eq!(
         module_status,

@@ -738,7 +738,7 @@ mod tests {
             .with_contract_item(&third_acc_addr, ACCOUNT_ID, &THIRD_TEST_ACCOUNT_ID)
     }
 
-    /// Initialize the version_control with admin and updated account_factory
+    /// Initialize the registry with admin and updated account_factory
     fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> VCResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
@@ -774,7 +774,7 @@ mod tests {
         Ok(resp)
     }
 
-    /// Initialize the version_control with admin as creator and test account
+    /// Initialize the registry with admin as creator and test account
     fn mock_init_with_account(
         deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
         security_disabled: bool,

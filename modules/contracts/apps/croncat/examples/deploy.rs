@@ -33,7 +33,7 @@ fn main() -> anyhow::Result<()> {
 
     // In case account already created
 
-    // let account_base = abstract_deployment.version_control.get_account(7)?;
+    // let account_base = abstract_deployment.registry.get_account(7)?;
     // let account = AbstractAccount::new(chain.clone(), None);
     // account.manager.set_address(&account_base.manager);
     // account.proxy.set_address(&account_base.proxy);
@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
     // Claim namespace
     let account_config = account.manager.config()?;
     abstract_deployment
-        .version_control
+        .registry
         .claim_namespace(account_config.account_id, "croncat".to_owned())?;
 
     // Deploy

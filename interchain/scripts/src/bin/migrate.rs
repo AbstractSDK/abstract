@@ -59,7 +59,7 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             DeployStrategy::Try,
         )?;
 
-        deployment.version_control.approve_any_abstract_modules()?;
+        deployment.registry.approve_any_abstract_modules()?;
     }
 
     Ok(())

@@ -35,13 +35,13 @@ impl<
             address: deps.api.addr_validate(&msg.base.ans_host_address)?,
         };
 
-        let version_control = RegistryContract {
-            address: deps.api.addr_validate(&msg.base.version_control_address)?,
+        let registry = RegistryContract {
+            address: deps.api.addr_validate(&msg.base.registry_address)?,
         };
 
         // Base state
         let state = AdapterState {
-            version_control,
+            registry,
             ans_host,
         };
         let (name, version, metadata) = self.info();
@@ -85,7 +85,7 @@ mod test {
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.registry.to_string(),
+                registry_address: abstr.registry.to_string(),
             },
             module: MockInitMsg {},
         };
@@ -122,7 +122,7 @@ mod test {
         assert_eq!(
             state,
             AdapterState {
-                version_control: RegistryContract {
+                registry: RegistryContract {
                     address: abstr.registry,
                 },
                 ans_host: AnsHost {

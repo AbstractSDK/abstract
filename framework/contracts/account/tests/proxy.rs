@@ -87,7 +87,7 @@ fn instantiate() -> AResult {
     // assert account config
     assert_that!(account.config()?).is_equal_to(abstract_std::account::ConfigResponse {
         whitelisted_addresses: vec![],
-        version_control_address: deployment.registry.address()?,
+        registry_address: deployment.registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,

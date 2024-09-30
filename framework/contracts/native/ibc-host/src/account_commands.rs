@@ -36,13 +36,13 @@ pub fn receive_register(
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
 ) -> HostResult {
-    let version_control = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
     let salt = cosmwasm_std::to_json_binary(&account_id)?;
 
     let account_module_info = ModuleInfo::from_id_latest(ACCOUNT)?;
-    let ModuleReference::Account(code_id) = version_control
+    let ModuleReference::Account(code_id) = registry
         .query_module(account_module_info.clone(), &deps.querier)?
         .reference
     else {
@@ -172,7 +172,7 @@ pub fn send_all_back(
 
 /// get the account base from the version control contract
 pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<Account, HostError> {
-    let version_control = RegistryContract::new(deps.api)?;
-    let account_base = version_control.account(account_id, &deps.querier)?;
+    let registry = RegistryContract::new(deps.api)?;
+    let account_base = registry.account(account_id, &deps.querier)?;
     Ok(account_base)
 }

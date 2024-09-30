@@ -236,7 +236,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
                 monarch: mock.sender_addr().to_string(),
             })?;
     // claim the namespace so app can be deployed
-    abstr_deployment.version_control.claim_namespace(
+    abstr_deployment.registry.claim_namespace(
         AccountId::new(1, AccountTrace::Local)?,
         "croncat".to_owned(),
     )?;

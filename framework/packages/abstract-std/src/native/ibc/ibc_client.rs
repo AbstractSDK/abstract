@@ -57,7 +57,7 @@ pub mod state {
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub ans_host_address: String,
-    pub version_control_address: String,
+    pub registry_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -319,7 +319,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub ans_host: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

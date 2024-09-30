@@ -62,7 +62,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let resp = ConfigResponse {
-        version_control_address: RegistryContract::new(deps.api)?.address,
+        registry_address: RegistryContract::new(deps.api)?.address,
         ans_host_address: AnsHost::new(deps.api)?.address,
     };
 
@@ -73,9 +73,9 @@ pub fn query_simulate_install_modules(
     deps: Deps,
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
-    let version_control = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
-    let module_responses = version_control
+    let module_responses = registry
         .query_modules_configs(modules, &deps.querier)
         .map_err(|e| cosmwasm_std::StdError::generic_err(e.to_string()))?;
 

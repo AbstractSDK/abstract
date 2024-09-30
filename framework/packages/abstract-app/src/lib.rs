@@ -220,7 +220,7 @@ pub mod mock {
         let msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.registry.to_string(),
+                registry_address: abstr.registry.to_string(),
                 account_base: account,
             },
             module: MockInitMsg {},

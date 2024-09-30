@@ -291,7 +291,7 @@ mod test {
                 match from_json(msg).unwrap() {
                     account::QueryMsg::Config {} => {
                         let resp = account::ConfigResponse {
-                            version_control_address: abstr.registry,
+                            registry_address: abstr.registry,
                             module_factory_address: abstr.module_factory,
                             account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
@@ -320,7 +320,7 @@ mod test {
                     account::QueryMsg::Config {} => {
                         let abstr = AbstractMockAddrs::new(mock_api);
                         let resp = account::ConfigResponse {
-                            version_control_address: abstr.registry,
+                            registry_address: abstr.registry,
                             module_factory_address: abstr.module_factory,
                             account_id: TEST_OTHER_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
@@ -367,7 +367,7 @@ mod test {
         Ok(())
     }
 
-    /// Initialize the version_control with admin as creator and test account
+    /// Initialize the registry with admin as creator and test account
     fn mock_init_with_account(deps: &mut MockDeps) -> VCResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let account = test_account_base(deps.api);

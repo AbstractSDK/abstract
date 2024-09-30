@@ -56,7 +56,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
     ) -> anyhow::Result<Self> {
         // Re-register moneymarket, to make sure it's latest
         let _ = abstr_deployment
-            .version_control()
+            .registry()
             .remove_module(ModuleInfo::from_id(
                 MONEY_MARKET_ADAPTER_ID,
                 ModuleVersion::Version(crate::contract::CONTRACT_VERSION.to_owned()),

@@ -56,9 +56,9 @@ impl<Chain: CwEnv, M: ContractInstance<Chain>> ContractInstance<Chain> for Servi
 
 impl<Chain: CwEnv, M: RegisteredModule + From<Contract<Chain>>> Service<Chain, M> {
     /// Get module interface installed from version control
-    pub(crate) fn new(version_control: &Registry<Chain>) -> AbstractClientResult<Self> {
+    pub(crate) fn new(registry: &Registry<Chain>) -> AbstractClientResult<Self> {
         // The module must be in version control and service
-        let module_reference: ModuleReference = version_control
+        let module_reference: ModuleReference = registry
             .module(ModuleInfo::from_id(
                 M::module_id(),
                 abstract_std::objects::module::ModuleVersion::Version(
@@ -71,7 +71,7 @@ impl<Chain: CwEnv, M: RegisteredModule + From<Contract<Chain>>> Service<Chain, M
         };
 
         // Ensure using correct address
-        let contract = Contract::new(M::module_id(), version_control.environment().clone());
+        let contract = Contract::new(M::module_id(), registry.environment().clone());
         contract.set_address(&service_addr);
 
         Ok(Self {

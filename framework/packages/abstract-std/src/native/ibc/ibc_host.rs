@@ -157,7 +157,7 @@ pub enum QueryMsg {
 pub struct ConfigResponse {
     pub ans_host_address: Addr,
     pub module_factory_address: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

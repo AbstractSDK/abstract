@@ -67,14 +67,14 @@ pub fn _install_modules(
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let version_control = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
     let canonical_module_factory = CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR);
     let module_factory_address = deps.api.addr_humanize(&canonical_module_factory)?;
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules = version_control
+    let modules = registry
         .query_modules_configs(infos, &deps.querier)
         .map_err(|error| AccountError::QueryModulesFailed { error })?;
 
@@ -260,7 +260,7 @@ pub fn query_module(
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, AccountError> {
     // Construct feature object to access registry functions
-    let version_control = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -277,13 +277,13 @@ pub fn query_module(
             }
             Module {
                 info: module_info.clone(),
-                reference: version_control
+                reference: registry
                     .query_module_reference_raw(&module_info, &deps.querier)?,
             }
         }
         ModuleVersion::Latest => {
             // Query latest version of contract
-            version_control.query_module(module_info.clone(), &deps.querier)?
+            registry.query_module(module_info.clone(), &deps.querier)?
         }
     };
 
@@ -292,7 +292,7 @@ pub fn query_module(
             info: module.info,
             reference: module.reference,
         },
-        config: version_control.query_config(module_info, &deps.querier)?,
+        config: registry.query_config(module_info, &deps.querier)?,
     })
 }
 

@@ -11,7 +11,7 @@ pub const PACKET_LIFETIME: u64 = 60 * 60;
 pub fn config(deps: Deps) -> IcaClientResult<ConfigResponse> {
     Ok(ConfigResponse {
         ans_host: AnsHost::new(deps.api)?.address,
-        version_control_address: RegistryContract::new(deps.api)?.address,
+        registry_address: RegistryContract::new(deps.api)?.address,
     })
 }
 
@@ -40,9 +40,9 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
-                    let version_control = RegistryContract::new(deps.api)?;
+                    let registry = RegistryContract::new(deps.api)?;
 
-                    let msg = evm::execute(&deps.querier, &version_control, msgs, callback)?;
+                    let msg = evm::execute(&deps.querier, &registry, msgs, callback)?;
 
                     Ok(vec![msg.into()])
                 }
@@ -200,7 +200,7 @@ mod tests {
                 res,
                 ConfigResponse {
                     ans_host: abstr.ans_host,
-                    version_control_address: abstr.registry
+                    registry_address: abstr.registry
                 }
             );
             Ok(())

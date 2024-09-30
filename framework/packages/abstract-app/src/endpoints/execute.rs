@@ -62,8 +62,8 @@ impl<
         match message {
             BaseExecuteMsg::UpdateConfig {
                 ans_host_address,
-                version_control_address,
-            } => self.update_config(deps, info, ans_host_address, version_control_address),
+                registry_address,
+            } => self.update_config(deps, info, ans_host_address, registry_address),
         }
     }
 
@@ -72,7 +72,7 @@ impl<
         deps: DepsMut,
         info: MessageInfo,
         ans_host_address: Option<String>,
-        version_control_address: Option<String>,
+        registry_address: Option<String>,
     ) -> AppResult {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
@@ -84,9 +84,9 @@ impl<
             state.ans_host.address = deps.api.addr_validate(ans_host_address.as_str())?;
         }
 
-        if let Some(version_control_address) = version_control_address {
-            state.version_control.address =
-                deps.api.addr_validate(version_control_address.as_str())?;
+        if let Some(registry_address) = registry_address {
+            state.registry.address =
+                deps.api.addr_validate(registry_address.as_str())?;
         }
 
         self.base_state.save(deps.storage, &state)?;
@@ -122,7 +122,7 @@ mod test {
 
             let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: None,
-                version_control_address: None,
+                registry_address: None,
             });
 
             let not_manager = deps.api.addr_make("not_admin");
@@ -142,10 +142,10 @@ mod test {
             let account = test_account_base(deps.api);
 
             let new_ans_host = deps.api.addr_make("new_ans_host");
-            let new_version_control = deps.api.addr_make("new_version_control");
+            let new_registry = deps.api.addr_make("new_registry");
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: Some(new_ans_host.to_string()),
-                version_control_address: Some(new_version_control.to_string()),
+                registry_address: Some(new_registry.to_string()),
             });
 
             let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
@@ -155,7 +155,7 @@ mod test {
             let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
             assert_eq!(state.ans_host.address, new_ans_host);
-            assert_eq!(state.version_control.address, new_version_control);
+            assert_eq!(state.registry.address, new_registry);
 
             Ok(())
         }
@@ -168,7 +168,7 @@ mod test {
 
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: None,
-                version_control_address: None,
+                registry_address: None,
             });
 
             let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
@@ -178,7 +178,7 @@ mod test {
             let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
             assert_eq!(state.ans_host.address, abstr.ans_host);
-            assert_eq!(state.version_control.address, abstr.registry);
+            assert_eq!(state.registry.address, abstr.registry);
 
             Ok(())
         }

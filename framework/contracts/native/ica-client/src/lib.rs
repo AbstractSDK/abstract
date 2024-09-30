@@ -19,7 +19,7 @@ mod test_common {
         let abstr = AbstractMockAddrs::new(deps.api);
         let msg = InstantiateMsg {
             ans_host_address: abstr.ans_host.to_string(),
-            version_control_address: abstr.registry.to_string(),
+            registry_address: abstr.registry.to_string(),
         };
         let info = message_info(&abstr.owner, &[]);
         contract::instantiate(deps.as_mut(), mock_env(), info, msg)

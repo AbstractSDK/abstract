@@ -26,7 +26,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         self.client.instantiate(
             &abstract_std::ibc_client::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
-                version_control_address: abstr.registry.addr_str()?,
+                registry_address: abstr.registry.addr_str()?,
             },
             Some(admin),
             &[],
@@ -37,11 +37,8 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         Ok(())
     }
 
-    pub fn register(
-        &self,
-        version_control: &Registry<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        version_control.register_natives(vec![
+    pub fn register(&self, registry: &Registry<Chain>) -> Result<(), AbstractInterfaceError> {
+        registry.register_natives(vec![
             (
                 self.client.as_instance(),
                 ibc_client::contract::CONTRACT_VERSION.to_string(),

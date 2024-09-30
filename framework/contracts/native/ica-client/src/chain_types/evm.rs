@@ -43,8 +43,8 @@ pub fn send_funds(
     let receiver: HexBinary = match receiver {
         Some(r) => r.into(),
         None => {
-            let version_control = RegistryContract::new(deps.api)?;
-            let note_addr = evm_note_addr(&version_control, &deps.querier)?;
+            let registry = RegistryContract::new(deps.api)?;
+            let note_addr = evm_note_addr(&registry, &deps.querier)?;
 
             // TODO: could be turned into raw query!
             // If state objects will be public on evm_note

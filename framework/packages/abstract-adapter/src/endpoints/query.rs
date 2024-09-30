@@ -58,7 +58,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     fn dapp_config(&self, deps: Deps) -> StdResult<AdapterConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
         Ok(AdapterConfigResponse {
-            version_control_address: state.version_control.address,
+            registry_address: state.registry.address,
             ans_host_address: state.ans_host.address,
             dependencies: self
                 .dependencies()

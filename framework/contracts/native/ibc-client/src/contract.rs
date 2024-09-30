@@ -179,7 +179,7 @@ mod tests {
         let owner = abstr.owner;
         let msg = InstantiateMsg {
             ans_host_address: abstr.ans_host.to_string(),
-            version_control_address: abstr.registry.to_string(),
+            registry_address: abstr.registry.to_string(),
         };
         let info = message_info(&owner, &[]);
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();

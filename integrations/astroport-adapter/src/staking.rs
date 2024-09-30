@@ -31,7 +31,7 @@ impl Identify for Astroport {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        feature_objects::{AnsHost, VersionControlContract},
+        feature_objects::{AnsHost, RegistryContract},
         std::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         Resolve,
     },
@@ -58,7 +58,7 @@ impl CwStakingCommand for Astroport {
         _env: Env,
         _addr_as_sender: Option<Addr>,
         ans_host: &AnsHost,
-        _version_control_contract: VersionControlContract,
+        _registry_contract: RegistryContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> Result<(), CwStakingError> {
         self.tokens = lp_tokens

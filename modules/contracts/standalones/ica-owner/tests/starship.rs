@@ -40,7 +40,7 @@ impl<Env: CwEnv> TestEnv<Env> {
             &MyStandaloneInstantiateMsg {
                 base: standalone::StandaloneInstantiateMsg {
                     ans_host_address: abs_src.name_service().addr_str()?,
-                    version_control_address: abs_src.version_control().addr_str()?,
+                    registry_address: abs_src.registry().addr_str()?,
                 },
                 ica_controller_code_id,
             },
@@ -81,7 +81,7 @@ impl<Env: CwEnv> TestEnv<Env> {
             &MyStandaloneInstantiateMsg {
                 base: standalone::StandaloneInstantiateMsg {
                     ans_host_address: abs_src.name_service().addr_str()?,
-                    version_control_address: abs_src.version_control().addr_str()?,
+                    registry_address: abs_src.registry().addr_str()?,
                 },
                 ica_controller_code_id,
             },
@@ -151,7 +151,7 @@ fn test_bank_send() -> anyhow::Result<()> {
     let ica_addr = state.ica_state.unwrap().ica_addr;
 
     // Send 10_000 uosmo from ICA to some address
-    let receiving_addr = test_env.abs_dst.version_control().addr_str()?;
+    let receiving_addr = test_env.abs_dst.registry().addr_str()?;
     let amount = coins(10_000, "uosmo");
     RUNTIME.block_on(osmosis.wallet().bank_send(&ica_addr, amount.clone()))?;
 

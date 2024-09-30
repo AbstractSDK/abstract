@@ -52,7 +52,7 @@ impl<
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
-        Ok(self.base_state.load(deps.storage)?.version_control)
+        Ok(self.base_state.load(deps.storage)?.registry)
     }
 }
 

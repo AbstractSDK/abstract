@@ -58,7 +58,7 @@ impl<
         Ok(AppConfigResponse {
             account: state.account.into_addr(),
             ans_host_address: state.ans_host.address,
-            version_control_address: state.version_control.address,
+            registry_address: state.registry.address,
         })
     }
 
@@ -167,7 +167,7 @@ mod test {
                 AppConfigResponse {
                     account: account.into_addr(),
                     ans_host_address: abstr.ans_host,
-                    version_control_address: abstr.registry,
+                    registry_address: abstr.registry,
                 },
                 from_json(res).unwrap()
             );

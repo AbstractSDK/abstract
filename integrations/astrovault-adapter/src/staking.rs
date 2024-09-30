@@ -1,4 +1,4 @@
-use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::feature_objects::RegistryContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -7,7 +7,7 @@ use crate::{ASTROVAULT, AVAILABLE_CHAINS};
 #[derive(Clone, Debug, Default)]
 pub struct Astrovault {
     pub addr_as_sender: Option<Addr>,
-    pub version_control_contract: Option<VersionControlContract>,
+    pub registry_contract: Option<RegistryContract>,
     pub tokens: Vec<AstrovaultTokenContext>,
 }
 
@@ -61,10 +61,10 @@ impl CwStakingCommand for Astrovault {
         _env: Env,
         addr_as_sender: Option<Addr>,
         ans_host: &AnsHost,
-        version_control_contract: VersionControlContract,
+        registry_contract: RegistryContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> Result<(), CwStakingError> {
-        self.version_control_contract = Some(version_control_contract);
+        self.registry_contract = Some(registry_contract);
         self.addr_as_sender = addr_as_sender;
         self.tokens = lp_tokens
             .into_iter()
@@ -355,11 +355,11 @@ impl AbstractRegistryAccess for Astrovault {
     fn abstract_registry(
         &self,
         _: cosmwasm_std::Deps<'_>,
-    ) -> std::result::Result<VersionControlContract, abstract_sdk::AbstractSdkError> {
-        self.version_control_contract
+    ) -> std::result::Result<RegistryContract, abstract_sdk::AbstractSdkError> {
+        self.registry_contract
             .clone()
             .ok_or(abstract_sdk::AbstractSdkError::generic_err(
-                "version_control address is not set",
+                "registry address is not set",
             ))
         // We need to get to the version control somehow (possible from Ans Host ?)
     }

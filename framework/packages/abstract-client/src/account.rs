@@ -729,7 +729,7 @@ impl<Chain: CwEnv> Account<Chain> {
                         &registry::QueryMsg::Modules {
                             infos: vec![module.clone()],
                         },
-                        &manager_config.version_control_address,
+                        &manager_config.registry_address,
                     )
                     .map_err(Into::into)?;
                 modules_response

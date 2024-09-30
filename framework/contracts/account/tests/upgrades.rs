@@ -289,7 +289,7 @@ fn upgrade_manager_last() -> AResult {
     let AccountI { account, proxy: _ } = &account;
 
     abstr
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 

@@ -87,12 +87,12 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// // For getting version control address
     /// use cw_orch::prelude::*;
     ///
-    /// let version_control = client.version_control();
-    /// let vc_module = version_control.module(ModuleInfo::from_id_latest("abstract:version-control")?)?;
-    /// assert_eq!(vc_module.reference, ModuleReference::Native(version_control.address()?));
+    /// let registry = client.registry();
+    /// let vc_module = registry.module(ModuleInfo::from_id_latest("abstract:version-control")?)?;
+    /// assert_eq!(vc_module.reference, ModuleReference::Native(registry.address()?));
     /// # Ok::<(), AbstractClientError>(())
     /// ```
-    pub fn version_control(&self) -> &Registry<Chain> {
+    pub fn registry(&self) -> &Registry<Chain> {
         &self.abstr.registry
     }
 
@@ -136,7 +136,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn service<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
     ) -> AbstractClientResult<Service<Chain, M>> {
-        Service::new(self.version_control())
+        Service::new(self.registry())
     }
 
     /// Return current block info see [`BlockInfo`].
@@ -306,7 +306,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<Addr> {
         let salt = generate_instantiate_salt(account_id);
         let wasm_querier = self.environment().wasm_querier();
-        let module = self.version_control().module(module_info)?;
+        let module = self.registry().module(module_info)?;
         let (code_id, creator) = match module.reference {
             // If Account - signer is creator
             ModuleReference::Account(id) => (id, self.environment().sender_addr()),
@@ -334,7 +334,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// This function checks the status of a module within the version control contract.
     /// and returns appropriate `Some(ModuleStatus)`. If the module is not deployed, it returns `None`.
     pub fn module_status(&self, module: ModuleInfo) -> AbstractClientResult<Option<ModuleStatus>> {
-        self.version_control()
+        self.registry()
             .module_status(module)
             .map_err(Into::into)
     }

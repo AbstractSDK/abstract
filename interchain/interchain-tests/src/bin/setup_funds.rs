@@ -124,7 +124,7 @@
 
 //     // Verify the funds have been received
 //     let remote_account_config = abstr_stargaze
-//         .version_control
+//         .registry
 //         .get_account(remote_account_id.clone())?;
 
 //     let balance = stargaze

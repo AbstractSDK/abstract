@@ -60,7 +60,7 @@ pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation
     pub ans_host_address: String,
     /// Used to verify senders
-    pub version_control_address: String,
+    pub registry_address: String,
 }
 
 impl<RequestMsg> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg> {
@@ -141,7 +141,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterConfigResponse {
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
     pub ans_host_address: Addr,
     pub dependencies: Vec<String>,
 }
@@ -157,7 +157,7 @@ pub struct AuthorizedAddressesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterState {
     /// Used to verify requests
-    pub version_control: RegistryContract,
+    pub registry: RegistryContract,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
 }

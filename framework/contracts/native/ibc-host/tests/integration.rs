@@ -51,7 +51,7 @@ fn account_creation() -> anyhow::Result<()> {
     assert_eq!(
         ConfigResponse {
             ans_host_address: abstr_origin.ans_host.address()?,
-            version_control_address: abstr_origin.registry.address()?,
+            registry_address: abstr_origin.registry.address()?,
             module_factory_address: abstr_origin.module_factory.address()?,
         },
         config_response
@@ -180,7 +180,7 @@ fn account_creation_full() -> anyhow::Result<()> {
     assert_eq!(
         ConfigResponse {
             ans_host_address: abstr_origin.ans_host.address()?,
-            version_control_address: abstr_origin.registry.address()?,
+            registry_address: abstr_origin.registry.address()?,
             module_factory_address: abstr_origin.module_factory.address()?,
         },
         config_response

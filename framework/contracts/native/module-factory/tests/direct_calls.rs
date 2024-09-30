@@ -17,7 +17,7 @@ fn instantiate() -> AResult {
     let factory_config = factory.config()?;
     let expected = module_factory::ConfigResponse {
         ans_host_address: deployment.ans_host.address()?,
-        version_control_address: deployment.registry.address()?,
+        registry_address: deployment.registry.address()?,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);

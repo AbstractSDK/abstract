@@ -51,7 +51,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let blob = CwBlob::new(CW_BLOB, chain.clone());
 
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-        let version_control = Registry::new(REGISTRY, chain.clone());
+        let registry = Registry::new(REGISTRY, chain.clone());
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let account = AccountI::new(ACCOUNT, chain.clone());
 
@@ -59,14 +59,14 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         blob.upload()?;
         ans_host.upload()?;
-        version_control.upload()?;
+        registry.upload()?;
         module_factory.upload()?;
         account.upload()?;
         ibc_infra.upload()?;
 
         let deployment = Abstract {
             ans_host,
-            registry: version_control,
+            registry: registry,
             module_factory,
             account,
             ibc: ibc_infra,
@@ -131,7 +131,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             &abstract_std::ibc_client::MigrateMsg::Instantiate(
                 abstract_std::ibc_client::InstantiateMsg {
                     ans_host_address: deployment.ans_host.addr_str()?,
-                    version_control_address: deployment.registry.addr_str()?,
+                    registry_address: deployment.registry.addr_str()?,
                 },
             ),
             blob_code_id,
@@ -215,13 +215,13 @@ impl<Chain: CwEnv> DeployedChains<Chain> for Abstract<Chain> {
 
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
-        let (ans_host, version_control, module_factory) = get_native_contracts(chain.clone());
+        let (ans_host, registry, module_factory) = get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
         let account = AccountI::new(ACCOUNT, chain.clone());
         Self {
             account,
             ans_host,
-            registry: version_control,
+            registry: registry,
             module_factory,
             ibc: AbstractIbc {
                 client: ibc_client,
@@ -298,14 +298,14 @@ impl<Chain: CwEnv> Abstract<Chain> {
     pub fn update_sender(&mut self, sender: &Chain::Sender) {
         let Self {
             ans_host,
-            registry: version_control,
+            registry: registry,
             module_factory,
             ibc,
             account,
             blob: _,
         } = self;
         ans_host.set_sender(sender);
-        version_control.set_sender(sender);
+        registry.set_sender(sender);
         module_factory.set_sender(sender);
         account.set_sender(sender);
         ibc.client.set_sender(sender);
@@ -376,8 +376,8 @@ mod test {
         assert_eq!(*ans_addr, native_addrs::ANS_ADDR);
 
         // VC
-        let version_control = api.addr_canonicalize(&abstr.registry.addr_str()?)?;
-        assert_eq!(*version_control, native_addrs::REGISTRY_ADDR);
+        let registry = api.addr_canonicalize(&abstr.registry.addr_str()?)?;
+        assert_eq!(*registry, native_addrs::REGISTRY_ADDR);
 
         // MODULE_FACTORY
         let module_factory = api.addr_canonicalize(&abstr.module_factory.addr_str()?)?;

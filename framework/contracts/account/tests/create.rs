@@ -37,7 +37,7 @@ fn create_one_account() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
-    let version_control = &deployment.registry;
+    let registry = &deployment.registry;
 
     let account = AccountI::new(ACCOUNT, chain);
 
@@ -59,16 +59,16 @@ fn create_one_account() -> AResult {
 
     let account = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
 
-    let version_control_config = version_control.config()?;
+    let registry_config = registry.config()?;
     let expected = registry::ConfigResponse {
         local_account_sequence: 2,
         security_disabled: true,
         namespace_registration_fee: None,
     };
 
-    assert_that!(&version_control_config).is_equal_to(&expected);
+    assert_that!(&registry_config).is_equal_to(&expected);
 
-    let vc_config = version_control.config()?;
+    let vc_config = registry.config()?;
     let expected = abstract_std::registry::ConfigResponse {
         local_account_sequence: 2,
         security_disabled: true,
@@ -77,7 +77,7 @@ fn create_one_account() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let account_list = version_control.account(TEST_ACCOUNT_ID)?;
+    let account_list = registry.account(TEST_ACCOUNT_ID)?;
 
     assert_that!(&account_list.account_base.into()).is_equal_to(Account::new(account));
 
@@ -90,7 +90,7 @@ fn create_two_accounts() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
-    let version_control = &deployment.registry;
+    let registry = &deployment.registry;
 
     let account = AccountI::new(ACCOUNT, chain);
     // first account
@@ -133,7 +133,7 @@ fn create_two_accounts() -> AResult {
     let account2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     let account_2_id = AccountId::new(TEST_ACCOUNT_ID.seq() + 1, AccountTrace::Local)?;
 
-    let version_control_config = version_control.config()?;
+    let registry_config = registry.config()?;
     let expected = registry::ConfigResponse {
         namespace_registration_fee: None,
         security_disabled: true,
@@ -141,12 +141,12 @@ fn create_two_accounts() -> AResult {
         local_account_sequence: account_2_id.seq() + 1,
     };
 
-    assert_that!(&version_control_config).is_equal_to(&expected);
+    assert_that!(&registry_config).is_equal_to(&expected);
 
-    let account_1 = version_control.account(account_1_id)?.account_base;
+    let account_1 = registry.account(account_1_id)?.account_base;
     assert_that!(account_1.into()).is_equal_to(Account::new(account1));
 
-    let account_2 = version_control.account(account_2_id)?.account_base;
+    let account_2 = registry.account(account_2_id)?.account_base;
     assert_that!(account_2.into()).is_equal_to(Account::new(account2));
 
     Ok(())
@@ -159,7 +159,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = AccountI::new(ACCOUNT, chain);
 
-    let version_control = &deployment.registry;
+    let registry = &deployment.registry;
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
             name: String::from("first_account"),
@@ -179,7 +179,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     account.set_address(&Addr::unchecked(&account_addr));
 
-    let registered_account = version_control.account(TEST_ACCOUNT_ID)?.account_base;
+    let registered_account = registry.account(TEST_ACCOUNT_ID)?.account_base;
 
     assert_that!(account_addr).is_equal_to(registered_account.addr().to_string());
 
@@ -187,7 +187,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
-        version_control_address: version_control.address()?,
+        registry_address: registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         is_suspended: false,
         whitelisted_addresses: vec![],
@@ -202,7 +202,7 @@ fn sender_is_not_admin_external() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = AccountI::new(ACCOUNT, chain);
-    let version_control = &deployment.registry;
+    let registry = &deployment.registry;
 
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
@@ -229,7 +229,7 @@ fn sender_is_not_admin_external() -> AResult {
     assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
-        version_control_address: version_control.address()?,
+        registry_address: registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         whitelisted_addresses: vec![],
     });
@@ -270,7 +270,7 @@ fn create_one_account_with_namespace() -> AResult {
     assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
-        version_control_address: deployment.registry.address()?,
+        registry_address: deployment.registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         whitelisted_addresses: vec![],
     });

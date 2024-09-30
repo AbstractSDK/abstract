@@ -2,7 +2,7 @@
 //! Otherwise you will have too many requests
 
 use abstract_framework_clone_testing::common;
-use abstract_interface::{Abstract, AccountDetails, AccountI, AccountQueryFns, VCQueryFns};
+use abstract_interface::{Abstract, AccountDetails, AccountI, AccountQueryFns, RegistryQueryFns};
 use abstract_std::objects::AccountId;
 use abstract_testing::TEST_VERSION;
 use anyhow::{bail, Ok};
@@ -15,10 +15,7 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
 
     abstr_deployment.migrate_if_version_changed()?;
     // List accounts
-    let max_account_id = abstr_deployment
-        .version_control
-        .config()?
-        .local_account_sequence;
+    let max_account_id = abstr_deployment.registry.config()?.local_account_sequence;
 
     let (oldest_account_id, owner, _) = (0..max_account_id.min(100))
         .flat_map(|account_id| {

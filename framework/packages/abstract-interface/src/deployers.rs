@@ -136,7 +136,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
             module: custom_init_msg,
             base: abstract_std::adapter::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.address()?.into(),
-                version_control_address: abstr.registry.address()?.into(),
+                registry_address: abstr.registry.address()?.into(),
             },
         };
         self.instantiate(&init_msg, None, &[])?;

@@ -151,7 +151,7 @@ mod tests {
 
         use crate::{contract, error::RegistryError};
 
-        /// Initialize the version_control with admin as creator and factory
+        /// Initialize the registry with admin as creator and factory
         pub fn mock_init(
             deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
         ) -> Result<Response, RegistryError> {

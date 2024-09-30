@@ -49,7 +49,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
     pub fn new(abstr_deployment: AbstractClient<Chain>, dex: Dex) -> anyhow::Result<Self> {
         // Re-register dex, to make sure it's latest
         let _ = abstr_deployment
-            .version_control()
+            .registry()
             .remove_module(ModuleInfo::from_id(
                 DEX_ADAPTER_ID,
                 ModuleVersion::Version(crate::contract::CONTRACT_VERSION.to_owned()),

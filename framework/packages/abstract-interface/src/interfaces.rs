@@ -15,23 +15,23 @@ where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let version_control = Registry::new(REGISTRY, chain.clone());
+    let registry = Registry::new(REGISTRY, chain.clone());
     let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-    (ans_host, version_control, module_factory)
+    (ans_host, registry, module_factory)
 }
 
 pub fn get_account_contract<Chain: CwEnv>(
-    version_control: &Registry<Chain>,
+    registry: &Registry<Chain>,
     account_id: AccountId,
 ) -> Result<AccountI<Chain>, AbstractInterfaceError>
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
-    let chain = version_control.environment().clone();
+    let chain = registry.environment().clone();
 
     let account = AccountI::new_from_id(&account_id, chain.clone());
 
-    let account_base = version_control.get_account(account_id.clone())?;
+    let account_base = registry.get_account(account_id.clone())?;
     account.set_address(account_base.addr());
 
     Ok(account)

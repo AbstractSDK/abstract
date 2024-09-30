@@ -81,7 +81,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             match from_json(msg).unwrap() {
                 AccountQueryMsg::Config {} => {
                     let resp = AccountConfigResponse {
-                        version_control_address: abstr.registry,
+                        registry_address: abstr.registry,
                         module_factory_address: abstr.module_factory,
                         account_id: ABSTRACT_ACCOUNT_ID, // mock value, not used
                         is_suspended: false,

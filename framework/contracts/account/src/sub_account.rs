@@ -34,10 +34,10 @@ pub fn create_sub_account(
 ) -> AccountResult {
     // only owner can create a subaccount
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    let version_control = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
     let seq = account_id.unwrap_or(
         abstract_std::registry::state::LOCAL_ACCOUNT_SEQUENCE
-            .query(&deps.querier, version_control.address.clone())?,
+            .query(&deps.querier, registry.address.clone())?,
     );
     let account_id = AccountId::local(seq);
     let salt = salt::generate_instantiate_salt(&account_id);
@@ -97,11 +97,11 @@ pub fn handle_sub_account_action(
 
 // Unregister sub-account from the state
 fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let version_control = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
     let account = abstract_std::registry::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
-        version_control.address,
+        registry.address,
         &AccountId::local(id),
     )?;
 
@@ -119,11 +119,11 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountR
 
 // Register sub-account to the state
 fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let version_control = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
     let account = abstract_std::registry::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
-        version_control.address,
+        registry.address,
         &AccountId::local(id),
     )?;
 

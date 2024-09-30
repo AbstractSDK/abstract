@@ -36,7 +36,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
     fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
-        Ok(self.state(deps.storage)?.version_control)
+        Ok(self.state(deps.storage)?.registry)
     }
 }
 #[cfg(test)]

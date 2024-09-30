@@ -17,7 +17,7 @@ impl<T: CwEnv> Abstract<T> {
             .upload_and_migrate_if_needed(&module_factory::MigrateMsg::Migrate {})?;
 
         // then VC and ANS
-        let version_control = self
+        let registry = self
             .registry
             .upload_and_migrate_if_needed(&registry::MigrateMsg::Migrate {})?;
         let ans_host = self
@@ -32,11 +32,7 @@ impl<T: CwEnv> Abstract<T> {
 
         self.registry.approve_any_abstract_modules()?;
 
-        Ok(module_factory.is_some()
-            || version_control.is_some()
-            || ans_host.is_some()
-            || account
-            || ibc)
+        Ok(module_factory.is_some() || registry.is_some() || ans_host.is_some() || account || ibc)
     }
 
     /// Migrate the deployment based on version changes. If the registered contracts have the right version, we don't migrate them

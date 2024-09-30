@@ -54,7 +54,7 @@ impl AppQueryMsg for Empty {}
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     pub ans_host_address: String,
-    pub version_control_address: String,
+    pub registry_address: String,
     pub account_base: Account,
 }
 
@@ -64,7 +64,7 @@ pub enum BaseExecuteMsg {
     /// Updates the base config
     UpdateConfig {
         ans_host_address: Option<String>,
-        version_control_address: Option<String>,
+        registry_address: Option<String>,
     },
 }
 
@@ -104,7 +104,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 pub struct AppConfigResponse {
     pub account: Addr,
     pub ans_host_address: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -118,5 +118,5 @@ pub struct AppState {
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
     /// Used to verify requests
-    pub version_control: RegistryContract,
+    pub registry: RegistryContract,
 }

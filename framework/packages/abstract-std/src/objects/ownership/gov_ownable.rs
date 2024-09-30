@@ -180,10 +180,10 @@ impl Ownership<Addr> {
 pub fn initialize_owner(
     deps: DepsMut,
     owner: GovernanceDetails<String>,
-    version_control: Addr,
+    registry: Addr,
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     let ownership = Ownership {
-        owner: owner.verify(deps.as_ref(), version_control)?,
+        owner: owner.verify(deps.as_ref(), registry)?,
         pending_owner: None,
         pending_expiry: None,
     };
@@ -234,12 +234,12 @@ pub fn update_ownership(
     deps: DepsMut,
     block: &BlockInfo,
     sender: &Addr,
-    version_control: Addr,
+    registry: Addr,
     action: GovAction,
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     match action {
         GovAction::TransferOwnership { new_owner, expiry } => {
-            transfer_ownership(deps, sender, new_owner, version_control, expiry)
+            transfer_ownership(deps, sender, new_owner, registry, expiry)
         }
         GovAction::AcceptOwnership => accept_ownership(deps.storage, &deps.querier, block, sender),
         GovAction::RenounceOwnership => renounce_ownership(deps.storage, &deps.querier, sender),
@@ -264,10 +264,10 @@ fn transfer_ownership(
     deps: DepsMut,
     sender: &Addr,
     new_owner: GovernanceDetails<String>,
-    version_control: Addr,
+    registry: Addr,
     expiry: Option<Expiration>,
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
-    let new_owner = new_owner.verify(deps.as_ref(), version_control)?;
+    let new_owner = new_owner.verify(deps.as_ref(), registry)?;
 
     if new_owner.owner_address(&deps.querier).is_none() {
         return Err(GovOwnershipError::TransferToRenounced {});
@@ -398,7 +398,7 @@ mod tests {
     }
 
     fn vc_addr(mock_api: MockApi) -> Addr {
-        mock_api.addr_make("version_control")
+        mock_api.addr_make("registry")
     }
 
     fn mock_block_at_height(height: u64) -> BlockInfo {
@@ -414,9 +414,9 @@ mod tests {
         let mut deps = mock_dependencies();
         let [larry, _, _] = mock_govs(deps.api);
 
-        let version_control = vc_addr(deps.api);
+        let registry = vc_addr(deps.api);
         let ownership =
-            initialize_owner(deps.as_mut(), larry.clone().into(), version_control).unwrap();
+            initialize_owner(deps.as_mut(), larry.clone().into(), registry).unwrap();
 
         // ownership returned is same as ownership stored.
         assert_eq!(ownership, OWNERSHIP.load(deps.as_ref().storage).unwrap());
@@ -434,12 +434,12 @@ mod tests {
     #[test]
     fn initialize_ownership_no_owner() {
         let mut deps = mock_dependencies();
-        let version_control = vc_addr(deps.api);
+        let registry = vc_addr(deps.api);
 
         let ownership = initialize_owner(
             deps.as_mut(),
             GovernanceDetails::Renounced {},
-            version_control,
+            registry,
         )
         .unwrap();
         assert_eq!(
@@ -458,11 +458,11 @@ mod tests {
         let [larry, jake, _] = mock_govs(deps.api);
         let larry_address = larry.owner_address(&deps.as_ref().querier).unwrap();
         let jake_address = jake.owner_address(&deps.as_ref().querier).unwrap();
-        let version_control = vc_addr(deps.api);
+        let registry = vc_addr(deps.api);
 
         // case 1. owner has not renounced
         {
-            initialize_owner(deps.as_mut(), larry.clone().into(), version_control).unwrap();
+            initialize_owner(deps.as_mut(), larry.clone().into(), registry).unwrap();
 
             let res = assert_nested_owner(
                 deps.as_ref().storage,
@@ -496,9 +496,9 @@ mod tests {
         let [larry, jake, pumpkin] = mock_govs(deps.api);
         let larry_address = larry.owner_address(&deps.as_ref().querier).unwrap();
         let jake_address = jake.owner_address(&deps.as_ref().querier).unwrap();
-        let version_control = vc_addr(deps.api);
+        let registry = vc_addr(deps.api);
 
-        initialize_owner(deps.as_mut(), larry.clone().into(), version_control.clone()).unwrap();
+        initialize_owner(deps.as_mut(), larry.clone().into(), registry.clone()).unwrap();
 
         // non-owner cannot transfer ownership
         {
@@ -508,7 +508,7 @@ mod tests {
                 depsmut,
                 &mock_block_at_height(12345),
                 &jake_address,
-                version_control.clone(),
+                registry.clone(),
                 GovAction::TransferOwnership {
                     new_owner: pumpkin.clone().into(),
                     expiry: None,
@@ -524,7 +524,7 @@ mod tests {
                 deps.as_mut(),
                 &mock_block_at_height(12345),
                 &larry_address,
-                version_control,
+                registry,
                 GovAction::TransferOwnership {
                     new_owner: pumpkin.clone().into(),
                     expiry: Some(Expiration::AtHeight(42069)),
@@ -552,9 +552,9 @@ mod tests {
         let larry_address = larry.owner_address(&deps.as_ref().querier).unwrap();
         let jake_address = jake.owner_address(&deps.as_ref().querier).unwrap();
         let pumpkin_address = pumpkin.owner_address(&deps.as_ref().querier).unwrap();
-        let version_control = vc_addr(deps.api);
+        let registry = vc_addr(deps.api);
 
-        initialize_owner(deps.as_mut(), larry.clone().into(), version_control.clone()).unwrap();
+        initialize_owner(deps.as_mut(), larry.clone().into(), registry.clone()).unwrap();
 
         // cannot accept ownership when there isn't a pending ownership transfer
         {
@@ -562,7 +562,7 @@ mod tests {
                 deps.as_mut(),
                 &mock_block_at_height(12345),
                 &pumpkin_address,
-                version_control.clone(),
+                registry.clone(),
                 GovAction::AcceptOwnership,
             )
             .unwrap_err();
@@ -573,7 +573,7 @@ mod tests {
             deps.as_mut(),
             &larry_address,
             pumpkin.clone().into(),
-            version_control.clone(),
+            registry.clone(),
             Some(Expiration::AtHeight(42069)),
         )
         .unwrap();
@@ -584,7 +584,7 @@ mod tests {
                 deps.as_mut(),
                 &mock_block_at_height(12345),
                 &jake_address,
-                version_control.clone(),
+                registry.clone(),
                 GovAction::AcceptOwnership,
             )
             .unwrap_err();
@@ -597,7 +597,7 @@ mod tests {
                 deps.as_mut(),
                 &mock_block_at_height(69420),
                 &pumpkin_address,
-                version_control.clone(),
+                registry.clone(),
                 GovAction::AcceptOwnership,
             )
             .unwrap_err();
@@ -610,7 +610,7 @@ mod tests {
                 deps.as_mut(),
                 &mock_block_at_height(10000),
                 &pumpkin_address,
-                version_control,
+                registry,
                 GovAction::AcceptOwnership,
             )
             .unwrap();
@@ -634,7 +634,7 @@ mod tests {
         let [larry, jake, pumpkin] = mock_govs(deps.api);
         let larry_address = larry.owner_address(&deps.as_ref().querier).unwrap();
         let jake_address = jake.owner_address(&deps.as_ref().querier).unwrap();
-        let version_control = vc_addr(deps.api);
+        let registry = vc_addr(deps.api);
 
         let ownership = Ownership {
             owner: larry.clone(),
@@ -649,7 +649,7 @@ mod tests {
                 deps.as_mut(),
                 &mock_block_at_height(12345),
                 &jake_address,
-                version_control.clone(),
+                registry.clone(),
                 GovAction::RenounceOwnership,
             )
             .unwrap_err();
@@ -662,7 +662,7 @@ mod tests {
                 deps.as_mut(),
                 &mock_block_at_height(12345),
                 &larry_address,
-                version_control.clone(),
+                registry.clone(),
                 GovAction::RenounceOwnership,
             )
             .unwrap();
@@ -686,7 +686,7 @@ mod tests {
                 deps.as_mut(),
                 &mock_block_at_height(12345),
                 &larry_address,
-                version_control,
+                registry,
                 GovAction::RenounceOwnership,
             )
             .unwrap_err();
