@@ -4,7 +4,7 @@ use abstract_adapter::abstract_interface::{
 use abstract_adapter::std::{
     adapter,
     objects::module::{Module, ModuleInfo, ModuleVersion},
-    ANS_HOST, VERSION_CONTROL,
+    ANS_HOST, REGISTRY,
 };
 use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
 use cosmwasm_std::{Addr, Empty};
@@ -20,9 +20,10 @@ fn deploy_cw_staking(
     let rt = tokio::runtime::Runtime::new().unwrap();
     let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
 
-    let registry = Registry::new(VERSION_CONTROL, chain.clone());
+    let registry = Registry::new(REGISTRY, chain.clone());
+    // TODO: it's known address
     registry.set_address(&Addr::unchecked(
-        std::env::var("VERSION_CONTROL").expect("VERSION_CONTROL not set"),
+        std::env::var("REGISTRY").expect("REGISTRY not set"),
     ));
 
     let ans_host = AnsHost::new(ANS_HOST, chain.clone());

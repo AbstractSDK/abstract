@@ -345,7 +345,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
     /// Note that execution will be done through source chain
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let modules = vec![(
-            ModuleInfo::from_id(abstract_std::registry_names::ACCOUNT, version.clone())?,
+            ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
             Some(
                 to_json_binary(&abstract_std::account::MigrateMsg {})
                     .map_err(Into::<CwOrchError>::into)?,

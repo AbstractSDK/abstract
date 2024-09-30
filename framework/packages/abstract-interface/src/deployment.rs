@@ -66,7 +66,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         let deployment = Abstract {
             ans_host,
-            registry: registry,
+            registry,
             module_factory,
             account,
             ibc: ibc_infra,
@@ -194,7 +194,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         // Check if abstract deployed, for successful load
         if let Err(CwOrchError::AddrNotInStore(_)) = abstr.registry.address() {
             return Err(AbstractInterfaceError::NotDeployed {});
-        } else if abstr.version_control.item_query(cw2::CONTRACT).is_err() {
+        } else if abstr.registry.item_query(cw2::CONTRACT).is_err() {
             return Err(AbstractInterfaceError::NotDeployed {});
         }
         Ok(abstr)
@@ -223,7 +223,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         Self {
             account,
             ans_host,
-            registry: registry,
+            registry,
             module_factory,
             ibc: AbstractIbc {
                 client: ibc_client,
@@ -300,7 +300,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
     pub fn update_sender(&mut self, sender: &Chain::Sender) {
         let Self {
             ans_host,
-            registry: registry,
+            registry,
             module_factory,
             ibc,
             account,

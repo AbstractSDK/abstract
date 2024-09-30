@@ -148,10 +148,7 @@ pub mod mock {
             })
             .with_dependencies(&[
                 StaticDependency::new(TEST_MODULE_ID, &[TEST_VERSION]),
-                StaticDependency::new(
-                    IBC_CLIENT,
-                    &[abstract_std::registry_names::ABSTRACT_VERSION],
-                ),
+                StaticDependency::new(IBC_CLIENT, &[abstract_std::constants::ABSTRACT_VERSION]),
             ])
             .with_replies(&[(1u64, |_, _, _, msg| {
                 #[allow(deprecated)]
@@ -189,10 +186,7 @@ pub mod mock {
                 Some(to_json_binary(&MockInitMsg {})?),
             );
             let ibc_client = ModuleInstallConfig::new(
-                ModuleInfo::from_id(
-                    IBC_CLIENT,
-                    abstract_std::registry_names::ABSTRACT_VERSION.into(),
-                )?,
+                ModuleInfo::from_id(IBC_CLIENT, abstract_std::constants::ABSTRACT_VERSION.into())?,
                 None,
             );
             Ok(vec![test_module, ibc_client])

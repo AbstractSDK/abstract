@@ -89,7 +89,7 @@ The API can then be used by any contract that implements its required traits, in
   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
   # use abstract_sdk::feature_objects::AnsHost;
   # use abstract_sdk::{AbstractSdkResult, AccountAction};
-  # use abstract_std::version_control::Account;
+  # use abstract_std::registry::Account;
   # pub struct MyContract {
   #     
   # }

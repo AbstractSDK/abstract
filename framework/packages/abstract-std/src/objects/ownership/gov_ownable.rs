@@ -415,8 +415,7 @@ mod tests {
         let [larry, _, _] = mock_govs(deps.api);
 
         let registry = vc_addr(deps.api);
-        let ownership =
-            initialize_owner(deps.as_mut(), larry.clone().into(), registry).unwrap();
+        let ownership = initialize_owner(deps.as_mut(), larry.clone().into(), registry).unwrap();
 
         // ownership returned is same as ownership stored.
         assert_eq!(ownership, OWNERSHIP.load(deps.as_ref().storage).unwrap());
@@ -436,12 +435,8 @@ mod tests {
         let mut deps = mock_dependencies();
         let registry = vc_addr(deps.api);
 
-        let ownership = initialize_owner(
-            deps.as_mut(),
-            GovernanceDetails::Renounced {},
-            registry,
-        )
-        .unwrap();
+        let ownership =
+            initialize_owner(deps.as_mut(), GovernanceDetails::Renounced {}, registry).unwrap();
         assert_eq!(
             ownership,
             Ownership {

@@ -4,8 +4,8 @@
 pub(crate) mod ans_asset;
 pub mod ans_host;
 pub mod module_factory;
-pub mod storage_namespaces;
 pub mod registry;
+pub mod storage_namespaces;
 
 mod entry;
 pub mod pool;

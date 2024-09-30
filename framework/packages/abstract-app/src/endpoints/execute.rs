@@ -85,8 +85,7 @@ impl<
         }
 
         if let Some(registry_address) = registry_address {
-            state.registry.address =
-                deps.api.addr_validate(registry_address.as_str())?;
+            state.registry.address = deps.api.addr_validate(registry_address.as_str())?;
         }
 
         self.base_state.save(deps.storage, &state)?;

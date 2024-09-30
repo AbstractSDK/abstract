@@ -101,11 +101,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     );
 
     // Namespace is claimed.
-    let account_id = client
-        .registry()
-        .namespace(namespace)?
-        .unwrap()
-        .account_id;
+    let account_id = client.registry().namespace(namespace)?.unwrap().account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -211,11 +207,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     assert_eq!(ownership.owner, governance_details);
 
     // Namespace is claimed.
-    let account_id = client
-        .registry()
-        .namespace(namespace)?
-        .unwrap()
-        .account_id;
+    let account_id = client.registry().namespace(namespace)?.unwrap().account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())

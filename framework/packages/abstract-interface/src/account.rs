@@ -11,9 +11,7 @@
 //! - uninstall module
 //! - upgrade module
 
-use crate::{
-    get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, Registry,
-};
+use crate::{get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, Registry};
 pub use abstract_std::account::{ExecuteMsgFns as AccountExecFns, QueryMsgFns as AccountQueryFns};
 use abstract_std::{
     account::{AccountModuleInfo, ModuleInstallConfig, *},

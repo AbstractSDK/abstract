@@ -40,10 +40,7 @@ impl<
         };
 
         // Base state
-        let state = AdapterState {
-            registry,
-            ans_host,
-        };
+        let state = AdapterState { registry, ans_host };
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;

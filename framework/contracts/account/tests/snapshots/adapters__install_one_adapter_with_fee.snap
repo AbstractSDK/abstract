@@ -101,7 +101,7 @@ expression: all_storage
     - "{\"owner\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\",\"pending_owner\":null,\"pending_expiry\":null}"
 "tester:test-module-id":
   - - base_state
-    - "{\"version_control\":{\"address\":\"mock18aq2nqrm809gdktwetuk6c48c6yj379ptkdeewv6j797xv3j2gssdzgurv\"},\"ans_host\":{\"address\":\"mock17r8ljc3tw8tdx85gpwxpq5ten89622svh2ct0utcg75x89ed7cgsyz0g62\"}}"
+    - "{\"registry\":{\"address\":\"mock18aq2nqrm809gdktwetuk6c48c6yj379ptkdeewv6j797xv3j2gssdzgurv\"},\"ans_host\":{\"address\":\"mock17r8ljc3tw8tdx85gpwxpq5ten89622svh2ct0utcg75x89ed7cgsyz0g62\"}}"
   - - contract_info
     - "{\"contract\":\"tester:test-module-id\",\"version\":\"0.23.0\"}"
   - - ibc_callback_received

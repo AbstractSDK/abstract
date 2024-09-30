@@ -414,16 +414,12 @@ fn renounce_cleans_namespace() -> AResult {
         &[],
     )?;
 
-    let namespace_result = deployment
-        .registry
-        .namespace(Namespace::unchecked("bar"));
+    let namespace_result = deployment.registry.namespace(Namespace::unchecked("bar"));
     assert!(namespace_result.is_ok());
 
     account.update_ownership(ownership::GovAction::RenounceOwnership)?;
 
-    let namespace_result = deployment
-        .registry
-        .namespace(Namespace::unchecked("bar"))?;
+    let namespace_result = deployment.registry.namespace(Namespace::unchecked("bar"))?;
     assert_eq!(namespace_result, NamespaceResponse::Unclaimed {});
 
     // Governance is in fact renounced

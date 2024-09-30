@@ -1,6 +1,6 @@
 use abstract_sdk::{std::objects::module::ModuleInfo, AbstractSdkError};
 use abstract_std::{
-    objects::{validation::ValidationError, registry::RegistryError},
+    objects::{registry::RegistryError, validation::ValidationError},
     AbstractError,
 };
 use cosmwasm_std::{Instantiate2AddressError, StdError};

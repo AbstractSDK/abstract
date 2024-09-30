@@ -483,10 +483,10 @@ mod test {
 
     use crate::msg::ExecuteMsg;
     use abstract_adapter::abstract_testing::abstract_mock_querier_builder;
+    use abstract_adapter::abstract_testing::module::TEST_MODULE_ID;
     use abstract_adapter::abstract_testing::prelude::{
         test_account, AbstractMockAddrs, AbstractMockQuerier, TEST_ACCOUNT_ID,
     };
-    use abstract_adapter::abstract_testing::{abstract_mock_querier, module::TEST_MODULE_ID};
     use abstract_adapter::sdk::mock_module::MockModule;
     use abstract_adapter::std::adapter::AdapterRequestMsg;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};

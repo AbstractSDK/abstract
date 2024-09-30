@@ -277,8 +277,7 @@ pub fn query_module(
             }
             Module {
                 info: module_info.clone(),
-                reference: registry
-                    .query_module_reference_raw(&module_info, &deps.querier)?,
+                reference: registry.query_module_reference_raw(&module_info, &deps.querier)?,
             }
         }
         ModuleVersion::Latest => {

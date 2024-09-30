@@ -390,11 +390,11 @@ mod test {
         for id in 0..0b10000000 {
             let (unmasked_id, admin) = AuthId::new(id, true).unwrap().cred_id();
             assert_eq!(id, unmasked_id);
-            assert_eq!(admin, true);
+            assert!(admin);
 
             let (unmasked_id, admin) = AuthId::new(id, false).unwrap().cred_id();
             assert_eq!(id, unmasked_id);
-            assert_eq!(admin, false);
+            assert!(!admin);
         }
     }
 }

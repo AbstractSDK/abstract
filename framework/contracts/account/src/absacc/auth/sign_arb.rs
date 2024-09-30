@@ -33,7 +33,7 @@ mod tests {
     use super::super::util;
     use crate::contract::instantiate;
     use abstract_std::account::InstantiateMsg;
-    use abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE;
+    use abstract_std::registry::state::LOCAL_ACCOUNT_SEQUENCE;
     use abstract_testing::abstract_mock_querier_builder;
     use abstract_testing::prelude::AbstractMockAddrs;
     use base64::{engine::general_purpose, Engine as _};
@@ -100,7 +100,7 @@ mod tests {
         deps.api = deps.api.with_prefix("xion");
         let abstr = AbstractMockAddrs::new(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
-            .with_contract_item(&abstr.version_control, LOCAL_ACCOUNT_SEQUENCE, &0)
+            .with_contract_item(&abstr.registry, LOCAL_ACCOUNT_SEQUENCE, &0)
             .build();
         let mut env = mock_env();
         // This is the local faucet address to simplify reuse

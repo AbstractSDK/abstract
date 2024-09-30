@@ -602,7 +602,7 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .upgrade(vec![(
-                ModuleInfo::from_id(abstract_std::registry_names::ACCOUNT, version.clone())?,
+                ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
                 Some(
                     to_json_binary(&abstract_std::account::MigrateMsg {})
                         .map_err(Into::<CwOrchError>::into)?,
