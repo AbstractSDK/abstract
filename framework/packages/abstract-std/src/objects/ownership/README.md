@@ -100,21 +100,22 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 ## NFT governance type
 
-Utility for querying the owner of a specific NFT. In case NFT contract does not return owner of `owner_of`, ownership will act as renounced. For example NFT got burned or something happened with NFT contract.
+For NFT-owned accounts the account's ownership is determined by **who owns the related NFT**. I.e. when transferring the ownership of the NFT all the accounts related to that NFT also change ownership.
+In the case where the NFT contract does not return a valid `owner_of`, the account's ownership will be treated as if it was renounced and the account becomes unavailable. This would happen when an NFT is burned or something happens with NFT contract.
 
 ## Abstract Account Controlled Module
 
-For modules and contracts controlled by Abstract Accounts, we present a mechanism that allows those contracts to make sure that an in-coming message from the Account was originally called by an admin and not another module. This prevents any module to call admin functions on other modules and thus makes the module system more resistent to malicious modules.
+For modules and contracts controlled by Abstract Accounts, we present a mechanism that allows those contracts to make sure that an in-coming message from the Account was originally called by an admin and not another module. This prevents modules from calling admin functions on other modules and thus makes the module system more resistent to malicious modules.
 
 ### Mechanism
 
-Modules and Account Owners can execute actions through the Account using the `account::ExecuteMsg::Execute` message variant. In order to execute an admin call, owners need to call `account::ExecuteMsg::AdminExecute`. This function will in order:
+Modules and Account Owners can execute actions through the Account using the `account::ExecuteMsg::Execute` message variant. In order to execute an admin call, owners need to call `account::ExecuteMsg::AdminExecute`. The admin function will then:
 
-- Set the `CALLING_TO_AS_ADMIN` storage item to the target of the admin call.
+- Set the `CALLING_TO_AS_ADMIN` storage item to the target address of the admin call.
 - Call the specified function on the target module or contract.
 - Remove the `CALLING_TO_AS_ADMIN` storage item.
 
-In order to check that the call is an admin call, the target module or contract needs to check that the `CALLING_TO_AS_ADMIN` storage item is set on the account contract. If it's not set, it should error, as the call is not an authorized admin call.
+In order to check that the call is an admin call, the target module or contract needs to check that the `CALLING_TO_AS_ADMIN` storage item is present on the account contract and that it contains `env.contract.address`. If it's not set or a different address, it should error, as the call is not an authorized admin call.
 
 ### Usage inside a module
 
@@ -127,7 +128,7 @@ The `NestedAdmin::assert_admin` function will only return an `Result::Ok` if any
   - The `CALLING_TO_AS_ADMIN_WILD_CARD`, that is used for contract migrations to avoid re-setting the flag during migration events.
 - The caller is the top-level owner of the saved Account
 
-So inside `Abstract Apps` for instance, one should write the following lines to flag admin actions:
+So inside `Abstract Apps` for instance, one should write the following lines to shield admin actions:
 
 ```rust
 app.admin.assert_admin(deps.as_ref(), &env, info.sender)?;
@@ -177,7 +178,3 @@ Account ->> Module:
 end
 Module ->> Module: `CALLING_TO_AS_ADMIN` != Module --> Error
 ```
-
-## License
-
-Contents of this crate at or prior to version `0.5.0` are published under [GNU Affero General Public License v3](https://github.com/steak-enjoyers/cw-plus-plus/blob/9c8fcf1c95b74dd415caf5602068c558e9d16ecc/LICENSE) or later; contents after the said version are published under [Apache-2.0](../../LICENSE) license.
