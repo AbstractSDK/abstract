@@ -109,6 +109,7 @@ serde_json = { version = "1.0", optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-adapter = { workspace = true, feature = ["test-utils"] }
 tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
@@ -121,7 +122,7 @@ clap = { workspace = true }
 dex = { path = ".", features = [
   # "wynd",
   # "osmosis",
-  # "testing",
+  "testing",
 ], package = "abstract-dex-adapter" }
 
 # abstract-wyndex-adapter = { workspace = true, features = ["local"] }
