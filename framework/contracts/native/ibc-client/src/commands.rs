@@ -448,10 +448,11 @@ fn _ics_20_send_msg(
 
             let value = value.encode_to_vec();
             let value = Binary::from(value);
-            CosmosMsg::Any(AnyMsg {
+            // TODO: cosmwasm_2_0 CosmosMsg::Any
+            CosmosMsg::Stargate {
                 type_url: MsgTransfer::type_url(),
                 value,
-            })
+            }
         }
         None => IbcMsg::Transfer {
             channel_id: ics20_channel_id,
@@ -466,6 +467,7 @@ fn _ics_20_send_msg(
 
 // Map a ModuleQuery to a regular query.
 fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<Empty> {
+    //
     match query {
         QueryRequest::Custom(ModuleQuery { target_module, msg }) => {
             QueryRequest::Wasm(WasmQuery::Smart {
@@ -476,7 +478,9 @@ fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<E
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),
         QueryRequest::Staking(query) => QueryRequest::Staking(query),
-        QueryRequest::Grpc(grpc) => QueryRequest::Grpc(grpc),
+        // TODO: cosmwasm_2_0
+        // QueryRequest::Grpc(grpc) => QueryRequest::Grpc(grpc),
+        QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
         QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
         QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
         // Distribution flag not enabled on polytone, so should not be accepted.

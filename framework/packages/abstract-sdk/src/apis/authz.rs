@@ -104,10 +104,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
+        CosmosMsg::Stargate {
             type_url: authz::v1beta1::MsgRevoke::type_url(),
             value: Binary::new(msg),
-        })
+        }
     }
 
     /// Generate cosmwasm message for the AuthZAuthorization type
@@ -124,10 +124,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
+        CosmosMsg::Stargate {
             type_url: authz::v1beta1::MsgGrant::type_url(),
             value: Binary::new(msg),
-        })
+        }
     }
 
     /// Grants generic authorization to a **grantee**.
@@ -288,7 +288,7 @@ impl AuthZ {
                 ),
                 _ => todo!(),
             },
-            CosmosMsg::Any(AnyMsg { type_url, value }) => (type_url.clone(), value.into()),
+            CosmosMsg::Stargate { type_url, value } => (type_url.clone(), value.into()),
             CosmosMsg::Bank(bank_msg) => match bank_msg {
                 cosmwasm_std::BankMsg::Send { to_address, amount } => (
                     MsgSend::type_url(),
@@ -458,10 +458,10 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
+        CosmosMsg::Stargate {
             type_url: authz::v1beta1::MsgExec::type_url(),
             value: Binary::new(msg),
-        })
+        }
     }
 }
 
@@ -487,7 +487,7 @@ mod tests {
             expiration,
         );
 
-        let expected_msg = CosmosMsg::Any(AnyMsg {
+        let expected_msg = CosmosMsg::Stargate {
             type_url: "/cosmos.authz.v1beta1.MsgGrant".to_string(),
             value: Binary::new(
                 authz::v1beta1::MsgGrant {
@@ -506,7 +506,7 @@ mod tests {
                 }
                 .encode_to_vec(),
             ),
-        });
+        };
 
         assert_eq!(generic_authorization_msg, expected_msg);
     }
@@ -523,7 +523,7 @@ mod tests {
         let generic_authorization_msg =
             auth_z.revoke(&grantee, "/cosmos.gov.v1beta1.MsgVote".to_string());
 
-        let expected_msg = CosmosMsg::Any(AnyMsg {
+        let expected_msg = CosmosMsg::Stargate {
             type_url: "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
             value: Binary::new(
                 authz::v1beta1::MsgRevoke {
@@ -533,7 +533,7 @@ mod tests {
                 }
                 .encode_to_vec(),
             ),
-        });
+        };
 
         assert_eq!(generic_authorization_msg, expected_msg);
     }

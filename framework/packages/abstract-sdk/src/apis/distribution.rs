@@ -69,10 +69,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Any(AnyMsg {
+        let msg = CosmosMsg::Stargate {
             type_url: distribution::v1beta1::MsgSetWithdrawAddress::type_url(),
             value: to_json_binary(&msg)?,
-        });
+        };
 
         Ok(msg.into())
     }
@@ -89,10 +89,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Any(AnyMsg {
+        let msg = CosmosMsg::Stargate {
             type_url: distribution::v1beta1::MsgWithdrawDelegatorReward::type_url(),
             value: to_json_binary(&msg)?,
-        });
+        };
 
         Ok(msg.into())
     }
@@ -107,10 +107,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Any(AnyMsg {
+        let msg = CosmosMsg::Stargate {
             type_url: distribution::v1beta1::MsgWithdrawValidatorCommission::type_url(),
             value: to_json_binary(&msg)?,
-        });
+        };
 
         Ok(msg.into())
     }
@@ -133,10 +133,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Any(AnyMsg {
+        let msg = CosmosMsg::Stargate {
             type_url: distribution::v1beta1::MsgFundCommunityPool::type_url(),
             value: to_json_binary(&msg)?,
-        });
+        };
 
         Ok(msg.into())
     }

@@ -1,5 +1,7 @@
 use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
+use cosmrs::AccountId;
+use cosmwasm_std::{CanonicalAddr, HexBinary};
 use std::{
     fs::{self, File},
     io::BufReader,
@@ -51,6 +53,8 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
             .handle(rt.handle())
             .mnemonic(JUNO_MNEMONIC)
             .build()?;
+        let account_id: cosmrs::AccountId = chain.sender_addr().as_str().parse().unwrap();
+        panic!("{}", account_id);
 
         let sender = chain.sender().clone();
         let monarch = chain.sender_addr();
@@ -112,8 +116,6 @@ fn main() {
     use dotenv::dotenv;
 
     let args = Arguments::parse();
-
-    // let networks = vec![abstract_scripts::ROLLKIT_TESTNET];
 
     let networks = args
         .network_ids

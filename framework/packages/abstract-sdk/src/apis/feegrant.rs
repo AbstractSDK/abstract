@@ -88,10 +88,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
+        CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
             value: Binary::new(msg),
-        })
+        }
     }
 
     /// Grants an allowance to a **grantee**.
@@ -108,10 +108,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
+        CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
             value: Binary::new(msg),
-        })
+        }
     }
 
     /// Grants a basic allowance.
@@ -190,7 +190,7 @@ mod test {
         grantee: Addr,
         allowance: impl StargateMessage,
     ) -> CosmosMsg {
-        CosmosMsg::Any(AnyMsg {
+        CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
             value: Binary::new(
                 feegrant::v1beta1::MsgGrantAllowance {
@@ -200,7 +200,7 @@ mod test {
                 }
                 .encode_to_vec(),
             ),
-        })
+        }
     }
 
     mod basic_allowance {
@@ -294,7 +294,7 @@ mod test {
 
             let revoke_msg = fee_granter.revoke_allowance(&grantee);
 
-            let expected_msg = CosmosMsg::Any(AnyMsg {
+            let expected_msg = CosmosMsg::Stargate {
                 type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
                 value: Binary::new(
                     feegrant::v1beta1::MsgRevokeAllowance {
@@ -303,7 +303,7 @@ mod test {
                     }
                     .encode_to_vec(),
                 ),
-            });
+            };
             assert_eq!(revoke_msg, expected_msg);
         }
     }

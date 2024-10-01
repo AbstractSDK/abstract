@@ -31,7 +31,7 @@ license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
-cosmwasm-std = { version = "2.0.0", features = ["cosmwasm_2_0"] }
+cosmwasm-std = { version = "2.0.0", features = ["cosmwasm_1_2"] }
 cosmwasm-schema = { version = "2.0" }
 cw-controllers = { version = "2.0" }
 cw-utils = { version = "2.0" }
