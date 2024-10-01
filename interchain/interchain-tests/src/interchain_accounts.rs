@@ -406,7 +406,7 @@ mod test {
         });
         let create_account_remote_tx = origin_account.execute_on_remote(
             TruncatedChainId::from_chain_id(STARGAZE),
-            abstract_std::account::ExecuteMsg::ModuleAction {
+            abstract_std::account::ExecuteMsg::Execute {
                 msgs: vec![create_account_instantiate_msg],
             },
         )?;
