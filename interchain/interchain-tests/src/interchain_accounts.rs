@@ -191,7 +191,7 @@ mod test {
         )?;
 
         // The user on origin chain wants to change the account description
-        let ibc_transfer_result = origin_account.manager.execute_msgs(
+        let ibc_transfer_result = origin_account.execute_msgs(
             vec![cosmwasm_std::CosmosMsg::Ibc(
                 cosmwasm_std::IbcMsg::Transfer {
                     channel_id: interchain_channel
