@@ -1,10 +1,11 @@
 use abstract_std::{
     account::{
-        state::{ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, DEPENDENTS, WHITELISTED_MODULES},
+        state::{ACCOUNT_ID, ACCOUNT_MODULES, DEPENDENTS, WHITELISTED_MODULES},
         ModuleInstallConfig,
     },
     adapter::{AdapterBaseMsg, BaseExecuteMsg, ExecuteMsg as AdapterExecMsg},
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
+    native_addrs,
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
@@ -16,8 +17,8 @@ use abstract_std::{
     version_control::ModuleResponse,
 };
 use cosmwasm_std::{
-    ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, MessageInfo,
-    StdError, StdResult, Storage, SubMsg,
+    ensure, wasm_execute, Addr, Attribute, Binary, CanonicalAddr, Coin, CosmosMsg, Deps, DepsMut,
+    MessageInfo, StdError, StdResult, Storage, SubMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;
@@ -45,13 +46,9 @@ pub fn install_modules(
     // only owner can call this method
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
-    let config = CONFIG.load(deps.storage)?;
-
     let (install_msgs, install_attribute) = _install_modules(
         deps.branch(),
         modules,
-        config.module_factory_address,
-        config.version_control_address,
         info.funds, // We forward all the funds to the module_factory address for them to use in the install
     )?;
     let response = AccountResponse::new("install_modules", std::iter::once(install_attribute))
@@ -65,18 +62,15 @@ pub fn install_modules(
 pub fn _install_modules(
     mut deps: DepsMut,
     modules: Vec<ModuleInstallConfig>,
-    module_factory_address: Addr,
-    version_control_address: Addr,
     funds: Vec<Coin>,
 ) -> AccountResult<(Vec<SubMsg>, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let version_control = VersionControlContract::new(version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
-    let canonical_module_factory = deps
-        .api
-        .addr_canonicalize(module_factory_address.as_str())?;
+    let canonical_module_factory = CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR);
+    let module_factory_address = deps.api.addr_humanize(&canonical_module_factory)?;
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
@@ -209,8 +203,7 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
     crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
     // Remove for proxy if needed
-    let config = CONFIG.load(deps.storage)?;
-    let vc = VersionControlContract::new(config.version_control_address);
+    let vc = VersionControlContract::new(deps.api)?;
 
     let module = vc.query_module(
         ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
@@ -243,9 +236,8 @@ pub fn query_module(
     module_info: ModuleInfo,
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, AccountError> {
-    let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {

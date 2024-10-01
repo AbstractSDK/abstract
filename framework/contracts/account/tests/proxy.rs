@@ -76,7 +76,7 @@ use speculoos::prelude::*;
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
     let modules = account.module_infos(None, None)?.module_infos;
@@ -101,7 +101,7 @@ fn exec_on_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     // This testing environments allows you to use simple deploy contraptions:
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
     // Mint coins to proxy address
@@ -133,7 +133,7 @@ fn exec_on_account() -> AResult {
 fn default_without_response_data() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
@@ -154,8 +154,7 @@ fn default_without_response_data() -> AResult {
 #[test]
 fn with_response_data() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    Abstract::deploy_on_mock(chain.clone())?;
     abstract_integration_tests::account::with_response_data(chain.clone())?;
     take_storage_snapshot!(chain, "proxy_with_response_data");
 
@@ -164,9 +163,9 @@ fn with_response_data() -> AResult {
 
 #[test]
 fn install_standalone_modules() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let mut chain = MockBech32::new("mock");
+    chain.set_sender(Abstract::mock_admin(&chain));
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     let account = AccountI::load_from(&deployment, AccountId::local(0))?;
 
     let standalone1_contract = Box::new(ContractWrapper::new(
@@ -212,9 +211,9 @@ fn install_standalone_modules() -> AResult {
 
 #[test]
 fn install_standalone_versions_not_met() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let mut chain = MockBech32::new("mock");
+    chain.set_sender(Abstract::mock_admin(&chain));
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     let account = AccountI::load_from(&deployment, AccountId::local(0))?;
 
     let standalone1_contract = Box::new(ContractWrapper::new(
@@ -256,10 +255,11 @@ fn install_standalone_versions_not_met() -> AResult {
 
 #[test]
 fn install_multiple_modules() -> AResult {
-    let chain = MockBech32::new("mock");
+    let mut chain = MockBech32::new("mock");
+    chain.set_sender(Abstract::mock_admin(&chain));
     let sender = chain.sender_addr();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.clone())?;
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AccountI::load_from(&deployment, ABSTRACT_ACCOUNT_ID)?;
 
     let standalone1_contract = Box::new(ContractWrapper::new(
@@ -399,7 +399,7 @@ fn install_multiple_modules() -> AResult {
 fn renounce_cleans_namespace() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let account = AccountI::create(
         &deployment,
@@ -440,7 +440,7 @@ fn renounce_cleans_namespace() -> AResult {
 // fn nft_owner_success() -> Result<(), Error> {
 //     let chain = MockBech32::new("mock");
 //     let sender = chain.sender_addr();
-//     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+//     let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 //     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
 //     let gov = GovernanceDetails::NFT {
@@ -539,7 +539,7 @@ fn renounce_cleans_namespace() -> AResult {
 // fn nft_owner_immutable() -> Result<(), Error> {
 //     let chain = MockBech32::new("mock");
 //     let sender = chain.sender_addr();
-//     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+//     let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 //     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
 //     let gov = GovernanceDetails::NFT {
@@ -639,7 +639,7 @@ fn renounce_cleans_namespace() -> AResult {
 // fn nft_pending_owner() -> Result<(), Error> {
 //     let chain = MockBech32::new("mock");
 //     let sender = chain.sender_addr();
-//     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+//     let deployment = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
 //     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
 //     let gov = GovernanceDetails::NFT {
@@ -751,7 +751,7 @@ fn renounce_cleans_namespace() -> AResult {
 fn can_take_any_last_two_billion_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     AccountI::create(
         &deployment,
@@ -794,7 +794,7 @@ fn can_take_any_last_two_billion_accounts() -> AResult {
 fn increment_not_effected_by_claiming() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let next_account_id = deployment.version_control.config()?.local_account_sequence;
     assert_eq!(next_account_id, 1);

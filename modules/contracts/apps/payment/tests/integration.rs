@@ -15,7 +15,7 @@ use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
 use cw_orch::environment::Environment;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
-use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
+use cw_plus_orch::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{
@@ -127,7 +127,7 @@ fn test_update_config() -> anyhow::Result<()> {
         .ans_host
         .update_dexes(vec![dex_name.clone()], vec![])?;
 
-    app.call_as(&account.manager.address()?).update_config(
+    app.call_as(&account.address()?).update_config(
         Some("Ye-uh-roah".to_owned()),
         Clearable::new_opt(AssetEntry::new(&new_target_currency)),
         Some(vec![dex_name.clone()]),
@@ -165,7 +165,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
 
     app.call_as(&tipper).tip(&tip_coins)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    let balance = mock.query_balance(&account.address()?, &tip_currency)?;
     assert_eq!(balance, Uint128::from(tip_amount));
 
     // Query tip count
@@ -246,9 +246,9 @@ fn test_tip_swap() -> anyhow::Result<()> {
 
     app.call_as(&tipper).tip(&tip_coins)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, &target_currency)?;
+    let balance = mock.query_balance(&account.address()?, &target_currency)?;
     assert!(!balance.is_zero());
-    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    let balance = mock.query_balance(&account.address()?, &tip_currency)?;
     assert!(balance.is_zero());
 
     // Query tip count
@@ -315,13 +315,13 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
 
     app.call_as(&tipper).tip(&tip_coins)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    let balance = mock.query_balance(&account.address()?, &tip_currency)?;
     assert!(balance.is_zero());
 
-    let balance = mock.query_balance(&account.proxy.address()?, &target_currency)?;
+    let balance = mock.query_balance(&account.address()?, &target_currency)?;
     assert!(!balance.is_zero());
 
-    let balance = mock.query_balance(&account.proxy.address()?, tip_currency1)?;
+    let balance = mock.query_balance(&account.address()?, tip_currency1)?;
     assert_eq!(balance, Uint128::from(tip_amount1));
 
     Ok(())
@@ -380,9 +380,7 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     let tipper_balance = cw20_token.balance(tipper.to_string())?.balance;
     assert_eq!(starting_balance - tip_amount, tipper_balance.u128());
 
-    let proxy_balance = cw20_token
-        .balance(account.proxy.address()?.to_string())?
-        .balance;
+    let proxy_balance = cw20_token.balance(account.address()?.to_string())?.balance;
     assert_eq!(tip_amount, proxy_balance.u128());
 
     // Query tip count
@@ -433,7 +431,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
 
     app.call_as(&tipper2).tip(&tip_coins)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    let balance = mock.query_balance(&account.address()?, &tip_currency)?;
     assert_eq!(balance, Uint128::from(tip_amount1 + tip_amount2));
 
     // Query tip count

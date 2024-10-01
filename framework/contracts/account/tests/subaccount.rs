@@ -2,7 +2,7 @@ use abstract_account::error::AccountError;
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_std::{
-    account::{self, SubAccountIdsResponse},
+    account::SubAccountIdsResponse,
     objects::{
         gov_type::{GovAction, GovernanceDetails},
         ownership,
@@ -15,7 +15,7 @@ use cw_orch::prelude::*;
 fn creating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     account.create_and_return_sub_account(
         AccountDetails {
@@ -44,7 +44,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
 fn updating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     account.create_and_return_sub_account(
         AccountDetails {
@@ -70,7 +70,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
 fn proxy_updating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     let proxy_address = account.address()?;
     let sub_account = account.create_and_return_sub_account(
@@ -100,7 +100,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
 fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     let sub_account = account.create_and_return_sub_account(
         AccountDetails {
@@ -136,7 +136,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
 fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     let sub_account = account.create_and_return_sub_account(
         AccountDetails {
@@ -156,7 +156,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     account.call_as(&mock_app).execute_msgs(
         vec![wasm_execute(
             sub_account.addr_str()?,
-            &abstract_std::account::ExecuteMsg::UpdateInfo {
+            &abstract_std::account::ExecuteMsg::<Empty>::UpdateInfo {
                 name: None,
                 description: Some(new_desc.to_owned()),
                 link: None,
@@ -181,7 +181,7 @@ fn sub_account_move_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let new_owner = chain.addr_make("new_owner");
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     // Store manager address, it will be used for querying
     let manager_addr = account.address()?;
@@ -247,8 +247,7 @@ fn sub_account_move_ownership() -> AResult {
 #[test]
 fn account_move_ownership_to_sub_account() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender_addr();
-    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    Abstract::deploy_on_mock(chain.clone())?;
     abstract_integration_tests::account::account_move_ownership_to_sub_account(chain)?;
     Ok(())
 }
@@ -257,7 +256,7 @@ fn account_move_ownership_to_sub_account() -> AResult {
 fn sub_account_move_ownership_to_sub_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
     let sub_account = account.create_and_return_sub_account(
@@ -303,7 +302,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     sub_account.execute_msgs(
         vec![wasm_execute(
             new_account_sub_account_addr,
-            &abstract_std::account::ExecuteMsg::UpdateOwnership(
+            &abstract_std::account::ExecuteMsg::<Empty>::UpdateOwnership(
                 ownership::GovAction::AcceptOwnership,
             ),
             vec![],
@@ -336,7 +335,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
 fn account_updated_to_subaccount() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     // Creating account1
     let account_1 = create_default_account(&sender, &deployment)?;
@@ -353,8 +352,9 @@ fn account_updated_to_subaccount() -> AResult {
     })?;
 
     // account1 accepting account2 as a sub-account
-    let accept_msg =
-        abstract_std::account::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
+    let accept_msg = abstract_std::account::ExecuteMsg::<Empty>::UpdateOwnership(
+        ownership::GovAction::AcceptOwnership,
+    );
     account_1.execute_msgs(
         vec![wasm_execute(account_2.addr_str()?, &accept_msg, vec![])?.into()],
         &[],
@@ -370,7 +370,7 @@ fn account_updated_to_subaccount() -> AResult {
 fn account_updated_to_subaccount_recursive() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     // Creating account1
     let account_1 = create_default_account(&sender, &deployment)?;
@@ -398,7 +398,7 @@ fn account_updated_to_subaccount_recursive() -> AResult {
 fn top_level_owner() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let account = create_default_account(&sender, &deployment)?;
     let sub_account = account.create_and_return_sub_account(
@@ -418,7 +418,7 @@ fn top_level_owner() -> AResult {
 fn cant_renounce_with_sub_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let account = create_default_account(&sender, &deployment)?;
     // Creating sub account
@@ -443,7 +443,7 @@ fn cant_renounce_with_sub_accounts() -> AResult {
 fn can_renounce_sub_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     let account = create_default_account(&sender, &deployment)?;
     // Creating sub account
@@ -473,7 +473,7 @@ fn can_renounce_sub_accounts() -> AResult {
 fn account_updated_to_subaccount_without_recursion() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     // Creating account1
     let account_1 = create_default_account(&sender, &deployment)?;
@@ -493,9 +493,11 @@ fn account_updated_to_subaccount_without_recursion() -> AResult {
     account_1.execute_msgs(
         vec![WasmMsg::Execute {
             contract_addr: account_2.addr_str()?,
-            msg: to_json_binary(&account::ExecuteMsg::UpdateOwnership(
-                GovAction::AcceptOwnership,
-            ))?,
+            msg: to_json_binary(
+                &abstract_std::account::ExecuteMsg::<Empty>::UpdateOwnership(
+                    GovAction::AcceptOwnership,
+                ),
+            )?,
             funds: Vec::default(),
         }
         .into()],
@@ -512,7 +514,7 @@ fn account_updated_to_subaccount_without_recursion() -> AResult {
 fn sub_account_to_regular_account_without_recursion() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
     // Creating account1
     let account = create_default_account(&sender, &deployment)?;
@@ -527,7 +529,7 @@ fn sub_account_to_regular_account_without_recursion() -> AResult {
     account.execute_msgs(
         vec![WasmMsg::Execute {
             contract_addr: sub_account.addr_str()?,
-            msg: to_json_binary(&account::ExecuteMsg::UpdateOwnership(
+            msg: to_json_binary(&abstract_account::msg::ExecuteMsg::UpdateOwnership(
                 GovAction::TransferOwnership {
                     new_owner: GovernanceDetails::Monarchy {
                         monarch: chain.sender_addr().to_string(),

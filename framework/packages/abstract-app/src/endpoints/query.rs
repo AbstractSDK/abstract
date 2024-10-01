@@ -158,7 +158,7 @@ mod test {
         fn config() -> AppTestResult {
             let deps = mock_init();
             let abstr = AbstractMockAddrs::new(deps.api);
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
 
             let config_query = QueryMsg::Base(BaseQueryMsg::BaseConfig {});
             let res = query_helper(deps.as_ref(), config_query)?;
@@ -178,7 +178,7 @@ mod test {
         #[test]
         fn admin() -> AppTestResult {
             let deps = mock_init();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
 
             let admin_query = QueryMsg::Base(BaseQueryMsg::BaseAdmin {});
             let res = query_helper(deps.as_ref(), admin_query)?;

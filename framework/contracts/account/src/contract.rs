@@ -9,15 +9,13 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account::{
-        state::{
-            AccountInfo, Config, WhitelistedModules, CONFIG, INFO, SUSPENSION_STATUS,
-            WHITELISTED_MODULES,
-        },
-        ExecuteMsg, InstantiateMsg, QueryMsg, UpdateSubAccountAction,
+        state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
+        UpdateSubAccountAction,
     },
     module_factory::SimulateInstallModulesResponse,
     objects::{
         gov_type::GovernanceDetails,
+        module_factory::ModuleFactoryContract,
         ownership::{self, GovOwnershipError},
         AccountId,
     },
@@ -33,14 +31,15 @@ use crate::{
     config::{update_account_status, update_info, update_internal_config},
     error::AccountError,
     execution::{
-        admin_execute, admin_execute_on_module, execute_ibc_action, execute_msgs,
-        execute_msgs_with_data, execute_on_module, ica_action,
+        add_auth_method, admin_execute, admin_execute_on_module, execute_ibc_action, execute_msgs,
+        execute_msgs_with_data, execute_on_module, ica_action, remove_auth_method,
     },
     modules::{
         _install_modules, install_modules,
         migration::{handle_callback, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
+    msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
     queries::{
         handle_account_info_query, handle_config_query, handle_module_address_query,
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
@@ -67,7 +66,7 @@ pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 3;
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
     mut deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     InstantiateMsg {
         account_id,
@@ -76,33 +75,31 @@ pub fn instantiate(
         name,
         description,
         link,
-        module_factory_address,
-        version_control_address,
         namespace,
+
+        authenticator,
     }: InstantiateMsg,
 ) -> AccountResult {
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let module_factory_address = deps.api.addr_validate(&module_factory_address)?;
-    let version_control_address = deps.api.addr_validate(&version_control_address)?;
+    let version_control = VersionControlContract::new(deps.api)?;
+    let module_factory = ModuleFactoryContract::new(deps.api)?;
 
     let account_id = match account_id {
         Some(account_id) => account_id,
         None => AccountId::local(
-            LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, version_control_address.clone())?,
+            LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, version_control.address.clone())?,
         ),
     };
 
+    let mut response = AccountResponse::new(
+        "instantiate",
+        vec![("account_id".to_owned(), account_id.to_string())],
+    );
+
     ACCOUNT_ID.save(deps.storage, &account_id)?;
     WHITELISTED_MODULES.save(deps.storage, &WhitelistedModules(vec![]))?;
-
-    // Save config
-    let config = Config {
-        version_control_address: version_control_address.clone(),
-        module_factory_address: module_factory_address.clone(),
-    };
-    abstract_std::account::state::CONFIG.save(deps.storage, &config)?;
 
     // Verify info
     validate_description(description.as_deref())?;
@@ -120,31 +117,59 @@ pub fn instantiate(
 
     let governance = owner
         .clone()
-        .verify(deps.as_ref(), version_control_address.clone())?;
-    // Check if the caller is the manager the proposed owner account when creating a sub-account.
-    // This prevents other users from creating sub-accounts for accounts they don't own.
-    if let GovernanceDetails::SubAccount { account } = &governance {
-        ensure_eq!(
-            info.sender,
-            account,
-            AccountError::SubAccountCreatorNotAccount {
-                caller: info.sender.into(),
-                account: account.into(),
-            }
-        )
-    }
-    if let GovernanceDetails::NFT {
-        collection_addr,
-        token_id,
-    } = governance
-    {
-        verify_nft_ownership(
+        .verify(deps.as_ref(), version_control.address.clone())?;
+    match governance {
+        // Check if the caller is the manager the proposed owner account when creating a sub-account.
+        // This prevents other users from creating sub-accounts for accounts they don't own.
+        GovernanceDetails::SubAccount { account } => {
+            ensure_eq!(
+                info.sender,
+                account,
+                AccountError::SubAccountCreatorNotAccount {
+                    caller: info.sender.into(),
+                    account: account.into(),
+                }
+            )
+        }
+        GovernanceDetails::NFT {
+            collection_addr,
+            token_id,
+        } => verify_nft_ownership(
             deps.as_ref(),
             info.sender.clone(),
             collection_addr,
             token_id,
-        )?
-    }
+        )?,
+        GovernanceDetails::AbstractAccount { address } => {
+            ensure_eq!(
+                address,
+                env.contract.address,
+                AccountError::AbsAccInvalidAddr {
+                    abstract_account: address.to_string(),
+                    contract: env.contract.address.to_string()
+                }
+            );
+            #[cfg(feature = "xion")]
+            {
+                let Some(mut add_auth) = authenticator else {
+                    return Err(AccountError::AbsAccNoAuth {});
+                };
+                crate::absacc::auth::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
+
+                response = response.add_event(
+                    cosmwasm_std::Event::new("create_abstract_account").add_attributes(vec![
+                        ("contract_address", env.contract.address.to_string()),
+                        ("authenticator", cosmwasm_std::to_json_string(&add_auth)?),
+                        ("authenticator_id", add_auth.get_id().to_string()),
+                    ]),
+                );
+            }
+            // No Auth possible - error
+            #[cfg(not(feature = "xion"))]
+            return Err(AccountError::AbsAccNoAuth {});
+        }
+        _ => (),
+    };
 
     // Set owner
     let cw_gov_owner = ownership::initialize_owner(
@@ -152,20 +177,12 @@ pub fn instantiate(
         // TODO: support no owner here (ownership handled in SUDO)
         // Or do we want to add a `Sudo` governance type?
         owner.clone(),
-        config.version_control_address.clone(),
+        version_control.address.clone(),
     )?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
-    let mut response = AccountResponse::new(
-        "instantiate",
-        vec![
-            ("account_id".to_owned(), account_id.to_string()),
-            ("owner".to_owned(), cw_gov_owner.owner.to_string()),
-        ],
-    );
-
-    let version_control = VersionControlContract::new(config.version_control_address.clone());
+    response = response.add_attribute("owner".to_owned(), cw_gov_owner.owner.to_string());
 
     let funds_for_namespace_fee = if namespace.is_some() {
         version_control
@@ -179,7 +196,7 @@ pub fn instantiate(
     let mut total_fee = Coins::try_from(funds_for_namespace_fee.clone()).unwrap();
 
     response = response.add_message(wasm_execute(
-        version_control_address,
+        version_control.address,
         &abstract_std::version_control::ExecuteMsg::AddAccount {
             namespace,
             creator: info.sender.to_string(),
@@ -200,7 +217,7 @@ pub fn instantiate(
 
     if !install_modules.is_empty() {
         let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
-            config.module_factory_address.to_string(),
+            module_factory.address,
             &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
                 modules: install_modules.iter().map(|m| m.module.clone()).collect(),
             },
@@ -214,8 +231,6 @@ pub fn instantiate(
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
             install_modules,
-            config.module_factory_address,
-            config.version_control_address.clone(),
             simulate_resp.total_required_funds,
         )?;
         response = response
@@ -305,13 +320,13 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             remove_account_from_contracts(deps.branch())?
                         }
                     };
+                    let version_control = VersionControlContract::new(deps.api)?;
 
-                    let config = CONFIG.load(deps.storage)?;
                     let new_owner_attributes = ownership::update_ownership(
                         deps,
                         &env.block,
                         &info.sender,
-                        config.version_control_address,
+                        version_control.address,
                         action,
                     )?
                     .into_attributes();
@@ -347,10 +362,15 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 
                 // ## Other ##
                 // TODO: Update module migrate logic to not use callback!
-                ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
                 ExecuteMsg::UpdateStatus { is_suspended: _ } => {
                     unreachable!("Update status case is reached above")
                 }
+                ExecuteMsg::AddAuthMethod { add_authenticator } => {
+                    add_auth_method(deps, env, add_authenticator)
+                }
+                #[allow(unused)]
+                ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
+                ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
             }
         }
     }
@@ -381,9 +401,28 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             handle_sub_accounts_query(deps, start_after, limit)
         }
         QueryMsg::TopLevelOwner {} => handle_top_level_owner_query(deps, env),
-
         QueryMsg::Ownership {} => {
             cosmwasm_std::to_json_binary(&ownership::get_ownership(deps.storage)?)
+        }
+        QueryMsg::AuthenticatorByID { id } => {
+            #[cfg(feature = "xion")]
+            {
+                cosmwasm_std::to_json_binary(&crate::state::AUTHENTICATORS.load(deps.storage, id)?)
+            }
+            #[cfg(not(feature = "xion"))]
+            Ok(Binary::default())
+        }
+        QueryMsg::AuthenticatorIDs {} => {
+            #[cfg(feature = "xion")]
+            {
+                cosmwasm_std::to_json_binary(
+                    &crate::state::AUTHENTICATORS
+                        .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+                        .collect::<Result<Vec<_>, _>>()?,
+                )
+            }
+            #[cfg(not(feature = "xion"))]
+            Ok(Binary::default())
         }
     }
 }
@@ -442,13 +481,12 @@ mod tests {
                 owner: GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),
                 },
-                version_control_address: abstr.version_control.to_string(),
-                module_factory_address: abstr.module_factory.to_string(),
                 namespace: None,
                 name: "test".to_string(),
                 description: None,
                 link: None,
                 install_modules: vec![],
+                authenticator: None,
             },
         );
 

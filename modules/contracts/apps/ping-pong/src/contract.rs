@@ -36,7 +36,7 @@ abstract_app::export_endpoints!(APP, App);
 abstract_app::cw_orch_interface!(APP, App, AppInterface);
 
 #[cfg(not(target_arch = "wasm32"))]
-use abstract_app::std::manager::ModuleInstallConfig;
+use abstract_app::std::account::ModuleInstallConfig;
 #[cfg(not(target_arch = "wasm32"))]
 impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::DependencyCreation
     for crate::AppInterface<Chain>

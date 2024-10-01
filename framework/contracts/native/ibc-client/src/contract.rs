@@ -1,11 +1,7 @@
 use abstract_macros::abstract_response;
-use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
-    ibc_client::{state::*, *},
-    objects::{
-        ans_host::AnsHost,
-        module_version::{assert_cw_contract_upgrade, migrate_module_data, set_module_data},
-    },
+    ibc_client::*,
+    objects::module_version::{assert_cw_contract_upgrade, migrate_module_data, set_module_data},
     IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
@@ -25,7 +21,7 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    msg: InstantiateMsg,
+    _msg: InstantiateMsg,
 ) -> IbcClientResult {
     cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     set_module_data(
@@ -35,15 +31,6 @@ pub fn instantiate(
         &[],
         None::<String>,
     )?;
-    let cfg = Config {
-        version_control: VersionControlContract::new(
-            deps.api.addr_validate(&msg.version_control_address)?,
-        ),
-        ans_host: AnsHost {
-            address: deps.api.addr_validate(&msg.ans_host_address)?,
-        },
-    };
-    CONFIG.save(deps.storage, &cfg)?;
 
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
     Ok(IbcClientResponse::action("instantiate"))
@@ -56,11 +43,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
             Ok(IbcClientResponse::action("update_ownership"))
         }
-        ExecuteMsg::UpdateConfig {
-            ans_host,
-            version_control,
-        } => commands::execute_update_config(deps, info, ans_host, version_control)
-            .map_err(Into::into),
         ExecuteMsg::RemoteAction { host_chain, action } => {
             commands::execute_send_packet(deps, env, info, host_chain, action)
         }
@@ -139,13 +121,20 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
-    let to_version: Version = CONTRACT_VERSION.parse().unwrap();
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> IbcClientResult {
+    match msg {
+        MigrateMsg::Instantiate(instantiate_msg) => {
+            abstract_sdk::cw_helpers::migrate_instantiate(deps, env, instantiate_msg, instantiate)
+        }
+        MigrateMsg::Migrate {} => {
+            let to_version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
-    cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
-    migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
-    Ok(IbcClientResponse::action("migrate"))
+            assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
+            cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+            migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
+            Ok(IbcClientResponse::action("migrate"))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -153,7 +142,7 @@ mod tests {
     use super::*;
 
     use crate::test_common::mock_init;
-    use abstract_std::{account, version_control};
+    use abstract_std::{account, ibc_client::state::*, version_control};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         from_json,
@@ -196,19 +185,10 @@ mod tests {
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_that!(res.messages).is_empty();
 
-        // config
-        let expected_config = Config {
-            version_control: VersionControlContract::new(abstr.version_control),
-            ans_host: AnsHost::new(abstr.ans_host),
-        };
-
         let ownership_resp: Ownership<Addr> =
             from_json(query(deps.as_ref(), mock_env(), QueryMsg::Ownership {})?)?;
 
         assert_eq!(ownership_resp.owner, Some(owner));
-
-        let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
-        assert_that!(actual_config).is_equal_to(expected_config);
 
         // CW2
         let cw2_info = CONTRACT.load(&deps.storage).unwrap();
@@ -231,7 +211,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -256,7 +236,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -280,7 +260,7 @@ mod tests {
             let old_name = "old:contract";
             cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -308,7 +288,7 @@ mod tests {
             .to_string();
             cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, small_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(cw2::get_contract_version(&deps.storage)?.version)
@@ -481,7 +461,7 @@ mod tests {
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let not_account = deps.api.addr_make("not_account");
             deps.querier = MockQuerierBuilder::new(deps.api)
                 // Account pretends as different account
@@ -521,7 +501,7 @@ mod tests {
         #[test]
         fn cannot_make_internal_call() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .build();
@@ -551,7 +531,7 @@ mod tests {
         #[test]
         fn send_packet_with_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .build();
@@ -631,7 +611,7 @@ mod tests {
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let module = deps.api.addr_make("application");
             deps.querier = MockQuerierBuilder::new(deps.api)
                 // Module is not account
@@ -673,7 +653,7 @@ mod tests {
             };
             let channel_id = String::from("1");
             let channels: Vec<(&ChannelEntry, String)> = vec![(&channel_entry, channel_id.clone())];
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .channels(channels)
@@ -784,7 +764,7 @@ mod tests {
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let not_account = deps.api.addr_make("not_account");
             deps.querier = MockQuerierBuilder::new(deps.api)
                 // Account pretends as different account
@@ -819,7 +799,7 @@ mod tests {
         #[test]
         fn works() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .with_smart_handler(
@@ -896,103 +876,6 @@ mod tests {
                 IbcClientResponse::action("handle_register").add_message(note_message),
                 res
             );
-
-            Ok(())
-        }
-    }
-
-    mod update_config {
-        use std::str::FromStr;
-
-        use abstract_std::objects::TruncatedChainId;
-
-        use super::*;
-
-        #[test]
-        fn only_admin() -> IbcClientTestResult {
-            test_only_admin(ExecuteMsg::UpdateConfig {
-                version_control: None,
-                ans_host: None,
-            })
-        }
-
-        #[test]
-        fn update_ans_host() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-            let abstr = AbstractMockAddrs::new(deps.api);
-
-            let cfg = Config {
-                version_control: VersionControlContract::new(abstr.version_control),
-                ans_host: AnsHost::new(abstr.ans_host),
-            };
-            CONFIG.save(deps.as_mut().storage, &cfg)?;
-
-            let new_ans_host = deps.api.addr_make("new_ans_host");
-
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host: Some(new_ans_host.to_string()),
-                version_control: None,
-            };
-
-            let res = execute_as(deps.as_mut(), &abstr.owner, msg)?;
-            assert_that!(res.messages).is_empty();
-
-            let actual = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(actual.ans_host.address).is_equal_to(new_ans_host);
-
-            Ok(())
-        }
-
-        #[test]
-        pub fn update_version_control() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-            let abstr = AbstractMockAddrs::new(deps.api);
-
-            let new_version_control = deps.api.addr_make("new_version_control");
-
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host: None,
-                version_control: Some(new_version_control.to_string()),
-            };
-
-            let res = execute_as(deps.as_mut(), &abstr.owner, msg)?;
-            assert_that!(res.messages).is_empty();
-
-            let cfg = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(cfg.version_control.address).is_equal_to(new_version_control);
-
-            Ok(())
-        }
-
-        #[test]
-        fn update_version_control_should_clear_accounts() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-            let abstr = AbstractMockAddrs::new(deps.api);
-
-            ACCOUNTS.save(
-                deps.as_mut().storage,
-                (
-                    TEST_ACCOUNT_ID.trace(),
-                    TEST_ACCOUNT_ID.seq(),
-                    &TruncatedChainId::from_str("channel")?,
-                ),
-                &"some-remote-account".to_string(),
-            )?;
-
-            let new_version_control = deps.api.addr_make("new_version_control").to_string();
-
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host: None,
-                version_control: Some(new_version_control),
-            };
-
-            let res = execute_as(deps.as_mut(), &abstr.owner, msg)?;
-            assert_that!(res.messages).is_empty();
-
-            assert_that!(ACCOUNTS.is_empty(&deps.storage)).is_true();
 
             Ok(())
         }
@@ -1370,7 +1253,7 @@ mod tests {
                     result: vec![SubMsgResponse {
                         events: vec![Event::new(String::from("wasm-abstract"))
                             .add_attribute("action", "create_account")
-                            .add_attribute("proxy_address", remote_account.clone())],
+                            .add_attribute("account_address", remote_account.clone())],
                         data: None,
                         msg_responses: vec![],
                     }],

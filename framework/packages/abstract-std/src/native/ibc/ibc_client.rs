@@ -22,17 +22,8 @@ pub mod state {
 
     use crate::objects::{
         account::{AccountSequence, AccountTrace},
-        ans_host::AnsHost,
-        storage_namespaces,
-        version_control::VersionControlContract,
-        TruncatedChainId,
+        storage_namespaces, TruncatedChainId,
     };
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct Config {
-        pub version_control: VersionControlContract,
-        pub ans_host: AnsHost,
-    }
 
     /// Information about the deployed infrastructure we're connected to.
     #[cosmwasm_schema::cw_serde]
@@ -52,7 +43,6 @@ pub mod state {
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> =
         Map::new(storage_namespaces::ibc_client::REVERSE_POLYTONE_NOTE);
 
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
     /// triple instead of including AccountId since nested tuples do not behave as expected due to
     /// a bug that will be fixed in a future release.
@@ -71,7 +61,12 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    /// Migrating from blob contract
+    Instantiate(InstantiateMsg),
+    /// Migrating from previous version
+    Migrate {},
+}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
@@ -87,11 +82,6 @@ pub enum ExecuteMsg {
         note: String,
         /// Address of the abstract host deployed on the remote chain
         host: String,
-    },
-    /// Owner method: Update the config on IBC client
-    UpdateConfig {
-        ans_host: Option<String>,
-        version_control: Option<String>,
     },
     /// Only callable by Account proxy
     /// Will attempt to forward the specified funds to the corresponding
@@ -231,18 +221,18 @@ impl InstalledModuleIdentification {
         let target_addr = match &target_module_resolved.reference {
             ModuleReference::Account(code_id) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account_base = vc.account(&target_account_id, &deps.querier)?;
+                let account = vc.account(&target_account_id, &deps.querier)?;
 
                 if deps
                     .querier
-                    .query_wasm_contract_info(account_base.addr().as_str())?
+                    .query_wasm_contract_info(account.addr().as_str())?
                     .code_id
                     == *code_id
                 {
-                    account_base.into_addr()
+                    account.into_addr()
                 } else {
                     Err(StdError::generic_err(
-                        "Account base contract doesn't correspond to any of the proxy or manager",
+                        "Account contract doesn't correspond to code id of the account",
                     ))?
                 }
             }
@@ -251,10 +241,10 @@ impl InstalledModuleIdentification {
             | ModuleReference::Service(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account_base = vc.account(&target_account_id, &deps.querier)?;
+                let account = vc.account(&target_account_id, &deps.querier)?;
 
                 let module_info: account::ModuleAddressesResponse = deps.querier.query_wasm_smart(
-                    account_base.into_addr(),
+                    account.into_addr(),
                     &account::QueryMsg::ModuleAddresses {
                         ids: vec![self.module_info.id()],
                     },
@@ -332,8 +322,8 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub ans_host: String,
-    pub version_control_address: String,
+    pub ans_host: Addr,
+    pub version_control_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

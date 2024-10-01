@@ -35,13 +35,22 @@ pub enum GovernanceDetails<T: AddressLike> {
         /// Governance type used for doing extra off-chain queries depending on the type.
         governance_type: String,
     },
-    /// Renounced account
-    /// This account no longer has an owner and cannot be used.
-    Renounced {},
     NFT {
         collection_addr: T,
         token_id: String,
     },
+    /// Abstract account.
+    /// Admin actions have to be sent through signature bit flag
+    ///
+    /// More details: https://github.com/burnt-labs/abstract-account/blob/2c933a7b2a8dacc0ae5bf4344159a7d4ab080135/README.md
+    AbstractAccount {
+        /// Address of this abstract account
+        // TODO: Is there any point setting it T instead?
+        address: Addr,
+    },
+    /// Renounced account
+    /// This account no longer has an owner and cannot be used.
+    Renounced {},
 }
 
 /// Actions that can be taken to alter the contract's governance ownership
@@ -77,6 +86,7 @@ impl GovernanceDetails<String> {
     pub fn verify(
         self,
         deps: Deps,
+        // TODO: remove!
         version_control_addr: Addr,
     ) -> Result<GovernanceDetails<Addr>, AbstractError> {
         match self {
@@ -158,6 +168,9 @@ impl GovernanceDetails<String> {
                 collection_addr: deps.api.addr_validate(&collection_addr.to_string())?,
                 token_id,
             }),
+            GovernanceDetails::AbstractAccount { address } => {
+                Ok(GovernanceDetails::AbstractAccount { address })
+            }
         }
     }
 }
@@ -187,6 +200,7 @@ impl GovernanceDetails<Addr> {
                     .ok();
                 res.map(|owner_response| Addr::unchecked(owner_response.owner))
             }
+            GovernanceDetails::AbstractAccount { address } => Some(address.to_owned()),
         }
     }
 }
@@ -215,6 +229,9 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
                 collection_addr: collection_addr.to_string(),
                 token_id,
             },
+            GovernanceDetails::AbstractAccount { address } => {
+                GovernanceDetails::AbstractAccount { address }
+            }
         }
     }
 }
@@ -229,6 +246,7 @@ impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
             } => governance_type.as_str(),
             GovernanceDetails::Renounced {} => "renounced",
             GovernanceDetails::NFT { .. } => "nft",
+            GovernanceDetails::AbstractAccount { .. } => "abstract-account",
         };
         write!(f, "{str}")
     }

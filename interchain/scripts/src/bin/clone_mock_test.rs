@@ -23,6 +23,7 @@ fn main() -> anyhow::Result<()> {
 
     // Send a register message to the host
     abs.ibc.host.ibc_execute(
+        "terra15zg7mvqxug2h4nv58u985kk89xaek49zu3cr8sylvq83ts44peaszjqsng".to_string(),
         AccountId::local(0),
         HostAction::Internal(InternalAction::Register {
             name: "Default Abstract Account".to_string(),
@@ -31,7 +32,6 @@ fn main() -> anyhow::Result<()> {
             namespace: None,
             install_modules: vec![],
         }),
-        "terra15zg7mvqxug2h4nv58u985kk89xaek49zu3cr8sylvq83ts44peaszjqsng".to_string(),
     )?;
 
     Ok(())

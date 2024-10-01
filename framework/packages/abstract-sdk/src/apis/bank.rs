@@ -307,7 +307,7 @@ mod test {
             assert_that!(response.messages[0].msg).is_equal_to(
                 &wasm_execute(
                     account.addr(),
-                    &ExecuteMsg::Execute {
+                    &ExecuteMsg::<Empty>::Execute {
                         msgs: vec![expected_msg],
                     },
                     vec![],

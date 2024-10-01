@@ -14,6 +14,7 @@ use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, WasmMsg,
 };
+use feature_objects::AnsHost;
 use serde_cw_value::Value;
 
 use crate::{
@@ -30,14 +31,14 @@ pub fn execute_create_modules(
     modules: Vec<FactoryModuleInstallConfig>,
     salt: Binary,
 ) -> ModuleFactoryResult {
-    let config = CONFIG.load(deps.storage)?;
     let block_height = env.block.height;
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
+    let ans_host = AnsHost::new(deps.api)?;
 
     // assert that sender is manager
-    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+    let account = version_control.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
@@ -81,7 +82,7 @@ pub fn execute_create_modules(
                     // modules gets unregistered when namespace is unclaimed
                     .unwrap();
                 fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
-                    to_address: namespace_account.account_base.addr().to_string(),
+                    to_address: namespace_account.account.addr().to_string(),
                     amount: vec![fee],
                 }));
             }
@@ -100,9 +101,9 @@ pub fn execute_create_modules(
                 let init_msg_as_value: Value = from_json(init_msg)?;
                 // App base message
                 let app_base_msg = abstract_std::app::BaseInstantiateMsg {
-                    ans_host_address: config.ans_host_address.to_string(),
+                    ans_host_address: ans_host.address.to_string(),
                     version_control_address: version_control.address.to_string(),
-                    account_base: account_base.clone(),
+                    account: account.clone(),
                 };
 
                 let app_init_msg = abstract_std::app::InstantiateMsg::<Value> {
@@ -116,7 +117,7 @@ pub fn execute_create_modules(
                     *code_id,
                     to_json_binary(&app_init_msg)?,
                     salt.clone(),
-                    Some(account_base.addr().clone()),
+                    Some(account.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -137,7 +138,7 @@ pub fn execute_create_modules(
                     *code_id,
                     owner_init_msg.unwrap(),
                     salt.clone(),
-                    Some(account_base.addr().clone()),
+                    Some(account.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -160,7 +161,7 @@ pub fn execute_create_modules(
     // Standalone may need this information for AccountIdentification \
     // Contract Info query does not work during instantiation on self contract, because contract does not exist yet.
     if at_least_one_standalone {
-        CURRENT_BASE.save(deps.storage, &account_base)?;
+        CURRENT_BASE.save(deps.storage, &account)?;
     }
 
     let sum_of_monetization = sum_of_monetization.into_vec();
@@ -229,33 +230,6 @@ pub fn new_module_addrs(modules_to_register: &[Addr]) -> ModuleFactoryResult<Str
         .join(",");
 
     Ok(module_addrs)
-}
-
-// Only owner can execute it
-pub fn execute_update_config(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    ans_host_address: Option<String>,
-    version_control_address: Option<String>,
-) -> ModuleFactoryResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
-
-    let mut config: Config = CONFIG.load(deps.storage)?;
-
-    if let Some(ans_host_address) = ans_host_address {
-        // validate address format
-        config.ans_host_address = deps.api.addr_validate(&ans_host_address)?;
-    }
-
-    if let Some(version_control_address) = version_control_address {
-        // validate address format
-        config.version_control_address = deps.api.addr_validate(&version_control_address)?;
-    }
-
-    CONFIG.save(deps.storage, &config)?;
-
-    Ok(ModuleFactoryResponse::action("update_config"))
 }
 
 #[cfg(test)]
@@ -426,63 +400,6 @@ mod test {
 
             assert_that!(actual_init_msg).matches(|i| matches!(i, CosmosMsg::Wasm { .. }));
             assert_that!(actual_init_msg).is_equal_to(CosmosMsg::from(expected_init_msg));
-
-            Ok(())
-        }
-    }
-
-    mod update_config {
-        use abstract_testing::prelude::AbstractMockAddrs;
-
-        use super::*;
-
-        #[test]
-        fn only_admin() -> ModuleFactoryTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host_address: None,
-                version_control_address: None,
-            };
-
-            test_only_admin(msg, &mut deps)
-        }
-
-        #[test]
-        fn update_ans_host_address() -> ModuleFactoryTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-            let abstr = AbstractMockAddrs::new(deps.api);
-
-            let new_ans_host = deps.api.addr_make("new_ans_host");
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host_address: Some(new_ans_host.to_string()),
-                version_control_address: None,
-            };
-
-            execute_as(deps.as_mut(), &abstr.owner, msg)?;
-
-            assert_that!(CONFIG.load(&deps.storage)?.ans_host_address).is_equal_to(new_ans_host);
-
-            Ok(())
-        }
-
-        #[test]
-        fn update_version_control_address() -> ModuleFactoryTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(&mut deps)?;
-            let abstr = AbstractMockAddrs::new(deps.api);
-
-            let new_vc = deps.api.addr_make("new_version_control");
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host_address: None,
-                version_control_address: Some(new_vc.to_string()),
-            };
-
-            execute_as(deps.as_mut(), &abstr.owner, msg)?;
-
-            assert_that!(CONFIG.load(&deps.storage)?.version_control_address).is_equal_to(new_vc);
 
             Ok(())
         }

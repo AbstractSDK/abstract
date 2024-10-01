@@ -40,13 +40,6 @@ pub mod state {
 
     pub type SuspensionStatus = bool;
 
-    /// Manager configuration
-    #[cosmwasm_schema::cw_serde]
-    pub struct Config {
-        pub version_control_address: Addr,
-        pub module_factory_address: Addr,
-    }
-
     /// Abstract Account details.
     #[cosmwasm_schema::cw_serde]
     pub struct AccountInfo {
@@ -67,8 +60,6 @@ pub mod state {
     // TODO: Pull it inside Config as `suspended: Option<String>`, with reason of suspension inside a string?
     pub const SUSPENSION_STATUS: Item<SuspensionStatus> =
         Item::new(storage_namespaces::account::SUSPENSION_STATUS);
-    /// Configuration
-    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     /// Info about the Account
     pub const INFO: Item<AccountInfo> = Item::new(storage_namespaces::account::INFO);
     /// Enabled Abstract modules
@@ -86,10 +77,9 @@ pub mod state {
     /// Temporary state variable that allows for checking access control on admin operation
     pub const CALLING_TO_AS_ADMIN: Item<Addr> =
         Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
-
     pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
-    // Additional states, not listed here: cw_gov_ownable::GovOwnership
+    // Additional states, not listed here: cw_gov_ownable::GovOwnership, authenticators, if chain supports it
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -98,8 +88,8 @@ pub struct MigrateMsg {}
 /// Account Instantiate Msg
 /// https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg {
-    // TODO: fork and make pub
+pub struct InstantiateMsg<Authenticator = Empty> {
+    pub authenticator: Option<Authenticator>,
     // pub authenticator: Option<AddAuthenticator>,
     pub account_id: Option<AccountId>,
     pub owner: GovernanceDetails<String>,
@@ -109,9 +99,6 @@ pub struct InstantiateMsg {
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
-    // TODO: Compute these using instantiate2.
-    pub module_factory_address: String,
-    pub version_control_address: String,
 }
 
 /// Callback message to set the dependencies after module upgrades.
@@ -120,29 +107,44 @@ pub struct CallbackMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-pub enum ExecuteMsg {
+pub enum ExecuteMsg<Authenticator = Empty> {
     /// Executes the provided messages if sender is whitelisted
     #[cw_orch(fn_name("execute_msgs"), payable)]
-    Execute { msgs: Vec<CosmosMsg<Empty>> },
+    Execute {
+        msgs: Vec<CosmosMsg<Empty>>,
+    },
     /// Execute a message and forward the Response data
-    ExecuteWithData { msg: CosmosMsg<Empty> },
+    #[cw_orch(payable)]
+    ExecuteWithData {
+        msg: CosmosMsg<Empty>,
+    },
     /// Forward execution message to module
     #[cw_orch(payable)]
-    ExecuteOnModule { module_id: String, exec_msg: Binary },
+    ExecuteOnModule {
+        module_id: String,
+        exec_msg: Binary,
+    },
     /// Execute a Wasm Message with Account Admin privileges
-    AdminExecute { addr: String, msg: Binary },
+    AdminExecute {
+        addr: String,
+        msg: Binary,
+    },
     /// Forward execution message to module with Account Admin privileges
-    AdminExecuteOnModule { module_id: String, msg: Binary },
+    AdminExecuteOnModule {
+        module_id: String,
+        msg: Binary,
+    },
 
     /// Execute IBC action on Client
-    IbcAction { msg: crate::ibc_client::ExecuteMsg },
+    IbcAction {
+        msg: crate::ibc_client::ExecuteMsg,
+    },
     /// Queries the Abstract Ica Client with the provided action query.
     /// Provides access to different ICA implementations for different ecosystems.
     IcaAction {
         /// Query of type `abstract-ica-client::msg::QueryMsg`
         action_query_msg: Binary,
     },
-
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(InternalConfigAction),
@@ -153,7 +155,9 @@ pub enum ExecuteMsg {
         modules: Vec<ModuleInstallConfig>,
     },
     /// Uninstall a module given its ID.
-    UninstallModule { module_id: String },
+    UninstallModule {
+        module_id: String,
+    },
     /// Upgrade the module to a new version
     /// If module is `abstract::account` then the contract will do a self-migration.
     /// Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Version Control
@@ -186,7 +190,9 @@ pub enum ExecuteMsg {
         link: Option<String>,
     },
     /// Update account statuses
-    UpdateStatus { is_suspended: Option<bool> },
+    UpdateStatus {
+        is_suspended: Option<bool>,
+    },
     /// Actions called by internal or external sub-accounts
     UpdateSubAccount(UpdateSubAccountAction),
     /// Update the contract's ownership. The `action`
@@ -195,6 +201,12 @@ pub enum ExecuteMsg {
     /// of the account permanently.
     UpdateOwnership(GovAction),
 
+    AddAuthMethod {
+        add_authenticator: Authenticator,
+    },
+    RemoveAuthMethod {
+        id: u8,
+    },
     /// Callback endpoint
     Callback(CallbackMsg),
 }
@@ -237,6 +249,14 @@ pub enum QueryMsg {
     /// Query the contract's ownership information
     #[returns(Ownership<String>)]
     Ownership {},
+
+    /// Query the pubkey associated with this account.
+    // TODO: return type?
+    #[returns(Binary)]
+    AuthenticatorByID { id: u8 },
+    /// Query the pubkey associated with this account.
+    #[returns(Binary)]
+    AuthenticatorIDs {},
 }
 
 /// Module info and init message

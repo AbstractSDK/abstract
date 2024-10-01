@@ -140,7 +140,7 @@ mod test {
         #[test]
         fn update_config_should_update_config() -> AppTestResult {
             let mut deps = mock_init();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .set_account_admin_call_to(&account)
                 .build();
@@ -168,7 +168,7 @@ mod test {
         fn update_config_with_none_host_should_leave_existing_host() -> AppTestResult {
             let mut deps = mock_init();
             let abstr = AbstractMockAddrs::new(deps.api);
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .set_account_admin_call_to(&account)
                 .build();

@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, QuerierWrapper};
+use cosmwasm_std::{Addr, Api, CanonicalAddr, QuerierWrapper, StdResult};
 use thiserror::Error;
 
 use super::{
@@ -9,6 +9,7 @@ use super::{
 };
 use crate::{
     account::state::ACCOUNT_ID,
+    native_addrs,
     version_control::{
         state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
         Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
@@ -71,9 +72,11 @@ pub struct VersionControlContract {
 }
 
 impl VersionControlContract {
-    /// Construct a new version control feature object.
-    pub fn new(address: Addr) -> Self {
-        Self { address }
+    /// Retrieve address of the Version Control
+    pub fn new(api: &dyn Api) -> StdResult<Self> {
+        let address =
+            api.addr_humanize(&CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR))?;
+        Ok(Self { address })
     }
 
     // Module registry
@@ -234,8 +237,8 @@ impl VersionControlContract {
     ) -> VersionControlResult<AccountId> {
         let self_reported_account_id = self.unchecked_account_id(maybe_account_addr, querier)?;
         // now we need to verify that the account id is indeed correct
-        let account_base = self.account(&self_reported_account_id, querier)?;
-        if account_base.addr().ne(maybe_account_addr) {
+        let account = self.account(&self_reported_account_id, querier)?;
+        if account.addr().ne(maybe_account_addr) {
             Err(VersionControlError::FailedToQueryAccountId {
                 contract_addr: maybe_account_addr.clone(),
             })
@@ -244,7 +247,7 @@ impl VersionControlContract {
         }
     }
 
-    /// Get the account base for a given account id.
+    /// Get the account for a given account id.
     #[function_name::named]
     pub fn account(
         &self,
@@ -285,14 +288,14 @@ impl VersionControlContract {
         querier: &QuerierWrapper,
     ) -> VersionControlResult<Account> {
         let account_id = self.unchecked_account_id(maybe_account, querier)?;
-        let account_base = self.account(&account_id, querier)?;
-        if account_base.addr().ne(maybe_account) {
+        let account = self.account(&account_id, querier)?;
+        if account.addr().ne(maybe_account) {
             Err(VersionControlError::NotAccount(
                 maybe_account.clone(),
                 account_id,
             ))
         } else {
-            Ok(account_base)
+            Ok(account)
         }
     }
 }

@@ -452,6 +452,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
             vec![],
         )?
         .into(),
+        &[],
     )?;
 
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
@@ -487,7 +488,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     sub_account.execute_msgs(
         vec![wasm_execute(
             new_account_account,
-            &abstract_std::account::ExecuteMsg::UpdateOwnership(
+            &abstract_std::account::ExecuteMsg::<Empty>::UpdateOwnership(
                 ownership::GovAction::AcceptOwnership,
             ),
             vec![],

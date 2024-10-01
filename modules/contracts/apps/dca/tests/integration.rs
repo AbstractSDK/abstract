@@ -340,7 +340,7 @@ fn setup() -> anyhow::Result<(
 
     // Install croncat
     account.install_app(&cron_cat_app, &croncat_app::msg::AppInstantiateMsg {}, None)?;
-    let manager_addr = account.manager.address()?;
+    let manager_addr = account.address()?;
     cron_cat_app.set_sender(&manager_addr);
 
     // Install DCA
@@ -364,7 +364,7 @@ fn setup() -> anyhow::Result<(
 
     dca_app.set_sender(&manager_addr);
     mock.set_balance(
-        &account.proxy.address()?,
+        &account.address()?,
         vec![coin(50_000_000, DENOM), coin(10_000, EUR)],
     )?;
 
@@ -545,16 +545,16 @@ fn create_dca_convert() -> anyhow::Result<()> {
 
     apps.dca_app.convert(DCAId(1))?;
 
-    let usd_balance = mock.query_balance(&account.proxy.address()?, USD)?;
+    let usd_balance = mock.query_balance(&account.address()?, USD)?;
     assert_eq!(usd_balance, Uint128::new(98));
-    let eur_balance = mock.query_balance(&account.proxy.address()?, EUR)?;
+    let eur_balance = mock.query_balance(&account.address()?, EUR)?;
     assert_eq!(eur_balance, Uint128::new(9900));
 
     apps.dca_app.convert(DCAId(2))?;
 
-    let usd_balance = mock.query_balance(&account.proxy.address()?, USD)?;
+    let usd_balance = mock.query_balance(&account.address()?, USD)?;
     assert_eq!(usd_balance, Uint128::new(335));
-    let eur_balance = mock.query_balance(&account.proxy.address()?, EUR)?;
+    let eur_balance = mock.query_balance(&account.address()?, EUR)?;
     assert_eq!(eur_balance, Uint128::new(9650));
 
     Ok(())

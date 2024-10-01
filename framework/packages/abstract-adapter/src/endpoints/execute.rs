@@ -286,7 +286,7 @@ mod tests {
         #[test]
         fn authorize_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .set_account_admin_call_to(&account)
@@ -320,7 +320,7 @@ mod tests {
         #[test]
         fn revoke_address_authorization() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .set_account_admin_call_to(&account)
@@ -361,7 +361,7 @@ mod tests {
         #[test]
         fn add_existing_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .set_account_admin_call_to(&account)
@@ -404,7 +404,7 @@ mod tests {
         #[test]
         fn add_module_id_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .set_account_admin_call_to(&account)
@@ -438,7 +438,7 @@ mod tests {
         #[test]
         fn remove_authorized_address_dne() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .set_account_admin_call_to(&account)
@@ -504,7 +504,7 @@ mod tests {
                 },
             };
 
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             base_execute_as(deps.as_mut(), account.addr(), msg).unwrap();
         }
 
@@ -512,8 +512,8 @@ mod tests {
         fn unauthorized_addresses_are_unauthorized() {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::new(deps.api)
-                .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
-                .set_account_admin_call_to(&test_account_base(deps.api))
+                .account(&test_account(deps.api), TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&test_account(deps.api))
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![]);
@@ -544,7 +544,7 @@ mod tests {
         #[test]
         fn executing_as_account_manager_is_allowed() {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .set_account_admin_call_to(&account)
@@ -566,8 +566,8 @@ mod tests {
         fn executing_as_authorized_address_not_allowed_without_proxy() {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::new(deps.api)
-                .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
-                .set_account_admin_call_to(&test_account_base(deps.api))
+                .account(&test_account(deps.api), TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&test_account(deps.api))
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
@@ -586,7 +586,7 @@ mod tests {
         #[test]
         fn executing_as_authorized_address_is_allowed_via_proxy() {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .set_account_admin_call_to(&account)
@@ -608,7 +608,7 @@ mod tests {
         #[test]
         fn executing_as_authorized_address_on_diff_proxy_should_err() {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let another_account = Account::new(deps.api.addr_make("some_other_manager"));
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)

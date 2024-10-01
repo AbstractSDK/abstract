@@ -108,7 +108,7 @@ impl ModuleReference {
             | ModuleReference::App(code_id)
             | ModuleReference::Standalone(code_id) => Ok(*code_id),
             _ => Err(AbstractError::Assert(
-                "module reference not account base, app or standalone".to_owned(),
+                "module reference not account, app or standalone".to_owned(),
             )),
         }
     }
@@ -124,13 +124,13 @@ mod test {
 
     #[test]
     fn core() {
-        let account_base = ModuleReference::Account(1);
-        assert_eq!(account_base.unwrap_account().unwrap(), 1);
-        assert!(account_base.unwrap_native().is_err());
-        assert!(account_base.unwrap_adapter().is_err());
-        assert!(account_base.unwrap_app().is_err());
-        assert!(account_base.unwrap_standalone().is_err());
-        assert!(account_base.unwrap_service().is_err());
+        let account = ModuleReference::Account(1);
+        assert_eq!(account.unwrap_account().unwrap(), 1);
+        assert!(account.unwrap_native().is_err());
+        assert!(account.unwrap_adapter().is_err());
+        assert!(account.unwrap_app().is_err());
+        assert!(account.unwrap_standalone().is_err());
+        assert!(account.unwrap_service().is_err());
     }
 
     #[test]
@@ -197,8 +197,8 @@ mod test {
         let service = ModuleReference::Service(Addr::unchecked("addr"));
         assert_eq!(service.unwrap_addr().unwrap(), Addr::unchecked("addr"));
 
-        let account_base = ModuleReference::Account(1);
-        assert!(account_base.unwrap_addr().is_err());
+        let account = ModuleReference::Account(1);
+        assert!(account.unwrap_addr().is_err());
     }
 
     #[test]
@@ -214,8 +214,8 @@ mod test {
         let service = ModuleReference::Service(deps.api.addr_make("addr"));
         assert_that!(service.validate(deps.as_ref())).is_ok();
 
-        let account_base = ModuleReference::Account(1);
-        assert_that!(account_base.validate(deps.as_ref())).is_ok();
+        let account = ModuleReference::Account(1);
+        assert_that!(account.validate(deps.as_ref())).is_ok();
 
         let app = ModuleReference::App(1);
         assert_that!(app.validate(deps.as_ref())).is_ok();

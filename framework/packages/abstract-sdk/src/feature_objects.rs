@@ -53,17 +53,15 @@ mod tests {
     use super::*;
 
     mod version_control {
-        use cosmwasm_std::{testing::mock_dependencies, Addr};
+        use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
         use crate::features::AbstractRegistryAccess;
 
         #[test]
         fn test_registry() {
-            let address = Addr::unchecked("version");
-            let vc = VersionControlContract::new(address.clone());
-
             let deps = mock_dependencies();
+            let vc = VersionControlContract::new(&deps.api).unwrap();
 
             assert_that!(vc.abstract_registry(deps.as_ref()))
                 .is_ok()
@@ -77,20 +75,20 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_account() {
+        fn test_account_addr() {
             let deps = mock_dependencies();
-            let account_base = test_account_base(deps.api);
+            let account = test_account(deps.api);
 
-            assert_that!(account_base.account(deps.as_ref()))
+            assert_that!(account.account(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(account_base);
+                .is_equal_to(account);
         }
 
         #[test]
         fn should_identify_self_as_account() {
-            let account_base = Account::new(Addr::unchecked("test"));
+            let account = Account::new(Addr::unchecked("test"));
 
-            assert_that!(account_base.module_id()).is_equal_to(ACCOUNT);
+            assert_that!(account.module_id()).is_equal_to(ACCOUNT);
         }
     }
 }

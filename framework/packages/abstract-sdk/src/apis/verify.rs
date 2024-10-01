@@ -92,8 +92,8 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
             .map_err(|error| self.wrap_query_error(error))
     }
 
-    /// Get the account base for a given account id.
-    pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<Account> {
+    /// Get the account for a given account id.
+    pub fn account(&self, account_id: &AccountId) -> AbstractSdkResult<Account> {
         self.vc
             .account(account_id, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
@@ -143,14 +143,11 @@ mod test {
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
-    struct MockBinding {
-        mock_api: MockApi,
-    }
+    struct MockBinding {}
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-            let abstr = AbstractMockAddrs::new(self.mock_api);
-            Ok(VersionControlContract::new(abstr.version_control))
+        fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+            Ok(VersionControlContract::new(deps.api)?)
         }
     }
 
@@ -170,7 +167,7 @@ mod test {
         fn not_account_fails() {
             let mut deps = mock_dependencies();
             let not_account = Account::new(deps.api.addr_make("not_account"));
-            let base = test_account_base(deps.api);
+            let base = test_account(deps.api);
 
             deps.querier = MockQuerierBuilder::new(deps.api)
                 // Setup the addresses as if the Account was registered
@@ -180,7 +177,7 @@ mod test {
                 .with_contract_item(not_account.addr(), ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding { mock_api: deps.api };
+            let binding = MockBinding {};
 
             let res = binding
                 .account_registry(deps.as_ref())
@@ -211,7 +208,7 @@ mod test {
                 .with_contract_map_key(&abstr.version_control, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding { mock_api: deps.api };
+            let binding = MockBinding {};
 
             let res = binding
                 .account_registry(deps.as_ref())
@@ -235,7 +232,7 @@ mod test {
         #[test]
         fn returns_account() {
             let mut deps = mock_dependencies();
-            let account = test_account_base(deps.api);
+            let account = test_account(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
@@ -247,7 +244,7 @@ mod test {
                 )
                 .build();
 
-            let binding = MockBinding { mock_api: deps.api };
+            let binding = MockBinding {};
 
             let res = binding
                 .account_registry(deps.as_ref())

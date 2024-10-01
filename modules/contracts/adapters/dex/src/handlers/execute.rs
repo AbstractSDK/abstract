@@ -59,7 +59,7 @@ pub fn execute_handler(
             // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
             let namespace_info = namespace.unwrap();
             ensure_eq!(
-                namespace_info.account_base,
+                namespace_info.account,
                 module.target_account.clone().unwrap(),
                 DexError::Unauthorized {}
             );
@@ -74,8 +74,8 @@ pub fn execute_handler(
             if let Some(account_id) = recipient_account_id {
                 let recipient = module
                     .account_registry(deps.as_ref())?
-                    .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
-                fee.recipient = recipient;
+                    .account(&AccountId::new(account_id, AccountTrace::Local)?)?;
+                fee.recipient = recipient.into_addr();
             }
 
             DEX_FEES.save(deps.storage, &fee)?;
@@ -94,11 +94,11 @@ fn handle_local_request(
     action: DexAction,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let target_account = module.account_base(deps.as_ref())?;
+    let target_account = module.account(deps.as_ref())?;
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
         module,
         deps.as_ref(),
-        target_account.proxy,
+        target_account.into_addr(),
         action,
         exchange,
     )?;
@@ -125,16 +125,18 @@ fn handle_ibc_request(
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins, None)?;
     // construct the action to be called on the host
     let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
-        manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
-            module_id: DEX_ADAPTER_ID.to_string(),
-            exec_msg: to_json_binary::<ExecuteMsg>(
-                &DexExecuteMsg::Action {
-                    dex: dex_name.clone(),
-                    action: action.clone(),
-                }
-                .into(),
-            )?,
-        }],
+        account_msgs: vec![
+            abstract_adapter::std::account::ExecuteMsg::ExecuteOnModule {
+                module_id: DEX_ADAPTER_ID.to_string(),
+                exec_msg: to_json_binary::<ExecuteMsg>(
+                    &DexExecuteMsg::Action {
+                        dex: dex_name.clone(),
+                        action: action.clone(),
+                    }
+                    .into(),
+                )?,
+            },
+        ],
     };
 
     // If the calling entity is a contract, we provide a callback on successful swap

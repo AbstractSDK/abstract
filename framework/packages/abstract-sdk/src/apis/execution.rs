@@ -222,7 +222,7 @@ mod test {
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
-                msg: to_json_binary(&ExecuteMsg::Execute {
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(messages),
                 })
                 .unwrap(),
@@ -244,7 +244,7 @@ mod test {
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
-                msg: to_json_binary(&ExecuteMsg::Execute {
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(messages),
                 })
                 .unwrap(),
@@ -280,7 +280,7 @@ mod test {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: account.addr().to_string(),
-                    msg: to_json_binary(&ExecuteMsg::Execute {
+                    msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                         msgs: flatten_actions(empty_actions),
                     })
                     .unwrap(),
@@ -315,7 +315,7 @@ mod test {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: account.addr().to_string(),
-                    msg: to_json_binary(&ExecuteMsg::Execute {
+                    msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                         msgs: flatten_actions(action),
                     })
                     .unwrap(),
@@ -346,7 +346,7 @@ mod test {
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
-                msg: to_json_binary(&ExecuteMsg::Execute {
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(empty_actions),
                 })
                 .unwrap(),
@@ -378,7 +378,7 @@ mod test {
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
-                msg: to_json_binary(&ExecuteMsg::Execute {
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(action),
                 })
                 .unwrap(),

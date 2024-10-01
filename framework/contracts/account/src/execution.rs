@@ -7,7 +7,7 @@ use abstract_std::{
     ICA_CLIENT,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, MessageInfo, StdError, SubMsg,
+    wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, StdError, SubMsg,
     WasmMsg, WasmQuery,
 };
 
@@ -17,14 +17,36 @@ use crate::{
     modules::load_module_addr,
 };
 
+/// Check that sender either whitelisted or governance
+pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> AccountResult<()> {
+    #[cfg(feature = "xion")]
+    {
+        if let Some(is_admin) = crate::state::AUTH_ADMIN.may_load(deps.storage)? {
+            // Clear auth if it was set
+            crate::state::AUTH_ADMIN.remove(deps.storage);
+            if is_admin {
+                return Ok(());
+            }
+        }
+    }
+    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
+    if whitelisted_modules.0.contains(sender)
+        || ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok()
+    {
+        Ok(())
+    } else {
+        Err(AccountError::SenderNotWhitelistedOrOwner {})
+    }
+}
+
 /// Executes `Vec<CosmosMsg>` on the proxy.
 /// Permission: Module
 pub fn execute_msgs(
-    deps: DepsMut,
+    mut deps: DepsMut,
     msg_sender: &Addr,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(deps.as_ref(), msg_sender)?;
+    assert_whitelisted_or_owner(&mut deps, msg_sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
@@ -32,11 +54,11 @@ pub fn execute_msgs(
 /// Executes `CosmosMsg` on the proxy and forwards its response.
 /// Permission: Module
 pub fn execute_msgs_with_data(
-    deps: DepsMut,
+    mut deps: DepsMut,
     msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(deps.as_ref(), msg_sender)?;
+    assert_whitelisted_or_owner(&mut deps, msg_sender)?;
 
     let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
@@ -98,11 +120,11 @@ pub fn admin_execute_on_module(
 /// Executes IBC actions on the IBC client.
 /// Permission: Module
 pub fn execute_ibc_action(
-    deps: DepsMut,
+    mut deps: DepsMut,
     msg_info: MessageInfo,
     msg: IbcClientMsg,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
+    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
 
     let ibc_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, IBC_CLIENT)?
@@ -122,6 +144,32 @@ pub fn execute_ibc_action(
     Ok(AccountResponse::action("execute_ibc_action").add_message(client_msg))
 }
 
+pub fn add_auth_method(
+    _deps: DepsMut,
+    _env: Env,
+    #[allow(unused_mut)] mut _auth: crate::msg::Authenticator,
+) -> AccountResult {
+    #[cfg(feature = "xion")]
+    {
+        crate::absacc::auth::execute::add_auth_method(_deps, &_env, &mut _auth)
+    }
+    #[cfg(not(feature = "xion"))]
+    {
+        Ok(AccountResponse::action("add_auth"))
+    }
+}
+
+pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
+    #[cfg(feature = "xion")]
+    {
+        crate::absacc::auth::execute::remove_auth_method(_deps, _env, _id)
+    }
+    #[cfg(not(feature = "xion"))]
+    {
+        Ok(AccountResponse::action("remove_auth"))
+    }
+}
+
 /// Execute an action on an ICA.
 /// Permission: Module
 ///
@@ -129,8 +177,8 @@ pub fn execute_ibc_action(
 /// It then fires a smart-query on that address of type [`QueryMsg::IcaAction`](abstract_ica::msg::QueryMsg).
 ///
 /// The resulting `Vec<CosmosMsg>` are then executed on the proxy contract.
-pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> AccountResult {
-    assert_whitelisted_or_owner(deps.as_ref(), &msg_info.sender)?;
+pub fn ica_action(mut deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> AccountResult {
+    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
 
     let ica_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, ICA_CLIENT)?
@@ -149,17 +197,6 @@ pub fn ica_action(deps: DepsMut, msg_info: MessageInfo, action_query: Binary) ->
     )?;
 
     Ok(AccountResponse::action("ica_action").add_messages(res.msgs))
-}
-/// Check that sender either whitelisted or governance
-pub(crate) fn assert_whitelisted_or_owner(deps: Deps, sender: &Addr) -> AccountResult<()> {
-    let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-    if whitelisted_modules.0.contains(sender)
-        || ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok()
-    {
-        Ok(())
-    } else {
-        Err(AccountError::SenderNotWhitelistedOrOwner {})
-    }
 }
 
 #[cfg(test)]
@@ -211,7 +248,7 @@ mod test {
             let action: CosmosMsg = wasm_execute(
                 MOCK_CONTRACT_ADDR.to_string(),
                 // example garbage
-                &ExecuteMsg::UpdateOwnership(
+                &<ExecuteMsg>::UpdateOwnership(
                     abstract_std::objects::gov_type::GovAction::RenounceOwnership,
                 ),
                 vec![],

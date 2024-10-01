@@ -1,6 +1,6 @@
 use abstract_std::{
     account::{
-        state::{CALLING_TO_AS_ADMIN, CALLING_TO_AS_ADMIN_WILD_CARD, CONFIG},
+        state::{CALLING_TO_AS_ADMIN, CALLING_TO_AS_ADMIN_WILD_CARD},
         CallbackMsg, ExecuteMsg,
     },
     adapter::{
@@ -96,7 +96,7 @@ pub fn upgrade_modules(
 
     let callback_msg = wasm_execute(
         env.contract.address,
-        &ExecuteMsg::Callback(CallbackMsg {}),
+        &ExecuteMsg::Callback::<cosmwasm_std::Empty>(CallbackMsg {}),
         vec![],
     )?;
 
@@ -115,8 +115,7 @@ pub fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), AccountError> {
-    let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
     let old_module_cw2 =

@@ -4,8 +4,8 @@ use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     account::{
         state::{
-            AccountInfo, Config, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO, SUB_ACCOUNTS,
-            SUSPENSION_STATUS, WHITELISTED_MODULES,
+            AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, INFO, SUB_ACCOUNTS, SUSPENSION_STATUS,
+            WHITELISTED_MODULES,
         },
         AccountModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleVersionsResponse, SubAccountIdsResponse,
@@ -13,6 +13,7 @@ use abstract_std::{
     objects::{
         gov_type::TopLevelOwnerResponse,
         module::{self, ModuleInfo},
+        module_factory::ModuleFactoryContract,
         ownership::nested_admin::query_top_level_owner_addr,
     },
 };
@@ -42,17 +43,14 @@ pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let Config {
-        version_control_address,
-        module_factory_address,
-        ..
-    } = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(deps.api)?;
+    let module_factory = ModuleFactoryContract::new(deps.api)?;
     let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
     to_json_binary(&ConfigResponse {
         account_id,
         is_suspended,
-        version_control_address,
-        module_factory_address,
+        version_control_address: version_control.address,
+        module_factory_address: module_factory.address,
         whitelisted_addresses: WHITELISTED_MODULES.load(deps.storage)?.0,
     })
 }
@@ -72,8 +70,7 @@ pub fn handle_module_info_query(
 
     let ids_and_addr = res?;
 
-    let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
 
     let mut resp_vec: Vec<AccountModuleInfo> = vec![];
     for (id, address) in ids_and_addr.into_iter() {
@@ -162,8 +159,7 @@ pub fn query_module_versions(
     let addresses: BTreeMap<String, Addr> = query_module_addresses(deps, module_names)?;
     let mut module_versions: BTreeMap<String, ContractVersion> = BTreeMap::new();
 
-    let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(deps.api)?;
     for (name, address) in addresses.into_iter() {
         let result = query_module_version(deps, address, &version_control)?;
         module_versions.insert(name, result);

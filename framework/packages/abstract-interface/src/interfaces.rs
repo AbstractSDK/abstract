@@ -29,12 +29,12 @@ where
 {
     let chain = version_control.environment().clone();
 
-    let account = AccountI::new_from_id(&account_id, chain.clone());
+    let account_interface = AccountI::new_from_id(&account_id, chain.clone());
 
-    let account_base = version_control.get_account(account_id.clone())?;
-    account.set_address(account_base.addr());
+    let account = version_control.get_account(account_id.clone())?;
+    account_interface.set_address(account.addr());
 
-    Ok(account)
+    Ok(account_interface)
 }
 
 pub fn get_ibc_contracts<Chain: CwEnv>(chain: Chain) -> (IbcClient<Chain>, IbcHost<Chain>)

@@ -254,8 +254,8 @@ impl Friend<String> {
                 (checked.address.clone(), Friend::Addr(checked))
             }
             Friend::AbstractAccount(account_id) => {
-                let base = account_registry.account_base(&account_id)?;
-                (base.manager, Friend::AbstractAccount(account_id))
+                let base = account_registry.account(&account_id)?;
+                (base.into_addr(), Friend::AbstractAccount(account_id))
             }
         };
         Ok(checked)
@@ -266,12 +266,10 @@ impl Friend<Addr> {
     pub(crate) fn addr(&self, deps: Deps, module: &ChallengeApp) -> AbstractSdkResult<Addr> {
         Ok(match self {
             Friend::Addr(human) => human.address.clone(),
-            Friend::AbstractAccount(account_id) => {
-                module
-                    .account_registry(deps)?
-                    .account_base(account_id)?
-                    .manager
-            }
+            Friend::AbstractAccount(account_id) => module
+                .account_registry(deps)?
+                .account(account_id)?
+                .into_addr(),
         })
     }
 }
