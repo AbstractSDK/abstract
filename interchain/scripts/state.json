@@ -249,35 +249,33 @@
   },
   "pion-1": {
     "code_ids": {
+      "abstract:account": 7200,
       "abstract:account-factory": 5560,
-      "abstract:ans-host": 5563,
+      "abstract:ans-host": 7197,
       "abstract:challenge": 4845,
       "abstract:cw-staking": 5568,
       "abstract:dca": 4844,
       "abstract:dex": 4841,
       "abstract:etf": 5570,
-      "abstract:ibc-client": 5566,
-      "abstract:ibc-host": 5567,
-      "abstract:manager": 5564,
-      "abstract:module-factory": 5561,
+      "abstract:ibc-client": 7201,
+      "abstract:ibc-host": 7202,
+      "abstract:module-factory": 7199,
       "abstract:money-market": 5569,
-      "abstract:proxy": 5565,
-      "abstract:version-control": 5562
+      "abstract:version-control": 7198,
+      "cw:blob": 7196
     },
     "default": {
       "abstract:account-factory": "neutron120t0zkewul37gfuurtlvf8j7a5ekp8eq48xjf4s54z5c7mve0mxsk3zuyu",
-      "abstract:ans-host": "neutron1sgd4tr9yu3uekg46sgagyjy3hapephadtet8n6rqj63mpmx006rsduzw2l",
+      "abstract:account-local-0": "neutron1u0fmqvqhurjxa662xqt8vs8nhlgvc65360wqntj04re7uvqwytfs6nq54a",
+      "abstract:account-local-1": "neutron1v48g7ehduymkj289ceh2j6yqr6d7rgynm57kptx7fgagyq8vpkuqc7d3xr",
+      "abstract:ans-host": "neutron1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4q5t2jm5",
       "abstract:cw-staking": "neutron1nryquq9q0fqxq29srquqlg47pte3sv833ln6ykxgxm048jklpwyq759myt",
       "abstract:dex": "neutron1vwfanzccg2fw2nf37zl5m25puc5rc5e79pfs7vzqq76q7hqu4mdqkuwa4a",
-      "abstract:ibc-client": "neutron15tavpuugwc55z844puwhq9drj97vhqfcrga27dmf56ydert62vqs2m96eu",
-      "abstract:ibc-host": "neutron1f7g2gqhcqres95cm697vyc8hruhu0gagp7a7kdk749y624n5qc7qltfk2c",
-      "abstract:manager-local-0": "neutron18fsar2rzktpp28q08kh7sh3akg4g4ege4d557qp53yjqj2mh7auss72cyj",
-      "abstract:manager-local-1": "neutron1s35mdz9vf88uhmd9a04f2ty2fcwjeusv460ckhqnm72a7s5yrpesquc6qx",
-      "abstract:module-factory": "neutron1fhkdmnc0wrwrplvkkpwtzw8gfl9t3vvym0x5xx2wmqgt9leg9rysxgya68",
+      "abstract:ibc-client": "neutron1l487rfqw2yevhvh4c3dw706mdy9u703zsawq7xt4h9e0h9up9fgqvynt0x",
+      "abstract:ibc-host": "neutron1dtw8lua8qpav6x3sngqwd3xqmyvg5q0pnv2lkmajzk0rjkjetm2sgndp44",
+      "abstract:module-factory": "neutron1wzrl9hf8xukhu7ukx5quted5m5c2vklmr70tg88a0zkduts7f0sqr3axl7",
       "abstract:money-market": "neutron1krttzmecnrta5fpmt6ktr8czdlteccyeyfr9g8y6pz2kk5at78dqqszas2",
-      "abstract:proxy-local-0": "neutron1f063dx40qn6aea390tevv2wm2yv82hflzhlg0wnpxl0v833sr86smng9ju",
-      "abstract:proxy-local-1": "neutron1gjp9gcgxph5p8ape0n8a9j3xdskwygysccmamkn2nc6y0eeeheqql4kydc",
-      "abstract:version-control": "neutron1755jsh082jknddseg7t95dfahsa28mahkwhlgvx9rqyth6dqeu6sv7duxf"
+      "abstract:version-control": "neutron1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsasd7eejm"
     }
   },
   "pisco-1": {
