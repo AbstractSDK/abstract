@@ -9,7 +9,7 @@ pub use cw_blob::CHECKSUM as BLOB_CHECKSUM;
 
 // TODO: fill bytes with Public address of creator
 // Default local-juno used right now(for testing)
-const TEST_ABSTRACT_CREATOR: [u8; 32] = [
+const TEST_ABSTRACT_CREATOR: [u8; 33] = [
     2, 146, 187, 207, 156, 96, 230, 188, 163, 167, 152, 64, 234, 101, 130, 38, 50, 89, 139, 233,
     56, 192, 110, 242, 251, 222, 103, 198, 68, 80, 201, 159, 3,
 ];
