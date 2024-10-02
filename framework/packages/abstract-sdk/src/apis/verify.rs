@@ -1,11 +1,9 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use abstract_std::{
+    objects::ownership::nested_admin::assert_account_calling_to_as_admin_is_self,
     objects::{registry::RegistryContract, AccountId},
     registry::Account,
-    objects::{
-        ownership::nested_admin::assert_account_calling_to_as_admin_is_self,
-    },
 };
 use cosmwasm_std::{Addr, Deps, Env};
 
