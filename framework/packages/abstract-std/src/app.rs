@@ -115,6 +115,7 @@ pub struct BaseMigrateMsg {}
 pub struct AppState {
     /// Account contract address for proxying transactions
     pub account: Account,
+    // TODO: remove ans host and vc
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
     /// Used to verify requests

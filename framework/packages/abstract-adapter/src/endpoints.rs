@@ -126,13 +126,13 @@ mod test {
         };
         let actual_init = instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&owner, &[]),
             init_msg.clone(),
         );
         let expected_init = MOCK_ADAPTER.instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&owner, &[]),
             init_msg,
         );
@@ -142,13 +142,13 @@ mod test {
         let exec_msg = adapter::ExecuteMsg::Module(AdapterRequestMsg::new(None, MockExecMsg {}));
         let actual_exec = execute(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&owner, &[]),
             exec_msg.clone(),
         );
         let expected_exec = MOCK_ADAPTER.execute(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&owner, &[]),
             exec_msg,
         );
@@ -156,14 +156,14 @@ mod test {
 
         // query
         let query_msg = adapter::QueryMsg::Module(MockQueryMsg::GetSomething {});
-        let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
-        let expected_query = MOCK_ADAPTER.query(deps.as_ref(), mock_env(), query_msg);
+        let actual_query = query(deps.as_ref(), mock_env_validated(deps.api), query_msg.clone());
+        let expected_query = MOCK_ADAPTER.query(deps.as_ref(), mock_env_validated(deps.api), query_msg);
         assert_eq!(actual_query, expected_query);
 
         // sudo
         let sudo_msg = MockSudoMsg {};
-        let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
-        let expected_sudo = MOCK_ADAPTER.sudo(deps.as_mut(), mock_env(), sudo_msg);
+        let actual_sudo = sudo(deps.as_mut(), mock_env_validated(deps.api), sudo_msg.clone());
+        let expected_sudo = MOCK_ADAPTER.sudo(deps.as_mut(), mock_env_validated(deps.api), sudo_msg);
         assert_eq!(actual_sudo, expected_sudo);
 
         // reply
@@ -173,8 +173,8 @@ mod test {
             payload: Binary::default(),
             gas_used: 0,
         };
-        let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
-        let expected_reply = MOCK_ADAPTER.reply(deps.as_mut(), mock_env(), reply_msg);
+        let actual_reply = reply(deps.as_mut(), mock_env_validated(deps.api), reply_msg.clone());
+        let expected_reply = MOCK_ADAPTER.reply(deps.as_mut(), mock_env_validated(deps.api), reply_msg);
         assert_eq!(actual_reply, expected_reply);
     }
 
@@ -230,7 +230,7 @@ mod test {
         // custom
         let actual_custom_exec = execute(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&abstr.owner, &[]),
             CustomExecMsg::Foo {},
         )
@@ -251,13 +251,13 @@ mod test {
         };
         let actual_init = instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&abstr.owner, &[]),
             init_msg.clone(),
         );
         let expected_init = MOCK_ADAPTER.instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&abstr.owner, &[]),
             init_msg,
         );
@@ -267,13 +267,13 @@ mod test {
         let exec_msg = MockExecMsg {};
         let actual_exec = execute(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&abstr.owner, &[]),
             exec_msg.clone().into(),
         );
         let expected_exec = MOCK_ADAPTER.execute(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&abstr.owner, &[]),
             exec_msg.into(),
         );
@@ -281,14 +281,14 @@ mod test {
 
         // query
         let query_msg = adapter::QueryMsg::Module(MockQueryMsg::GetSomething {});
-        let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
-        let expected_query = MOCK_ADAPTER.query(deps.as_ref(), mock_env(), query_msg);
+        let actual_query = query(deps.as_ref(), mock_env_validated(deps.api), query_msg.clone());
+        let expected_query = MOCK_ADAPTER.query(deps.as_ref(), mock_env_validated(deps.api), query_msg);
         assert_eq!(actual_query, expected_query);
 
         // sudo
         let sudo_msg = MockSudoMsg {};
-        let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
-        let expected_sudo = MOCK_ADAPTER.sudo(deps.as_mut(), mock_env(), sudo_msg);
+        let actual_sudo = sudo(deps.as_mut(), mock_env_validated(deps.api), sudo_msg.clone());
+        let expected_sudo = MOCK_ADAPTER.sudo(deps.as_mut(), mock_env_validated(deps.api), sudo_msg);
         assert_eq!(actual_sudo, expected_sudo);
 
         // reply
@@ -298,8 +298,8 @@ mod test {
             payload: Binary::default(),
             gas_used: 0,
         };
-        let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
-        let expected_reply = MOCK_ADAPTER.reply(deps.as_mut(), mock_env(), reply_msg);
+        let actual_reply = reply(deps.as_mut(), mock_env_validated(deps.api), reply_msg.clone());
+        let expected_reply = MOCK_ADAPTER.reply(deps.as_mut(), mock_env_validated(deps.api), reply_msg);
         assert_eq!(actual_reply, expected_reply);
     }
 }

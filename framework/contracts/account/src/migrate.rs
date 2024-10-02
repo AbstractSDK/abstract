@@ -36,7 +36,7 @@ mod tests {
 
         let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-        let res = super::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+        let res = super::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg {});
 
         assert_that!(res)
             .is_err()
@@ -61,7 +61,7 @@ mod tests {
 
         let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-        let res = super::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+        let res = super::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg {});
 
         assert_that!(res)
             .is_err()
@@ -85,7 +85,7 @@ mod tests {
         let old_name = "old:contract";
         set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-        let res = super::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+        let res = super::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg {});
 
         assert_that!(res)
             .is_err()
@@ -114,7 +114,7 @@ mod tests {
 
         set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
 
-        let res = super::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+        let res = super::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg {})?;
         assert_that!(res.messages).has_length(0);
 
         assert_that!(get_contract_version(&deps.storage)?.version).is_equal_to(version.to_string());

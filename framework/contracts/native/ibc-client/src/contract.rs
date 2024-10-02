@@ -156,7 +156,7 @@ mod tests {
     type IbcClientTestResult = Result<(), IbcClientError>;
 
     fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> IbcClientResult {
-        execute(deps, mock_env(), message_info(sender, &[]), msg)
+        execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
     }
 
     fn test_only_admin(msg: ExecuteMsg) -> IbcClientTestResult {
@@ -182,11 +182,11 @@ mod tests {
             version_control_address: abstr.version_control.to_string(),
         };
         let info = message_info(&owner, &[]);
-        let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+        let res = instantiate(deps.as_mut(), mock_env_validated(deps.api), info, msg).unwrap();
         assert_that!(res.messages).is_empty();
 
         let ownership_resp: Ownership<Addr> =
-            from_json(query(deps.as_ref(), mock_env(), QueryMsg::Ownership {})?)?;
+            from_json(query(deps.as_ref(), mock_env_validated(deps.api), QueryMsg::Ownership {})?)?;
 
         assert_eq!(ownership_resp.owner, Some(owner));
 
@@ -211,7 +211,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -236,7 +236,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -260,7 +260,7 @@ mod tests {
             let old_name = "old:contract";
             cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -288,7 +288,7 @@ mod tests {
             .to_string();
             cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, small_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {})?;
+            let res = contract::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(cw2::get_contract_version(&deps.storage)?.version)
@@ -369,7 +369,7 @@ mod tests {
                 &PolytoneNoteExecuteMsg::Execute {
                     msgs: vec![],
                     callback: Some(CallbackRequest {
-                        receiver: mock_env().contract.address.to_string(),
+                        receiver: mock_env_validated(deps.api).contract.address.to_string(),
                         msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
                     }),
                     timeout_seconds: PACKET_LIFETIME.into(),
@@ -402,7 +402,7 @@ mod tests {
             // Verify queries
             let host_response: HostResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::Host {
                     chain_name: chain_name.clone(),
                 },
@@ -417,7 +417,7 @@ mod tests {
 
             let remote_hosts_response: ListRemoteHostsResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::ListRemoteHosts {},
             )?)?;
             let hosts = remote_hosts_response.hosts;
@@ -425,7 +425,7 @@ mod tests {
 
             let remote_proxies_response: ListRemoteProxiesResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::ListRemoteProxies {},
             )?)?;
             let hosts = remote_proxies_response.proxies;
@@ -433,7 +433,7 @@ mod tests {
 
             let ibc_infratructures_response: ListIbcInfrastructureResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::ListIbcInfrastructures {},
             )?)?;
             let hosts = ibc_infratructures_response.counterparts;
@@ -685,7 +685,7 @@ mod tests {
                         channel_id: channel_id.clone(),
                         to_address: remote_addr.clone(),
                         amount,
-                        timeout: mock_env().block.time.plus_seconds(PACKET_LIFETIME).into(),
+                        timeout: mock_env_validated(deps.api).block.time.plus_seconds(PACKET_LIFETIME).into(),
                         memo: None,
                     }
                     .into()
@@ -722,10 +722,10 @@ mod tests {
                                     denom: c.denom,
                                     amount: c.amount.to_string(),
                                 }),
-                                sender: mock_env().contract.address.to_string(),
+                                sender: mock_env_validated(deps.api).contract.address.to_string(),
                                 receiver: remote_addr.clone(),
                                 timeout_height: None,
-                                timeout_timestamp: mock_env()
+                                timeout_timestamp: mock_env_validated(deps.api)
                                     .block
                                     .time
                                     .plus_seconds(PACKET_LIFETIME)
@@ -862,7 +862,7 @@ mod tests {
                     )?
                     .into()],
                     callback: Some(CallbackRequest {
-                        receiver: mock_env().contract.address.to_string(),
+                        receiver: mock_env_validated(deps.api).contract.address.to_string(),
                         msg: to_json_binary(&IbcClientCallback::CreateAccount {
                             account_id: TEST_ACCOUNT_ID,
                         })?,
@@ -1011,7 +1011,7 @@ mod tests {
         fn who_am_i_unregistered_chain() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
             let note_addr = deps.api.addr_make("note");
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
@@ -1039,7 +1039,7 @@ mod tests {
         fn who_am_i_fatal_error() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
@@ -1076,7 +1076,7 @@ mod tests {
         fn who_am_i_success() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
@@ -1130,7 +1130,7 @@ mod tests {
         fn create_account_fatal_error() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
@@ -1159,7 +1159,7 @@ mod tests {
         fn create_account_missing_wasm_event() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
@@ -1197,7 +1197,7 @@ mod tests {
         fn create_account_missing_account_address_attribute() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
@@ -1235,7 +1235,7 @@ mod tests {
         fn create_account_success() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_addr = deps.api.addr_make("note");
@@ -1281,7 +1281,7 @@ mod tests {
             // Verify queries
             let account_response: AccountResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::Account {
                     chain_name: chain_name.clone(),
                     account_id: TEST_ACCOUNT_ID,
@@ -1297,7 +1297,7 @@ mod tests {
 
             let accounts_response: ListAccountsResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::ListAccounts {
                     start: None,
                     limit: None,
@@ -1313,7 +1313,7 @@ mod tests {
 
             let proxies_response: ListRemoteProxiesResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::ListRemoteProxiesByAccountId {
                     account_id: TEST_ACCOUNT_ID,
                 },
@@ -1354,7 +1354,7 @@ mod tests {
 
             let proxies_response: ListRemoteProxiesResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::ListRemoteProxiesByAccountId {
                     account_id: TEST_ACCOUNT_ID,
                 },
@@ -1404,7 +1404,7 @@ mod tests {
 
             let proxies_response: ListRemoteProxiesResponse = from_json(query(
                 deps.as_ref(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 QueryMsg::ListRemoteProxiesByAccountId { account_id },
             )?)?;
 

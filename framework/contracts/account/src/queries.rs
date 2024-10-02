@@ -226,7 +226,7 @@ mod test {
 
         let config: ConfigResponse = from_json(query(
             deps.as_ref(),
-            mock_env(),
+            mock_env_validated(deps.api),
             abstract_std::account::QueryMsg::Config {},
         )?)?;
         assert_eq!(
@@ -242,7 +242,7 @@ mod test {
 
         let module_infos: ModuleInfosResponse = from_json(query(
             deps.as_ref(),
-            mock_env(),
+            mock_env_validated(deps.api),
             abstract_std::account::QueryMsg::ModuleInfos {
                 start_after: None,
                 limit: None,
@@ -273,7 +273,7 @@ mod test {
 
         let config: ConfigResponse = from_json(query(
             deps.as_ref(),
-            mock_env(),
+            mock_env_validated(deps.api),
             abstract_std::account::QueryMsg::Config {},
         )?)?;
         assert_eq!(

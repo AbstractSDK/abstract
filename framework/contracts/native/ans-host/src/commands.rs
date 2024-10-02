@@ -373,8 +373,13 @@ mod test {
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 
-    fn execute_helper(deps: DepsMut, msg: ExecuteMsg, owner: &Addr) -> AnsHostTestResult {
-        contract::execute(deps, mock_env(), message_info(owner, &[]), msg)?;
+    fn execute_helper(deps: DepsMut, env: Env, msg: ExecuteMsg, owner: &Addr) -> AnsHostTestResult {
+        contract::execute(
+            deps,
+            env,
+            message_info(owner, &[]),
+            msg,
+        )?;
         Ok(())
     }
 
@@ -397,6 +402,7 @@ mod test {
     mod update_dexes {
         use super::*;
 
+        use abstract_testing::mock_env_validated;
         use cosmwasm_std::{testing::MockApi, Empty, OwnedDeps};
 
         #[test]
@@ -412,8 +418,9 @@ mod test {
                 to_add: vec![new_dex.clone()],
                 to_remove: vec![],
             };
+            let env = mock_env_validated(deps.api);
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), env, info, msg)?;
 
             assert_expected_dexes(&deps, vec![new_dex]);
 
@@ -435,8 +442,13 @@ mod test {
                 to_remove: vec![],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info.clone(), msg.clone())?;
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(
+                deps.as_mut(),
+                mock_env_validated(deps.api),
+                info.clone(),
+                msg.clone(),
+            )?;
+            let _res = contract::execute(deps.as_mut(), mock_env_validated(deps.api), info, msg)?;
 
             assert_expected_dexes(&deps, vec![new_dex]);
 
@@ -457,7 +469,7 @@ mod test {
                 to_remove: vec![],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env_validated(deps.api), info, msg)?;
 
             // ONly one dex should be registered
             assert_expected_dexes(&deps, vec![new_dex]);
@@ -479,7 +491,7 @@ mod test {
                 to_remove: vec![new_dex],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env_validated(deps.api), info, msg)?;
 
             assert_expected_dexes(&deps, vec![]);
 
@@ -500,7 +512,7 @@ mod test {
                 to_remove: vec![],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env_validated(deps.api), info, msg)?;
 
             assert_expected_dexes(&deps, new_dexes);
 
@@ -521,7 +533,7 @@ mod test {
                 to_remove: vec![missing_dex],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env_validated(deps.api), info, msg)?;
 
             let expected_dexes: Vec<String> = vec![];
 

@@ -93,7 +93,7 @@ mod test {
         };
 
         let res = MOCK_APP_WITH_DEP
-            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .instantiate(deps.as_mut(), mock_env_validated(deps.api), info, msg)
             .unwrap();
         assert!(res.messages.is_empty());
     }

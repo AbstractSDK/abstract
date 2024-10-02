@@ -635,7 +635,7 @@ mod tests {
     #[test]
     fn create_proposal() {
         let mut deps = mock_dependencies();
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
         let storage = &mut deps.storage;
         default_setup(storage);
 
@@ -700,7 +700,7 @@ mod tests {
     #[test]
     fn create_proposal_duplicate_friends() {
         let mut deps = mock_dependencies();
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
         let storage = &mut deps.storage;
         default_setup(storage);
 
@@ -719,7 +719,7 @@ mod tests {
     #[test]
     fn cancel_vote() {
         let mut deps = mock_dependencies();
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
         let storage = &mut deps.storage;
 
         default_setup(storage);
@@ -771,7 +771,7 @@ mod tests {
     #[test]
     fn load_proposal() {
         let mut deps = mock_dependencies();
-        let mut env = mock_env();
+        let mut env = mock_env_validated(deps.api);
         let storage = &mut deps.storage;
         setup(
             storage,
@@ -841,7 +841,7 @@ mod tests {
     #[test]
     fn cast_vote() {
         let mut deps = mock_dependencies();
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
         let storage = &mut deps.storage;
         default_setup(storage);
 
@@ -1010,7 +1010,7 @@ mod tests {
     #[test]
     fn invalid_cast_votes() {
         let mut deps = mock_dependencies();
-        let mut env = mock_env();
+        let mut env = mock_env_validated(deps.api);
         let storage = &mut deps.storage;
         setup(
             storage,
@@ -1112,7 +1112,7 @@ mod tests {
     #[test]
     fn count_votes() {
         let mut deps = mock_dependencies();
-        let mut env = mock_env();
+        let mut env = mock_env_validated(deps.api);
         let storage = &mut deps.storage;
         default_setup(storage);
 

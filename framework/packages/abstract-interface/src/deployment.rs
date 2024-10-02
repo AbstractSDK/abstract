@@ -103,7 +103,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             ),
             blob_code_id,
             expected_addr(native_addrs::ANS_HOST_SALT)?,
-            Binary::from(ANS_HOST.as_bytes()),
+            Binary::from(native_addrs::ANS_HOST_SALT),
         )?;
 
         deployment.version_control.deterministic_instantiate(
@@ -119,7 +119,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             ),
             blob_code_id,
             expected_addr(native_addrs::VERSION_CONTROL_SALT)?,
-            Binary::from(VERSION_CONTROL.as_bytes()),
+            Binary::from(native_addrs::VERSION_CONTROL_SALT),
         )?;
         deployment.module_factory.deterministic_instantiate(
             &abstract_std::module_factory::MigrateMsg::Instantiate(
@@ -129,7 +129,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             ),
             blob_code_id,
             expected_addr(native_addrs::MODULE_FACTORY_SALT)?,
-            Binary::from(MODULE_FACTORY.as_bytes()),
+            Binary::from(native_addrs::MODULE_FACTORY_SALT),
         )?;
 
         // We also instantiate ibc contracts
@@ -142,7 +142,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             ),
             blob_code_id,
             expected_addr(native_addrs::IBC_CLIENT_SALT)?,
-            Binary::from(IBC_CLIENT.as_bytes()),
+            Binary::from(native_addrs::IBC_CLIENT_SALT),
         )?;
         deployment.ibc.host.deterministic_instantiate(
             &abstract_std::ibc_host::MigrateMsg::Instantiate(
@@ -150,7 +150,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             ),
             blob_code_id,
             expected_addr(native_addrs::IBC_HOST_SALT)?,
-            Binary::from(IBC_HOST.as_bytes()),
+            Binary::from(native_addrs::IBC_HOST_SALT),
         )?;
         deployment.ibc.register(&deployment.version_control)?;
 
@@ -347,7 +347,6 @@ mod test {
 
     use cosmwasm_std::Api;
     use cw_orch::anyhow;
-    use native_addrs::TEST_ABSTRACT_CREATOR;
 
     use super::*;
 
@@ -368,13 +367,10 @@ mod test {
 
     #[test]
     fn deploy2() -> anyhow::Result<()> {
-        let mut chain = MockBech32::new("mock");
-        let sender = chain
-            .app
-            .borrow()
-            .api()
-            .addr_humanize(&CanonicalAddr::from(TEST_ABSTRACT_CREATOR))?;
-        chain.set_sender(sender);
+        let prefix = "mock";
+        let mut chain = MockBech32::new(prefix);
+        let sender = native_addrs::creator_address(prefix)?;
+        chain.set_sender(Addr::unchecked(sender));
 
         let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
         let app = chain.app.borrow();
@@ -382,23 +378,29 @@ mod test {
 
         // ANS
         let ans_addr = api.addr_canonicalize(&abstr.ans_host.addr_str()?)?;
-        assert_eq!(*ans_addr, native_addrs::ANS_ADDR);
+        assert_eq!(ans_addr, native_addrs::ans_address(prefix, api)?);
 
         // VC
         let version_control = api.addr_canonicalize(&abstr.version_control.addr_str()?)?;
-        assert_eq!(*version_control, native_addrs::VERSION_CONTROL_ADDR);
+        assert_eq!(
+            version_control,
+            native_addrs::version_control_address(prefix, api)?
+        );
 
         // MODULE_FACTORY
         let module_factory = api.addr_canonicalize(&abstr.module_factory.addr_str()?)?;
-        assert_eq!(*module_factory, native_addrs::MODULE_FACTORY_ADDR);
+        assert_eq!(
+            module_factory,
+            native_addrs::module_factory_address(prefix, api)?
+        );
 
         // IBC_CLIENT
         let ibc_client = api.addr_canonicalize(&abstr.ibc.client.addr_str()?)?;
-        assert_eq!(*ibc_client, native_addrs::IBC_CLIENT_ADDR);
+        assert_eq!(ibc_client, native_addrs::ibc_client_address(prefix, api)?);
 
         // IBC_HOST
         let ibc_host = api.addr_canonicalize(&abstr.ibc.host.addr_str()?)?;
-        assert_eq!(*ibc_host, native_addrs::IBC_HOST_ADDR);
+        assert_eq!(ibc_host, native_addrs::ibc_host_address(prefix, api)?);
 
         Ok(())
     }

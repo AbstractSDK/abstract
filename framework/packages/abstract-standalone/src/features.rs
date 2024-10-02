@@ -52,9 +52,10 @@ mod test {
     #[test]
     fn test_ans_host() -> StandaloneTestResult {
         let deps = mock_init();
+        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref())?;
+        let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref(), &env)?;
 
         assert_that!(ans_host.address).is_equal_to(abstr.ans_host);
         Ok(())
@@ -63,9 +64,10 @@ mod test {
     #[test]
     fn test_abstract_registry() -> StandaloneTestResult {
         let deps = mock_init();
+        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref())?;
+        let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref(), &env)?;
 
         assert_that!(abstract_registry.address).is_equal_to(abstr.version_control);
         Ok(())
@@ -74,6 +76,7 @@ mod test {
     #[test]
     fn test_traits_generated() -> StandaloneTestResult {
         let mut deps = mock_init();
+        let env = mock_env_validated(deps.api);
         let expected_account = test_account(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
             .account(&expected_account, TEST_ACCOUNT_ID)
@@ -81,20 +84,20 @@ mod test {
 
         // AbstractNameService
         let host = BASIC_MOCK_STANDALONE
-            .name_service(deps.as_ref())
+            .name_service(deps.as_ref(), &env)
             .host()
             .clone();
-        assert_eq!(host, AnsHost::new(&deps.api)?);
+        assert_eq!(host, AnsHost::new(&deps.api, &env)?);
 
         // AccountRegistry
         // TODO: Why rust forces binding on static object what
         let binding = BASIC_MOCK_STANDALONE;
-        let account_registry = binding.account_registry(deps.as_ref()).unwrap();
+        let account_registry = binding.account_registry(deps.as_ref(), &env).unwrap();
         let account = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(account, expected_account);
 
         // TODO: Make some of the module_registry queries raw as well?
-        let _module_registry = BASIC_MOCK_STANDALONE.module_registry(deps.as_ref());
+        let _module_registry = BASIC_MOCK_STANDALONE.module_registry(deps.as_ref(), &env);
         // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 
         Ok(())

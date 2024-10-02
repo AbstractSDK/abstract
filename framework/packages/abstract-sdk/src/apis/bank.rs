@@ -300,10 +300,11 @@ mod test {
         #[test]
         fn transfer_asset_to_sender() {
             let (deps, account, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
             let coins: Vec<Coin> = coins(100u128, "asset");
             let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
 
@@ -341,10 +342,11 @@ mod test {
         #[test]
         fn deposit() {
             let (deps, account, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             // ANCHOR: deposit
             // Get bank API struct from the app
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
             // Define coins to send
             let coins: Vec<Coin> = coins(100u128, "denom");
             // Construct messages for deposit (transfer from this contract to the account)
@@ -370,9 +372,9 @@ mod test {
             let (deps, _, app) = mock_module_setup();
 
             let expected_amount = 100u128;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
-            let bank = app.bank(deps.as_ref());
+            let bank = app.bank(deps.as_ref(), &env);
             let coins = coins(expected_amount, "asset");
             let actual_res = bank.withdraw(&env, coins.clone());
 
@@ -394,11 +396,12 @@ mod test {
         #[test]
         fn send_cw20() {
             let (deps, _, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 
-            let bank = app.bank(deps.as_ref());
+            let bank = app.bank(deps.as_ref(), &env);
             let hook_msg = Empty {};
             let asset = deps.api.addr_make("asset");
             let coin = Asset::cw20(asset.clone(), expected_amount);
@@ -421,11 +424,12 @@ mod test {
         #[test]
         fn send_coins() {
             let (deps, _, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 
-            let bank = app.bank(deps.as_ref());
+            let bank = app.bank(deps.as_ref(), &env);
             let coin = coin(expected_amount, "asset");
             let hook_msg = Empty {};
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);

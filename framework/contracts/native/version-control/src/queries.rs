@@ -357,7 +357,7 @@ mod test {
 
         contract::instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             info,
             InstantiateMsg {
                 admin,
@@ -404,11 +404,11 @@ mod test {
     }
 
     fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> VCResult {
-        contract::execute(deps, mock_env(), message_info(sender, &[]), msg)
+        contract::execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
     }
 
     fn query_helper(deps: Deps, msg: QueryMsg) -> VCResult<Binary> {
-        contract::query(deps, mock_env(), msg)
+        contract::query(deps, mock_env_validated(deps.api), msg)
     }
 
     mod module {

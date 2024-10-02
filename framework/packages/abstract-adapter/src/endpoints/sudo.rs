@@ -15,7 +15,7 @@ mod tests {
 
     #[test]
     fn endpoint() -> AdapterMockResult {
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let sudo_msg = crate::mock::MockSudoMsg {};

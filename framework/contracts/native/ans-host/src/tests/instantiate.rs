@@ -24,7 +24,7 @@ pub fn mock_init<Q: cosmwasm_std::Querier>(deps: &mut OwnedDeps<MockStorage, Moc
         admin: info.sender.to_string(),
     };
 
-    let _res = instantiate(deps.as_mut(), mock_env(), info, msg)
+    let _res = instantiate(deps.as_mut(), mock_env_validated(deps.api), info, msg)
         .expect("contract successfully handles InstantiateMsg");
 }
 
@@ -38,7 +38,7 @@ fn successful_initialization() {
 
     let info = message_info(&abstr.owner, &[]);
     let msg = instantiate_msg(&info);
-    let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+    let res = instantiate(deps.as_mut(), mock_env_validated(deps.api), info, msg).unwrap();
     assert_eq!(0, res.messages.len());
 }
 

@@ -23,15 +23,15 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
         networks = SUPPORTED_CHAINS.iter().map(|x| x.clone().into()).collect();
     }
 
-    let deployment_status = read_deployment()?;
-    if deployment_status.success {
-        log::info!("Do you want to re-deploy to {:?}?", networks);
-        let mut input = String::new();
-        std::io::stdin().read_line(&mut input)?;
-        if input.to_lowercase().contains('n') {
-            return Ok(());
-        }
-    }
+    // let deployment_status = read_deployment()?;
+    // if deployment_status.success {
+    //     log::info!("Do you want to re-deploy to {:?}?", networks);
+    //     let mut input = String::new();
+    //     std::io::stdin().read_line(&mut input)?;
+    //     if input.to_lowercase().contains('n') {
+    //         return Ok(());
+    //     }
+    // }
     // let deployment_status = deployment_status.clone();
 
     // If some chains need to be deployed, deploy them
@@ -44,11 +44,6 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
     // write_deployment(&deployment_status)?;
 
     for network in networks {
-        let urls = network.grpc_urls.to_vec();
-        for url in urls {
-            rt.block_on(ping_grpc(&url))?;
-        }
-
         let chain = DaemonBuilder::new(network.clone())
             .handle(rt.handle())
             .build()?;

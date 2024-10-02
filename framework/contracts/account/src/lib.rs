@@ -59,7 +59,7 @@ mod test_common {
 
         crate::contract::instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             info,
             account::InstantiateMsg {
                 account_id: Some(AccountId::new(1, AccountTrace::Local).unwrap()),
@@ -92,12 +92,12 @@ mod test_common {
     }
 
     pub fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> AccountResult {
-        crate::contract::execute(deps, mock_env(), message_info(sender, &[]), msg)
+        crate::contract::execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
     }
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> AccountResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
-        crate::contract::execute(deps.as_mut(), mock_env(), info, msg)
+        crate::contract::execute(deps.as_mut(), mock_env_validated(deps.api), info, msg)
     }
 }

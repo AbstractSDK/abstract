@@ -221,7 +221,7 @@ pub mod mock {
         };
 
         BASIC_MOCK_APP
-            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .instantiate(deps.as_mut(), mock_env_validated(deps.api), info, msg)
             .unwrap();
 
         deps
@@ -288,7 +288,7 @@ pub mod mock {
             }
             Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
         })
-        .with_instantiate(|deps, _env, info, module, msg| {
+        .with_instantiate(|deps, env, info, module, msg| {
             let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
             // See test `create_sub_account_with_installed_module` where this will be triggered.
             if module.info().0 == "tester:mock-app1" {
@@ -308,7 +308,7 @@ pub mod mock {
                 if !balance.amount.is_zero() {
                 println!("sending amount from proxy: {balance:?}");
                     let action = module
-                        .bank(deps.as_ref())
+                        .bank(deps.as_ref(), &env)
                         .transfer::<::cosmwasm_std::Coin>(
                             vec![balance.into()],
                             &adapter1_addr.unwrap(),

@@ -79,7 +79,7 @@ mod tests {
     fn test_update_ownership_macro() -> Result<(), MockError> {
         let mut deps = mock_dependencies();
 
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
         let old_owner = deps.api.addr_make(OLD_OWNER);
         let new_owner = deps.api.addr_make(NEW_OWNER);
         let info = message_info(&old_owner, &[]);
@@ -119,7 +119,7 @@ mod tests {
     #[test]
     fn test_query_ownership_macro() -> Result<(), MockError> {
         let mut deps = mock_dependencies();
-        let _env = mock_env();
+        let _env = mock_env_validated(deps.api);
 
         let old_owner = deps.api.addr_make("owner1");
 

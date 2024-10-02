@@ -74,13 +74,13 @@ mod test {
         // Instantiate
         let mut deps = mock_dependencies();
         let info = message_info(&deps.api.addr_make("admin"), &[]);
-        instantiate(deps.as_mut(), mock_env(), info.clone(), InstantiateMsg {}).unwrap();
+        instantiate(deps.as_mut(), mock_env_validated(deps.api), info.clone(), InstantiateMsg {}).unwrap();
 
         // Register
         let proxy = deps.api.addr_make("juno-proxy");
         execute(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             info,
             abstract_std::ibc_host::ExecuteMsg::RegisterChainProxy {
                 chain: "juno".parse().unwrap(),
@@ -92,7 +92,7 @@ mod test {
         // Query
         let client_name = query(
             deps.as_ref(),
-            mock_env(),
+            mock_env_validated(deps.api),
             QueryMsg::ClientProxy {
                 chain: "juno".to_string(),
             },

@@ -100,7 +100,7 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 # Predictable abstract addresses
-cw-blob = { version = "0.1.1" }
+cw-blob = { version = "0.1.2" }
 
 [profile.dev]
 opt-level = 1
@@ -124,7 +124,6 @@ incremental = false
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-cw-blob = { path = "../../cw-packages/contracts/cw-blob" }
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep

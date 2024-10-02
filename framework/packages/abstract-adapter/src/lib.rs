@@ -144,7 +144,7 @@ pub mod mock {
             },
             module: MockInitMsg {},
         };
-        adapter.instantiate(deps.as_mut(), mock_env(), info, init_msg)
+        adapter.instantiate(deps.as_mut(), mock_env_validated(deps.api), info, init_msg)
     }
 
     pub fn mock_init_custom(
@@ -161,7 +161,7 @@ pub mod mock {
             },
             module: MockInitMsg {},
         };
-        module.instantiate(deps.as_mut(), mock_env(), info, init_msg)
+        module.instantiate(deps.as_mut(), mock_env_validated(deps.api), info, init_msg)
     }
 
     /// Generate a cw-orch instance for a mock adapter

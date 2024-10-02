@@ -741,7 +741,7 @@ mod tests {
 
         let resp = contract::instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             info.clone(),
             InstantiateMsg {
                 admin,
@@ -780,7 +780,7 @@ mod tests {
 
         let resp = contract::instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             admin_info,
             InstantiateMsg {
                 admin,
@@ -855,7 +855,7 @@ mod tests {
     }
 
     fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> VCResult {
-        contract::execute(deps, mock_env(), message_info(sender, &[]), msg)
+        contract::execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
     }
 
     fn execute_as_with_funds(
@@ -864,7 +864,7 @@ mod tests {
         msg: ExecuteMsg,
         funds: &[Coin],
     ) -> VCResult {
-        contract::execute(deps, mock_env(), message_info(sender, funds), msg)
+        contract::execute(deps, mock_env_validated(deps.api), message_info(sender, funds), msg)
     }
 
     fn test_only_admin(
@@ -2017,7 +2017,7 @@ mod tests {
             let query_msg = QueryMsg::Modules {
                 infos: vec![new_module.clone()],
             };
-            let res = query(deps.as_ref(), mock_env(), query_msg)?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), query_msg)?;
             let ser_res = from_json::<ModulesResponse>(&res)?;
             assert_that!(ser_res.modules).has_length(1);
             assert_eq!(
@@ -2067,7 +2067,7 @@ mod tests {
             let query_msg = QueryMsg::Modules {
                 infos: vec![new_module.clone()],
             };
-            let res = query(deps.as_ref(), mock_env(), query_msg)?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), query_msg)?;
             let ser_res = from_json::<ModulesResponse>(&res)?;
             assert_that!(ser_res.modules).has_length(1);
             assert_eq!(
@@ -2121,7 +2121,7 @@ mod tests {
             let query_msg = QueryMsg::Modules {
                 infos: vec![new_module.clone()],
             };
-            let res = query(deps.as_ref(), mock_env(), query_msg)?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), query_msg)?;
             let ser_res = from_json::<ModulesResponse>(&res)?;
             assert_that!(ser_res.modules).has_length(1);
             assert_eq!(

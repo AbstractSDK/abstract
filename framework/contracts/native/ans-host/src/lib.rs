@@ -22,6 +22,6 @@ mod test_common {
         let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
 
-        contract::instantiate(deps.as_mut(), mock_env(), info, InstantiateMsg { admin })
+        contract::instantiate(deps.as_mut(), mock_env_validated(deps.api), info, InstantiateMsg { admin })
     }
 }

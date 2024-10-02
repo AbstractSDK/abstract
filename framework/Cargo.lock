@@ -2072,7 +2072,9 @@ dependencies = [
 
 [[package]]
 name = "cw-blob"
-version = "0.1.1"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5db74393a5ad285258c10a18c37a38f97490bada672a3084efea1f1cf5cc407a"
 dependencies = [
  "cosmrs 0.20.0",
  "cosmwasm-std 2.1.4",

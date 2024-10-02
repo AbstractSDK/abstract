@@ -22,6 +22,6 @@ mod test_common {
             version_control_address: abstr.version_control.to_string(),
         };
         let info = message_info(&abstr.owner, &[]);
-        contract::instantiate(deps.as_mut(), mock_env(), info, msg)
+        contract::instantiate(deps.as_mut(), mock_env_validated(deps.api), info, msg)
     }
 }

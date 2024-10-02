@@ -362,7 +362,7 @@ mod test {
     #[test]
     fn test_host_action_no_callback() {
         let (deps, _, stub) = mock_module_setup();
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
 
         let client = stub.ibc_client(deps.as_ref(), &env);
         let msg = client.host_action(
@@ -398,7 +398,7 @@ mod test {
     #[test]
     fn test_ics20_transfer() {
         let (deps, _, stub) = mock_module_setup();
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
 
         let client = stub.ibc_client(deps.as_ref(), &env);
 

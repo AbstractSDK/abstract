@@ -468,7 +468,7 @@ mod tests {
 
         let resp = super::instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             info,
             account::InstantiateMsg {
                 account_id: AccountId::new(1, AccountTrace::Local).ok(),

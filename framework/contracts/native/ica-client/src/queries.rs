@@ -194,7 +194,7 @@ mod tests {
             deps.querier = state_setup(deps.api).build();
 
             mock_init(&mut deps)?;
-            let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {})?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), QueryMsg::Config {})?;
             let res: ConfigResponse = from_json(&res).unwrap();
             assert_eq!(
                 res,
@@ -230,7 +230,7 @@ mod tests {
                 })],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -277,7 +277,7 @@ mod tests {
                 }],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -318,7 +318,7 @@ mod tests {
                 }],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -361,7 +361,7 @@ mod tests {
                 })],
             };
 
-            let err = query(deps.as_ref(), mock_env(), msg).unwrap_err();
+            let err = query(deps.as_ref(), mock_env_validated(deps.api), msg).unwrap_err();
             assert_eq!(
                 err,
                 IcaClientError::WrongChainType {

@@ -44,7 +44,7 @@ impl ModuleIdentification for VersionControlContract {
 }
 
 impl crate::features::AbstractNameService for AnsHost {
-    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<AnsHost> {
         Ok(self.clone())
     }
 }
@@ -65,8 +65,8 @@ mod tests {
         #[test]
         fn test_registry() {
             let deps = mock_dependencies();
-            let vc = VersionControlContract::new(&deps.api, &mock_env()).unwrap();
-            let env = mock_env();
+            let vc = VersionControlContract::new(&deps.api, &mock_env_validated(deps.api)).unwrap();
+            let env = mock_env_validated(deps.api);
 
             assert_that!(vc.abstract_registry(deps.as_ref(), &env))
                 .is_ok()

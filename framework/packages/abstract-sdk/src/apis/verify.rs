@@ -157,7 +157,7 @@ mod test {
         #[test]
         fn not_account_fails() {
             let mut deps = mock_dependencies();
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
             let not_account = Account::new(deps.api.addr_make("not_account"));
             let base = test_account(deps.api);
 
@@ -193,7 +193,7 @@ mod test {
         #[test]
         fn inactive_account_fails() {
             let mut deps = mock_dependencies();
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
@@ -225,7 +225,7 @@ mod test {
         #[test]
         fn returns_account() {
             let mut deps = mock_dependencies();
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
             let account = test_account(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 

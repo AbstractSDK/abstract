@@ -76,7 +76,7 @@ mod test {
     #[test]
     fn successful() -> AdapterMockResult {
         let api = MOCK_ADAPTER.with_dependencies(&[MOCK_DEP]);
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
 

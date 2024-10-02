@@ -35,7 +35,7 @@ impl ModuleIdentification for MockModule {
 }
 
 impl AbstractNameService for MockModule {
-    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<AnsHost> {
         let abstr = AbstractMockAddrs::new(self.mock_api);
         Ok(AnsHost {
             address: abstr.ans_host,

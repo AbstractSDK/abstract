@@ -3,7 +3,7 @@ use abstract_sdk::{
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Deps, StdError};
+use cosmwasm_std::{Deps, Env, StdError};
 
 use crate::{state::ContractError, AdapterContract};
 
@@ -11,7 +11,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AbstractNameService
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
     }
 }
@@ -35,7 +35,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AbstractRegistryAccess
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+    fn abstract_registry(
+        &self,
+        deps: Deps,
+        env: &Env,
+    ) -> AbstractSdkResult<VersionControlContract> {
         Ok(self.state(deps.storage)?.version_control)
     }
 }
@@ -44,7 +48,7 @@ mod tests {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::adapter::{AdapterRequestMsg, ExecuteMsg};
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, DepsMut, Env, MessageInfo, Response};
+    use cosmwasm_std::{testing::*, DepsMut, MessageInfo, Response};
 
     use super::*;
     use crate::mock::{
@@ -54,7 +58,7 @@ mod tests {
 
     pub fn feature_exec_fn(
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         _info: MessageInfo,
         module: MockAdapterContract,
         _msg: MockExecMsg,
@@ -64,10 +68,10 @@ mod tests {
         // assert with test values
         let account = module.account(deps.as_ref())?;
         assert_eq!(account, expected_account);
-        let ans = module.ans_host(deps.as_ref())?;
-        assert_eq!(ans, AnsHost::new(deps.api)?);
-        let regist = module.abstract_registry(deps.as_ref())?;
-        assert_eq!(regist, VersionControlContract::new(deps.api)?);
+        let ans = module.ans_host(deps.as_ref(), &env)?;
+        assert_eq!(ans, AnsHost::new(deps.api, &env)?);
+        let regist = module.abstract_registry(deps.as_ref(), &env)?;
+        assert_eq!(regist, VersionControlContract::new(deps.api, &env)?);
 
         module.target()?;
 
@@ -97,7 +101,7 @@ mod tests {
 
         let res = featured_adapter().execute(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(account.addr(), &[]),
             msg,
         );

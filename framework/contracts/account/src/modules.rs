@@ -681,7 +681,7 @@ mod tests {
     //     };
     //     let info = message_info(&deps.api.addr_make("not_admin"), &[]);
 
-    //     let res = execute(deps.as_mut(), mock_env(), info, msg);
+    //     let res = execute(deps.as_mut(), mock_env_validated(deps.api), info, msg);
     //     assert_that(&res)
     //         .is_err()
     //         .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
@@ -751,7 +751,7 @@ mod tests {
     //         };
     //         let info = message_info(&deps.api.addr_make("not_admin"), &[]);
 
-    //         let res = execute(deps.as_mut(), mock_env(), info, msg);
+    //         let res = execute(deps.as_mut(), mock_env_validated(deps.api), info, msg);
     //         assert_that(&res)
     //             .is_err()
     //             .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))

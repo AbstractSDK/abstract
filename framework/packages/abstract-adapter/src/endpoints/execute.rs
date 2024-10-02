@@ -59,7 +59,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     fn base_execute(
         &mut self,
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> AdapterResult {
@@ -67,7 +67,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             account_address,
             msg,
         } = message;
-        let account_registry = self.account_registry(deps.as_ref())?;
+        let account_registry = self.account_registry(deps.as_ref(), &env)?;
         let account = match account_address {
             // If account address provided, check if the sender is a direct or nested owner for this account.
             Some(requested_account) => {
@@ -122,7 +122,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             sender: sender.to_string(),
         };
 
-        let account_registry = self.account_registry(deps.as_ref())?;
+        let account_registry = self.account_registry(deps.as_ref(), &env)?;
 
         let account = match request.account_address {
             // The sender must either be an authorized address or account.
@@ -259,7 +259,7 @@ mod tests {
         sender: &Addr,
         msg: ExecuteMsg<MockExecMsg>,
     ) -> Result<Response, MockError> {
-        MOCK_ADAPTER.execute(deps, mock_env(), message_info(sender, &[]), msg)
+        MOCK_ADAPTER.execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
     }
 
     fn base_execute_as(

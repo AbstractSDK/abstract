@@ -17,9 +17,13 @@ impl<
     > ModuleIbcEndpoint
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn ibc_host(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
+    fn ibc_host(
+        &self,
+        deps: cosmwasm_std::Deps,
+        env: &cosmwasm_std::Env,
+    ) -> Result<Addr, Self::Error> {
         let vc_query_result = self
-            .abstract_registry(deps)?
+            .abstract_registry(deps, env)?
             .query_module(
                 ModuleInfo::from_id(
                     IBC_HOST,

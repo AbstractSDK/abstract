@@ -422,7 +422,7 @@ mod tests {
 
             let res = contract::execute(
                 deps.as_mut(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 message_info(&not_contract, &[]),
                 msg,
             );

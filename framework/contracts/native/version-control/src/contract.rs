@@ -161,7 +161,7 @@ mod tests {
 
             contract::instantiate(
                 deps.as_mut(),
-                mock_env(),
+                mock_env_validated(deps.api),
                 info,
                 version_control::InstantiateMsg {
                     admin,
@@ -186,7 +186,7 @@ mod tests {
                 let version: Version = CONTRACT_VERSION.parse().unwrap();
 
                 let res =
-                    crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
+                    crate::migrate::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
 
                 assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                     AbstractError::CannotDowngradeContract {
@@ -210,7 +210,7 @@ mod tests {
                 let version: Version = CONTRACT_VERSION.parse().unwrap();
 
                 let res =
-                    crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
+                    crate::migrate::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
 
                 assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                     AbstractError::CannotDowngradeContract {
@@ -233,7 +233,7 @@ mod tests {
                 cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
                 let res =
-                    crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {});
+                    crate::migrate::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
 
                 assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                     AbstractError::ContractNameMismatch {
@@ -260,7 +260,7 @@ mod tests {
                 cw2::set_contract_version(deps.as_mut().storage, VERSION_CONTROL, small_version)?;
 
                 let res =
-                    crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg::Migrate {})?;
+                    crate::migrate::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {})?;
                 assert_that!(res.messages).has_length(0);
 
                 assert_that!(cw2::get_contract_version(&deps.storage)?.version)
@@ -292,7 +292,7 @@ mod tests {
 
                 let resp = super::super::instantiate(
                     deps.as_mut(),
-                    mock_env(),
+                    mock_env_validated(deps.api),
                     info.clone(),
                     version_control::InstantiateMsg {
                         admin,

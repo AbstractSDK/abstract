@@ -140,7 +140,7 @@ mod test {
 
     #[test]
     fn test_namespace() {
-        let namespace = TruncatedChainId::new(&mock_env());
+        let namespace = TruncatedChainId::new(&mock_env_validated(deps.api));
         assert_that!(namespace.as_str()).is_equal_to("cosmos-testnet");
     }
 

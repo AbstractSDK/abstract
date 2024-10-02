@@ -21,7 +21,7 @@ mod test_common {
 
         contract::instantiate(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             info,
             abstract_std::module_factory::InstantiateMsg { admin },
         )

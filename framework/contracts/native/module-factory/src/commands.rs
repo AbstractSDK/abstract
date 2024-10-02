@@ -248,7 +248,7 @@ mod test {
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
     fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute(deps, mock_env(), message_info(sender, &[]), msg)
+        execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
     }
 
     fn test_only_admin(
@@ -258,7 +258,7 @@ mod test {
         let not_admin = deps.api.addr_make("not_admin");
         let res = execute(
             deps.as_mut(),
-            mock_env(),
+            mock_env_validated(deps.api),
             message_info(&not_admin, &[]),
             msg,
         );

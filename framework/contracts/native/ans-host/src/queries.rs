@@ -321,11 +321,11 @@ mod test {
         let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
 
-        instantiate(deps.as_mut(), mock_env(), info, InstantiateMsg { admin })
+        instantiate(deps.as_mut(), mock_env_validated(deps.api), info, InstantiateMsg { admin })
     }
 
     fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
-        let res = contract::query(deps, mock_env(), msg)?;
+        let res = contract::query(deps, mock_env_validated(deps.api), msg)?;
         Ok(res)
     }
 

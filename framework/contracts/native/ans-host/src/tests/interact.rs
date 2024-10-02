@@ -18,7 +18,7 @@ fn unauthorized_ans_host_update() {
     mock_init(&mut deps);
 
     // Try adding an asset to the ans_host
-    let env = mock_env();
+    let env = mock_env_validated(deps.api);
     let asset_info = AssetInfo::Native("asset_1".to_string());
     let msg = ExecuteMsg::UpdateAssetAddresses {
         to_add: vec![("asset".to_string(), asset_info.into())],
@@ -62,7 +62,7 @@ fn authorized_ans_host_update() {
     let abstr = AbstractMockAddrs::new(deps.api);
 
     // Try adding an asset to the ans_host
-    let env = mock_env();
+    let env = mock_env_validated(deps.api);
     let asset_info = AssetInfo::Native("asset_1".to_string());
     let msg = ExecuteMsg::UpdateAssetAddresses {
         to_add: vec![("asset".to_string(), asset_info.into())],
