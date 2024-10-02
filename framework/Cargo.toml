@@ -72,7 +72,7 @@ abstract-standalone = { path = "packages/abstract-standalone" }
 abstract-interface = { path = "packages/abstract-interface" }
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
-version-control = { package = "abstract-version-control", path = "contracts/native/version-control" }
+registry = { package = "abstract-registry", path = "contracts/native/registry" }
 
 # Ibc
 ibc-client = { package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
@@ -100,7 +100,7 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 # Predictable abstract addresses
-cw-blob = { version = "0.1.1" }
+cw-blob = { version = "=0.1.1" }
 
 [profile.dev]
 opt-level = 1

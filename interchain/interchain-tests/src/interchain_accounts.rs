@@ -40,7 +40,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
         },
         abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: abstr_origin
-                .version_control
+                .registry
                 .environment()
                 .sender_addr()
                 .to_string(),
@@ -272,7 +272,7 @@ mod test {
             },
             abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: abstr_origin
-                    .version_control
+                    .registry
                     .environment()
                     .sender_addr()
                     .to_string(),
@@ -322,7 +322,7 @@ mod test {
                 account_id: destination_remote_account_id,
                 is_suspended: false,
                 module_factory_address: abstr_host_remote.module_factory.address()?,
-                version_control_address: abstr_host_remote.version_control.address()?,
+                registry_address: abstr_host_remote.registry.address()?,
                 whitelisted_addresses: vec![]
             }
         );
@@ -353,7 +353,7 @@ mod test {
                 account_id: remote_account_id,
                 is_suspended: false,
                 module_factory_address: abstr_remote.module_factory.address()?,
-                version_control_address: abstr_remote.version_control.address()?,
+                registry_address: abstr_remote.registry.address()?,
                 whitelisted_addresses: vec![]
             }
         );
@@ -384,7 +384,7 @@ mod test {
         // ii. Now we test that we can indeed create an account remotely from the interchain account
 
         let account_name = String::from("Abstract Test Remote Remote account");
-        let account_code_id = abstr_origin.version_control.get_account_code()?;
+        let account_code_id = abstr_origin.registry.get_account_code()?;
         let create_account_instantiate_msg = CosmosMsg::Wasm(WasmMsg::Instantiate2 {
             admin: Some(remote_abstract_account.addr_str()?),
             code_id: account_code_id,
@@ -392,7 +392,7 @@ mod test {
             msg: to_json_binary(&account::InstantiateMsg {
                 account_id: None,
                 owner: GovernanceDetails::Monarchy {
-                    monarch: abstr_remote.version_control.address()?.to_string(),
+                    monarch: abstr_remote.registry.address()?.to_string(),
                 },
                 namespace: None,
                 install_modules: vec![],
@@ -452,7 +452,7 @@ mod test {
         abstr: &Abstract<MockBech32>,
         sender: &Addr,
     ) -> AnyResult<AppResponse> {
-        let account_code_id = abstr.version_control.get_account_code()?;
+        let account_code_id = abstr.registry.get_account_code()?;
         let chain = abstr.ans_host.environment();
         let account_id = AccountId::new(
             2,
@@ -661,7 +661,7 @@ mod test {
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         mock_interchain.get_chain(JUNO)?.set_balance(
-            &abstr_origin.version_control.environment().sender_addr(),
+            &abstr_origin.registry.environment().sender_addr(),
             coins(100, origin_denom),
         )?;
         let (origin_account, remote_account_id) = create_test_remote_account(

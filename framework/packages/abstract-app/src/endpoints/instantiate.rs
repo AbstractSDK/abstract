@@ -1,4 +1,4 @@
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::{
     app::{AppState, BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
@@ -33,7 +33,7 @@ impl<
     ) -> Result<Response, Error> {
         let BaseInstantiateMsg {
             ans_host_address,
-            version_control_address,
+            registry_address,
             account,
         } = msg.base;
 
@@ -42,15 +42,15 @@ impl<
         let ans_host = AnsHost {
             address: deps.api.addr_validate(&ans_host_address)?,
         };
-        let version_control = VersionControlContract {
-            address: deps.api.addr_validate(&version_control_address)?,
+        let registry = RegistryContract {
+            address: deps.api.addr_validate(&registry_address)?,
         };
 
         // Base state
         let state = AppState {
             account: account.clone(),
             ans_host,
-            version_control,
+            registry,
         };
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
@@ -86,7 +86,7 @@ mod test {
         let msg = SuperInstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
+                registry_address: abstr.registry.to_string(),
                 account: abstr.account,
             },
             module: MockInitMsg {},

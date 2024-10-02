@@ -1,6 +1,6 @@
 use abstract_account::error::AccountError;
 use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-use abstract_interface::{Abstract, VCExecFns};
+use abstract_interface::{Abstract, RegistryExecFns};
 use abstract_std::{
     account::{
         ExecuteMsg as AccountMsg, ModuleAddressesResponse, ModuleInstallConfig,
@@ -20,7 +20,7 @@ fn cannot_reinstall_module() -> AResult {
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
 
     deploy_modules(&chain);
@@ -62,7 +62,7 @@ fn adds_module_to_account_modules() -> AResult {
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
 
     deploy_modules(&chain);

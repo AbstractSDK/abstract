@@ -1,9 +1,9 @@
 [package]
-name = "abstract-version-control"
+name = "abstract-registry"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
-description = "Abstract Version Control Contract"
+description = "Abstract Registry Contract"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract"

@@ -6,7 +6,7 @@ use abstract_std::{
         storage_namespaces::OWNERSHIP_STORAGE_KEY, AccountId, AssetEntry, ChannelEntry,
         ContractEntry,
     },
-    version_control::{state::ACCOUNT_ADDRESSES, Account},
+    registry::{state::ACCOUNT_ADDRESSES, Account},
 };
 use cosmwasm_std::{testing::mock_env, Addr};
 use cw_asset::AssetInfo;
@@ -48,7 +48,7 @@ impl AbstractMockQuerier for MockQuerierBuilder {
                 }),
             )
             .with_contract_map_entry(
-                &abstract_addrs.version_control,
+                &abstract_addrs.registry,
                 ACCOUNT_ADDRESSES,
                 (&account_id, account.clone()),
             )

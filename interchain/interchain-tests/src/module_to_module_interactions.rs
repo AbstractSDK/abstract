@@ -141,7 +141,7 @@ pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<String> =
 
 pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContract {
     const IBC_CLIENT_DEP: StaticDependency =
-        StaticDependency::new(IBC_CLIENT, &[abstract_std::registry::ABSTRACT_VERSION]);
+        StaticDependency::new(IBC_CLIENT, &[abstract_std::constants::ABSTRACT_VERSION]);
 
     MockAppContract::new(id, version, None)
         .with_instantiate(|deps, _, _, _, _| {
@@ -348,7 +348,7 @@ pub mod test {
     };
     use abstract_app::objects::{module::ModuleInfo, TruncatedChainId};
     use abstract_interface::{
-        AccountI, AccountQueryFns, AppDeployer, DeployStrategy, VCExecFns, VCQueryFns,
+        AccountI, AccountQueryFns, AppDeployer, DeployStrategy, RegistryExecFns, RegistryQueryFns,
     };
     use abstract_std::account::{self, ModuleInstallConfig};
     use abstract_testing::{
@@ -373,12 +373,9 @@ pub mod test {
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, vec![])?;
 
-        let app = MockAppOriginI::new(
-            TEST_MODULE_ID,
-            abstr_origin.version_control.environment().clone(),
-        );
+        let app = MockAppOriginI::new(TEST_MODULE_ID, abstr_origin.registry.environment().clone());
 
-        abstr_origin.version_control.claim_namespace(
+        abstr_origin.registry.claim_namespace(
             origin_account.config()?.account_id,
             TEST_NAMESPACE.to_owned(),
         )?;
@@ -427,13 +424,10 @@ pub mod test {
             create_test_remote_account(&abstr_remote, STARGAZE, JUNO, &mock_interchain, vec![])?;
 
         // Install local app
-        let app = MockAppOriginI::new(
-            TEST_MODULE_ID,
-            abstr_origin.version_control.environment().clone(),
-        );
+        let app = MockAppOriginI::new(TEST_MODULE_ID, abstr_origin.registry.environment().clone());
 
         abstr_origin
-            .version_control
+            .registry
             .claim_namespace(origin_account.id()?, TEST_NAMESPACE.to_owned())?;
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
@@ -443,11 +437,11 @@ pub mod test {
         // Install remote app
         let app_remote = MockAppRemoteI::new(
             TEST_MODULE_ID_REMOTE,
-            abstr_remote.version_control.environment().clone(),
+            abstr_remote.registry.environment().clone(),
         );
 
         abstr_remote
-            .version_control
+            .registry
             .claim_namespace(remote_account.id()?, TEST_NAMESPACE.to_owned())?;
 
         app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
@@ -490,13 +484,10 @@ pub mod test {
             create_test_remote_account(&abstr_remote, STARGAZE, JUNO, &mock_interchain, vec![])?;
 
         // Install local app
-        let app = MockAppOriginI::new(
-            TEST_MODULE_ID,
-            abstr_origin.version_control.environment().clone(),
-        );
+        let app = MockAppOriginI::new(TEST_MODULE_ID, abstr_origin.registry.environment().clone());
 
         abstr_origin
-            .version_control
+            .registry
             .claim_namespace(origin_account.id()?, TEST_NAMESPACE.to_owned())?;
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
@@ -506,11 +497,11 @@ pub mod test {
         // Install remote app
         let app_remote = MockAppRemoteI::new(
             TEST_MODULE_ID_REMOTE,
-            abstr_remote.version_control.environment().clone(),
+            abstr_remote.registry.environment().clone(),
         );
 
         abstr_remote
-            .version_control
+            .registry
             .claim_namespace(remote_account.id()?, TEST_NAMESPACE.to_owned())?;
 
         app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
@@ -528,19 +519,16 @@ pub mod test {
         mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
         // We get the object for handling the actual module on the remote account
-        let remote_account = abstr_remote
-            .version_control
-            .account(remote_account_id)?
-            .account;
+        let remote_account = abstr_remote.registry.account(remote_account_id)?.account;
         let account = AccountI::new(
             "remote-account-manager",
-            abstr_remote.version_control.environment().clone(),
+            abstr_remote.registry.environment().clone(),
         );
         account.set_address(remote_account.addr());
         let module_address = account.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
         let remote_account_app = MockAppRemoteI::new(
             "remote-account-app",
-            abstr_remote.version_control.environment().clone(),
+            abstr_remote.registry.environment().clone(),
         );
         remote_account_app.set_address(&module_address);
 
@@ -600,13 +588,10 @@ pub mod test {
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, vec![])?;
 
         // Install local app
-        let app = MockAppOriginI::new(
-            TEST_MODULE_ID,
-            abstr_origin.version_control.environment().clone(),
-        );
+        let app = MockAppOriginI::new(TEST_MODULE_ID, abstr_origin.registry.environment().clone());
 
         abstr_origin
-            .version_control
+            .registry
             .claim_namespace(origin_account.id()?, TEST_NAMESPACE.to_owned())?;
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
@@ -673,13 +658,11 @@ pub mod test {
             )?;
 
             // Install local app
-            let app = MockAppOriginI::new(
-                TEST_MODULE_ID,
-                abstr_origin.version_control.environment().clone(),
-            );
+            let app =
+                MockAppOriginI::new(TEST_MODULE_ID, abstr_origin.registry.environment().clone());
 
             abstr_origin
-                .version_control
+                .registry
                 .claim_namespace(origin_account.id()?, TEST_NAMESPACE.to_owned())?;
 
             app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
@@ -689,11 +672,11 @@ pub mod test {
             // Install remote app
             let app_remote = MockAppRemoteI::new(
                 TEST_MODULE_ID_REMOTE,
-                abstr_remote.version_control.environment().clone(),
+                abstr_remote.registry.environment().clone(),
             );
 
             abstr_remote
-                .version_control
+                .registry
                 .claim_namespace(remote_account.id()?, TEST_NAMESPACE.to_owned())?;
 
             app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
@@ -711,19 +694,16 @@ pub mod test {
             mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
             // We get the object for handling the actual module on the remote account
-            let remote_account = abstr_remote
-                .version_control
-                .account(remote_account_id)?
-                .account;
+            let remote_account = abstr_remote.registry.account(remote_account_id)?.account;
             let account = AccountI::new(
                 "remote-account-manager",
-                abstr_remote.version_control.environment().clone(),
+                abstr_remote.registry.environment().clone(),
             );
             account.set_address(remote_account.addr());
             let module_address = account.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
             let remote_account_app = MockAppRemoteI::new(
                 "remote-account-app",
-                abstr_remote.version_control.environment().clone(),
+                abstr_remote.registry.environment().clone(),
             );
             remote_account_app.set_address(&module_address);
 

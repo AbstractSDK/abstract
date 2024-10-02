@@ -11,8 +11,8 @@ use abstract_std::{
         module::ModuleInfo,
         module_reference::ModuleReference,
         ownership::{self},
+        registry::{RegistryContract, RegistryError},
         storage_namespaces,
-        version_control::{VersionControlContract, VersionControlError},
     },
     ACCOUNT,
 };
@@ -115,11 +115,10 @@ pub fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), AccountError> {
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
-    let old_module_cw2 =
-        query_module_version(deps.as_ref(), old_module_addr.clone(), &version_control)?;
+    let old_module_cw2 = query_module_version(deps.as_ref(), old_module_addr.clone(), &registry)?;
     let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
 
     let migrate_msgs = match requested_module.module.reference {
@@ -300,8 +299,8 @@ pub(crate) fn self_upgrade_msg(
         });
         Ok(migration_msg)
     } else {
-        Err(AccountError::VersionControlError(
-            VersionControlError::InvalidReference(module_info),
+        Err(AccountError::RegistryError(
+            RegistryError::InvalidReference(module_info),
         ))
     }
 }

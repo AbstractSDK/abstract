@@ -145,7 +145,7 @@ mod test {
         let init_msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
+                registry_address: abstr.registry.to_string(),
                 account: abstr.account,
             },
             module: MockInitMsg {},
@@ -278,7 +278,7 @@ mod test {
         let init_msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
+                registry_address: abstr.registry.to_string(),
                 account: test_account(deps.api),
             },
             module: MockInitMsg {},

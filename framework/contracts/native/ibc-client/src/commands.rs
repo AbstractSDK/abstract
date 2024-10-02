@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     features::AccountIdentification,
     namespaces::BASE_STATE,
     ModuleRegistryInterface, Resolve,
@@ -17,7 +17,7 @@ use abstract_std::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
     },
-    version_control::Account,
+    registry::Account,
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
@@ -155,13 +155,13 @@ pub fn execute_send_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
     // The packet we need to send depends on the action we want to execute
 
     let note_message = match &action {
         HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
             // Verify that the sender is a proxy contract
-            let account = version_control.assert_account(&info.sender, &deps.querier)?;
+            let account = registry.assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
             let account_id = account.account_id(deps.as_ref())?;
@@ -191,10 +191,10 @@ pub fn execute_send_module_to_module_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
     // Query the sender module information
-    let module_info = version_control
+    let module_info = registry
         .module_registry(deps.as_ref())?
         .module_info(info.sender.clone())?;
 
@@ -213,8 +213,8 @@ pub fn execute_send_module_to_module_packet(
             let account = Item::<AppState>::new(BASE_STATE)
                 .query(&deps.querier, info.sender.clone())?
                 .account;
-            let account_id = version_control.account_id(account.addr(), &deps.querier)?;
-            let account = version_control.account(&account_id, &deps.querier)?;
+            let account_id = registry.account_id(account.addr(), &deps.querier)?;
+            let account = registry.account(&account_id, &deps.querier)?;
             let ibc_client = account::state::ACCOUNT_MODULES.query(
                 &deps.querier,
                 account.into_addr(),
@@ -332,10 +332,10 @@ pub fn execute_register_account(
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
     host_chain.verify()?;
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
     // Verify that the sender is a proxy contract
-    let account = version_control.assert_account(&info.sender, &deps.querier)?;
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
     let account_id = account.account_id(deps.as_ref())?;
@@ -377,11 +377,11 @@ pub fn execute_send_funds(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
     let ans = AnsHost::new(deps.api)?;
     // Verify that the sender is a proxy contract
 
-    let account = version_control.assert_account(&info.sender, &deps.querier)?;
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id of Account
     let account_id = account.account_id(deps.as_ref())?;

@@ -7,7 +7,7 @@ use abstract_sdk::{
             namespace::Namespace,
             AccountId,
         },
-        version_control::{state::*, Account, Config},
+        registry::{state::*, Account, Config},
     },
 };
 use abstract_std::{
@@ -19,7 +19,7 @@ use abstract_std::{
         validation::validate_link,
         ABSTRACT_ACCOUNT_ID,
     },
-    version_control::{state::LOCAL_ACCOUNT_SEQUENCE, ModuleDefaultConfiguration, UpdateModule},
+    registry::{state::LOCAL_ACCOUNT_SEQUENCE, ModuleDefaultConfiguration, UpdateModule},
     ACCOUNT, IBC_HOST,
 };
 use cosmwasm_std::{
@@ -29,7 +29,7 @@ use cosmwasm_std::{
 
 use crate::{
     contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE},
-    error::VCError,
+    error::RegistryError,
 };
 
 /// Add new Account to version control contract
@@ -48,7 +48,7 @@ pub fn add_account(
 
     ensure!(
         maybe_acc_module_info.id() == ACCOUNT,
-        VCError::NotAccountInfo {
+        RegistryError::NotAccountInfo {
             caller_info: maybe_acc_module_info
         }
     );
@@ -58,7 +58,7 @@ pub fn add_account(
     let account_id = ACCOUNT_ID.query(&deps.querier, msg_info.sender.clone())?;
     ensure!(
         !ACCOUNT_ADDRESSES.has(deps.storage, &account_id),
-        VCError::AccountAlreadyExists(account_id)
+        RegistryError::AccountAlreadyExists(account_id)
     );
 
     // verify code-id of sender
@@ -71,7 +71,7 @@ pub fn add_account(
     ensure_eq!(
         account_code_id,
         sender_contract_info.code_id,
-        VCError::NotAccountCodeId {
+        RegistryError::NotAccountCodeId {
             account_info: acc_module_info,
             expected_code_id: account_code_id,
             actual_code_id: sender_contract_info.code_id
@@ -89,7 +89,7 @@ pub fn add_account(
             ensure_eq!(
                 next_sequence,
                 account_id.seq(),
-                VCError::InvalidAccountSequence {
+                RegistryError::InvalidAccountSequence {
                     expected: next_sequence,
                     actual: account_id.seq(),
                 }
@@ -111,7 +111,7 @@ pub fn add_account(
         ensure_eq!(
             creator_addr,
             ibc_host_addr,
-            VCError::SenderNotIbcHost(creator_addr.into_string(), ibc_host_addr.into())
+            RegistryError::SenderNotIbcHost(creator_addr.into_string(), ibc_host_addr.into())
         );
         // then assert that the account trace is remote and properly formatted
         account_id.trace().verify_remote()?;
@@ -162,7 +162,7 @@ pub fn propose_modules(
             || REGISTERED_MODULES.has(deps.storage, &module)
             || YANKED_MODULES.has(deps.storage, &module);
         if !config.security_disabled && store_has_module {
-            return Err(VCError::NotUpdateableModule(module));
+            return Err(RegistryError::NotUpdateableModule(module));
         }
 
         module.validate()?;
@@ -183,7 +183,7 @@ pub fn propose_modules(
         // verify contract admin is None if module is Adapter
         if let ModuleReference::Adapter(ref addr) = mod_ref {
             if deps.querier.query_wasm_contract_info(addr)?.admin.is_some() {
-                return Err(VCError::AdminMustBeNone);
+                return Err(RegistryError::AdminMustBeNone);
             }
         }
 
@@ -236,7 +236,7 @@ pub fn approve_or_reject_modules(
         attributes.push(reject_modules(deps.storage, rejects)?);
     }
     if attributes.is_empty() {
-        return Err(VCError::NoAction);
+        return Err(RegistryError::NoAction);
     }
 
     Ok(VcResponse::new("approve_or_reject_modules", attributes))
@@ -247,7 +247,7 @@ fn approve_modules(storage: &mut dyn Storage, approves: Vec<ModuleInfo>) -> VCRe
     for module in &approves {
         let mod_ref = PENDING_MODULES
             .may_load(storage, module)?
-            .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?;
+            .ok_or_else(|| RegistryError::ModuleNotFound(module.clone()))?;
         // Register the module
         REGISTERED_MODULES.save(storage, module, &mod_ref)?;
         // Remove from pending
@@ -268,7 +268,7 @@ fn approve_modules(storage: &mut dyn Storage, approves: Vec<ModuleInfo>) -> VCRe
 fn reject_modules(storage: &mut dyn Storage, rejects: Vec<ModuleInfo>) -> VCResult<Attribute> {
     for module in &rejects {
         if !PENDING_MODULES.has(storage, module) {
-            return Err(VCError::ModuleNotFound(module.clone()));
+            return Err(RegistryError::ModuleNotFound(module.clone()));
         }
         PENDING_MODULES.remove(storage, module);
     }
@@ -289,7 +289,7 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
 
     ensure!(
         module_ref_res.is_ok() || YANKED_MODULES.has(deps.storage, &module),
-        VCError::ModuleNotFound(module)
+        RegistryError::ModuleNotFound(module)
     );
 
     REGISTERED_MODULES.remove(deps.storage, &module);
@@ -325,7 +325,7 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
     module.assert_version_variant()?;
     let mod_ref = REGISTERED_MODULES
         .may_load(deps.storage, &module)?
-        .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?;
+        .ok_or_else(|| RegistryError::ModuleNotFound(module.clone()))?;
 
     YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
     REGISTERED_MODULES.remove(deps.storage, &module);
@@ -363,7 +363,7 @@ pub fn update_module_config(
                 .next()
                 .is_none()
             {
-                return Err(VCError::ModuleNotFound(ModuleInfo {
+                return Err(RegistryError::ModuleNotFound(ModuleInfo {
                     namespace,
                     name: module_name,
                     version: ModuleVersion::Latest,
@@ -392,7 +392,7 @@ pub fn update_module_config(
 
             // We verify the module exists before updating the config
             let Some(module_reference) = REGISTERED_MODULES.may_load(deps.storage, &module)? else {
-                return Err(VCError::ModuleNotFound(module));
+                return Err(RegistryError::ModuleNotFound(module));
             };
 
             let mut current_cfg = MODULE_CONFIG
@@ -416,7 +416,7 @@ pub fn update_module_config(
                 ) {
                     current_cfg.instantiation_funds = init_funds
                 } else {
-                    return Err(VCError::RedundantInitFunds {});
+                    return Err(RegistryError::RedundantInitFunds {});
                 }
             }
             MODULE_CONFIG.save(deps.storage, &module, &current_cfg)?;
@@ -457,7 +457,7 @@ pub fn claim_namespace(
 
         // The account owner as well as the account factory contract are able to claim namespaces
         if msg_info.sender != account_owner {
-            return Err(VCError::AccountOwnerMismatch {
+            return Err(RegistryError::AccountOwnerMismatch {
                 sender: msg_info.sender,
                 owner: account_owner,
             });
@@ -504,7 +504,7 @@ fn claim_namespace_internal(
         .count()
         == 1;
     if has_namespace {
-        return Err(VCError::ExceedsNamespaceLimit {
+        return Err(RegistryError::ExceedsNamespaceLimit {
             limit: 1,
             current: 1,
         });
@@ -526,7 +526,7 @@ fn claim_namespace_internal(
 
     let namespace = Namespace::try_from(namespace_to_claim)?;
     if let Some(id) = NAMESPACES_INFO.may_load(storage, &namespace)? {
-        return Err(VCError::NamespaceOccupied {
+        return Err(RegistryError::NamespaceOccupied {
             namespace: namespace.to_string(),
             id,
         });
@@ -545,7 +545,7 @@ pub fn forgo_namespace(deps: DepsMut, msg_info: MessageInfo, namespaces: Vec<Str
     for namespace in namespaces.iter() {
         let namespace = Namespace::try_from(namespace)?;
         if !NAMESPACES_INFO.has(deps.storage, &namespace) {
-            return Err(VCError::UnknownNamespace { namespace });
+            return Err(RegistryError::UnknownNamespace { namespace });
         }
         if !is_admin {
             validate_account_owner(deps.as_ref(), &namespace, &msg_info.sender)?;
@@ -633,7 +633,7 @@ pub fn query_account_owner(
 
     owner
         .owner_address(querier)
-        .ok_or_else(|| VCError::NoAccountOwner {
+        .ok_or_else(|| RegistryError::NoAccountOwner {
             account_id: account_id.clone(),
         })
 }
@@ -642,11 +642,11 @@ pub fn validate_account_owner(
     deps: Deps,
     namespace: &Namespace,
     sender: &Addr,
-) -> Result<(), VCError> {
+) -> Result<(), RegistryError> {
     let sender = sender.clone();
     let account_id = NAMESPACES_INFO
         .may_load(deps.storage, &namespace.clone())?
-        .ok_or_else(|| VCError::UnknownNamespace {
+        .ok_or_else(|| RegistryError::UnknownNamespace {
             namespace: namespace.to_owned(),
         })?;
     let account = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
@@ -655,7 +655,7 @@ pub fn validate_account_owner(
     if sender != account {
         let account_owner = query_account_owner(&deps.querier, account.clone(), &account_id)?;
         if sender != account_owner {
-            return Err(VCError::AccountOwnerMismatch {
+            return Err(RegistryError::AccountOwnerMismatch {
                 sender,
                 owner: account_owner,
             });
@@ -668,7 +668,7 @@ pub fn validate_account_owner(
 mod tests {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
-    use abstract_std::{objects::account::AccountTrace, version_control::*, ACCOUNT};
+    use abstract_std::{objects::account::AccountTrace, registry::*, ACCOUNT};
     use abstract_testing::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{
         from_json,
@@ -683,7 +683,7 @@ mod tests {
     use super::*;
     use crate::contract;
 
-    type VersionControlTestResult = Result<(), VCError>;
+    type RegistryTestResult = Result<(), RegistryError>;
 
     const TEST_OTHER: &str = "test-other";
     const FIRST_ACCOUNT: &str = "first-account";
@@ -733,7 +733,7 @@ mod tests {
             .with_contract_item(&third_acc_addr, ACCOUNT_ID, &THIRD_TEST_ACCOUNT_ID)
     }
 
-    /// Initialize the version_control with admin and updated account_factory
+    /// Initialize the registry with admin and updated account_factory
     fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> VCResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
@@ -769,7 +769,7 @@ mod tests {
         Ok(resp)
     }
 
-    /// Initialize the version_control with admin as creator and test account
+    /// Initialize the registry with admin as creator and test account
     fn mock_init_with_account(
         deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
         security_disabled: bool,
@@ -870,14 +870,14 @@ mod tests {
     fn test_only_admin(
         msg: ExecuteMsg,
         deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-    ) -> VersionControlTestResult {
+    ) -> RegistryTestResult {
         mock_init(deps)?;
 
         let not_owner = deps.api.addr_make("not_owner");
         let res = execute_as(deps.as_mut(), &not_owner, msg);
         assert_that(&res)
             .is_err()
-            .is_equal_to(VCError::Ownership(OwnershipError::NotOwner {}));
+            .is_equal_to(RegistryError::Ownership(OwnershipError::NotOwner {}));
 
         Ok(())
     }
@@ -886,7 +886,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn only_admin_admin() -> VersionControlTestResult {
+        fn only_admin_admin() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
@@ -898,7 +898,7 @@ mod tests {
         }
 
         #[test]
-        fn updates_admin() -> VersionControlTestResult {
+        fn updates_admin() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -933,7 +933,7 @@ mod tests {
         use cosmwasm_std::{coins, SubMsg};
 
         #[test]
-        fn claim_namespaces_by_owner() -> VersionControlTestResult {
+        fn claim_namespaces_by_owner() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -964,7 +964,7 @@ mod tests {
         }
 
         #[test]
-        fn fail_claim_permissioned_namespaces() -> VersionControlTestResult {
+        fn fail_claim_permissioned_namespaces() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -995,13 +995,13 @@ mod tests {
             let res = execute_as(deps.as_mut(), account.addr(), msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(VCError::Ownership(OwnershipError::NotOwner));
+                .is_equal_to(RegistryError::Ownership(OwnershipError::NotOwner));
 
             Ok(())
         }
 
         #[test]
-        fn claim_namespaces_with_fee() -> VersionControlTestResult {
+        fn claim_namespaces_with_fee() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1033,7 +1033,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(VCError::Abstract(AbstractError::Fee(format!(
+                .is_equal_to(RegistryError::Abstract(AbstractError::Fee(format!(
                     "Invalid fee payment sent. Expected {}, sent {:?}",
                     Coin {
                         denom: one_namespace_fee.denom.clone(),
@@ -1047,7 +1047,7 @@ mod tests {
             let res = execute_as_with_funds(deps.as_mut(), &abstr.owner, msg.clone(), &sent_coins);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(VCError::Abstract(AbstractError::Fee(format!(
+                .is_equal_to(RegistryError::Abstract(AbstractError::Fee(format!(
                     "Invalid fee payment sent. Expected {}, sent {:?}",
                     Coin {
                         denom: one_namespace_fee.denom.clone(),
@@ -1071,7 +1071,7 @@ mod tests {
         }
 
         #[test]
-        fn claim_namespaces_not_owner() -> VersionControlTestResult {
+        fn claim_namespaces_not_owner() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1086,7 +1086,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::AccountOwnerMismatch {
+                .is_equal_to(&RegistryError::AccountOwnerMismatch {
                     sender: other,
                     owner: abstr.owner,
                 });
@@ -1094,7 +1094,7 @@ mod tests {
         }
 
         #[test]
-        fn claim_existing_namespaces() -> VersionControlTestResult {
+        fn claim_existing_namespaces() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1116,7 +1116,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::NamespaceOccupied {
+                .is_equal_to(&RegistryError::NamespaceOccupied {
                     namespace: new_namespace1.to_string(),
                     id: FIRST_TEST_ACCOUNT_ID,
                 });
@@ -1141,7 +1141,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, claim_abstract_msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(VCError::NamespaceOccupied {
+                .is_equal_to(RegistryError::NamespaceOccupied {
                     namespace: Namespace::try_from("abstract")?.to_string(),
                     id: ABSTRACT_ACCOUNT_ID,
                 });
@@ -1153,7 +1153,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn only_admin() -> VersionControlTestResult {
+        fn only_admin() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
 
@@ -1166,13 +1166,13 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner));
+                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner));
 
             Ok(())
         }
 
         #[test]
-        fn direct_registration() -> VersionControlTestResult {
+        fn direct_registration() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1198,7 +1198,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn only_admin() -> VersionControlTestResult {
+        fn only_admin() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
 
@@ -1214,13 +1214,13 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner));
+                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner));
 
             Ok(())
         }
 
         #[test]
-        fn updates_fee() -> VersionControlTestResult {
+        fn updates_fee() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1261,7 +1261,7 @@ mod tests {
         }
 
         #[test]
-        fn forgo_namespace_by_admin_or_owner() -> VersionControlTestResult {
+        fn forgo_namespace_by_admin_or_owner() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1311,7 +1311,7 @@ mod tests {
         }
 
         #[test]
-        fn remove_namespaces_as_other() -> VersionControlTestResult {
+        fn remove_namespaces_as_other() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1333,7 +1333,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::AccountOwnerMismatch {
+                .is_equal_to(&RegistryError::AccountOwnerMismatch {
                     sender: other,
                     owner: abstr.owner,
                 });
@@ -1341,7 +1341,7 @@ mod tests {
         }
 
         #[test]
-        fn remove_not_existing_namespaces() -> VersionControlTestResult {
+        fn remove_not_existing_namespaces() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1355,7 +1355,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::UnknownNamespace {
+                .is_equal_to(&RegistryError::UnknownNamespace {
                     namespace: new_namespace1.clone(),
                 });
 
@@ -1363,7 +1363,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::UnknownNamespace {
+                .is_equal_to(&RegistryError::UnknownNamespace {
                     namespace: new_namespace1,
                 });
 
@@ -1371,7 +1371,7 @@ mod tests {
         }
 
         #[test]
-        fn yank_orphaned_modules() -> VersionControlTestResult {
+        fn yank_orphaned_modules() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1422,7 +1422,7 @@ mod tests {
         // - Query latest
 
         #[test]
-        fn add_module_by_admin() -> VersionControlTestResult {
+        fn add_module_by_admin() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1440,7 +1440,7 @@ mod tests {
         }
 
         #[test]
-        fn add_module_by_account_owner() -> VersionControlTestResult {
+        fn add_module_by_account_owner() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1455,7 +1455,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::UnknownNamespace {
+                .is_equal_to(&RegistryError::UnknownNamespace {
                     namespace: new_module.namespace.clone(),
                 });
 
@@ -1478,7 +1478,7 @@ mod tests {
         }
 
         #[test]
-        fn update_existing_module() -> VersionControlTestResult {
+        fn update_existing_module() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1519,7 +1519,7 @@ mod tests {
         }
 
         #[test]
-        fn update_existing_module_fails() -> VersionControlTestResult {
+        fn update_existing_module_fails() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1571,7 +1571,7 @@ mod tests {
         }
 
         #[test]
-        fn try_add_module_to_approval_with_admin() -> VersionControlTestResult {
+        fn try_add_module_to_approval_with_admin() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             let contract_addr = deps.api.addr_make("contract");
             // create mock with ContractInfo response for contract with admin set
@@ -1594,7 +1594,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::UnknownNamespace {
+                .is_equal_to(&RegistryError::UnknownNamespace {
                     namespace: new_module.namespace.clone(),
                 });
 
@@ -1612,13 +1612,13 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::AdminMustBeNone);
+                .is_equal_to(&RegistryError::AdminMustBeNone);
 
             Ok(())
         }
 
         #[test]
-        fn add_module_to_approval() -> VersionControlTestResult {
+        fn add_module_to_approval() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1633,7 +1633,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &abstr.owner, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::UnknownNamespace {
+                .is_equal_to(&RegistryError::UnknownNamespace {
                     namespace: new_module.namespace.clone(),
                 });
 
@@ -1656,7 +1656,7 @@ mod tests {
         }
 
         #[test]
-        fn approve_modules() -> VersionControlTestResult {
+        fn approve_modules() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1691,7 +1691,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &not_owner, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
 
             // approve by admin
             let res = execute_as(deps.as_mut(), &abstr.owner, msg);
@@ -1705,7 +1705,7 @@ mod tests {
         }
 
         #[test]
-        fn reject_modules() -> VersionControlTestResult {
+        fn reject_modules() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1740,7 +1740,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &not_owner, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
 
             // reject by admin
             let res = execute_as(deps.as_mut(), &abstr.owner, msg);
@@ -1754,7 +1754,7 @@ mod tests {
         }
 
         #[test]
-        fn remove_module() -> VersionControlTestResult {
+        fn remove_module() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1785,7 +1785,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
 
             // only admin can remove modules.
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
@@ -1796,7 +1796,7 @@ mod tests {
         }
 
         #[test]
-        fn yank_module_only_account_owner() -> VersionControlTestResult {
+        fn yank_module_only_account_owner() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1825,7 +1825,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::AccountOwnerMismatch {
+                .is_equal_to(&RegistryError::AccountOwnerMismatch {
                     sender: other,
                     owner: abstr.owner,
                 });
@@ -1834,7 +1834,7 @@ mod tests {
         }
 
         #[test]
-        fn yank_module() -> VersionControlTestResult {
+        fn yank_module() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1871,7 +1871,7 @@ mod tests {
         }
 
         #[test]
-        fn bad_version() -> VersionControlTestResult {
+        fn bad_version() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -1904,14 +1904,14 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Abstract(AbstractError::Assert(
+                .is_equal_to(&RegistryError::Abstract(AbstractError::Assert(
                     "Module version must be set to a specific version".into(),
                 )));
             Ok(())
         }
 
         #[test]
-        fn abstract_namespace() -> VersionControlTestResult {
+        fn abstract_namespace() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             let abstract_contract_id = format!("{}:{}", ABSTRACT_NAMESPACE, "test-module");
 
@@ -1929,7 +1929,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
 
             execute_as(deps.as_mut(), &abstr.owner, msg)?;
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
@@ -1938,7 +1938,7 @@ mod tests {
         }
 
         #[test]
-        fn validates_module_info() -> VersionControlTestResult {
+        fn validates_module_info() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             mock_init_with_account(&mut deps, true)?;
@@ -1974,7 +1974,7 @@ mod tests {
                 assert_that!(&res)
                     .named(&format!("ModuleInfo validation failed for {bad_module}"))
                     .is_err()
-                    .is_equal_to(&VCError::Abstract(AbstractError::FormattingError {
+                    .is_equal_to(&RegistryError::Abstract(AbstractError::FormattingError {
                         object: "module name".into(),
                         expected: "with content".into(),
                         actual: "empty".into(),
@@ -1985,7 +1985,7 @@ mod tests {
         }
 
         #[test]
-        fn add_module_monetization() -> VersionControlTestResult {
+        fn add_module_monetization() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -2035,7 +2035,7 @@ mod tests {
         }
 
         #[test]
-        fn add_module_init_funds() -> VersionControlTestResult {
+        fn add_module_init_funds() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -2089,7 +2089,7 @@ mod tests {
         }
 
         #[test]
-        fn add_module_metadata() -> VersionControlTestResult {
+        fn add_module_metadata() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -2139,7 +2139,7 @@ mod tests {
         }
     }
 
-    fn claim_test_namespace_as_owner(deps: DepsMut, owner: &Addr) -> VersionControlTestResult {
+    fn claim_test_namespace_as_owner(deps: DepsMut, owner: &Addr) -> RegistryTestResult {
         let msg = ExecuteMsg::ClaimNamespace {
             account_id: FIRST_TEST_ACCOUNT_ID,
             namespace: TEST_NAMESPACE.to_string(),
@@ -2152,7 +2152,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_only_admin() -> VersionControlTestResult {
+        fn test_only_admin() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -2177,12 +2177,12 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
             Ok(())
         }
 
         #[test]
-        fn remove_from_library() -> VersionControlTestResult {
+        fn remove_from_library() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -2210,7 +2210,7 @@ mod tests {
         }
 
         #[test]
-        fn leaves_pending() -> VersionControlTestResult {
+        fn leaves_pending() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -2229,12 +2229,12 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(&VCError::ModuleNotFound(new_module));
+                .is_equal_to(&RegistryError::ModuleNotFound(new_module));
             Ok(())
         }
 
         #[test]
-        fn remove_from_yanked() -> VersionControlTestResult {
+        fn remove_from_yanked() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -2265,7 +2265,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn add_account() -> VersionControlTestResult {
+        fn add_account() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
 
             let other = deps.api.addr_make(TEST_OTHER);
@@ -2288,7 +2288,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), &other, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::NotAccountInfo {
+                .is_equal_to(&RegistryError::NotAccountInfo {
                     caller_info: ModuleInfo::from_id(
                         "some:contract",
                         ModuleVersion::Version(String::from("0.0.0")),
@@ -2309,7 +2309,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn update_admin() -> VersionControlTestResult {
+        fn update_admin() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -2324,7 +2324,7 @@ mod tests {
             let transfer_res = execute_as(deps.as_mut(), &other, transfer_msg.clone());
             assert_that!(&transfer_res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
 
             execute_as(deps.as_mut(), &abstr.owner, transfer_msg)?;
 
@@ -2346,7 +2346,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn returns_account_owner() -> VersionControlTestResult {
+        fn returns_account_owner() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps, true)?;
@@ -2362,7 +2362,7 @@ mod tests {
         }
 
         #[test]
-        fn no_owner_returns_err() -> VersionControlTestResult {
+        fn no_owner_returns_err() -> RegistryTestResult {
             let mut deps = vc_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
             deps.querier = vc_mock_querier_builder(deps.api)
@@ -2387,7 +2387,7 @@ mod tests {
             );
             assert_that!(res)
                 .is_err()
-                .is_equal_to(&VCError::NoAccountOwner { account_id });
+                .is_equal_to(&RegistryError::NoAccountOwner { account_id });
             Ok(())
         }
     }

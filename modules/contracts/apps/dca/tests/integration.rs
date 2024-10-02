@@ -312,7 +312,7 @@ fn setup() -> anyhow::Result<(
             monarch: mock.sender_addr().to_string(),
         })?;
     abstr_deployment
-        .version_control
+        .registry
         .claim_namespace(AccountId::local(1), "croncat".to_string())?;
     cron_cat_app.deploy(
         croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?,

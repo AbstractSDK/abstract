@@ -5,7 +5,7 @@ use abstract_sdk::std::{
         namespace::Namespace,
         AccountId,
     },
-    version_control::{
+    registry::{
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
         AccountResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
@@ -13,7 +13,7 @@ use abstract_sdk::std::{
 };
 use abstract_std::{
     objects::module::ModuleStatus,
-    version_control::{
+    registry::{
         state::{NAMESPACES_INFO, PENDING_MODULES},
         ModuleConfiguration, NamespaceInfo, NamespaceResponse,
     },
@@ -21,7 +21,7 @@ use abstract_std::{
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
 use cw_storage_plus::{Bound, Map};
 
-use crate::{contract::VCResult, error::VCError};
+use crate::{contract::VCResult, error::RegistryError};
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -33,7 +33,7 @@ pub fn handle_account_address_query(
     let account_address = ACCOUNT_ADDRESSES.load(deps.storage, &account_id);
     match account_address {
         Err(_) => Err(StdError::generic_err(
-            VCError::UnknownAccountId { id: account_id }.to_string(),
+            RegistryError::UnknownAccountId { id: account_id }.to_string(),
         )),
         Ok(base) => Ok(AccountResponse { account: base }),
     }
@@ -54,7 +54,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
             let (latest_version, id) = versions?
                 .first()
                 .ok_or_else(|| {
-                    StdError::generic_err(VCError::ModuleNotFound(module.clone()).to_string())
+                    StdError::generic_err(RegistryError::ModuleNotFound(module.clone()).to_string())
                 })?
                 .clone();
             module.version = ModuleVersion::Version(latest_version);
@@ -63,7 +63,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
 
         match maybe_module_ref {
             Err(_) => Err(StdError::generic_err(
-                VCError::ModuleNotFound(module).to_string(),
+                RegistryError::ModuleNotFound(module).to_string(),
             )),
             Ok(mod_ref) => {
                 modules_response.modules.push(ModuleResponse {
@@ -266,7 +266,7 @@ mod test {
     use super::*;
 
     use crate::contract;
-    use abstract_std::{account, objects::account::AccountTrace, version_control::*};
+    use abstract_std::{account, objects::account::AccountTrace, registry::*};
     use abstract_testing::{prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies, mock_env, MockApi},
@@ -274,7 +274,7 @@ mod test {
     };
     use speculoos::prelude::*;
 
-    type VersionControlTestResult = Result<(), VCError>;
+    type RegistryTestResult = Result<(), RegistryError>;
 
     const TEST_OTHER: &str = "testother";
     const TEST_OTHER_ACCOUNT_ID: AccountId = AccountId::const_new(2, AccountTrace::Local);
@@ -291,7 +291,7 @@ mod test {
                 match from_json(msg).unwrap() {
                     account::QueryMsg::Config {} => {
                         let resp = account::ConfigResponse {
-                            version_control_address: abstr.version_control,
+                            registry_address: abstr.registry,
                             module_factory_address: abstr.module_factory,
                             account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
@@ -320,7 +320,7 @@ mod test {
                     account::QueryMsg::Config {} => {
                         let abstr = AbstractMockAddrs::new(mock_api);
                         let resp = account::ConfigResponse {
-                            version_control_address: abstr.version_control,
+                            registry_address: abstr.registry,
                             module_factory_address: abstr.module_factory,
                             account_id: TEST_OTHER_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
@@ -348,9 +348,7 @@ mod test {
             .with_owner(&other_account, Some(&other_owner))
     }
 
-    fn mock_init(
-        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-    ) -> VersionControlTestResult {
+    fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> RegistryTestResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
@@ -369,7 +367,7 @@ mod test {
         Ok(())
     }
 
-    /// Initialize the version_control with admin as creator and test account
+    /// Initialize the registry with admin as creator and test account
     fn mock_init_with_account(deps: &mut MockDeps) -> VCResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let account = test_account(deps.api);
@@ -442,7 +440,7 @@ mod test {
         }
 
         #[test]
-        fn get_module() -> VersionControlTestResult {
+        fn get_module() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
             mock_init_with_account(&mut deps)?;
@@ -471,7 +469,7 @@ mod test {
         }
 
         #[test]
-        fn none_when_no_matching_version() -> VersionControlTestResult {
+        fn none_when_no_matching_version() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
             mock_init_with_account(&mut deps)?;
@@ -496,12 +494,12 @@ mod test {
             let res = query_helper(deps.as_ref(), query_msg);
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, VCError::Std(StdError::GenericErr { .. })));
+                .matches(|e| matches!(e, RegistryError::Std(StdError::GenericErr { .. })));
             Ok(())
         }
 
         #[test]
-        fn get_latest_when_multiple_registered() -> VersionControlTestResult {
+        fn get_latest_when_multiple_registered() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
             mock_init_with_account(&mut deps)?;
@@ -607,7 +605,7 @@ mod test {
         use super::*;
 
         #[test]
-        fn get_cw_plus_modules() -> VersionControlTestResult {
+        fn get_cw_plus_modules() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
             init_with_mods(&mut deps);
@@ -645,7 +643,7 @@ mod test {
         }
 
         #[test]
-        fn get_modules_not_found() -> VersionControlTestResult {
+        fn get_modules_not_found() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
             init_with_mods(&mut deps);
@@ -661,7 +659,7 @@ mod test {
             let res = query_helper(deps.as_ref(), query_msg);
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, VCError::Std(StdError::GenericErr { .. })));
+                .matches(|e| matches!(e, RegistryError::Std(StdError::GenericErr { .. })));
             Ok(())
         }
     }
@@ -1069,7 +1067,7 @@ mod test {
         use super::*;
 
         #[test]
-        fn not_registered_should_be_unknown() -> VersionControlTestResult {
+        fn not_registered_should_be_unknown() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
 
@@ -1083,15 +1081,15 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(VCError::Std(StdError::generic_err(
-                    VCError::UnknownAccountId { id: not_registered }.to_string(),
+                .is_equal_to(RegistryError::Std(StdError::generic_err(
+                    RegistryError::UnknownAccountId { id: not_registered }.to_string(),
                 )));
 
             Ok(())
         }
 
         #[test]
-        fn registered_should_return_account() -> VersionControlTestResult {
+        fn registered_should_return_account() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
             mock_init_with_account(&mut deps)?;

@@ -34,7 +34,7 @@ pub fn create_default_account<Chain: CwEnv>(
 //             },
 //             base: abstract_adapter::std::adapter::BaseInstantiateMsg {
 //                 ans_host_address: deployment.ans_host.addr_str()?,
-//                 version_control_address: deployment.version_control.addr_str()?,
+//                 registry_address: deployment.registry.addr_str()?,
 //             },
 //         },
 //         None,
@@ -46,7 +46,7 @@ pub fn create_default_account<Chain: CwEnv>(
 //         .parse()?;
 
 //     deployment
-//         .version_control
+//         .registry
 //         .register_adapters(vec![dex_adapter.as_instance()], &version)?;
 //     Ok(dex_adapter)
 // }

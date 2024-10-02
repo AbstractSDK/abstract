@@ -1,4 +1,4 @@
-use ::version_control::error::VCError;
+use ::registry::error::RegistryError;
 use abstract_account::error::AccountError;
 use abstract_adapter::mock::{
     interface::MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
@@ -19,7 +19,7 @@ use abstract_client::{
     Publisher,
 };
 use abstract_interface::{
-    ClientResolve, IbcClient, InstallConfig, RegisteredModule, VCExecFns, VCQueryFns,
+    ClientResolve, IbcClient, InstallConfig, RegisteredModule, RegistryExecFns, RegistryQueryFns,
 };
 use abstract_std::{
     account::{
@@ -101,11 +101,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     );
 
     // Namespace is claimed.
-    let account_id = client
-        .version_control()
-        .namespace(namespace)?
-        .unwrap()
-        .account_id;
+    let account_id = client.registry().namespace(namespace)?.unwrap().account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -211,11 +207,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     assert_eq!(ownership.owner, governance_details);
 
     // Namespace is claimed.
-    let account_id = client
-        .version_control()
-        .namespace(namespace)?
-        .unwrap()
-        .account_id;
+    let account_id = client.registry().namespace(namespace)?.unwrap().account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -1044,10 +1036,10 @@ fn auto_funds_work() -> anyhow::Result<()> {
         .build()?;
     let _: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
-    client.version_control().update_module_configuration(
+    client.registry().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
-        abstract_std::version_control::UpdateModule::Versioned {
+        abstract_std::registry::UpdateModule::Versioned {
             version: MockAdapterI::<MockBech32>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_std::objects::module::Monetization::InstallFee(
@@ -1209,10 +1201,10 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     else {
         panic!("Expected cw-orch error")
     };
-    let err: VCError = err.downcast().unwrap();
+    let err: RegistryError = err.downcast().unwrap();
     assert_eq!(
         err,
-        VCError::InvalidAccountSequence {
+        RegistryError::InvalidAccountSequence {
             expected: 1,
             actual: 10,
         }
@@ -1236,8 +1228,11 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     else {
         panic!("Expected cw-orch error")
     };
-    let err: VCError = err.downcast().unwrap();
-    assert_eq!(err, VCError::AccountAlreadyExists(AccountId::local(0)));
+    let err: RegistryError = err.downcast().unwrap();
+    assert_eq!(
+        err,
+        RegistryError::AccountAlreadyExists(AccountId::local(0))
+    );
 
     // Can create sub-account if right id
     let sub_account = client
@@ -1443,7 +1438,7 @@ fn module_status() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
     let admin = AbstractClient::mock_admin(&chain);
     client
-        .version_control()
+        .registry()
         .call_as(&admin)
         .update_config(None, Some(false))?;
 
@@ -1463,7 +1458,7 @@ fn module_status() -> anyhow::Result<()> {
     );
 
     client
-        .version_control()
+        .registry()
         .call_as(&admin)
         .approve_or_reject_modules(vec![module_info.clone()], vec![])?;
     let module_status = client.module_status(module_info.clone())?;
@@ -1472,7 +1467,7 @@ fn module_status() -> anyhow::Result<()> {
         Some(abstract_std::objects::module::ModuleStatus::Registered)
     );
 
-    client.version_control().yank_module(module_info.clone())?;
+    client.registry().yank_module(module_info.clone())?;
     let module_status = client.module_status(module_info)?;
     assert_eq!(
         module_status,

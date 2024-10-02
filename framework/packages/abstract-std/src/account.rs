@@ -351,7 +351,7 @@ pub struct ConfigResponse {
     pub whitelisted_addresses: Vec<Addr>,
     pub account_id: AccountId,
     pub is_suspended: SuspensionStatus,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
     pub module_factory_address: Addr,
 }
 

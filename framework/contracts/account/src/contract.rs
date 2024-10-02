@@ -1,6 +1,6 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
+    feature_objects::RegistryContract,
     std::{
         account::state::ACCOUNT_ID,
         objects::validation::{validate_description, validate_link, validate_name},
@@ -19,7 +19,7 @@ use abstract_std::{
         ownership::{self, GovOwnershipError},
         AccountId,
     },
-    version_control::state::LOCAL_ACCOUNT_SEQUENCE,
+    registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response,
@@ -83,14 +83,14 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
     let module_factory = ModuleFactoryContract::new(deps.api)?;
 
     let account_id = match account_id {
         Some(account_id) => account_id,
-        None => AccountId::local(
-            LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, version_control.address.clone())?,
-        ),
+        None => {
+            AccountId::local(LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, registry.address.clone())?)
+        }
     };
 
     let mut response = AccountResponse::new(
@@ -105,7 +105,7 @@ pub fn instantiate(
     validate_description(description.as_deref())?;
     validate_link(link.as_deref())?;
     if let Some(name) = name.as_deref() {
-        validate_name(&name)?;
+        validate_name(name)?;
     }
 
     let account_info = AccountInfo {
@@ -121,7 +121,7 @@ pub fn instantiate(
 
     let governance = owner
         .clone()
-        .verify(deps.as_ref(), version_control.address.clone())?;
+        .verify(deps.as_ref(), registry.address.clone())?;
     match governance {
         // Check if the caller is the manager the proposed owner account when creating a sub-account.
         // This prevents other users from creating sub-accounts for accounts they don't own.
@@ -181,7 +181,7 @@ pub fn instantiate(
         // TODO: support no owner here (ownership handled in SUDO)
         // Or do we want to add a `Sudo` governance type?
         owner.clone(),
-        version_control.address.clone(),
+        registry.address.clone(),
     )?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
@@ -189,7 +189,7 @@ pub fn instantiate(
     response = response.add_attribute("owner".to_owned(), cw_gov_owner.owner.to_string());
 
     let funds_for_namespace_fee = if namespace.is_some() {
-        version_control
+        registry
             .namespace_registration_fee(&deps.querier)?
             .into_iter()
             .collect()
@@ -200,8 +200,8 @@ pub fn instantiate(
     let mut total_fee = Coins::try_from(funds_for_namespace_fee.clone()).unwrap();
 
     response = response.add_message(wasm_execute(
-        version_control.address,
-        &abstract_std::version_control::ExecuteMsg::AddAccount {
+        registry.address,
+        &abstract_std::registry::ExecuteMsg::AddAccount {
             namespace,
             creator: info.sender.to_string(),
         },
@@ -324,13 +324,13 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             remove_account_from_contracts(deps.branch())?
                         }
                     };
-                    let version_control = VersionControlContract::new(deps.api)?;
+                    let registry = RegistryContract::new(deps.api)?;
 
                     let new_owner_attributes = ownership::update_ownership(
                         deps,
                         &env.block,
                         &info.sender,
-                        version_control.address,
+                        registry.address,
                         action,
                     )?
                     .into_attributes();
@@ -497,8 +497,8 @@ mod tests {
         assert!(resp.is_ok());
 
         let expected_msg: CosmosMsg = wasm_execute(
-            abstr.version_control,
-            &abstract_std::version_control::ExecuteMsg::AddAccount {
+            abstr.registry,
+            &abstract_std::registry::ExecuteMsg::AddAccount {
                 creator: abstr.owner.to_string(),
                 namespace: None,
             },

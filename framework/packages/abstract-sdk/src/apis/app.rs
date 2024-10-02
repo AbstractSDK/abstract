@@ -100,7 +100,7 @@ impl<'a, T: AppInterface> Apps<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_std::version_control::Account;
+    use abstract_std::registry::Account;
     use abstract_testing::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;

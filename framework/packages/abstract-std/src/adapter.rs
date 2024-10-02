@@ -16,10 +16,7 @@ use crate::{
         ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
         QueryMsg as MiddlewareQueryMsg,
     },
-    objects::{
-        ans_host::AnsHost, module_version::ModuleDataResponse,
-        version_control::VersionControlContract,
-    },
+    objects::{ans_host::AnsHost, module_version::ModuleDataResponse, registry::RegistryContract},
 };
 
 pub type ExecuteMsg<Request = Empty> =
@@ -57,13 +54,13 @@ impl<T: AdapterQueryMsg> From<T> for QueryMsg<T> {
 impl AdapterQueryMsg for Empty {}
 
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
+/// The contract is then registered on the version control contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation
     pub ans_host_address: String,
     /// Used to verify senders
-    pub version_control_address: String,
+    pub registry_address: String,
 }
 
 impl<RequestMsg> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg> {
@@ -144,7 +141,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterConfigResponse {
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
     pub ans_host_address: Addr,
     pub dependencies: Vec<String>,
 }
@@ -160,7 +157,7 @@ pub struct AuthorizedAddressesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterState {
     /// Used to verify requests
-    pub version_control: VersionControlContract,
+    pub registry: RegistryContract,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
 }

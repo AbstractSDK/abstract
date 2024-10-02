@@ -15,7 +15,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership,
     },
-    version_control::UpdateModule,
+    registry::UpdateModule,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
@@ -43,7 +43,7 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
     let account = crate::create_default_account(&chain.sender_addr(), &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(account.id()?, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain.clone());
@@ -164,7 +164,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
     let standalone = standalone_cw2::StandaloneCw2::new_test(chain.clone());
     standalone.upload()?;
 
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("tester")?,
             name: "standalone".to_owned(),
@@ -174,7 +174,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
     )])?;
 
     // Add init_funds
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-app1".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -184,7 +184,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             instantiation_funds: Some(vec![coin(3, coin1), coin(5, coin2)]),
         },
     )?;
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "standalone".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -285,7 +285,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
         },
     )?;
     abstr
-        .version_control
+        .registry
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -316,7 +316,7 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
     let abstr = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
     abstr
-        .version_control
+        .registry
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -362,7 +362,7 @@ pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
     let account = create_default_account(&chain.sender_addr(), &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 

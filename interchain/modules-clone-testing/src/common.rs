@@ -1,6 +1,6 @@
 use abstract_client::{AbstractClient, Environment};
-use abstract_interface::VCQueryFns;
-use abstract_interface::{Abstract, VCExecFns};
+use abstract_interface::RegistryQueryFns;
+use abstract_interface::{Abstract, RegistryExecFns};
 use cosmwasm_std::coins;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
@@ -30,11 +30,11 @@ pub fn load_abstr(chain: ChainInfo) -> anyhow::Result<AbstractClient<CloneTestin
         deployment.migrate_if_version_changed()?;
     }
 
-    abstr_deployment.version_control().ownership()?;
+    abstr_deployment.registry().ownership()?;
 
     // Allow registration of any module
     abstr_deployment
-        .version_control()
+        .registry()
         .update_config(None, Some(true))?;
 
     Ok(abstr_deployment)

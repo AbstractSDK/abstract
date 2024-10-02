@@ -8,7 +8,7 @@ use crate::{
     ibc_host::HostAction,
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
-        version_control::VersionControlContract, TruncatedChainId,
+        registry::RegistryContract, TruncatedChainId,
     },
     AbstractError,
 };
@@ -57,7 +57,7 @@ pub mod state {
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub ans_host_address: String,
-    pub version_control_address: String,
+    pub registry_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -208,11 +208,7 @@ pub struct ModuleAddr {
 }
 
 impl InstalledModuleIdentification {
-    pub fn addr(
-        &self,
-        deps: Deps,
-        vc: VersionControlContract,
-    ) -> Result<ModuleAddr, AbstractError> {
+    pub fn addr(&self, deps: Deps, vc: RegistryContract) -> Result<ModuleAddr, AbstractError> {
         let target_module_resolved = vc.query_module(self.module_info.clone(), &deps.querier)?;
 
         let no_account_id_error =
@@ -323,7 +319,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub ans_host: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

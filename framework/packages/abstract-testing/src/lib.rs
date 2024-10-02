@@ -13,7 +13,7 @@ use abstract_std::{
         module_reference::ModuleReference,
         ownership,
     },
-    version_control::state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES},
+    registry::state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES},
     ACCOUNT,
 };
 use cosmwasm_std::{
@@ -38,7 +38,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
         if contract == abstr.account.addr() {
             // Return the default value
             Ok(Binary::default())
-        } else if contract == abstr.version_control {
+        } else if contract == abstr.registry {
             // Default value
             Ok(Binary::default())
         } else {
@@ -53,12 +53,12 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
     MockQuerierBuilder::new(mock_api)
         .with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
-            &abstr.version_control,
+            &abstr.registry,
             ACCOUNT_ADDRESSES,
             (&ABSTRACT_ACCOUNT_ID, abstr.account.clone()),
         )
         .with_contract_map_entry(
-            &abstr.version_control,
+            &abstr.registry,
             REGISTERED_MODULES,
             (
                 &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
@@ -81,7 +81,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             match from_json(msg).unwrap() {
                 AccountQueryMsg::Config {} => {
                     let resp = AccountConfigResponse {
-                        version_control_address: abstr.version_control,
+                        registry_address: abstr.registry,
                         module_factory_address: abstr.module_factory,
                         account_id: ABSTRACT_ACCOUNT_ID, // mock value, not used
                         is_suspended: false,
@@ -120,7 +120,7 @@ pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
 /// use the package version as test version, breaks tests otherwise.
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
-    use abstract_std::{native_addrs, version_control::Account};
+    use abstract_std::{native_addrs, registry::Account};
     use cosmwasm_std::{testing::MockApi, Addr, Api, CanonicalAddr};
 
     // Test addr makers
@@ -145,8 +145,8 @@ pub mod addresses {
                 ans_host: mock_api
                     .addr_humanize(&CanonicalAddr::from(native_addrs::ANS_ADDR))
                     .unwrap(),
-                version_control: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR))
+                registry: mock_api
+                    .addr_humanize(&CanonicalAddr::from(native_addrs::REGISTRY_ADDR))
                     .unwrap(),
                 module_factory: mock_api
                     .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
@@ -163,7 +163,7 @@ pub mod addresses {
     pub struct AbstractMockAddrs {
         pub owner: Addr,
         pub ans_host: Addr,
-        pub version_control: Addr,
+        pub registry: Addr,
         pub module_factory: Addr,
         pub module_address: Addr,
         pub account: Account,

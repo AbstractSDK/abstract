@@ -1,6 +1,6 @@
 //! # Governance structure object
 
-use crate::{account::state::ACCOUNT_ID, version_control};
+use crate::{account::state::ACCOUNT_ID, registry};
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw_address_like::AddressLike;
 use cw_utils::Expiration;
@@ -86,7 +86,7 @@ impl GovernanceDetails<String> {
         self,
         deps: Deps,
         // TODO: remove!
-        version_control_addr: Addr,
+        registry_addr: Addr,
     ) -> Result<GovernanceDetails<Addr>, AbstractError> {
         match self {
             GovernanceDetails::Monarchy { monarch } => {
@@ -96,9 +96,9 @@ impl GovernanceDetails<String> {
             GovernanceDetails::SubAccount { account } => {
                 let account_addr = deps.api.addr_validate(&account)?;
                 let account_id = ACCOUNT_ID.query(&deps.querier, account_addr.clone())?;
-                let base = version_control::state::ACCOUNT_ADDRESSES.query(
+                let base = registry::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
-                    version_control_addr,
+                    registry_addr,
                     &account_id,
                 )?;
                 let Some(b) = base else {
@@ -271,27 +271,27 @@ mod test {
         let gov = GovernanceDetails::Monarchy {
             monarch: owner.to_string(),
         };
-        let mock_version_control = deps.api.addr_make("mock_version_control");
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
+        let mock_registry = deps.api.addr_make("mock_registry");
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
 
         let gov_addr = deps.api.addr_make("gov_addr");
         let gov = GovernanceDetails::External {
             governance_address: gov_addr.to_string(),
             governance_type: "external-multisig".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
 
         let gov = GovernanceDetails::Monarchy {
             monarch: "NOT_OK".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
 
         let gov = GovernanceDetails::External {
             governance_address: "gov_address".to_string(),
             governance_type: "gov_type".to_string(),
         };
         // '_' not allowed
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
 
         // too short
         let gov_address = deps.api.addr_make("gov_address");
@@ -299,21 +299,21 @@ mod test {
             governance_address: gov_address.to_string(),
             governance_type: "gov".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
 
         // too long
         let gov = GovernanceDetails::External {
             governance_address: gov_address.to_string(),
             governance_type: "a".repeat(190),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
 
         // invalid addr
         let gov = GovernanceDetails::External {
             governance_address: "NOT_OK".to_string(),
             governance_type: "gov_type".to_string(),
         };
-        assert!(gov.verify(deps.as_ref(), mock_version_control).is_err());
+        assert!(gov.verify(deps.as_ref(), mock_registry).is_err());
 
         // good nft
         let collection_addr = deps.api.addr_make("collection_addr");
@@ -321,7 +321,7 @@ mod test {
             collection_addr: collection_addr.to_string(),
             token_id: "1".to_string(),
         };
-        let mock_version_control = deps.api.addr_make("mock_version_control");
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
+        let mock_registry = deps.api.addr_make("mock_registry");
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
     }
 }
