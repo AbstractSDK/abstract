@@ -18,6 +18,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
 
 #[cfg(test)]
 mod tests {
+    use abstract_testing::mock_env_validated;
     use cosmwasm_std::testing::*;
     use semver::Version;
     use speculoos::prelude::*;
@@ -32,11 +33,12 @@ mod tests {
     #[test]
     fn disallow_same_version() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
         let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-        let res = super::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg {});
+        let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
         assert_that!(res)
             .is_err()
@@ -54,6 +56,7 @@ mod tests {
     #[test]
     fn disallow_downgrade() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
         let big_version = "999.999.999";
@@ -61,7 +64,7 @@ mod tests {
 
         let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-        let res = super::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg {});
+        let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
         assert_that!(res)
             .is_err()
@@ -79,13 +82,14 @@ mod tests {
     #[test]
     fn disallow_name_change() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
         let old_version = "0.0.0";
         let old_name = "old:contract";
         set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-        let res = super::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg {});
+        let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
         assert_that!(res)
             .is_err()
@@ -102,6 +106,7 @@ mod tests {
     #[test]
     fn works() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
         let version: Version = CONTRACT_VERSION.parse().unwrap();
@@ -114,7 +119,7 @@ mod tests {
 
         set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
 
-        let res = super::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg {})?;
+        let res = super::migrate(deps.as_mut(), env, MigrateMsg {})?;
         assert_that!(res.messages).has_length(0);
 
         assert_that!(get_contract_version(&deps.storage)?.version).is_equal_to(version.to_string());

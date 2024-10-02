@@ -88,7 +88,7 @@ mod tests {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         from_json,
-        testing::{mock_dependencies, mock_env, MockApi},
+        testing::{mock_dependencies, MockApi},
         Addr, HexBinary,
     };
 
@@ -180,6 +180,7 @@ mod tests {
         use abstract_ica::msg::QueryMsg;
         use abstract_std::objects::TruncatedChainId;
 
+        use abstract_testing::mock_env_validated;
         use cosmwasm_std::{coins, wasm_execute};
         use evm::types;
         use evm_note::msg::EvmMsg;
@@ -189,12 +190,13 @@ mod tests {
         #[test]
         fn config() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = state_setup(deps.api).build();
 
             mock_init(&mut deps)?;
-            let res = query(deps.as_ref(), mock_env_validated(deps.api), QueryMsg::Config {})?;
+            let res = query(deps.as_ref(), env, QueryMsg::Config {})?;
             let res: ConfigResponse = from_json(&res).unwrap();
             assert_eq!(
                 res,
@@ -209,6 +211,7 @@ mod tests {
         #[test]
         fn evm_exec_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
@@ -230,7 +233,7 @@ mod tests {
                 })],
             };
 
-            let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
+            let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -258,6 +261,7 @@ mod tests {
             use super::*;
 
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
@@ -277,7 +281,7 @@ mod tests {
                 }],
             };
 
-            let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
+            let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {

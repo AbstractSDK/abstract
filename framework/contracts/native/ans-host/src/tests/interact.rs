@@ -1,5 +1,5 @@
 use abstract_std::ans_host::*;
-use abstract_testing::prelude::AbstractMockAddrs;
+use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
 use cosmwasm_std::testing::*;
 use cw_asset::AssetInfo;
 

@@ -65,6 +65,8 @@ fn associated_client(deps: Deps, chain: String) -> HostResult<ClientProxyRespons
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
 
+    use abstract_testing::mock_env_validated;
+
     #[test]
     fn test_registered_client() {
         use abstract_std::ibc_host::{ClientProxyResponse, InstantiateMsg, QueryMsg};
@@ -74,13 +76,14 @@ mod test {
         // Instantiate
         let mut deps = mock_dependencies();
         let info = message_info(&deps.api.addr_make("admin"), &[]);
-        instantiate(deps.as_mut(), mock_env_validated(deps.api), info.clone(), InstantiateMsg {}).unwrap();
+        let env = mock_env_validated(deps.api);
+        instantiate(deps.as_mut(), env.clone(), info.clone(), InstantiateMsg {}).unwrap();
 
         // Register
         let proxy = deps.api.addr_make("juno-proxy");
         execute(
             deps.as_mut(),
-            mock_env_validated(deps.api),
+            env.clone(),
             info,
             abstract_std::ibc_host::ExecuteMsg::RegisterChainProxy {
                 chain: "juno".parse().unwrap(),
@@ -92,7 +95,7 @@ mod test {
         // Query
         let client_name = query(
             deps.as_ref(),
-            mock_env_validated(deps.api),
+            env,
             QueryMsg::ClientProxy {
                 chain: "juno".to_string(),
             },

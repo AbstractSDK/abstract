@@ -352,7 +352,6 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::*;
     use speculoos::prelude::*;
-    use testing::mock_env;
 
     use super::*;
     use crate::mock_module::*;

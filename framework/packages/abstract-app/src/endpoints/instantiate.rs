@@ -80,6 +80,7 @@ mod test {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let info = message_info(&abstr.module_factory, &[]);
+        let env = mock_env_validated(deps.api);
 
         deps.querier = app_base_mock_querier(deps.api).build();
 
@@ -93,7 +94,7 @@ mod test {
         };
 
         let res = MOCK_APP_WITH_DEP
-            .instantiate(deps.as_mut(), mock_env_validated(deps.api), info, msg)
+            .instantiate(deps.as_mut(), env, info, msg)
             .unwrap();
         assert!(res.messages.is_empty());
     }

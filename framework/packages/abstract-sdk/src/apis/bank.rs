@@ -284,8 +284,9 @@ impl Transferable for Coin {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
+    use abstract_testing::mock_env_validated;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, *};
+    use cosmwasm_std::*;
     use speculoos::prelude::*;
 
     use super::*;

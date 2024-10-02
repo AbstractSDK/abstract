@@ -87,6 +87,7 @@ mod tests {
     fn custom_exec() {
         let mut deps = mock_dependencies();
         let account = test_account(deps.api);
+        let env = mock_env_validated(deps.api);
 
         deps.querier = MockQuerierBuilder::new(deps.api)
             .account(&account, TEST_ACCOUNT_ID)
@@ -99,12 +100,8 @@ mod tests {
             request: MockExecMsg {},
         });
 
-        let res = featured_adapter().execute(
-            deps.as_mut(),
-            mock_env_validated(deps.api),
-            message_info(account.addr(), &[]),
-            msg,
-        );
+        let res =
+            featured_adapter().execute(deps.as_mut(), env, message_info(account.addr(), &[]), msg);
 
         assert!(res.is_ok());
     }

@@ -11,17 +11,15 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::AbstractSdkError;
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env},
-        Binary, Reply, SubMsgResponse,
-    };
+    use abstract_testing::mock_env_validated;
+    use cosmwasm_std::{testing::mock_dependencies, Binary, Reply, SubMsgResponse};
 
     use crate::mock::{reply, AdapterMockResult};
 
     #[test]
     fn endpoint() -> AdapterMockResult {
-        let env = mock_env_validated(deps.api);
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
         deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let reply_msg = Reply {
             id: 1,
@@ -43,8 +41,8 @@ mod test {
 
     #[test]
     fn no_matching_id() -> AdapterMockResult {
-        let env = mock_env_validated(deps.api);
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
         deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let reply_msg = Reply {
             id: 0,

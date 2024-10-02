@@ -164,7 +164,7 @@ mod tests {
                 expiry: None,
             });
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(res).is_err().matches(|err| {
                 matches!(
                     err,
@@ -191,11 +191,11 @@ mod tests {
                 expiry: None,
             });
 
-            let res = execute_as(deps.as_mut(), &owner, set_owner_msg);
+            let res = execute_as(&mut deps, &owner, set_owner_msg);
             assert_that!(&res).is_ok();
 
             let accept_msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
-            execute_as(deps.as_mut(), &new_owner, accept_msg)?;
+            execute_as(&mut deps, &new_owner, accept_msg)?;
 
             let actual_owner = ownership::get_ownership(&deps.storage)?.owner;
 
@@ -222,7 +222,7 @@ mod tests {
                 expiry: None,
             });
 
-            execute_as(deps.as_mut(), &owner, msg)?;
+            execute_as(&mut deps, &owner, msg)?;
 
             let ownership = ownership::get_ownership(deps.as_ref().storage)?;
             assert_that!(ownership
@@ -233,7 +233,7 @@ mod tests {
             .is_equal_to(owner.to_string());
 
             let accept_msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
-            execute_as(deps.as_mut(), &new_gov, accept_msg)?;
+            execute_as(&mut deps, &new_gov, accept_msg)?;
 
             let ownership = ownership::get_ownership(deps.as_ref().storage)?;
             assert_that!(ownership
@@ -281,7 +281,7 @@ mod tests {
                 link: Some(link.to_string()),
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res).is_ok();
 
             let info = INFO.load(deps.as_ref().storage)?;
@@ -316,7 +316,7 @@ mod tests {
                 link: None,
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res).is_ok();
 
             let info = INFO.load(deps.as_ref().storage)?;
@@ -341,7 +341,7 @@ mod tests {
                 link: None,
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -355,7 +355,7 @@ mod tests {
                 link: None,
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -380,7 +380,7 @@ mod tests {
                 link: Some("aoeu".to_string()),
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -394,7 +394,7 @@ mod tests {
                 link: Some("a".repeat(129)),
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
@@ -414,18 +414,14 @@ mod tests {
         #[test]
         fn only_by_contract() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let not_contract = deps.api.addr_make("not_contract");
             mock_init(&mut deps)?;
             let callback = CallbackMsg {};
 
             let msg = ExecuteMsg::Callback(callback);
 
-            let res = contract::execute(
-                deps.as_mut(),
-                mock_env_validated(deps.api),
-                message_info(&not_contract, &[]),
-                msg,
-            );
+            let res = contract::execute(deps.as_mut(), env, message_info(&not_contract, &[]), msg);
 
             assert_that!(&res)
                 .is_err()
@@ -461,7 +457,7 @@ mod tests {
                 is_suspended: Some(true),
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(res).is_ok();
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
             assert_that!(&actual_is_suspended).is_true();
@@ -472,7 +468,7 @@ mod tests {
                 link: None,
             };
 
-            let res = execute_as(deps.as_mut(), &owner, update_info_msg);
+            let res = execute_as(&mut deps, &owner, update_info_msg);
 
             assert_that!(&res)
                 .is_err()
@@ -492,7 +488,7 @@ mod tests {
                 is_suspended: Some(true),
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
 
             assert_that!(&res).is_ok();
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
@@ -511,7 +507,7 @@ mod tests {
                 is_suspended: Some(false),
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
 
             assert_that!(&res).is_ok();
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
@@ -540,16 +536,16 @@ mod tests {
             });
 
             let bad_sender = deps.api.addr_make("not_account_owner");
-            let res = execute_as(deps.as_mut(), &bad_sender, msg.clone());
+            let res = execute_as(&mut deps, &bad_sender, msg.clone());
 
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
-            let vc_res = execute_as(deps.as_mut(), &abstr.version_control, msg.clone());
+            let vc_res = execute_as(&mut deps, &abstr.version_control, msg.clone());
             assert_that!(&vc_res).is_err();
 
-            let owner_res = execute_as(deps.as_mut(), &owner, msg);
+            let owner_res = execute_as(&mut deps, &owner, msg);
             assert_that!(&owner_res).is_ok();
 
             Ok(())
@@ -584,7 +580,7 @@ mod tests {
 
             let msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership {});
 
-            execute_as(deps.as_mut(), &pending_owner, msg)?;
+            execute_as(&mut deps, &pending_owner, msg)?;
 
             Ok(())
         }

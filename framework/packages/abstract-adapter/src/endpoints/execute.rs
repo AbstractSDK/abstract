@@ -255,15 +255,16 @@ mod tests {
     use crate::mock::{mock_init, AdapterMockResult, MockError, MockExecMsg, MOCK_ADAPTER};
 
     fn execute_as(
-        deps: DepsMut,
+        deps: &mut MockDeps,
         sender: &Addr,
         msg: ExecuteMsg<MockExecMsg>,
     ) -> Result<Response, MockError> {
-        MOCK_ADAPTER.execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
+        let env = mock_env_validated(deps.api);
+        MOCK_ADAPTER.execute(deps.as_mut(), env, message_info(sender, &[]), msg)
     }
 
     fn base_execute_as(
-        deps: DepsMut,
+        deps: &mut MockDeps,
         sender: &Addr,
         msg: BaseExecuteMsg,
     ) -> Result<Response, MockError> {
@@ -302,7 +303,7 @@ mod tests {
                 account_address: None,
             };
 
-            base_execute_as(deps.as_mut(), account.addr(), msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
 
             let api = MOCK_ADAPTER;
             assert!(!api.authorized_addresses.is_empty(&deps.storage));
@@ -336,7 +337,7 @@ mod tests {
                 },
             };
 
-            base_execute_as(deps.as_mut(), account.addr(), msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
 
             let authorized_addrs =
                 load_test_account_authorized_addresses(&deps.storage, account.addr());
@@ -350,7 +351,7 @@ mod tests {
                 },
             };
 
-            base_execute_as(deps.as_mut(), account.addr(), msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
             let authorized_addrs =
                 load_test_account_authorized_addresses(&deps.storage, account.addr());
             assert!(authorized_addrs.is_empty());
@@ -375,7 +376,7 @@ mod tests {
                 },
             };
 
-            base_execute_as(deps.as_mut(), account.addr(), msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
 
             let msg = BaseExecuteMsg {
                 account_address: None,
@@ -385,7 +386,7 @@ mod tests {
                 },
             };
 
-            let res = base_execute_as(deps.as_mut(), account.addr(), msg);
+            let res = base_execute_as(&mut deps, account.addr(), msg);
 
             assert!(matches!(
                 res,
@@ -419,7 +420,7 @@ mod tests {
                 },
             };
 
-            base_execute_as(deps.as_mut(), account.addr(), msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
 
             let authorized_addrs =
                 load_test_account_authorized_addresses(&deps.storage, account.addr());
@@ -453,7 +454,7 @@ mod tests {
                 },
             };
 
-            let res = base_execute_as(deps.as_mut(), account.addr(), msg);
+            let res = base_execute_as(&mut deps, account.addr(), msg);
 
             assert_eq!(
                 res,
@@ -501,7 +502,7 @@ mod tests {
             };
 
             let account = test_account(deps.api);
-            base_execute_as(deps.as_mut(), account.addr(), msg).unwrap();
+            base_execute_as(deps, account.addr(), msg).unwrap();
         }
 
         #[test]
@@ -519,7 +520,7 @@ mod tests {
             });
 
             let unauthorized = deps.api.addr_make("someoone");
-            let res = execute_as(deps.as_mut(), &unauthorized, msg);
+            let res = execute_as(&mut deps, &unauthorized, msg);
 
             assert_unauthorized(res);
         }
@@ -551,7 +552,7 @@ mod tests {
                 request: MockExecMsg {},
             });
 
-            let res = execute_as(deps.as_mut(), account.addr(), msg);
+            let res = execute_as(&mut deps, account.addr(), msg);
 
             assert!(res.is_ok());
         }
@@ -571,7 +572,7 @@ mod tests {
             });
 
             let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
-            let res = execute_as(deps.as_mut(), &authorized, msg);
+            let res = execute_as(&mut deps, &authorized, msg);
 
             assert_unauthorized(res);
         }
@@ -592,7 +593,7 @@ mod tests {
             });
 
             let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
-            let res = execute_as(deps.as_mut(), &authorized, msg);
+            let res = execute_as(&mut deps, &authorized, msg);
 
             assert!(res.is_ok());
         }
@@ -618,7 +619,7 @@ mod tests {
             });
 
             let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
-            let res = execute_as(deps.as_mut(), &authorized, msg);
+            let res = execute_as(&mut deps, &authorized, msg);
 
             assert_unauthorized(res);
         }

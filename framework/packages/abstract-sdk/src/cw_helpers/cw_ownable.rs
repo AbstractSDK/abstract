@@ -41,10 +41,11 @@ macro_rules! query_ownership {
 #[cfg(test)]
 mod tests {
     use abstract_macros::abstract_response;
+    use abstract_testing::mock_env_validated;
     use cosmwasm_schema::{cw_serde, QueryResponses};
     use cosmwasm_std::{
         from_json,
-        testing::{message_info, mock_dependencies, mock_env},
+        testing::{message_info, mock_dependencies},
         Addr, Binary, StdError, StdResult,
     };
     use cw_ownable::{cw_ownable_execute, cw_ownable_query, Action, OwnershipError};

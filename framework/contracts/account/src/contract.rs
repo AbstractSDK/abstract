@@ -453,9 +453,9 @@ mod tests {
         account,
         objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
     };
-    use abstract_testing::prelude::AbstractMockAddrs;
+    use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
     use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env},
+        testing::{message_info, mock_dependencies},
         wasm_execute, CosmosMsg, SubMsg,
     };
 
@@ -465,10 +465,11 @@ mod tests {
 
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
+        let env = mock_env_validated(deps.api);
 
         let resp = super::instantiate(
             deps.as_mut(),
-            mock_env_validated(deps.api),
+            env,
             info,
             account::InstantiateMsg {
                 account_id: AccountId::new(1, AccountTrace::Local).ok(),

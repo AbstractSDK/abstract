@@ -506,14 +506,14 @@ mod tests {
             let msg = ExecuteMsg::UpdateInternalConfig(action_add);
 
             // the version control can not call this
-            let res = execute_as(deps.as_mut(), &abstr.version_control, msg.clone());
+            let res = execute_as(&mut deps, &abstr.version_control, msg.clone());
             assert_that!(&res).is_err();
 
             // only the owner can
-            let res = execute_as(deps.as_mut(), &owner, msg.clone());
+            let res = execute_as(&mut deps, &owner, msg.clone());
             assert_that!(&res).is_ok();
 
-            let res = execute_as(deps.as_mut(), &not_account_factory, msg);
+            let res = execute_as(&mut deps, &not_account_factory, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
@@ -539,7 +539,7 @@ mod tests {
                 )],
             };
 
-            let res = execute_as(deps.as_mut(), &not_owner, msg);
+            let res = execute_as(&mut deps, &not_owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
@@ -578,7 +578,7 @@ mod tests {
             let dependents = HashSet::from_iter(vec!["test:dependent".to_string()]);
             DEPENDENTS.save(&mut deps.storage, test_module, &dependents)?;
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::ModuleHasDependents(Vec::from_iter(
@@ -619,7 +619,7 @@ mod tests {
                 exec_msg: to_json_binary(&"some msg")?,
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::ModuleNotFound(missing_module));
@@ -648,7 +648,7 @@ mod tests {
                 exec_msg: to_json_binary(&exec_msg)?,
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res).is_ok();
 
             let msgs = res.unwrap().messages;

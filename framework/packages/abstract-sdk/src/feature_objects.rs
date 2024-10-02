@@ -57,7 +57,8 @@ mod tests {
     use super::*;
 
     mod version_control {
-        use cosmwasm_std::testing::{mock_dependencies, mock_env};
+        use abstract_testing::mock_env_validated;
+        use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
         use crate::features::AbstractRegistryAccess;
@@ -65,8 +66,8 @@ mod tests {
         #[test]
         fn test_registry() {
             let deps = mock_dependencies();
-            let vc = VersionControlContract::new(&deps.api, &mock_env_validated(deps.api)).unwrap();
             let env = mock_env_validated(deps.api);
+            let vc = VersionControlContract::new(&deps.api, &env).unwrap();
 
             assert_that!(vc.abstract_registry(deps.as_ref(), &env))
                 .is_ok()

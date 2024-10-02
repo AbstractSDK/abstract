@@ -210,7 +210,7 @@ pub mod module {
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 }
 pub mod prelude {
-    pub use super::{abstract_mock_querier, abstract_mock_querier_builder};
+    pub use super::{abstract_mock_querier, abstract_mock_querier_builder, mock_env_validated};
     pub use abstract_mock_querier::AbstractMockQuerier;
     use abstract_std::objects::{AccountId, AccountTrace};
     pub use addresses::*;

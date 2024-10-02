@@ -139,6 +139,7 @@ mod tests {
 
     mod migrate {
         use abstract_std::AbstractError;
+        use abstract_testing::mock_env_validated;
         use cw2::get_contract_version;
 
         use super::*;
@@ -146,11 +147,12 @@ mod tests {
         #[test]
         fn disallow_same_version() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -168,6 +170,7 @@ mod tests {
         #[test]
         fn disallow_downgrade() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             let big_version = "999.999.999";
@@ -175,7 +178,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -193,13 +196,14 @@ mod tests {
         #[test]
         fn disallow_name_change() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
             set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -216,6 +220,7 @@ mod tests {
         #[test]
         fn works() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
@@ -227,7 +232,7 @@ mod tests {
             .to_string();
             set_contract_version(deps.as_mut().storage, MODULE_FACTORY, small_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env_validated(deps.api), MigrateMsg::Migrate {})?;
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(get_contract_version(&deps.storage)?.version)

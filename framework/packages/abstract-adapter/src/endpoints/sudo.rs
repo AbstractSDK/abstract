@@ -9,14 +9,15 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::testing::{mock_dependencies, mock_env};
+    use abstract_testing::mock_env_validated;
+    use cosmwasm_std::testing::mock_dependencies;
 
     use crate::mock::{sudo, AdapterMockResult};
 
     #[test]
     fn endpoint() -> AdapterMockResult {
-        let env = mock_env_validated(deps.api);
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
         deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let sudo_msg = crate::mock::MockSudoMsg {};
         let res = sudo(deps.as_mut(), env, sudo_msg)?;

@@ -91,20 +91,20 @@ impl<
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::base::QueryEndpoint;
-    use cosmwasm_std::testing::mock_env;
-    use cosmwasm_std::{Binary, Deps};
+    use cosmwasm_std::{Binary, Deps, Env};
 
     use super::QueryMsg as SuperQueryMsg;
     use crate::mock::*;
 
     type AppQueryMsg = SuperQueryMsg<MockQueryMsg>;
 
-    fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, MockError> {
-        BASIC_MOCK_APP.query(deps, mock_env_validated(deps.api), msg)
+    fn query_helper(deps: Deps, env: Env, msg: AppQueryMsg) -> Result<Binary, MockError> {
+        BASIC_MOCK_APP.query(deps, env, msg)
     }
 
     mod app_query {
         use abstract_sdk::AbstractSdkError;
+        use abstract_testing::mock_env_validated;
         use cosmwasm_std::{to_json_binary, Env};
 
         use super::*;
@@ -114,7 +114,7 @@ mod test {
             let deps = mock_init();
             let msg = AppQueryMsg::Module(MockQueryMsg::GetSomething {});
 
-            let res = query_helper(deps.as_ref(), msg);
+            let res = query_helper(deps.as_ref(), mock_env_validated(deps.api), msg);
 
             assert!(matches!(
                 res,
@@ -161,7 +161,7 @@ mod test {
             let account = test_account(deps.api);
 
             let config_query = QueryMsg::Base(BaseQueryMsg::BaseConfig {});
-            let res = query_helper(deps.as_ref(), config_query)?;
+            let res = query_helper(deps.as_ref(), mock_env_validated(deps.api), config_query)?;
 
             assert_eq!(
                 AppConfigResponse {
@@ -181,7 +181,7 @@ mod test {
             let account = test_account(deps.api);
 
             let admin_query = QueryMsg::Base(BaseQueryMsg::BaseAdmin {});
-            let res = query_helper(deps.as_ref(), admin_query)?;
+            let res = query_helper(deps.as_ref(), mock_env_validated(deps.api), admin_query)?;
 
             assert_eq!(
                 AdminResponse {

@@ -103,14 +103,19 @@ mod test {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::app::BaseExecuteMsg;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, Addr, DepsMut, Response};
+    use cosmwasm_std::{testing::*, Addr, Response};
     use cw_controllers::AdminError;
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg>;
 
-    fn execute_as(deps: DepsMut, sender: &Addr, msg: AppExecuteMsg) -> Result<Response, MockError> {
+    fn execute_as(
+        deps: &mut MockDeps,
+        sender: &Addr,
+        msg: AppExecuteMsg,
+    ) -> Result<Response, MockError> {
         let info = message_info(sender, &[]);
-        MOCK_APP_WITH_DEP.execute(deps, mock_env_validated(deps.api), info, msg)
+        let env = mock_env_validated(deps.api);
+        MOCK_APP_WITH_DEP.execute(deps.as_mut(), env, info, msg)
     }
 
     mod base {
@@ -126,7 +131,7 @@ mod test {
             });
 
             let not_manager = deps.api.addr_make("not_admin");
-            let res = execute_as(deps.as_mut(), &not_manager, msg);
+            let res = execute_as(&mut deps, &not_manager, msg);
             assert_eq!(
                 res,
                 Err(MockError::DappError(AppError::Admin(
@@ -148,7 +153,7 @@ mod test {
                 version_control_address: Some(new_version_control.to_string()),
             });
 
-            let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
+            let res = execute_as(&mut deps, account.addr(), update_ans)?;
 
             assert!(res.messages.is_empty());
 
@@ -171,7 +176,7 @@ mod test {
                 version_control_address: None,
             });
 
-            let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
+            let res = execute_as(&mut deps, account.addr(), update_ans)?;
 
             assert!(res.messages.is_empty());
 

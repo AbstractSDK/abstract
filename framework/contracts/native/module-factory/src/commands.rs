@@ -236,9 +236,10 @@ pub fn new_module_addrs(modules_to_register: &[Addr]) -> ModuleFactoryResult<Str
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
+    use abstract_testing::{mock_env_validated, MockDeps};
     use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage},
-        to_json_binary, OwnedDeps,
+        testing::{message_info, mock_dependencies},
+        to_json_binary,
     };
     use speculoos::prelude::*;
 
@@ -247,21 +248,15 @@ mod test {
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
-    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
+    fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
+        let env = mock_env_validated(deps.api);
+        execute(deps.as_mut(), env, message_info(sender, &[]), msg)
     }
 
-    fn test_only_admin(
-        msg: ExecuteMsg,
-        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-    ) -> ModuleFactoryTestResult {
+    fn test_only_admin(msg: ExecuteMsg, deps: &mut MockDeps) -> ModuleFactoryTestResult {
         let not_admin = deps.api.addr_make("not_admin");
-        let res = execute(
-            deps.as_mut(),
-            mock_env_validated(deps.api),
-            message_info(&not_admin, &[]),
-            msg,
-        );
+        let env = mock_env_validated(deps.api);
+        let res = execute(deps.as_mut(), env, message_info(&not_admin, &[]), msg);
         assert_that!(&res)
             .is_err()
             .is_equal_to(ModuleFactoryError::Ownership(
@@ -302,11 +297,11 @@ mod test {
                 expiry: None,
             });
 
-            let _transfer_res = execute_as(deps.as_mut(), &abstr.owner, transfer_msg)?;
+            let _transfer_res = execute_as(&mut deps, &abstr.owner, transfer_msg)?;
 
             // Then update and accept as the new owner
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
-            let _accept_res = execute_as(deps.as_mut(), &new_admin, accept_msg).unwrap();
+            let _accept_res = execute_as(&mut deps, &new_admin, accept_msg).unwrap();
 
             assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
                 .is_some()

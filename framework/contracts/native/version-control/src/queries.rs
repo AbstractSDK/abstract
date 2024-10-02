@@ -267,10 +267,10 @@ mod test {
 
     use crate::contract;
     use abstract_std::{account, objects::account::AccountTrace, version_control::*};
-    use abstract_testing::{prelude::*, MockQuerierOwnership};
+    use abstract_testing::{mock_env_validated, prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env, MockApi},
-        Addr, Binary, DepsMut, OwnedDeps, StdError,
+        testing::{message_info, mock_dependencies, MockApi},
+        Addr, Binary, StdError,
     };
     use speculoos::prelude::*;
 
@@ -348,16 +348,15 @@ mod test {
             .with_owner(&other_account, Some(&other_owner))
     }
 
-    fn mock_init(
-        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-    ) -> VersionControlTestResult {
+    fn mock_init(deps: &mut MockDeps) -> VersionControlTestResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
+        let env = mock_env_validated(deps.api);
         let admin = info.sender.to_string();
 
         contract::instantiate(
             deps.as_mut(),
-            mock_env_validated(deps.api),
+            env,
             info,
             InstantiateMsg {
                 admin,
@@ -384,7 +383,7 @@ mod test {
         state::LOCAL_ACCOUNT_SEQUENCE.save(&mut deps.storage, &1)?;
 
         execute_as(
-            deps.as_mut(),
+            deps,
             account.addr(),
             ExecuteMsg::AddAccount {
                 namespace: None,
@@ -394,7 +393,7 @@ mod test {
 
         let other_account = Account::new(deps.api.addr_make(TEST_OTHER_ACCOUNT_ADDR));
         execute_as(
-            deps.as_mut(),
+            deps,
             other_account.addr(),
             ExecuteMsg::AddAccount {
                 namespace: None,
@@ -403,12 +402,13 @@ mod test {
         )
     }
 
-    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> VCResult {
-        contract::execute(deps, mock_env_validated(deps.api), message_info(sender, &[]), msg)
+    fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> VCResult {
+        let env = mock_env_validated(deps.api);
+        contract::execute(deps.as_mut(), env, message_info(sender, &[]), msg)
     }
 
-    fn query_helper(deps: Deps, msg: QueryMsg) -> VCResult<Binary> {
-        contract::query(deps, mock_env_validated(deps.api), msg)
+    fn query_helper(deps: &MockDeps, msg: QueryMsg) -> VCResult<Binary> {
+        contract::query(deps.as_ref(), mock_env_validated(deps.api), msg)
     }
 
     mod module {
@@ -416,28 +416,25 @@ mod test {
 
         use abstract_std::objects::module::ModuleVersion::Latest;
 
-        fn add_namespace(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>, namespace: &str) {
+        fn add_namespace(deps: &mut MockDeps, namespace: &str) {
             let abstr = AbstractMockAddrs::new(deps.api);
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id: TEST_ACCOUNT_ID,
                 namespace: namespace.to_string(),
             };
 
-            let res = execute_as(deps.as_mut(), &abstr.owner, msg);
+            let res = execute_as(deps, &abstr.owner, msg);
             assert_that!(&res).is_ok();
         }
 
-        fn add_module(
-            deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-            new_module_info: ModuleInfo,
-        ) {
+        fn add_module(deps: &mut MockDeps, new_module_info: ModuleInfo) {
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let add_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module_info, ModuleReference::App(0))],
             };
 
-            let res = execute_as(deps.as_mut(), &abstr.owner, add_msg);
+            let res = execute_as(deps, &abstr.owner, add_msg);
             assert_that!(&res).is_ok();
         }
 
@@ -464,8 +461,7 @@ mod test {
                 }],
             };
 
-            let ModulesResponse { mut modules } =
-                from_json(query_helper(deps.as_ref(), query_msg)?)?;
+            let ModulesResponse { mut modules } = from_json(query_helper(&deps, query_msg)?)?;
             assert_that!(modules.swap_remove(0).module.info).is_equal_to(&new_module_info);
             Ok(())
         }
@@ -493,7 +489,7 @@ mod test {
                 }],
             };
 
-            let res = query_helper(deps.as_ref(), query_msg);
+            let res = query_helper(&deps, query_msg);
             assert_that!(res)
                 .is_err()
                 .matches(|e| matches!(e, VCError::Std(StdError::GenericErr { .. })));
@@ -529,8 +525,7 @@ mod test {
                 }],
             };
 
-            let ModulesResponse { mut modules } =
-                from_json(query_helper(deps.as_ref(), query_msg)?)?;
+            let ModulesResponse { mut modules } = from_json(query_helper(&deps, query_msg)?)?;
             assert_that!(modules.swap_remove(0).module.info).is_equal_to(&newest_version);
             Ok(())
         }
@@ -539,20 +534,24 @@ mod test {
     use cosmwasm_std::from_json;
 
     /// Add namespaces
-    fn add_namespaces(mut deps: DepsMut, acc_and_namespace: Vec<(AccountId, &str)>, sender: &Addr) {
+    fn add_namespaces(
+        deps: &mut MockDeps,
+        acc_and_namespace: Vec<(AccountId, &str)>,
+        sender: &Addr,
+    ) {
         for (account_id, namespace) in acc_and_namespace {
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id,
                 namespace: namespace.to_string(),
             };
 
-            let res = execute_as(deps.branch(), sender, msg);
+            let res = execute_as(deps, sender, msg);
             assert_that!(&res).is_ok();
         }
     }
 
     /// Add the provided modules to the version control
-    fn propose_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>, sender: &Addr) {
+    fn propose_modules(deps: &mut MockDeps, new_module_infos: Vec<ModuleInfo>, sender: &Addr) {
         let modules = new_module_infos
             .into_iter()
             .map(|info| (info, ModuleReference::App(0)))
@@ -563,44 +562,37 @@ mod test {
     }
 
     /// Yank the provided module in the version control
-    fn yank_module(
-        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-        module_info: ModuleInfo,
-    ) {
+    fn yank_module(deps: &mut MockDeps, module_info: ModuleInfo) {
         let abstr = AbstractMockAddrs::new(deps.api);
         let yank_msg = ExecuteMsg::YankModule {
             module: module_info,
         };
-        let res = execute_as(deps.as_mut(), &abstr.owner, yank_msg);
+        let res = execute_as(deps, &abstr.owner, yank_msg);
         assert_that!(&res).is_ok();
     }
 
     /// Init verison control with some test modules.
-    fn init_with_mods(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) {
+    fn init_with_mods(deps: &mut MockDeps) {
         let abstr = AbstractMockAddrs::new(deps.api);
         mock_init_with_account(deps).unwrap();
 
-        add_namespaces(
-            deps.as_mut(),
-            vec![(TEST_ACCOUNT_ID, "cw-plus")],
-            &abstr.owner,
-        );
+        add_namespaces(deps, vec![(TEST_ACCOUNT_ID, "cw-plus")], &abstr.owner);
         let other = deps.api.addr_make(TEST_OTHER);
-        add_namespaces(deps.as_mut(), vec![(TEST_OTHER_ACCOUNT_ID, "4t2")], &other);
+        add_namespaces(deps, vec![(TEST_OTHER_ACCOUNT_ID, "4t2")], &other);
 
         let cw_mods = vec![
             ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        propose_modules(deps.as_mut(), cw_mods, &abstr.owner);
+        propose_modules(deps, cw_mods, &abstr.owner);
 
         let fortytwo_mods = vec![
             ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        propose_modules(deps.as_mut(), fortytwo_mods, &other);
+        propose_modules(deps, fortytwo_mods, &other);
     }
 
     mod modules {
@@ -634,7 +626,7 @@ mod test {
                 ],
             };
 
-            let ModulesResponse { modules } = from_json(query_helper(deps.as_ref(), query_msg)?)?;
+            let ModulesResponse { modules } = from_json(query_helper(&deps, query_msg)?)?;
             assert_that!(modules).has_length(3);
             for module in modules {
                 assert_that!(module.module.info.namespace).is_equal_to(namespace.clone());
@@ -658,7 +650,7 @@ mod test {
                 }],
             };
 
-            let res = query_helper(deps.as_ref(), query_msg);
+            let res = query_helper(&deps, query_msg);
             assert_that!(res)
                 .is_err()
                 .matches(|e| matches!(e, VCError::Std(StdError::GenericErr { .. })));
@@ -690,7 +682,7 @@ mod test {
             };
             let list_msg = filtered_list_msg(filter);
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -718,7 +710,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            propose_modules(deps.as_mut(), cw_mods, &abstr.owner);
+            propose_modules(&mut deps, cw_mods, &abstr.owner);
             yank_module(
                 &mut deps,
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -736,7 +728,7 @@ mod test {
                 limit: None,
             };
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -768,7 +760,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            propose_modules(deps.as_mut(), cw_mods, &abstr.owner);
+            propose_modules(&mut deps, cw_mods, &abstr.owner);
             yank_module(
                 &mut deps,
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -793,7 +785,7 @@ mod test {
                 limit: None,
             };
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -814,17 +806,13 @@ mod test {
             deps.querier = mock_account_querier(deps.api).build();
             let abstr = AbstractMockAddrs::new(deps.api);
             mock_init_with_account(&mut deps).unwrap();
-            add_namespaces(
-                deps.as_mut(),
-                vec![(TEST_ACCOUNT_ID, "cw-plus")],
-                &abstr.owner,
-            );
+            add_namespaces(&mut deps, vec![(TEST_ACCOUNT_ID, "cw-plus")], &abstr.owner);
             let cw_mods = vec![ModuleInfo::from_id(
                 "cw-plus:module1",
                 ModuleVersion::Version("0.1.2".into()),
             )
             .unwrap()];
-            propose_modules(deps.as_mut(), cw_mods, &abstr.owner);
+            propose_modules(&mut deps, cw_mods, &abstr.owner);
 
             let filtered_namespace = "cw-plus".to_string();
 
@@ -835,7 +823,7 @@ mod test {
 
             let list_msg = filtered_list_msg(filter);
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -862,7 +850,7 @@ mod test {
 
             let list_msg = filtered_list_msg(filter);
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -887,7 +875,7 @@ mod test {
             let filtered_name = "module2".to_string();
 
             propose_modules(
-                deps.as_mut(),
+                &mut deps,
                 vec![ModuleInfo::from_id(
                     format!("{filtered_namespace}:{filtered_name}").as_str(),
                     ModuleVersion::Version("0.1.3".into()),
@@ -904,7 +892,7 @@ mod test {
 
             let list_msg = filtered_list_msg(filter);
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -934,7 +922,7 @@ mod test {
 
             let list_msg = filtered_list_msg(filter);
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -963,7 +951,7 @@ mod test {
 
             let list_msg = filtered_list_msg(filter);
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -990,7 +978,7 @@ mod test {
 
             let list_msg = filtered_list_msg(filter);
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -1023,7 +1011,7 @@ mod test {
 
             let list_msg = filtered_list_msg(filter);
 
-            let res = query_helper(deps.as_ref(), list_msg);
+            let res = query_helper(&deps, list_msg);
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_json(res).unwrap();
@@ -1052,7 +1040,7 @@ mod test {
 
             // get for test other account
             let res = query_helper(
-                deps.as_ref(),
+                &deps,
                 QueryMsg::Namespaces {
                     accounts: vec![TEST_OTHER_ACCOUNT_ID],
                 },
@@ -1075,7 +1063,7 @@ mod test {
 
             let not_registered = AccountId::new(15, AccountTrace::Local)?;
             let res = query_helper(
-                deps.as_ref(),
+                &deps,
                 QueryMsg::Account {
                     account_id: not_registered.clone(),
                 },
@@ -1097,7 +1085,7 @@ mod test {
             mock_init_with_account(&mut deps)?;
 
             let res = query_helper(
-                deps.as_ref(),
+                &deps,
                 QueryMsg::Account {
                     account_id: TEST_ACCOUNT_ID,
                 },

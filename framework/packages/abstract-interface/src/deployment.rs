@@ -9,9 +9,7 @@ use crate::{
     get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
     AnsHost, ModuleFactory, VersionControl,
 };
-use abstract_std::{
-    native_addrs, ACCOUNT, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL,
-};
+use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL};
 
 use rust_embed::RustEmbed;
 
@@ -360,8 +358,7 @@ mod test {
     fn have_some_state() {
         State::get("state.json").unwrap();
         let state = State::load_state();
-        // TODO: remove ["juno"] after updating state, we only need chain_id now
-        let vc_juno = &state["juno"]["juno-1"]["code_ids"].get(VERSION_CONTROL);
+        let vc_juno = &state["juno-1"]["code_ids"].get(VERSION_CONTROL);
         assert!(vc_juno.is_some());
     }
 
