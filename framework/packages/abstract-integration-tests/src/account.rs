@@ -421,9 +421,9 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 
     install_adapter(&account, TEST_MODULE_ID)?;
 
-    let account_address = account.address()?;
-    staking_adapter.call_as(&account_address).execute(
-        &abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Base(
+    account.admin_execute(
+        staking_adapter.address()?,
+        to_json_binary(&abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Base(
             abstract_std::adapter::BaseExecuteMsg {
                 account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -431,8 +431,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
                     to_remove: vec![],
                 },
             },
-        ),
-        &[],
+        ))?,
     )?;
 
     chain
@@ -443,7 +442,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
         .module_info(TEST_MODULE_ID)?
         .expect("test module installed");
     // proxy should be final executor because of the reply
-    let resp = account.module_action_with_data(
+    let resp = account.execute_with_data(
         wasm_execute(
             adapter_addr.address,
             &abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Module(AdapterRequestMsg {
@@ -453,6 +452,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
             vec![],
         )?
         .into(),
+        &[],
     )?;
 
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
@@ -485,14 +485,17 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     let new_account_account = new_account.address()?;
     let new_account_id = new_account.id()?;
 
-    sub_account.module_action(vec![wasm_execute(
-        new_account_account,
-        &<abstract_std::account::ExecuteMsg>::UpdateOwnership(
-            ownership::GovAction::AcceptOwnership,
-        ),
-        vec![],
-    )?
-    .into()])?;
+    sub_account.execute_msgs(
+        vec![wasm_execute(
+            new_account_account,
+            &abstract_std::account::ExecuteMsg::<Empty>::UpdateOwnership(
+                ownership::GovAction::AcceptOwnership,
+            ),
+            vec![],
+        )?
+        .into()],
+        &[],
+    )?;
 
     // sub-accounts state updated
     let sub_ids = sub_account.sub_account_ids(None, None)?;

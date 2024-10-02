@@ -1,5 +1,5 @@
 use abstract_std::{
-    account::state::ACCOUNT_ID,
+    account::state::{ACCOUNT_ID, CALLING_TO_AS_ADMIN},
     ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
     objects::{
         gov_type::GovernanceDetails, ownership::Ownership,
@@ -8,7 +8,7 @@ use abstract_std::{
     },
     registry::{state::ACCOUNT_ADDRESSES, Account},
 };
-use cosmwasm_std::Addr;
+use cosmwasm_std::{testing::mock_env, Addr};
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
 
@@ -20,6 +20,8 @@ pub trait AbstractMockQuerier {
 
     /// Add mock assets into ANS
     fn assets(self, assets: Vec<(&AssetEntry, AssetInfo)>) -> Self;
+
+    fn set_account_admin_call_to(self, account: &Account) -> Self;
 
     fn contracts(self, contracts: Vec<(&ContractEntry, Addr)>) -> Self;
 
@@ -76,5 +78,13 @@ impl AbstractMockQuerier for MockQuerierBuilder {
 
     fn addrs(&self) -> AbstractMockAddrs {
         AbstractMockAddrs::new(self.api)
+    }
+
+    fn set_account_admin_call_to(self, account: &Account) -> Self {
+        self.with_contract_item(
+            account.addr(),
+            CALLING_TO_AS_ADMIN,
+            &mock_env().contract.address,
+        )
     }
 }

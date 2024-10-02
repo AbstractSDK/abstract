@@ -114,9 +114,12 @@ fn exec_on_account() -> AResult {
     let burn_amount = vec![Coin::new(10_000u128, TTOKEN)];
 
     // Burn coins from proxy
-    account.module_action(vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
-        amount: burn_amount,
-    })])?;
+    account.execute_msgs(
+        vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
+            amount: burn_amount,
+        })],
+        &[],
+    )?;
 
     // Assert balance has decreased
     let proxy_balance = chain.bank_querier().balance(&account.address()?, None)?;
@@ -468,7 +471,7 @@ fn renounce_cleans_namespace() -> AResult {
 //     chain.set_balance(&account.address()?, start_balance.clone())?;
 
 //     // test sending msg as nft account by burning tokens from proxy
-//     let burn_msg = abstract_std::account::ExecuteMsg::ModuleAction {
+//     let burn_msg = abstract_std::account::ExecuteMsg::Execute {
 //         msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
 //             amount: burn_amount,
 //         })],

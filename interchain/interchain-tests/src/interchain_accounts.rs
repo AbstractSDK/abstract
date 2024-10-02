@@ -131,7 +131,7 @@ mod test {
 
         let account_info = remote_abstract_account.info()?;
 
-        assert_eq!(account_info.info.name, new_name.to_string());
+        assert_eq!(account_info.info.name.unwrap(), new_name.to_string());
         assert_eq!(
             account_info.info.description,
             Some(new_description.to_string())
@@ -191,8 +191,8 @@ mod test {
         )?;
 
         // The user on origin chain wants to change the account description
-        let ibc_transfer_result =
-            origin_account.module_action(vec![cosmwasm_std::CosmosMsg::Ibc(
+        let ibc_transfer_result = origin_account.execute_msgs(
+            vec![cosmwasm_std::CosmosMsg::Ibc(
                 cosmwasm_std::IbcMsg::Transfer {
                     channel_id: interchain_channel
                         .interchain_channel
@@ -213,7 +213,9 @@ mod test {
                     ),
                     memo: None,
                 },
-            )])?;
+            )],
+            &[],
+        )?;
 
         mock_interchain.await_and_check_packets(JUNO, ibc_transfer_result)?;
 
@@ -365,7 +367,7 @@ mod test {
             manager_info,
             InfoResponse {
                 info: abstract_std::account::state::AccountInfo {
-                    name: account_name,
+                    name: Some(account_name),
                     description,
                     link
                 }
@@ -394,7 +396,7 @@ mod test {
                 },
                 namespace: None,
                 install_modules: vec![],
-                name: account_name.clone(),
+                name: Some(account_name.clone()),
                 description: None,
                 link: None,
                 authenticator: None::<Empty>,
@@ -404,7 +406,7 @@ mod test {
         });
         let create_account_remote_tx = origin_account.execute_on_remote(
             TruncatedChainId::from_chain_id(STARGAZE),
-            abstract_std::account::ExecuteMsg::ModuleAction {
+            abstract_std::account::ExecuteMsg::Execute {
                 msgs: vec![create_account_instantiate_msg],
             },
         )?;
@@ -422,7 +424,7 @@ mod test {
         assert_eq!(
             AccountInfo {
                 description: None,
-                name: account_name,
+                name: Some(account_name),
                 link: None,
             },
             account_info.into()
@@ -464,7 +466,7 @@ mod test {
                 owner: GovernanceDetails::Monarchy {
                     monarch: chain.addr_make("user").to_string(),
                 },
-                name: "name".to_owned(),
+                name: Some("name".to_owned()),
                 namespace: None,
                 install_modules: vec![],
                 description: None,
@@ -606,7 +608,7 @@ mod test {
                 account_id: remote_account_id,
                 account_address: origin_account.address()?.to_string(),
                 action: HostAction::Internal(InternalAction::Register {
-                    name: "name".to_owned(),
+                    name: Some("name".to_owned()),
                     description: None,
                     link: None,
                     namespace: None,

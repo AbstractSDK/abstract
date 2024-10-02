@@ -18,7 +18,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     ensure, wasm_execute, Addr, Attribute, Binary, CanonicalAddr, Coin, CosmosMsg, Deps, DepsMut,
-    MessageInfo, StdError, StdResult, Storage, SubMsg, WasmMsg,
+    MessageInfo, StdError, StdResult, Storage, SubMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;
@@ -219,29 +219,6 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
 
     let response = AccountResponse::new("uninstall_module", vec![("module", &module_id)]);
-
-    Ok(response)
-}
-
-/// Execute the [`exec_msg`] on the provided [`module_id`],
-pub fn exec_on_module(
-    deps: DepsMut,
-    info: MessageInfo,
-    module_id: String,
-    exec_msg: Binary,
-) -> AccountResult {
-    // only owner can forward messages to modules
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-
-    let module_addr = load_module_addr(deps.storage, &module_id)?;
-
-    let response = AccountResponse::new("exec_on_module", vec![("module", module_id)]).add_message(
-        CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: module_addr.into(),
-            msg: exec_msg,
-            funds: info.funds,
-        }),
-    );
 
     Ok(response)
 }
@@ -584,12 +561,26 @@ mod tests {
 
         #[test]
         fn only_owner() -> anyhow::Result<()> {
-            let msg = ExecuteMsg::ExecOnModule {
-                module_id: "test:module".to_string(),
+            let msg = ExecuteMsg::ExecuteOnModule {
+                module_id: TEST_MODULE_ID.to_string(),
                 exec_msg: to_json_binary(&"some msg")?,
             };
 
-            test_only_owner(msg)
+            let mut deps = mock_dependencies();
+            let not_owner = deps.api.addr_make("not_owner");
+            mock_init(&mut deps)?;
+
+            ACCOUNT_MODULES.save(
+                deps.as_mut().storage,
+                TEST_MODULE_ID,
+                &Addr::unchecked("not-important"),
+            )?;
+
+            let res = execute_as(deps.as_mut(), &not_owner, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
+            Ok(())
         }
 
         #[test]
@@ -601,7 +592,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let missing_module = "test:module".to_string();
-            let msg = ExecuteMsg::ExecOnModule {
+            let msg = ExecuteMsg::ExecuteOnModule {
                 module_id: missing_module.clone(),
                 exec_msg: to_json_binary(&"some msg")?,
             };
@@ -630,7 +621,7 @@ mod tests {
 
             let exec_msg = "some msg";
 
-            let msg = ExecuteMsg::ExecOnModule {
+            let msg = ExecuteMsg::ExecuteOnModule {
                 module_id: "test_mod".to_string(),
                 exec_msg: to_json_binary(&exec_msg)?,
             };

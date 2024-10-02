@@ -159,7 +159,6 @@ fn setup() -> anyhow::Result<(
         &[],
     )?;
 
-    challenge_app.set_sender(&account.address()?);
     mock.set_balance(
         &account.address()?,
         vec![coin(50_000_000, DENOM), coin(10_000, "eur")],

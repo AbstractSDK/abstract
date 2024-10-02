@@ -52,7 +52,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
     let account_info = account.info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -93,7 +93,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let account_info = account.info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from(name),
+            name: Some(String::from(name)),
             description: Some(String::from(description)),
             link: Some(String::from(link)),
         },
@@ -158,7 +158,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let account_info = publisher.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -196,7 +196,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let account_info = publisher.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from(name),
+            name: Some(String::from(name)),
             description: Some(String::from(description)),
             link: Some(String::from(link)),
         },
@@ -265,7 +265,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let sub_account_details = my_app.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Sub Account"),
+            name: Some(String::from("Sub Account")),
             description: None,
             link: None,
         },
@@ -301,7 +301,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -345,7 +345,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Sub Account"),
+            name: Some(String::from("Sub Account")),
             description: None,
             link: None,
         },
@@ -376,7 +376,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -821,7 +821,7 @@ fn doc_example_test() -> anyhow::Result<()> {
 
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -907,7 +907,7 @@ fn can_customize_sub_account() -> anyhow::Result<()> {
         .build()?;
 
     let info = sub_account.info()?;
-    assert_eq!(info.name, "foo-bar");
+    assert_eq!(info.name.unwrap(), "foo-bar");
 
     // Account aware of sub account
     let sub_accounts = account.sub_accounts()?;
@@ -1064,7 +1064,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // Or can enable auto_fund and create account if have enough funds
     let account = account_builder.auto_fund().build()?;
     let info = account.info()?;
-    assert_eq!(info.name, "bob");
+    assert_eq!(info.name.unwrap(), "bob");
 
     // funds used
     let balance = client.environment().query_balance(&owner, TTOKEN)?;

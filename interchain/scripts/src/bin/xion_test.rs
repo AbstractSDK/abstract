@@ -115,7 +115,7 @@ fn main() -> anyhow::Result<()> {
                         pubkey: Binary::new(signing_key.public_key().to_bytes()),
                         signature: Binary::new(signature.to_vec()),
                     }),
-                    name: "test".to_string(),
+                    name: Some("test".to_string()),
                     account_id: Some(account_id.clone()),
                     owner: abstract_client::GovernanceDetails::AbstractAccount {
                         address: account_addr,

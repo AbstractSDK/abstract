@@ -99,7 +99,17 @@ pub fn handle_host_action(
                         chain_name: src_chain,
                     },
                 )?;
-                receive_register(deps, env, account_id, name, None, None, None, vec![], true)
+                receive_register(
+                    deps,
+                    env,
+                    account_id,
+                    Some(name),
+                    None,
+                    None,
+                    None,
+                    vec![],
+                    true,
+                )
             }
         }
     }

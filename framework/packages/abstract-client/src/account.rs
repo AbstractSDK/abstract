@@ -632,10 +632,7 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Chain::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
-        self.configure(
-            &abstract_std::account::ExecuteMsg::ModuleAction { msgs },
-            funds,
-        )
+        self.configure(&account::ExecuteMsg::Execute { msgs }, funds)
     }
 
     /// Executes a [`account::ExecuteMsg`] on the account.
@@ -832,10 +829,10 @@ impl<Chain: CwEnv> Account<Chain> {
         // Create sub account.
         let sub_account_response = self.abstr_account.create_sub_account(
             modules,
-            "Sub Account".to_owned(),
             None,
             None,
             None,
+            Some("Sub Account".to_owned()),
             None,
             funds,
         )?;

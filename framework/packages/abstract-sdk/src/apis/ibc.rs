@@ -316,7 +316,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                account_msgs: vec![abstract_std::account::ExecuteMsg::ExecOnModule {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
                 }],

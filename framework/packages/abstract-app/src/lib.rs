@@ -279,10 +279,10 @@ pub mod mock {
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
         const MOCK_APP_WITH_DEP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
         .with_dependencies($deps)
-        .with_execute(|deps, _env, info, module, msg| {
+        .with_execute(|deps, env, info, module, msg| {
             match msg {
                 MockExecMsg::DoSomethingAdmin{} => {
-                    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+                    module.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
                 },
                 _ => {},
             }

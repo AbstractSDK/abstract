@@ -75,7 +75,7 @@ pub fn execute_handler(
         CalendarExecuteMsg::UpdateConfig {
             price_per_minute,
             denom,
-        } => update_config(deps, info, module, price_per_minute, denom),
+        } => update_config(deps, env, info, module, price_per_minute, denom),
     }
 }
 
@@ -165,7 +165,9 @@ fn handle_stake(
     meeting_index: u32,
     stake_action: StakeAction,
 ) -> CalendarAppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -234,12 +236,15 @@ fn handle_stake(
 
 fn update_config(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     module: CalendarApp,
     price_per_minute: Option<Uint128>,
     denom: Option<AssetEntry>,
 ) -> CalendarAppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut attrs = vec![];
     if let Some(price_per_minute) = price_per_minute {

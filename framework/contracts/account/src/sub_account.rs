@@ -25,7 +25,7 @@ pub fn create_sub_account(
     deps: DepsMut,
     info: MessageInfo,
     env: Env,
-    name: String,
+    name: Option<String>,
     description: Option<String>,
     link: Option<String>,
     namespace: Option<String>,

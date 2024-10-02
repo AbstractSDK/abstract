@@ -43,7 +43,7 @@ fn create_one_account() -> AResult {
 
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -97,7 +97,7 @@ fn create_two_accounts() -> AResult {
     // first account
     let account_1 = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -115,7 +115,7 @@ fn create_two_accounts() -> AResult {
     // second account
     let account_2 = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("second_account"),
+            name: Some(String::from("second_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -165,7 +165,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let registry = &deployment.registry;
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -210,7 +210,7 @@ fn sender_is_not_admin_external() -> AResult {
 
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -252,7 +252,7 @@ fn create_one_account_with_namespace() -> AResult {
     let namespace_to_claim = "namespace-to-claim";
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(namespace_to_claim.to_string()),
