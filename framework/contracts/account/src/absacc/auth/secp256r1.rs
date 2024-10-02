@@ -40,23 +40,16 @@ mod tests {
         let verifying_key_binary = Binary::from(verifying_key_bytes.to_vec());
         println!("verifying key: {}", hex::encode(verifying_key_bytes));
 
-        assert_eq!(
-            true,
-            verify(
-                &test_value.to_vec(),
-                signature_bytes.as_slice(),
-                &verifying_key_binary,
-            )
-            .unwrap()
-        );
+        assert!(verify(
+            test_value,
+            signature_bytes.as_slice(),
+            &verifying_key_binary,
+        )
+        .unwrap());
 
         // test with invalid msg
         let bad_value = "invalid starting msg".as_bytes();
-        let result = verify(
-            &bad_value.to_vec(),
-            signature_bytes.as_slice(),
-            &verifying_key_binary,
-        );
+        let result = verify(bad_value, signature_bytes.as_slice(), &verifying_key_binary);
         assert!(result.is_err())
     }
 }

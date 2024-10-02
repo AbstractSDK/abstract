@@ -383,9 +383,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
-        self.execute_on_account(vec![abstract_std::account::ExecuteMsg::ModuleAction {
-            msgs,
-        }])
+        self.execute_on_account(vec![abstract_std::account::ExecuteMsg::Execute { msgs }])
     }
 
     /// Executes a list of [manager::ExecuteMsg] on the manager of the account.

@@ -70,6 +70,7 @@ pub fn execute_handler(
             max_spread,
         } => update_config(
             deps,
+            env,
             info,
             module,
             native_asset,
@@ -109,7 +110,7 @@ pub fn execute_handler(
             new_frequency,
             new_dex,
         ),
-        DCAExecuteMsg::CancelDCA { dca_id } => cancel_dca(deps, info, module, dca_id),
+        DCAExecuteMsg::CancelDCA { dca_id } => cancel_dca(deps, env, info, module, dca_id),
         DCAExecuteMsg::Convert { dca_id } => convert(deps, env, info, module, dca_id),
     }
 }
@@ -117,6 +118,7 @@ pub fn execute_handler(
 /// Update the configuration of the app
 fn update_config(
     deps: DepsMut,
+    env: Env,
     msg_info: MessageInfo,
     module: DCAApp,
     new_native_asset: Option<AssetEntry>,
@@ -125,7 +127,9 @@ fn update_config(
     new_max_spread: Option<Decimal>,
 ) -> AppResult {
     // Only the admin should be able to call this
-    module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &msg_info.sender)?;
     let old_config = CONFIG.load(deps.storage)?;
     let new_native_denom = new_native_asset
         .map(|asset| {
@@ -163,7 +167,9 @@ fn create_dca(
     dex_name: DexName,
 ) -> AppResult {
     // Only the admin should be able to create dca
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -204,7 +210,9 @@ fn update_dca(
     new_frequency: Option<Frequency>,
     new_dex: Option<DexName>,
 ) -> AppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     // Only if frequency is changed we have to re-create a task
     let recreate_task = new_frequency.is_some();
@@ -238,8 +246,16 @@ fn update_dca(
 }
 
 /// Remove existing dca, remove task from cron_cat
-fn cancel_dca(deps: DepsMut, info: MessageInfo, module: DCAApp, dca_id: DCAId) -> AppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+fn cancel_dca(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    module: DCAApp,
+    dca_id: DCAId,
+) -> AppResult {
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     DCA_LIST.remove(deps.storage, dca_id);
 

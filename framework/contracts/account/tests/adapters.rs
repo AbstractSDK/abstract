@@ -466,16 +466,32 @@ fn account_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
-    adapter.call_as(&account.address()?).execute(
-        &mock::ExecuteMsg::Base(BaseExecuteMsg {
+
+    account.call_as(sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
             account_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
             },
-        }),
-        &[],
+        }))?,
     )?;
+
+    // Raw account without the calling_to_as_admin variable set, should err.
+    adapter
+        .call_as(&account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(proxy_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("456").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
 
     // Not admin or manager
     let err: MockError = adapter
@@ -550,13 +566,28 @@ fn subaccount_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
-    adapter.call_as(&sub_account.address()?).execute(
-        &mock::ExecuteMsg::Module(AdapterRequestMsg {
+    sub_account.call_as(&sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Module(AdapterRequestMsg {
             account_address: Some(proxy_addr.to_string()),
             request: MockExecMsg {},
-        }),
-        &[],
+        }))?,
     )?;
+
+    // Raw account without the calling_to_as_admin variable set, should err
+    adapter
+        .call_as(&account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(proxy_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("456").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
 
     // Not admin or manager
     let who = chain.addr_make("who");
@@ -593,16 +624,31 @@ fn subaccount_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
-    adapter.call_as(&sub_account.address()?).execute(
-        &mock::ExecuteMsg::Base(BaseExecuteMsg {
+    sub_account.call_as(&sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
             account_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
             },
-        }),
-        &[],
+        }))?,
     )?;
+
+    // Raw account without the calling_to_as_admin variable set, should err
+    adapter
+        .call_as(&sub_account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(proxy_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("345").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
 
     // Not admin or manager
     let err: MockError = adapter

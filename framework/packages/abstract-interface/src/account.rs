@@ -308,8 +308,13 @@ impl<Chain: CwEnv> AccountI<Chain> {
         msg: impl Serialize,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        self.exec_on_module(to_json_binary(&msg).unwrap(), module, &[])
-            .map_err(Into::into)
+        <AccountI<Chain> as AccountExecFns<Chain, abstract_std::account::ExecuteMsg>>::execute_on_module(
+            self,
+            to_json_binary(&msg).unwrap(),
+            module,
+            &[],
+        )
+        .map_err(Into::into)
     }
 
     pub fn update_adapter_authorized_addresses(
@@ -318,12 +323,14 @@ impl<Chain: CwEnv> AccountI<Chain> {
         to_add: Vec<String>,
         to_remove: Vec<String>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        self.execute_on_module(
+        self.admin_execute_on_module(
             module_id,
-            adapter::ExecuteMsg::<Empty>::Base(adapter::BaseExecuteMsg {
-                msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
-                account_address: None,
-            }),
+            to_json_binary(&adapter::ExecuteMsg::<Empty>::Base(
+                adapter::BaseExecuteMsg {
+                    msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
+                    account_address: None,
+                },
+            ))?,
         )?;
 
         Ok(())
@@ -448,7 +455,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
-                    account_msgs: vec![ExecuteMsg::ExecOnModule {
+                    account_msgs: vec![ExecuteMsg::ExecuteOnModule {
                         module_id: module_id.to_string(),
                         exec_msg: msg,
                     }],

@@ -61,7 +61,7 @@ pub fn execute(
             ica_callback(deps, info, standalone, callback_msg)
         }
         MyStandaloneExecuteMsg::SendAction { ica_id, msg } => {
-            send_action(deps, info, standalone, ica_id, msg)
+            send_action(deps, env, info, standalone, ica_id, msg)
         }
     }
 }
@@ -74,7 +74,9 @@ fn create_ica_contract(
     salt: Option<String>,
     channel_open_init_options: ChannelOpenInitOptions,
 ) -> MyStandaloneResult {
-    standalone.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    standalone
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let config = CONFIG.load(deps.storage)?;
 
     let ica_code = CwIcaControllerCode::new(config.ica_controller_code_id);
@@ -148,12 +150,15 @@ pub fn ica_callback(
 /// Sends a predefined action to the ICA host.
 pub fn send_action(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     standalone: MyStandalone,
     ica_id: u64,
     msg: CosmosMsg,
 ) -> MyStandaloneResult {
-    standalone.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    standalone
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     let ica_state = ICA_STATES.load(deps.storage, ica_id)?;
 
