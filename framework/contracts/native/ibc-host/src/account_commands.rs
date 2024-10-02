@@ -29,7 +29,7 @@ pub fn receive_register(
     deps: DepsMut,
     env: Env,
     account_id: AccountId,
-    name: String,
+    name: Option<String>,
     description: Option<String>,
     link: Option<String>,
     namespace: Option<String>,

@@ -512,7 +512,7 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name,
                 action: HostAction::Internal(InternalAction::Register {
-                    name: String::from("name"),
+                    name: Some(String::from("name")),
                     description: None,
                     link: None,
                     namespace: None,
@@ -807,7 +807,7 @@ mod tests {
                     |msg| match from_json::<account::QueryMsg>(msg).unwrap() {
                         account::QueryMsg::Info {} => to_json_binary(&account::InfoResponse {
                             info: account::state::AccountInfo {
-                                name: String::from("name"),
+                                name: Some(String::from("name")),
                                 description: None,
                                 link: None,
                             },
@@ -853,7 +853,7 @@ mod tests {
                             action: HostAction::Internal(InternalAction::Register {
                                 description: None,
                                 link: None,
-                                name: String::from("name"),
+                                name: Some(String::from("name")),
                                 namespace: None,
                                 install_modules: vec![],
                             }),

@@ -59,7 +59,7 @@ pub enum MigrateMsg {
 pub enum InternalAction {
     /// Registers a new account from a remote chain
     Register {
-        name: String,
+        name: Option<String>,
         description: Option<String>,
         link: Option<String>,
         namespace: Option<String>,

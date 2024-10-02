@@ -42,12 +42,20 @@ pub mod state {
 
     /// Abstract Account details.
     #[cosmwasm_schema::cw_serde]
+    #[derive(Default)]
     pub struct AccountInfo {
-        pub name: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub name: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub description: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub link: Option<String>,
+    }
+
+    impl AccountInfo {
+        pub fn has_info(&self) -> bool {
+            self.name.is_some() || self.description.is_some() || self.link.is_some()
+        }
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -94,9 +102,10 @@ pub struct InstantiateMsg<Authenticator = Empty> {
     pub account_id: Option<AccountId>,
     pub owner: GovernanceDetails<String>,
     pub namespace: Option<String>,
-    // Optionally modules can be provided. They will be installed after account registration.
+    /// Optionally modules can be provided. They will be installed after account registration.
+    #[serde(default)]
     pub install_modules: Vec<ModuleInstallConfig>,
-    pub name: String,
+    pub name: Option<String>,
     pub description: Option<String>,
     pub link: Option<String>,
 }
@@ -168,7 +177,7 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     #[cw_orch(payable)]
     CreateSubAccount {
         // Name of the sub-account
-        name: String,
+        name: Option<String>,
         // Description of the account
         description: Option<String>,
         // URL linked to the account
@@ -344,4 +353,55 @@ pub struct ConfigResponse {
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,
     pub module_factory_address: Addr,
+}
+
+#[cfg(test)]
+mod test {
+    use cw_orch::core::serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn minimal_deser_instantiate_test() {
+        let init_msg_binary: InstantiateMsg =
+            cosmwasm_std::from_json(br#"{"owner": {"renounced": {}}}"#).unwrap();
+        assert_eq!(
+            init_msg_binary,
+            InstantiateMsg {
+                owner: GovernanceDetails::Renounced {},
+                authenticator: Default::default(),
+                account_id: Default::default(),
+                namespace: Default::default(),
+                install_modules: Default::default(),
+                name: Default::default(),
+                description: Default::default(),
+                link: Default::default()
+            }
+        );
+
+        let init_msg_string: InstantiateMsg = cosmwasm_std::from_json(
+            json!({
+                "owner": GovernanceDetails::Monarchy {
+                    monarch: "bob".to_owned()
+                }
+            })
+            .to_string(),
+        )
+        .unwrap();
+        assert_eq!(
+            init_msg_string,
+            InstantiateMsg {
+                owner: GovernanceDetails::Monarchy {
+                    monarch: "bob".to_owned()
+                },
+                authenticator: Default::default(),
+                account_id: Default::default(),
+                namespace: Default::default(),
+                install_modules: Default::default(),
+                name: Default::default(),
+                description: Default::default(),
+                link: Default::default()
+            }
+        )
+    }
 }

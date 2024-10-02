@@ -77,7 +77,7 @@ fn account_creation() -> anyhow::Result<()> {
             "proxy_address",
             AccountId::local(account_sequence),
             HostAction::Internal(InternalAction::Register {
-                name: "Abstract remote account 1".to_string(),
+                name: Some("Abstract remote account 1".to_string()),
                 description: Some("account description".to_string()),
                 link: Some("https://abstract.money".to_string()),
                 namespace: None,
@@ -221,7 +221,7 @@ fn account_creation_full() -> anyhow::Result<()> {
             "proxy_address",
             AccountId::local(account_sequence),
             HostAction::Internal(InternalAction::Register {
-                name: "Abstract remote account 1".to_string(),
+                name: Some("Abstract remote account 1".to_string()),
                 description: Some("account description".to_string()),
                 link: Some("https://abstract.money".to_string()),
                 namespace: Some("namespace".to_owned()),
@@ -278,7 +278,7 @@ fn account_action() -> anyhow::Result<()> {
             proxy_addr.to_string(),
             AccountId::local(account_sequence),
             HostAction::Internal(InternalAction::Register {
-                name: "Abstract remote account 1".to_string(),
+                name: Some("Abstract remote account 1".to_string()),
                 description: Some("account description".to_string()),
                 link: Some("https://abstract.money".to_string()),
                 namespace: None,
@@ -406,7 +406,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
         proxy_addr.to_string(),
         AccountId::local(account_sequence),
         HostAction::Internal(InternalAction::Register {
-            name: "Abstract remote account 1".to_string(),
+            name: Some("Abstract remote account 1".to_string()),
             description: Some("account description".to_string()),
             link: Some("https://abstract.money".to_string()),
             namespace: None,
