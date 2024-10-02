@@ -50,6 +50,9 @@ pub mod state {
         pub link: Option<String>,
     }
 
+    #[cosmwasm_schema::cw_serde]
+    pub struct WhitelistedModules(pub Vec<Addr>);
+
     pub const WHITELISTED_MODULES: Item<WhitelistedModules> =
         Item::new(storage_namespaces::account::WHITELISTED_MODULES);
 
@@ -71,10 +74,12 @@ pub mod state {
         Map::new(storage_namespaces::account::SUB_ACCOUNTS);
     /// Account Id storage key
     pub const ACCOUNT_ID: Item<AccountId> = Item::new(storage_namespaces::account::ACCOUNT_ID);
-    // Additional states, not listed here: cw_gov_ownable::GovOwnership, authenticators, if chain supports it
+    /// Temporary state variable that allows for checking access control on admin operation
+    pub const CALLING_TO_AS_ADMIN: Item<Addr> =
+        Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
+    pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
-    #[cosmwasm_schema::cw_serde]
-    pub struct WhitelistedModules(pub Vec<Addr>);
+    // Additional states, not listed here: cw_gov_ownable::GovOwnership, authenticators, if chain supports it
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -104,13 +109,32 @@ pub struct CallbackMsg {}
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg<Authenticator = Empty> {
     /// Executes the provided messages if sender is whitelisted
-    ModuleAction {
+    #[cw_orch(fn_name("execute_msgs"), payable)]
+    Execute {
         msgs: Vec<CosmosMsg<Empty>>,
     },
     /// Execute a message and forward the Response data
-    ModuleActionWithData {
+    #[cw_orch(payable)]
+    ExecuteWithData {
         msg: CosmosMsg<Empty>,
     },
+    /// Forward execution message to module
+    #[cw_orch(payable)]
+    ExecuteOnModule {
+        module_id: String,
+        exec_msg: Binary,
+    },
+    /// Execute a Wasm Message with Account Admin privileges
+    AdminExecute {
+        addr: String,
+        msg: Binary,
+    },
+    /// Forward execution message to module with Account Admin privileges
+    AdminExecuteOnModule {
+        module_id: String,
+        msg: Binary,
+    },
+
     /// Execute IBC action on Client
     IbcAction {
         msg: crate::ibc_client::ExecuteMsg,
@@ -120,12 +144,6 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     IcaAction {
         /// Query of type `abstract-ica-client::msg::QueryMsg`
         action_query_msg: Binary,
-    },
-    /// Forward execution message to module
-    #[cw_orch(payable)]
-    ExecOnModule {
-        module_id: String,
-        exec_msg: Binary,
     },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.

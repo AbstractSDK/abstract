@@ -631,10 +631,7 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Chain::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
-        self.configure(
-            &abstract_std::account::ExecuteMsg::ModuleAction { msgs },
-            funds,
-        )
+        self.configure(&account::ExecuteMsg::Execute { msgs }, funds)
     }
 
     /// Executes a [`account::ExecuteMsg`] on the account.

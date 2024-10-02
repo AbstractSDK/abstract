@@ -158,7 +158,6 @@ dependencies = [
  "cw2 2.0.0",
  "cw20",
  "cw20-base",
- "cw721 0.18.0",
  "rand",
  "semver",
  "serde",

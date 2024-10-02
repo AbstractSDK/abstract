@@ -2,18 +2,19 @@ use crate::{
     contract::{AccountResponse, AccountResult},
     modules::INSTALL_MODULES_CONTEXT,
 };
-use abstract_std::objects::{
-    module::{assert_module_data_validity, Module},
-    module_reference::ModuleReference,
+use abstract_std::{
+    account::state::CALLING_TO_AS_ADMIN,
+    objects::{
+        module::{assert_module_data_validity, Module},
+        module_reference::ModuleReference,
+    },
 };
 use cosmwasm_std::{DepsMut, Reply, Response, StdError};
 
 /// Add the message's data to the response
-pub fn forward_response_data(result: Reply) -> AccountResult {
-    // get the result from the reply
+pub(crate) fn forward_response_reply(result: Reply) -> AccountResult {
     let res = result.result.into_result().map_err(StdError::generic_err)?;
 
-    // log and add data if needed
     #[allow(deprecated)]
     let resp = if let Some(data) = res.data {
         AccountResponse::new(
@@ -27,8 +28,14 @@ pub fn forward_response_data(result: Reply) -> AccountResult {
             vec![("response_data", "false")],
         )
     };
-
     Ok(resp)
+}
+
+/// Remove the storage for an admin call after execution
+pub(crate) fn admin_action_reply(deps: DepsMut) -> AccountResult {
+    CALLING_TO_AS_ADMIN.remove(deps.storage);
+
+    Ok(Response::new())
 }
 
 /// Adds the modules dependencies

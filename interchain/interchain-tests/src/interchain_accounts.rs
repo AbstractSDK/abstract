@@ -191,8 +191,8 @@ mod test {
         )?;
 
         // The user on origin chain wants to change the account description
-        let ibc_transfer_result =
-            origin_account.module_action(vec![cosmwasm_std::CosmosMsg::Ibc(
+        let ibc_transfer_result = origin_account.execute_msgs(
+            vec![cosmwasm_std::CosmosMsg::Ibc(
                 cosmwasm_std::IbcMsg::Transfer {
                     channel_id: interchain_channel
                         .interchain_channel
@@ -213,7 +213,9 @@ mod test {
                     ),
                     memo: None,
                 },
-            )])?;
+            )],
+            &[],
+        )?;
 
         mock_interchain.await_and_check_packets(JUNO, ibc_transfer_result)?;
 
@@ -404,7 +406,7 @@ mod test {
         });
         let create_account_remote_tx = origin_account.execute_on_remote(
             TruncatedChainId::from_chain_id(STARGAZE),
-            abstract_std::account::ExecuteMsg::ModuleAction {
+            abstract_std::account::ExecuteMsg::Execute {
                 msgs: vec![create_account_instantiate_msg],
             },
         )?;

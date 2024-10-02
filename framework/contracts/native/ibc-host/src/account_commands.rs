@@ -10,8 +10,8 @@ use abstract_std::{
     ACCOUNT,
 };
 use cosmwasm_std::{
-    instantiate2_address, to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg,
-    Response, SubMsg, WasmMsg,
+    instantiate2_address, to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env,
+    IbcMsg, Response, SubMsg, WasmMsg,
 };
 
 use crate::{
@@ -167,7 +167,7 @@ pub fn send_all_back(
     // call the message to send everything back through the account
     let account_msg = wasm_execute(
         account.into_addr(),
-        &account::ExecuteMsg::ModuleAction::<cosmwasm_std::Empty> { msgs },
+        &account::ExecuteMsg::<Empty>::Execute { msgs },
         vec![],
     )?;
     Ok(account_msg.into())

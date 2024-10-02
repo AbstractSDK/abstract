@@ -1,5 +1,8 @@
 use abstract_std::{
-    account::{CallbackMsg, ExecuteMsg},
+    account::{
+        state::{CALLING_TO_AS_ADMIN, CALLING_TO_AS_ADMIN_WILD_CARD},
+        CallbackMsg, ExecuteMsg,
+    },
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg as AdapterQuery,
     },
@@ -51,6 +54,11 @@ pub fn upgrade_modules(
     let mut account_migrate_info = None;
 
     let mut upgraded_module_ids = Vec::new();
+
+    CALLING_TO_AS_ADMIN.save(
+        deps.storage,
+        &Addr::unchecked(CALLING_TO_AS_ADMIN_WILD_CARD),
+    )?;
 
     // Set the migrate messages for each module that's not the manager and update the dependency store
     for (module_info, migrate_msg) in modules {
@@ -317,6 +325,7 @@ pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> Accoun
         )?;
     }
 
+    CALLING_TO_AS_ADMIN.remove(deps.storage);
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
     Ok(Response::new())
 }
