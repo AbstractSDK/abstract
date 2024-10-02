@@ -57,7 +57,7 @@ pub mod state {
             self.name.is_some() || self.description.is_some() || self.link.is_some()
         }
     }
-    
+
     #[cosmwasm_schema::cw_serde]
     pub struct WhitelistedModules(pub Vec<Addr>);
 
