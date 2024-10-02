@@ -105,7 +105,7 @@ pub fn instantiate(
     validate_description(description.as_deref())?;
     validate_link(link.as_deref())?;
     if let Some(name) = name.as_deref() {
-        validate_name(&name)?;
+        validate_name(name)?;
     }
 
     let account_info = AccountInfo {
