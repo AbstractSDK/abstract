@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Api, CanonicalAddr, QuerierWrapper, StdResult};
+use cosmwasm_std::{Addr, Api, Env, QuerierWrapper};
 use thiserror::Error;
 
 use super::{
@@ -15,6 +15,7 @@ use crate::{
         Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
         NamespacesResponse, QueryMsg,
     },
+    AbstractResult,
 };
 
 #[derive(Error, Debug, PartialEq)]
@@ -73,9 +74,9 @@ pub struct VersionControlContract {
 
 impl VersionControlContract {
     /// Retrieve address of the Version Control
-    pub fn new(api: &dyn Api) -> StdResult<Self> {
-        let address =
-            api.addr_humanize(&CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR))?;
+    pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
+        let hrp = native_addrs::hrp_from_env(env);
+        let address = api.addr_humanize(&native_addrs::version_control_address(hrp, api)?)?;
         Ok(Self { address })
     }
 

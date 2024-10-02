@@ -5,6 +5,7 @@
 //! ## Description
 //! These fixed names can be used to provide name-addressable searches for complex logic.
 
+// Be very careful of changing anything except account, we use it for predetermined salt
 pub const ACCOUNT: &str = "abstract:account";
 pub const VERSION_CONTROL: &str = "abstract:version-control";
 pub const MODULE_FACTORY: &str = "abstract:module-factory";

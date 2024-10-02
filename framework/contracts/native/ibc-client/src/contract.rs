@@ -96,10 +96,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryResponse> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> IbcClientResult<QueryResponse> {
     match msg {
         QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
-        QueryMsg::Config {} => to_json_binary(&queries::config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&queries::config(deps, &env)?),
         QueryMsg::Host { chain_name } => to_json_binary(&queries::host(deps, chain_name)?),
         QueryMsg::Account {
             chain_name,

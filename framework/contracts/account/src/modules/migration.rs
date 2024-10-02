@@ -80,7 +80,7 @@ pub fn upgrade_modules(
     if let Some((account_info, account_migrate_msg)) = account_migrate_info {
         upgrade_msgs.push(self_upgrade_msg(
             deps.branch(),
-            &env.contract.address,
+            &env,
             account_info,
             account_migrate_msg.unwrap_or_default(),
         )?);
@@ -107,12 +107,17 @@ pub fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), AccountError> {
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = VersionControlContract::new(deps.api, env)?;
 
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
     let old_module_cw2 =
         query_module_version(deps.as_ref(), old_module_addr.clone(), &version_control)?;
-    let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
+    let requested_module = query_module(
+        deps.as_ref(),
+        env,
+        module_info.clone(),
+        Some(old_module_cw2),
+    )?;
 
     let migrate_msgs = match requested_module.module.reference {
         // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
@@ -278,15 +283,15 @@ pub fn replace_adapter(
 /// Safety: Account cannot be upgraded to contract that is not confirmed by version control
 pub(crate) fn self_upgrade_msg(
     deps: DepsMut,
-    self_addr: &Addr,
+    env: &Env,
     module_info: ModuleInfo,
     migrate_msg: Binary,
 ) -> AccountResult<CosmosMsg> {
     let contract = get_contract_version(deps.storage)?;
-    let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
+    let module = query_module(deps.as_ref(), env, module_info.clone(), Some(contract))?;
     if let ModuleReference::Account(manager_code_id) = module.module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
-            contract_addr: self_addr.to_string(),
+            contract_addr: env.contract.address.to_string(),
             new_code_id: manager_code_id,
             msg: migrate_msg,
         });

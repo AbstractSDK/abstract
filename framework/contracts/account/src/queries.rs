@@ -30,8 +30,8 @@ pub fn handle_module_address_query(deps: Deps, ids: Vec<String>) -> StdResult<Bi
     to_json_binary(&ModuleAddressesResponse { modules: vector })
 }
 
-pub fn handle_module_versions_query(deps: Deps, ids: Vec<String>) -> StdResult<Binary> {
-    let response = query_module_versions(deps, ids)?;
+pub fn handle_module_versions_query(deps: Deps, env: &Env, ids: Vec<String>) -> StdResult<Binary> {
+    let response = query_module_versions(deps, env, ids)?;
     let versions = response.into_values().collect();
     to_json_binary(&ModuleVersionsResponse { versions })
 }
@@ -41,10 +41,12 @@ pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
     to_json_binary(&InfoResponse { info })
 }
 
-pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
+pub fn handle_config_query(deps: Deps, env: &Env) -> StdResult<Binary> {
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let version_control = VersionControlContract::new(deps.api)?;
-    let module_factory = ModuleFactoryContract::new(deps.api)?;
+    let version_control = VersionControlContract::new(deps.api, env)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
+    let module_factory = ModuleFactoryContract::new(deps.api, env)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
     let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
     to_json_binary(&ConfigResponse {
         account_id,
@@ -57,6 +59,7 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
 
 pub fn handle_module_info_query(
     deps: Deps,
+    env: &Env,
     last_module_id: Option<String>,
     limit: Option<u8>,
 ) -> StdResult<Binary> {
@@ -70,7 +73,8 @@ pub fn handle_module_info_query(
 
     let ids_and_addr = res?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = VersionControlContract::new(deps.api, env)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
 
     let mut resp_vec: Vec<AccountModuleInfo> = vec![];
     for (id, address) in ids_and_addr.into_iter() {
@@ -154,12 +158,14 @@ pub fn query_module_version(
 /// Errors if not present
 pub fn query_module_versions(
     deps: Deps,
+    env: &Env,
     module_names: Vec<String>,
 ) -> StdResult<BTreeMap<String, ContractVersion>> {
     let addresses: BTreeMap<String, Addr> = query_module_addresses(deps, module_names)?;
     let mut module_versions: BTreeMap<String, ContractVersion> = BTreeMap::new();
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = VersionControlContract::new(deps.api, env)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
     for (name, address) in addresses.into_iter() {
         let result = query_module_version(deps, address, &version_control)?;
         module_versions.insert(name, result);

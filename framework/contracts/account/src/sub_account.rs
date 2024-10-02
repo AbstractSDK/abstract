@@ -34,7 +34,7 @@ pub fn create_sub_account(
 ) -> AccountResult {
     // only owner can create a subaccount
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = VersionControlContract::new(deps.api, &env)?;
     let seq = account_id.unwrap_or(
         abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE
             .query(&deps.querier, version_control.address.clone())?,
@@ -84,21 +84,24 @@ pub fn create_sub_account(
 
 pub fn handle_sub_account_action(
     deps: DepsMut,
+    env: &Env,
     info: MessageInfo,
     action: UpdateSubAccountAction,
 ) -> AccountResult {
     match action {
         UpdateSubAccountAction::UnregisterSubAccount { id } => {
-            unregister_sub_account(deps, info, id)
+            unregister_sub_account(deps, env, info, id)
         }
-        UpdateSubAccountAction::RegisterSubAccount { id } => register_sub_account(deps, info, id),
+        UpdateSubAccountAction::RegisterSubAccount { id } => {
+            register_sub_account(deps, env, info, id)
+        }
         _ => unimplemented!(),
     }
 }
 
 // Unregister sub-account from the state
-fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let version_control = VersionControlContract::new(deps.api)?;
+fn unregister_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) -> AccountResult {
+    let version_control = VersionControlContract::new(deps.api, env)?;
 
     let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
@@ -119,8 +122,8 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountR
 }
 
 // Register sub-account to the state
-fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let version_control = VersionControlContract::new(deps.api)?;
+fn register_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) -> AccountResult {
+    let version_control = VersionControlContract::new(deps.api, env)?;
 
     let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
@@ -187,7 +190,7 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
 
 /// Renounce ownership of this account \
 /// **WARNING**: This will lock the account, making it unusable.
-pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosMsg>> {
+pub fn remove_account_from_contracts(deps: DepsMut, env: &Env) -> AccountResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
 
     let account_id = ACCOUNT_ID.load(deps.storage)?;
@@ -218,7 +221,7 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosM
         );
     }
 
-    let vc = VersionControlContract::new(deps.api)?;
+    let vc = VersionControlContract::new(deps.api, env)?;
     let mut namespaces = vc
         .query_namespaces(vec![account_id], &deps.querier)?
         .namespaces;

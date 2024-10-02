@@ -6,7 +6,7 @@
 
 pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 use abstract_std::{version_control::Account, VERSION_CONTROL};
-use cosmwasm_std::Deps;
+use cosmwasm_std::{Deps, Env};
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
@@ -28,7 +28,11 @@ impl ModuleIdentification for Account {
 }
 
 impl crate::features::AbstractRegistryAccess for VersionControlContract {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+    fn abstract_registry(
+        &self,
+        _deps: Deps,
+        _env: &Env,
+    ) -> AbstractSdkResult<VersionControlContract> {
         Ok(self.clone())
     }
 }
@@ -53,7 +57,7 @@ mod tests {
     use super::*;
 
     mod version_control {
-        use cosmwasm_std::testing::mock_dependencies;
+        use cosmwasm_std::testing::{mock_dependencies, mock_env};
 
         use super::*;
         use crate::features::AbstractRegistryAccess;
@@ -61,9 +65,10 @@ mod tests {
         #[test]
         fn test_registry() {
             let deps = mock_dependencies();
-            let vc = VersionControlContract::new(&deps.api).unwrap();
+            let vc = VersionControlContract::new(&deps.api, &mock_env()).unwrap();
+            let env = mock_env();
 
-            assert_that!(vc.abstract_registry(deps.as_ref()))
+            assert_that!(vc.abstract_registry(deps.as_ref(), &env))
                 .is_ok()
                 .is_equal_to(vc);
         }

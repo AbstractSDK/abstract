@@ -15,26 +15,26 @@ use crate::{contract::HostResult, HostError};
 
 use super::packet;
 
-pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
+pub fn query(deps: Deps, env: Env, query: QueryMsg) -> HostResult<Binary> {
     match query {
-        QueryMsg::Config {} => to_json_binary(&config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&config(deps, &env)?),
         QueryMsg::ClientProxies { start_after, limit } => {
             to_json_binary(&registered_chains(deps, start_after, limit)?)
         }
         QueryMsg::ClientProxy { chain } => to_json_binary(&associated_client(deps, chain)?),
         QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
         QueryMsg::ModuleQuery { target_module, msg } => {
-            return packet::handle_host_module_query(deps, target_module, msg);
+            return packet::handle_host_module_query(deps, env, target_module, msg);
         }
     }
     .map_err(Into::into)
 }
 
-fn config(deps: Deps) -> HostResult<ConfigResponse> {
+fn config(deps: Deps, env: &Env) -> HostResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host_address: AnsHost::new(deps.api)?.address,
-        module_factory_address: ModuleFactoryContract::new(deps.api)?.address,
-        version_control_address: VersionControlContract::new(deps.api)?.address,
+        ans_host_address: AnsHost::new(deps.api, env)?.address,
+        module_factory_address: ModuleFactoryContract::new(deps.api, env)?.address,
+        version_control_address: VersionControlContract::new(deps.api, env)?.address,
     })
 }
 

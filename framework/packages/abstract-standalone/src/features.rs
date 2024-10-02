@@ -4,22 +4,26 @@ use abstract_sdk::{
     AbstractSdkResult,
 };
 use abstract_std::version_control::Account;
-use cosmwasm_std::Deps;
+use cosmwasm_std::{Deps, Env};
 
 use crate::StandaloneContract;
 
 // ANCHOR: ans
 impl AbstractNameService for StandaloneContract {
-    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
         // Retrieve the ANS host address from the base state.
-        Ok(AnsHost::new(deps.api)?)
+        Ok(AnsHost::new(deps.api, env)?)
     }
 }
 // ANCHOR_END: ans
 
 impl AbstractRegistryAccess for StandaloneContract {
-    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-        Ok(VersionControlContract::new(deps.api)?)
+    fn abstract_registry(
+        &self,
+        deps: Deps,
+        env: &Env,
+    ) -> AbstractSdkResult<VersionControlContract> {
+        Ok(VersionControlContract::new(deps.api, env)?)
     }
 }
 

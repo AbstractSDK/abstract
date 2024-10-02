@@ -9,7 +9,7 @@ use abstract_std::{
     },
     version_control::{ModuleConfiguration, ModuleResponse, NamespaceResponse, NamespacesResponse},
 };
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::{Addr, Deps, Env};
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
@@ -36,8 +36,12 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
         ```
     */
-    fn module_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<ModuleRegistry<Self>> {
-        let vc = self.abstract_registry(deps)?;
+    fn module_registry<'a>(
+        &'a self,
+        deps: Deps<'a>,
+        env: &Env,
+    ) -> AbstractSdkResult<ModuleRegistry<Self>> {
+        let vc = self.abstract_registry(deps, env)?;
         Ok(ModuleRegistry {
             base: self,
             deps,

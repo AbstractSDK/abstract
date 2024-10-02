@@ -36,7 +36,7 @@ pub fn receive_register(
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
 ) -> HostResult {
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = VersionControlContract::new(deps.api, &env)?;
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
     let salt = cosmwasm_std::to_json_binary(&account_id)?;
@@ -142,7 +142,7 @@ pub fn send_all_back(
     src_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
     // get the ICS20 channel information
-    let ans = AnsHost::new(deps.api)?;
+    let ans = AnsHost::new(deps.api, &env)?;
     let ics20_channel_entry = ChannelEntry {
         connected_chain: src_chain,
         protocol: ICS20.to_string(),
@@ -174,8 +174,8 @@ pub fn send_all_back(
 }
 
 /// get the account from the version control contract
-pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<Account, HostError> {
-    let version_control = VersionControlContract::new(deps.api)?;
+pub fn get_account(deps: Deps, env: &Env, account_id: &AccountId) -> Result<Account, HostError> {
+    let version_control = VersionControlContract::new(deps.api, env)?;
     let account = version_control.account(account_id, &deps.querier)?;
     Ok(account)
 }

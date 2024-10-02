@@ -121,7 +121,7 @@ pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
     use abstract_std::{native_addrs, version_control::Account};
-    use cosmwasm_std::{testing::MockApi, Addr, Api, CanonicalAddr};
+    use cosmwasm_std::{testing::MockApi, Addr, Api};
 
     // Test addr makers
     const ADMIN_ACCOUNT: &str = "admin_account_address";
@@ -138,22 +138,28 @@ pub mod addresses {
 
     impl AbstractMockAddrs {
         pub fn new(mock_api: MockApi) -> AbstractMockAddrs {
+            let mock_env = cosmwasm_std::Env {
+                contract: cosmwasm_std::ContractInfo {
+                    address: mock_api.addr_make("test_addr"),
+                },
+                ..cosmwasm_std::testing::mock_env()
+            };
+            let hrp = native_addrs::hrp_from_env(&mock_env);
+
             AbstractMockAddrs {
                 owner: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::TEST_ABSTRACT_CREATOR))
+                    .addr_validate(&native_addrs::creator_address(hrp).unwrap())
                     .unwrap(),
                 ans_host: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::ANS_ADDR))
+                    .addr_humanize(&native_addrs::ans_address(hrp, &mock_api).unwrap())
                     .unwrap(),
                 version_control: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR))
+                    .addr_humanize(&native_addrs::version_control_address(hrp, &mock_api).unwrap())
                     .unwrap(),
                 module_factory: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
+                    .addr_humanize(&native_addrs::module_factory_address(hrp, &mock_api).unwrap())
                     .unwrap(),
-                module_address: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
-                    .unwrap(),
+                module_address: mock_api.addr_make("module"),
                 account: admin_account(mock_api),
             }
         }

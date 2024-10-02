@@ -63,7 +63,7 @@ pub fn handle_host_action(
 
         action => {
             // If this account already exists, we can propagate the action
-            if let Ok(account) = account_commands::get_account(deps.as_ref(), &account_id) {
+            if let Ok(account) = account_commands::get_account(deps.as_ref(), &env, &account_id) {
                 match action {
                     HostAction::Dispatch { account_msgs } => {
                         receive_dispatch(deps, account, account_msgs)
@@ -116,7 +116,7 @@ pub fn handle_module_execute(
     msg: Binary,
 ) -> HostResult {
     // We resolve the target module
-    let vc = VersionControlContract::new(deps.api)?;
+    let vc = VersionControlContract::new(deps.api, &env)?;
 
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
@@ -159,11 +159,12 @@ pub fn handle_module_execute(
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
 pub fn handle_host_module_query(
     deps: Deps,
+    env: Env,
     target_module: InstalledModuleIdentification,
     msg: Binary,
 ) -> HostResult<Binary> {
     // We resolve the target module
-    let vc = VersionControlContract::new(deps.api)?;
+    let vc = VersionControlContract::new(deps.api, &env)?;
 
     let target_module_resolved = target_module.addr(deps, vc)?;
 

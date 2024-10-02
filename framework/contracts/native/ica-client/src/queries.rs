@@ -8,10 +8,10 @@ use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
 /// Timeout in seconds
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
-pub fn config(deps: Deps) -> IcaClientResult<ConfigResponse> {
+pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps.api)?.address,
-        version_control_address: VersionControlContract::new(deps.api)?.address,
+        ans_host: AnsHost::new(deps.api, env)?.address,
+        version_control_address: VersionControlContract::new(deps.api, env)?.address,
     })
 }
 
@@ -40,7 +40,7 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
-                    let version_control = VersionControlContract::new(deps.api)?;
+                    let version_control = VersionControlContract::new(deps.api, &env)?;
 
                     let msg = evm::execute(&deps.querier, &version_control, msgs, callback)?;
 

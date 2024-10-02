@@ -8,7 +8,7 @@ use abstract_std::objects::{
     module_version::assert_contract_upgrade,
 };
 use cosmwasm_std::{
-    to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -50,20 +50,24 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&query_config(deps, &env)?),
         QueryMsg::SimulateInstallModules { modules } => {
-            to_json_binary(&query_simulate_install_modules(deps, modules)?)
+            to_json_binary(&query_simulate_install_modules(deps, &env, modules)?)
         }
         QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
     }
 }
 
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+pub fn query_config(deps: Deps, env: &Env) -> StdResult<ConfigResponse> {
     let resp = ConfigResponse {
-        version_control_address: VersionControlContract::new(deps.api)?.address,
-        ans_host_address: AnsHost::new(deps.api)?.address,
+        version_control_address: VersionControlContract::new(deps.api, env)
+            .map_err(|e| StdError::generic_err(e.to_string()))?
+            .address,
+        ans_host_address: AnsHost::new(deps.api, env)
+            .map_err(|e| StdError::generic_err(e.to_string()))?
+            .address,
     };
 
     Ok(resp)
@@ -71,9 +75,11 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 pub fn query_simulate_install_modules(
     deps: Deps,
+    env: &Env,
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
-    let version_control = VersionControlContract::new(deps.api)?;
+    let version_control = VersionControlContract::new(deps.api, env)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
 
     let module_responses = version_control
         .query_modules_configs(modules, &deps.querier)

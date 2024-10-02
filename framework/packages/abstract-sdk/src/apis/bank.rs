@@ -34,8 +34,12 @@ pub trait TransferInterface:
         let bank: Bank<MockModule>  = module.bank(deps.as_ref());
         ```
     */
-    fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
-        Bank { base: self, deps }
+    fn bank<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> Bank<Self> {
+        Bank {
+            base: self,
+            deps,
+            env,
+        }
     }
 }
 
@@ -79,6 +83,7 @@ impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
 pub struct Bank<'a, T: TransferInterface> {
     base: &'a T,
     deps: Deps<'a>,
+    env: &'a Env,
 }
 
 impl<'a, T: TransferInterface> Bank<'a, T> {
@@ -92,7 +97,10 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// Get the balance of the provided asset.
     pub fn balance(&self, asset: &AssetEntry) -> AbstractSdkResult<Asset> {
         let resolved_info = asset
-            .resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)
+            .resolve(
+                &self.deps.querier,
+                &self.base.ans_host(self.deps, self.env)?,
+            )
             .map_err(|error| self.wrap_query_error(error))?;
         let balance = resolved_info.query_balance(
             &self.deps.querier,
@@ -106,7 +114,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         let recipient = self.base.account(self.deps)?.into_addr();
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .map(|asset| asset.transferable_asset(self.base, self.deps, &self.env))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         transferable_funds
             .iter()
@@ -165,7 +173,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .map(|asset| asset.transferable_asset(self.base, self.deps, &self.env))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         let msgs = transferable_funds
             .iter()
@@ -196,7 +204,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
         recipient: &Addr,
         message: &M,
     ) -> AbstractSdkResult<AccountAction> {
-        let transferable_funds = funds.transferable_asset(self.base, self.deps)?;
+        let transferable_funds = funds.transferable_asset(self.base, self.deps, &self.env)?;
 
         let msgs = transferable_funds.send_msg(recipient, to_json_binary(message)?)?;
 
@@ -211,6 +219,7 @@ pub trait Transferable {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset>;
 }
 
@@ -231,8 +240,9 @@ impl Transferable for &AnsAsset {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset> {
-        self.resolve(&deps.querier, &base.ans_host(deps)?)
+        self.resolve(&deps.querier, &base.ans_host(deps, env)?)
             .map_err(|error| transferable_api_error(base, error))
     }
 }
@@ -242,8 +252,9 @@ impl Transferable for AnsAsset {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset> {
-        self.resolve(&deps.querier, &base.ans_host(deps)?)
+        self.resolve(&deps.querier, &base.ans_host(deps, env)?)
             .map_err(|error| transferable_api_error(base, error))
     }
 }
@@ -253,6 +264,7 @@ impl Transferable for Asset {
         self,
         _base: &T,
         _deps: Deps,
+        _env: &Env,
     ) -> AbstractSdkResult<Asset> {
         Ok(self)
     }
@@ -263,6 +275,7 @@ impl Transferable for Coin {
         self,
         _base: &T,
         _deps: Deps,
+        _env: &Env,
     ) -> AbstractSdkResult<Asset> {
         Ok(Asset::from(self))
     }

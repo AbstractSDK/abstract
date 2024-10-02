@@ -21,6 +21,9 @@ pub enum AbstractInterfaceError {
     #[error("{0}")]
     Std(#[from] StdError),
 
+    #[error("{0}")]
+    Instantiate2(#[from] cosmwasm_std::Instantiate2AddressError),
+
     #[cfg(feature = "daemon")]
     #[error(transparent)]
     Daemon(#[from] cw_orch::daemon::DaemonError),

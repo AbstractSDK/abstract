@@ -42,7 +42,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> IcaClientResult<QueryResponse> {
     match msg {
-        QueryMsg::Config {} => to_json_binary(&queries::config(deps)?).map_err(Into::into),
+        QueryMsg::Config {} => to_json_binary(&queries::config(deps, &env)?).map_err(Into::into),
         QueryMsg::Ownership {} => {
             to_json_binary(&cw_ownable::get_ownership(deps.storage)?).map_err(Into::into)
         }

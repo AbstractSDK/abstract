@@ -9,7 +9,7 @@ use abstract_std::{
 use abstract_testing::prelude::*;
 use cosmwasm_std::{
     testing::{mock_dependencies, MockApi},
-    Deps,
+    Deps, Env,
 };
 
 use crate::{
@@ -44,7 +44,11 @@ impl AbstractNameService for MockModule {
 }
 
 impl AbstractRegistryAccess for MockModule {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+    fn abstract_registry(
+        &self,
+        _deps: Deps,
+        _env: &Env,
+    ) -> AbstractSdkResult<VersionControlContract> {
         let abstr = AbstractMockAddrs::new(self.mock_api);
         Ok(VersionControlContract {
             address: abstr.version_control,

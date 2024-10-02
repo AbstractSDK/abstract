@@ -43,7 +43,7 @@ pub fn send_funds(
     let receiver: HexBinary = match receiver {
         Some(r) => r.into(),
         None => {
-            let version_control = VersionControlContract::new(deps.api)?;
+            let version_control = VersionControlContract::new(deps.api, env)?;
             let note_addr = evm_note_addr(&version_control, &deps.querier)?;
 
             // TODO: could be turned into raw query!
@@ -62,7 +62,7 @@ pub fn send_funds(
         }
     };
 
-    let ans_host = AnsHost::new(deps.api)?;
+    let ans_host = AnsHost::new(deps.api, env)?;
 
     // Resolve the transfer channel id for the given chain
     let ucs_channel_entry = ChannelEntry {

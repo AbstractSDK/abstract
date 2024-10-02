@@ -1,4 +1,4 @@
-use cosmwasm_std::{Binary, CanonicalAddr};
+use cosmwasm_std::{instantiate2_address, Binary, CanonicalAddr, Instantiate2AddressError};
 use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
@@ -88,6 +88,13 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let mut deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
 
+        let creator_account_id: cosmrs::AccountId = admin.as_str().parse().unwrap();
+        let canon_creator = CanonicalAddr::from(creator_account_id.to_bytes());
+
+        let expected_addr = |salt: &[u8]| -> Result<CanonicalAddr, Instantiate2AddressError> {
+            instantiate2_address(&cw_blob::CHECKSUM, &canon_creator, salt)
+        };
+
         deployment.ans_host.deterministic_instantiate(
             &abstract_std::ans_host::MigrateMsg::Instantiate(
                 abstract_std::ans_host::InstantiateMsg {
@@ -95,7 +102,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 },
             ),
             blob_code_id,
-            CanonicalAddr::from(native_addrs::ANS_ADDR),
+            expected_addr(native_addrs::ANS_HOST_SALT)?,
             Binary::from(ANS_HOST.as_bytes()),
         )?;
 
@@ -111,7 +118,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 },
             ),
             blob_code_id,
-            CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR),
+            expected_addr(native_addrs::VERSION_CONTROL_SALT)?,
             Binary::from(VERSION_CONTROL.as_bytes()),
         )?;
         deployment.module_factory.deterministic_instantiate(
@@ -121,7 +128,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 },
             ),
             blob_code_id,
-            CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR),
+            expected_addr(native_addrs::MODULE_FACTORY_SALT)?,
             Binary::from(MODULE_FACTORY.as_bytes()),
         )?;
 
@@ -134,7 +141,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 },
             ),
             blob_code_id,
-            CanonicalAddr::from(native_addrs::IBC_CLIENT_ADDR),
+            expected_addr(native_addrs::IBC_CLIENT_SALT)?,
             Binary::from(IBC_CLIENT.as_bytes()),
         )?;
         deployment.ibc.host.deterministic_instantiate(
@@ -142,7 +149,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 abstract_std::ibc_host::InstantiateMsg {},
             ),
             blob_code_id,
-            CanonicalAddr::from(native_addrs::IBC_HOST_ADDR),
+            expected_addr(native_addrs::IBC_HOST_SALT)?,
             Binary::from(IBC_HOST.as_bytes()),
         )?;
         deployment.ibc.register(&deployment.version_control)?;
@@ -328,8 +335,7 @@ impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
         let sender_addr: cosmrs::AccountId = chain.sender().as_str().parse().unwrap();
         let prefix = sender_addr.prefix();
         // Building mock_admin
-        let mock_admin =
-            cosmrs::AccountId::new(prefix, &native_addrs::TEST_ABSTRACT_CREATOR).unwrap();
+        let mock_admin = native_addrs::creator_address(prefix).unwrap();
         Addr::unchecked(mock_admin)
     }
 }
