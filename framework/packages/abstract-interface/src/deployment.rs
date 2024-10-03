@@ -134,10 +134,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         // We also instantiate ibc contracts
         deployment.ibc.client.deterministic_instantiate(
             &abstract_std::ibc_client::MigrateMsg::Instantiate(
-                abstract_std::ibc_client::InstantiateMsg {
-                    ans_host_address: deployment.ans_host.addr_str()?,
-                    registry_address: deployment.registry.addr_str()?,
-                },
+                abstract_std::ibc_client::InstantiateMsg {},
             ),
             blob_code_id,
             expected_addr(native_addrs::IBC_CLIENT_SALT)?,
@@ -271,7 +268,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         )?;
 
         // We also instantiate ibc contracts
-        self.ibc.instantiate(self, &admin)?;
+        self.ibc.instantiate(&admin)?;
         self.ibc.register(&self.registry)?;
 
         Ok(())

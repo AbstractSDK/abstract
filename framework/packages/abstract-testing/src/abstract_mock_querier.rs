@@ -8,7 +8,7 @@ use abstract_std::{
     },
     registry::{state::ACCOUNT_ADDRESSES, Account},
 };
-use cosmwasm_std::{testing::mock_env, Addr};
+use cosmwasm_std::Addr;
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
 

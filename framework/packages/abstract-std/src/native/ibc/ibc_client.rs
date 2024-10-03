@@ -55,10 +55,7 @@ pub mod state {
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg {
-    pub ans_host_address: String,
-    pub registry_address: String,
-}
+pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum MigrateMsg {

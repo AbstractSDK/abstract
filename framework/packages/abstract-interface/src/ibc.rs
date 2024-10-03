@@ -22,12 +22,9 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         Ok(())
     }
 
-    pub fn instantiate(&self, abstr: &Abstract<Chain>, admin: &Addr) -> Result<(), CwOrchError> {
+    pub fn instantiate(&self, admin: &Addr) -> Result<(), CwOrchError> {
         self.client.instantiate(
-            &abstract_std::ibc_client::InstantiateMsg {
-                ans_host_address: abstr.ans_host.addr_str()?,
-                registry_address: abstr.registry.addr_str()?,
-            },
+            &abstract_std::ibc_client::InstantiateMsg {},
             Some(admin),
             &[],
         )?;
