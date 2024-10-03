@@ -192,7 +192,7 @@ Interchain Abstract Account communication is done via a single message structure
 
 ```rust
 pub enum IbcHostExecuteMsg{
-{{#include ../../../packages/abstract-std/src/native/ibc_host.rs:ibc-host-execute}}
+{{#include ../../../packages/abstract-std/src/native/ibc/ibc_host.rs:ibc-host-execute}}
     ...,
 }
 ```
@@ -202,7 +202,7 @@ pub enum IbcHostExecuteMsg{
 - `action` is the action that should be executed by the `ibc-host` on the remote account:
 
 ```rust
-{{#include ../../../packages/abstract-std/src/native/ibc_host.rs:ibc-host-action}}
+{{#include ../../../packages/abstract-std/src/native/ibc/ibc_host.rs:ibc-host-action}}
 ```
 
 #### Acknowledgement and Callback

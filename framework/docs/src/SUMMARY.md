@@ -55,7 +55,6 @@
         - [Lending Market](./modules/lending-market.md)
         - [CW Staking](./modules/cw-staking.md)
     - [Subscription](./modules/subscription.md)
-    - [ETF](./modules/etf.md)
 
 # Case Studies
 ---
