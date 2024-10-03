@@ -10,7 +10,7 @@ The versioning setup is based on the dependency graph of the project, which is s
 
 ![Abstract's dependency graph](../docs/dep_graph.png)
 
-Form the graph we can draw some conclusions:
+From the graph we can draw some conclusions:
 
 1. `abstract-adapter` and `abstract-app` depend on `abstract-interface` and are the top-level packages within Abstract.
    Hence

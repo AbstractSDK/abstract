@@ -28,7 +28,7 @@ flowchart LR
 
 #### Building a Hosted Auto-Compounder
 
-Hosted applications can be built more efficiently with the Abstract SDK because of it's modular design. As an example,
+Hosted applications can be built more efficiently with the Abstract SDK because of its modular design. As an example,
 let's consider an auto-compounder application. The auto-compounder provides liquidity to DEX trading pairs and
 re-invests the received rewards into the pairs. The application's logic can be split into three modules:
 
@@ -60,7 +60,7 @@ This approach offers two significant benefits:
 - __Code Reusability:__ Developers can reuse the DEX and staking adapters in other applications. Furthermore, *Abstract
   already provides a library of adapters for the most popular protocols.* This saves you both time and money as you
   don't need to write the integrations yourself.
-- __Security:__ The auto-compounder application's logic is reduced to it's bare minimum, making it easier to audit and
+- __Security:__ The auto-compounder application's logic is reduced to its bare minimum, making it easier to audit and
   maintain. Furthermore, the DEX and staking adapters are battle-tested smart contracts, which further reduces the
   attack surface.
 
