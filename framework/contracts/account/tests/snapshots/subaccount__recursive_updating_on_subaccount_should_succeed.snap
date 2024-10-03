@@ -16,7 +16,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
   - - ownership
-    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\"}},\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":{\"monarchy\":{\"monarch\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:account-local-1":
   - - "\u0000\u0002ae\u0000\u0000\u0000\u0002"
     - "{}"
