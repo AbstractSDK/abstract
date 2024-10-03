@@ -76,6 +76,34 @@
         "additionalProperties": false
       },
       {
+        "description": "Owner method: Update the config on IBC client",
+        "type": "object",
+        "required": [
+          "update_config"
+        ],
+        "properties": {
+          "update_config": {
+            "type": "object",
+            "properties": {
+              "ans_host": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "version_control": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
         "description": "Only callable by Account proxy Will attempt to forward the specified funds to the corresponding address on the remote chain.",
         "type": "object",
         "required": [
@@ -434,23 +462,6 @@
         "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
         "type": "string"
       },
-      "AnyMsg": {
-        "description": "A message encoded the same way as a protobuf [Any](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/any.proto). This is the same structure as messages in `TxBody` from [ADR-020](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-020-protobuf-transaction-encoding.md)",
-        "type": "object",
-        "required": [
-          "type_url",
-          "value"
-        ],
-        "properties": {
-          "type_url": {
-            "type": "string"
-          },
-          "value": {
-            "$ref": "#/definitions/Binary"
-          }
-        },
-        "additionalProperties": false
-      },
       "Attribute": {
         "description": "An key value pair that is used in the context of event attributes in logs",
         "type": "object",
@@ -465,67 +476,7 @@
           "value": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
-      },
-      "BankMsg": {
-        "description": "The message types of the bank module.\n\nSee https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/proto/cosmos/bank/v1beta1/tx.proto",
-        "oneOf": [
-          {
-            "description": "Sends native tokens from the contract to the given address.\n\nThis is translated to a [MsgSend](https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/proto/cosmos/bank/v1beta1/tx.proto#L19-L28). `from_address` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "send"
-            ],
-            "properties": {
-              "send": {
-                "type": "object",
-                "required": [
-                  "amount",
-                  "to_address"
-                ],
-                "properties": {
-                  "amount": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/Coin"
-                    }
-                  },
-                  "to_address": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This will burn the given coins from the contract's account. There is no Cosmos SDK message that performs this, but it can be done by calling the bank keeper. Important if a contract controls significant token supply that must be retired.",
-            "type": "object",
-            "required": [
-              "burn"
-            ],
-            "properties": {
-              "burn": {
-                "type": "object",
-                "required": [
-                  "amount"
-                ],
-                "properties": {
-                  "amount": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/Coin"
-                    }
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
+        }
       },
       "BankQuery": {
         "oneOf": [
@@ -545,8 +496,7 @@
                   "denom": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -571,8 +521,7 @@
                   "denom": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -593,8 +542,7 @@
                   "address": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -615,8 +563,7 @@
                   "denom": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -641,8 +588,7 @@
                       }
                     ]
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -768,217 +714,7 @@
           "denom": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
-      },
-      "CosmosMsg_for_Empty": {
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "bank"
-            ],
-            "properties": {
-              "bank": {
-                "$ref": "#/definitions/BankMsg"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "custom"
-            ],
-            "properties": {
-              "custom": {
-                "$ref": "#/definitions/Empty"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "staking"
-            ],
-            "properties": {
-              "staking": {
-                "$ref": "#/definitions/StakingMsg"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "distribution"
-            ],
-            "properties": {
-              "distribution": {
-                "$ref": "#/definitions/DistributionMsg"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This is the same structure as messages in `TxBody` from [ADR-020](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-020-protobuf-transaction-encoding.md)",
-            "deprecated": true,
-            "type": "object",
-            "required": [
-              "stargate"
-            ],
-            "properties": {
-              "stargate": {
-                "type": "object",
-                "required": [
-                  "type_url",
-                  "value"
-                ],
-                "properties": {
-                  "type_url": {
-                    "type": "string"
-                  },
-                  "value": {
-                    "$ref": "#/definitions/Binary"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "`CosmosMsg::Any` is the replaces the \"stargate message\" – a message wrapped in a [protobuf Any](https://protobuf.dev/programming-guides/proto3/#any) that is suppored by the chain. It behaves the same as `CosmosMsg::Stargate` but has a better name and slightly improved syntax.\n\nThis is feature-gated at compile time with `cosmwasm_2_0` because a chain running CosmWasm < 2.0 cannot process this.",
-            "type": "object",
-            "required": [
-              "any"
-            ],
-            "properties": {
-              "any": {
-                "$ref": "#/definitions/AnyMsg"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "ibc"
-            ],
-            "properties": {
-              "ibc": {
-                "$ref": "#/definitions/IbcMsg"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "wasm"
-            ],
-            "properties": {
-              "wasm": {
-                "$ref": "#/definitions/WasmMsg"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "gov"
-            ],
-            "properties": {
-              "gov": {
-                "$ref": "#/definitions/GovMsg"
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "Decimal": {
-        "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-        "type": "string"
-      },
-      "DistributionMsg": {
-        "description": "The message types of the distribution module.\n\nSee https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto",
-        "oneOf": [
-          {
-            "description": "This is translated to a [MsgSetWithdrawAddress](https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto#L29-L37). `delegator_address` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "set_withdraw_address"
-            ],
-            "properties": {
-              "set_withdraw_address": {
-                "type": "object",
-                "required": [
-                  "address"
-                ],
-                "properties": {
-                  "address": {
-                    "description": "The `withdraw_address`",
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This is translated to a [[MsgWithdrawDelegatorReward](https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto#L42-L50). `delegator_address` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "withdraw_delegator_reward"
-            ],
-            "properties": {
-              "withdraw_delegator_reward": {
-                "type": "object",
-                "required": [
-                  "validator"
-                ],
-                "properties": {
-                  "validator": {
-                    "description": "The `validator_address`",
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This is translated to a [[MsgFundCommunityPool](https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto#LL69C1-L76C2). `depositor` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "fund_community_pool"
-            ],
-            "properties": {
-              "fund_community_pool": {
-                "type": "object",
-                "required": [
-                  "amount"
-                ],
-                "properties": {
-                  "amount": {
-                    "description": "The amount to spend",
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/Coin"
-                    }
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
+        }
       },
       "DistributionQuery": {
         "oneOf": [
@@ -998,8 +734,7 @@
                   "delegator_address": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -1024,8 +759,7 @@
                   "validator_address": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -1046,8 +780,7 @@
                   "delegator_address": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -1068,18 +801,12 @@
                   "delegator_address": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
           }
         ]
-      },
-      "Empty": {
-        "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
-        "type": "object",
-        "additionalProperties": false
       },
       "ErrorResponse": {
         "type": "object",
@@ -1122,412 +849,11 @@
             "description": "The event type. This is renamed to \"ty\" because \"type\" is reserved in Rust. This sucks, we know.",
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "ExecuteMsg": {
+        "description": "Manager execute messages",
         "oneOf": [
-          {
-            "description": "Update the ownership.",
-            "type": "object",
-            "required": [
-              "update_ownership"
-            ],
-            "properties": {
-              "update_ownership": {
-                "$ref": "#/definitions/Action"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Owner method: Registers the polytone note on the local chain as well as the host on the remote chain to send messages through This allows for monitoring which chain are connected to the contract remotely",
-            "type": "object",
-            "required": [
-              "register_infrastructure"
-            ],
-            "properties": {
-              "register_infrastructure": {
-                "type": "object",
-                "required": [
-                  "chain",
-                  "host",
-                  "note"
-                ],
-                "properties": {
-                  "chain": {
-                    "description": "Chain to register the infrastructure for (\"juno\", \"osmosis\", etc.)",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/TruncatedChainId"
-                      }
-                    ]
-                  },
-                  "host": {
-                    "description": "Address of the abstract host deployed on the remote chain",
-                    "type": "string"
-                  },
-                  "note": {
-                    "description": "Polytone note (locally deployed)",
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Only callable by Account proxy Will attempt to forward the specified funds to the corresponding address on the remote chain.",
-            "type": "object",
-            "required": [
-              "send_funds"
-            ],
-            "properties": {
-              "send_funds": {
-                "type": "object",
-                "required": [
-                  "funds",
-                  "host_chain"
-                ],
-                "properties": {
-                  "funds": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/Coin"
-                    }
-                  },
-                  "host_chain": {
-                    "description": "host chain to be executed on Example: \"osmosis\"",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/TruncatedChainId"
-                      }
-                    ]
-                  },
-                  "memo": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Only callable by Account proxy Register an Account on a remote chain over IBC This action creates a proxy for them on the remote chain.",
-            "type": "object",
-            "required": [
-              "register"
-            ],
-            "properties": {
-              "register": {
-                "type": "object",
-                "required": [
-                  "host_chain",
-                  "install_modules"
-                ],
-                "properties": {
-                  "host_chain": {
-                    "description": "host chain to be executed on Example: \"osmosis\"",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/TruncatedChainId"
-                      }
-                    ]
-                  },
-                  "install_modules": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/ModuleInstallConfig"
-                    }
-                  },
-                  "namespace": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Only callable by Account Module",
-            "type": "object",
-            "required": [
-              "module_ibc_action"
-            ],
-            "properties": {
-              "module_ibc_action": {
-                "type": "object",
-                "required": [
-                  "host_chain",
-                  "msg",
-                  "target_module"
-                ],
-                "properties": {
-                  "callback": {
-                    "description": "Callback info to identify the callback that is sent (acts similar to the reply ID)",
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/Callback"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "host_chain": {
-                    "description": "host chain to be executed on Example: \"osmosis\"",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/TruncatedChainId"
-                      }
-                    ]
-                  },
-                  "msg": {
-                    "description": "Json-encoded IbcMsg to the target module",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  },
-                  "target_module": {
-                    "description": "Module of this account on host chain",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/ModuleInfo"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Only callable by Account Module",
-            "type": "object",
-            "required": [
-              "ibc_query"
-            ],
-            "properties": {
-              "ibc_query": {
-                "type": "object",
-                "required": [
-                  "callback",
-                  "host_chain",
-                  "queries"
-                ],
-                "properties": {
-                  "callback": {
-                    "description": "Callback info to identify the callback that is sent (acts similar to the reply ID)",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Callback"
-                      }
-                    ]
-                  },
-                  "host_chain": {
-                    "description": "host chain to be executed on Example: \"osmosis\"",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/TruncatedChainId"
-                      }
-                    ]
-                  },
-                  "queries": {
-                    "description": "Cosmos Query requests",
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/QueryRequest_for_ModuleQuery"
-                    }
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Only callable by Account Proxy Action on remote ibc host Which currently only support manager messages",
-            "type": "object",
-            "required": [
-              "remote_action"
-            ],
-            "properties": {
-              "remote_action": {
-                "type": "object",
-                "required": [
-                  "action",
-                  "host_chain"
-                ],
-                "properties": {
-                  "action": {
-                    "description": "execute the custom host function",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/HostAction"
-                      }
-                    ]
-                  },
-                  "host_chain": {
-                    "description": "host chain to be executed on Example: \"osmosis\"",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/TruncatedChainId"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Owner method: Remove connection for remote chain",
-            "type": "object",
-            "required": [
-              "remove_host"
-            ],
-            "properties": {
-              "remove_host": {
-                "type": "object",
-                "required": [
-                  "host_chain"
-                ],
-                "properties": {
-                  "host_chain": {
-                    "$ref": "#/definitions/TruncatedChainId"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Callback from the Polytone implementation This is triggered regardless of the execution result",
-            "type": "object",
-            "required": [
-              "callback"
-            ],
-            "properties": {
-              "callback": {
-                "$ref": "#/definitions/CallbackMessage"
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "ExecuteMsg_for_Empty": {
-        "oneOf": [
-          {
-            "description": "Executes the provided messages if sender is whitelisted",
-            "type": "object",
-            "required": [
-              "module_action"
-            ],
-            "properties": {
-              "module_action": {
-                "type": "object",
-                "required": [
-                  "msgs"
-                ],
-                "properties": {
-                  "msgs": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/CosmosMsg_for_Empty"
-                    }
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Execute a message and forward the Response data",
-            "type": "object",
-            "required": [
-              "module_action_with_data"
-            ],
-            "properties": {
-              "module_action_with_data": {
-                "type": "object",
-                "required": [
-                  "msg"
-                ],
-                "properties": {
-                  "msg": {
-                    "$ref": "#/definitions/CosmosMsg_for_Empty"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Execute IBC action on Client",
-            "type": "object",
-            "required": [
-              "ibc_action"
-            ],
-            "properties": {
-              "ibc_action": {
-                "type": "object",
-                "required": [
-                  "msg"
-                ],
-                "properties": {
-                  "msg": {
-                    "$ref": "#/definitions/ExecuteMsg"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Queries the Abstract Ica Client with the provided action query. Provides access to different ICA implementations for different ecosystems.",
-            "type": "object",
-            "required": [
-              "ica_action"
-            ],
-            "properties": {
-              "ica_action": {
-                "type": "object",
-                "required": [
-                  "action_query_msg"
-                ],
-                "properties": {
-                  "action_query_msg": {
-                    "description": "Query of type `abstract-ica-client::msg::QueryMsg`",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
           {
             "description": "Forward execution message to module",
             "type": "object",
@@ -1562,7 +888,7 @@
             ],
             "properties": {
               "update_internal_config": {
-                "$ref": "#/definitions/InternalConfigAction"
+                "$ref": "#/definitions/Binary"
               }
             },
             "additionalProperties": false
@@ -1615,7 +941,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Upgrade the module to a new version If module is `abstract::account` then the contract will do a self-migration. Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Version Control",
+            "description": "Upgrade the module to a new version If module is `abstract::manager` then the contract will do a self-migration.",
             "type": "object",
             "required": [
               "upgrade"
@@ -1782,63 +1108,6 @@
             "additionalProperties": false
           },
           {
-            "description": "Update the contract's ownership. The `action` can propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership of the account permanently.",
-            "type": "object",
-            "required": [
-              "update_ownership"
-            ],
-            "properties": {
-              "update_ownership": {
-                "$ref": "#/definitions/GovAction"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "add_auth_method"
-            ],
-            "properties": {
-              "add_auth_method": {
-                "type": "object",
-                "required": [
-                  "add_authenticator"
-                ],
-                "properties": {
-                  "add_authenticator": {
-                    "$ref": "#/definitions/Empty"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "remove_auth_method"
-            ],
-            "properties": {
-              "remove_auth_method": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "integer",
-                    "format": "uint8",
-                    "minimum": 0.0
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
             "description": "Callback endpoint",
             "type": "object",
             "required": [
@@ -1847,6 +1116,19 @@
             "properties": {
               "callback": {
                 "$ref": "#/definitions/CallbackMsg"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Update the contract's ownership. The `action` can propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership of the account permanently.",
+            "type": "object",
+            "required": [
+              "update_ownership"
+            ],
+            "properties": {
+              "update_ownership": {
+                "$ref": "#/definitions/GovAction"
               }
             },
             "additionalProperties": false
@@ -1972,75 +1254,6 @@
           }
         ]
       },
-      "GovMsg": {
-        "description": "This message type allows the contract interact with the [x/gov] module in order to cast votes.\n\n[x/gov]: https://github.com/cosmos/cosmos-sdk/tree/v0.45.12/x/gov\n\n## Examples\n\nCast a simple vote:\n\n``` # use cosmwasm_std::{ #     HexBinary, #     Storage, Api, Querier, DepsMut, Deps, entry_point, Env, StdError, MessageInfo, #     Response, QueryResponse, # }; # type ExecuteMsg = (); use cosmwasm_std::{GovMsg, VoteOption};\n\n#[entry_point] pub fn execute( deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg, ) -> Result<Response, StdError> { // ... Ok(Response::new().add_message(GovMsg::Vote { proposal_id: 4, option: VoteOption::Yes, })) } ```\n\nCast a weighted vote:\n\n``` # use cosmwasm_std::{ #     HexBinary, #     Storage, Api, Querier, DepsMut, Deps, entry_point, Env, StdError, MessageInfo, #     Response, QueryResponse, # }; # type ExecuteMsg = (); # #[cfg(feature = \"cosmwasm_1_2\")] use cosmwasm_std::{Decimal, GovMsg, VoteOption, WeightedVoteOption};\n\n# #[cfg(feature = \"cosmwasm_1_2\")] #[entry_point] pub fn execute( deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg, ) -> Result<Response, StdError> { // ... Ok(Response::new().add_message(GovMsg::VoteWeighted { proposal_id: 4, options: vec![ WeightedVoteOption { option: VoteOption::Yes, weight: Decimal::percent(65), }, WeightedVoteOption { option: VoteOption::Abstain, weight: Decimal::percent(35), }, ], })) } ```",
-        "oneOf": [
-          {
-            "description": "This maps directly to [MsgVote](https://github.com/cosmos/cosmos-sdk/blob/v0.42.5/proto/cosmos/gov/v1beta1/tx.proto#L46-L56) in the Cosmos SDK with voter set to the contract address.",
-            "type": "object",
-            "required": [
-              "vote"
-            ],
-            "properties": {
-              "vote": {
-                "type": "object",
-                "required": [
-                  "option",
-                  "proposal_id"
-                ],
-                "properties": {
-                  "option": {
-                    "description": "The vote option.\n\nThis used to be called \"vote\", but was changed for consistency with Cosmos SDK.",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/VoteOption"
-                      }
-                    ]
-                  },
-                  "proposal_id": {
-                    "type": "integer",
-                    "format": "uint64",
-                    "minimum": 0.0
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This maps directly to [MsgVoteWeighted](https://github.com/cosmos/cosmos-sdk/blob/v0.45.8/proto/cosmos/gov/v1beta1/tx.proto#L66-L78) in the Cosmos SDK with voter set to the contract address.",
-            "type": "object",
-            "required": [
-              "vote_weighted"
-            ],
-            "properties": {
-              "vote_weighted": {
-                "type": "object",
-                "required": [
-                  "options",
-                  "proposal_id"
-                ],
-                "properties": {
-                  "options": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/WeightedVoteOption"
-                    }
-                  },
-                  "proposal_id": {
-                    "type": "integer",
-                    "format": "uint64",
-                    "minimum": 0.0
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
       "GovernanceDetails_for_String": {
         "description": "Governance types",
         "oneOf": [
@@ -2061,8 +1274,7 @@
                     "description": "The monarch's address",
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -2077,14 +1289,19 @@
               "SubAccount": {
                 "type": "object",
                 "required": [
-                  "account"
+                  "manager",
+                  "proxy"
                 ],
                 "properties": {
-                  "account": {
+                  "manager": {
+                    "description": "The manager of the account of which this account is the sub-account.",
+                    "type": "string"
+                  },
+                  "proxy": {
+                    "description": "The proxy of the account of which this account is the sub-account.",
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -2111,8 +1328,20 @@
                     "description": "Governance type used for doing extra off-chain queries depending on the type.",
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Renounced account This account no longer has an owner and cannot be used.",
+            "type": "object",
+            "required": [
+              "Renounced"
+            ],
+            "properties": {
+              "Renounced": {
+                "type": "object"
               }
             },
             "additionalProperties": false
@@ -2136,77 +1365,12 @@
                   "token_id": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Abstract account. Admin actions have to be sent through signature bit flag\n\nMore details: https://github.com/burnt-labs/abstract-account/blob/2c933a7b2a8dacc0ae5bf4344159a7d4ab080135/README.md",
-            "type": "object",
-            "required": [
-              "AbstractAccount"
-            ],
-            "properties": {
-              "AbstractAccount": {
-                "type": "object",
-                "required": [
-                  "address"
-                ],
-                "properties": {
-                  "address": {
-                    "description": "Address of this abstract account",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Addr"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Renounced account This account no longer has an owner and cannot be used.",
-            "type": "object",
-            "required": [
-              "Renounced"
-            ],
-            "properties": {
-              "Renounced": {
-                "type": "object",
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
           }
         ]
-      },
-      "GrpcQuery": {
-        "description": "Queries the chain using a grpc query. This allows to query information that is not exposed in our API. The chain needs to allowlist the supported queries. The drawback of this query is that you have to handle the protobuf encoding and decoding yourself.\n\nThe returned data is protobuf encoded. The protobuf type depends on the query. Because of this, using it with the [`query`](crate::QuerierWrapper::query) function will result in a deserialization error. Use [`raw_query`](crate::Querier::raw_query) or [`query_grpc`](crate::QuerierWrapper::query_grpc) instead.\n\nTo find the path, as well as the request and response types, you can query the chain's gRPC endpoint using a tool like [grpcurl](https://github.com/fullstorydev/grpcurl).",
-        "type": "object",
-        "required": [
-          "data",
-          "path"
-        ],
-        "properties": {
-          "data": {
-            "description": "The expected protobuf message type (not [Any](https://protobuf.dev/programming-guides/proto3/#any)), binary encoded",
-            "allOf": [
-              {
-                "$ref": "#/definitions/Binary"
-              }
-            ]
-          },
-          "path": {
-            "description": "The fully qualified endpoint path used for routing. It follows the format `/service_path/method_name`, eg. \"/cosmos.authz.v1beta1.Query/Grants\"",
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
       },
       "HelperAction": {
         "oneOf": [
@@ -2223,7 +1387,7 @@
         "description": "Callable actions on a remote host",
         "oneOf": [
           {
-            "description": "Dispatch messages to a remote Account. Will create a new Account if required.",
+            "description": "Dispatch messages to a remote manager contract. Will create a new Account if required.",
             "type": "object",
             "required": [
               "dispatch"
@@ -2232,13 +1396,13 @@
               "dispatch": {
                 "type": "object",
                 "required": [
-                  "account_msgs"
+                  "manager_msgs"
                 ],
                 "properties": {
-                  "account_msgs": {
+                  "manager_msgs": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/definitions/ExecuteMsg_for_Empty"
+                      "$ref": "#/definitions/ExecuteMsg"
                     }
                   }
                 },
@@ -2275,121 +1439,6 @@
           }
         ]
       },
-      "IbcMsg": {
-        "description": "These are messages in the IBC lifecycle. Only usable by IBC-enabled contracts (contracts that directly speak the IBC protocol via 6 entry points)",
-        "oneOf": [
-          {
-            "description": "Sends bank tokens owned by the contract to the given address on another chain. The channel must already be established between the ibctransfer module on this chain and a matching module on the remote chain. We cannot select the port_id, this is whatever the local chain has bound the ibctransfer module to.",
-            "type": "object",
-            "required": [
-              "transfer"
-            ],
-            "properties": {
-              "transfer": {
-                "type": "object",
-                "required": [
-                  "amount",
-                  "channel_id",
-                  "timeout",
-                  "to_address"
-                ],
-                "properties": {
-                  "amount": {
-                    "description": "packet data only supports one coin https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/proto/ibc/applications/transfer/v1/transfer.proto#L11-L20",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Coin"
-                      }
-                    ]
-                  },
-                  "channel_id": {
-                    "description": "existing channel to send the tokens over",
-                    "type": "string"
-                  },
-                  "memo": {
-                    "description": "An optional memo. See the blog post [\"Moving Beyond Simple Token Transfers\"](https://medium.com/the-interchain-foundation/moving-beyond-simple-token-transfers-d42b2b1dc29b) for more information.\n\nThere is no difference between setting this to `None` or an empty string.\n\nThis field is only supported on chains with CosmWasm >= 2.0 and silently ignored on older chains. If you need support for both 1.x and 2.x chain with the same codebase, it is recommended to use `CosmosMsg::Stargate` with a custom MsgTransfer protobuf encoder instead.",
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  },
-                  "timeout": {
-                    "description": "when packet times out, measured on remote chain",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/IbcTimeout"
-                      }
-                    ]
-                  },
-                  "to_address": {
-                    "description": "address on the remote chain to receive these tokens",
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Sends an IBC packet with given data over the existing channel. Data should be encoded in a format defined by the channel version, and the module on the other side should know how to parse this.",
-            "type": "object",
-            "required": [
-              "send_packet"
-            ],
-            "properties": {
-              "send_packet": {
-                "type": "object",
-                "required": [
-                  "channel_id",
-                  "data",
-                  "timeout"
-                ],
-                "properties": {
-                  "channel_id": {
-                    "type": "string"
-                  },
-                  "data": {
-                    "$ref": "#/definitions/Binary"
-                  },
-                  "timeout": {
-                    "description": "when packet times out, measured on remote chain",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/IbcTimeout"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This will close an existing channel that is owned by this contract. Port is auto-assigned to the contract's IBC port",
-            "type": "object",
-            "required": [
-              "close_channel"
-            ],
-            "properties": {
-              "close_channel": {
-                "type": "object",
-                "required": [
-                  "channel_id"
-                ],
-                "properties": {
-                  "channel_id": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
       "IbcQuery": {
         "description": "These are queries to the various IBC modules to see the state of the contract's IBC connection. These will return errors if the contract is not \"ibc enabled\"",
         "oneOf": [
@@ -2401,8 +1450,7 @@
             ],
             "properties": {
               "port_id": {
-                "type": "object",
-                "additionalProperties": false
+                "type": "object"
               }
             },
             "additionalProperties": false
@@ -2423,8 +1471,7 @@
                       "null"
                     ]
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -2451,63 +1498,12 @@
                       "null"
                     ]
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
           }
         ]
-      },
-      "IbcTimeout": {
-        "description": "In IBC each package must set at least one type of timeout: the timestamp or the block height. Using this rather complex enum instead of two timeout fields we ensure that at least one timeout is set.",
-        "type": "object",
-        "properties": {
-          "block": {
-            "anyOf": [
-              {
-                "$ref": "#/definitions/IbcTimeoutBlock"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "timestamp": {
-            "anyOf": [
-              {
-                "$ref": "#/definitions/Timestamp"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "IbcTimeoutBlock": {
-        "description": "IBCTimeoutHeight Height is a monotonically increasing data type that can be compared against another Height for the purposes of updating and freezing clients. Ordering is (revision_number, timeout_height)",
-        "type": "object",
-        "required": [
-          "height",
-          "revision"
-        ],
-        "properties": {
-          "height": {
-            "description": "block height after which the packet times out. the height within the given revision",
-            "type": "integer",
-            "format": "uint64",
-            "minimum": 0.0
-          },
-          "revision": {
-            "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
-            "type": "integer",
-            "format": "uint64",
-            "minimum": 0.0
-          }
-        },
-        "additionalProperties": false
       },
       "InstalledModuleIdentification": {
         "description": "This is used for identifying calling modules For adapters, we don't need the account id because it's independent of an account For apps and standalone, the account id is used to identify the calling module",
@@ -2574,87 +1570,6 @@
                       "string",
                       "null"
                     ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "InternalConfigAction": {
-        "description": "Internal configuration actions accessible from the [`ExecuteMsg::UpdateInternalConfig`] message.",
-        "oneOf": [
-          {
-            "description": "Updates the [`state::ACCOUNT_MODULES`] map Only callable by owner.",
-            "type": "object",
-            "required": [
-              "update_module_addresses"
-            ],
-            "properties": {
-              "update_module_addresses": {
-                "type": "object",
-                "required": [
-                  "to_add",
-                  "to_remove"
-                ],
-                "properties": {
-                  "to_add": {
-                    "type": "array",
-                    "items": {
-                      "type": "array",
-                      "items": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ],
-                      "maxItems": 2,
-                      "minItems": 2
-                    }
-                  },
-                  "to_remove": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Update the execution whitelist in [`state::WHITELISTED_MODULES`] Only callable by owner.",
-            "type": "object",
-            "required": [
-              "update_whitelist"
-            ],
-            "properties": {
-              "update_whitelist": {
-                "type": "object",
-                "required": [
-                  "to_add",
-                  "to_remove"
-                ],
-                "properties": {
-                  "to_add": {
-                    "description": "Addresses to add to the Account's execution whitelist",
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "to_remove": {
-                    "description": "Addresses to remove from the Account's execution whitelist",
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
                   }
                 },
                 "additionalProperties": false
@@ -2767,22 +1682,6 @@
           }
         ]
       },
-      "MsgResponse": {
-        "type": "object",
-        "required": [
-          "type_url",
-          "value"
-        ],
-        "properties": {
-          "type_url": {
-            "type": "string"
-          },
-          "value": {
-            "$ref": "#/definitions/Binary"
-          }
-        },
-        "additionalProperties": false
-      },
       "Namespace": {
         "description": "Represents an Abstract namespace for modules",
         "type": "string"
@@ -2813,8 +1712,7 @@
           "reverse": {
             "type": "boolean"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "QueryRequest_for_ModuleQuery": {
         "oneOf": [
@@ -2868,7 +1766,6 @@
           },
           {
             "description": "A Stargate query is encoded the same way as abci_query, with path and protobuf encoded request data. The format is defined in [ADR-21](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-021-protobuf-query-encoding.md). The response is protobuf encoded data directly without a JSON response wrapper. The caller is responsible for compiling the proper protobuf definitions for both requests and responses.",
-            "deprecated": true,
             "type": "object",
             "required": [
               "stargate"
@@ -2890,11 +1787,10 @@
                     ]
                   },
                   "path": {
-                    "description": "this is the fully qualified service path used for routing, eg. \"/cosmos_sdk.x.bank.v1.Query/QueryBalance\"",
+                    "description": "this is the fully qualified service path used for routing, eg. custom/cosmos_sdk.x.bank.v1.Query/QueryBalance",
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -2922,18 +1818,6 @@
               }
             },
             "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "grpc"
-            ],
-            "properties": {
-              "grpc": {
-                "$ref": "#/definitions/GrpcQuery"
-              }
-            },
-            "additionalProperties": false
           }
         ]
       },
@@ -2951,8 +1835,7 @@
                   "$ref": "#/definitions/Binary"
                 }
               }
-            },
-            "additionalProperties": false
+            }
           },
           {
             "type": "object",
@@ -2963,8 +1846,7 @@
               "Err": {
                 "$ref": "#/definitions/ErrorResponse"
               }
-            },
-            "additionalProperties": false
+            }
           }
         ]
       },
@@ -2979,8 +1861,7 @@
               "Ok": {
                 "$ref": "#/definitions/ExecutionResponse"
               }
-            },
-            "additionalProperties": false
+            }
           },
           {
             "type": "object",
@@ -2991,95 +1872,7 @@
               "Err": {
                 "type": "string"
               }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "StakingMsg": {
-        "description": "The message types of the staking module.\n\nSee https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/proto/cosmos/staking/v1beta1/tx.proto",
-        "oneOf": [
-          {
-            "description": "This is translated to a [MsgDelegate](https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/proto/cosmos/staking/v1beta1/tx.proto#L81-L90). `delegator_address` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "delegate"
-            ],
-            "properties": {
-              "delegate": {
-                "type": "object",
-                "required": [
-                  "amount",
-                  "validator"
-                ],
-                "properties": {
-                  "amount": {
-                    "$ref": "#/definitions/Coin"
-                  },
-                  "validator": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This is translated to a [MsgUndelegate](https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/proto/cosmos/staking/v1beta1/tx.proto#L112-L121). `delegator_address` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "undelegate"
-            ],
-            "properties": {
-              "undelegate": {
-                "type": "object",
-                "required": [
-                  "amount",
-                  "validator"
-                ],
-                "properties": {
-                  "amount": {
-                    "$ref": "#/definitions/Coin"
-                  },
-                  "validator": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This is translated to a [MsgBeginRedelegate](https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/proto/cosmos/staking/v1beta1/tx.proto#L95-L105). `delegator_address` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "redelegate"
-            ],
-            "properties": {
-              "redelegate": {
-                "type": "object",
-                "required": [
-                  "amount",
-                  "dst_validator",
-                  "src_validator"
-                ],
-                "properties": {
-                  "amount": {
-                    "$ref": "#/definitions/Coin"
-                  },
-                  "dst_validator": {
-                    "type": "string"
-                  },
-                  "src_validator": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
+            }
           }
         ]
       },
@@ -3093,8 +1886,7 @@
             ],
             "properties": {
               "bonded_denom": {
-                "type": "object",
-                "additionalProperties": false
+                "type": "object"
               }
             },
             "additionalProperties": false
@@ -3115,8 +1907,7 @@
                   "delegator": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -3141,8 +1932,7 @@
                   "validator": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -3155,8 +1945,7 @@
             ],
             "properties": {
               "all_validators": {
-                "type": "object",
-                "additionalProperties": false
+                "type": "object"
               }
             },
             "additionalProperties": false
@@ -3178,8 +1967,7 @@
                     "description": "The validator's address (e.g. (e.g. cosmosvaloper1...))",
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -3194,7 +1982,6 @@
         ],
         "properties": {
           "data": {
-            "deprecated": true,
             "anyOf": [
               {
                 "$ref": "#/definitions/Binary"
@@ -3209,17 +1996,8 @@
             "items": {
               "$ref": "#/definitions/Event"
             }
-          },
-          "msg_responses": {
-            "description": "The responses from the messages emitted by the submessage. In most cases, this is equivalent to the Cosmos SDK's [MsgResponses], which usually contains a [single message]. However, wasmd allows chains to translate a single contract message into multiple SDK messages. In that case all the MsgResponses from each are concatenated into this flattened `Vec`.\n\n[MsgResponses]: https://github.com/cosmos/cosmos-sdk/blob/316750cc8cd8b3296fa233f4da2e39cbcdc34517/proto/cosmos/base/abci/v1beta1/abci.proto#L106-L109 [single message]: https://github.com/cosmos/cosmos-sdk/blob/v0.50.4/baseapp/baseapp.go#L1020-L1023",
-            "default": [],
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/MsgResponse"
-            }
           }
-        },
-        "additionalProperties": false
+        }
       },
       "Timestamp": {
         "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
@@ -3268,7 +2046,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Register sub-account It will register new sub-account into the state Could be called by the sub-account",
+            "description": "Register sub-account It will register new sub-account into the state Could be called by the sub-account manager Note: since it happens after the claim by this manager state won't have spam accounts",
             "type": "object",
             "required": [
               "register_sub_account"
@@ -3284,250 +2062,6 @@
                     "type": "integer",
                     "format": "uint32",
                     "minimum": 0.0
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "VoteOption": {
-        "type": "string",
-        "enum": [
-          "yes",
-          "no",
-          "abstain",
-          "no_with_veto"
-        ]
-      },
-      "WasmMsg": {
-        "description": "The message types of the wasm module.\n\nSee https://github.com/CosmWasm/wasmd/blob/v0.14.0/x/wasm/internal/types/tx.proto",
-        "oneOf": [
-          {
-            "description": "Dispatches a call to another contract at a known address (with known ABI).\n\nThis is translated to a [MsgExecuteContract](https://github.com/CosmWasm/wasmd/blob/v0.14.0/x/wasm/internal/types/tx.proto#L68-L78). `sender` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "execute"
-            ],
-            "properties": {
-              "execute": {
-                "type": "object",
-                "required": [
-                  "contract_addr",
-                  "funds",
-                  "msg"
-                ],
-                "properties": {
-                  "contract_addr": {
-                    "type": "string"
-                  },
-                  "funds": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/Coin"
-                    }
-                  },
-                  "msg": {
-                    "description": "msg is the json-encoded ExecuteMsg struct (as raw Binary)",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Instantiates a new contracts from previously uploaded Wasm code.\n\nThe contract address is non-predictable. But it is guaranteed that when emitting the same Instantiate message multiple times, multiple instances on different addresses will be generated. See also Instantiate2.\n\nThis is translated to a [MsgInstantiateContract](https://github.com/CosmWasm/wasmd/blob/v0.29.2/proto/cosmwasm/wasm/v1/tx.proto#L53-L71). `sender` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "instantiate"
-            ],
-            "properties": {
-              "instantiate": {
-                "type": "object",
-                "required": [
-                  "code_id",
-                  "funds",
-                  "label",
-                  "msg"
-                ],
-                "properties": {
-                  "admin": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  },
-                  "code_id": {
-                    "type": "integer",
-                    "format": "uint64",
-                    "minimum": 0.0
-                  },
-                  "funds": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/Coin"
-                    }
-                  },
-                  "label": {
-                    "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
-                    "type": "string"
-                  },
-                  "msg": {
-                    "description": "msg is the JSON-encoded InstantiateMsg struct (as raw Binary)",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Instantiates a new contracts from previously uploaded Wasm code using a predictable address derivation algorithm implemented in [`cosmwasm_std::instantiate2_address`].\n\nThis is translated to a [MsgInstantiateContract2](https://github.com/CosmWasm/wasmd/blob/v0.29.2/proto/cosmwasm/wasm/v1/tx.proto#L73-L96). `sender` is automatically filled with the current contract's address. `fix_msg` is automatically set to false.",
-            "type": "object",
-            "required": [
-              "instantiate2"
-            ],
-            "properties": {
-              "instantiate2": {
-                "type": "object",
-                "required": [
-                  "code_id",
-                  "funds",
-                  "label",
-                  "msg",
-                  "salt"
-                ],
-                "properties": {
-                  "admin": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  },
-                  "code_id": {
-                    "type": "integer",
-                    "format": "uint64",
-                    "minimum": 0.0
-                  },
-                  "funds": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/Coin"
-                    }
-                  },
-                  "label": {
-                    "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
-                    "type": "string"
-                  },
-                  "msg": {
-                    "description": "msg is the JSON-encoded InstantiateMsg struct (as raw Binary)",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  },
-                  "salt": {
-                    "$ref": "#/definitions/Binary"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Migrates a given contracts to use new wasm code. Passes a MigrateMsg to allow us to customize behavior.\n\nOnly the contract admin (as defined in wasmd), if any, is able to make this call.\n\nThis is translated to a [MsgMigrateContract](https://github.com/CosmWasm/wasmd/blob/v0.14.0/x/wasm/internal/types/tx.proto#L86-L96). `sender` is automatically filled with the current contract's address.",
-            "type": "object",
-            "required": [
-              "migrate"
-            ],
-            "properties": {
-              "migrate": {
-                "type": "object",
-                "required": [
-                  "contract_addr",
-                  "msg",
-                  "new_code_id"
-                ],
-                "properties": {
-                  "contract_addr": {
-                    "type": "string"
-                  },
-                  "msg": {
-                    "description": "msg is the json-encoded MigrateMsg struct that will be passed to the new code",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  },
-                  "new_code_id": {
-                    "description": "the code_id of the new logic to place in the given contract",
-                    "type": "integer",
-                    "format": "uint64",
-                    "minimum": 0.0
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Sets a new admin (for migrate) on the given contract. Fails if this contract is not currently admin of the target contract.",
-            "type": "object",
-            "required": [
-              "update_admin"
-            ],
-            "properties": {
-              "update_admin": {
-                "type": "object",
-                "required": [
-                  "admin",
-                  "contract_addr"
-                ],
-                "properties": {
-                  "admin": {
-                    "type": "string"
-                  },
-                  "contract_addr": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Clears the admin on the given contract, so no more migration possible. Fails if this contract is not currently admin of the target contract.",
-            "type": "object",
-            "required": [
-              "clear_admin"
-            ],
-            "properties": {
-              "clear_admin": {
-                "type": "object",
-                "required": [
-                  "contract_addr"
-                ],
-                "properties": {
-                  "contract_addr": {
-                    "type": "string"
                   }
                 },
                 "additionalProperties": false
@@ -3564,8 +2098,7 @@
                       }
                     ]
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -3595,8 +2128,7 @@
                       }
                     ]
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -3617,8 +2149,7 @@
                   "contract_addr": {
                     "type": "string"
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
@@ -3641,29 +2172,12 @@
                     "format": "uint64",
                     "minimum": 0.0
                   }
-                },
-                "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
           }
         ]
-      },
-      "WeightedVoteOption": {
-        "type": "object",
-        "required": [
-          "option",
-          "weight"
-        ],
-        "properties": {
-          "option": {
-            "$ref": "#/definitions/VoteOption"
-          },
-          "weight": {
-            "$ref": "#/definitions/Decimal"
-          }
-        },
-        "additionalProperties": false
       }
     }
   },
@@ -3913,54 +2427,8 @@
   "migrate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MigrateMsg",
-    "oneOf": [
-      {
-        "description": "Migrating from blob contract",
-        "type": "object",
-        "required": [
-          "instantiate"
-        ],
-        "properties": {
-          "instantiate": {
-            "$ref": "#/definitions/InstantiateMsg"
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Migrating from previous version",
-        "type": "object",
-        "required": [
-          "migrate"
-        ],
-        "properties": {
-          "migrate": {
-            "type": "object",
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      }
-    ],
-    "definitions": {
-      "InstantiateMsg": {
-        "description": "This needs no info. Owner of the contract is whoever signed the InstantiateMsg.",
-        "type": "object",
-        "required": [
-          "ans_host_address",
-          "version_control_address"
-        ],
-        "properties": {
-          "ans_host_address": {
-            "type": "string"
-          },
-          "version_control_address": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      }
-    }
+    "type": "object",
+    "additionalProperties": false
   },
   "sudo": null,
   "responses": {
@@ -3988,19 +2456,13 @@
       ],
       "properties": {
         "ans_host": {
-          "$ref": "#/definitions/Addr"
+          "type": "string"
         },
         "version_control_address": {
-          "$ref": "#/definitions/Addr"
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Addr": {
-          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "host": {
       "$schema": "http://json-schema.org/draft-07/schema#",

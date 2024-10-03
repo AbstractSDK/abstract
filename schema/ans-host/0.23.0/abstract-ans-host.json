@@ -443,8 +443,7 @@
           "pool_type": {
             "$ref": "#/definitions/PoolType"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "PoolType": {
         "type": "string",
@@ -482,8 +481,7 @@
           "protocol": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "UncheckedContractEntry": {
         "description": "Key to get the Address of a contract",
@@ -499,8 +497,7 @@
           "protocol": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "UniquePoolId": {
         "type": "integer",
@@ -1055,8 +1052,7 @@
           "protocol": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "ChannelFilter": {
         "description": "UNUSED - stub for future use",
@@ -1077,8 +1073,7 @@
           "protocol": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "ContractFilter": {
         "description": "UNUSED - stub for future use",
@@ -1144,50 +1139,8 @@
   "migrate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MigrateMsg",
-    "oneOf": [
-      {
-        "description": "Migrating from blob contract",
-        "type": "object",
-        "required": [
-          "instantiate"
-        ],
-        "properties": {
-          "instantiate": {
-            "$ref": "#/definitions/InstantiateMsg"
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Migrating from previous version",
-        "type": "object",
-        "required": [
-          "migrate"
-        ],
-        "properties": {
-          "migrate": {
-            "type": "object",
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      }
-    ],
-    "definitions": {
-      "InstantiateMsg": {
-        "description": "AnsHost Instantiate msg",
-        "type": "object",
-        "required": [
-          "admin"
-        ],
-        "properties": {
-          "admin": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      }
-    }
+    "type": "object",
+    "additionalProperties": false
   },
   "sudo": null,
   "responses": {
@@ -1502,8 +1455,7 @@
             "protocol": {
               "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "TruncatedChainId": {
           "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
@@ -1552,8 +1504,7 @@
             "protocol": {
               "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "TruncatedChainId": {
           "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
@@ -1628,8 +1579,7 @@
             "protocol": {
               "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         }
       }
     },
@@ -1679,8 +1629,7 @@
             "protocol": {
               "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         }
       }
     },
@@ -1963,8 +1912,7 @@
             "pool_type": {
               "$ref": "#/definitions/PoolType"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "PoolType": {
           "type": "string",
@@ -2034,8 +1982,7 @@
             "pool_type": {
               "$ref": "#/definitions/PoolType"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "PoolType": {
           "type": "string",

@@ -1,0 +1,1685 @@
+{
+  "contract_name": "abstract-manager",
+  "contract_version": "0.23.0",
+  "idl_version": "1.0.0",
+  "instantiate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "InstantiateMsg",
+    "description": "Manager Instantiate Msg",
+    "type": "object",
+    "required": [
+      "account_id",
+      "install_modules",
+      "module_factory_address",
+      "name",
+      "owner",
+      "proxy_addr",
+      "version_control_address"
+    ],
+    "properties": {
+      "account_id": {
+        "$ref": "#/definitions/AccountId"
+      },
+      "description": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "install_modules": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/ModuleInstallConfig"
+        }
+      },
+      "link": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "module_factory_address": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "owner": {
+        "$ref": "#/definitions/GovernanceDetails_for_String"
+      },
+      "proxy_addr": {
+        "type": "string"
+      },
+      "version_control_address": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "definitions": {
+      "AccountId": {
+        "description": "Unique identifier for an account. On each chain this is unique.",
+        "type": "object",
+        "required": [
+          "seq",
+          "trace"
+        ],
+        "properties": {
+          "seq": {
+            "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "trace": {
+            "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+            "allOf": [
+              {
+                "$ref": "#/definitions/AccountTrace"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountTrace": {
+        "description": "The identifier of chain that triggered the account creation",
+        "oneOf": [
+          {
+            "type": "string",
+            "enum": [
+              "local"
+            ]
+          },
+          {
+            "type": "object",
+            "required": [
+              "remote"
+            ],
+            "properties": {
+              "remote": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/TruncatedChainId"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Binary": {
+        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+        "type": "string"
+      },
+      "GovernanceDetails_for_String": {
+        "description": "Governance types",
+        "oneOf": [
+          {
+            "description": "A single address is admin",
+            "type": "object",
+            "required": [
+              "Monarchy"
+            ],
+            "properties": {
+              "Monarchy": {
+                "type": "object",
+                "required": [
+                  "monarch"
+                ],
+                "properties": {
+                  "monarch": {
+                    "description": "The monarch's address",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Used when the account is a sub-account of another account.",
+            "type": "object",
+            "required": [
+              "SubAccount"
+            ],
+            "properties": {
+              "SubAccount": {
+                "type": "object",
+                "required": [
+                  "manager",
+                  "proxy"
+                ],
+                "properties": {
+                  "manager": {
+                    "description": "The manager of the account of which this account is the sub-account.",
+                    "type": "string"
+                  },
+                  "proxy": {
+                    "description": "The proxy of the account of which this account is the sub-account.",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "An external governance source",
+            "type": "object",
+            "required": [
+              "External"
+            ],
+            "properties": {
+              "External": {
+                "type": "object",
+                "required": [
+                  "governance_address",
+                  "governance_type"
+                ],
+                "properties": {
+                  "governance_address": {
+                    "description": "The external contract address",
+                    "type": "string"
+                  },
+                  "governance_type": {
+                    "description": "Governance type used for doing extra off-chain queries depending on the type.",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Renounced account This account no longer has an owner and cannot be used.",
+            "type": "object",
+            "required": [
+              "Renounced"
+            ],
+            "properties": {
+              "Renounced": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "NFT"
+            ],
+            "properties": {
+              "NFT": {
+                "type": "object",
+                "required": [
+                  "collection_addr",
+                  "token_id"
+                ],
+                "properties": {
+                  "collection_addr": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "ModuleInfo": {
+        "description": "Stores the namespace, name, and version of an Abstract module.",
+        "type": "object",
+        "required": [
+          "name",
+          "namespace",
+          "version"
+        ],
+        "properties": {
+          "name": {
+            "description": "Name of the contract",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "Namespace of the module",
+            "allOf": [
+              {
+                "$ref": "#/definitions/Namespace"
+              }
+            ]
+          },
+          "version": {
+            "description": "Version of the module",
+            "allOf": [
+              {
+                "$ref": "#/definitions/ModuleVersion"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModuleInstallConfig": {
+        "description": "Module info and init message",
+        "type": "object",
+        "required": [
+          "module"
+        ],
+        "properties": {
+          "init_msg": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Binary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "module": {
+            "$ref": "#/definitions/ModuleInfo"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModuleVersion": {
+        "oneOf": [
+          {
+            "type": "string",
+            "enum": [
+              "latest"
+            ]
+          },
+          {
+            "type": "object",
+            "required": [
+              "version"
+            ],
+            "properties": {
+              "version": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Namespace": {
+        "description": "Represents an Abstract namespace for modules",
+        "type": "string"
+      },
+      "TruncatedChainId": {
+        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+        "type": "string"
+      }
+    }
+  },
+  "execute": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ExecuteMsg",
+    "description": "Manager execute messages",
+    "oneOf": [
+      {
+        "description": "Forward execution message to module",
+        "type": "object",
+        "required": [
+          "exec_on_module"
+        ],
+        "properties": {
+          "exec_on_module": {
+            "type": "object",
+            "required": [
+              "exec_msg",
+              "module_id"
+            ],
+            "properties": {
+              "exec_msg": {
+                "$ref": "#/definitions/Binary"
+              },
+              "module_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Update Abstract-specific configuration of the module. Only callable by the account factory or owner.",
+        "type": "object",
+        "required": [
+          "update_internal_config"
+        ],
+        "properties": {
+          "update_internal_config": {
+            "$ref": "#/definitions/Binary"
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Install module using module factory, callable by Owner",
+        "type": "object",
+        "required": [
+          "install_modules"
+        ],
+        "properties": {
+          "install_modules": {
+            "type": "object",
+            "required": [
+              "modules"
+            ],
+            "properties": {
+              "modules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ModuleInstallConfig"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Uninstall a module given its ID.",
+        "type": "object",
+        "required": [
+          "uninstall_module"
+        ],
+        "properties": {
+          "uninstall_module": {
+            "type": "object",
+            "required": [
+              "module_id"
+            ],
+            "properties": {
+              "module_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Upgrade the module to a new version If module is `abstract::manager` then the contract will do a self-migration.",
+        "type": "object",
+        "required": [
+          "upgrade"
+        ],
+        "properties": {
+          "upgrade": {
+            "type": "object",
+            "required": [
+              "modules"
+            ],
+            "properties": {
+              "modules": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/ModuleInfo"
+                    },
+                    {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/Binary"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Creates a sub-account on the account",
+        "type": "object",
+        "required": [
+          "create_sub_account"
+        ],
+        "properties": {
+          "create_sub_account": {
+            "type": "object",
+            "required": [
+              "install_modules",
+              "name"
+            ],
+            "properties": {
+              "account_id": {
+                "description": "If `None`, will create a new local account without asserting account-id.\n\nWhen provided sequence in 0..2147483648 range: The tx will error When provided sequence in 2147483648..u32::MAX range: Signals use of unclaimed Account Id in this range. The tx will error if this account-id already claimed. Useful for instantiate2 address prediction.",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint32",
+                "minimum": 0.0
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "install_modules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ModuleInstallConfig"
+                }
+              },
+              "link": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Update info",
+        "type": "object",
+        "required": [
+          "update_info"
+        ],
+        "properties": {
+          "update_info": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "link": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Update account statuses",
+        "type": "object",
+        "required": [
+          "update_status"
+        ],
+        "properties": {
+          "update_status": {
+            "type": "object",
+            "properties": {
+              "is_suspended": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Actions called by internal or external sub-accounts",
+        "type": "object",
+        "required": [
+          "update_sub_account"
+        ],
+        "properties": {
+          "update_sub_account": {
+            "$ref": "#/definitions/UpdateSubAccountAction"
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Callback endpoint",
+        "type": "object",
+        "required": [
+          "callback"
+        ],
+        "properties": {
+          "callback": {
+            "$ref": "#/definitions/CallbackMsg"
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Update the contract's ownership. The `action` can propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership of the account permanently.",
+        "type": "object",
+        "required": [
+          "update_ownership"
+        ],
+        "properties": {
+          "update_ownership": {
+            "$ref": "#/definitions/GovAction"
+          }
+        },
+        "additionalProperties": false
+      }
+    ],
+    "definitions": {
+      "Binary": {
+        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+        "type": "string"
+      },
+      "CallbackMsg": {
+        "description": "Callback message to set the dependencies after module upgrades.",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "Expiration": {
+        "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+        "oneOf": [
+          {
+            "description": "AtHeight will expire when `env.block.height` >= height",
+            "type": "object",
+            "required": [
+              "at_height"
+            ],
+            "properties": {
+              "at_height": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "AtTime will expire when `env.block.time` >= time",
+            "type": "object",
+            "required": [
+              "at_time"
+            ],
+            "properties": {
+              "at_time": {
+                "$ref": "#/definitions/Timestamp"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Never will never expire. Used to express the empty variant",
+            "type": "object",
+            "required": [
+              "never"
+            ],
+            "properties": {
+              "never": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "GovAction": {
+        "description": "Actions that can be taken to alter the contract's governance ownership",
+        "oneOf": [
+          {
+            "description": "Propose to transfer the contract's ownership to another account, optionally with an expiry time.\n\nCan only be called by the contract's current owner.\n\nAny existing pending ownership transfer is overwritten.",
+            "type": "object",
+            "required": [
+              "transfer_ownership"
+            ],
+            "properties": {
+              "transfer_ownership": {
+                "type": "object",
+                "required": [
+                  "new_owner"
+                ],
+                "properties": {
+                  "expiry": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Expiration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "new_owner": {
+                    "$ref": "#/definitions/GovernanceDetails_for_String"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Accept the pending ownership transfer.\n\nCan only be called by the pending owner.",
+            "type": "string",
+            "enum": [
+              "accept_ownership"
+            ]
+          },
+          {
+            "description": "Give up the contract's ownership and the possibility of appointing a new owner.\n\nCan only be invoked by the contract's current owner.\n\nAny existing pending ownership transfer is canceled.",
+            "type": "string",
+            "enum": [
+              "renounce_ownership"
+            ]
+          }
+        ]
+      },
+      "GovernanceDetails_for_String": {
+        "description": "Governance types",
+        "oneOf": [
+          {
+            "description": "A single address is admin",
+            "type": "object",
+            "required": [
+              "Monarchy"
+            ],
+            "properties": {
+              "Monarchy": {
+                "type": "object",
+                "required": [
+                  "monarch"
+                ],
+                "properties": {
+                  "monarch": {
+                    "description": "The monarch's address",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Used when the account is a sub-account of another account.",
+            "type": "object",
+            "required": [
+              "SubAccount"
+            ],
+            "properties": {
+              "SubAccount": {
+                "type": "object",
+                "required": [
+                  "manager",
+                  "proxy"
+                ],
+                "properties": {
+                  "manager": {
+                    "description": "The manager of the account of which this account is the sub-account.",
+                    "type": "string"
+                  },
+                  "proxy": {
+                    "description": "The proxy of the account of which this account is the sub-account.",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "An external governance source",
+            "type": "object",
+            "required": [
+              "External"
+            ],
+            "properties": {
+              "External": {
+                "type": "object",
+                "required": [
+                  "governance_address",
+                  "governance_type"
+                ],
+                "properties": {
+                  "governance_address": {
+                    "description": "The external contract address",
+                    "type": "string"
+                  },
+                  "governance_type": {
+                    "description": "Governance type used for doing extra off-chain queries depending on the type.",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Renounced account This account no longer has an owner and cannot be used.",
+            "type": "object",
+            "required": [
+              "Renounced"
+            ],
+            "properties": {
+              "Renounced": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "NFT"
+            ],
+            "properties": {
+              "NFT": {
+                "type": "object",
+                "required": [
+                  "collection_addr",
+                  "token_id"
+                ],
+                "properties": {
+                  "collection_addr": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "ModuleInfo": {
+        "description": "Stores the namespace, name, and version of an Abstract module.",
+        "type": "object",
+        "required": [
+          "name",
+          "namespace",
+          "version"
+        ],
+        "properties": {
+          "name": {
+            "description": "Name of the contract",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "Namespace of the module",
+            "allOf": [
+              {
+                "$ref": "#/definitions/Namespace"
+              }
+            ]
+          },
+          "version": {
+            "description": "Version of the module",
+            "allOf": [
+              {
+                "$ref": "#/definitions/ModuleVersion"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModuleInstallConfig": {
+        "description": "Module info and init message",
+        "type": "object",
+        "required": [
+          "module"
+        ],
+        "properties": {
+          "init_msg": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Binary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "module": {
+            "$ref": "#/definitions/ModuleInfo"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModuleVersion": {
+        "oneOf": [
+          {
+            "type": "string",
+            "enum": [
+              "latest"
+            ]
+          },
+          {
+            "type": "object",
+            "required": [
+              "version"
+            ],
+            "properties": {
+              "version": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Namespace": {
+        "description": "Represents an Abstract namespace for modules",
+        "type": "string"
+      },
+      "Timestamp": {
+        "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Uint64"
+          }
+        ]
+      },
+      "Uint64": {
+        "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+        "type": "string"
+      },
+      "UpdateSubAccountAction": {
+        "oneOf": [
+          {
+            "description": "Unregister sub-account It will unregister sub-account from the state Could be called only by the sub-account itself",
+            "type": "object",
+            "required": [
+              "unregister_sub_account"
+            ],
+            "properties": {
+              "unregister_sub_account": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "uint32",
+                    "minimum": 0.0
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Register sub-account It will register new sub-account into the state Could be called by the sub-account manager Note: since it happens after the claim by this manager state won't have spam accounts",
+            "type": "object",
+            "required": [
+              "register_sub_account"
+            ],
+            "properties": {
+              "register_sub_account": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "uint32",
+                    "minimum": 0.0
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "query": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "QueryMsg",
+    "description": "Manager query messages",
+    "oneOf": [
+      {
+        "description": "Query the versions of modules installed on the account given their `ids`. Returns [`ModuleVersionsResponse`]",
+        "type": "object",
+        "required": [
+          "module_versions"
+        ],
+        "properties": {
+          "module_versions": {
+            "type": "object",
+            "required": [
+              "ids"
+            ],
+            "properties": {
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Query the addresses of modules installed on the account given their `ids`. Returns [`ModuleAddressesResponse`]",
+        "type": "object",
+        "required": [
+          "module_addresses"
+        ],
+        "properties": {
+          "module_addresses": {
+            "type": "object",
+            "required": [
+              "ids"
+            ],
+            "properties": {
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Query information of all modules installed on the account. Returns [`ModuleInfosResponse`]",
+        "type": "object",
+        "required": [
+          "module_infos"
+        ],
+        "properties": {
+          "module_infos": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Query the manager's config. Returns [`ConfigResponse`]",
+        "type": "object",
+        "required": [
+          "config"
+        ],
+        "properties": {
+          "config": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Query the Account info. Returns [`InfoResponse`]",
+        "type": "object",
+        "required": [
+          "info"
+        ],
+        "properties": {
+          "info": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Returns [`SubAccountIdsResponse`]",
+        "type": "object",
+        "required": [
+          "sub_account_ids"
+        ],
+        "properties": {
+          "sub_account_ids": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint32",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Returns [`TopLevelOwnerResponse`]",
+        "type": "object",
+        "required": [
+          "top_level_owner"
+        ],
+        "properties": {
+          "top_level_owner": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Query the contract's ownership information",
+        "type": "object",
+        "required": [
+          "ownership"
+        ],
+        "properties": {
+          "ownership": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ]
+  },
+  "migrate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MigrateMsg",
+    "description": "Manager Migrate Msg",
+    "type": "object",
+    "additionalProperties": false
+  },
+  "sudo": null,
+  "responses": {
+    "config": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ConfigResponse",
+      "type": "object",
+      "required": [
+        "account_id",
+        "is_suspended",
+        "module_factory_address",
+        "version_control_address"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "#/definitions/AccountId"
+        },
+        "is_suspended": {
+          "type": "boolean"
+        },
+        "module_factory_address": {
+          "$ref": "#/definitions/Addr"
+        },
+        "version_control_address": {
+          "$ref": "#/definitions/Addr"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "AccountId": {
+          "description": "Unique identifier for an account. On each chain this is unique.",
+          "type": "object",
+          "required": [
+            "seq",
+            "trace"
+          ],
+          "properties": {
+            "seq": {
+              "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "trace": {
+              "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AccountTrace"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountTrace": {
+          "description": "The identifier of chain that triggered the account creation",
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "local"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "remote"
+              ],
+              "properties": {
+                "remote": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/TruncatedChainId"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "TruncatedChainId": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
+        }
+      }
+    },
+    "info": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "InfoResponse",
+      "type": "object",
+      "required": [
+        "info"
+      ],
+      "properties": {
+        "info": {
+          "$ref": "#/definitions/AccountInfo"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "AccountInfo": {
+          "description": "Abstract Account details.",
+          "type": "object",
+          "required": [
+            "chain_id",
+            "name"
+          ],
+          "properties": {
+            "chain_id": {
+              "type": "string"
+            },
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "link": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "module_addresses": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ModuleAddressesResponse",
+      "type": "object",
+      "required": [
+        "modules"
+      ],
+      "properties": {
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/definitions/Addr"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        }
+      }
+    },
+    "module_infos": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ModuleInfosResponse",
+      "type": "object",
+      "required": [
+        "module_infos"
+      ],
+      "properties": {
+        "module_infos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ManagerModuleInfo"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "ContractVersion": {
+          "type": "object",
+          "required": [
+            "contract",
+            "version"
+          ],
+          "properties": {
+            "contract": {
+              "description": "contract is the crate name of the implementing contract, eg. `crate:cw20-base` we will use other prefixes for other languages, and their standard global namespacing",
+              "type": "string"
+            },
+            "version": {
+              "description": "version is any string that this implementation knows. It may be simple counter \"1\", \"2\". or semantic version on release tags \"v0.7.0\", or some custom feature flag list. the only code that needs to understand the version parsing is code that knows how to migrate from the given contract (and is tied to it's implementation somehow)",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ManagerModuleInfo": {
+          "type": "object",
+          "required": [
+            "address",
+            "id",
+            "version"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/definitions/Addr"
+            },
+            "id": {
+              "type": "string"
+            },
+            "version": {
+              "$ref": "#/definitions/ContractVersion"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "module_versions": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ModuleVersionsResponse",
+      "type": "object",
+      "required": [
+        "versions"
+      ],
+      "properties": {
+        "versions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContractVersion"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "ContractVersion": {
+          "type": "object",
+          "required": [
+            "contract",
+            "version"
+          ],
+          "properties": {
+            "contract": {
+              "description": "contract is the crate name of the implementing contract, eg. `crate:cw20-base` we will use other prefixes for other languages, and their standard global namespacing",
+              "type": "string"
+            },
+            "version": {
+              "description": "version is any string that this implementation knows. It may be simple counter \"1\", \"2\". or semantic version on release tags \"v0.7.0\", or some custom feature flag list. the only code that needs to understand the version parsing is code that knows how to migrate from the given contract (and is tied to it's implementation somehow)",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "ownership": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Ownership_for_String",
+      "description": "The contract's ownership info",
+      "type": "object",
+      "required": [
+        "owner"
+      ],
+      "properties": {
+        "owner": {
+          "description": "The contract's current owner.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/GovernanceDetails_for_String"
+            }
+          ]
+        },
+        "pending_expiry": {
+          "description": "The deadline for the pending owner to accept the ownership. `None` if there isn't a pending ownership transfer, or if a transfer exists and it doesn't have a deadline.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Expiration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_owner": {
+          "description": "The account who has been proposed to take over the ownership. `None` if there isn't a pending ownership transfer.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/GovernanceDetails_for_String"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "GovernanceDetails_for_String": {
+          "description": "Governance types",
+          "oneOf": [
+            {
+              "description": "A single address is admin",
+              "type": "object",
+              "required": [
+                "Monarchy"
+              ],
+              "properties": {
+                "Monarchy": {
+                  "type": "object",
+                  "required": [
+                    "monarch"
+                  ],
+                  "properties": {
+                    "monarch": {
+                      "description": "The monarch's address",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Used when the account is a sub-account of another account.",
+              "type": "object",
+              "required": [
+                "SubAccount"
+              ],
+              "properties": {
+                "SubAccount": {
+                  "type": "object",
+                  "required": [
+                    "manager",
+                    "proxy"
+                  ],
+                  "properties": {
+                    "manager": {
+                      "description": "The manager of the account of which this account is the sub-account.",
+                      "type": "string"
+                    },
+                    "proxy": {
+                      "description": "The proxy of the account of which this account is the sub-account.",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "An external governance source",
+              "type": "object",
+              "required": [
+                "External"
+              ],
+              "properties": {
+                "External": {
+                  "type": "object",
+                  "required": [
+                    "governance_address",
+                    "governance_type"
+                  ],
+                  "properties": {
+                    "governance_address": {
+                      "description": "The external contract address",
+                      "type": "string"
+                    },
+                    "governance_type": {
+                      "description": "Governance type used for doing extra off-chain queries depending on the type.",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Renounced account This account no longer has an owner and cannot be used.",
+              "type": "object",
+              "required": [
+                "Renounced"
+              ],
+              "properties": {
+                "Renounced": {
+                  "type": "object"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "NFT"
+              ],
+              "properties": {
+                "NFT": {
+                  "type": "object",
+                  "required": [
+                    "collection_addr",
+                    "token_id"
+                  ],
+                  "properties": {
+                    "collection_addr": {
+                      "type": "string"
+                    },
+                    "token_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "sub_account_ids": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SubAccountIdsResponse",
+      "type": "object",
+      "required": [
+        "sub_accounts"
+      ],
+      "properties": {
+        "sub_accounts": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "top_level_owner": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TopLevelOwnerResponse",
+      "type": "object",
+      "required": [
+        "address"
+      ],
+      "properties": {
+        "address": {
+          "$ref": "#/definitions/Addr"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        }
+      }
+    }
+  }
+}
