@@ -114,7 +114,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         let recipient = self.base.account(self.deps)?.into_addr();
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps, &self.env))
+            .map(|asset| asset.transferable_asset(self.base, self.deps, self.env))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         transferable_funds
             .iter()
@@ -173,7 +173,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps, &self.env))
+            .map(|asset| asset.transferable_asset(self.base, self.deps, self.env))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         let msgs = transferable_funds
             .iter()
@@ -204,7 +204,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
         recipient: &Addr,
         message: &M,
     ) -> AbstractSdkResult<AccountAction> {
-        let transferable_funds = funds.transferable_asset(self.base, self.deps, &self.env)?;
+        let transferable_funds = funds.transferable_asset(self.base, self.deps, self.env)?;
 
         let msgs = transferable_funds.send_msg(recipient, to_json_binary(message)?)?;
 

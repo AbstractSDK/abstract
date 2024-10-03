@@ -101,7 +101,7 @@ expression: all_storage
     - "{\"owner\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\",\"pending_owner\":null,\"pending_expiry\":null}"
 "tester:mock-adapter1":
   - - base_state
-    - "{\"version_control\":{\"address\":\"mock1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsas0vscja\"},\"ans_host\":{\"address\":\"mock1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4qkernmj\"}}"
+    - "{}"
   - - contract_info
     - "{\"contract\":\"tester:mock-adapter1\",\"version\":\"2.0.0\"}"
   - - mod

@@ -119,10 +119,7 @@ mod test {
 
         // init
         let init_msg = adapter::InstantiateMsg {
-            base: adapter::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
-            },
+            base: adapter::BaseInstantiateMsg {},
             module: MockInitMsg {},
         };
         let actual_init = instantiate(
@@ -245,10 +242,7 @@ mod test {
 
         // init
         let init_msg = adapter::InstantiateMsg {
-            base: adapter::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
-            },
+            base: adapter::BaseInstantiateMsg {},
             module: MockInitMsg {},
         };
         let actual_init = instantiate(

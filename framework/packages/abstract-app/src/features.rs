@@ -20,8 +20,7 @@ impl<
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
     fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
-        // Retrieve the ANS host address from the base state.
-        Ok(self.base_state.load(deps.storage)?.ans_host)
+        AnsHost::new(deps.api, env).map_err(Into::into)
     }
 }
 // ANCHOR_END: ans
@@ -56,7 +55,7 @@ impl<
         deps: Deps,
         env: &Env,
     ) -> AbstractSdkResult<VersionControlContract> {
-        Ok(self.base_state.load(deps.storage)?.version_control)
+        VersionControlContract::new(deps.api, env).map_err(Into::into)
     }
 }
 

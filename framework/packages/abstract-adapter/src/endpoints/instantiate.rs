@@ -1,7 +1,4 @@
-use abstract_sdk::{
-    base::{Handler, InstantiateEndpoint},
-    feature_objects::{AnsHost, VersionControlContract},
-};
+use abstract_sdk::base::{Handler, InstantiateEndpoint};
 use abstract_std::{
     adapter::{AdapterState, InstantiateMsg},
     objects::module_version::set_module_data,
@@ -31,19 +28,8 @@ impl<
         info: MessageInfo,
         msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
-        let ans_host = AnsHost {
-            address: deps.api.addr_validate(&msg.base.ans_host_address)?,
-        };
-
-        let version_control = VersionControlContract {
-            address: deps.api.addr_validate(&msg.base.version_control_address)?,
-        };
-
         // Base state
-        let state = AdapterState {
-            version_control,
-            ans_host,
-        };
+        let state = AdapterState {};
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
@@ -59,10 +45,7 @@ impl<
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_sdk::{
-        base::InstantiateEndpoint,
-        feature_objects::{AnsHost, VersionControlContract},
-    };
+    use abstract_sdk::base::InstantiateEndpoint;
     use abstract_std::{
         adapter::{AdapterState, BaseInstantiateMsg, InstantiateMsg},
         objects::module_version::{ModuleData, MODULE},
@@ -83,10 +66,7 @@ mod test {
         let info = message_info(abstr.account.addr(), &[]);
         deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
-            },
+            base: BaseInstantiateMsg {},
             module: MockInitMsg {},
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;
@@ -119,17 +99,7 @@ mod test {
         assert!(none_authorized);
 
         let state = api.base_state.load(&deps.storage)?;
-        assert_eq!(
-            state,
-            AdapterState {
-                version_control: VersionControlContract {
-                    address: abstr.version_control,
-                },
-                ans_host: AnsHost {
-                    address: abstr.ans_host,
-                },
-            }
-        );
+        assert_eq!(state, AdapterState {});
         Ok(())
     }
 }

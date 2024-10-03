@@ -14,7 +14,6 @@ use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, WasmMsg,
 };
-use feature_objects::AnsHost;
 use serde_cw_value::Value;
 
 use crate::{
@@ -35,7 +34,6 @@ pub fn execute_create_modules(
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
     let version_control = VersionControlContract::new(deps.api, &env)?;
-    let ans_host = AnsHost::new(deps.api, &env)?;
 
     // assert that sender is manager
     let account = version_control.assert_account(&info.sender, &deps.querier)?;
@@ -101,8 +99,6 @@ pub fn execute_create_modules(
                 let init_msg_as_value: Value = from_json(init_msg)?;
                 // App base message
                 let app_base_msg = abstract_std::app::BaseInstantiateMsg {
-                    ans_host_address: ans_host.address.to_string(),
-                    version_control_address: version_control.address.to_string(),
                     account: account.clone(),
                 };
 

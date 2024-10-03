@@ -101,7 +101,7 @@ expression: all_storage
   - - "\u0000\u0014authorized_addressesmock1jdl4tasw0x00k2edyf8656lqxy95gx06h2nt5n8qjzv45yxr5ekq0myk0q"
     - "[\"mock1jdl4tasw0x00k2edyf8656lqxy95gx06h2nt5n8qjzv45yxr5ekq0myk0q\"]"
   - - base_state
-    - "{\"version_control\":{\"address\":\"mock1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsas0vscja\"},\"ans_host\":{\"address\":\"mock1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4qkernmj\"}}"
+    - "{}"
   - - contract_info
     - "{\"contract\":\"tester:test-module-id\",\"version\":\"0.23.0\"}"
   - - ibc_callback_received

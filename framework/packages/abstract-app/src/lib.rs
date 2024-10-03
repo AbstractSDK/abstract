@@ -213,11 +213,7 @@ pub mod mock {
         deps.querier = app_base_mock_querier(deps.api).build();
 
         let msg = app::InstantiateMsg {
-            base: app::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
-                account,
-            },
+            base: app::BaseInstantiateMsg { account },
             module: MockInitMsg {},
         };
 

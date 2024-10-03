@@ -12,7 +12,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
     fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
-        Ok(self.base_state.load(deps.storage)?.ans_host)
+        AnsHost::new(deps.api, env).map_err(Into::into)
     }
 }
 
@@ -40,7 +40,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         deps: Deps,
         env: &Env,
     ) -> AbstractSdkResult<VersionControlContract> {
-        Ok(self.state(deps.storage)?.version_control)
+        VersionControlContract::new(deps.api, env).map_err(Into::into)
     }
 }
 #[cfg(test)]

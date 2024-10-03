@@ -1,3 +1,4 @@
+use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_std::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::{
@@ -6,7 +7,7 @@ use abstract_std::{
         ownership::nested_admin::query_top_level_owner_addr,
     },
 };
-use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError, StdResult};
 use cw_controllers::AdminResponse;
 
 use crate::{
@@ -44,21 +45,25 @@ impl<
         SudoMsg,
     > AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    pub fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
+    pub fn base_query(&self, deps: Deps, env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
-            BaseQueryMsg::BaseConfig {} => to_json_binary(&self.dapp_config(deps)?),
+            BaseQueryMsg::BaseConfig {} => to_json_binary(&self.dapp_config(deps, &env)?),
             BaseQueryMsg::BaseAdmin {} => to_json_binary(&self.admin(deps)?),
             BaseQueryMsg::ModuleData {} => to_json_binary(&self.module_data(deps)?),
             BaseQueryMsg::TopLevelOwner {} => to_json_binary(&self.top_level_owner(deps)?),
         }
     }
 
-    fn dapp_config(&self, deps: Deps) -> StdResult<AppConfigResponse> {
+    fn dapp_config(&self, deps: Deps, env: &Env) -> StdResult<AppConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
         Ok(AppConfigResponse {
             account: state.account.into_addr(),
-            ans_host_address: state.ans_host.address,
-            version_control_address: state.version_control.address,
+            ans_host_address: AnsHost::new(deps.api, env)
+                .map_err(|e| StdError::generic_err(e.to_string()))?
+                .address,
+            version_control_address: VersionControlContract::new(deps.api, env)
+                .map_err(|e| StdError::generic_err(e.to_string()))?
+                .address,
         })
     }
 

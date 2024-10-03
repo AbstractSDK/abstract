@@ -101,7 +101,7 @@ expression: all_storage
   - - admin
     - "\"mock1jdl4tasw0x00k2edyf8656lqxy95gx06h2nt5n8qjzv45yxr5ekq0myk0q\""
   - - base_state
-    - "{\"account\":\"mock1jdl4tasw0x00k2edyf8656lqxy95gx06h2nt5n8qjzv45yxr5ekq0myk0q\",\"ans_host\":{\"address\":\"mock1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4qkernmj\"},\"version_control\":{\"address\":\"mock1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsas0vscja\"}}"
+    - "{\"account\":\"mock1jdl4tasw0x00k2edyf8656lqxy95gx06h2nt5n8qjzv45yxr5ekq0myk0q\"}"
   - - contract_info
     - "{\"contract\":\"tester:app\",\"version\":\"1.0.0\"}"
   - - mod

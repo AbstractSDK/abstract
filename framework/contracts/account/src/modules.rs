@@ -272,7 +272,7 @@ pub fn query_module(
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, AccountError> {
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(deps.api, &env)?;
+    let version_control = VersionControlContract::new(deps.api, env)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
