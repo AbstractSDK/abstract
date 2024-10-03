@@ -81,10 +81,7 @@ impl AbstractMockQuerier for MockQuerierBuilder {
     }
 
     fn set_account_admin_call_to(self, account: &Account) -> Self {
-        self.with_contract_item(
-            account.addr(),
-            CALLING_TO_AS_ADMIN,
-            &mock_env().contract.address,
-        )
+        let env = mock_env_validated(self.api);
+        self.with_contract_item(account.addr(), CALLING_TO_AS_ADMIN, &env.contract.address)
     }
 }
