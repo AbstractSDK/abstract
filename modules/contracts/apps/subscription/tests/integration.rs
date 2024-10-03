@@ -352,7 +352,7 @@ fn claim_emissions_none() -> anyhow::Result<()> {
     } = setup_native(&mock, [(&subscriber1, sub_amount.as_slice())])?;
 
     subscription_app
-        .call_as(&subscription_app.account().address()?)
+        .call_as(&subscription_app.account().owner()?)
         .update_subscription_config(None, None, Some(EmissionType::None), None)?;
 
     // 1 user subscribe
@@ -392,7 +392,7 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     )?;
 
     subscription_app
-        .call_as(&subscription_app.account().address()?)
+        .call_as(&subscription_app.account().owner()?)
         .update_subscription_config(
             None,
             None,

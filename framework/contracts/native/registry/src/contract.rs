@@ -3,30 +3,30 @@ use abstract_sdk::{execute_update_ownership, query_ownership};
 pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_std::{
     objects::namespace::Namespace,
-    version_control::{
+    registry::{
         state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES_INFO},
         Config,
     },
 };
 use abstract_std::{
     objects::ABSTRACT_ACCOUNT_ID,
-    version_control::{state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg},
-    VERSION_CONTROL,
+    registry::{state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg},
+    REGISTRY,
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
-use crate::{commands::*, error::VCError, queries};
+use crate::{commands::*, error::RegistryError, queries};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type VCResult<T = Response> = Result<T, VCError>;
+pub type VCResult<T = Response> = Result<T, RegistryError>;
 
-#[abstract_response(VERSION_CONTROL)]
+#[abstract_response(REGISTRY)]
 pub struct VcResponse;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: InstantiateMsg) -> VCResult {
-    cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
+    cw2::set_contract_version(deps.storage, REGISTRY, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
         admin,
@@ -141,20 +141,20 @@ mod tests {
 
     #[cfg(test)]
     mod testing {
-        use abstract_std::version_control;
-        use abstract_testing::{mock_env_validated, prelude::*};
+        use abstract_std::registry;
+        use abstract_testing::prelude::*;
         use cosmwasm_std::{
             testing::{message_info, mock_dependencies, MockApi},
             OwnedDeps, Response,
         };
         use speculoos::prelude::*;
 
-        use crate::{contract, error::VCError};
+        use crate::{contract, error::RegistryError};
 
-        /// Initialize the version_control with admin as creator and factory
+        /// Initialize the registry with admin as creator and factory
         pub fn mock_init(
             deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-        ) -> Result<Response, VCError> {
+        ) -> Result<Response, RegistryError> {
             let abstr = AbstractMockAddrs::new(deps.api);
             let info = message_info(&abstr.owner, &[]);
             let env = mock_env_validated(deps.api);
@@ -164,7 +164,7 @@ mod tests {
                 deps.as_mut(),
                 env,
                 info,
-                version_control::InstantiateMsg {
+                registry::InstantiateMsg {
                     admin,
                     security_disabled: Some(true),
                     namespace_registration_fee: None,
@@ -173,7 +173,7 @@ mod tests {
         }
 
         mod migrate {
-            use abstract_std::{version_control::MigrateMsg, AbstractError, VERSION_CONTROL};
+            use abstract_std::{registry::MigrateMsg, AbstractError, REGISTRY};
             use contract::{VCResult, CONTRACT_VERSION};
             use semver::Version;
 
@@ -189,13 +189,15 @@ mod tests {
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res).is_err().is_equal_to(VCError::Abstract(
-                    AbstractError::CannotDowngradeContract {
-                        contract: VERSION_CONTROL.to_string(),
-                        from: version.to_string().parse().unwrap(),
-                        to: version.to_string().parse().unwrap(),
-                    },
-                ));
+                assert_that!(res)
+                    .is_err()
+                    .is_equal_to(RegistryError::Abstract(
+                        AbstractError::CannotDowngradeContract {
+                            contract: REGISTRY.to_string(),
+                            from: version.to_string().parse().unwrap(),
+                            to: version.to_string().parse().unwrap(),
+                        },
+                    ));
 
                 Ok(())
             }
@@ -207,19 +209,21 @@ mod tests {
                 mock_init(&mut deps)?;
 
                 let big_version = "999.999.999";
-                cw2::set_contract_version(deps.as_mut().storage, VERSION_CONTROL, big_version)?;
+                cw2::set_contract_version(deps.as_mut().storage, REGISTRY, big_version)?;
 
                 let version: Version = CONTRACT_VERSION.parse().unwrap();
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res).is_err().is_equal_to(VCError::Abstract(
-                    AbstractError::CannotDowngradeContract {
-                        contract: VERSION_CONTROL.to_string(),
-                        from: big_version.parse().unwrap(),
-                        to: version.to_string().parse().unwrap(),
-                    },
-                ));
+                assert_that!(res)
+                    .is_err()
+                    .is_equal_to(RegistryError::Abstract(
+                        AbstractError::CannotDowngradeContract {
+                            contract: REGISTRY.to_string(),
+                            from: big_version.parse().unwrap(),
+                            to: version.to_string().parse().unwrap(),
+                        },
+                    ));
 
                 Ok(())
             }
@@ -236,12 +240,14 @@ mod tests {
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res).is_err().is_equal_to(VCError::Abstract(
-                    AbstractError::ContractNameMismatch {
-                        from: old_name.to_string(),
-                        to: VERSION_CONTROL.to_string(),
-                    },
-                ));
+                assert_that!(res)
+                    .is_err()
+                    .is_equal_to(RegistryError::Abstract(
+                        AbstractError::ContractNameMismatch {
+                            from: old_name.to_string(),
+                            to: REGISTRY.to_string(),
+                        },
+                    ));
 
                 Ok(())
             }
@@ -259,7 +265,7 @@ mod tests {
                     ..version.clone()
                 }
                 .to_string();
-                cw2::set_contract_version(deps.as_mut().storage, VERSION_CONTROL, small_version)?;
+                cw2::set_contract_version(deps.as_mut().storage, REGISTRY, small_version)?;
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
                 assert_that!(res.messages).has_length(0);
@@ -276,11 +282,11 @@ mod tests {
                     namespace::{Namespace, ABSTRACT_NAMESPACE},
                     ABSTRACT_ACCOUNT_ID,
                 },
-                version_control::state::LOCAL_ACCOUNT_SEQUENCE,
+                registry::state::LOCAL_ACCOUNT_SEQUENCE,
             };
             use abstract_testing::prelude::AbstractMockAddrs;
             use contract::{VCResult, VcResponse};
-            use version_control::state::NAMESPACES_INFO;
+            use registry::state::NAMESPACES_INFO;
 
             use super::*;
 
@@ -296,7 +302,7 @@ mod tests {
                     deps.as_mut(),
                     env,
                     info.clone(),
-                    version_control::InstantiateMsg {
+                    registry::InstantiateMsg {
                         admin,
                         security_disabled: Some(true),
                         namespace_registration_fee: None,

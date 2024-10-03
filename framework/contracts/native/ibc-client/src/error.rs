@@ -1,7 +1,7 @@
 use abstract_sdk::AbstractSdkError;
 use abstract_std::{
     ibc::polytone_callbacks::CallbackMessage,
-    objects::{ans_host::AnsHostError, version_control::VersionControlError, AccountId},
+    objects::{ans_host::AnsHostError, registry::RegistryError, AccountId},
     AbstractError,
 };
 use cosmwasm_std::StdError;
@@ -22,7 +22,7 @@ pub enum IbcClientError {
     Ownership(#[from] cw_ownable::OwnershipError),
 
     #[error("{0}")]
-    VersionControlError(#[from] VersionControlError),
+    RegistryError(#[from] RegistryError),
 
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),

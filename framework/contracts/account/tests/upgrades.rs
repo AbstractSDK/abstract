@@ -3,7 +3,7 @@ use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_integration_tests::{create_default_account, mock_modules::*, AResult, *};
 use abstract_interface::{
     Abstract, AbstractInterfaceError, AccountDetails, AccountExecFns as _, AccountI,
-    AccountQueryFns, MFactoryQueryFns, VCExecFns,
+    AccountQueryFns, MFactoryQueryFns, RegistryExecFns,
 };
 use abstract_std::{
     account::{ModuleInstallConfig, ModuleVersionsResponse},
@@ -17,7 +17,7 @@ use abstract_std::{
         namespace::Namespace,
         AccountId,
     },
-    version_control::UpdateModule,
+    registry::UpdateModule,
     AbstractError, IBC_CLIENT,
 };
 use abstract_testing::prelude::*;
@@ -34,7 +34,7 @@ fn install_app_successful() -> AResult {
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -74,7 +74,7 @@ fn install_app_versions_not_met() -> AResult {
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -101,7 +101,7 @@ fn upgrade_app() -> AResult {
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -289,7 +289,7 @@ fn upgrade_manager_last() -> AResult {
     let AccountI { account, proxy: _ } = &account;
 
     abstr
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
@@ -350,7 +350,7 @@ fn no_duplicate_migrations() -> AResult {
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -502,7 +502,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
     )?;
     deploy_modules(&chain);
     // Add monetization
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-adapter1".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -512,7 +512,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
             instantiation_funds: None,
         },
     )?;
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-adapter2".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -522,7 +522,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
             instantiation_funds: None,
         },
     )?;
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-app1".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -642,7 +642,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
     )?;
     deploy_modules(&chain);
     // Add monetization
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-adapter1".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -652,7 +652,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             instantiation_funds: None,
         },
     )?;
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-adapter2".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -662,7 +662,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             instantiation_funds: None,
         },
     )?;
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-app1".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -764,7 +764,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
     ));
     let standalone_id = chain.app.borrow_mut().store_code(standalone_contract);
 
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("tester")?,
             name: "standalone".to_owned(),
@@ -774,7 +774,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
     )])?;
 
     // Add init_funds
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-app1".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -784,7 +784,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
             instantiation_funds: Some(vec![coin(3, "coin1"), coin(5, "coin2")]),
         },
     )?;
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "standalone".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {

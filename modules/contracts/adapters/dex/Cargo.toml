@@ -121,7 +121,7 @@ clap = { workspace = true }
 dex = { path = ".", features = [
   # "wynd",
   # "osmosis",
-  # "testing",
+  "testing",
 ], package = "abstract-dex-adapter" }
 
 # abstract-wyndex-adapter = { workspace = true, features = ["local"] }

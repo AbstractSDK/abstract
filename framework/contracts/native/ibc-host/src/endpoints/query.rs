@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     std::ibc_host::QueryMsg,
 };
 use abstract_std::{
@@ -34,7 +34,7 @@ fn config(deps: Deps, env: &Env) -> HostResult<ConfigResponse> {
     Ok(ConfigResponse {
         ans_host_address: AnsHost::new(deps.api, env)?.address,
         module_factory_address: ModuleFactoryContract::new(deps.api, env)?.address,
-        version_control_address: VersionControlContract::new(deps.api, env)?.address,
+        registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
 

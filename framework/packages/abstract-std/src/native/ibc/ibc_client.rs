@@ -8,7 +8,7 @@ use crate::{
     ibc_host::HostAction,
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
-        version_control::VersionControlContract, TruncatedChainId,
+        registry::RegistryContract, TruncatedChainId,
     },
     AbstractError,
 };
@@ -57,7 +57,7 @@ pub mod state {
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub ans_host_address: String,
-    pub version_control_address: String,
+    pub registry_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -211,9 +211,10 @@ impl InstalledModuleIdentification {
     pub fn addr(
         &self,
         deps: Deps,
-        vc: VersionControlContract,
+        registry: RegistryContract,
     ) -> Result<ModuleAddr, AbstractError> {
-        let target_module_resolved = vc.query_module(self.module_info.clone(), &deps.querier)?;
+        let target_module_resolved =
+            registry.query_module(self.module_info.clone(), &deps.querier)?;
 
         let no_account_id_error =
             StdError::generic_err("Account id not specified in installed module definition");
@@ -221,7 +222,7 @@ impl InstalledModuleIdentification {
         let target_addr = match &target_module_resolved.reference {
             ModuleReference::Account(code_id) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account = vc.account(&target_account_id, &deps.querier)?;
+                let account = registry.account(&target_account_id, &deps.querier)?;
 
                 if deps
                     .querier
@@ -241,7 +242,7 @@ impl InstalledModuleIdentification {
             | ModuleReference::Service(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account = vc.account(&target_account_id, &deps.querier)?;
+                let account = registry.account(&target_account_id, &deps.querier)?;
 
                 let module_info: account::ModuleAddressesResponse = deps.querier.query_wasm_smart(
                     account.into_addr(),
@@ -323,7 +324,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub ans_host: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

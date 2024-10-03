@@ -4,8 +4,8 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
-pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-use abstract_std::{version_control::Account, VERSION_CONTROL};
+pub use abstract_std::objects::{ans_host::AnsHost, registry::RegistryContract};
+use abstract_std::{registry::Account, REGISTRY};
 use cosmwasm_std::{Deps, Env};
 
 use crate::{
@@ -27,19 +27,15 @@ impl ModuleIdentification for Account {
     }
 }
 
-impl crate::features::AbstractRegistryAccess for VersionControlContract {
-    fn abstract_registry(
-        &self,
-        _deps: Deps,
-        _env: &Env,
-    ) -> AbstractSdkResult<VersionControlContract> {
+impl crate::features::AbstractRegistryAccess for RegistryContract {
+    fn abstract_registry(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<RegistryContract> {
         Ok(self.clone())
     }
 }
 
-impl ModuleIdentification for VersionControlContract {
+impl ModuleIdentification for RegistryContract {
     fn module_id(&self) -> abstract_std::objects::module::ModuleId<'static> {
-        VERSION_CONTROL
+        REGISTRY
     }
 }
 
@@ -56,8 +52,7 @@ mod tests {
 
     use super::*;
 
-    mod version_control {
-        use abstract_testing::mock_env_validated;
+    mod registry {
         use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
@@ -67,7 +62,7 @@ mod tests {
         fn test_registry() {
             let deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
-            let vc = VersionControlContract::new(&deps.api, &env).unwrap();
+            let vc = RegistryContract::new(&deps.api, &env).unwrap();
 
             assert_that!(vc.abstract_registry(deps.as_ref(), &env))
                 .is_ok()

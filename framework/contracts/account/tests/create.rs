@@ -4,7 +4,7 @@ use abstract_std::{
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
     },
-    version_control::{self, Account, NamespaceInfo, NamespaceResponse},
+    registry::{self, Account, NamespaceInfo, NamespaceResponse},
     ABSTRACT_EVENT_TYPE, ACCOUNT,
 };
 use abstract_testing::prelude::*;
@@ -18,9 +18,9 @@ fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
-    let vc = deployment.version_control;
+    let vc = deployment.registry;
     let vc_config = vc.config()?;
-    let expected = abstract_std::version_control::ConfigResponse {
+    let expected = abstract_std::registry::ConfigResponse {
         // Admin Account is ID 0
         local_account_sequence: 1,
         security_disabled: true,
@@ -37,13 +37,13 @@ fn create_one_account() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
-    let version_control = &deployment.version_control;
+    let registry = &deployment.registry;
 
     let account = AccountI::new(ACCOUNT, chain);
 
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -60,17 +60,17 @@ fn create_one_account() -> AResult {
 
     let account = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
 
-    let version_control_config = version_control.config()?;
-    let expected = version_control::ConfigResponse {
+    let registry_config = registry.config()?;
+    let expected = registry::ConfigResponse {
         local_account_sequence: 2,
         security_disabled: true,
         namespace_registration_fee: None,
     };
 
-    assert_that!(&version_control_config).is_equal_to(&expected);
+    assert_that!(&registry_config).is_equal_to(&expected);
 
-    let vc_config = version_control.config()?;
-    let expected = abstract_std::version_control::ConfigResponse {
+    let vc_config = registry.config()?;
+    let expected = abstract_std::registry::ConfigResponse {
         local_account_sequence: 2,
         security_disabled: true,
         namespace_registration_fee: Default::default(),
@@ -78,7 +78,7 @@ fn create_one_account() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let account_list = version_control.account(TEST_ACCOUNT_ID)?;
+    let account_list = registry.account(TEST_ACCOUNT_ID)?;
 
     assert_that!(&account_list.account.into()).is_equal_to(Account::new(account));
 
@@ -91,13 +91,13 @@ fn create_two_accounts() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
-    let version_control = &deployment.version_control;
+    let registry = &deployment.registry;
 
     let account = AccountI::new(ACCOUNT, chain);
     // first account
     let account_1 = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -115,7 +115,7 @@ fn create_two_accounts() -> AResult {
     // second account
     let account_2 = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("second_account"),
+            name: Some(String::from("second_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -136,20 +136,20 @@ fn create_two_accounts() -> AResult {
     let account2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     let account_2_id = AccountId::new(TEST_ACCOUNT_ID.seq() + 1, AccountTrace::Local)?;
 
-    let version_control_config = version_control.config()?;
-    let expected = version_control::ConfigResponse {
+    let registry_config = registry.config()?;
+    let expected = registry::ConfigResponse {
         namespace_registration_fee: None,
         security_disabled: true,
         // we created two accounts
         local_account_sequence: account_2_id.seq() + 1,
     };
 
-    assert_that!(&version_control_config).is_equal_to(&expected);
+    assert_that!(&registry_config).is_equal_to(&expected);
 
-    let account_1 = version_control.account(account_1_id)?.account;
+    let account_1 = registry.account(account_1_id)?.account;
     assert_that!(account_1.into()).is_equal_to(Account::new(account1));
 
-    let account_2 = version_control.account(account_2_id)?.account;
+    let account_2 = registry.account(account_2_id)?.account;
     assert_that!(account_2.into()).is_equal_to(Account::new(account2));
 
     Ok(())
@@ -162,10 +162,10 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = AccountI::new(ACCOUNT, chain);
 
-    let version_control = &deployment.version_control;
+    let registry = &deployment.registry;
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -183,7 +183,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     account.set_address(&Addr::unchecked(&account_addr));
 
-    let registered_account = version_control.account(TEST_ACCOUNT_ID)?.account;
+    let registered_account = registry.account(TEST_ACCOUNT_ID)?.account;
 
     assert_that!(account_addr).is_equal_to(registered_account.addr().to_string());
 
@@ -191,7 +191,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
-        version_control_address: version_control.address()?,
+        registry_address: registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         is_suspended: false,
         whitelisted_addresses: vec![],
@@ -206,11 +206,11 @@ fn sender_is_not_admin_external() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = AccountI::new(ACCOUNT, chain);
-    let version_control = &deployment.version_control;
+    let registry = &deployment.registry;
 
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
@@ -234,7 +234,7 @@ fn sender_is_not_admin_external() -> AResult {
     assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
-        version_control_address: version_control.address()?,
+        registry_address: registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         whitelisted_addresses: vec![],
     });
@@ -252,7 +252,7 @@ fn create_one_account_with_namespace() -> AResult {
     let namespace_to_claim = "namespace-to-claim";
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
-            name: String::from("first_account"),
+            name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(namespace_to_claim.to_string()),
@@ -276,13 +276,13 @@ fn create_one_account_with_namespace() -> AResult {
     assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
-        version_control_address: deployment.version_control.address()?,
+        registry_address: deployment.registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         whitelisted_addresses: vec![],
     });
     // We need to check if the namespace is associated with this account
     let namespace = deployment
-        .version_control
+        .registry
         .namespace(Namespace::new(namespace_to_claim)?)?;
 
     assert_that!(&namespace).is_equal_to(NamespaceResponse::Claimed(NamespaceInfo {

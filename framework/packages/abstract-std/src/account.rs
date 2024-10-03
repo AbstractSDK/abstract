@@ -42,13 +42,24 @@ pub mod state {
 
     /// Abstract Account details.
     #[cosmwasm_schema::cw_serde]
+    #[derive(Default)]
     pub struct AccountInfo {
-        pub name: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub name: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub description: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub link: Option<String>,
     }
+
+    impl AccountInfo {
+        pub fn has_info(&self) -> bool {
+            self.name.is_some() || self.description.is_some() || self.link.is_some()
+        }
+    }
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct WhitelistedModules(pub Vec<Addr>);
 
     pub const WHITELISTED_MODULES: Item<WhitelistedModules> =
         Item::new(storage_namespaces::account::WHITELISTED_MODULES);
@@ -71,10 +82,12 @@ pub mod state {
         Map::new(storage_namespaces::account::SUB_ACCOUNTS);
     /// Account Id storage key
     pub const ACCOUNT_ID: Item<AccountId> = Item::new(storage_namespaces::account::ACCOUNT_ID);
-    // Additional states, not listed here: cw_gov_ownable::GovOwnership, authenticators, if chain supports it
+    /// Temporary state variable that allows for checking access control on admin operation
+    pub const CALLING_TO_AS_ADMIN: Item<Addr> =
+        Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
+    pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
-    #[cosmwasm_schema::cw_serde]
-    pub struct WhitelistedModules(pub Vec<Addr>);
+    // Additional states, not listed here: cw_gov_ownable::GovOwnership, authenticators, if chain supports it
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -89,9 +102,10 @@ pub struct InstantiateMsg<Authenticator = Empty> {
     pub account_id: Option<AccountId>,
     pub owner: GovernanceDetails<String>,
     pub namespace: Option<String>,
-    // Optionally modules can be provided. They will be installed after account registration.
+    /// Optionally modules can be provided. They will be installed after account registration.
+    #[serde(default)]
     pub install_modules: Vec<ModuleInstallConfig>,
-    pub name: String,
+    pub name: Option<String>,
     pub description: Option<String>,
     pub link: Option<String>,
 }
@@ -104,13 +118,32 @@ pub struct CallbackMsg {}
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg<Authenticator = Empty> {
     /// Executes the provided messages if sender is whitelisted
-    ModuleAction {
+    #[cw_orch(fn_name("execute_msgs"), payable)]
+    Execute {
         msgs: Vec<CosmosMsg<Empty>>,
     },
     /// Execute a message and forward the Response data
-    ModuleActionWithData {
+    #[cw_orch(payable)]
+    ExecuteWithData {
         msg: CosmosMsg<Empty>,
     },
+    /// Forward execution message to module
+    #[cw_orch(payable)]
+    ExecuteOnModule {
+        module_id: String,
+        exec_msg: Binary,
+    },
+    /// Execute a Wasm Message with Account Admin privileges
+    AdminExecute {
+        addr: String,
+        msg: Binary,
+    },
+    /// Forward execution message to module with Account Admin privileges
+    AdminExecuteOnModule {
+        module_id: String,
+        msg: Binary,
+    },
+
     /// Execute IBC action on Client
     IbcAction {
         msg: crate::ibc_client::ExecuteMsg,
@@ -120,12 +153,6 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     IcaAction {
         /// Query of type `abstract-ica-client::msg::QueryMsg`
         action_query_msg: Binary,
-    },
-    /// Forward execution message to module
-    #[cw_orch(payable)]
-    ExecOnModule {
-        module_id: String,
-        exec_msg: Binary,
     },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
@@ -150,7 +177,7 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     #[cw_orch(payable)]
     CreateSubAccount {
         // Name of the sub-account
-        name: String,
+        name: Option<String>,
         // Description of the account
         description: Option<String>,
         // URL linked to the account
@@ -324,6 +351,57 @@ pub struct ConfigResponse {
     pub whitelisted_addresses: Vec<Addr>,
     pub account_id: AccountId,
     pub is_suspended: SuspensionStatus,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
     pub module_factory_address: Addr,
+}
+
+#[cfg(test)]
+mod test {
+    use cw_orch::core::serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn minimal_deser_instantiate_test() {
+        let init_msg_binary: InstantiateMsg =
+            cosmwasm_std::from_json(br#"{"owner": {"renounced": {}}}"#).unwrap();
+        assert_eq!(
+            init_msg_binary,
+            InstantiateMsg {
+                owner: GovernanceDetails::Renounced {},
+                authenticator: Default::default(),
+                account_id: Default::default(),
+                namespace: Default::default(),
+                install_modules: Default::default(),
+                name: Default::default(),
+                description: Default::default(),
+                link: Default::default()
+            }
+        );
+
+        let init_msg_string: InstantiateMsg = cosmwasm_std::from_json(
+            json!({
+                "owner": GovernanceDetails::Monarchy {
+                    monarch: "bob".to_owned()
+                }
+            })
+            .to_string(),
+        )
+        .unwrap();
+        assert_eq!(
+            init_msg_string,
+            InstantiateMsg {
+                owner: GovernanceDetails::Monarchy {
+                    monarch: "bob".to_owned()
+                },
+                authenticator: Default::default(),
+                account_id: Default::default(),
+                namespace: Default::default(),
+                install_modules: Default::default(),
+                name: Default::default(),
+                description: Default::default(),
+                link: Default::default()
+            }
+        )
+    }
 }

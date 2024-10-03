@@ -54,7 +54,7 @@ impl<T: AdapterQueryMsg> From<T> for QueryMsg<T> {
 impl AdapterQueryMsg for Empty {}
 
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
+/// The contract is then registered on the version control contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {}
 
@@ -136,7 +136,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterConfigResponse {
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
     pub ans_host_address: Addr,
     pub dependencies: Vec<String>,
 }

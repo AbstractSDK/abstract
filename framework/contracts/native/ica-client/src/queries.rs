@@ -1,5 +1,5 @@
 use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::objects::TruncatedChainId;
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
@@ -11,7 +11,7 @@ pub const PACKET_LIFETIME: u64 = 60 * 60;
 pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
     Ok(ConfigResponse {
         ans_host: AnsHost::new(deps.api, env)?.address,
-        version_control_address: VersionControlContract::new(deps.api, env)?.address,
+        registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
 
@@ -40,9 +40,9 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
-                    let version_control = VersionControlContract::new(deps.api, &env)?;
+                    let registry = RegistryContract::new(deps.api, &env)?;
 
-                    let msg = evm::execute(&deps.querier, &version_control, msgs, callback)?;
+                    let msg = evm::execute(&deps.querier, &registry, msgs, callback)?;
 
                     Ok(vec![msg.into()])
                 }
@@ -83,7 +83,7 @@ mod tests {
             module_reference::ModuleReference,
             ChannelEntry, ContractEntry,
         },
-        version_control::{self as vc, ModuleConfiguration},
+        registry::{self as vc, ModuleConfiguration},
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
@@ -139,7 +139,7 @@ mod tests {
                     _ => panic!("should only query for RemoteAddress"),
                 }
             })
-            .with_smart_handler(&abstr.version_control, move |bin| {
+            .with_smart_handler(&abstr.registry, move |bin| {
                 let msg = from_json::<vc::QueryMsg>(bin).unwrap();
                 match msg {
                     vc::QueryMsg::Modules { infos } => {
@@ -202,7 +202,7 @@ mod tests {
                 res,
                 ConfigResponse {
                     ans_host: abstr.ans_host,
-                    version_control_address: abstr.version_control
+                    registry_address: abstr.registry
                 }
             );
             Ok(())

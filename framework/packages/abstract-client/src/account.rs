@@ -24,7 +24,8 @@ use std::fmt::{Debug, Display};
 
 use abstract_interface::{
     Abstract, AbstractInterfaceError, AccountDetails, AccountExecFns, AccountI, AccountQueryFns,
-    DependencyCreation, IbcClient, InstallConfig, MFactoryQueryFns, RegisteredModule, VCQueryFns,
+    DependencyCreation, IbcClient, InstallConfig, MFactoryQueryFns, RegisteredModule,
+    RegistryQueryFns,
 };
 use abstract_std::{
     account,
@@ -40,7 +41,7 @@ use abstract_std::{
         validation::verifiers,
         AccountId,
     },
-    version_control::{self, NamespaceResponse},
+    registry::{self, NamespaceResponse},
     IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
@@ -319,7 +320,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             }
         }
 
-        let chain = self.abstr.version_control.environment();
+        let chain = self.abstr.registry.environment();
         let sender = chain.sender_addr().to_string();
         let name = self
             .name
@@ -383,7 +384,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
                 // Add namespace fee if any
                 if include_namespace_claiming && self.namespace.is_some() {
-                    let vc_config = self.abstr.version_control.config()?;
+                    let vc_config = self.abstr.registry.config()?;
 
                     if let Some(namespace_fee) = vc_config.namespace_registration_fee {
                         funds
@@ -439,7 +440,7 @@ impl<Chain: CwEnv> Account<Chain> {
         namespace: Namespace,
         install_on_sub_account: bool,
     ) -> AbstractClientResult<Option<Self>> {
-        let namespace_response: NamespaceResponse = abstr.version_control.namespace(namespace)?;
+        let namespace_response: NamespaceResponse = abstr.registry.namespace(namespace)?;
 
         let NamespaceResponse::Claimed(info) = namespace_response else {
             return Ok(None);
@@ -601,7 +602,7 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .upgrade(vec![(
-                ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
+                ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
                 Some(
                     to_json_binary(&abstract_std::account::MigrateMsg {})
                         .map_err(Into::<CwOrchError>::into)?,
@@ -631,10 +632,7 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Chain::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
-        self.configure(
-            &abstract_std::account::ExecuteMsg::ModuleAction { msgs },
-            funds,
-        )
+        self.configure(&account::ExecuteMsg::Execute { msgs }, funds)
     }
 
     /// Executes a [`account::ExecuteMsg`] on the account.
@@ -722,13 +720,13 @@ impl<Chain: CwEnv> Account<Chain> {
             // If latest we need to find latest version stored in VC
             ModuleVersion::Latest => {
                 let manager_config = self.abstr_account.config()?;
-                let mut modules_response: version_control::ModulesResponse = self
+                let mut modules_response: registry::ModulesResponse = self
                     .environment()
                     .query(
-                        &version_control::QueryMsg::Modules {
+                        &registry::QueryMsg::Modules {
                             infos: vec![module.clone()],
                         },
-                        &manager_config.version_control_address,
+                        &manager_config.registry_address,
                     )
                     .map_err(Into::into)?;
                 modules_response
@@ -831,10 +829,10 @@ impl<Chain: CwEnv> Account<Chain> {
         // Create sub account.
         let sub_account_response = self.abstr_account.create_sub_account(
             modules,
-            "Sub Account".to_owned(),
             None,
             None,
             None,
+            Some("Sub Account".to_owned()),
             None,
             funds,
         )?;
@@ -982,7 +980,7 @@ impl<Chain: CwEnv> Debug for Account<Chain> {
 
 #[cfg(test)]
 pub mod test {
-    use abstract_interface::{Abstract, VCQueryFns};
+    use abstract_interface::{Abstract, RegistryQueryFns};
     use abstract_std::objects::namespace::Namespace;
     use cw_orch::{contract::Deploy, mock::MockBech32};
 
@@ -999,15 +997,13 @@ pub mod test {
 
         // Verify the namespace exists
         let abstr = Abstract::load_from(mock.clone())?;
-        let namespace_response = abstr
-            .version_control
-            .namespace(Namespace::new(my_namespace)?)?;
+        let namespace_response = abstr.registry.namespace(Namespace::new(my_namespace)?)?;
 
         match namespace_response {
-            abstract_std::version_control::NamespaceResponse::Claimed(c) => {
+            abstract_std::registry::NamespaceResponse::Claimed(c) => {
                 assert_eq!(c.account_id, new_account.id()?)
             }
-            abstract_std::version_control::NamespaceResponse::Unclaimed {} => {
+            abstract_std::registry::NamespaceResponse::Unclaimed {} => {
                 panic!("Expected claimed namespace")
             }
         }

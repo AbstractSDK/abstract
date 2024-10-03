@@ -1,4 +1,4 @@
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::objects::{AnsAsset, AssetEntry, ContractEntry};
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper};
 
@@ -38,7 +38,7 @@ pub trait CwStakingCommand: Identify {
         env: Env,
         addr_as_sender: Option<Addr>,
         ans_host: &AnsHost,
-        version_control_contract: VersionControlContract,
+        registry_contract: RegistryContract,
         staking_assets: Vec<AssetEntry>,
     ) -> Result<(), CwStakingError>;
 

@@ -1,6 +1,6 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
+    feature_objects::RegistryContract,
     std::{
         account::state::ACCOUNT_ID,
         objects::validation::{validate_description, validate_link, validate_name},
@@ -19,11 +19,11 @@ use abstract_std::{
         ownership::{self, GovOwnershipError},
         AccountId,
     },
-    version_control::state::LOCAL_ACCOUNT_SEQUENCE,
+    registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult, SubMsgResult,
+    StdResult,
 };
 
 pub use crate::migrate::migrate;
@@ -31,11 +31,11 @@ use crate::{
     config::{update_account_status, update_info, update_internal_config},
     error::AccountError,
     execution::{
-        add_auth_method, execute_ibc_action, execute_module_action, execute_module_action_response,
-        ica_action, remove_auth_method,
+        add_auth_method, admin_execute, admin_execute_on_module, execute_ibc_action, execute_msgs,
+        execute_msgs_with_data, execute_on_module, ica_action, remove_auth_method,
     },
     modules::{
-        _install_modules, exec_on_module, install_modules,
+        _install_modules, install_modules,
         migration::{handle_callback, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
@@ -45,7 +45,7 @@ use crate::{
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
         handle_top_level_owner_query,
     },
-    reply::{forward_response_data, register_dependencies},
+    reply::{admin_action_reply, forward_response_reply, register_dependencies},
     sub_account::{
         create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
         remove_account_from_contracts,
@@ -59,8 +59,9 @@ pub type AccountResult<R = Response> = Result<R, AccountError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub const RESPONSE_REPLY_ID: u64 = 1;
-pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 2;
+pub const FORWARD_RESPONSE_REPLY_ID: u64 = 1;
+pub const ADMIN_ACTION_REPLY_ID: u64 = 2;
+pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 3;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -82,14 +83,14 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let version_control = VersionControlContract::new(deps.api, &env)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
     let module_factory = ModuleFactoryContract::new(deps.api, &env)?;
 
     let account_id = match account_id {
         Some(account_id) => account_id,
-        None => AccountId::local(
-            LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, version_control.address.clone())?,
-        ),
+        None => {
+            AccountId::local(LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, registry.address.clone())?)
+        }
     };
 
     let mut response = AccountResponse::new(
@@ -103,7 +104,9 @@ pub fn instantiate(
     // Verify info
     validate_description(description.as_deref())?;
     validate_link(link.as_deref())?;
-    validate_name(&name)?;
+    if let Some(name) = name.as_deref() {
+        validate_name(name)?;
+    }
 
     let account_info = AccountInfo {
         name,
@@ -111,12 +114,14 @@ pub fn instantiate(
         link,
     };
 
-    INFO.save(deps.storage, &account_info)?;
+    if account_info.has_info() {
+        INFO.save(deps.storage, &account_info)?;
+    }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
     let governance = owner
         .clone()
-        .verify(deps.as_ref(), version_control.address.clone())?;
+        .verify(deps.as_ref(), registry.address.clone())?;
     match governance {
         // Check if the caller is the manager the proposed owner account when creating a sub-account.
         // This prevents other users from creating sub-accounts for accounts they don't own.
@@ -176,7 +181,7 @@ pub fn instantiate(
         // TODO: support no owner here (ownership handled in SUDO)
         // Or do we want to add a `Sudo` governance type?
         owner.clone(),
-        version_control.address.clone(),
+        registry.address.clone(),
     )?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
@@ -184,7 +189,7 @@ pub fn instantiate(
     response = response.add_attribute("owner".to_owned(), cw_gov_owner.owner.to_string());
 
     let funds_for_namespace_fee = if namespace.is_some() {
-        version_control
+        registry
             .namespace_registration_fee(&deps.querier)?
             .into_iter()
             .collect()
@@ -195,8 +200,8 @@ pub fn instantiate(
     let mut total_fee = Coins::try_from(funds_for_namespace_fee.clone()).unwrap();
 
     response = response.add_message(wasm_execute(
-        version_control.address,
-        &abstract_std::version_control::ExecuteMsg::AddAccount {
+        registry.address,
+        &abstract_std::registry::ExecuteMsg::AddAccount {
             namespace,
             creator: info.sender.to_string(),
         },
@@ -259,13 +264,39 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
             is_suspended: suspension_status,
         } => update_account_status(deps, info, suspension_status).map_err(AccountError::from),
         msg => {
-            // Block actions if user is not subscribed
+            // Block actions if account is suspended
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
             if is_suspended {
                 return Err(AccountError::AccountSuspended {});
             }
 
             match msg {
+                // ## Execution ##
+                ExecuteMsg::Execute { msgs } => {
+                    execute_msgs(deps, &info.sender, msgs).map_err(AccountError::from)
+                }
+                ExecuteMsg::AdminExecute { addr, msg } => {
+                    let addr = deps.api.addr_validate(&addr)?;
+                    admin_execute(deps, info, addr, msg)
+                }
+                ExecuteMsg::ExecuteWithData { msg } => {
+                    execute_msgs_with_data(deps, &info.sender, msg).map_err(AccountError::from)
+                }
+                ExecuteMsg::ExecuteOnModule {
+                    module_id,
+                    exec_msg,
+                } => execute_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
+                ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
+                    admin_execute_on_module(deps, info, module_id, msg)
+                }
+                ExecuteMsg::IbcAction { msg } => {
+                    execute_ibc_action(deps, info, msg).map_err(AccountError::from)
+                }
+                ExecuteMsg::IcaAction { action_query_msg } => {
+                    ica_action(deps, info, action_query_msg).map_err(AccountError::from)
+                }
+
+                // ## Configuration ##
                 ExecuteMsg::UpdateInternalConfig(config) => {
                     update_internal_config(deps, info, config).map_err(AccountError::from)
                 }
@@ -275,10 +306,42 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, &env, info, module_id).map_err(AccountError::from)
                 }
-                ExecuteMsg::ExecOnModule {
-                    module_id,
-                    exec_msg,
-                } => exec_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
+                ExecuteMsg::Upgrade { modules } => {
+                    upgrade_modules(deps, env, info, modules).map_err(AccountError::from)
+                }
+                ExecuteMsg::UpdateInfo {
+                    name,
+                    description,
+                    link,
+                } => update_info(deps, info, name, description, link).map_err(AccountError::from),
+                ExecuteMsg::UpdateOwnership(action) => {
+                    // If sub-account related it may require some messages to be constructed beforehand
+                    let msgs = match &action {
+                        ownership::GovAction::TransferOwnership { .. } => vec![],
+                        ownership::GovAction::AcceptOwnership => {
+                            maybe_update_sub_account_governance(deps.branch())?
+                        }
+                        ownership::GovAction::RenounceOwnership => {
+                            remove_account_from_contracts(deps.branch(), &env)?
+                        }
+                    };
+                    let registry = RegistryContract::new(deps.api, &env)?;
+
+                    let new_owner_attributes = ownership::update_ownership(
+                        deps,
+                        &env.block,
+                        &info.sender,
+                        registry.address,
+                        action,
+                    )?
+                    .into_attributes();
+                    Ok(
+                        AccountResponse::new("update_ownership", new_owner_attributes)
+                            .add_messages(msgs),
+                    )
+                }
+
+                // ## Sub-Accounts ##
                 ExecuteMsg::CreateSubAccount {
                     name,
                     description,
@@ -298,58 +361,12 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     account_id,
                 )
                 .map_err(AccountError::from),
-                ExecuteMsg::Upgrade { modules } => {
-                    upgrade_modules(deps, env, info, modules).map_err(AccountError::from)
-                }
-                ExecuteMsg::UpdateInfo {
-                    name,
-                    description,
-                    link,
-                } => update_info(deps, info, name, description, link).map_err(AccountError::from),
                 ExecuteMsg::UpdateSubAccount(action) => {
                     handle_sub_account_action(deps, &env, info, action).map_err(AccountError::from)
                 }
-                // TODO: Update module migrate logic to not use callback!
-                // ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
-                // Used to claim or renounce an ownership change.
-                ExecuteMsg::UpdateOwnership(action) => {
-                    // If sub-account related it may require some messages to be constructed beforehand
-                    let msgs = match &action {
-                        ownership::GovAction::TransferOwnership { .. } => vec![],
-                        ownership::GovAction::AcceptOwnership => {
-                            maybe_update_sub_account_governance(deps.branch())?
-                        }
-                        ownership::GovAction::RenounceOwnership => {
-                            remove_account_from_contracts(deps.branch(), &env)?
-                        }
-                    };
-                    let version_control = VersionControlContract::new(deps.api, &env)?;
 
-                    let new_owner_attributes = ownership::update_ownership(
-                        deps,
-                        &env.block,
-                        &info.sender,
-                        version_control.address,
-                        action,
-                    )?
-                    .into_attributes();
-                    Ok(
-                        AccountResponse::new("update_ownership", new_owner_attributes)
-                            .add_messages(msgs),
-                    )
-                }
-                ExecuteMsg::ModuleAction { msgs } => {
-                    execute_module_action(deps, info, msgs).map_err(AccountError::from)
-                }
-                ExecuteMsg::ModuleActionWithData { msg } => {
-                    execute_module_action_response(deps, info, msg).map_err(AccountError::from)
-                }
-                ExecuteMsg::IbcAction { msg } => {
-                    execute_ibc_action(deps, info, msg).map_err(AccountError::from)
-                }
-                ExecuteMsg::IcaAction { action_query_msg } => {
-                    ica_action(deps, info, action_query_msg).map_err(AccountError::from)
-                }
+                // ## Other ##
+                // TODO: Update module migrate logic to not use callback!
                 ExecuteMsg::UpdateStatus { is_suspended: _ } => {
                     unreachable!("Update status case is reached above")
                 }
@@ -366,17 +383,11 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
-    match msg {
-        Reply {
-            id: RESPONSE_REPLY_ID,
-            result: SubMsgResult::Ok(_),
-            ..
-        } => forward_response_data(msg),
-        Reply {
-            id: REGISTER_MODULES_DEPENDENCIES_REPLY_ID,
-            result: SubMsgResult::Ok(_),
-            ..
-        } => register_dependencies(deps),
+    match msg.id {
+        FORWARD_RESPONSE_REPLY_ID => forward_response_reply(msg),
+        ADMIN_ACTION_REPLY_ID => admin_action_reply(deps),
+        REGISTER_MODULES_DEPENDENCIES_REPLY_ID => register_dependencies(deps),
+
         _ => Err(AccountError::UnexpectedReply {}),
     }
 }
@@ -477,7 +488,7 @@ mod tests {
                     monarch: abstr.owner.to_string(),
                 },
                 namespace: None,
-                name: "test".to_string(),
+                name: Some("test".to_string()),
                 description: None,
                 link: None,
                 install_modules: vec![],
@@ -488,8 +499,8 @@ mod tests {
         assert!(resp.is_ok());
 
         let expected_msg: CosmosMsg = wasm_execute(
-            abstr.version_control,
-            &abstract_std::version_control::ExecuteMsg::AddAccount {
+            abstr.registry,
+            &abstract_std::registry::ExecuteMsg::AddAccount {
                 creator: abstr.owner.to_string(),
                 namespace: None,
             },

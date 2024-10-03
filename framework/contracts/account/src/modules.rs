@@ -10,15 +10,15 @@ use abstract_std::{
         module_factory::ModuleFactoryContract,
         module_reference::ModuleReference,
         ownership::{self},
+        registry::RegistryContract,
         salt::generate_instantiate_salt,
         storage_namespaces,
-        version_control::VersionControlContract,
     },
-    version_control::ModuleResponse,
+    registry::ModuleResponse,
 };
 use cosmwasm_std::{
     ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, Env,
-    MessageInfo, StdError, StdResult, Storage, SubMsg, WasmMsg,
+    MessageInfo, StdError, StdResult, Storage, SubMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;
@@ -71,7 +71,7 @@ pub fn _install_modules(
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
 
-    let version_control = VersionControlContract::new(deps.api, env)?;
+    let registry = RegistryContract::new(deps.api, env)?;
     let module_factory = ModuleFactoryContract::new(deps.api, env)?;
 
     let canonical_module_factory = deps
@@ -80,7 +80,7 @@ pub fn _install_modules(
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules = version_control
+    let modules = registry
         .query_modules_configs(infos, &deps.querier)
         .map_err(|error| AccountError::QueryModulesFailed { error })?;
 
@@ -214,7 +214,7 @@ pub fn uninstall_module(
     crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
     // Remove for proxy if needed
-    let vc = VersionControlContract::new(deps.api, env)?;
+    let vc = RegistryContract::new(deps.api, env)?;
 
     let module = vc.query_module(
         ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
@@ -234,29 +234,6 @@ pub fn uninstall_module(
     Ok(response)
 }
 
-/// Execute the [`exec_msg`] on the provided [`module_id`],
-pub fn exec_on_module(
-    deps: DepsMut,
-    info: MessageInfo,
-    module_id: String,
-    exec_msg: Binary,
-) -> AccountResult {
-    // only owner can forward messages to modules
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-
-    let module_addr = load_module_addr(deps.storage, &module_id)?;
-
-    let response = AccountResponse::new("exec_on_module", vec![("module", module_id)]).add_message(
-        CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: module_addr.into(),
-            msg: exec_msg,
-            funds: info.funds,
-        }),
-    );
-
-    Ok(response)
-}
-
 /// Checked load of a module address
 pub fn load_module_addr(storage: &dyn Storage, module_id: &String) -> AccountResult<Addr> {
     ACCOUNT_MODULES
@@ -272,7 +249,7 @@ pub fn query_module(
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, AccountError> {
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(deps.api, env)?;
+    let registry = RegistryContract::new(deps.api, env)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -289,13 +266,12 @@ pub fn query_module(
             }
             Module {
                 info: module_info.clone(),
-                reference: version_control
-                    .query_module_reference_raw(&module_info, &deps.querier)?,
+                reference: registry.query_module_reference_raw(&module_info, &deps.querier)?,
             }
         }
         ModuleVersion::Latest => {
             // Query latest version of contract
-            version_control.query_module(module_info.clone(), &deps.querier)?
+            registry.query_module(module_info.clone(), &deps.querier)?
         }
     };
 
@@ -304,7 +280,7 @@ pub fn query_module(
             info: module.info,
             reference: module.reference,
         },
-        config: version_control.query_config(module_info, &deps.querier)?,
+        config: registry.query_config(module_info, &deps.querier)?,
     })
 }
 
@@ -506,7 +482,7 @@ mod tests {
             let msg = ExecuteMsg::UpdateInternalConfig(action_add);
 
             // the version control can not call this
-            let res = execute_as(&mut deps, &abstr.version_control, msg.clone());
+            let res = execute_as(&mut deps, &abstr.registry, msg.clone());
             assert_that!(&res).is_err();
 
             // only the owner can
@@ -597,12 +573,26 @@ mod tests {
 
         #[test]
         fn only_owner() -> anyhow::Result<()> {
-            let msg = ExecuteMsg::ExecOnModule {
-                module_id: "test:module".to_string(),
+            let msg = ExecuteMsg::ExecuteOnModule {
+                module_id: TEST_MODULE_ID.to_string(),
                 exec_msg: to_json_binary(&"some msg")?,
             };
 
-            test_only_owner(msg)
+            let mut deps = mock_dependencies();
+            let not_owner = deps.api.addr_make("not_owner");
+            mock_init(&mut deps)?;
+
+            ACCOUNT_MODULES.save(
+                deps.as_mut().storage,
+                TEST_MODULE_ID,
+                &Addr::unchecked("not-important"),
+            )?;
+
+            let res = execute_as(&mut deps, &not_owner, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
+            Ok(())
         }
 
         #[test]
@@ -614,7 +604,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let missing_module = "test:module".to_string();
-            let msg = ExecuteMsg::ExecOnModule {
+            let msg = ExecuteMsg::ExecuteOnModule {
                 module_id: missing_module.clone(),
                 exec_msg: to_json_binary(&"some msg")?,
             };
@@ -643,7 +633,7 @@ mod tests {
 
             let exec_msg = "some msg";
 
-            let msg = ExecuteMsg::ExecOnModule {
+            let msg = ExecuteMsg::ExecuteOnModule {
                 module_id: "test_mod".to_string(),
                 exec_msg: to_json_binary(&exec_msg)?,
             };

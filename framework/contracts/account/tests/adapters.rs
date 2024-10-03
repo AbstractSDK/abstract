@@ -49,7 +49,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     assert_that!(adapter_config).is_equal_to(adapter::AdapterConfigResponse {
         ans_host_address: deployment.ans_host.address()?,
         dependencies: vec![],
-        version_control_address: deployment.version_control.address()?,
+        registry_address: deployment.registry.address()?,
     });
 
     // no authorized addresses registered
@@ -213,7 +213,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = MockAdapterI1V1::new_test(chain.clone());
@@ -250,7 +250,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     // check that the latest staking version is the new one
     let latest_staking = deployment
-        .version_control
+        .registry
         .module(ModuleInfo::from_id_latest(&adapter1.id())?)?;
     assert_that!(latest_staking.info.version).is_equal_to(ModuleVersion::Version(V2.to_string()));
 
@@ -337,7 +337,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = MockAdapterI1V1::new_test(chain.clone());
@@ -379,7 +379,7 @@ fn account_install_adapter() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = MockAdapterI1V1::new_test(chain.clone());
@@ -404,7 +404,7 @@ fn account_adapter_ownership() -> AResult {
     let account = create_default_account(sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = MockAdapterI1V1::new_test(chain.clone());
@@ -466,16 +466,32 @@ fn account_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
-    adapter.call_as(&account.address()?).execute(
-        &mock::ExecuteMsg::Base(BaseExecuteMsg {
+
+    account.call_as(sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
             account_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
             },
-        }),
-        &[],
+        }))?,
     )?;
+
+    // Raw account without the calling_to_as_admin variable set, should err.
+    adapter
+        .call_as(&account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(proxy_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("456").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
 
     // Not admin or manager
     let err: MockError = adapter
@@ -512,7 +528,7 @@ fn subaccount_adapter_ownership() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = MockAdapterI1V1::new_test(chain.clone());
@@ -550,13 +566,28 @@ fn subaccount_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
-    adapter.call_as(&sub_account.address()?).execute(
-        &mock::ExecuteMsg::Module(AdapterRequestMsg {
+    sub_account.call_as(&sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Module(AdapterRequestMsg {
             account_address: Some(proxy_addr.to_string()),
             request: MockExecMsg {},
-        }),
-        &[],
+        }))?,
     )?;
+
+    // Raw account without the calling_to_as_admin variable set, should err
+    adapter
+        .call_as(&account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(proxy_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("456").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
 
     // Not admin or manager
     let who = chain.addr_make("who");
@@ -593,16 +624,31 @@ fn subaccount_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
-    adapter.call_as(&sub_account.address()?).execute(
-        &mock::ExecuteMsg::Base(BaseExecuteMsg {
+    sub_account.call_as(&sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
             account_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
             },
-        }),
-        &[],
+        }))?,
     )?;
+
+    // Raw account without the calling_to_as_admin variable set, should err
+    adapter
+        .call_as(&sub_account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(proxy_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("345").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
 
     // Not admin or manager
     let err: MockError = adapter

@@ -1,10 +1,8 @@
 //! Mock module for API and feature testing
 
 use abstract_std::{
-    objects::{
-        ans_host::AnsHost, dependency::StaticDependency, version_control::VersionControlContract,
-    },
-    version_control::Account,
+    objects::{ans_host::AnsHost, dependency::StaticDependency, registry::RegistryContract},
+    registry::Account,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{
@@ -44,14 +42,10 @@ impl AbstractNameService for MockModule {
 }
 
 impl AbstractRegistryAccess for MockModule {
-    fn abstract_registry(
-        &self,
-        _deps: Deps,
-        _env: &Env,
-    ) -> AbstractSdkResult<VersionControlContract> {
+    fn abstract_registry(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<RegistryContract> {
         let abstr = AbstractMockAddrs::new(self.mock_api);
-        Ok(VersionControlContract {
-            address: abstr.version_control,
+        Ok(RegistryContract {
+            address: abstr.registry,
         })
     }
 }

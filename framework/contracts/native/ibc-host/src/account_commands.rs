@@ -1,17 +1,17 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     std::{objects::ChannelEntry, ICS20},
     Resolve,
 };
 use abstract_std::{
     account::{self, ModuleInstallConfig},
     objects::{module::ModuleInfo, module_reference::ModuleReference, AccountId, TruncatedChainId},
-    version_control::Account,
+    registry::Account,
     ACCOUNT,
 };
 use cosmwasm_std::{
-    instantiate2_address, to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg,
-    Response, SubMsg, WasmMsg,
+    instantiate2_address, to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env,
+    IbcMsg, Response, SubMsg, WasmMsg,
 };
 
 use crate::{
@@ -29,27 +29,25 @@ pub fn receive_register(
     deps: DepsMut,
     env: Env,
     account_id: AccountId,
-    name: String,
+    name: Option<String>,
     description: Option<String>,
     link: Option<String>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
 ) -> HostResult {
-    let version_control = VersionControlContract::new(deps.api, &env)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
     let salt = cosmwasm_std::to_json_binary(&account_id)?;
 
     let account_module_info = ModuleInfo::from_id_latest(ACCOUNT)?;
-    let ModuleReference::Account(code_id) = version_control
+    let ModuleReference::Account(code_id) = registry
         .query_module(account_module_info.clone(), &deps.querier)?
         .reference
     else {
-        return Err(HostError::VersionControlError(
-            abstract_std::objects::version_control::VersionControlError::InvalidReference(
-                account_module_info,
-            ),
+        return Err(HostError::RegistryError(
+            abstract_std::objects::registry::RegistryError::InvalidReference(account_module_info),
         ));
     };
     let checksum = deps.querier.query_wasm_code_info(code_id)?.checksum;
@@ -167,7 +165,7 @@ pub fn send_all_back(
     // call the message to send everything back through the account
     let account_msg = wasm_execute(
         account.into_addr(),
-        &account::ExecuteMsg::ModuleAction::<cosmwasm_std::Empty> { msgs },
+        &account::ExecuteMsg::<Empty>::Execute { msgs },
         vec![],
     )?;
     Ok(account_msg.into())
@@ -175,7 +173,7 @@ pub fn send_all_back(
 
 /// get the account from the version control contract
 pub fn get_account(deps: Deps, env: &Env, account_id: &AccountId) -> Result<Account, HostError> {
-    let version_control = VersionControlContract::new(deps.api, env)?;
-    let account = version_control.account(account_id, &deps.querier)?;
+    let registry = RegistryContract::new(deps.api, env)?;
+    let account = registry.account(account_id, &deps.querier)?;
     Ok(account)
 }

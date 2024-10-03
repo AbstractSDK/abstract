@@ -1,15 +1,20 @@
 use abstract_sdk::std::{
     account::state::WHITELISTED_MODULES, ibc_client::ExecuteMsg as IbcClientMsg, IBC_CLIENT,
 };
-use abstract_std::{account::state::ACCOUNT_MODULES, objects::ownership, ICA_CLIENT};
+use abstract_std::{
+    account::state::{ACCOUNT_MODULES, CALLING_TO_AS_ADMIN},
+    objects::ownership,
+    ICA_CLIENT,
+};
 use cosmwasm_std::{
     wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, StdError, SubMsg,
-    WasmQuery,
+    WasmMsg, WasmQuery,
 };
 
 use crate::{
-    contract::{AccountResponse, AccountResult, RESPONSE_REPLY_ID},
+    contract::{AccountResponse, AccountResult, ADMIN_ACTION_REPLY_ID, FORWARD_RESPONSE_REPLY_ID},
     error::AccountError,
+    modules::load_module_addr,
 };
 
 /// Check that sender either whitelisted or governance
@@ -36,28 +41,80 @@ pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> 
 
 /// Executes `Vec<CosmosMsg>` on the proxy.
 /// Permission: Module
-pub fn execute_module_action(
+pub fn execute_msgs(
     mut deps: DepsMut,
-    msg_info: MessageInfo,
+    msg_sender: &Addr,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
+    assert_whitelisted_or_owner(&mut deps, msg_sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
 
 /// Executes `CosmosMsg` on the proxy and forwards its response.
 /// Permission: Module
-pub fn execute_module_action_response(
+pub fn execute_msgs_with_data(
     mut deps: DepsMut,
-    msg_info: MessageInfo,
+    msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
+    assert_whitelisted_or_owner(&mut deps, msg_sender)?;
 
-    let submsg = SubMsg::reply_on_success(msg, RESPONSE_REPLY_ID);
+    let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
     Ok(AccountResponse::action("execute_module_action_response").add_submessage(submsg))
+}
+
+/// Execute the [`exec_msg`] on the provided [`module_id`],
+/// This is a simple wrapper around [`ExecuteMsg::Execute`](abstract_std::account::ExecuteMsg::Execute).
+pub fn execute_on_module(
+    deps: DepsMut,
+    info: MessageInfo,
+    module_id: String,
+    exec_msg: Binary,
+) -> AccountResult {
+    let module_addr = load_module_addr(deps.storage, &module_id)?;
+    execute_msgs(
+        deps,
+        &info.sender,
+        vec![CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: module_addr.into(),
+            msg: exec_msg,
+            funds: info.funds,
+        })],
+    )
+}
+
+pub fn admin_execute(
+    deps: DepsMut,
+    info: MessageInfo,
+    addr: Addr,
+    exec_msg: Binary,
+) -> AccountResult {
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+
+    CALLING_TO_AS_ADMIN.save(deps.storage, &addr)?;
+
+    let msg = SubMsg::reply_on_success(
+        WasmMsg::Execute {
+            contract_addr: addr.to_string(),
+            msg: exec_msg,
+            funds: info.funds,
+        },
+        ADMIN_ACTION_REPLY_ID,
+    );
+
+    Ok(AccountResponse::action("admin_execute").add_submessage(msg))
+}
+
+pub fn admin_execute_on_module(
+    deps: DepsMut,
+    info: MessageInfo,
+    module_id: String,
+    exec_msg: Binary,
+) -> AccountResult {
+    let module_addr = load_module_addr(deps.storage, &module_id)?;
+    admin_execute(deps, info, module_addr, exec_msg)
 }
 
 /// Executes IBC actions on the IBC client.
@@ -165,7 +222,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
 
-            let msg = ExecuteMsg::ModuleAction { msgs: vec![] };
+            let msg = ExecuteMsg::Execute { msgs: vec![] };
 
             let info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
             let env = mock_env_validated(deps.api);
@@ -200,7 +257,7 @@ mod test {
             )?
             .into();
 
-            let msg = ExecuteMsg::ModuleAction {
+            let msg = ExecuteMsg::Execute {
                 msgs: vec![action.clone()],
             };
 

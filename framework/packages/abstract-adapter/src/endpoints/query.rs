@@ -1,6 +1,6 @@
 use abstract_sdk::{
     base::{Handler, QueryEndpoint},
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
 };
 use abstract_std::{
     adapter::{
@@ -61,7 +61,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 
     fn dapp_config(&self, deps: Deps, env: &Env) -> StdResult<AdapterConfigResponse> {
         Ok(AdapterConfigResponse {
-            version_control_address: VersionControlContract::new(deps.api, env)
+            registry_address: RegistryContract::new(deps.api, env)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
             ans_host_address: AnsHost::new(deps.api, env)

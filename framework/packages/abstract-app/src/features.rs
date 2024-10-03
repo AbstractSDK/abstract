@@ -1,9 +1,9 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use abstract_std::version_control::Account;
+use abstract_std::registry::Account;
 use cosmwasm_std::{Deps, Env};
 
 use crate::{state::ContractError, AppContract};
@@ -50,12 +50,8 @@ impl<
     > AbstractRegistryAccess
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn abstract_registry(
-        &self,
-        deps: Deps,
-        env: &Env,
-    ) -> AbstractSdkResult<VersionControlContract> {
-        VersionControlContract::new(deps.api, env).map_err(Into::into)
+    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+        RegistryContract::new(deps.api, env).map_err(Into::into)
     }
 }
 
@@ -88,7 +84,7 @@ mod test {
 
         let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref(), &env)?;
 
-        assert_eq!(abstract_registry.address, abstr.version_control);
+        assert_eq!(abstract_registry.address, abstr.registry);
         Ok(())
     }
 

@@ -41,7 +41,7 @@ pub mod state {
     }
 }
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
+/// The contract is then registered on the version control contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {}
 
@@ -59,7 +59,7 @@ pub enum MigrateMsg {
 pub enum InternalAction {
     /// Registers a new account from a remote chain
     Register {
-        name: String,
+        name: Option<String>,
         description: Option<String>,
         link: Option<String>,
         namespace: Option<String>,
@@ -157,7 +157,7 @@ pub enum QueryMsg {
 pub struct ConfigResponse {
     pub ans_host_address: Addr,
     pub module_factory_address: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

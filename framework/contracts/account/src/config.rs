@@ -103,10 +103,10 @@ pub fn update_info(
 ) -> AccountResult {
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
-    let mut info: AccountInfo = INFO.load(deps.storage)?;
+    let mut info: AccountInfo = INFO.may_load(deps.storage)?.unwrap_or_default();
     if let Some(name) = name {
         validate_name(&name)?;
-        info.name = name;
+        info.name = Some(name);
     }
     validate_description(description.as_deref())?;
     info.description = description;
@@ -286,7 +286,7 @@ mod tests {
 
             let info = INFO.load(deps.as_ref().storage)?;
 
-            assert_that!(&info.name).is_equal_to(name.to_string());
+            assert_that!(&info.name.unwrap()).is_equal_to(name.to_string());
             assert_that!(&info.description.unwrap()).is_equal_to(description.to_string());
             assert_that!(&info.link.unwrap()).is_equal_to(link.to_string());
 
@@ -304,7 +304,7 @@ mod tests {
             INFO.save(
                 deps.as_mut().storage,
                 &AccountInfo {
-                    name: prev_name.clone(),
+                    name: Some(prev_name.clone()),
                     description: Some("description".to_string()),
                     link: Some("link".to_string()),
                 },
@@ -321,7 +321,7 @@ mod tests {
 
             let info = INFO.load(deps.as_ref().storage)?;
 
-            assert_that!(&info.name).is_equal_to(&prev_name);
+            assert_that!(&info.name.unwrap()).is_equal_to(&prev_name);
             assert_that!(&info.description).is_none();
             assert_that!(&info.link).is_none();
 
@@ -542,7 +542,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
-            let vc_res = execute_as(&mut deps, &abstr.version_control, msg.clone());
+            let vc_res = execute_as(&mut deps, &abstr.registry, msg.clone());
             assert_that!(&vc_res).is_err();
 
             let owner_res = execute_as(&mut deps, &owner, msg);

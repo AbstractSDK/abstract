@@ -11,7 +11,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
         AccountId,
     },
-    version_control::ModuleFilter,
+    registry::ModuleFilter,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
@@ -47,7 +47,7 @@ fn execute_on_account() -> AResult {
     let forwarded_coin: Coin = coin(100, "other_coin");
 
     account.execute(
-        &abstract_std::account::ExecuteMsg::ModuleAction {
+        &abstract_std::account::ExecuteMsg::Execute {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],
@@ -87,7 +87,7 @@ fn account_app_ownership() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain.clone());
@@ -103,10 +103,18 @@ fn account_app_ownership() -> AResult {
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
         &[],
     )?;
-    app.call_as(&account.address()?).execute(
-        &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
-        &[],
+    account.call_as(&sender).admin_execute(
+        app.address()?,
+        to_json_binary(&mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}))?,
     )?;
+
+    // Account cannot call by itself without the CALLING_TO variable set
+    app.call_as(&account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
+            &[],
+        )
+        .unwrap_err();
 
     // Not admin or manager
     let err: MockError = app
@@ -130,23 +138,23 @@ fn subaccount_app_ownership() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
 
-    let next_id = deployment.version_control.config()?.local_account_sequence;
+    let next_id = deployment.registry.config()?.local_account_sequence;
 
     account.create_sub_account(
         vec![ModuleInstallConfig::new(
             ModuleInfo::from_id_latest(APP_ID).unwrap(),
             Some(to_json_binary(&MockInitMsg {}).unwrap()),
         )],
-        "My subaccount".to_string(),
         None,
         None,
         None,
+        Some("My subaccount".to_string()),
         None,
         &[],
     )?;
@@ -178,7 +186,7 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain.clone());
@@ -206,10 +214,10 @@ fn deploy_strategy_uploaded() -> AResult {
     let _account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
     deployment
-        .version_control
+        .registry
         .call_as(&admin)
         .update_config(None, Some(false))?;
 
@@ -218,7 +226,7 @@ fn deploy_strategy_uploaded() -> AResult {
 
     // Deploy try
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let module_list = deployment.version_control.module_list(
+    let module_list = deployment.registry.module_list(
         Some(ModuleFilter {
             status: Some(ModuleStatus::Pending),
             ..Default::default()
@@ -230,7 +238,7 @@ fn deploy_strategy_uploaded() -> AResult {
 
     // Clean module
     deployment
-        .version_control
+        .registry
         .call_as(&admin)
         .approve_or_reject_modules(
             vec![],
@@ -242,7 +250,7 @@ fn deploy_strategy_uploaded() -> AResult {
 
     // Deploy Error
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Error)?;
-    let module_list = deployment.version_control.module_list(
+    let module_list = deployment.registry.module_list(
         Some(ModuleFilter {
             status: Some(ModuleStatus::Pending),
             ..Default::default()
@@ -254,7 +262,7 @@ fn deploy_strategy_uploaded() -> AResult {
 
     // Clean module
     deployment
-        .version_control
+        .registry
         .call_as(&admin)
         .approve_or_reject_modules(
             vec![],
@@ -265,7 +273,7 @@ fn deploy_strategy_uploaded() -> AResult {
         )?;
 
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Force)?;
-    let module_list = deployment.version_control.module_list(
+    let module_list = deployment.registry.module_list(
         Some(ModuleFilter {
             status: Some(ModuleStatus::Pending),
             ..Default::default()
@@ -287,10 +295,10 @@ fn deploy_strategy_deployed() -> AResult {
     let _account = create_default_account(sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
     deployment
-        .version_control
+        .registry
         .call_as(&admin)
         .update_config(None, Some(false))?;
 

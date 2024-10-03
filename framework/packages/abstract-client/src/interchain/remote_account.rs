@@ -5,7 +5,7 @@
 
 use abstract_interface::{
     Abstract, AccountDetails, AccountI, AccountQueryFns as _, DependencyCreation, IbcClient,
-    InstallConfig, RegisteredModule, VCQueryFns as _,
+    InstallConfig, RegisteredModule, RegistryQueryFns as _,
 };
 use abstract_std::{
     account::{
@@ -249,7 +249,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
     pub fn address(&self) -> AbstractClientResult<Addr> {
         let base_response = self
             .host_abstract()?
-            .version_control
+            .registry
             .account(self.remote_account_id.clone())?;
 
         Ok(base_response.account.addr().clone())
@@ -345,7 +345,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
     /// Note that execution will be done through source chain
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let modules = vec![(
-            ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
+            ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
             Some(
                 to_json_binary(&abstract_std::account::MigrateMsg {})
                     .map_err(Into::<CwOrchError>::into)?,
@@ -383,9 +383,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
-        self.execute_on_account(vec![abstract_std::account::ExecuteMsg::ModuleAction {
-            msgs,
-        }])
+        self.execute_on_account(vec![abstract_std::account::ExecuteMsg::Execute { msgs }])
     }
 
     /// Executes a list of [manager::ExecuteMsg] on the manager of the account.

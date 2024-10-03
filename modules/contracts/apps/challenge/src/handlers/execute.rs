@@ -71,7 +71,9 @@ fn create_challenge(
     challenge_req: ChallengeRequest,
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     ensure!(
         challenge_req.init_friends.len() < MAX_AMOUNT_OF_FRIENDS as usize,
         AppError::TooManyFriends {}
@@ -111,13 +113,15 @@ fn create_challenge(
 
 fn update_challenge(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     module: ChallengeApp,
     challenge_id: u64,
     new_challenge: ChallengeEntryUpdate,
 ) -> AppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     // will return an error if the challenge doesn't exist
     let mut loaded_challenge: ChallengeEntry = CHALLENGES
@@ -148,7 +152,9 @@ fn cancel_challenge(
     module: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let mut challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     // Check if this challenge still active
     if env.block.time >= challenge.end_timestamp {
@@ -179,7 +185,9 @@ fn update_friends_for_challenge(
     friends: Vec<Friend<String>>,
     op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     // Validate friend addr and account ids
     let friends_validated: Vec<(Addr, Friend<Addr>)> = friends
         .iter()
@@ -289,7 +297,7 @@ fn cast_vote(
 
     let voter = match module
         .account_registry(deps.as_ref(), &env)?
-        .assert_account(&info.sender)
+        .assert_is_account(&info.sender)
     {
         Ok(base) => base.into_addr(),
         Err(_) => info.sender,
@@ -336,7 +344,9 @@ fn veto(
     let proposal_id =
         last_proposal(challenge_id, deps.as_ref())?.ok_or(AppError::ExpectedProposal {})?;
 
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let proposal_info = SIMPLE_VOTING.veto_proposal(deps.storage, &env.block, proposal_id)?;
 
     Ok(module

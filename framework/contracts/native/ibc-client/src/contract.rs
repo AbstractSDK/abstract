@@ -142,8 +142,8 @@ mod tests {
     use super::*;
 
     use crate::test_common::mock_init;
-    use abstract_std::{account, ibc_client::state::*, version_control};
-    use abstract_testing::{mock_env_validated, prelude::*};
+    use abstract_std::{account, ibc_client::state::*, registry};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies},
@@ -181,7 +181,7 @@ mod tests {
         let owner = abstr.owner;
         let msg = InstantiateMsg {
             ans_host_address: abstr.ans_host.to_string(),
-            version_control_address: abstr.version_control.to_string(),
+            registry_address: abstr.registry.to_string(),
         };
         let info = message_info(&owner, &[]);
         let res = instantiate(deps.as_mut(), env.clone(), info, msg).unwrap();
@@ -456,7 +456,7 @@ mod tests {
         use abstract_std::{
             account,
             ibc_host::{self, HostAction, InternalAction},
-            objects::{version_control::VersionControlError, TruncatedChainId},
+            objects::{registry::RegistryError, TruncatedChainId},
         };
 
         use cosmwasm_std::wasm_execute;
@@ -473,8 +473,8 @@ mod tests {
                 // Account pretends as different account
                 .with_contract_item(&not_account, account::state::ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
-                    &abstract_addrs.version_control,
-                    version_control::state::ACCOUNT_ADDRESSES,
+                    &abstract_addrs.registry,
+                    registry::state::ACCOUNT_ADDRESSES,
                     (&TEST_ACCOUNT_ID, account.clone()),
                 )
                 .build();
@@ -498,7 +498,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::VersionControlError(VersionControlError::NotAccount(..))
+                    IbcClientError::RegistryError(RegistryError::NotAccount(..))
                 )
             });
             Ok(())
@@ -518,7 +518,7 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name,
                 action: HostAction::Internal(InternalAction::Register {
-                    name: String::from("name"),
+                    name: Some(String::from("name")),
                     description: None,
                     link: None,
                     namespace: None,
@@ -606,7 +606,7 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
         use abstract_std::{
-            objects::{version_control::VersionControlError, ChannelEntry, TruncatedChainId},
+            objects::{registry::RegistryError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
         use cosmwasm_std::{coins, AnyMsg, Binary, CosmosMsg, IbcMsg};
@@ -623,8 +623,8 @@ mod tests {
                 // Module is not account
                 .with_contract_item(&module, account::state::ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
-                    &abstract_addrs.version_control,
-                    version_control::state::ACCOUNT_ADDRESSES,
+                    &abstract_addrs.registry,
+                    registry::state::ACCOUNT_ADDRESSES,
                     (&TEST_ACCOUNT_ID, account.clone()),
                 )
                 .build();
@@ -642,9 +642,7 @@ mod tests {
 
             assert!(matches!(
                 res,
-                Err(IbcClientError::VersionControlError(
-                    VersionControlError::NotAccount(..)
-                ))
+                Err(IbcClientError::RegistryError(RegistryError::NotAccount(..)))
             ));
             Ok(())
         }
@@ -765,7 +763,7 @@ mod tests {
             account,
             ibc::polytone_callbacks::CallbackRequest,
             ibc_host::{self, HostAction, InternalAction},
-            objects::{version_control::VersionControlError, TruncatedChainId},
+            objects::{registry::RegistryError, TruncatedChainId},
         };
         use cosmwasm_std::wasm_execute;
         use std::str::FromStr;
@@ -780,8 +778,8 @@ mod tests {
                 // Account pretends as different account
                 .with_contract_item(&not_account, account::state::ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
-                    &abstract_addrs.version_control,
-                    version_control::state::ACCOUNT_ADDRESSES,
+                    &abstract_addrs.registry,
+                    registry::state::ACCOUNT_ADDRESSES,
                     (&TEST_ACCOUNT_ID, account.clone()),
                 )
                 .build();
@@ -800,7 +798,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::VersionControlError(VersionControlError::NotAccount(..))
+                    IbcClientError::RegistryError(RegistryError::NotAccount(..))
                 )
             });
             Ok(())
@@ -817,7 +815,7 @@ mod tests {
                     |msg| match from_json::<account::QueryMsg>(msg).unwrap() {
                         account::QueryMsg::Info {} => to_json_binary(&account::InfoResponse {
                             info: account::state::AccountInfo {
-                                name: String::from("name"),
+                                name: Some(String::from("name")),
                                 description: None,
                                 link: None,
                             },
@@ -863,7 +861,7 @@ mod tests {
                             action: HostAction::Internal(InternalAction::Register {
                                 description: None,
                                 link: None,
-                                name: String::from("name"),
+                                name: Some(String::from("name")),
                                 namespace: None,
                                 install_modules: vec![],
                             }),

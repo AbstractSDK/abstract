@@ -40,7 +40,7 @@ pub fn execute_handler(
             exchanges,
         } => update_config(
             deps,
-            &env,
+            env,
             info,
             module,
             desired_asset,
@@ -184,7 +184,7 @@ fn update_tipper_history(
 /// Update the configuration of the app
 fn update_config(
     deps: DepsMut,
-    env: &Env,
+    env: Env,
     msg_info: MessageInfo,
     module: PaymentApp,
     desired_asset: Option<Clearable<AssetEntry>>,
@@ -192,8 +192,10 @@ fn update_config(
     exchanges: Option<Vec<DexName>>,
 ) -> AppResult {
     // Only the admin should be able to call this
-    module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let name_service = module.name_service(deps.as_ref(), env);
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &msg_info.sender)?;
+    let name_service = module.name_service(deps.as_ref(), &env);
 
     let mut config = CONFIG.load(deps.storage)?;
     if let Some(desired_asset) = desired_asset {

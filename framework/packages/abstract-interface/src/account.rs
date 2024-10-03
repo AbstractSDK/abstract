@@ -11,9 +11,7 @@
 //! - uninstall module
 //! - upgrade module
 
-use crate::{
-    get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, VersionControl,
-};
+use crate::{get_account_contract, Abstract, AbstractInterfaceError, AdapterDeployer, Registry};
 pub use abstract_std::account::{ExecuteMsgFns as AccountExecFns, QueryMsgFns as AccountQueryFns};
 use abstract_std::{
     account::{AccountModuleInfo, ModuleInstallConfig, *},
@@ -26,7 +24,7 @@ use abstract_std::{
         salt::generate_instantiate_salt,
         AccountId, TruncatedChainId,
     },
-    version_control::{state::LOCAL_ACCOUNT_SEQUENCE, ExecuteMsgFns, ModuleFilter, QueryMsgFns},
+    registry::{state::LOCAL_ACCOUNT_SEQUENCE, ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, ACCOUNT, IBC_CLIENT,
 };
 use cosmwasm_std::{from_json, to_json_binary};
@@ -57,7 +55,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         abstract_deployment: &Abstract<Chain>,
         account_id: AccountId,
     ) -> Result<Self, AbstractInterfaceError> {
-        get_account_contract(&abstract_deployment.version_control, account_id)
+        get_account_contract(&abstract_deployment.registry, account_id)
     }
 
     pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
@@ -72,12 +70,12 @@ impl<Chain: CwEnv> AccountI<Chain> {
         governance_details: GovernanceDetails<String>,
         funds: &[cosmwasm_std::Coin],
     ) -> Result<Self, AbstractInterfaceError> {
-        let chain = abstract_deployment.version_control.environment().clone();
+        let chain = abstract_deployment.registry.environment().clone();
 
         // Generate salt from account id(or)
         let salt = generate_instantiate_salt(&AccountId::local(details.account_id.unwrap_or(
             chain.wasm_querier().item_query(
-                &abstract_deployment.version_control.address()?,
+                &abstract_deployment.registry.address()?,
                 LOCAL_ACCOUNT_SEQUENCE,
             )?,
         )));
@@ -97,7 +95,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     owner: governance_details,
                     namespace: details.namespace,
                     install_modules: details.install_modules,
-                    name: details.name,
+                    name: Some(details.name),
                     description: details.description,
                     link: details.link,
                     authenticator: None,
@@ -308,8 +306,13 @@ impl<Chain: CwEnv> AccountI<Chain> {
         msg: impl Serialize,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        self.exec_on_module(to_json_binary(&msg).unwrap(), module, &[])
-            .map_err(Into::into)
+        <AccountI<Chain> as AccountExecFns<Chain, abstract_std::account::ExecuteMsg>>::execute_on_module(
+            self,
+            to_json_binary(&msg).unwrap(),
+            module,
+            &[],
+        )
+        .map_err(Into::into)
     }
 
     pub fn update_adapter_authorized_addresses(
@@ -318,12 +321,14 @@ impl<Chain: CwEnv> AccountI<Chain> {
         to_add: Vec<String>,
         to_remove: Vec<String>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        self.execute_on_module(
+        self.admin_execute_on_module(
             module_id,
-            adapter::ExecuteMsg::<Empty>::Base(adapter::BaseExecuteMsg {
-                msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
-                account_address: None,
-            }),
+            to_json_binary(&adapter::ExecuteMsg::<Empty>::Base(
+                adapter::BaseExecuteMsg {
+                    msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
+                    account_address: None,
+                },
+            ))?,
         )?;
 
         Ok(())
@@ -448,7 +453,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
-                    account_msgs: vec![ExecuteMsg::ExecOnModule {
+                    account_msgs: vec![ExecuteMsg::ExecuteOnModule {
                         module_id: module_id.to_string(),
                         exec_msg: msg,
                     }],
@@ -479,9 +484,9 @@ impl<Chain: CwEnv> AccountI<Chain> {
     /// Register the account core contracts in the version control
     pub fn register(
         &self,
-        version_control: &VersionControl<Chain>,
+        registry: &Registry<Chain>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        version_control.register_base(self)
+        registry.register_base(self)
     }
 
     /// Gets the account ID of the
@@ -505,10 +510,10 @@ impl<Chain: CwEnv> AccountI<Chain> {
 
         let result = self.create_sub_account(
             install_modules,
-            name,
             account_id,
             description,
             link,
+            Some(name),
             namespace,
             funds,
         )?;
@@ -537,7 +542,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
 
     pub fn upload_and_register_if_needed(
         &self,
-        version_control: &VersionControl<Chain>,
+        registry: &Registry<Chain>,
     ) -> Result<bool, AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
@@ -549,7 +554,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         };
 
         let migrated = if !modules_to_register.is_empty() {
-            version_control.register_account_mods(modules_to_register)?;
+            registry.register_account_mods(modules_to_register)?;
             true
         } else {
             false
@@ -624,7 +629,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         // We query all the module versions above the current one
         let abstr = Abstract::load_from(chain.clone())?;
         let all_next_module_versions = abstr
-            .version_control
+            .registry
             .module_list(
                 Some(ModuleFilter {
                     namespace: Some(module.namespace.to_string()),
@@ -703,7 +708,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
     ) -> Result<Chain::Response, AbstractInterfaceError> {
         let abstr = Abstract::load_from(self.environment().clone())?;
         abstr
-            .version_control
+            .registry
             .claim_namespace(self.id()?, namespace.into())
             .map_err(Into::into)
     }

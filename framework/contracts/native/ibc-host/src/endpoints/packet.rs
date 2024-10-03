@@ -1,4 +1,4 @@
-use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::feature_objects::RegistryContract;
 use abstract_std::{
     base::ExecuteMsg as MiddlewareExecMsg,
     ibc::{ModuleIbcInfo, ModuleIbcMsg},
@@ -99,7 +99,17 @@ pub fn handle_host_action(
                         chain_name: src_chain,
                     },
                 )?;
-                receive_register(deps, env, account_id, name, None, None, None, vec![], true)
+                receive_register(
+                    deps,
+                    env,
+                    account_id,
+                    Some(name),
+                    None,
+                    None,
+                    None,
+                    vec![],
+                    true,
+                )
             }
         }
     }
@@ -116,7 +126,7 @@ pub fn handle_module_execute(
     msg: Binary,
 ) -> HostResult {
     // We resolve the target module
-    let vc = VersionControlContract::new(deps.api, &env)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
@@ -127,7 +137,7 @@ pub fn handle_module_execute(
             .map(|a| client_to_host_module_account_id(&env, src_chain.clone(), a)),
     };
 
-    let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
+    let target_module_resolved = target_module.addr(deps.as_ref(), registry)?;
 
     match target_module_resolved.reference {
         ModuleReference::Account(_) | ModuleReference::Native(_) | ModuleReference::Service(_) => {
@@ -164,9 +174,9 @@ pub fn handle_host_module_query(
     msg: Binary,
 ) -> HostResult<Binary> {
     // We resolve the target module
-    let vc = VersionControlContract::new(deps.api, &env)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
-    let target_module_resolved = target_module.addr(deps, vc)?;
+    let target_module_resolved = target_module.addr(deps, registry)?;
 
     let query = QueryRequest::<Empty>::from(WasmQuery::Smart {
         contract_addr: target_module_resolved.address.into_string(),

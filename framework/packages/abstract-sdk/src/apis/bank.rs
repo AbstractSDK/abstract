@@ -128,7 +128,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// Transfer the provided funds from the Account to the recipient.
     /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
-    /// # use abstract_std::version_control::Account;
+    /// # use abstract_std::registry::Account;
     /// # use abstract_std::objects::AnsAsset;
     /// # use abstract_std::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
@@ -322,7 +322,7 @@ mod test {
             assert_that!(response.messages[0].msg).is_equal_to(
                 &wasm_execute(
                     account.addr(),
-                    &ExecuteMsg::ModuleAction::<cosmwasm_std::Empty> {
+                    &ExecuteMsg::<Empty>::Execute {
                         msgs: vec![expected_msg],
                     },
                     vec![],

@@ -1,12 +1,12 @@
 use abstract_dex_standard::Identify;
-use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::feature_objects::RegistryContract;
 use cosmwasm_std::Addr;
 
 use crate::{AVAILABLE_CHAINS, OSMOSIS};
 
 #[derive(Default)]
 pub struct Osmosis {
-    pub version_control_contract: Option<VersionControlContract>,
+    pub registry_contract: Option<RegistryContract>,
     pub addr_as_sender: Option<Addr>,
 }
 
@@ -20,7 +20,7 @@ impl Identify for Osmosis {
 }
 
 #[cfg(feature = "full_integration")]
-use ::{
+use {
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread, SwapNode},
     abstract_sdk::{
         feature_objects::AnsHost, features::AbstractRegistryAccess, std::objects::PoolAddress,
@@ -44,12 +44,10 @@ impl AbstractRegistryAccess for Osmosis {
     fn abstract_registry(
         &self,
         _: cosmwasm_std::Deps<'_>,
-    ) -> std::result::Result<VersionControlContract, abstract_sdk::AbstractSdkError> {
-        self.version_control_contract
+    ) -> std::result::Result<RegistryContract, abstract_sdk::AbstractSdkError> {
+        self.registry_contract
             .clone()
-            .ok_or(AbstractSdkError::generic_err(
-                "version_control address is not set",
-            ))
+            .ok_or(AbstractSdkError::generic_err("registry address is not set"))
         // We need to get to the version control somehow (possible from Ans Host ?)
     }
 }
@@ -61,10 +59,10 @@ impl DexCommand for Osmosis {
         &mut self,
         _deps: Deps,
         addr_as_sender: Addr,
-        version_control_contract: VersionControlContract,
+        registry_contract: RegistryContract,
         _ans_host: AnsHost,
     ) -> Result<(), DexError> {
-        self.version_control_contract = Some(version_control_contract);
+        self.registry_contract = Some(registry_contract);
 
         self.addr_as_sender = Some(addr_as_sender);
         Ok(())

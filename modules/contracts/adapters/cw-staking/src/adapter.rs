@@ -1,4 +1,4 @@
-use abstract_adapter::std::version_control::Account;
+use abstract_adapter::std::registry::Account;
 
 use abstract_adapter::sdk::{
     features::{AbstractNameService, AbstractRegistryAccess},

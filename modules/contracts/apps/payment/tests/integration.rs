@@ -7,7 +7,7 @@ use abstract_app::std::{
 };
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
-    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
+    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, RegistryExecFns,
 };
 use cosmwasm_std::{coin, coins, to_json_binary, Decimal, Uint128};
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
@@ -61,7 +61,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
 
     // claim the namespace so app can be deployed
     abstr_deployment
-        .version_control
+        .registry
         .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
 
     app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;

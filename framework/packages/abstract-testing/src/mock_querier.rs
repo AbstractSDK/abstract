@@ -416,7 +416,7 @@ mod tests {
     use abstract_std::{
         account::state::{ACCOUNT_ID, ACCOUNT_MODULES},
         objects::ABSTRACT_ACCOUNT_ID,
-        version_control::state::ACCOUNT_ADDRESSES,
+        registry::state::ACCOUNT_ADDRESSES,
     };
 
     use super::*;
@@ -424,7 +424,7 @@ mod tests {
 
     mod account {
 
-        use abstract_std::version_control::Account;
+        use abstract_std::registry::Account;
 
         use crate::abstract_mock_querier_builder;
 
@@ -438,7 +438,7 @@ mod tests {
 
             let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
-                abstr.version_control,
+                abstr.registry,
                 &ABSTRACT_ACCOUNT_ID,
             );
 
@@ -458,7 +458,7 @@ mod tests {
 
             let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
-                abstr.version_control,
+                abstr.registry,
                 &TEST_ACCOUNT_ID,
             );
 

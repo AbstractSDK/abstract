@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()> {
         "terra15zg7mvqxug2h4nv58u985kk89xaek49zu3cr8sylvq83ts44peaszjqsng".to_string(),
         AccountId::local(0),
         HostAction::Internal(InternalAction::Register {
-            name: "Default Abstract Account".to_string(),
+            name: Some("Default Abstract Account".to_string()),
             description: None,
             link: None,
             namespace: None,

@@ -1,6 +1,5 @@
 use abstract_std::{
-    objects::module_version::assert_cw_contract_upgrade, version_control::MigrateMsg,
-    VERSION_CONTROL,
+    objects::module_version::assert_cw_contract_upgrade, registry::MigrateMsg, REGISTRY,
 };
 
 use cosmwasm_std::{DepsMut, Env};
@@ -20,8 +19,8 @@ pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> VCResult {
         MigrateMsg::Migrate {} => {
             let to_version: Version = CONTRACT_VERSION.parse()?;
 
-            assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
-            cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
+            assert_cw_contract_upgrade(deps.storage, REGISTRY, to_version)?;
+            cw2::set_contract_version(deps.storage, REGISTRY, CONTRACT_VERSION)?;
             Ok(VcResponse::action("migrate"))
         }
     }

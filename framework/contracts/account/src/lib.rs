@@ -68,7 +68,7 @@ mod test_common {
                     monarch: abstr.owner.to_string(),
                 },
                 namespace: None,
-                name: "test".to_string(),
+                name: Some("test".to_string()),
                 description: None,
                 link: None,
                 install_modules: vec![],

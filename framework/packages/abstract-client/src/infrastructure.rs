@@ -39,6 +39,6 @@ impl<Chain: CwEnv> Environment<Chain> for Account<Chain> {
 
 impl<Chain: CwEnv> Environment<Chain> for AbstractClient<Chain> {
     fn environment(&self) -> Chain {
-        self.abstr.version_control.environment().clone()
+        self.abstr.registry.environment().clone()
     }
 }

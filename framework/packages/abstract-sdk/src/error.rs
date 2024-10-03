@@ -91,6 +91,12 @@ pub enum AbstractSdkError {
         module: String,
         err: String,
     },
+
+    // This call needs to be an admin call
+    #[error(
+        "Only the admin can execute this action. An admin is either the owner of an account of an account called by its owner"
+    )]
+    OnlyAdmin {},
 }
 
 impl AbstractSdkError {

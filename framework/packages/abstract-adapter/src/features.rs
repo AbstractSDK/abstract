@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
@@ -21,7 +21,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AccountIdentification
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn account(&self, _deps: Deps) -> AbstractSdkResult<abstract_std::version_control::Account> {
+    fn account(&self, _deps: Deps) -> AbstractSdkResult<abstract_std::registry::Account> {
         if let Some(target) = &self.target_account {
             Ok(target.clone())
         } else {
@@ -35,12 +35,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AbstractRegistryAccess
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn abstract_registry(
-        &self,
-        deps: Deps,
-        env: &Env,
-    ) -> AbstractSdkResult<VersionControlContract> {
-        VersionControlContract::new(deps.api, env).map_err(Into::into)
+    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+        RegistryContract::new(deps.api, env).map_err(Into::into)
     }
 }
 #[cfg(test)]
@@ -70,8 +66,8 @@ mod tests {
         assert_eq!(account, expected_account);
         let ans = module.ans_host(deps.as_ref(), &env)?;
         assert_eq!(ans, AnsHost::new(deps.api, &env)?);
-        let regist = module.abstract_registry(deps.as_ref(), &env)?;
-        assert_eq!(regist, VersionControlContract::new(deps.api, &env)?);
+        let registry = module.abstract_registry(deps.as_ref(), &env)?;
+        assert_eq!(registry, RegistryContract::new(deps.api, &env)?);
 
         module.target()?;
 

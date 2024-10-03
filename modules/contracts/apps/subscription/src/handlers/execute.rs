@@ -295,7 +295,7 @@ pub fn claim_subscriber_emissions(
 #[allow(clippy::too_many_arguments)]
 pub fn update_subscription_config(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     module: SubscriptionApp,
     payment_asset: Option<AssetInfoUnchecked>,
@@ -303,7 +303,9 @@ pub fn update_subscription_config(
     subscription_per_second_emissions: Option<EmissionType<String>>,
     unsubscribe_hook_addr: Option<Clearable<String>>,
 ) -> SubscriptionResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 

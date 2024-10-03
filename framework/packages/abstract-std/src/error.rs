@@ -3,7 +3,7 @@ use cw_asset::AssetError;
 use semver::Version;
 use thiserror::Error;
 
-use crate::objects::{ans_host::AnsHostError, version_control::VersionControlError};
+use crate::objects::{ans_host::AnsHostError, registry::RegistryError};
 
 /// Wrapper error for the Abstract framework.
 #[derive(Error, Debug, PartialEq)]
@@ -18,7 +18,7 @@ pub enum AbstractError {
     Overflow(#[from] OverflowError),
 
     #[error("{0}")]
-    VersionControlError(#[from] VersionControlError),
+    RegistryError(#[from] RegistryError),
 
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),

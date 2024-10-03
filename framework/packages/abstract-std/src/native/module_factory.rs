@@ -7,7 +7,7 @@
 pub mod state {
     use cw_storage_plus::Item;
 
-    use crate::{objects::storage_namespaces, version_control::Account};
+    use crate::{objects::storage_namespaces, registry::Account};
 
     /// Base of account on which modules getting installed right now
     /// It's set only if one of the modules is standalone
@@ -70,7 +70,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub ans_host_address: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

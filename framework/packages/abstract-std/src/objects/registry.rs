@@ -10,7 +10,7 @@ use super::{
 use crate::{
     account::state::ACCOUNT_ID,
     native_addrs,
-    version_control::{
+    registry::{
         state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
         Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
         NamespacesResponse, QueryMsg,
@@ -19,7 +19,7 @@ use crate::{
 };
 
 #[derive(Error, Debug, PartialEq)]
-pub enum VersionControlError {
+pub enum RegistryError {
     // module not found in version registry
     #[error("Module {module} not found in version registry {registry_addr}.")]
     ModuleNotFound { module: String, registry_addr: Addr },
@@ -61,18 +61,18 @@ pub enum VersionControlError {
     InvalidReference(ModuleInfo),
 }
 
-pub type VersionControlResult<T> = Result<T, VersionControlError>;
+pub type RegistryResult<T> = Result<T, RegistryError>;
 
-/// Store the Version Control contract.
+/// Store the Registry contract.
 #[allow(rustdoc::broken_intra_doc_links)]
 /// Implements [`AbstractRegistryAccess`] (defined in abstract-sdk)
 #[cosmwasm_schema::cw_serde]
-pub struct VersionControlContract {
+pub struct RegistryContract {
     /// Address of the version control contract
     pub address: Addr,
 }
 
-impl VersionControlContract {
+impl RegistryContract {
     /// Retrieve address of the Version Control
     pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
         let hrp = native_addrs::hrp_from_env(env);
@@ -88,15 +88,15 @@ impl VersionControlContract {
         &self,
         module_info: &ModuleInfo,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<ModuleReference> {
+    ) -> RegistryResult<ModuleReference> {
         let module_reference = REGISTERED_MODULES
             .query(querier, self.address.clone(), module_info)
-            .map_err(|error| VersionControlError::QueryFailed {
+            .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,
             })?;
 
-        module_reference.ok_or_else(|| VersionControlError::ModuleNotFound {
+        module_reference.ok_or_else(|| RegistryError::ModuleNotFound {
             module: module_info.to_string(),
             registry_addr: self.address.clone(),
         })
@@ -107,7 +107,7 @@ impl VersionControlContract {
         &self,
         module_info: ModuleInfo,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<Module> {
+    ) -> RegistryResult<Module> {
         Ok(self
             .query_modules_configs(vec![module_info], querier)?
             .swap_remove(0)
@@ -119,7 +119,7 @@ impl VersionControlContract {
         &self,
         module_info: ModuleInfo,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<ModuleConfiguration> {
+    ) -> RegistryResult<ModuleConfiguration> {
         Ok(self
             .query_modules_configs(vec![module_info], querier)?
             .swap_remove(0)
@@ -132,10 +132,10 @@ impl VersionControlContract {
         &self,
         infos: Vec<ModuleInfo>,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<Vec<ModuleResponse>> {
+    ) -> RegistryResult<Vec<ModuleResponse>> {
         let ModulesResponse { modules } = querier
             .query_wasm_smart(self.address.to_string(), &QueryMsg::Modules { infos })
-            .map_err(|error| VersionControlError::QueryFailed {
+            .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,
             })?;
@@ -149,10 +149,10 @@ impl VersionControlContract {
         &self,
         namespace: Namespace,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<NamespaceResponse> {
+    ) -> RegistryResult<NamespaceResponse> {
         let namespace_response: NamespaceResponse = querier
             .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespace { namespace })
-            .map_err(|error| VersionControlError::QueryFailed {
+            .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,
             })?;
@@ -165,10 +165,10 @@ impl VersionControlContract {
         &self,
         accounts: Vec<AccountId>,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<NamespacesResponse> {
+    ) -> RegistryResult<NamespacesResponse> {
         let namespaces_response: NamespacesResponse = querier
             .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespaces { accounts })
-            .map_err(|error| VersionControlError::QueryFailed {
+            .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,
             })?;
@@ -181,14 +181,14 @@ impl VersionControlContract {
         &self,
         code_id: u64,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<ModuleInfo> {
+    ) -> RegistryResult<ModuleInfo> {
         let module_info = STANDALONE_INFOS
             .query(querier, self.address.clone(), code_id)
-            .map_err(|error| VersionControlError::QueryFailed {
+            .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,
             })?;
-        module_info.ok_or_else(|| VersionControlError::StandaloneNotFound {
+        module_info.ok_or_else(|| RegistryError::StandaloneNotFound {
             code_id,
             registry_addr: self.address.clone(),
         })
@@ -200,14 +200,14 @@ impl VersionControlContract {
         &self,
         service_addr: &Addr,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<ModuleInfo> {
+    ) -> RegistryResult<ModuleInfo> {
         let module_info = SERVICE_INFOS
             .query(querier, self.address.clone(), service_addr)
-            .map_err(|error| VersionControlError::QueryFailed {
+            .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,
             })?;
-        module_info.ok_or_else(|| VersionControlError::ServiceNotFound {
+        module_info.ok_or_else(|| RegistryError::ServiceNotFound {
             service_addr: service_addr.clone(),
             registry_addr: self.address.clone(),
         })
@@ -216,15 +216,15 @@ impl VersionControlContract {
     // AccountRegistry
 
     /// Get self reported Account id, for checked use
-    /// [`VersionControlContract::account_id`]
+    /// [`RegistryContract::account_id`]
     pub fn unchecked_account_id(
         &self,
         maybe_core_contract_addr: &Addr,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<AccountId> {
+    ) -> RegistryResult<AccountId> {
         ACCOUNT_ID
             .query(querier, maybe_core_contract_addr.clone())
-            .map_err(|_| VersionControlError::FailedToQueryAccountId {
+            .map_err(|_| RegistryError::FailedToQueryAccountId {
                 contract_addr: maybe_core_contract_addr.clone(),
             })
     }
@@ -235,12 +235,12 @@ impl VersionControlContract {
         &self,
         maybe_account_addr: &Addr,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<AccountId> {
+    ) -> RegistryResult<AccountId> {
         let self_reported_account_id = self.unchecked_account_id(maybe_account_addr, querier)?;
         // now we need to verify that the account id is indeed correct
         let account = self.account(&self_reported_account_id, querier)?;
         if account.addr().ne(maybe_account_addr) {
-            Err(VersionControlError::FailedToQueryAccountId {
+            Err(RegistryError::FailedToQueryAccountId {
                 contract_addr: maybe_account_addr.clone(),
             })
         } else {
@@ -254,14 +254,14 @@ impl VersionControlContract {
         &self,
         account_id: &AccountId,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<Account> {
+    ) -> RegistryResult<Account> {
         let maybe_account = ACCOUNT_ADDRESSES
             .query(querier, self.address.clone(), account_id)
-            .map_err(|error| VersionControlError::QueryFailed {
+            .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,
             })?;
-        maybe_account.ok_or_else(|| VersionControlError::UnknownAccountId {
+        maybe_account.ok_or_else(|| RegistryError::UnknownAccountId {
             account_id: account_id.clone(),
             registry_addr: self.address.clone(),
         })
@@ -272,10 +272,10 @@ impl VersionControlContract {
     pub fn namespace_registration_fee(
         &self,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<Option<cosmwasm_std::Coin>> {
+    ) -> RegistryResult<Option<cosmwasm_std::Coin>> {
         let config = CONFIG
             .query(querier, self.address.clone())
-            .map_err(|error| VersionControlError::QueryFailed {
+            .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,
             })?;
@@ -287,14 +287,11 @@ impl VersionControlContract {
         &self,
         maybe_account: &Addr,
         querier: &QuerierWrapper,
-    ) -> VersionControlResult<Account> {
+    ) -> RegistryResult<Account> {
         let account_id = self.unchecked_account_id(maybe_account, querier)?;
         let account = self.account(&account_id, querier)?;
         if account.addr().ne(maybe_account) {
-            Err(VersionControlError::NotAccount(
-                maybe_account.clone(),
-                account_id,
-            ))
+            Err(RegistryError::NotAccount(maybe_account.clone(), account_id))
         } else {
             Ok(account)
         }

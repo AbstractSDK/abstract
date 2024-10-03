@@ -55,19 +55,19 @@ impl<
     fn base_execute(
         &self,
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> AppResult {
         match message {
-            BaseExecuteMsg::UpdateConfig {} => self.update_config(deps, info),
+            BaseExecuteMsg::UpdateConfig {} => self.update_config(deps, env, info),
         }
     }
 
-    fn update_config(&self, deps: DepsMut, info: MessageInfo) -> AppResult {
+    fn update_config(&self, deps: DepsMut, env: Env, info: MessageInfo) -> AppResult {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
-        self.admin.assert_admin(deps.as_ref(), &info.sender)?;
+        self.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
 
         // TODO: do anything here?
         // let state = self.base_state.load(deps.storage)?;

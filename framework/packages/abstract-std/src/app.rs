@@ -10,7 +10,7 @@ use crate::{
         MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
     },
     objects::{gov_type::TopLevelOwnerResponse, module_version::ModuleDataResponse},
-    version_control::Account,
+    registry::Account,
 };
 
 pub type ExecuteMsg<ModuleMsg = Empty> = EndpointExecMsg<BaseExecuteMsg, ModuleMsg>;
@@ -96,7 +96,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 pub struct AppConfigResponse {
     pub account: Addr,
     pub ans_host_address: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

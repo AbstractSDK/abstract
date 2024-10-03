@@ -54,7 +54,7 @@ pub fn init_mock_adapter<T: CwEnv>(
     account_id: AccountId,
 ) -> anyhow::Result<MockAdapterI<T>> {
     deployment
-        .version_control
+        .registry
         .claim_namespace(account_id, "tester".to_string())?;
     let mock_adapter = MockAdapterI::new(TEST_MODULE_ID, chain);
     let version: semver::Version = version
@@ -70,10 +70,10 @@ pub fn add_mock_adapter_install_fee<T: CwEnv>(
     version: Option<String>,
 ) -> anyhow::Result<()> {
     let version = version.unwrap_or(TEST_VERSION.to_string());
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "test-module-id".to_string(),
         Namespace::new(TEST_NAMESPACE).unwrap(),
-        abstract_std::version_control::UpdateModule::Versioned {
+        abstract_std::registry::UpdateModule::Versioned {
             version,
             metadata: None,
             monetization: Some(monetization),

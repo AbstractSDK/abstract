@@ -4,10 +4,10 @@ use abstract_std::{
         module_reference::ModuleReference,
         module_version::MODULE,
         namespace::Namespace,
-        version_control::VersionControlContract,
+        registry::RegistryContract,
         AccountId,
     },
-    version_control::{ModuleConfiguration, ModuleResponse, NamespaceResponse, NamespacesResponse},
+    registry::{ModuleConfiguration, ModuleResponse, NamespaceResponse, NamespacesResponse},
 };
 use cosmwasm_std::{Addr, Deps, Env};
 
@@ -87,7 +87,7 @@ impl<'a, T: ModuleRegistryInterface> ApiIdentification for ModuleRegistry<'a, T>
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
     base: &'a T,
     deps: Deps<'a>,
-    vc: VersionControlContract,
+    vc: RegistryContract,
 }
 
 impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {

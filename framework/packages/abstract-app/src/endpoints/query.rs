@@ -1,4 +1,4 @@
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::{
@@ -61,7 +61,7 @@ impl<
             ans_host_address: AnsHost::new(deps.api, env)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
-            version_control_address: VersionControlContract::new(deps.api, env)
+            registry_address: RegistryContract::new(deps.api, env)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
         })
@@ -172,7 +172,7 @@ mod test {
                 AppConfigResponse {
                     account: account.into_addr(),
                     ans_host_address: abstr.ans_host,
-                    version_control_address: abstr.version_control,
+                    registry_address: abstr.registry,
                 },
                 from_json(res).unwrap()
             );

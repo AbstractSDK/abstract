@@ -148,7 +148,7 @@ pub mod mock {
             })
             .with_dependencies(&[
                 StaticDependency::new(TEST_MODULE_ID, &[TEST_VERSION]),
-                StaticDependency::new(IBC_CLIENT, &[abstract_std::registry::ABSTRACT_VERSION]),
+                StaticDependency::new(IBC_CLIENT, &[abstract_std::constants::ABSTRACT_VERSION]),
             ])
             .with_replies(&[(1u64, |_, _, _, msg| {
                 #[allow(deprecated)]
@@ -186,7 +186,7 @@ pub mod mock {
                 Some(to_json_binary(&MockInitMsg {})?),
             );
             let ibc_client = ModuleInstallConfig::new(
-                ModuleInfo::from_id(IBC_CLIENT, abstract_std::registry::ABSTRACT_VERSION.into())?,
+                ModuleInfo::from_id(IBC_CLIENT, abstract_std::constants::ABSTRACT_VERSION.into())?,
                 None,
             );
             Ok(vec![test_module, ibc_client])
@@ -276,10 +276,10 @@ pub mod mock {
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
         const MOCK_APP_WITH_DEP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
         .with_dependencies($deps)
-        .with_execute(|deps, _env, info, module, msg| {
+        .with_execute(|deps, env, info, module, msg| {
             match msg {
                 MockExecMsg::DoSomethingAdmin{} => {
-                    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+                    module.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
                 },
                 _ => {},
             }

@@ -1,8 +1,9 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use abstract_std::{
-    objects::{version_control::VersionControlContract, AccountId},
-    version_control::Account,
+    objects::ownership::nested_admin::assert_account_calling_to_as_admin_is_self,
+    objects::{registry::RegistryContract, AccountId},
+    registry::Account,
 };
 use cosmwasm_std::{Addr, Deps, Env};
 
@@ -10,7 +11,7 @@ use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery,
     features::{AbstractRegistryAccess, ModuleIdentification},
-    AbstractSdkResult,
+    AbstractSdkError, AbstractSdkResult,
 };
 
 /// Verify if an addresses is associated with an Abstract Account.
@@ -82,12 +83,12 @@ impl<'a, T: AccountVerification> ApiIdentification for AccountRegistry<'a, T> {
 pub struct AccountRegistry<'a, T: AccountVerification> {
     base: &'a T,
     deps: Deps<'a>,
-    vc: VersionControlContract,
+    vc: RegistryContract,
 }
 
 impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided address is indeed an Abstract Account.
-    pub fn assert_account(&self, maybe_account: &Addr) -> AbstractSdkResult<Account> {
+    pub fn assert_is_account(&self, maybe_account: &Addr) -> AbstractSdkResult<Account> {
         self.vc
             .assert_account(maybe_account, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
@@ -113,6 +114,20 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
             .namespace_registration_fee(&self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
+
+    /// Verify if the provided address is indeed an Abstract Account AND if the current execution has admin rights.
+    pub fn assert_is_account_admin(
+        &self,
+        env: &Env,
+        maybe_account: &Addr,
+    ) -> AbstractSdkResult<Account> {
+        let account = self.assert_is_account(maybe_account)?;
+
+        if !assert_account_calling_to_as_admin_is_self(&self.deps.querier, env, maybe_account) {
+            return Err(AbstractSdkError::OnlyAdmin {});
+        }
+        Ok(account)
+    }
 }
 
 #[cfg(test)]
@@ -123,8 +138,8 @@ mod test {
     use crate::AbstractSdkError;
     use abstract_std::{
         account::state::ACCOUNT_ID,
-        objects::{account::AccountTrace, module::ModuleId, version_control::VersionControlError},
-        version_control::state::ACCOUNT_ADDRESSES,
+        objects::{account::AccountTrace, module::ModuleId, registry::RegistryError},
+        registry::state::ACCOUNT_ADDRESSES,
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
@@ -133,12 +148,8 @@ mod test {
     struct MockBinding {}
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(
-            &self,
-            deps: Deps,
-            env: &Env,
-        ) -> AbstractSdkResult<VersionControlContract> {
-            Ok(VersionControlContract::new(deps.api, env)?)
+        fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+            RegistryContract::new(deps.api, env).map_err(Into::into)
         }
     }
 
@@ -174,17 +185,14 @@ mod test {
             let res = binding
                 .account_registry(deps.as_ref(), &env)
                 .unwrap()
-                .assert_account(not_account.addr());
+                .assert_is_account(not_account.addr());
 
             let expected_err = AbstractSdkError::ApiQuery {
                 api: AccountRegistry::<MockBinding>::api_id(),
                 module_id: binding.module_id().to_owned(),
                 error: Box::new(
-                    VersionControlError::NotAccount(
-                        not_account.addr().clone(),
-                        SECOND_TEST_ACCOUNT_ID,
-                    )
-                    .into(),
+                    RegistryError::NotAccount(not_account.addr().clone(), SECOND_TEST_ACCOUNT_ID)
+                        .into(),
                 ),
             };
             assert_eq!(res.unwrap_err(), expected_err);
@@ -198,7 +206,7 @@ mod test {
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(&abstr.version_control, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
+                .with_contract_map_key(&abstr.registry, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding {};
@@ -206,16 +214,16 @@ mod test {
             let res = binding
                 .account_registry(deps.as_ref(), &env)
                 .unwrap()
-                .assert_account(abstr.account.addr());
+                .assert_is_account(abstr.account.addr());
 
             assert_that!(res)
                 .is_err()
                 .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| {
                     e.to_string().contains(
-                        &VersionControlError::UnknownAccountId {
+                        &RegistryError::UnknownAccountId {
                             account_id: TEST_ACCOUNT_ID,
-                            registry_addr: abstr.version_control.clone(),
+                            registry_addr: abstr.registry.clone(),
                         }
                         .to_string(),
                     )
@@ -232,7 +240,7 @@ mod test {
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(account.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
-                    &abstr.version_control,
+                    &abstr.registry,
                     ACCOUNT_ADDRESSES,
                     (&TEST_ACCOUNT_ID, account.clone()),
                 )
@@ -243,7 +251,7 @@ mod test {
             let res = binding
                 .account_registry(deps.as_ref(), &env)
                 .unwrap()
-                .assert_account(account.addr());
+                .assert_is_account(account.addr());
 
             assert_that!(res).is_ok().is_equal_to(account);
         }

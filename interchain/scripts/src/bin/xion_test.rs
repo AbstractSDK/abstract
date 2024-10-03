@@ -99,7 +99,7 @@ fn main() -> anyhow::Result<()> {
             let signature = signing_key.sign(account_addr.as_bytes()).unwrap();
 
             let code_id = abstr
-                .version_control()
+                .registry()
                 .module(account_module.clone())?
                 .reference
                 .unwrap_account()?;
@@ -115,10 +115,11 @@ fn main() -> anyhow::Result<()> {
                         pubkey: Binary::new(signing_key.public_key().to_bytes()),
                         signature: Binary::new(signature.to_vec()),
                     }),
-                    name: "test".to_string(),
+                    name: Some("test".to_string()),
                     account_id: Some(account_id.clone()),
-                    // TODO: add new type for external Authenticator
-                    owner: abstract_client::GovernanceDetails::Renounced {},
+                    owner: abstract_client::GovernanceDetails::AbstractAccount {
+                        address: account_addr,
+                    },
                     namespace: Some("test".to_string()),
                     install_modules: vec![],
                     description: Some("foo bar".to_owned()),

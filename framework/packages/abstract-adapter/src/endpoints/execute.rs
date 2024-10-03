@@ -68,35 +68,34 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             msg,
         } = message;
         let account_registry = self.account_registry(deps.as_ref(), &env)?;
-        let account = match account_address {
-            // If account address provided, check if the sender is a direct or nested owner for this account.
-            Some(requested_account) => {
-                let account_address = deps.api.addr_validate(&requested_account)?;
-                let requested_core = account_registry.assert_account(&account_address)?;
-                if requested_core.addr() == info.sender
-                    || is_top_level_owner(
-                        &deps.querier,
-                        requested_core.addr().clone(),
-                        &info.sender,
-                    )
-                    .unwrap_or(false)
-                {
-                    requested_core
-                } else {
-                    return Err(AdapterError::UnauthorizedAdapterRequest {
-                        adapter: self.module_id().to_string(),
-                        sender: info.sender.to_string(),
-                    });
+        let account = account_registry
+            .assert_is_account_admin(&env, &info.sender)
+            .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
+                adapter: self.module_id().to_string(),
+                sender: info.sender.to_string(),
+            })
+            .or_else(|e| {
+                // If the sender is not an account or doesn't have the admin functionality enabled, the sender must be a top-level account owner
+                match account_address {
+                    Some(requested_account) => {
+                        let account_address = deps.api.addr_validate(&requested_account)?;
+                        let account = account_registry.assert_is_account(&account_address)?;
+                        if is_top_level_owner(&deps.querier, account.addr().clone(), &info.sender)
+                            .unwrap_or(false)
+                        {
+                            Ok(account)
+                        } else {
+                            Err(AdapterError::UnauthorizedAdapterRequest {
+                                adapter: self.module_id().to_string(),
+                                sender: info.sender.to_string(),
+                            })
+                        }
+                    }
+                    // If not provided the sender must be the direct owner AND have admin execution rights
+                    None => Err(e),
                 }
-            }
-            // If not provided the sender must be the direct owner
-            None => account_registry.assert_account(&info.sender).map_err(|_| {
-                AdapterError::UnauthorizedAdapterRequest {
-                    adapter: self.module_id().to_string(),
-                    sender: info.sender.to_string(),
-                }
-            })?,
-        };
+            })?;
+
         self.target_account = Some(account);
         match msg {
             AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove } => {
@@ -128,7 +127,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             // The sender must either be an authorized address or account.
             Some(requested_account) => {
                 let account_address = deps.api.addr_validate(&requested_account)?;
-                let requested_core = account_registry.assert_account(&account_address)?;
+                let requested_core = account_registry.assert_is_account(&account_address)?;
 
                 if requested_core.addr() == sender {
                     // If the caller is the account of the indicated proxy_address, it's authorized to do the operation
@@ -154,7 +153,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                 }
             }
             None => account_registry
-                .assert_account(sender)
+                .assert_is_account(sender)
                 .map_err(|_| unauthorized_sender())?,
         };
         self.target_account = Some(account);
@@ -291,6 +290,7 @@ mod tests {
             let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
 
             mock_init(&mut deps)?;
@@ -324,6 +324,7 @@ mod tests {
             let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
 
             mock_init(&mut deps)?;
@@ -364,6 +365,7 @@ mod tests {
             let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
 
             mock_init(&mut deps)?;
@@ -406,6 +408,7 @@ mod tests {
             let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -439,6 +442,7 @@ mod tests {
             let account = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
 
             mock_init(&mut deps)?;
@@ -474,7 +478,7 @@ mod tests {
         use crate::mock::TEST_AUTHORIZED_ADDR;
         use abstract_std::{
             objects::{account::AccountTrace, AccountId},
-            version_control::Account,
+            registry::Account,
         };
         use cosmwasm_std::OwnedDeps;
 
@@ -510,6 +514,7 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&test_account(deps.api), TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&test_account(deps.api))
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![]);
@@ -543,6 +548,7 @@ mod tests {
             let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![]);
@@ -562,6 +568,7 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&test_account(deps.api), TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&test_account(deps.api))
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
@@ -583,6 +590,7 @@ mod tests {
             let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
@@ -609,6 +617,7 @@ mod tests {
                     &another_account,
                     AccountId::new(69420u32, AccountTrace::Local).unwrap(),
                 )
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);

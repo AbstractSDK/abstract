@@ -1,8 +1,8 @@
-use abstract_interface::{Abstract, AccountDetails, AccountI, VCExecFns, VCQueryFns};
+use abstract_interface::{Abstract, AccountDetails, AccountI, RegistryExecFns, RegistryQueryFns};
 use abstract_sdk::cw_helpers::Clearable;
 use abstract_std::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace},
-    version_control::{Account, NamespaceInfo, NamespaceResponse},
+    registry::{Account, NamespaceInfo, NamespaceResponse},
 };
 use cosmwasm_std::coin;
 use cw_orch::{environment::MutCwEnv, prelude::*};
@@ -13,14 +13,14 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
     let deployment = Abstract::load_from(chain.clone())?;
     let sender = chain.sender_addr();
 
-    let version_control = &deployment.version_control;
+    let registry = &deployment.registry;
 
     // Update namespace fee
     let namespace_fee = coin(10, "token");
     chain
         .set_balance(&sender, vec![namespace_fee.clone()])
         .unwrap();
-    version_control.update_config(Some(Clearable::Set(namespace_fee.clone())), None)?;
+    registry.update_config(Some(Clearable::Set(namespace_fee.clone())), None)?;
 
     let namespace_to_claim = "namespace-to-claim";
 
@@ -69,7 +69,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
     let account_addr = account.address()?;
 
     // We need to check if the namespace is associated with this account
-    let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;
+    let namespace = registry.namespace(Namespace::new(namespace_to_claim)?)?;
 
     assert_eq!(
         namespace,

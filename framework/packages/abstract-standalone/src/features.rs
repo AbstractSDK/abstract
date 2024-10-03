@@ -1,9 +1,9 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
-use abstract_std::version_control::Account;
+use abstract_std::registry::Account;
 use cosmwasm_std::{Deps, Env};
 
 use crate::StandaloneContract;
@@ -18,12 +18,8 @@ impl AbstractNameService for StandaloneContract {
 // ANCHOR_END: ans
 
 impl AbstractRegistryAccess for StandaloneContract {
-    fn abstract_registry(
-        &self,
-        deps: Deps,
-        env: &Env,
-    ) -> AbstractSdkResult<VersionControlContract> {
-        Ok(VersionControlContract::new(deps.api, env)?)
+    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+        Ok(RegistryContract::new(deps.api, env)?)
     }
 }
 
@@ -69,7 +65,7 @@ mod test {
 
         let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref(), &env)?;
 
-        assert_that!(abstract_registry.address).is_equal_to(abstr.version_control);
+        assert_that!(abstract_registry.address).is_equal_to(abstr.registry);
         Ok(())
     }
 

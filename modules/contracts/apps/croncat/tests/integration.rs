@@ -6,7 +6,7 @@ use abstract_app::std::{
         account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
     },
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, RegistryExecFns};
 use common::contracts;
 use cosmwasm_std::{coins, to_json_binary, BankMsg, Uint128, WasmMsg};
 use croncat_app::{
@@ -236,7 +236,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
                 monarch: mock.sender_addr().to_string(),
             })?;
     // claim the namespace so app can be deployed
-    abstr_deployment.version_control.claim_namespace(
+    abstr_deployment.registry.claim_namespace(
         AccountId::new(1, AccountTrace::Local)?,
         "croncat".to_owned(),
     )?;

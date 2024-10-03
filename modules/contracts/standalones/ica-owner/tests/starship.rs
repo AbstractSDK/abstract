@@ -38,10 +38,7 @@ impl<Env: CwEnv> TestEnv<Env> {
             .build()?;
         let standalone = sub_account.install_standalone::<MyStandaloneInterface<_>>(
             &MyStandaloneInstantiateMsg {
-                base: standalone::StandaloneInstantiateMsg {
-                    ans_host_address: abs_src.name_service().addr_str()?,
-                    version_control_address: abs_src.version_control().addr_str()?,
-                },
+                base: standalone::StandaloneInstantiateMsg {},
                 ica_controller_code_id,
             },
             &[],
@@ -66,8 +63,8 @@ impl<Env: CwEnv> TestEnv<Env> {
 
         let namespace = Namespace::new(MY_NAMESPACE)?;
 
-        let abs_src = AbstractClient::builder(src_env).build()?;
-        let abs_dst = AbstractClient::builder(dst_env).build()?;
+        let abs_src = AbstractClient::builder(src_env).build(src_env.sender().clone())?;
+        let abs_dst = AbstractClient::builder(dst_env).build(dst_env.sender().clone())?;
 
         // Publish the standalone
         let publisher = abs_src.publisher_builder(namespace).build()?;
@@ -79,10 +76,7 @@ impl<Env: CwEnv> TestEnv<Env> {
             .build()?;
         let standalone = sub_account.install_standalone::<MyStandaloneInterface<_>>(
             &MyStandaloneInstantiateMsg {
-                base: standalone::StandaloneInstantiateMsg {
-                    ans_host_address: abs_src.name_service().addr_str()?,
-                    version_control_address: abs_src.version_control().addr_str()?,
-                },
+                base: standalone::StandaloneInstantiateMsg {},
                 ica_controller_code_id,
             },
             &[],
@@ -109,7 +103,7 @@ fn test_bank_send() -> anyhow::Result<()> {
     // Some txs don't succeed with default gas_buffer
     std::env::set_var(cw_orch::daemon::env::GAS_BUFFER_ENV_NAME, "1.8");
 
-    let starship = Starship::new(RUNTIME.handle(), None)?;
+    let starship = Starship::new(None)?;
     let daemon_interchain = starship.interchain_env();
     let juno = daemon_interchain.chain("juno-1")?;
     let osmosis = daemon_interchain.chain("osmosis-1")?;
@@ -132,7 +126,6 @@ fn test_bank_send() -> anyhow::Result<()> {
                 connection_id: ibc_path.chain_1.connection_id.to_string(),
                 counterparty_connection_id: ibc_path.chain_2.connection_id.to_string(),
                 counterparty_port_id: None,
-                tx_encoding: None,
                 channel_ordering: Some(cosmwasm_std::IbcOrder::Ordered),
             },
             None,
@@ -151,7 +144,7 @@ fn test_bank_send() -> anyhow::Result<()> {
     let ica_addr = state.ica_state.unwrap().ica_addr;
 
     // Send 10_000 uosmo from ICA to some address
-    let receiving_addr = test_env.abs_dst.version_control().addr_str()?;
+    let receiving_addr = test_env.abs_dst.registry().addr_str()?;
     let amount = coins(10_000, "uosmo");
     RUNTIME.block_on(osmosis.wallet().bank_send(&ica_addr, amount.clone()))?;
 
@@ -178,7 +171,6 @@ fn test_bank_send() -> anyhow::Result<()> {
                 connection_id: ibc_path.chain_1.connection_id.to_string(),
                 counterparty_connection_id: ibc_path.chain_2.connection_id.to_string(),
                 counterparty_port_id: None,
-                tx_encoding: None,
                 channel_ordering: Some(cosmwasm_std::IbcOrder::Ordered),
             },
             None,
