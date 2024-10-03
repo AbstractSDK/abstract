@@ -81,7 +81,7 @@ fn create_challenge(
         .init_friends
         .iter()
         .cloned()
-        .map(|human| human.check(deps.as_ref(), &module))
+        .map(|human| human.check(deps.as_ref(), &env, &module))
         .collect::<AbstractSdkResult<_>>()?;
 
     let (friend_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
@@ -184,7 +184,7 @@ fn update_friends_for_challenge(
     let friends_validated: Vec<(Addr, Friend<Addr>)> = friends
         .iter()
         .cloned()
-        .map(|human| human.check(deps.as_ref(), module))
+        .map(|human| human.check(deps.as_ref(), &env, module))
         .collect::<AbstractSdkResult<_>>()?;
 
     let (voters_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
@@ -213,7 +213,7 @@ fn update_friends_for_challenge(
 
             let mut current_friends_addrs: Vec<Addr> = current_friends
                 .iter()
-                .map(|f| f.addr(deps.as_ref(), module))
+                .map(|f| f.addr(deps.as_ref(), &env, module))
                 .collect::<AbstractSdkResult<_>>()?;
             current_friends_addrs.extend(voters_addrs);
             // Check if addrs unique
@@ -263,7 +263,7 @@ fn get_or_create_active_proposal(
     let friends: Vec<Addr> = CHALLENGE_FRIENDS
         .load(deps.storage, challenge_id)?
         .into_iter()
-        .map(|friend| friend.addr(deps.as_ref(), module))
+        .map(|friend| friend.addr(deps.as_ref(), &env, module))
         .collect::<AbstractSdkResult<_>>()?;
     let proposal_id = SIMPLE_VOTING.new_proposal(
         deps.storage,
@@ -288,7 +288,7 @@ fn cast_vote(
     let proposal_id = get_or_create_active_proposal(&mut deps, &env, challenge_id, module)?;
 
     let voter = match module
-        .account_registry(deps.as_ref())?
+        .account_registry(deps.as_ref(), &env)?
         .assert_account(&info.sender)
     {
         Ok(base) => base.into_addr(),
@@ -346,7 +346,7 @@ fn veto(
 
 fn try_finish_challenge(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     module: &ChallengeApp,
     proposal_info: ProposalInfo,
     proposal_outcome: ProposalOutcome,
@@ -364,7 +364,7 @@ fn try_finish_challenge(
     let res = if !matches!(proposal_outcome, ProposalOutcome::Passed) {
         module.response("finish_vote")
     } else {
-        charge_penalty(deps, module, challenge, friends)?
+        charge_penalty(deps, env, module, challenge, friends)?
     };
     Ok(res
         .add_attribute("proposal_info", format!("{proposal_info:?}"))
@@ -373,6 +373,7 @@ fn try_finish_challenge(
 
 fn charge_penalty(
     deps: DepsMut,
+    env: Env,
     module: &ChallengeApp,
     challenge: ChallengeEntry,
     friends: Vec<Friend<Addr>>,
@@ -394,7 +395,7 @@ fn charge_penalty(
         amount: amount_per_friend,
     };
 
-    let bank = module.bank(deps.as_ref());
+    let bank = module.bank(deps.as_ref(), &env);
     let executor = module.executor(deps.as_ref());
 
     // Create a transfer action for each friend
@@ -404,7 +405,7 @@ fn charge_penalty(
             let recipent = match friend {
                 Friend::Addr(addr) => addr.address,
                 Friend::AbstractAccount(account_id) => module
-                    .account_registry(deps.as_ref())?
+                    .account_registry(deps.as_ref(), &env)?
                     .account(&account_id)?
                     .into_addr(),
             };

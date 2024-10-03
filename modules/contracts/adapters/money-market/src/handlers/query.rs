@@ -23,7 +23,7 @@ pub fn query_handler(
     module: &MoneyMarketAdapter,
     msg: MoneyMarketQueryMsg,
 ) -> MoneyMarketResult<Binary> {
-    let ans = module.name_service(deps);
+    let ans = module.name_service(deps, &env);
     let whole_money_market_query =
         MoneyMarketQueryResolveWrapper(platform_resolver::resolve_money_market, msg);
     let msg = ans.query(&whole_money_market_query)?;
@@ -38,7 +38,7 @@ pub fn query_handler(
                 action,
             } = message
             {
-                let ans = module.name_service(deps);
+                let ans = module.name_service(deps, &env);
                 let whole_money_market_action = MoneyMarketActionResolveWrapper(
                     platform_resolver::resolve_money_market(&money_market)?,
                     action,
@@ -66,6 +66,7 @@ pub fn query_handler(
                         crate::adapter::MoneyMarketAdapter::resolve_money_market_action(
                             module,
                             deps,
+                            &env,
                             addr_as_sender,
                             action,
                             money_market,
@@ -108,7 +109,7 @@ fn handle_local_query(
     query: MoneyMarketQueryMsg,
 ) -> MoneyMarketResult<Binary> {
     let mut money_market = platform_resolver::resolve_money_market(&money_market)?;
-    let ans_host = module.ans_host(deps)?;
+    let ans_host = module.ans_host(deps, &env)?;
     Ok(match query {
         MoneyMarketQueryMsg::RawUserDeposit {
             user,

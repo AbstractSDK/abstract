@@ -75,7 +75,7 @@ pub fn execute_handler(
         CalendarExecuteMsg::UpdateConfig {
             price_per_minute,
             denom,
-        } => update_config(deps, info, module, price_per_minute, denom),
+        } => update_config(deps, env, info, module, price_per_minute, denom),
     }
 }
 
@@ -190,7 +190,7 @@ fn handle_stake(
     }
 
     meeting.amount_staked = Uint128::zero();
-    let bank = module.bank(deps.as_ref());
+    let bank = module.bank(deps.as_ref(), &env);
 
     let response = match stake_action {
         StakeAction::Return => module.response("return_stake").add_message(BankMsg::Send {
@@ -234,6 +234,7 @@ fn handle_stake(
 
 fn update_config(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     module: CalendarApp,
     price_per_minute: Option<Uint128>,
@@ -247,7 +248,7 @@ fn update_config(
         attrs.push(("price_per_minute", price_per_minute.to_string()));
     }
     if let Some(unresolved) = denom {
-        let denom = resolve_native_ans_denom(deps.as_ref(), &module, unresolved.clone())?;
+        let denom = resolve_native_ans_denom(deps.as_ref(), &env, &module, unresolved.clone())?;
         config.denom = denom;
         attrs.push(("denom", unresolved.to_string()));
     }
@@ -257,10 +258,11 @@ fn update_config(
 
 pub fn resolve_native_ans_denom(
     deps: Deps,
+    env: &Env,
     module: &CalendarApp,
     denom: AssetEntry,
 ) -> CalendarAppResult<String> {
-    let name_service = module.name_service(deps);
+    let name_service = module.name_service(deps, env);
     let resolved_denom = name_service.query(&denom)?;
     let denom = match resolved_denom {
         AssetInfoBase::Native(denom) => Ok(denom),

@@ -1,10 +1,10 @@
 use abstract_adapter::abstract_interface::{
-    AdapterDeployer, AnsHost, DeployStrategy, VCExecFns, VersionControl,
+    AdapterDeployer, DeployStrategy, VCExecFns, VersionControl,
 };
 use abstract_adapter::std::{
     adapter,
     objects::module::{Module, ModuleInfo, ModuleVersion},
-    ANS_HOST, VERSION_CONTROL,
+    VERSION_CONTROL,
 };
 use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
 use cosmwasm_std::{Addr, Empty};
@@ -25,8 +25,6 @@ fn deploy_cw_staking(
         std::env::var("VERSION_CONTROL").expect("VERSION_CONTROL not set"),
     ));
 
-    let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-
     if let Some(prev_version) = prev_version {
         let Module { info, reference } = version_control.module(ModuleInfo::from_id(
             CW_STAKING_ADAPTER_ID,
@@ -43,10 +41,7 @@ fn deploy_cw_staking(
         cw_staking.set_code_id(code_id);
         let init_msg = adapter::InstantiateMsg {
             module: Empty {},
-            base: adapter::BaseInstantiateMsg {
-                ans_host_address: ans_host.address()?.into(),
-                version_control_address: version_control.address()?.into(),
-            },
+            base: adapter::BaseInstantiateMsg {},
         };
         cw_staking
             .as_instance_mut()
