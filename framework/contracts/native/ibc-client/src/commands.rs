@@ -411,8 +411,7 @@ pub fn execute_send_funds(
         transfers.push(ics_20_send);
     }
 
-    Ok(IbcClientResponse::action("handle_send_funds")
-        .add_messages(transfers))
+    Ok(IbcClientResponse::action("handle_send_funds").add_messages(transfers))
 }
 
 fn _ics_20_send_msg(

@@ -126,7 +126,13 @@ pub fn receive_send_all_back(
     client_account_address: String,
     src_chain: TruncatedChainId,
 ) -> HostResult {
-    let wasm_msg = send_all_back(deps.as_ref(), env, account, client_account_address, src_chain)?;
+    let wasm_msg = send_all_back(
+        deps.as_ref(),
+        env,
+        account,
+        client_account_address,
+        src_chain,
+    )?;
 
     Ok(HostResponse::action("receive_dispatch").add_message(wasm_msg))
 }

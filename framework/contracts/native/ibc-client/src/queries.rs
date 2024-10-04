@@ -122,5 +122,7 @@ pub fn account(
         deps.storage,
         (account_id.trace(), account_id.seq(), &host_chain),
     )?;
-    Ok(AccountResponse { remote_account_addr })
+    Ok(AccountResponse {
+        remote_account_addr,
+    })
 }
