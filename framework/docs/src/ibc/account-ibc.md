@@ -177,7 +177,7 @@ You see that an Abstract Interchain connection is uni-directional. You need 2 co
 
 ##### Account creation
 
-Interchain Abstract Accounts are traditional Abstract Accounts controlled by the ibc-host. The ibc-host is the admin of the account and routes any packet sent by a remote account on the corresponding local account. When creating an abstract account, it is simply registered by the `ibc-host` using the [`account-factory`](../5_platform/3_account_factory.md) just like any other account.
+Interchain Abstract Accounts are traditional Abstract Accounts controlled by the ibc-host. The ibc-host is the admin of the account and routes any packet sent by a remote account on the corresponding local account. When creating an abstract account, it is simply registered by the `ibc-host` using the [`account-factory`](../5_platform/3_account_creation.md) just like any other account.
 
 When an action is triggered by a remote account, the `ibc-host` does the following verifications:
 

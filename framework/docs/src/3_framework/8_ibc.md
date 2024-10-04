@@ -50,13 +50,13 @@ When a user creates an Abstract Account they do so locally on whichever chain th
 opted to create his account on the Juno network.
 
 After account creation the user (or his application) opted to create an ICAA on Osmosis. The ICAA creation is handled by
-the Account Factory in a similar way to regular account creation. After successfully creating the ICAA, the user (and
+the ibc-host in a similar way to regular account creation. After successfully creating the ICAA, the user (and
 his/her applications) can interact with the ICAA as if it were a regular account. Applications can send tokens to the
 ICAA, execute smart-contract calls, request queries and more. With the help of Polytone, the ICAA returns the result of
 these actions to the application.
 
 ```admonish info
-The account creation process is covered in detail in the [Account Factory](../5_platform/3_account_factory.md) section.
+The account creation process is covered in detail in the [Account Creation](../5_platform/3_account_creation.md) section.
 ```
 
 ICAAs can be chained together, creating a network of accounts that can interact with each other. This allows for the

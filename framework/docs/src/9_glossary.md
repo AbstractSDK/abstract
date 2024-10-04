@@ -56,10 +56,6 @@ A JavaScript library designed to facilitate interactions with the on-chain Abstr
 A concept where the Abstract Account acts as a layer abstracting the complexities of blockchain interactions, allowing
 for a more user-friendly experience.
 
-## Account Factory
-
-A contract that facilitates the creation and management of Abstract Accounts.
-
 ## Account Ownership
 
 The concept that defines who has control and access rights over an Abstract Account. This can be a single entity (

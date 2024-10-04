@@ -96,19 +96,30 @@ pub struct MigrateMsg {}
 /// Account Instantiate Msg
 /// https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs
 #[cosmwasm_schema::cw_serde]
+// ANCHOR: init_msg
 pub struct InstantiateMsg<Authenticator = Empty> {
-    pub authenticator: Option<Authenticator>,
-    // pub authenticator: Option<AddAuthenticator>,
-    pub account_id: Option<AccountId>,
+    /// The ownership structure of the Account.
     pub owner: GovernanceDetails<String>,
+    /// Optionally specify an account-id for this account.
+    /// If provided must be between (u32::MAX/2)..u32::MAX range.
+    pub account_id: Option<AccountId>,
+    /// Optional authenticator for use with the `abstractaccount` cosmos-sdk module.
+    pub authenticator: Option<Authenticator>,
+    /// Optionally claim a namespace on instantiation.
+    /// Any fees will be deducted from the account and should be provided on instantiation.
     pub namespace: Option<String>,
-    /// Optionally modules can be provided. They will be installed after account registration.
+    /// Optionally install modules on instantiation.
+    /// Any fees will be deducted from the account and should be provided on instantiation.
     #[serde(default)]
     pub install_modules: Vec<ModuleInstallConfig>,
+    /// Optional account name.
     pub name: Option<String>,
+    /// Optional account description.
     pub description: Option<String>,
+    /// Optional account link.
     pub link: Option<String>,
 }
+// ANCHOR_END: init_msg
 
 /// Callback message to set the dependencies after module upgrades.
 #[cosmwasm_schema::cw_serde]
@@ -155,7 +166,7 @@ pub enum ExecuteMsg<Authenticator = Empty> {
         action_query_msg: Binary,
     },
     /// Update Abstract-specific configuration of the module.
-    /// Only callable by the account factory or owner.
+    /// Only callable by the owner.
     UpdateInternalConfig(InternalConfigAction),
     /// Install module using module factory, callable by Owner
     #[cw_orch(payable)]
