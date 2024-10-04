@@ -34,35 +34,32 @@ If you'd rather watch a video, an overview of Interchain Abstract Accounts can b
 
 ### Enabling IBC on the Account
 
-The first step to enable IBC features on an Account is to update the settings and set the `ibc_enabled` flag to true.
-This setting can be updated by calling the `manager` of the Account:
+Users must install the `ibc-client` contract on their account to enable IBC. To do so they can call the `ExecuteMsg::InstallModules` endpoint with the `abstract:ibc-client` module ID.
 
 ```rust
-pub enum ManagerExecuteMsg{
-    UpdateSettings { ibc_enabled: Option<bool> },
+pub enum ExecuteMsg{
+    InstallModules {
+        // Module information (module_id and version)
+        modules: Vec<ModuleInstallConfig>,
+    },
     //...
 }
 ```
 
 ### (Optional) Create an account on the remote chain
 
-After the initialization step, the account is ready to send messages across IBC. However, if you wish, you can customize the remote account metadata before sending any messages. The following message is executed on the [`manager`](https://docs.rs/abstract-std/latest/abstract_std/manager/index.html) contract:
+After the initialization step, the account is ready to send messages across IBC. However, if you wish, you can customize the remote account metadata before sending any messages. The following message is executed on the [`account`](https://docs.rs/abstract-std/latest/abstract_std/account/index.html) contract:
 <pre>
- <code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a> {
-    ExecOnModule{
-        module_id: "abstract:proxy",
-        exec_msg:<a href="https://docs.rs/abstract-std/latest/abstract_std/proxy/enum.ExecuteMsg.html" target="blank">ProxyExecuteMsg</a> {
-            IbcAction {
-                msg: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html" target="blank">IbcClientExecuteMsg</a>{
-                    Register {
-                        host_chain: "destination-chain",
-                        // Customizable parameters
-                        base_asset: None,
-                        namespace: None,
-                        install_modules: vec![],
-                    },
-                ...,
-                }
+<code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/account/enum.ExecuteMsg.html" target="blank">AccountExecuteMsg</a> {
+    ExecuteOnModule {
+        module_id: "abstract:ibc-client",
+        exec_msg: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html" target="blank">IbcClientExecuteMsg</a> {
+            Register {
+                host_chain: "destination-chain",
+                // Customizable parameters
+                base_asset: None,
+                namespace: None,
+                install_modules: vec![],
             },
             ...,
         }
@@ -90,23 +87,18 @@ This gives the ability to trace ICAAs back to their origin chain.
 
 ### Sending messages on remote accounts
 
-With or without a pre-existing remote Account, Abstract Accounts are able to send messages on remote Accounts. The `manager_msgs` will be executed in order on the remote account's `manager`.
+With or without a pre-existing remote Account, Abstract Accounts are able to send messages on remote Accounts. The `account_msgs` will be executed in order on the remote account.
 
 <pre>
- <code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a> {
-    ExecOnModule{
-        module_id: "abstract:proxy",
-        exec_msg: <a href="https://docs.rs/abstract-std/latest/abstract_std/proxy/enum.ExecuteMsg.html" target="blank">ProxyExecuteMsg</a> {
-            IbcAction{
-                msg: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html" target="blank">IbcClientExecuteMsg</a> {
-                    RemoteAction{
-                        host_chain: "destination-chain",
-                        action: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_host/enum.HostAction.html" target="blank">HostAction</a>{
-                            Dispatch{
-                                manager_msgs: Vec<<a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a> { ... }>
-                            },
-                            ...,
-                        }
+<code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/account/enum.ExecuteMsg.html" target="blank">AccountExecuteMsg</a> {
+    ExecuteOnModule {
+        module_id: "abstract:ibc-client",
+        exec_msg: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html" target="blank">IbcClientExecuteMsg</a> {
+            RemoteAction{
+                host_chain: "destination-chain",
+                action: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_host/enum.HostAction.html" target="blank">HostAction</a>{
+                    Dispatch{
+                        account_msgs: Vec<<a href="https://docs.rs/abstract-std/latest/abstract_std/account/enum.ExecuteMsg.html" target="blank">AccountExecuteMsg</a> { ... }>
                     },
                     ...,
                 }
@@ -119,7 +111,7 @@ With or without a pre-existing remote Account, Abstract Accounts are able to sen
 </code>
 </pre>
 
-Note that the two instances of the `ManagerExecuteMsg` enum are the exact same type. This allows you to send multi-hop IBC messages. However, multi-hop transactions (of these kind) are not really something you would use often, unless you're using another chain as a routing chain.
+Note that the two instances of the `AccountExecuteMsg` enum are the exact same type. This allows you to send multi-hop IBC messages. However, multi-hop transactions (of these kind) are not really something you would use often, unless you're using another chain as a routing chain.
 
 ## Specification of Interchain Abstract Accounts
 
@@ -181,8 +173,8 @@ Interchain Abstract Accounts are traditional Abstract Accounts controlled by the
 
 When an action is triggered by a remote account, the `ibc-host` does the following verifications:
 
-- If an local account already exists on-chain for the remote account, it just dispatches the message to the account `manager`
-- If no account exists, it creates one with default metadata and THEN dispatches the messages to this new account `manager`.
+- If an local account already exists on-chain for the remote account, it just dispatches the message to the account.
+- If no account exists, it creates one with default metadata and THEN dispatches the messages to this new account.
 
 The Account creation process is therefore not mandatory when interacting with Interchain Abstract Accounts. This is why when you create an Abstract Account, you automatically have an account on every connected chains!
 

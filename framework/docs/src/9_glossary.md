@@ -10,7 +10,6 @@ and infrastructure for composable smart-contract applications.
 ## Abstract Account
 
 A unique entity within the Abstract framework that can have modules installed onto it, enabling various functionalities.
-It consists of a Manager and a Proxy contract.
 
 ## Account
 
@@ -110,10 +109,6 @@ correctly.
 Linking a module's JSON schema to the Abstract Registry to improve user experience for developers using the
 module.
 
-## Manager Contract
-
-A contract within an Abstract Account responsible for managing the account's modules and permissions.
-
 ## Migration Update
 
 A process within the Abstract framework that allows for the updating or upgrading of modules without compromising the
@@ -125,7 +120,7 @@ A tool provided by the abstract-testing package to mock Smart and Raw queries fo
 
 ## Module Factory
 
-A contract that allows the installation and management of Abstract Modules via the Account Manager.
+A contract that allows the installation and management of Abstract Modules via the Account.
 
 ## Module Installation
 
