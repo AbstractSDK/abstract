@@ -81,9 +81,7 @@ impl<T: CwEnv> Abstract<T> {
             ));
         }
 
-        let mut accounts_to_register = Vec::with_capacity(2);
-
-        // We need to check the version in version control for the account contracts
+        // We need to check the version in version control for the account contract
         let versions = self
             .registry
             .modules(vec![
@@ -95,14 +93,11 @@ impl<T: CwEnv> Abstract<T> {
         if ::account::contract::CONTRACT_VERSION != versions[0].module.info.version.to_string()
             && self.account.upload_if_needed()?.is_some()
         {
-            accounts_to_register.push((
+            self.registry.register_account(
                 self.account.as_instance(),
                 ::account::contract::CONTRACT_VERSION.to_string(),
-            ));
-        }
+            )?;
 
-        if !accounts_to_register.is_empty() {
-            self.registry.register_account_mods(accounts_to_register)?;
             has_migrated = true
         }
 

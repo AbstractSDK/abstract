@@ -544,17 +544,11 @@ impl<Chain: CwEnv> AccountI<Chain> {
         &self,
         registry: &Registry<Chain>,
     ) -> Result<bool, AbstractInterfaceError> {
-        let mut modules_to_register = Vec::with_capacity(2);
-
-        if self.upload_if_needed()?.is_some() {
-            modules_to_register.push((
+        let migrated = if self.upload_if_needed()?.is_some() {
+            registry.register_account(
                 self.as_instance(),
                 ::account::contract::CONTRACT_VERSION.to_string(),
-            ));
-        };
-
-        let migrated = if !modules_to_register.is_empty() {
-            registry.register_account_mods(modules_to_register)?;
+            );
             true
         } else {
             false

@@ -137,14 +137,14 @@ pub fn set_migrate_msgs_and_context(
             requested_module.module.info,
             code_id,
         )?,
-        ModuleReference::Account(code_id) | ModuleReference::Standalone(code_id) => {
+        ModuleReference::Standalone(code_id) => {
             vec![build_module_migrate_msg(
                 old_module_addr,
                 code_id,
                 migrate_msg.unwrap(),
             )]
         }
-
+        // Account migrated separately
         _ => return Err(AccountError::NotUpgradeable(module_info)),
     };
     msgs.extend(migrate_msgs);

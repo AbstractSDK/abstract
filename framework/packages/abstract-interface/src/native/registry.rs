@@ -211,12 +211,13 @@ impl<Chain: CwEnv> Registry<Chain> {
         Ok(())
     }
 
-    /// Register account modules
-    pub fn register_account_mods(
+    /// Register account module
+    pub fn register_account(
         &self,
-        apps: Vec<(&Contract<Chain>, VersionString)>,
+        account: &Contract<Chain>,
+        version: VersionString,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let to_register = self.contracts_into_module_entries(apps, |c| {
+        let to_register = self.contracts_into_module_entries(vec![(account, version)], |c| {
             ModuleReference::Account(c.code_id().unwrap())
         })?;
         self.propose_modules(to_register)?;

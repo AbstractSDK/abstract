@@ -85,10 +85,7 @@ pub fn _install_modules(
     let salt: Binary = generate_instantiate_salt(&account_id);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
         // Check if module is already enabled.
-        if ACCOUNT_MODULES
-            .may_load(deps.storage, &module.info.id())?
-            .is_some()
-        {
+        if ACCOUNT_MODULES.has(deps.storage, &module.info.id()) {
             return Err(AccountError::ModuleAlreadyInstalled(module.info.id()));
         }
         installed_modules.push(module.info.id_with_version());
@@ -203,16 +200,16 @@ pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> 
     crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
     // Remove for proxy if needed
-    let vc = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api)?;
 
-    let module = vc.query_module(
+    let module = registry.query_module(
         ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
         &deps.querier,
     )?;
 
     // Remove module from whitelist if it supposed to be removed
     if module.should_be_whitelisted() {
-        let module_addr = ACCOUNT_MODULES.load(deps.storage, &module_id)?;
+        let module_addr = load_module_addr(deps.storage, &module_id)?;
         _update_whitelisted_modules(deps.storage, vec![], vec![module_addr])?;
     }
 
@@ -224,10 +221,10 @@ pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> 
 }
 
 /// Checked load of a module address
-pub fn load_module_addr(storage: &dyn Storage, module_id: &String) -> AccountResult<Addr> {
+pub fn load_module_addr(storage: &dyn Storage, module_id: &str) -> AccountResult<Addr> {
     ACCOUNT_MODULES
         .may_load(storage, module_id)?
-        .ok_or_else(|| AccountError::ModuleNotFound(module_id.clone()))
+        .ok_or_else(|| AccountError::ModuleNotFound(module_id.to_string()))
 }
 
 /// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
@@ -475,32 +472,6 @@ mod tests {
         }
     }
 
-    // TODO: move those tests to integrations tests, since we can't do query in unit tests
-    mod install_module {
-        use super::*;
-
-        #[test]
-        fn only_account_owner() -> anyhow::Result<()> {
-            let mut deps = mock_dependencies();
-            let not_owner = deps.api.addr_make("not_owner");
-            mock_init(&mut deps)?;
-
-            let msg = ExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
-                    ModuleInfo::from_id_latest("test:module")?,
-                    None,
-                )],
-            };
-
-            let res = execute_as(deps.as_mut(), &not_owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
-
-            Ok(())
-        }
-    }
-
     mod uninstall_module {
         use std::collections::HashSet;
 
@@ -629,140 +600,4 @@ mod tests {
             Ok(())
         }
     }
-
-    // TODO: move these tests to integration tests
-
-    // mod add_module {
-    //     use super::*;
-
-    //     use cw_controllers::AdminError;
-
-    // #[test]
-    // fn only_admin_can_add_module() {
-    //     let mut deps = mock_dependencies();
-    //     mock_init(&mut deps);
-
-    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
-    //     let msg = ExecuteMsg::AddModules {
-    //         modules: vec![test_module_addr.to_string()],
-    //     };
-    //     let info = message_info(&deps.api.addr_make("not_admin"), &[]);
-
-    //     let res = execute(deps.as_mut(), mock_env(), info, msg);
-    //     assert_that(&res)
-    //         .is_err()
-    //         .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
-    // }
-    // #[test]
-    // fn fails_adding_previously_added_module() {
-    //     let mut deps = mock_dependencies();
-    //     mock_init(&mut deps);
-
-    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
-    //     let msg = ExecuteMsg::AddModules {
-    //         modules: vec![test_module_addr.to_string()],
-    //     };
-
-    //     let res = execute_as_admin(&mut deps, msg.clone());
-    //     assert_that(&res).is_ok();
-
-    //     let res = execute_as_admin(&mut deps, msg);
-    //     assert_that(&res)
-    //         .is_err()
-    //         .is_equal_to(AccountError::AlreadyWhitelisted(
-    //             test_module_addr.to_string(),
-    //         ));
-    // }
-
-    // #[test]
-    // fn fails_adding_module_when_list_is_full() {
-    //     let mut deps = mock_dependencies();
-    //     mock_init(&mut deps);
-
-    //     let test_module_addr = deps.api.addr_make(TEST_MODULE);
-    //     let mut msg = ExecuteMsg::AddModules {
-    //         modules: vec![test_module_addr.to_string()],
-    //     };
-
-    //     // -1 because manager counts as module as well
-    //     for i in 0..LIST_SIZE_LIMIT - 1 {
-    //         let test_module = format!("module_{i}");
-    //         let test_module_addr = deps.api.addr_make(&test_module);
-    //         msg = ExecuteMsg::AddModules {
-    //             modules: vec![test_module_addr.to_string()],
-    //         };
-    //         let res = execute_as_admin(&mut deps, msg.clone());
-    //         assert_that(&res).is_ok();
-    //     }
-
-    //     let res = execute_as_admin(&mut deps, msg);
-    //     assert_that(&res)
-    //         .is_err()
-    //         .is_equal_to(AccountError::ModuleLimitReached {});
-    // }
-    // }
-
-    // mod remove_module {
-    //     use abstract_std::account::state::State;
-    //     use cw_controllers::AdminError;
-
-    //     use super::*;
-
-    //     #[test]
-    //     fn only_admin() {
-    //         let mut deps = mock_dependencies();
-    //         mock_init(&mut deps);
-
-    //         let msg = ExecuteMsg::RemoveModule {
-    //             module: TEST_MODULE.to_string(),
-    //         };
-    //         let info = message_info(&deps.api.addr_make("not_admin"), &[]);
-
-    //         let res = execute(deps.as_mut(), mock_env(), info, msg);
-    //         assert_that(&res)
-    //             .is_err()
-    //             .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
-    //     }
-
-    //     #[test]
-    //     fn remove_module() -> ProxyTestResult {
-    //         let mut deps = mock_dependencies();
-    //         mock_init(&mut deps);
-
-    //         let test_module_addr = deps.api.addr_make(TEST_MODULE);
-    //         STATE.save(
-    //             &mut deps.storage,
-    //             &State {
-    //                 modules: vec![test_module_addr.clone()],
-    //             },
-    //         )?;
-
-    //         let msg = ExecuteMsg::RemoveModule {
-    //             module: test_module_addr.to_string(),
-    //         };
-    //         let res = execute_as_admin(&mut deps, msg);
-    //         assert_that(&res).is_ok();
-
-    //         let actual_modules = load_modules(&deps.storage);
-    //         assert_that(&actual_modules).is_empty();
-
-    //         Ok(())
-    //     }
-
-    //     #[test]
-    //     fn fails_removing_non_existing_module() {
-    //         let mut deps = mock_dependencies();
-    //         mock_init(&mut deps);
-
-    //         let test_module_addr = deps.api.addr_make(TEST_MODULE);
-    //         let msg = ExecuteMsg::RemoveModule {
-    //             module: test_module_addr.to_string(),
-    //         };
-
-    //         let res = execute_as_admin(&mut deps, msg);
-    //         assert_that(&res)
-    //             .is_err()
-    //             .is_equal_to(AccountError::NotWhitelisted(test_module_addr.to_string()));
-    //     }
-    // }
 }
