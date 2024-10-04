@@ -190,7 +190,7 @@ pub enum IbcHostExecuteMsg{
 ```
 
 - `account-id` is the `id` of the local account calling the action.
-- `proxy_address` is the address of the `proxy` of the local account calling the action. This field may disappear in the future and is only used internally by the `ibc-host`.
+- `account_address` is the address of the local account calling the action.
 - `action` is the action that should be executed by the `ibc-host` on the remote account:
 
 ```rust
@@ -215,7 +215,7 @@ For Step 4, Polytone allows for sending a message to the initial sender of the I
 Abstract only uses Polytone Callbacks when:
 
 - Registering a new Abstract IBC counterpart, to store the remote Polytone `proxy` caller.
-- Creating remote accounts to be able to store the remote Abstract `proxy` address locally.
+- Creating remote accounts to be able to store the remote Abstract `Account` address locally.
 
 #### Cross chain trace
 

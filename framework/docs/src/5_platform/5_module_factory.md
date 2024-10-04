@@ -66,7 +66,7 @@ sequenceDiagram
     participant A as ANS
     participant A as Account
     participant T as Dex Pool
-    Note right of U: Dex::Swap {proxy: "juno1xd..."}
+    Note right of U: Dex::Swap {account: "juno1xd..."}
     U ->> D: Call module
     D -->>+ A: Resolve asset names
     A -->> D: Asset infos

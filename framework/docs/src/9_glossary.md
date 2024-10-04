@@ -150,10 +150,6 @@ agree on actions taken.
 A unique publishing domain for Abstract modules, associated with an Abstract Account. It's used to uniquely identify and
 monetize modules.
 
-## Proxy Contract
-
-A contract within an Abstract Account that handles interactions with external contracts and services.
-
 ## Raw Queries
 
 Simple database key-value lookups without the computational aspect of smart queries.

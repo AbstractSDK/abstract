@@ -166,7 +166,7 @@ sequenceDiagram
     A -->>- B: Address
     B ->> D: Call SwapRouter on dex
     D --> D: Build swap msg for target dex
-    D --> D: Load proxy address
+    D --> D: Load account address
     D ->> A: Forward execution
     Note over A: DexMsg
     A ->> T: Execute
