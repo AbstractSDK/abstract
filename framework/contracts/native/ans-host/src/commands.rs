@@ -365,7 +365,7 @@ fn validate_pool_assets(
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::{map_tester::CwMapTester, prelude::*};
-    use cosmwasm_std::{testing::*, Addr, DepsMut};
+    use cosmwasm_std::{testing::*, Addr};
     use speculoos::prelude::*;
 
     use super::*;
@@ -373,14 +373,14 @@ mod test {
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 
-    fn execute_helper(deps: DepsMut, env: Env, msg: ExecuteMsg, owner: &Addr) -> AnsHostTestResult {
-        contract::execute(deps, env, message_info(owner, &[]), msg)?;
+    fn execute_helper(deps: &mut MockDeps, msg: ExecuteMsg, owner: &Addr) -> AnsHostTestResult {
+        let env = mock_env_validated(deps.api);
+        contract::execute(deps.as_mut(), env, message_info(owner, &[]), msg)?;
         Ok(())
     }
 
     fn register_assets_helper(
-        deps: DepsMut,
-        env: Env,
+        deps: &mut MockDeps,
         assets: Vec<AssetEntry>,
         owner: &Addr,
     ) -> AnsHostTestResult {
@@ -391,7 +391,7 @@ mod test {
                 .collect(),
             to_remove: vec![],
         };
-        execute_helper(deps, env, msg, owner)?;
+        execute_helper(deps, msg, owner)?;
         Ok(())
     }
 
@@ -1091,7 +1091,6 @@ mod test {
             objects::PoolType,
             AbstractResult,
         };
-        use abstract_testing::mock_env_validated;
         use cosmwasm_std::{Api, Order};
 
         type UncheckedPoolMapEntry = (UncheckedPoolAddress, PoolMetadata);
@@ -1131,22 +1130,21 @@ mod test {
         }
 
         fn execute_update(
-            deps: DepsMut,
-            env: Env,
+            deps: &mut MockDeps,
             (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolId>),
             owner: &Addr,
         ) -> AnsHostTestResult {
             let msg = build_update_msg(to_add, to_remove);
-            execute_helper(deps, env, msg, owner)?;
+            execute_helper(deps, msg, owner)?;
             Ok(())
         }
 
-        fn register_dex(deps: DepsMut, env: Env, dex: &str, owner: &Addr) -> AnsHostTestResult {
+        fn register_dex(deps: &mut MockDeps, dex: &str, owner: &Addr) -> AnsHostTestResult {
             let msg = ExecuteMsg::UpdateDexes {
                 to_add: vec![dex.into()],
                 to_remove: vec![],
             };
-            execute_helper(deps, env, msg, owner)?;
+            execute_helper(deps, msg, owner)?;
             Ok(())
         }
 
@@ -1184,7 +1182,6 @@ mod test {
         #[test]
         fn add_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             mock_init(&mut deps).unwrap();
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -1194,17 +1191,12 @@ mod test {
             let metadata = pool_metadata(dex, PoolType::Weighted, pool_assets.clone());
 
             // Register the assets in ANS
-            register_assets_helper(deps.as_mut(), env.clone(), pool_assets, &abstr.owner)?;
-            register_dex(deps.as_mut(), env.clone(), dex, &abstr.owner)?;
+            register_assets_helper(&mut deps, pool_assets, &abstr.owner)?;
+            register_dex(&mut deps, dex, &abstr.owner)?;
 
             let new_entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata.clone());
 
-            execute_update(
-                deps.as_mut(),
-                env.clone(),
-                (vec![new_entry.clone()], vec![]),
-                &abstr.owner,
-            )?;
+            execute_update(&mut deps, (vec![new_entry.clone()], vec![]), &abstr.owner)?;
 
             let expected_pools: Vec<PoolMetadataMapEntry> =
                 vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
@@ -1242,7 +1234,6 @@ mod test {
         #[test]
         fn add_five_asset_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             mock_init(&mut deps).unwrap();
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -1258,17 +1249,12 @@ mod test {
             let metadata = pool_metadata(dex, PoolType::Weighted, pool_assets.clone());
 
             // Register the assets in ANS
-            register_assets_helper(deps.as_mut(), env.clone(), pool_assets, &abstr.owner)?;
-            register_dex(deps.as_mut(), env.clone(), dex, &abstr.owner)?;
+            register_assets_helper(&mut deps, pool_assets, &abstr.owner)?;
+            register_dex(&mut deps, dex, &abstr.owner)?;
 
             let new_entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata.clone());
 
-            execute_update(
-                deps.as_mut(),
-                env.clone(),
-                (vec![new_entry.clone()], vec![]),
-                &abstr.owner,
-            )?;
+            execute_update(&mut deps, (vec![new_entry.clone()], vec![]), &abstr.owner)?;
 
             let expected_pools: Vec<PoolMetadataMapEntry> =
                 vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
@@ -1302,7 +1288,6 @@ mod test {
         #[test]
         fn add_pool_fails_without_registering_dex() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             mock_init(&mut deps).unwrap();
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -1311,11 +1296,11 @@ mod test {
             let pool_assets = vec!["juno".into(), "osmo".into()];
             let metadata = pool_metadata(unregistered_dex, PoolType::Weighted, pool_assets.clone());
             // Register the assets in ANS
-            register_assets_helper(deps.as_mut(), env.clone(), pool_assets, &abstr.owner)?;
+            register_assets_helper(&mut deps, pool_assets, &abstr.owner)?;
 
             let entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata);
 
-            let res = execute_update(deps.as_mut(), env, (vec![entry], vec![]), &abstr.owner);
+            let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
             assert_that(&res)
                 .is_err()
@@ -1333,7 +1318,6 @@ mod test {
         #[test]
         fn add_and_remove_same_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             mock_init(&mut deps).unwrap();
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -1343,14 +1327,13 @@ mod test {
             let metadata = pool_metadata(dex, PoolType::Weighted, pool_assets.clone());
 
             // Register the assets in ANS
-            register_assets_helper(deps.as_mut(), env.clone(), pool_assets, &abstr.owner)?;
-            register_dex(deps.as_mut(), env.clone(), dex, &abstr.owner)?;
+            register_assets_helper(&mut deps, pool_assets, &abstr.owner)?;
+            register_dex(&mut deps, dex, &abstr.owner)?;
 
             let entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata);
 
             execute_update(
-                deps.as_mut(),
-                env.clone(),
+                &mut deps,
                 (vec![entry], vec![INITIAL_UNIQUE_POOL_ID.into()]),
                 &abstr.owner,
             )?;
@@ -1369,13 +1352,11 @@ mod test {
         #[test]
         fn remove_nonexistent_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             mock_init(&mut deps).unwrap();
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let res = execute_update(
-                deps.as_mut(),
-                env.clone(),
+                &mut deps,
                 (vec![], vec![INITIAL_UNIQUE_POOL_ID.into()]),
                 &abstr.owner,
             );
@@ -1396,7 +1377,6 @@ mod test {
         #[test]
         fn unregistered_assets_fail() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             mock_init(&mut deps).unwrap();
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -1405,11 +1385,11 @@ mod test {
             let metadata =
                 pool_metadata(dex, PoolType::Weighted, vec!["juno".into(), "osmo".into()]);
 
-            register_dex(deps.as_mut(), env.clone(), dex, &abstr.owner)?;
+            register_dex(&mut deps, dex, &abstr.owner)?;
 
             let entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata);
 
-            let res = execute_update(deps.as_mut(), env, (vec![entry], vec![]), &abstr.owner);
+            let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
             assert_that(&res).is_err();
 
@@ -1424,8 +1404,6 @@ mod test {
     }
 
     mod validate_pool_assets {
-        use abstract_testing::mock_env_validated;
-
         use super::*;
 
         #[test]
@@ -1472,12 +1450,10 @@ mod test {
         fn valid_amounts() {
             let mut assets = vec!["a".into(), "b".into()];
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             mock_init(&mut deps).unwrap();
-            register_assets_helper(deps.as_mut(), env.clone(), assets.clone(), &abstr.owner)
-                .unwrap();
+            register_assets_helper(&mut deps, assets.clone(), &abstr.owner).unwrap();
 
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
@@ -1488,7 +1464,7 @@ mod test {
                 .map(|s| s.into())
                 .collect();
 
-            register_assets_helper(deps.as_mut(), env, assets.clone(), &abstr.owner).unwrap();
+            register_assets_helper(&mut deps, assets.clone(), &abstr.owner).unwrap();
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
             assert_that(&res).is_ok();
