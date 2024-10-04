@@ -549,7 +549,7 @@ mod test {
         }
     }
 
-    /// Add the provided modules to the version control
+    /// Add the provided modules to the registry
     fn propose_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>, sender: &Addr) {
         let modules = new_module_infos
             .into_iter()
@@ -560,7 +560,7 @@ mod test {
         assert_that!(&res).is_ok();
     }
 
-    /// Yank the provided module in the version control
+    /// Yank the provided module in the registry
     fn yank_module(
         deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
         module_info: ModuleInfo,

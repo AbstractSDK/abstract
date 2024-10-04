@@ -481,7 +481,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
 }
 
 impl<Chain: CwEnv> AccountI<Chain> {
-    /// Register the account core contracts in the version control
+    /// Register the account core contracts in the registry
     pub fn register(
         &self,
         registry: &Registry<Chain>,

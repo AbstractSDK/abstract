@@ -265,7 +265,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         id: adapter2.id(),
         version: cw2::ContractVersion {
             contract: adapter2.id(),
-            // IMPORTANT: The version of the contract did not change although the version of the module in version control did.
+            // IMPORTANT: The version of the contract did not change although the version of the module in registry did.
             // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
             version: V2.to_string(),
         },

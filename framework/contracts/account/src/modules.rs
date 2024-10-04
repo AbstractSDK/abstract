@@ -469,7 +469,7 @@ mod tests {
             };
             let msg = ExecuteMsg::UpdateInternalConfig(action_add);
 
-            // the version control can not call this
+            // the registry can not call this
             let res = execute_as(deps.as_mut(), &abstr.registry, msg.clone());
             assert_that!(&res).is_err();
 

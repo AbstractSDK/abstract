@@ -69,7 +69,7 @@ pub fn execute_create_modules(
         let new_module_init_funds = module_response.config.instantiation_funds;
         module_ids.push(new_module.info.id_with_version());
 
-        // We validate the fee if it was required by the version control to install this module
+        // We validate the fee if it was required by the registry to install this module
         match new_module_monetization {
             module::Monetization::InstallFee(f) => {
                 let fee = f.fee();

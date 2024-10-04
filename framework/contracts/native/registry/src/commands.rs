@@ -32,7 +32,7 @@ use crate::{
     error::RegistryError,
 };
 
-/// Add new Account to version control contract
+/// Add new Account to registry contract
 /// Only Account can add itself.
 pub fn add_account(
     deps: DepsMut,

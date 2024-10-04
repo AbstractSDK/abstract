@@ -32,7 +32,7 @@ pub enum RegistryError {
     StandaloneNotFound { code_id: u64, registry_addr: Addr },
 
     // unknown Account id error
-    #[error("Unknown Account id {account_id} on version control {registry_addr}. Please ensure that you are using the correct Account id and version control address.")]
+    #[error("Unknown Account id {account_id} on registry {registry_addr}. Please ensure that you are using the correct Account id and registry address.")]
     UnknownAccountId {
         account_id: AccountId,
         registry_addr: Addr,
@@ -67,7 +67,7 @@ pub type RegistryResult<T> = Result<T, RegistryError>;
 /// Implements [`AbstractRegistryAccess`] (defined in abstract-sdk)
 #[cosmwasm_schema::cw_serde]
 pub struct RegistryContract {
-    /// Address of the version control contract
+    /// Address of the registry contract
     pub address: Addr,
 }
 

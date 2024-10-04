@@ -171,7 +171,7 @@ pub fn send_all_back(
     Ok(account_msg.into())
 }
 
-/// get the account from the version control contract
+/// get the account from the registry contract
 pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<Account, HostError> {
     let registry = RegistryContract::new(deps.api)?;
     let account = registry.account(account_id, &deps.querier)?;

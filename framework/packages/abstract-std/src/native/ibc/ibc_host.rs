@@ -41,7 +41,7 @@ pub mod state {
     }
 }
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::registry::ExecuteMsg::ProposeModules`].
+/// The contract is then registered on the registry contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {}
 

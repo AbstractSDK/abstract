@@ -177,7 +177,7 @@ pub fn query_module_addresses(
 
     // Query over
     for module in module_names {
-        // Add to map if present, skip otherwise. Allows version control to check what modules are present.
+        // Add to map if present, skip otherwise. Allows registry to check what modules are present.
         if let Some(address) = ACCOUNT_MODULES.may_load(deps.storage, &module)? {
             modules.insert(module, address);
         }

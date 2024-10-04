@@ -85,7 +85,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
     /// # let client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
     /// use abstract_std::objects::{module_reference::ModuleReference, module::ModuleInfo};
-    /// // For getting version control address
+    /// // For getting registry address
     /// use cw_orch::prelude::*;
     ///
     /// let registry = client.registry();
@@ -106,7 +106,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// use abstract_client::{AbstractClient, ClientResolve};
     /// use cw_asset::AssetInfo;
     /// use abstract_app::objects::AssetEntry;
-    /// // For getting version control address
+    /// // For getting registry address
     /// use cw_orch::prelude::*;
     ///
     /// let denom = "test_denom";
@@ -337,7 +337,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Retrieves the status of a specified module.
     ///
-    /// This function checks the status of a module within the version control contract.
+    /// This function checks the status of a module within the registry contract.
     /// and returns appropriate `Some(ModuleStatus)`. If the module is not deployed, it returns `None`.
     pub fn module_status(&self, module: ModuleInfo) -> AbstractClientResult<Option<ModuleStatus>> {
         self.registry().module_status(module).map_err(Into::into)

@@ -361,7 +361,7 @@ impl AbstractRegistryAccess for Astrovault {
             .ok_or(abstract_sdk::AbstractSdkError::generic_err(
                 "registry address is not set",
             ))
-        // We need to get to the version control somehow (possible from Ans Host ?)
+        // We need to get to the registry somehow (possible from Ans Host ?)
     }
 }
 

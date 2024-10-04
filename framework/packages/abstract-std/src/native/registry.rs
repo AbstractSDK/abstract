@@ -10,7 +10,7 @@
 
 pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 
-/// Contains configuration info of version control.
+/// Contains configuration info of registry.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub security_disabled: bool,

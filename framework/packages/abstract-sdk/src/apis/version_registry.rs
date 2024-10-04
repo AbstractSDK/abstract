@@ -21,7 +21,7 @@ use crate::{
 /// Access the Abstract Version Control and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification {
     /**
-        API for querying module information from the Abstract version control contract.
+        API for querying module information from the Abstract registry contract.
 
         # Example
         ```
@@ -65,7 +65,7 @@ impl<'a, T: ModuleRegistryInterface> ApiIdentification for ModuleRegistry<'a, T>
 
 #[derive(Clone)]
 /**
-    API for querying module information from the Abstract version control contract.
+    API for querying module information from the Abstract registry contract.
 
     # Example
     ```
