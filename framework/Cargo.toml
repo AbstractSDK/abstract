@@ -82,7 +82,6 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }
 
-abstract-ica = { path = "packages/abstract-ica" }
 abstract-sdk = { version = "0.23.0", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.23.0", path = "packages/abstract-testing" }
 abstract-std = { version = "0.23.0", path = "packages/abstract-std" }

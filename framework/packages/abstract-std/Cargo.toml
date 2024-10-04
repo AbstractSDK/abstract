@@ -36,6 +36,9 @@ cw-clearable = { workspace = true }
 ## Stringify function names
 function_name = { version = "0.3.0" }
 
+polytone-evm = { version = "0.0.2" }
+map-macro = "0.3.0"
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 

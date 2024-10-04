@@ -1,6 +1,6 @@
 pub mod contract;
 pub mod error;
-pub use abstract_ica::msg;
+pub use abstract_std::ica_client as msg;
 mod chain_types;
 mod queries;
 pub(crate) mod state;
