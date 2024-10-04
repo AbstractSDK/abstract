@@ -85,7 +85,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         self.base_state.load(store)
     }
 
-    /// Return the address of the proxy for the Account associated with this Adapter.
+    /// Return the address of the account for the Account associated with this Adapter.
     /// Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, AdapterError> {
         Ok(self

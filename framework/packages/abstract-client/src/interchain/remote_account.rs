@@ -72,7 +72,7 @@ impl<Chain: IbcQueryHandler> Account<Chain> {
         // Check it exists first
         let remote_account_response =
             ibc_client.remote_account(account_id.clone(), host_chain_name.clone())?;
-        if remote_account_response.remote_proxy_addr.is_none() {
+        if remote_account_response.remote_account_addr.is_none() {
             return Err(AbstractClientError::RemoteAccountNotFound {
                 account_id,
                 chain: host_chain_name,
@@ -245,7 +245,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         self.abstr_owner_account.environment().clone()
     }
 
-    /// Address of the account (proxy)
+    /// Address of the account
     pub fn address(&self) -> AbstractClientResult<Addr> {
         let base_response = self
             .host_abstract()?
@@ -377,7 +377,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
             .map_err(Into::into)
     }
 
-    /// Executes a [`CosmosMsg`] on the proxy of the account.
+    /// Executes a [`CosmosMsg`] on the account.
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,

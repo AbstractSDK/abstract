@@ -3,8 +3,8 @@
 //! ## Queries
 //! - module address
 //! - module asserts
-//! - proxy balance
-//! - proxy asserts
+//! - account balance
+//! - account asserts
 //! ## Actions
 //! - get
 //! - install module
@@ -199,7 +199,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
         .map_err(Into::into)
     }
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
-    /// Note that the proxy is automatically included in the assertions.
     /// Returns the `Vec<AccountModuleInfo>` from the account
     pub fn expect_modules(
         &self,
@@ -233,7 +232,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         Ok(module.is_some())
     }
 
-    /// Checks that the proxy's whitelist includes the expected module addresses.
+    /// Checks that the account's whitelist includes the expected module addresses.
     pub fn expect_whitelist(
         &self,
         expected_whitelisted_addrs: Vec<Addr>,
@@ -242,7 +241,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .into_iter()
             .collect::<HashSet<_>>();
 
-        // check proxy config
+        // check account config
         let abstract_std::account::ConfigResponse {
             whitelisted_addresses: whitelist,
             ..
@@ -529,7 +528,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
         // Parse data from events
         let acc_id = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_id")?;
         let id: AccountId = acc_id.parse()?;
-        // construct account and proxy ids
         let account = Self::new_from_id(&id, chain.clone());
 
         // set addresses

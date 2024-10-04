@@ -58,7 +58,7 @@ pub fn install_modules(
 }
 
 /// Generate message and attribute for installing module
-/// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
+/// Adds the modules to the internal store for reference and adds them to the account allowlist if applicable.
 pub fn _install_modules(
     mut deps: DepsMut,
     modules: Vec<ModuleInstallConfig>,
@@ -202,7 +202,7 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
     let module_dependencies = module_data.dependencies;
     crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
-    // Remove for proxy if needed
+    // Remove for account if needed
     let vc = RegistryContract::new(deps.api)?;
 
     let module = vc.query_module(

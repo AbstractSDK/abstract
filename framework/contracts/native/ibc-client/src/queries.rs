@@ -59,7 +59,7 @@ pub fn list_proxies_by_account_id(
             // Not using pagination as there are not a lot of chains.
             None,
             None,
-            |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+            |chain, account| Ok::<_, StdError>((chain, Some(account))),
         )?;
 
     Ok(ListRemoteProxiesResponse { proxies })
@@ -118,9 +118,9 @@ pub fn account(
 ) -> IbcClientResult<AccountResponse> {
     host_chain.verify()?;
 
-    let remote_proxy_addr = ACCOUNTS.may_load(
+    let remote_account_addr = ACCOUNTS.may_load(
         deps.storage,
         (account_id.trace(), account_id.seq(), &host_chain),
     )?;
-    Ok(AccountResponse { remote_proxy_addr })
+    Ok(AccountResponse { remote_account_addr })
 }

@@ -30,7 +30,7 @@ pub fn handle_host_action(
     deps: DepsMut,
     env: Env,
     src_chain: TruncatedChainId,
-    proxy_address: String,
+    account_address: String,
     received_account_id: AccountId,
     host_action: HostAction,
 ) -> HostResult {
@@ -70,7 +70,7 @@ pub fn handle_host_action(
                     }
                     HostAction::Helpers(helper_action) => match helper_action {
                         HelperAction::SendAllBack => {
-                            receive_send_all_back(deps, env, account, proxy_address, src_chain)
+                            receive_send_all_back(deps, env, account, account_address, src_chain)
                         }
                         _ => unimplemented!(""),
                     },

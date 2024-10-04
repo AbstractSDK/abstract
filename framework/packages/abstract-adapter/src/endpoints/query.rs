@@ -37,11 +37,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             BaseQueryMsg::BaseConfig {} => {
                 to_json_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
-            BaseQueryMsg::AuthorizedAddresses { proxy_address } => {
-                let proxy_address = deps.api.addr_validate(&proxy_address)?;
+            BaseQueryMsg::AuthorizedAddresses { account_address } => {
+                let account_address = deps.api.addr_validate(&account_address)?;
                 let authorized_addrs: Vec<Addr> = self
                     .authorized_addresses
-                    .may_load(deps.storage, proxy_address)?
+                    .may_load(deps.storage, account_address)?
                     .unwrap_or_default();
 
                 to_json_binary(&AuthorizedAddressesResponse {

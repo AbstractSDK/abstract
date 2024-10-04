@@ -623,7 +623,7 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
-    /// Executes a [`CosmosMsg`] on the proxy of the account.
+    /// Executes a [`CosmosMsg`] on the account.
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
@@ -777,7 +777,7 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(sub_accounts?)
     }
 
-    /// Address of the account (proxy)
+    /// Address of the account
     pub fn address(&self) -> AbstractClientResult<Addr> {
         Ok(self.abstr_account.address()?)
     }

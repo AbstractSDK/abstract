@@ -146,7 +146,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
-    // assert proxy module
+    // assert account module
     // check staking adapter
     assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
@@ -411,21 +411,21 @@ fn account_adapter_ownership() -> AResult {
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
     account.install_adapter(&adapter, &[])?;
 
-    let proxy_addr = account.address()?;
+    let account_addr = account.address()?;
 
     // Checking module requests
 
     // Can call either by account owner or account
     adapter.call_as(sender).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
         }),
         &[],
     )?;
     adapter.call_as(&account.address()?).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
         }),
         &[],
@@ -437,7 +437,7 @@ fn account_adapter_ownership() -> AResult {
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Module(AdapterRequestMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: MockExecMsg {},
             }),
             &[],
@@ -458,7 +458,7 @@ fn account_adapter_ownership() -> AResult {
     // Can call either by account owner or account
     adapter.call_as(sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("123").to_string()],
                 to_remove: vec![],
@@ -470,7 +470,7 @@ fn account_adapter_ownership() -> AResult {
     account.call_as(sender).admin_execute(
         adapter.address()?,
         to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
@@ -483,7 +483,7 @@ fn account_adapter_ownership() -> AResult {
         .call_as(&account.address()?)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("456").to_string()],
                     to_remove: vec![],
@@ -498,7 +498,7 @@ fn account_adapter_ownership() -> AResult {
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],
@@ -554,14 +554,14 @@ fn subaccount_adapter_ownership() -> AResult {
         .unwrap();
     adapter.set_address(&module.address);
 
-    let proxy_addr = sub_account.address()?;
+    let account_addr = sub_account.address()?;
 
     // Checking module requests
 
     // Can call either by account owner or account
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
         }),
         &[],
@@ -569,7 +569,7 @@ fn subaccount_adapter_ownership() -> AResult {
     sub_account.call_as(&sender).admin_execute(
         adapter.address()?,
         to_json_binary(&mock::ExecuteMsg::Module(AdapterRequestMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
         }))?,
     )?;
@@ -579,7 +579,7 @@ fn subaccount_adapter_ownership() -> AResult {
         .call_as(&account.address()?)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("456").to_string()],
                     to_remove: vec![],
@@ -595,7 +595,7 @@ fn subaccount_adapter_ownership() -> AResult {
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Module(AdapterRequestMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: MockExecMsg {},
             }),
             &[],
@@ -616,7 +616,7 @@ fn subaccount_adapter_ownership() -> AResult {
     // Can call either by account owner or account
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("123").to_string()],
                 to_remove: vec![],
@@ -627,7 +627,7 @@ fn subaccount_adapter_ownership() -> AResult {
     sub_account.call_as(&sender).admin_execute(
         adapter.address()?,
         to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
@@ -640,7 +640,7 @@ fn subaccount_adapter_ownership() -> AResult {
         .call_as(&sub_account.address()?)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],
@@ -655,7 +655,7 @@ fn subaccount_adapter_ownership() -> AResult {
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],

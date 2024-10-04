@@ -1288,7 +1288,7 @@ mod tests {
 
             assert_eq!(
                 AccountResponse {
-                    remote_proxy_addr: Some(remote_account.clone())
+                    remote_account_addr: Some(remote_account.clone())
                 },
                 account_response
             );

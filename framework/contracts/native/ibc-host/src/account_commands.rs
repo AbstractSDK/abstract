@@ -23,7 +23,7 @@ use crate::{
 // one hour
 const PACKET_LIFETIME: u64 = 60 * 60;
 
-/// Creates and registers proxy for remote Account
+/// Creates and registers account for remote Account
 #[allow(clippy::too_many_arguments)]
 pub fn receive_register(
     deps: DepsMut,
@@ -123,10 +123,10 @@ pub fn receive_send_all_back(
     deps: DepsMut,
     env: Env,
     account: Account,
-    client_proxy_address: String,
+    client_account_address: String,
     src_chain: TruncatedChainId,
 ) -> HostResult {
-    let wasm_msg = send_all_back(deps.as_ref(), env, account, client_proxy_address, src_chain)?;
+    let wasm_msg = send_all_back(deps.as_ref(), env, account, client_account_address, src_chain)?;
 
     Ok(HostResponse::action("receive_dispatch").add_message(wasm_msg))
 }
@@ -136,7 +136,7 @@ pub fn send_all_back(
     deps: Deps,
     env: Env,
     account: Account,
-    client_proxy_address: String,
+    client_account_address: String,
     src_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
     // get the ICS20 channel information
@@ -154,7 +154,7 @@ pub fn send_all_back(
         msgs.push(
             IbcMsg::Transfer {
                 channel_id: ics20_channel_id.clone(),
-                to_address: client_proxy_address.to_string(),
+                to_address: client_account_address.to_string(),
                 amount: coin,
                 timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
                 memo: None,

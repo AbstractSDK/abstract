@@ -30,12 +30,12 @@ fn execute_on_account() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
-    // mint coins to proxy address
+    // mint coins to account address
     chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
     // mint other coins to owner
     chain.set_balance(&sender, vec![Coin::new(100u128, "other_coin")])?;
 
-    // burn coins from proxy
+    // burn coins from account
     let account_balance = chain
         .app
         .borrow()

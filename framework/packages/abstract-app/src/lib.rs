@@ -302,11 +302,11 @@ pub mod mock {
                     ::cosmwasm_std::StdError::generic_err("no address")
                 );
                 println!("adapter_addr: {adapter1_addr:?}");
-                // See test `install_app_with_proxy_action` where this transfer will happen.
+                // See test `install_app_with_account_action` where this transfer will happen.
                 let account_addr = module.account(deps.as_ref())?;
                 let balance = deps.querier.query_balance(account_addr.addr(), "TEST")?;
                 if !balance.amount.is_zero() {
-                println!("sending amount from proxy: {balance:?}");
+                println!("sending amount from account: {balance:?}");
                     let action = module
                         .bank(deps.as_ref())
                         .transfer::<::cosmwasm_std::Coin>(
