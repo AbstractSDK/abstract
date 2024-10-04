@@ -717,7 +717,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let mut module_versions_response = self.abstr_account.module_versions(vec![module_id])?;
         let installed_version = module_versions_response.versions.pop().unwrap().version;
         let expected_version = match &module.version {
-            // If latest we need to find latest version stored in VC
+            // If latest we need to find latest version stored in Registry
             ModuleVersion::Latest => {
                 let manager_config = self.abstr_account.config()?;
                 let mut modules_response: registry::ModulesResponse = self

@@ -411,7 +411,7 @@ pub fn assert_module_data_validity(
             // now we need to have a module address provided
             let Some(addr) = module_address else {
                 // if no addr provided and module doesn't have it, just return
-                // this will be the case when registering a code-id on VC
+                // this will be the case when registering a code-id on Registry
                 return Ok(());
             };
             addr

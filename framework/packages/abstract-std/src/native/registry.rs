@@ -181,7 +181,7 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         creator: String,
     },
-    /// Updates configuration of the VC contract
+    /// Updates configuration of the Registry contract
     UpdateConfig {
         /// Whether the contract allows direct module registration
         security_disabled: Option<bool>,

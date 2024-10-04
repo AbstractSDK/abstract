@@ -16,7 +16,7 @@ impl<T: CwEnv> Abstract<T> {
             .module_factory
             .upload_and_migrate_if_needed(&module_factory::MigrateMsg::Migrate {})?;
 
-        // then VC and ANS
+        // then Registry and ANS
         let registry = self
             .registry
             .upload_and_migrate_if_needed(&registry::MigrateMsg::Migrate {})?;

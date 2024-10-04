@@ -377,7 +377,7 @@ mod test {
         let ans_addr = api.addr_canonicalize(&abstr.ans_host.addr_str()?)?;
         assert_eq!(*ans_addr, native_addrs::ANS_ADDR);
 
-        // VC
+        // Registry
         let registry = api.addr_canonicalize(&abstr.registry.addr_str()?)?;
         assert_eq!(*registry, native_addrs::REGISTRY_ADDR);
 
