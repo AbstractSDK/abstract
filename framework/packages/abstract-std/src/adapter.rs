@@ -78,7 +78,7 @@ impl<RequestMsg, BaseExecMsg> From<AdapterRequestMsg<RequestMsg>>
 }
 
 /// An adapter request.
-/// If proxy is None, then the sender must be an Account manager and the proxy address is extrapolated from the Account id.
+/// If proxy is None, then the sender must be an Account.
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterRequestMsg<Request> {
     pub account_address: Option<String>,

@@ -127,9 +127,9 @@ pub enum ExecuteMsg {
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback: Callback,
     },
-    /// Only callable by Account Proxy
+    /// Only callable by Account
     /// Action on remote ibc host
-    /// Which currently only support manager messages
+    /// Which currently only support account messages
     RemoteAction {
         /// host chain to be executed on
         /// Example: "osmosis"

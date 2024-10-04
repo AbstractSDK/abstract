@@ -24,9 +24,9 @@ fn instantiate() -> AResult {
     Ok(())
 }
 
-/// This test calls the factory as the owner, which is not allowed because he is not a manager.
+/// This test calls the factory as the owner, which is not allowed because he is not an account.
 #[test]
-fn caller_must_be_manager() -> AResult {
+fn caller_must_be_account() -> AResult {
     let chain = MockBech32::new("mock");
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 

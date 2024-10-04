@@ -802,8 +802,8 @@ fn doc_example_test() -> anyhow::Result<()> {
     app.do_something()?;
 
     // Call as someone else
-    let manager: Addr = account.address()?;
-    app.call_as(&manager).do_something()?;
+    let account: Addr = account.address()?;
+    app.call_as(&account).do_something()?;
 
     // Query the app
     let something: MockQueryResponse = app.get_something()?;

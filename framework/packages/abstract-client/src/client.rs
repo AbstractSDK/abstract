@@ -204,7 +204,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 Ok(Account::new(abstract_account, true))
             }
             AccountSource::App(app) => {
-                // Query app for manager address and get AccountId from it.
+                // Query app for account address and get AccountId from it.
                 let app_config: abstract_std::app::AppConfigResponse = chain
                     .query(
                         &abstract_std::app::QueryMsg::<Empty>::Base(
@@ -214,14 +214,14 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                     )
                     .map_err(Into::into)?;
 
-                let manager_config: abstract_std::account::ConfigResponse = chain
+                let account_config: abstract_std::account::ConfigResponse = chain
                     .query(
                         &abstract_std::account::QueryMsg::Config {},
                         &app_config.account,
                     )
                     .map_err(Into::into)?;
                 // This function verifies the account-id is valid and returns an error if not.
-                let abstract_account = AccountI::load_from(&self.abstr, manager_config.account_id)?;
+                let abstract_account = AccountI::load_from(&self.abstr, account_config.account_id)?;
                 Ok(Account::new(abstract_account, true))
             }
         }

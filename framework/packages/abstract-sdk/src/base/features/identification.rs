@@ -6,7 +6,7 @@ use crate::std::objects::AccountId;
 use crate::AbstractSdkResult;
 
 /// Retrieve identifying information about an Account.
-/// This includes the manager, proxy, core and account_id.
+/// This includes the account and account_id.
 pub trait AccountIdentification: Sized {
     /// Get the account address
     fn account(&self, deps: Deps) -> AbstractSdkResult<Account>;

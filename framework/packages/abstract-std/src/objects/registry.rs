@@ -227,8 +227,8 @@ impl RegistryContract {
             })
     }
 
-    /// Get AccountId for given manager or proxy address.
-    /// Also verifies that that address is indeed a manager or proxy.
+    /// Get AccountId for given account address.
+    /// Also verifies that that address is indeed an account.
     pub fn account_id(
         &self,
         maybe_account_addr: &Addr,

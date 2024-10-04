@@ -60,7 +60,7 @@ pub fn upgrade_modules(
         &Addr::unchecked(CALLING_TO_AS_ADMIN_WILD_CARD),
     )?;
 
-    // Set the migrate messages for each module that's not the manager and update the dependency store
+    // Set the migrate messages for each module that's not the account and update the dependency store
     for (module_info, migrate_msg) in modules {
         let module_id = module_info.id();
 
@@ -291,10 +291,10 @@ pub(crate) fn self_upgrade_msg(
 ) -> AccountResult<CosmosMsg> {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    if let ModuleReference::Account(manager_code_id) = module.module.reference {
+    if let ModuleReference::Account(account_code_id) = module.module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: self_addr.to_string(),
-            new_code_id: manager_code_id,
+            new_code_id: account_code_id,
             msg: migrate_msg,
         });
         Ok(migration_msg)

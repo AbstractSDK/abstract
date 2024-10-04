@@ -542,7 +542,7 @@ mod tests {
         }
 
         #[test]
-        fn executing_as_account_manager_is_allowed() {
+        fn executing_as_account_account_is_allowed() {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
@@ -609,7 +609,7 @@ mod tests {
         fn executing_as_authorized_address_on_diff_proxy_should_err() {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
-            let another_account = Account::new(deps.api.addr_make("some_other_manager"));
+            let another_account = Account::new(deps.api.addr_make("some_other_account"));
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .account(

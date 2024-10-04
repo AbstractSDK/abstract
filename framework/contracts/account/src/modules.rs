@@ -65,7 +65,7 @@ pub fn _install_modules(
     funds: Vec<Coin>,
 ) -> AccountResult<(Vec<SubMsg>, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
-    let mut manager_modules = Vec::with_capacity(modules.len());
+    let mut account_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
     let registry = RegistryContract::new(deps.api)?;
 
@@ -80,7 +80,7 @@ pub fn _install_modules(
 
     let mut install_context = Vec::with_capacity(modules.len());
     let mut add_to_whitelist: Vec<Addr> = Vec::with_capacity(modules.len());
-    let mut add_to_manager: Vec<(String, Addr)> = Vec::with_capacity(modules.len());
+    let mut add_to_account: Vec<(String, Addr)> = Vec::with_capacity(modules.len());
 
     let salt: Binary = generate_instantiate_salt(&account_id);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
@@ -100,7 +100,7 @@ pub fn _install_modules(
                 if module.should_be_whitelisted() {
                     add_to_whitelist.push(module_address.clone());
                 }
-                add_to_manager.push((module.info.id(), module_address.clone()));
+                add_to_account.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), None));
                 None
             }
@@ -121,14 +121,14 @@ pub fn _install_modules(
                 if module.should_be_whitelisted() {
                     add_to_whitelist.push(module_address.clone());
                 }
-                add_to_manager.push((module.info.id(), module_address.clone()));
+                add_to_account.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), Some(module_address)));
 
                 Some(init_msg.unwrap())
             }
             _ => return Err(AccountError::ModuleNotInstallable(module.info.to_string())),
         };
-        manager_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
+        account_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }
     _whitelist_modules(deps.branch(), add_to_whitelist)?;
 
@@ -137,14 +137,14 @@ pub fn _install_modules(
     let mut messages = vec![];
 
     // Update module addrs
-    update_module_addresses(deps.branch(), add_to_manager, vec![])?;
+    update_module_addresses(deps.branch(), add_to_account, vec![])?;
 
     // Install modules message
     messages.push(SubMsg::reply_on_success(
         wasm_execute(
             module_factory_address,
             &ModuleFactoryMsg::InstallModules {
-                modules: manager_modules,
+                modules: account_modules,
                 salt,
             },
             funds,
@@ -695,7 +695,7 @@ mod tests {
     //         modules: vec![test_module_addr.to_string()],
     //     };
 
-    //     // -1 because manager counts as module as well
+    //     // -1 because account counts as module as well
     //     for i in 0..LIST_SIZE_LIMIT - 1 {
     //         let test_module = format!("module_{i}");
     //         let test_module_addr = deps.api.addr_make(&test_module);

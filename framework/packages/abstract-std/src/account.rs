@@ -4,16 +4,16 @@
 //!
 //! ## Description
 //!
-//! The Account manager is part of the Core Abstract Account contracts along with the `abstract_std::proxy` contract.
+//! The Account is part of the Core Abstract Account contracts along with the `abstract_std::proxy` contract.
 //! This contract is responsible for:
 //! - Managing modules instantiation and migrations.
 //! - Managing permissions.
 //! - Upgrading the Account and its modules.
 //! - Providing module name to address resolution.
 //!
-//! **The manager should be set as the contract/CosmWasm admin by default on your modules.**
+//! **The account should be set as the contract/CosmWasm admin by default on your modules.**
 //! ## Migration
-//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
+//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::account` as module.
 //!
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, CosmosMsg, Empty};

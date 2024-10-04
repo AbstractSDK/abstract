@@ -167,7 +167,7 @@ pub fn query_module_versions(
     Ok(module_versions)
 }
 
-/// RawQuery module addresses from manager
+/// RawQuery module addresses from account
 /// Errors if not present
 pub fn query_module_addresses(
     deps: Deps,

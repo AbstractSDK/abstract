@@ -81,8 +81,8 @@ impl<
     }
 
     fn top_level_owner(&self, deps: Deps) -> StdResult<TopLevelOwnerResponse> {
-        let manager = self.admin.get(deps)?.unwrap();
-        let addr = query_top_level_owner_addr(&deps.querier, manager)?;
+        let account = self.admin.get(deps)?.unwrap();
+        let addr = query_top_level_owner_addr(&deps.querier, account)?;
         Ok(TopLevelOwnerResponse { address: addr })
     }
 }

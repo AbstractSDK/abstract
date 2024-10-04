@@ -98,7 +98,7 @@ fn account_app_ownership() -> AResult {
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;
     assert_eq!(admin_res.admin.unwrap(), account.addr_str()?);
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     app.call_as(&sender).execute(
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
         &[],
@@ -116,7 +116,7 @@ fn account_app_ownership() -> AResult {
         )
         .unwrap_err();
 
-    // Not admin or manager
+    // Not admin or account
     let err: MockError = app
         .call_as(&Addr::unchecked("who"))
         .execute(
@@ -200,8 +200,8 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
     else {
         panic!("Expected error");
     };
-    let manager_err: AccountError = err.downcast().unwrap();
-    assert_eq!(manager_err, AccountError::ProhibitedReinstall {});
+    let account_err: AccountError = err.downcast().unwrap();
+    assert_eq!(account_err, AccountError::ProhibitedReinstall {});
     Ok(())
 }
 

@@ -341,7 +341,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
 
     /// Upgrades the account to the latest version
     ///
-    /// Migrates manager and proxy contracts to their respective new versions.
+    /// Migrates account to its respective new versions.
     /// Note that execution will be done through source chain
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let modules = vec![(
@@ -386,7 +386,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         self.execute_on_account(vec![abstract_std::account::ExecuteMsg::Execute { msgs }])
     }
 
-    /// Executes a list of [manager::ExecuteMsg] on the manager of the account.
+    /// Executes a list of [account::ExecuteMsg] on the account.
     pub fn execute_on_account(
         &self,
         account_msgs: Vec<account::ExecuteMsg>,
@@ -412,7 +412,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         Ok(response)
     }
 
-    /// Deposit funds to the manager of the account with IBC transfer
+    /// Deposit funds to the account of the account with IBC transfer
     pub fn deposit(
         &self,
         funds: Vec<Coin>,
@@ -427,7 +427,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
 
     /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
-        let manager = self.address()?;
+        let account = self.address()?;
 
         let mut module_infos: Vec<AccountModuleInfo> = vec![];
         loop {
@@ -441,7 +441,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
                         start_after: last_module_id,
                         limit: None,
                     },
-                    &manager,
+                    &account,
                 )
                 .map_err(Into::into)?;
             if res.module_infos.is_empty() {
@@ -457,23 +457,23 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         &self,
         ids: Vec<String>,
     ) -> AbstractClientResult<ModuleAddressesResponse> {
-        let manager = self.address()?;
+        let account = self.address()?;
 
         self.host_chain()
-            .query(&account::QueryMsg::ModuleAddresses { ids }, &manager)
+            .query(&account::QueryMsg::ModuleAddresses { ids }, &account)
             .map_err(Into::into)
             .map_err(Into::into)
     }
 
     /// Check if module installed on account
     pub fn module_installed(&self, id: ModuleId) -> AbstractClientResult<bool> {
-        let manager = self.address()?;
+        let account = self.address()?;
 
         let key = account::state::ACCOUNT_MODULES.key(id).to_vec();
         let maybe_module_addr = self
             .host_chain()
             .wasm_querier()
-            .raw_query(&manager, key)
+            .raw_query(&account, key)
             .map_err(Into::into)?;
         Ok(!maybe_module_addr.is_empty())
     }

@@ -315,9 +315,9 @@ mod test {
         let destination_remote_account =
             AccountI::load_from(&abstr_host_remote, destination_remote_account_id.clone())?;
 
-        let manager_config = destination_remote_account.config()?;
+        let account_config = destination_remote_account.config()?;
         assert_eq!(
-            manager_config,
+            account_config,
             ConfigResponse {
                 account_id: destination_remote_account_id,
                 is_suspended: false,
@@ -346,9 +346,9 @@ mod test {
         // We assert the account was created with the right properties
         let remote_abstract_account =
             AccountI::load_from(&abstr_remote, remote_account_id.clone())?;
-        let manager_config = remote_abstract_account.config()?;
+        let account_config = remote_abstract_account.config()?;
         assert_eq!(
-            manager_config,
+            account_config,
             ConfigResponse {
                 account_id: remote_account_id,
                 is_suspended: false,
@@ -358,13 +358,13 @@ mod test {
             }
         );
 
-        let manager_info = remote_abstract_account.info()?;
+        let account_info = remote_abstract_account.info()?;
 
         let account_name = TEST_ACCOUNT_NAME.to_string();
         let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
         let link = Some(TEST_ACCOUNT_LINK.to_string());
         assert_eq!(
-            manager_info,
+            account_info,
             InfoResponse {
                 info: abstract_std::account::state::AccountInfo {
                     name: Some(account_name),
@@ -482,7 +482,7 @@ mod test {
     }
 
     #[test]
-    fn test_cannot_call_remote_manager_from_non_host_account() -> AnyResult<()> {
+    fn test_cannot_call_remote_account_from_non_host_account() -> AnyResult<()> {
         logger_test_init();
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);

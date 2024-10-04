@@ -311,7 +311,7 @@ fn unauthorized_exec() -> AResult {
 }
 
 #[test]
-fn manager_adapter_exec() -> AResult {
+fn account_adapter_exec() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
@@ -415,7 +415,7 @@ fn account_adapter_ownership() -> AResult {
 
     // Checking module requests
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     adapter.call_as(sender).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
             account_address: Some(proxy_addr.to_string()),
@@ -431,7 +431,7 @@ fn account_adapter_ownership() -> AResult {
         &[],
     )?;
 
-    // Not admin or manager
+    // Not admin or account
     let who = chain.addr_make("who");
     let err: MockError = adapter
         .call_as(&who)
@@ -455,7 +455,7 @@ fn account_adapter_ownership() -> AResult {
 
     // Checking base requests
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     adapter.call_as(sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
             account_address: Some(proxy_addr.to_string()),
@@ -493,7 +493,7 @@ fn account_adapter_ownership() -> AResult {
         )
         .unwrap_err();
 
-    // Not admin or manager
+    // Not admin or account
     let err: MockError = adapter
         .call_as(&who)
         .execute(
@@ -558,7 +558,7 @@ fn subaccount_adapter_ownership() -> AResult {
 
     // Checking module requests
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
             account_address: Some(proxy_addr.to_string()),
@@ -589,7 +589,7 @@ fn subaccount_adapter_ownership() -> AResult {
         )
         .unwrap_err();
 
-    // Not admin or manager
+    // Not admin or account
     let who = chain.addr_make("who");
     let err: MockError = adapter
         .call_as(&who)
@@ -613,7 +613,7 @@ fn subaccount_adapter_ownership() -> AResult {
 
     // Checking base requests
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
             account_address: Some(proxy_addr.to_string()),
@@ -650,7 +650,7 @@ fn subaccount_adapter_ownership() -> AResult {
         )
         .unwrap_err();
 
-    // Not admin or manager
+    // Not admin or account
     let err: MockError = adapter
         .call_as(&who)
         .execute(

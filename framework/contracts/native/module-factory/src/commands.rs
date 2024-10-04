@@ -31,12 +31,12 @@ pub fn execute_create_modules(
     salt: Binary,
 ) -> ModuleFactoryResult {
     let block_height = env.block.height;
-    // Verify sender is active Account manager
+    // Verify sender is active Account
     // Construct feature object to access registry functions
     let registry = RegistryContract::new(deps.api)?;
     let ans_host = AnsHost::new(deps.api)?;
 
-    // assert that sender is manager
+    // assert that sender is account
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
@@ -52,7 +52,7 @@ pub fn execute_create_modules(
     // install messages
     let mut module_instantiate_messages = Vec::with_capacity(modules_responses.len());
 
-    // Register modules on manager
+    // Register modules on account
     let mut modules_to_register: Vec<Addr> = vec![];
 
     // Attributes logging

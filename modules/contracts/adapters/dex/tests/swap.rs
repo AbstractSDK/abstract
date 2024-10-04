@@ -200,7 +200,7 @@ fn unauthorized_update_fee() -> anyhow::Result<()> {
     );
 
     let err = account
-        .manager
+        .account
         .execute_on_module(DEX_ADAPTER_ID, update_fee_msg)
         .unwrap_err();
     let AbstractInterfaceError::Orch(orch_error) = err else {

@@ -650,7 +650,7 @@ pub fn validate_account_owner(
         })?;
     let account = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
     let account = account.addr();
-    // Check manager first, manager can call this function to unregister a namespace when renouncing its ownership.
+    // Check account first, account can call this function to unregister a namespace when renouncing its ownership.
     if sender != account {
         let account_owner = query_account_owner(&deps.querier, account.clone(), &account_id)?;
         if sender != account_owner {

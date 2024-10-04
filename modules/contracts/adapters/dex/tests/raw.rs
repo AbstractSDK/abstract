@@ -153,7 +153,7 @@ fn raw_swap_raw() -> anyhow::Result<()> {
             },
         },
     });
-    os.manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+    os.account.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
 
     // check balances
     let raw_balance = wyndex.raw_token.balance(proxy_addr.to_string())?;

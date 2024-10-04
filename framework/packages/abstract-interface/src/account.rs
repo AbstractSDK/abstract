@@ -36,7 +36,7 @@ use serde::Serialize;
 use speculoos::prelude::*;
 use std::{collections::HashSet, fmt::Debug};
 
-/// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
+/// A helper struct that contains fields from [`abstract_std::account::state::AccountInfo`]
 #[derive(Default)]
 pub struct AccountDetails {
     pub name: String,
@@ -200,13 +200,13 @@ impl<Chain: CwEnv> AccountI<Chain> {
     }
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
     /// Note that the proxy is automatically included in the assertions.
-    /// Returns the `Vec<AccountModuleInfo>` from the manager
+    /// Returns the `Vec<AccountModuleInfo>` from the account
     pub fn expect_modules(
         &self,
         module_addrs: Vec<String>,
     ) -> Result<Vec<AccountModuleInfo>, crate::AbstractInterfaceError> {
         let abstract_std::account::ModuleInfosResponse {
-            module_infos: manager_modules,
+            module_infos: account_modules,
         } = self.module_infos(None, None)?;
 
         let expected_module_addrs = module_addrs
@@ -214,7 +214,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .map(Addr::unchecked)
             .collect::<HashSet<_>>();
 
-        let actual_module_addrs = manager_modules
+        let actual_module_addrs = account_modules
             .iter()
             .map(|module_info| module_info.address.clone())
             .collect::<HashSet<_>>();
@@ -222,7 +222,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         // assert that these modules are installed
         assert_that!(expected_module_addrs).is_equal_to(actual_module_addrs);
 
-        Ok(manager_modules)
+        Ok(account_modules)
     }
 
     pub fn is_module_installed(
@@ -238,7 +238,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         &self,
         expected_whitelisted_addrs: Vec<Addr>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        // insert manager in expected whitelisted addresses
+
         let expected_whitelisted_addrs = expected_whitelisted_addrs
             .into_iter()
             .collect::<HashSet<_>>();
@@ -334,7 +334,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         Ok(())
     }
 
-    /// Return the module info installed on the manager
+    /// Return the module info installed on the account
     pub fn module_info(
         &self,
         module_id: &str,
@@ -530,7 +530,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
         // Parse data from events
         let acc_id = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_id")?;
         let id: AccountId = acc_id.parse()?;
-        // construct manager and proxy ids
+        // construct account and proxy ids
         let account = Self::new_from_id(&id, chain.clone());
 
         // set addresses

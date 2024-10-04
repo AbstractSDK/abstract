@@ -521,7 +521,7 @@ pub mod test {
         // We get the object for handling the actual module on the remote account
         let remote_account = abstr_remote.registry.account(remote_account_id)?.account;
         let account = AccountI::new(
-            "remote-account-manager",
+            "remote-account-account",
             abstr_remote.registry.environment().clone(),
         );
         account.set_address(remote_account.addr());
@@ -696,7 +696,7 @@ pub mod test {
             // We get the object for handling the actual module on the remote account
             let remote_account = abstr_remote.registry.account(remote_account_id)?.account;
             let account = AccountI::new(
-                "remote-account-manager",
+                "remote-account-account",
                 abstr_remote.registry.environment().clone(),
             );
             account.set_address(remote_account.addr());

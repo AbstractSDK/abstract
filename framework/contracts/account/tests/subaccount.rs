@@ -109,7 +109,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
         },
         &[],
     )?;
-    // We call as the manager, it should also be possible
+    // We call as the account, it should also be possible
     let sub_sub_account = sub_account.create_and_return_sub_account(
         AccountDetails {
             name: "My subaccount".to_string(),
@@ -183,8 +183,8 @@ fn sub_account_move_ownership() -> AResult {
     let new_owner = chain.addr_make("new_owner");
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
-    // Store manager address, it will be used for querying
-    let manager_addr = account.address()?;
+
+    let account_addr = account.address()?;
 
     let sub_account = account.create_and_return_sub_account(
         AccountDetails {
@@ -216,7 +216,7 @@ fn sub_account_move_ownership() -> AResult {
             start_after: None,
             limit: None,
         },
-        &manager_addr,
+        &account_addr,
     )?;
     assert_eq!(
         sub_accounts,
@@ -385,10 +385,10 @@ fn account_updated_to_subaccount_recursive() -> AResult {
         },
         expiry: None,
     })?;
-    // accepting ownership by sender instead of the manager
+    // accepting ownership by sender instead of the account
     account_2.update_ownership(ownership::GovAction::AcceptOwnership)?;
 
-    // Check manager knows about his new sub-account
+    // Check account knows about his new sub-account
     let ids = account_1.sub_account_ids(None, None)?;
     assert_eq!(ids.sub_accounts.len(), 1);
     Ok(())
@@ -489,7 +489,7 @@ fn account_updated_to_subaccount_without_recursion() -> AResult {
         expiry: None,
     })?;
 
-    // accepting ownership by sender instead of the manager
+    // accepting ownership by sender instead of the account
     account_1.execute_msgs(
         vec![WasmMsg::Execute {
             contract_addr: account_2.addr_str()?,
@@ -504,7 +504,7 @@ fn account_updated_to_subaccount_without_recursion() -> AResult {
         &[],
     )?;
 
-    // Check manager knows about his new sub-account
+    // Check account knows about his new sub-account
     let ids = account_1.sub_account_ids(None, None)?;
     assert_eq!(ids.sub_accounts.len(), 1);
     Ok(())

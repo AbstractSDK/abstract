@@ -117,7 +117,7 @@ mod test {
         use super::*;
 
         #[test]
-        fn only_manager() -> AppTestResult {
+        fn only_account() -> AppTestResult {
             let mut deps = mock_init();
 
             let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
@@ -125,8 +125,8 @@ mod test {
                 registry_address: None,
             });
 
-            let not_manager = deps.api.addr_make("not_admin");
-            let res = execute_as(deps.as_mut(), &not_manager, msg);
+            let not_account = deps.api.addr_make("not_admin");
+            let res = execute_as(deps.as_mut(), &not_account, msg);
             assert_eq!(
                 res,
                 Err(MockError::DappError(AppError::Admin(

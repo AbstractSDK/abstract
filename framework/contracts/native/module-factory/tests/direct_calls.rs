@@ -25,7 +25,7 @@ fn instantiate() -> AResult {
 }
 
 #[test]
-fn caller_must_be_manager() -> AResult {
+fn caller_must_be_account() -> AResult {
     let chain = MockBech32::new("mock");
     let _not_owner = chain.addr_make("not_owner");
     let deployment = Abstract::deploy_on_mock(chain.clone())?;

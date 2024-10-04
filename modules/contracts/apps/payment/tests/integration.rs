@@ -81,7 +81,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
         None,
     )?;
 
-    account.manager.update_adapter_authorized_addresses(
+    account.account.update_adapter_authorized_addresses(
         abstract_dex_adapter::DEX_ADAPTER_ID,
         vec![app.address()?.to_string()],
         vec![],

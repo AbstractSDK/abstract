@@ -281,7 +281,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
 }
 
 /*#[test]
-fn upgrade_manager_last() -> AResult {
+fn upgrade_account_last() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;

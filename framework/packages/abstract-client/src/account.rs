@@ -596,9 +596,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    /// Upgrades the account to the latest version
-    ///
-    /// Migrates manager and proxy contracts to their respective new versions.
+    /// Upgrades the account to the latest version.
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .upgrade(vec![(
@@ -719,14 +717,14 @@ impl<Chain: CwEnv> Account<Chain> {
         let expected_version = match &module.version {
             // If latest we need to find latest version stored in Registry
             ModuleVersion::Latest => {
-                let manager_config = self.abstr_account.config()?;
+                let account_config = self.abstr_account.config()?;
                 let mut modules_response: registry::ModulesResponse = self
                     .environment()
                     .query(
                         &registry::QueryMsg::Modules {
                             infos: vec![module.clone()],
                         },
-                        &manager_config.registry_address,
+                        &account_config.registry_address,
                     )
                     .map_err(Into::into)?;
                 modules_response

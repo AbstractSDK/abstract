@@ -293,9 +293,9 @@ pub mod mock {
             // See test `create_sub_account_with_installed_module` where this will be triggered.
             if module.info().0 == "tester:mock-app1" {
                 println!("checking address of adapter1");
-                let manager = module.admin.get(deps.as_ref())?.unwrap();
+                let account = module.admin.get(deps.as_ref())?.unwrap();
                 // Check if the adapter has access to its dependency during instantiation.
-                let adapter1_addr = $crate::std::account::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
+                let adapter1_addr = $crate::std::account::state::ACCOUNT_MODULES.query(&deps.querier,account, "tester:mock-adapter1")?;
                 // We have address!
                 ::cosmwasm_std::ensure!(
                     adapter1_addr.is_some(),

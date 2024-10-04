@@ -127,7 +127,7 @@ mod osmosis_test {
                 },
             });
             account
-                .manager
+                .account
                 .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
@@ -150,7 +150,7 @@ mod osmosis_test {
                 },
             });
             account
-                .manager
+                .account
                 .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
@@ -171,7 +171,7 @@ mod osmosis_test {
                 },
             });
             account
-                .manager
+                .account
                 .execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
             Ok(())
         }
@@ -192,7 +192,7 @@ mod osmosis_test {
                 },
             });
             account
-                .manager
+                .account
                 .execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
             Ok(())
         }
@@ -219,7 +219,7 @@ mod osmosis_test {
 
         let os = create_default_account(&deployment.account_factory)?;
         // let proxy_addr = os.proxy.address()?;
-        let _manager_addr = os.manager.address()?;
+        let _account_addr = os.account.address()?;
 
         // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
         let pool_id = tube.create_pool(vec![coin(1_000, ASSET_1), coin(1_000, ASSET_2)])?;
