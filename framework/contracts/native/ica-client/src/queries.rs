@@ -1,5 +1,5 @@
-use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
 use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
+use abstract_std::ica_client::{ChainType, ConfigResponse, IcaAction, IcaActionResponse};
 use abstract_std::objects::TruncatedChainId;
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
@@ -23,7 +23,7 @@ pub(crate) fn ica_action(
     actions: Vec<IcaAction>,
 ) -> IcaClientResult<IcaActionResponse> {
     // match chain-id with cosmos or EVM
-    use abstract_ica::CastChainType;
+    use abstract_std::ica_client::CastChainType;
     let chain_type = chain.chain_type().ok_or(IcaClientError::NoChainType {
         chain: chain.to_string(),
     })?;
@@ -31,7 +31,7 @@ pub(crate) fn ica_action(
     let process_action = |action: IcaAction| -> IcaClientResult<Vec<CosmosMsg>> {
         match action {
             IcaAction::Execute(ica_exec) => match ica_exec {
-                abstract_ica::IcaExecute::Evm { msgs, callback } => {
+                abstract_std::ica_client::IcaExecute::Evm { msgs, callback } => {
                     ensure_eq!(
                         chain_type,
                         ChainType::Evm,

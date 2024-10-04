@@ -1,6 +1,7 @@
 mod ans_host;
 mod ibc_client;
 mod ibc_host;
+mod ica_client;
 mod module_factory;
 mod registry;
 
