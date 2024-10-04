@@ -1,10 +1,6 @@
 # Interchain Abstract Accounts
 
-The Cosmos is going interchain. The arrival of Inter-Blockchain Communication (IBC) launched us into a new paradigm in
-application development. New use-cases and solutions to existing UX problems are now possible. As the interchain
-application platform, Abstract attempts to make IBC accessible to developers and users alike. In this section we'll
-delve into interchain application development, what makes it so hard, and how Abstract can help you create your first
-#Interchain application.
+The Cosmos is going interchain. The arrival of Inter-Blockchain Communication (IBC) launched us into a new paradigm in application development. New use-cases and solutions to existing UX problems are now possible. As the interchain application platform, Abstract attempts to make IBC accessible to developers and users alike. In this section we'll delve into interchain application development, what makes it so hard, and how Abstract can help you create your first Interchain application.
 
 ## What is The Interchain?
 

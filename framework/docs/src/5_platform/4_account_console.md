@@ -6,7 +6,7 @@ The [Account Console](https://console.abstract.money) is in beta. Please report 
 
 The [Account Console](https://console.abstract.money) is a web-based developer tool that allows you to inspect and interact with your Abstract Accounts.
 
-It also allows you to easily view the abstract-specific infrastructure details like the [Abstract Name Service](./1_ans.md) or the [Version Control](2_version_control.md).
+It also allows you to easily view the abstract-specific infrastructure details like the [Abstract Name Service](./1_ans.md) or the [Version Control](2_registry.md).
 
 The Account Console offers:
 

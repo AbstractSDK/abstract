@@ -24,7 +24,6 @@ let abstr_deployment = Abstract::deploy_on(mock, sender.to_string())?;
 // Create a new account to install the app onto
 let account =
     abstr_deployment
-        .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         })?;

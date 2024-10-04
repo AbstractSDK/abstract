@@ -43,12 +43,12 @@ fn returns_account_owner() -> VersionControlTestResult {
     let mut deps = mock_dependencies();
     // Set up mock querier with the account
     deps.querier = AbstractMockQuerierBuilder::default()
-        .account(TEST_MANAGER, TEST_PROXY, 0)
+        .account(TEST_ACCOUNT, 0)
         .build();
     mock_init_with_account(deps.as_mut(), true)?;
 
     let account_owner =
-        query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), 0)?;
+        query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_ACCOUNT), 0)?;
 
     assert_that!(account_owner).is_equal_to(Addr::unchecked(OWNER));
     Ok(())

@@ -28,7 +28,7 @@ sequenceDiagram
     actor U as Owner
 
     participant VC as Version Control
-    participant Man as Manager of Namespace
+    participant Acc as Account of Namespace
     participant M as Adapter Instance
 
     U ->> VC: ProposeModules
@@ -36,9 +36,9 @@ sequenceDiagram
     loop
 
         VC --> VC: Load Account ID for namespace
-        VC --> VC: Load Account Manager address
-        VC -->>+ Man: Query Account owner
-        Man -->>- VC: Address
+        VC --> VC: Load Account Account address
+        VC -->>+ Acc: Query Account owner
+        Acc -->>- VC: Address
 
         opt adapter
             VC -->> M: Assert no sudo admin
