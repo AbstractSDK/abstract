@@ -1,6 +1,6 @@
 use abstract_std::{
     account::{
-        state::{ACCOUNT_ID, ACCOUNT_MODULES, DEPENDENTS, WHITELISTED_MODULES},
+        state::{WhitelistedModules, ACCOUNT_ID, ACCOUNT_MODULES, DEPENDENTS, WHITELISTED_MODULES},
         ModuleInstallConfig,
     },
     adapter::{AdapterBaseMsg, BaseExecuteMsg, ExecuteMsg as AdapterExecMsg},
@@ -18,7 +18,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     ensure, wasm_execute, Addr, Attribute, Binary, CanonicalAddr, Coin, CosmosMsg, Deps, DepsMut,
-    MessageInfo, StdError, StdResult, Storage, SubMsg,
+    MessageInfo, StdResult, Storage, SubMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;
@@ -35,7 +35,7 @@ pub(crate) const INSTALL_MODULES_CONTEXT: Item<Vec<(Module, Option<Addr>)>> =
 
 pub mod migration;
 
-const LIST_SIZE_LIMIT: usize = 15;
+pub const WHITELIST_SIZE_LIMIT: usize = 15;
 
 /// Attempts to install a new module through the Module Factory Contract
 pub fn install_modules(
@@ -130,7 +130,7 @@ pub fn _install_modules(
         };
         manager_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }
-    _whitelist_modules(deps.branch(), add_to_whitelist)?;
+    _update_whitelisted_modules(deps.storage, add_to_whitelist, vec![])?;
 
     INSTALL_MODULES_CONTEXT.save(deps.storage, &install_context)?;
 
@@ -181,7 +181,7 @@ pub fn update_module_addresses(
 }
 
 /// Uninstall the module with the ID [`module_id`]
-pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String) -> AccountResult {
+pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> AccountResult {
     // only owner can uninstall modules
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
@@ -213,7 +213,7 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
     // Remove module from whitelist if it supposed to be removed
     if module.should_be_whitelisted() {
         let module_addr = ACCOUNT_MODULES.load(deps.storage, &module_id)?;
-        _remove_whitelist_modules(deps.branch(), vec![module_addr])?;
+        _update_whitelisted_modules(deps.storage, vec![], vec![module_addr])?;
     }
 
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
@@ -285,52 +285,41 @@ fn configure_adapter(
     Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
 }
 
-/// Add a contract to the whitelist
-pub(crate) fn _whitelist_modules(deps: DepsMut, module_addresses: Vec<Addr>) -> AccountResult<()> {
-    let mut whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
-
+/// Update whitelist by adding or removing addresses
+pub(crate) fn _update_whitelisted_modules(
+    storage: &mut dyn Storage,
+    to_add_module_addresses: Vec<Addr>,
+    to_remove_module_addresses: Vec<Addr>,
+) -> AccountResult<()> {
+    let mut whitelisted_modules = WHITELISTED_MODULES.load(storage)?.0;
+    let new_len = (whitelisted_modules.len() + to_add_module_addresses.len())
+        .checked_sub(to_remove_module_addresses.len())
+        // If overflowed - tried to remove not whitelisted
+        .ok_or(AccountError::NotWhitelisted {})?;
     // This is a limit to prevent potentially running out of gas when doing lookups on the modules list
-    if whitelisted_modules.0.len() >= LIST_SIZE_LIMIT {
+    if new_len > WHITELIST_SIZE_LIMIT {
         return Err(AccountError::ModuleLimitReached {});
     }
 
-    for module_addr in module_addresses.into_iter() {
-        if whitelisted_modules.0.contains(&module_addr) {
+    for module_addr in to_add_module_addresses {
+        if whitelisted_modules.contains(&module_addr) {
             return Err(AccountError::AlreadyWhitelisted(module_addr.into()));
         }
 
         // Add contract to whitelist.
-        whitelisted_modules.0.push(module_addr);
+        whitelisted_modules.push(module_addr);
     }
 
-    WHITELISTED_MODULES.save(deps.storage, &whitelisted_modules)?;
+    whitelisted_modules.retain(|addr| {
+        // retain any addresses that are not in the list of addresses to remove
+        !to_remove_module_addresses.contains(addr)
+    });
 
-    Ok(())
-}
-
-/// Remove a contract from the whitelist
-pub(crate) fn _remove_whitelist_modules(
-    deps: DepsMut,
-    addresses_to_remove: Vec<Addr>,
-) -> AccountResult<()> {
-    let mut len: i8 = addresses_to_remove.len() as i8;
-
-    WHITELISTED_MODULES.update(deps.storage, |mut whitelisted_modules| {
-        whitelisted_modules.0.retain(|addr| {
-            // retain any addresses that are not in the list of addresses to remove
-            if addresses_to_remove.contains(addr) {
-                len -= 1;
-                false
-            } else {
-                true
-            }
-        });
-        Ok::<_, StdError>(whitelisted_modules)
-    })?;
-
-    if len != 0 {
+    // Error won't match if something didn't remove
+    if whitelisted_modules.len() != new_len {
         return Err(AccountError::NotWhitelisted {});
     }
+    WHITELISTED_MODULES.save(storage, &WhitelistedModules(whitelisted_modules))?;
     Ok(())
 }
 

@@ -24,8 +24,8 @@ use cw2::get_contract_version;
 use cw_storage_plus::Item;
 
 use super::{
-    _remove_whitelist_modules, _whitelist_modules, configure_adapter, load_module_addr,
-    query_module, update_module_addresses,
+    _update_whitelisted_modules, configure_adapter, load_module_addr, query_module,
+    update_module_addresses,
 };
 use crate::{
     contract::{AccountResponse, AccountResult},
@@ -237,7 +237,7 @@ pub(crate) fn build_module_migrate_msg(
 /// Replaces the current adapter with a different version
 /// Also moves all the authorized address permissions to the new contract and removes them from the old
 pub fn replace_adapter(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: &Env,
     new_adapter_addr: Addr,
     old_adapter_addr: Addr,
@@ -272,10 +272,7 @@ pub fn replace_adapter(
             to_remove: vec![],
         },
     )?);
-    // Remove adapter permissions from proxy
-    _remove_whitelist_modules(deps.branch(), vec![old_adapter_addr])?;
-    // Add new adapter to proxy
-    _whitelist_modules(deps.branch(), vec![new_adapter_addr])?;
+    _update_whitelisted_modules(deps.storage, vec![new_adapter_addr], vec![old_adapter_addr])?;
 
     Ok(msgs)
 }

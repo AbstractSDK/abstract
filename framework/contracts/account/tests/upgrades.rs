@@ -113,7 +113,7 @@ fn upgrade_app() -> AResult {
 
     // successfully install app 1
     let app1 = install_module_version(&account, app_1::MOCK_APP_ID, V1)?;
-    account.expect_modules(vec![adapter1, adapter2, app1])?;
+    account.expect_modules(vec![adapter1.clone(), adapter2, app1])?;
 
     // attempt upgrade app 1 to version 2
     let res = account.upgrade_module(
@@ -205,7 +205,7 @@ fn upgrade_app() -> AResult {
         .to_string(),
     );
 
-    // attempt to upgrade app 1 to identical version while updating other modules
+    // attempt to upgrade adapters to the same version(same address)
     let res = account.upgrade(vec![
         (
             ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V2.to_string()))?,
@@ -230,16 +230,9 @@ fn upgrade_app() -> AResult {
         ),
     ]);
 
-    // fails because app v1 is depends on adapter 1 being version 2.
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        AccountError::VersionRequirementNotMet {
-            module_id: adapter_1::MOCK_ADAPTER_ID.into(),
-            version: V1.into(),
-            comp: "^2.0.0".into(),
-            post_migration: true,
-        }
-        .to_string(),
-    );
+    // fails because adapter v1 already whitelisted
+    assert_that!(res.unwrap_err().root().to_string())
+        .contains(AccountError::AlreadyWhitelisted(adapter1).to_string());
 
     // successfully upgrade all the modules
     account.upgrade(vec![
