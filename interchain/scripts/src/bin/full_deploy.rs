@@ -75,24 +75,6 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
-    let parsed_url = Url::parse(url_str)?;
-
-    let host = parsed_url
-        .host_str()
-        .ok_or_else(|| anyhow::anyhow!("No host in url"))?;
-
-    let port = parsed_url.port_or_known_default().ok_or_else(|| {
-        anyhow::anyhow!(
-            "No port in url, and no default for scheme {:?}",
-            parsed_url.scheme()
-        )
-    })?;
-    let socket_addr = format!("{}:{}", host, port);
-
-    let _ = TcpStream::connect(socket_addr);
-    Ok(())
-}
 #[allow(dead_code)]
 fn write_deployment(status: &DeploymentStatus) -> anyhow::Result<()> {
     let path = dirs::home_dir()
