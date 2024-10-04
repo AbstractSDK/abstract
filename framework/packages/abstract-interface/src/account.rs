@@ -238,7 +238,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
         &self,
         expected_whitelisted_addrs: Vec<Addr>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-
         let expected_whitelisted_addrs = expected_whitelisted_addrs
             .into_iter()
             .collect::<HashSet<_>>();

@@ -33,7 +33,6 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
         .min_by(|(_, _, v1), (_, _, v2)| v1.cmp(v2))
         .unwrap();
 
-
     Ok((chain, oldest_account_id, owner))
 }
 
