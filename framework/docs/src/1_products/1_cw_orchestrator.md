@@ -30,7 +30,7 @@ let account =
 
 // Claim the namespace so app can be deployed
 abstr_deployment
-    .version_control
+    .registry
     .claim_namespace(1, "my-namespace".to_string())?;
 
 // Deploy the app!

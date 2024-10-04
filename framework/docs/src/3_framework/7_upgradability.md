@@ -11,7 +11,7 @@ If this is the first time you hear about smart-contract migrations, we recommend
 ## Module Version Registry
 
 Upgrading a module is facilitated by the module version registry in
-the [version control contract](../5_platform/2_registry.md). The mapping allows your Account to:
+the [registry contract](../5_platform/2_registry.md). The mapping allows your Account to:
 
 - Instantiate a module of the latest versions.
 - Upgrade a module to a new version.
@@ -51,15 +51,15 @@ sequenceDiagram
     autonumber
     actor U as Owner
     participant A as Account
-    participant VC as Version Control
+    participant REG as Registry
     U ->> A: Upgrade
     loop for each module
-        A -->> VC: Query reference
+        A -->> REG: Query reference
         alt adapter
-            VC -->> A: Return address
+            REG -->> A: Return address
             A ->> A: Update module address and whitelist
         else app / standalone
-            VC -->> A: Return code_id
+            REG -->> A: Return code_id
             A ->> A: Migrate module to new code_id
         end
     end

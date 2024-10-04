@@ -12,3 +12,6 @@ The `Account` contract takes the following parameters:
 {{#include ../../../packages/abstract-std/src/account.rs:init_msg}}
 ```
 
+The account can be instantiated using the normal `instantiate` function or `instantiate2`, which allows you to claim deterministic addresses.
+
+During the instantiation process the account will self-register on the `registry` contract, making it queryable by its account-id.

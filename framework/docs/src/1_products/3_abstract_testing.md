@@ -12,7 +12,7 @@ framework's functionalities, and facilitating robust unit testing.
 - ️**Mock Data Creation** 🛠: Easily create mock data with predefined data for assets, contracts, accounts and more.
 - **Abstract Naming Service Integration** 🌐: Add mock assets into the Abstract Naming Service (ANS) for testing
   purposes.
-- **Flexible Configuration** 🔧: Adjust version control addresses, set up mock ANS hosts, and more.
+- **Flexible Configuration** 🔧: Adjust registry addresses, set up mock ANS hosts, and more.
 - **Assertion Tools** ✅: Assert the existence of accounts, assets, map entries and more.
 - **Predefined Test Scenarios** 📝: Run through common test scenarios with ease.
 - **Build & Execute** 🔄: Construct mock queries and execute them to test various functionalities.

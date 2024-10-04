@@ -36,5 +36,5 @@ Security is a top priority at Abstract. Every module listed on the mainnet marke
 While no system can guarantee absolute security, this rigorous vetting process, coupled with the inherent security
 benefits of Abstract's and CosmWasm's architecture, mitigates potential risks to a considerable extent.
 
-The Abstract platform also maintains a [Version Control](../5_platform/2_registry.md) for all the modules, allowing
+The Abstract platform also maintains a [Registry](../5_platform/2_registry.md) for all the modules, allowing
 developers to track changes, understand the evolution of a module, and choose versions that have passed security audits.

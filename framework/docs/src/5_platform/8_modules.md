@@ -14,15 +14,15 @@ sequenceDiagram
     actor U as Owner
     participant M as Manager
     participant MF as Module Factory
-    participant VC as Version Control
+    participant REG as Registry
     participant P as Proxy
     U ->> M: InstallModule
     M ->> MF: InstallModule
-    MF -->>+ VC: Query Module Details
+    MF -->>+ REG: Query Module Details
     alt adapter
-        VC -->>+ MF: Return address
+        REG -->>+ MF: Return address
     else app / standalone
-        VC -->>- MF: Return code_id
+        REG -->>- MF: Return code_id
         MF -> MF: Instantiate module
     end
     MF ->> M: Register module address
@@ -35,7 +35,7 @@ At this point you should be able to understand the message flow depicted above. 
 
 Installing a module starts by the Owner of the Account requesting the installation of the module on the Account. This request is sent to the Manager contract of the Account. The request contains the module ID(s) and possible instantiate messages for any App/Standalone modules that should be installed (aka instantiated).
 
-The Manager contract verifies the request and forwards it to the Module Factory. The Module Factory then queries the Version Control (the on-chain module registry) for the module details. These module details contain both the version of the module as well as its type-specific data. This type-specific data is depicted by the two alternatives (alt) of the returned query.
+The Manager contract verifies the request and forwards it to the Module Factory. The Module Factory then queries the Registry (the on-chain module registry) for the module details. These module details contain both the version of the module as well as its type-specific data. This type-specific data is depicted by the two alternatives (alt) of the returned query.
 
 Either the query returns an Adapter's address (which is already instantiated) or it returns an App/Standalone code-id. This code-id is then used by the Module Factory to instantiate an instance of that module.
 
@@ -129,21 +129,21 @@ sequenceDiagram
     autonumber
     actor U as Owner
     participant D as abstract:dex
-    participant VC as Version Control
+    participant REG as Registry
     participant A as ANS
     participant P as Proxy
     participant T as Dex Pool
     Note right of U: Dex::Swap {proxy: "juno1xd..."}
     U ->> D: Call module
-    D -->+ VC: Load proxy address for Account
-    VC -->- D: Address
+    D -->+ REG: Load proxy address for Account
+    REG -->- D: Address
     D -->>+ A: Resolve asset names
     A -->> D: Asset infos
     D --> A: Resolve dex pool
     A -->>- D: Pool metadata
     D --> D: Build swap msg for target dex
     D ->> P: Forward execution
-    Note over VC, A: DexMsg
+    Note over REG, A: DexMsg
     P ->> T: Execute
     Note right of P: DexMsg
 ```

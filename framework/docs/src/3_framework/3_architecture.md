@@ -63,12 +63,12 @@ sequenceDiagram
     autonumber
     actor U as Owner
     participant M as Account
-    participant VC as Version Control
+    participant REG as Registry
 
     U ->> M: UpdateSettings
     Note right of U: ibc_enabled
-    M -->>+ VC: Query IBC Client address
-    VC -->>- M: Return IBC Client address
+    M -->>+ REG: Query IBC Client address
+    REG -->>- M: Return IBC Client address
     M ->> M: Register IBC Client
 ```
 

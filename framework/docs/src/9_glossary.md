@@ -107,7 +107,7 @@ correctly.
 
 ## JSON Schema Linking
 
-Linking a module's JSON schema to the Abstract Version Control to improve user experience for developers using the
+Linking a module's JSON schema to the Abstract Registry to improve user experience for developers using the
 module.
 
 ## Manager Contract
@@ -174,6 +174,6 @@ smart contract development due to its safety features and efficient performance.
 
 Queries that contain a message in their request and often involve computation on the queried contract.
 
-## Version Control
+## Registry
 
 A contract that acts as a registry for all modules and accounts within the Abstract platform.

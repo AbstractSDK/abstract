@@ -1,6 +1,6 @@
-# Version Control
+# Registry
 
-The Version Control contract acts as the registry for all modules and accounts within the Abstract platform. Abstract Accounts can use it to claim namespaces and register their modules. The Version Control contract allows modules to be queried by its namespace, name, and version, returning its reference which may be a code id or address.
+The Registry contract acts as the registry for all modules and accounts within the Abstract platform. Abstract Accounts can use it to claim namespaces and register their modules. The Registry contract allows modules to be queried by its namespace, name, and version, returning its reference which may be a code id or address.
 
 ## Namespaces
 
@@ -12,7 +12,7 @@ When a namespace is removed from an account, any modules published under that na
 
 ## Propose Modules
 
-Developers that wish to publish modules to the Abstract platform need to call `ProposeModules` on the Version Control contract. The modules will subsequently be reviewed by the Abstract platform for registration.
+Developers that wish to publish modules to the Abstract platform need to call `ProposeModules` on the Registry contract. The modules will subsequently be reviewed by the Abstract platform for registration.
 
 ```admonish info
 For documentation on how to register modules, see [Module Deployment](../4_get_started/7_module_deployment.md)
@@ -27,28 +27,28 @@ sequenceDiagram
     autonumber
     actor U as Owner
 
-    participant VC as Version Control
+    participant REG as Registry
     participant Acc as Account of Namespace
     participant M as Adapter Instance
 
-    U ->> VC: ProposeModules
+    U ->> REG: ProposeModules
 
     loop
 
-        VC --> VC: Load Account ID for namespace
-        VC --> VC: Load Account Account address
-        VC -->>+ Acc: Query Account owner
-        Acc -->>- VC: Address
+        REG --> REG: Load Account ID for namespace
+        REG --> REG: Load Account Account address
+        REG -->>+ Acc: Query Account owner
+        Acc -->>- REG: Address
 
         opt adapter
-            VC -->> M: Assert no sudo admin
+            REG -->> M: Assert no sudo admin
             activate M
-            VC -->> M: Assert same cw2 data
+            REG -->> M: Assert same cw2 data
             deactivate M
         end
 
     end
-    VC ->> VC: Save modules
+    REG ->> REG: Save modules
 
 ```
 
