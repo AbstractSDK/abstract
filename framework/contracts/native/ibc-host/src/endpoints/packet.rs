@@ -94,7 +94,7 @@ pub fn handle_host_action(
                     deps.storage,
                     &ActionAfterCreationCache {
                         action,
-                        client_proxy_address: proxy_address,
+                        client_account_address: account_address,
                         account_id: received_account_id,
                         chain_name: src_chain,
                     },

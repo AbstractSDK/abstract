@@ -791,18 +791,18 @@ fn doc_example_test() -> anyhow::Result<()> {
     // ## ANCHOR_END: publisher
 
     // ## ANCHOR: account
-    let account: Account<MockBech32> = client.account_builder().build()?;
+    let accounti: Account<MockBech32> = client.account_builder().build()?;
 
     // ## ANCHOR: app_interface
     // Install an app
     let app: Application<MockBech32, MockAppI<MockBech32>> =
-        account.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
+        accounti.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
     // ## ANCHOR_END: account
     // Call a function on the app
     app.do_something()?;
 
     // Call as someone else
-    let account: Addr = account.address()?;
+    let account: Addr = accounti.address()?;
     app.call_as(&account).do_something()?;
 
     // Query the app
@@ -811,11 +811,11 @@ fn doc_example_test() -> anyhow::Result<()> {
 
     // ## ANCHOR: account_helpers
     // Get account info
-    let account_info: AccountInfo = account.info()?;
+    let account_info: AccountInfo = accounti.info()?;
     // Get the owner
-    let owner: Addr = account.owner()?;
+    let owner: Addr = accounti.owner()?;
     // Add or set balance
-    account.add_balance(&[Coin::new(100u128, "btc")])?;
+    accounti.add_balance(&[Coin::new(100u128, "btc")])?;
     // ...
     // ## ANCHOR_END: account_helpers
 

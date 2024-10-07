@@ -326,7 +326,10 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
 
     /// Address of the remote account
     /// Note: only works if account is local
-    pub fn remote_account(&self, host_chain: &TruncatedChainId) -> AbstractSdkResult<Option<String>> {
+    pub fn remote_account(
+        &self,
+        host_chain: &TruncatedChainId,
+    ) -> AbstractSdkResult<Option<String>> {
         let account_id = self.base.account_id(self.deps)?;
         let ibc_client_addr = self.module_address()?;
 
