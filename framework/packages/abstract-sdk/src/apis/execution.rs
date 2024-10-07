@@ -85,14 +85,14 @@ impl<'a, T: Execution> Executor<'a, T> {
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
         let msg = self.base.execute_on_account(
             self.deps,
-            &ExecuteMsg::ModuleActionWithData { msg },
+            &ExecuteMsg::ExecuteWithData { msg },
             vec![],
         )?;
         Ok(ExecutorMsg(msg))
     }
 
     /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
+    /// These messages will be executed on the account contract and the sending module must be whitelisted.
     pub fn execute(
         &self,
         actions: impl IntoIterator<Item = impl Into<AccountAction>>,
@@ -101,8 +101,8 @@ impl<'a, T: Execution> Executor<'a, T> {
     }
 
     /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    /// Funds attached from sending module to proxy
+    /// These messages will be executed on the account contract and the sending module must be whitelisted.
+    /// Funds attached from sending module to account
     pub fn execute_with_funds(
         &self,
         actions: impl IntoIterator<Item = impl Into<AccountAction>>,
@@ -112,14 +112,14 @@ impl<'a, T: Execution> Executor<'a, T> {
             .into_iter()
             .flat_map(|a| a.into().messages())
             .collect();
-        let msg =
-            self.base
-                .execute_on_account(self.deps, &ExecuteMsg::ModuleAction { msgs }, funds)?;
+        let msg = self
+            .base
+            .execute_on_account(self.deps, &ExecuteMsg::Execute { msgs }, funds)?;
         Ok(ExecutorMsg(msg))
     }
 
     /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
+    /// These messages will be executed on the account contract and the sending module must be whitelisted.
     /// The execution will be executed in a submessage and the reply will be sent to the provided `reply_on`.
     pub fn execute_with_reply(
         &self,
@@ -139,7 +139,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     }
 
     /// Execute a single msg on the Account.
-    /// This message will be executed on the proxy contract. Any data returned from the execution will be forwarded to the proxy's response through a reply.
+    /// This message will be executed on the account contract. Any data returned from the execution will be forwarded to the account's response through a reply.
     /// The resulting data should be available in the reply of the specified ID.
     pub fn execute_with_reply_and_data(
         &self,
@@ -159,7 +159,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     }
 
     /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
+    /// These messages will be executed on the account contract and the sending module must be whitelisted.
     /// Return a "standard" response for the executed messages. (with the provided action).
     pub fn execute_with_response(
         &self,
@@ -222,7 +222,7 @@ mod test {
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(messages),
                 })
                 .unwrap(),
@@ -244,7 +244,7 @@ mod test {
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(messages),
                 })
                 .unwrap(),
@@ -280,7 +280,7 @@ mod test {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: account.addr().to_string(),
-                    msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                    msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                         msgs: flatten_actions(empty_actions),
                     })
                     .unwrap(),
@@ -315,7 +315,7 @@ mod test {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: account.addr().to_string(),
-                    msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                    msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                         msgs: flatten_actions(action),
                     })
                     .unwrap(),
@@ -346,7 +346,7 @@ mod test {
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(empty_actions),
                 })
                 .unwrap(),
@@ -378,7 +378,7 @@ mod test {
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(action),
                 })
                 .unwrap(),

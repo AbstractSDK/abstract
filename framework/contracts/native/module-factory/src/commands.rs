@@ -3,8 +3,7 @@ use abstract_sdk::{
     std::{
         module_factory::FactoryModuleInstallConfig,
         objects::{
-            module::ModuleInfo, module_reference::ModuleReference,
-            version_control::VersionControlContract,
+            module::ModuleInfo, module_reference::ModuleReference, registry::RegistryContract,
         },
     },
     *,
@@ -14,7 +13,6 @@ use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, WasmMsg,
 };
-use feature_objects::AnsHost;
 use serde_cw_value::Value;
 
 use crate::{
@@ -32,19 +30,18 @@ pub fn execute_create_modules(
     salt: Binary,
 ) -> ModuleFactoryResult {
     let block_height = env.block.height;
-    // Verify sender is active Account manager
+    // Verify sender is active Account
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(deps.api)?;
-    let ans_host = AnsHost::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
-    // assert that sender is manager
-    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+    // assert that sender is account
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
 
-    let modules_responses = version_control.query_modules_configs(infos, &deps.querier)?;
+    let modules_responses = registry.query_modules_configs(infos, &deps.querier)?;
 
     // fees
     let mut fee_msgs = vec![];
@@ -53,7 +50,7 @@ pub fn execute_create_modules(
     // install messages
     let mut module_instantiate_messages = Vec::with_capacity(modules_responses.len());
 
-    // Register modules on manager
+    // Register modules on account
     let mut modules_to_register: Vec<Addr> = vec![];
 
     // Attributes logging
@@ -70,19 +67,19 @@ pub fn execute_create_modules(
         let new_module_init_funds = module_response.config.instantiation_funds;
         module_ids.push(new_module.info.id_with_version());
 
-        // We validate the fee if it was required by the version control to install this module
+        // We validate the fee if it was required by the registry to install this module
         match new_module_monetization {
             module::Monetization::InstallFee(f) => {
                 let fee = f.fee();
                 sum_of_monetization.add(fee.clone())?;
                 // We transfer that fee to the namespace owner if there is
-                let namespace_account = version_control
+                let namespace_account = registry
                     .query_namespace(new_module.info.namespace.clone(), &deps.querier)?
                     // It's safe to assume this namespace is claimed because
                     // modules gets unregistered when namespace is unclaimed
                     .unwrap();
                 fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
-                    to_address: namespace_account.account_base.addr().to_string(),
+                    to_address: namespace_account.account.addr().to_string(),
                     amount: vec![fee],
                 }));
             }
@@ -101,9 +98,7 @@ pub fn execute_create_modules(
                 let init_msg_as_value: Value = from_json(init_msg)?;
                 // App base message
                 let app_base_msg = abstract_std::app::BaseInstantiateMsg {
-                    ans_host_address: ans_host.address.to_string(),
-                    version_control_address: version_control.address.to_string(),
-                    account_base: account_base.clone(),
+                    account: account.clone(),
                 };
 
                 let app_init_msg = abstract_std::app::InstantiateMsg::<Value> {
@@ -117,7 +112,7 @@ pub fn execute_create_modules(
                     *code_id,
                     to_json_binary(&app_init_msg)?,
                     salt.clone(),
-                    Some(account_base.addr().clone()),
+                    Some(account.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -138,7 +133,7 @@ pub fn execute_create_modules(
                     *code_id,
                     owner_init_msg.unwrap(),
                     salt.clone(),
-                    Some(account_base.addr().clone()),
+                    Some(account.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -161,7 +156,7 @@ pub fn execute_create_modules(
     // Standalone may need this information for AccountIdentification \
     // Contract Info query does not work during instantiation on self contract, because contract does not exist yet.
     if at_least_one_standalone {
-        CURRENT_BASE.save(deps.storage, &account_base)?;
+        CURRENT_BASE.save(deps.storage, &account)?;
     }
 
     let sum_of_monetization = sum_of_monetization.into_vec();
@@ -236,9 +231,10 @@ pub fn new_module_addrs(modules_to_register: &[Addr]) -> ModuleFactoryResult<Str
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
+    use abstract_testing::{mock_env_validated, MockDeps};
     use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage},
-        to_json_binary, OwnedDeps,
+        testing::{message_info, mock_dependencies},
+        to_json_binary,
     };
     use speculoos::prelude::*;
 
@@ -247,21 +243,15 @@ mod test {
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
-    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute(deps, mock_env(), message_info(sender, &[]), msg)
+    fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
+        let env = mock_env_validated(deps.api);
+        execute(deps.as_mut(), env, message_info(sender, &[]), msg)
     }
 
-    fn test_only_admin(
-        msg: ExecuteMsg,
-        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-    ) -> ModuleFactoryTestResult {
+    fn test_only_admin(msg: ExecuteMsg, deps: &mut MockDeps) -> ModuleFactoryTestResult {
         let not_admin = deps.api.addr_make("not_admin");
-        let res = execute(
-            deps.as_mut(),
-            mock_env(),
-            message_info(&not_admin, &[]),
-            msg,
-        );
+        let env = mock_env_validated(deps.api);
+        let res = execute(deps.as_mut(), env, message_info(&not_admin, &[]), msg);
         assert_that!(&res)
             .is_err()
             .is_equal_to(ModuleFactoryError::Ownership(
@@ -302,11 +292,11 @@ mod test {
                 expiry: None,
             });
 
-            let _transfer_res = execute_as(deps.as_mut(), &abstr.owner, transfer_msg)?;
+            let _transfer_res = execute_as(&mut deps, &abstr.owner, transfer_msg)?;
 
             // Then update and accept as the new owner
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
-            let _accept_res = execute_as(deps.as_mut(), &new_admin, accept_msg).unwrap();
+            let _accept_res = execute_as(&mut deps, &new_admin, accept_msg).unwrap();
 
             assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
                 .is_some()

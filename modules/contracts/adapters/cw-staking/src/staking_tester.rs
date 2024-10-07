@@ -1,5 +1,5 @@
 use crate::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
-use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
+use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, RegistryExecFns};
 use abstract_adapter::std::{
     adapter,
     objects::{
@@ -53,7 +53,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
     ) -> anyhow::Result<Self> {
         // Re-register cw-staking, to make sure it's latest
         let _ = abstr_deployment
-            .version_control()
+            .registry()
             .remove_module(ModuleInfo::from_id(
                 CW_STAKING_ADAPTER_ID,
                 ModuleVersion::Version(crate::contract::CONTRACT_VERSION.to_owned()),
@@ -162,7 +162,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         )?;
 
         // Ensure user got his lp back
-        let lp_balance = self.query_proxy_balance(&account_addr, &lp_asset)?.u128();
+        let lp_balance = self.query_account_balance(&account_addr, &lp_asset)?.u128();
         assert_eq!(lp_balance, stake_value);
 
         // Unstake rest
@@ -193,7 +193,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         assert_eq!(stake_response.amounts, vec![Uint128::zero()]);
 
         // Ensure user got all of his lp back
-        let lp_balance = self.query_proxy_balance(&account_addr, &lp_asset)?.u128();
+        let lp_balance = self.query_account_balance(&account_addr, &lp_asset)?.u128();
         assert_eq!(lp_balance, stake_value * 2);
 
         Ok(())
@@ -246,7 +246,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             &[],
         )?;
         let reward = self
-            .query_proxy_balance(&account_addr, &self.provider.reward_asset())?
+            .query_account_balance(&account_addr, &self.provider.reward_asset())?
             .u128();
         assert!(reward >= reward_value);
 
@@ -314,7 +314,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         Ok(())
     }
 
-    fn query_proxy_balance(
+    fn query_account_balance(
         &self,
         account_addr: &Addr,
         asset: &AssetInfoUnchecked,

@@ -1,4 +1,6 @@
-pub use abstract_std::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
+pub use abstract_std::registry::{
+    ExecuteMsgFns as RegistryExecFns, QueryMsgFns as RegistryQueryFns,
+};
 use abstract_std::{
     objects::{
         dependency::StaticDependency,
@@ -7,8 +9,8 @@ use abstract_std::{
         namespace::{Namespace, ABSTRACT_NAMESPACE},
         AccountId,
     },
-    version_control::*,
-    VERSION_CONTROL,
+    registry::*,
+    REGISTRY,
 };
 use cw_orch::{contract::Contract, interface, prelude::*};
 
@@ -17,32 +19,32 @@ use crate::AccountI;
 type VersionString = String;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct VersionControl<Chain>;
+pub struct Registry<Chain>;
 
-impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for VersionControl<Chain> {}
+impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for Registry<Chain> {}
 
-impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
+impl<Chain: CwEnv> Uploadable for Registry<Chain> {
     #[cfg(feature = "integration")]
     fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
-                ::version_control::contract::execute,
-                ::version_control::contract::instantiate,
-                ::version_control::contract::query,
+                ::registry::contract::execute,
+                ::registry::contract::instantiate,
+                ::registry::contract::query,
             )
-            .with_migrate(::version_control::migrate::migrate),
+            .with_migrate(::registry::migrate::migrate),
         )
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("version_control")
+            .find_wasm_path("registry")
             .unwrap()
     }
 }
 
-impl<Chain: CwEnv> VersionControl<Chain> {
+impl<Chain: CwEnv> Registry<Chain> {
     pub fn load(chain: Chain, address: &Addr) -> Self {
-        let contract = cw_orch::contract::Contract::new(VERSION_CONTROL, chain);
+        let contract = cw_orch::contract::Contract::new(REGISTRY, chain);
         contract.set_address(address);
         Self(contract)
     }
@@ -340,10 +342,10 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         account_id: AccountId,
     ) -> Result<Account, crate::AbstractInterfaceError> {
         let resp: AccountResponse = self.query(&QueryMsg::Account { account_id })?;
-        Ok(resp.account_base)
+        Ok(resp.account)
     }
 
-    /// Retrieves an Adapter's address from version control given the module **id** and **version**.
+    /// Retrieves an Adapter's address from registry given the module **id** and **version**.
     pub fn get_adapter_addr(
         &self,
         id: &str,
@@ -354,7 +356,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         Ok(module.reference.unwrap_adapter()?)
     }
 
-    /// Retrieves an APP's code id from version control given the module **id** and **version**.
+    /// Retrieves an APP's code id from registry given the module **id** and **version**.
     pub fn get_app_code(
         &self,
         id: &str,
@@ -365,7 +367,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         Ok(module.reference.unwrap_app()?)
     }
 
-    /// Retrieves an APP's code id from version control given the module **id** and **version**.
+    /// Retrieves an APP's code id from registry given the module **id** and **version**.
     pub fn get_standalone_code(
         &self,
         id: &str,
@@ -376,7 +378,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         Ok(module.reference.unwrap_standalone()?)
     }
 
-    /// Retrieves latest Account's code id from version control.
+    /// Retrieves latest Account's code id from registry.
     pub fn get_account_code(&self) -> Result<u64, crate::AbstractInterfaceError> {
         let module: Module = self.module(ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?)?;
 
@@ -384,7 +386,7 @@ impl<Chain: CwEnv> VersionControl<Chain> {
     }
 }
 
-impl VersionControl<Mock> {
+impl Registry<Mock> {
     /// Approve any pending modules.
     pub fn approve_any_modules(&self) -> Result<(), crate::AbstractInterfaceError> {
         let proposed_abstract_modules = self.module_list(

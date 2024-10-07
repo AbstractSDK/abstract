@@ -7,9 +7,9 @@ mod queries;
 #[cfg(test)]
 mod test_common {
     use crate::msg::InstantiateMsg;
-    use abstract_testing::prelude::*;
+    use abstract_testing::{mock_env_validated, prelude::*};
     use cosmwasm_std::{
-        testing::{message_info, mock_env, MockApi},
+        testing::{message_info, MockApi},
         OwnedDeps,
     };
 
@@ -19,9 +19,11 @@ mod test_common {
         let abstr = AbstractMockAddrs::new(deps.api);
         let msg = InstantiateMsg {
             ans_host_address: abstr.ans_host.to_string(),
-            version_control_address: abstr.version_control.to_string(),
+            registry_address: abstr.registry.to_string(),
         };
         let info = message_info(&abstr.owner, &[]);
-        contract::instantiate(deps.as_mut(), mock_env(), info, msg)
+        let env = mock_env_validated(deps.api);
+
+        contract::instantiate(deps.as_mut(), env, info, msg)
     }
 }

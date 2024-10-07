@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
+use abstract_sdk::std::constants::*;
 use abstract_sdk::std::objects::TruncatedChainId;
-use abstract_sdk::std::registry::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ChainType {

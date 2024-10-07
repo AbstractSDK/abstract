@@ -1,10 +1,9 @@
 use crate::{Abstract, AbstractIbc};
-use abstract_std::version_control::QueryMsgFns;
+use abstract_std::registry::QueryMsgFns;
 use abstract_std::{
-    ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo, version_control,
-    ACCOUNT,
+    ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo, registry, ACCOUNT,
 };
-use abstract_std::{ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, VERSION_CONTROL};
+use abstract_std::{ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY};
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, prelude::*};
@@ -17,29 +16,23 @@ impl<T: CwEnv> Abstract<T> {
             .module_factory
             .upload_and_migrate_if_needed(&module_factory::MigrateMsg::Migrate {})?;
 
-        // then VC and ANS
-        let version_control = self
-            .version_control
-            .upload_and_migrate_if_needed(&version_control::MigrateMsg::Migrate {})?;
+        // then Registry and ANS
+        let registry = self
+            .registry
+            .upload_and_migrate_if_needed(&registry::MigrateMsg::Migrate {})?;
         let ans_host = self
             .ans_host
             .upload_and_migrate_if_needed(&ans_host::MigrateMsg::Migrate {})?;
 
         // Then upload and register account if needed
-        let account = self
-            .account
-            .upload_and_register_if_needed(&self.version_control)?;
+        let account = self.account.upload_and_register_if_needed(&self.registry)?;
 
         // Then ibc
         let ibc = self.ibc.migrate_if_needed()?;
 
-        self.version_control.approve_any_abstract_modules()?;
+        self.registry.approve_any_abstract_modules()?;
 
-        Ok(module_factory.is_some()
-            || version_control.is_some()
-            || ans_host.is_some()
-            || account
-            || ibc)
+        Ok(module_factory.is_some() || registry.is_some() || ans_host.is_some() || account || ibc)
     }
 
     /// Migrate the deployment based on version changes. If the registered contracts have the right version, we don't migrate them
@@ -62,18 +55,16 @@ impl<T: CwEnv> Abstract<T> {
             ));
         }
 
-        if ::version_control::contract::CONTRACT_VERSION
-            != contract_version(&self.version_control)?.version
-        {
+        if ::registry::contract::CONTRACT_VERSION != contract_version(&self.registry)?.version {
             let migration_result = self
-                .version_control
-                .upload_and_migrate_if_needed(&version_control::MigrateMsg::Migrate {})?;
+                .registry
+                .upload_and_migrate_if_needed(&registry::MigrateMsg::Migrate {})?;
             if migration_result.is_some() {
                 has_migrated = true;
             }
             natives_to_register.push((
-                self.version_control.as_instance(),
-                ::version_control::contract::CONTRACT_VERSION.to_string(),
+                self.registry.as_instance(),
+                ::registry::contract::CONTRACT_VERSION.to_string(),
             ));
         }
 
@@ -92,9 +83,9 @@ impl<T: CwEnv> Abstract<T> {
 
         let mut accounts_to_register = Vec::with_capacity(2);
 
-        // We need to check the version in version control for the account contracts
+        // We need to check the version in registry for the account contracts
         let versions = self
-            .version_control
+            .registry
             .modules(vec![
                 ModuleInfo::from_id_latest(ACCOUNT)?,
                 ModuleInfo::from_id_latest(ACCOUNT)?,
@@ -111,12 +102,11 @@ impl<T: CwEnv> Abstract<T> {
         }
 
         if !accounts_to_register.is_empty() {
-            self.version_control
-                .register_account_mods(accounts_to_register)?;
+            self.registry.register_account_mods(accounts_to_register)?;
             has_migrated = true
         }
 
-        if self.ibc.deploy_or_migrate_if_version_changed(self)? {
+        if self.ibc.deploy_or_migrate_if_version_changed()? {
             has_migrated = true;
 
             natives_to_register.push((
@@ -129,21 +119,21 @@ impl<T: CwEnv> Abstract<T> {
             ));
         }
 
-        self.version_control.register_natives(natives_to_register)?;
-        self.version_control.approve_any_abstract_modules()?;
+        self.registry.register_natives(natives_to_register)?;
+        self.registry.approve_any_abstract_modules()?;
 
         Ok(has_migrated)
     }
 
-    /// Registers the deployment in version control  
-    pub fn register_in_version_control(&self) -> Result<(), crate::AbstractInterfaceError> {
+    /// Registers the deployment in registry  
+    pub fn register_in_registry(&self) -> Result<(), crate::AbstractInterfaceError> {
         let mut natives_to_register = vec![];
 
         let modules = self
-            .version_control
+            .registry
             .modules(vec![
                 ModuleInfo::from_id_latest(MODULE_FACTORY)?,
-                ModuleInfo::from_id_latest(VERSION_CONTROL)?,
+                ModuleInfo::from_id_latest(REGISTRY)?,
                 ModuleInfo::from_id_latest(ANS_HOST)?,
                 ModuleInfo::from_id_latest(IBC_CLIENT)?,
                 ModuleInfo::from_id_latest(IBC_HOST)?,
@@ -151,20 +141,20 @@ impl<T: CwEnv> Abstract<T> {
             .modules;
 
         let module_factory_module = modules[0].module.clone();
-        let version_control_module = modules[1].module.clone();
+        let registry_module = modules[1].module.clone();
         let ans_host_module = modules[2].module.clone();
         let ibc_client_module = modules[3].module.clone();
         let ibc_host_module = modules[4].module.clone();
 
         // In case cw2 debugging required
         // let module_factory_cw2_v = contract_version(&self.module_factory)?.version;
-        // let version_control_cw2_v = contract_version(&self.version_control)?.version;
+        // let registry_cw2_v = contract_version(&self.registry)?.version;
         // let ans_host_cw2_v = contract_version(&self.ans_host)?.version;
         // let ibc_client_cw2_v = contract_version(&self.ibc.client)?.version;
         // let ibc_host_cw2_v = contract_version(&self.ibc.host)?.version;
         // let versions = vec![
         //     module_factory_cw2_v,
-        //     version_control_cw2_v,
+        //     registry_cw2_v,
         //     ans_host_cw2_v,
         //     ibc_client_cw2_v,
         //     ibc_host_cw2_v,
@@ -180,12 +170,10 @@ impl<T: CwEnv> Abstract<T> {
             ));
         }
 
-        if ::version_control::contract::CONTRACT_VERSION
-            != version_control_module.info.version.to_string()
-        {
+        if ::registry::contract::CONTRACT_VERSION != registry_module.info.version.to_string() {
             natives_to_register.push((
-                self.version_control.as_instance(),
-                ::version_control::contract::CONTRACT_VERSION.to_string(),
+                self.registry.as_instance(),
+                ::registry::contract::CONTRACT_VERSION.to_string(),
             ));
         }
 
@@ -210,8 +198,8 @@ impl<T: CwEnv> Abstract<T> {
             ));
         }
 
-        self.version_control.register_natives(natives_to_register)?;
-        self.version_control.approve_any_abstract_modules()?;
+        self.registry.register_natives(natives_to_register)?;
+        self.registry.approve_any_abstract_modules()?;
 
         Ok(())
     }
@@ -246,7 +234,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
     /// - If version change is non-breaking - ibc contracts migrated instead
     pub fn deploy_or_migrate_if_version_changed(
         &self,
-        abstr: &Abstract<Chain>,
     ) -> Result<bool, crate::AbstractInterfaceError> {
         let ibc_client_cw2_version = contract_version(&self.client)?.version;
         // Check if any version changes
@@ -277,7 +264,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 .expect("IBC host supposed to be migrated, but skipped instead");
         } else {
             // Version change is breaking, need to deploy new version
-            self.instantiate(abstr, &self.client.environment().sender_addr())?;
+            self.instantiate(&self.client.environment().sender_addr())?;
         }
 
         Ok(true)

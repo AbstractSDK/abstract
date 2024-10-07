@@ -37,7 +37,7 @@ pub fn execute_handler(
     msg: AppExecuteMsg,
 ) -> CroncatResult {
     match msg {
-        AppExecuteMsg::UpdateConfig {} => update_config(deps, info, module),
+        AppExecuteMsg::UpdateConfig {} => update_config(deps, env, info, module),
         AppExecuteMsg::CreateTask {
             task,
             task_tag,
@@ -52,9 +52,16 @@ pub fn execute_handler(
 }
 
 /// Update the configuration of the app
-fn update_config(deps: DepsMut, msg_info: MessageInfo, module: CroncatApp) -> CroncatResult {
+fn update_config(
+    deps: DepsMut,
+    env: Env,
+    msg_info: MessageInfo,
+    module: CroncatApp,
+) -> CroncatResult {
     // Only the admin should be able to call this
-    module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &msg_info.sender)?;
 
     CONFIG.save(deps.storage, &Config {})?;
     Ok(module.response("update_config"))
@@ -63,7 +70,7 @@ fn update_config(deps: DepsMut, msg_info: MessageInfo, module: CroncatApp) -> Cr
 /// Create a task
 fn create_task(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     msg_info: MessageInfo,
     module: CroncatApp,
     task_request: Box<TaskRequest>,
@@ -72,7 +79,7 @@ fn create_task(
 ) -> CroncatResult {
     if module
         .admin
-        .assert_admin(deps.as_ref(), &msg_info.sender)
+        .assert_admin(deps.as_ref(), &env, &msg_info.sender)
         .is_err()
     {
         assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;
@@ -94,7 +101,7 @@ fn create_task(
     let manager_addr =
         get_latest_croncat_contract(&deps.querier, factory_addr, MANAGER_NAME.to_owned())?;
 
-    // Making create task message that will be sended by the proxy
+    // Making create task message that will be sended by the account
     let create_task_msg: CosmosMsg = wasm_execute(
         tasks_addr,
         &TasksExecuteMsg::CreateTask { task: task_request },
@@ -135,14 +142,14 @@ fn create_task(
 /// Remove a task
 fn remove_task(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     msg_info: MessageInfo,
     module: CroncatApp,
     task_tag: String,
 ) -> CroncatResult {
     if module
         .admin
-        .assert_admin(deps.as_ref(), &msg_info.sender)
+        .assert_admin(deps.as_ref(), &env, &msg_info.sender)
         .is_err()
     {
         assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;
@@ -192,7 +199,7 @@ fn remove_task(
         response.add_submessage(executor_submessage)
     } else if user_balance_nonempty(
         deps.as_ref(),
-        module.proxy_address(deps.as_ref())?,
+        module.account_address(deps.as_ref())?,
         manager_addr.clone(),
     )? {
         // withdraw locked balance
@@ -216,13 +223,17 @@ fn remove_task(
 /// Refill a task
 fn refill_task(
     deps: Deps,
-    _env: Env,
+    env: Env,
     msg_info: MessageInfo,
     module: CroncatApp,
     task_tag: String,
     assets: AssetListUnchecked,
 ) -> CroncatResult {
-    if module.admin.assert_admin(deps, &msg_info.sender).is_err() {
+    if module
+        .admin
+        .assert_admin(deps, &env, &msg_info.sender)
+        .is_err()
+    {
         assert_module_installed(deps, &msg_info.sender, &module)?;
     }
 
@@ -276,7 +287,7 @@ fn refill_task(
 
 fn purge(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     msg_info: MessageInfo,
     module: CroncatApp,
     task_tags: Vec<String>,
@@ -284,7 +295,7 @@ fn purge(
     // In case module got unregistered or admin got changed they have no reason to purge now
     if module
         .admin
-        .assert_admin(deps.as_ref(), &msg_info.sender)
+        .assert_admin(deps.as_ref(), &env, &msg_info.sender)
         .is_err()
     {
         assert_module_installed(deps.as_ref(), &msg_info.sender, &module)?;

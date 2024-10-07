@@ -30,7 +30,8 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AccountI, AnsHost, IbcClient, RegisteredModule, VCQueryFns, VersionControl,
+    Abstract, AccountI, AnsHost, IbcClient, ModuleFactory, RegisteredModule, Registry,
+    RegistryQueryFns,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleStatus, ModuleVersion},
@@ -85,16 +86,16 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
     /// # let client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
     /// use abstract_std::objects::{module_reference::ModuleReference, module::ModuleInfo};
-    /// // For getting version control address
+    /// // For getting registry address
     /// use cw_orch::prelude::*;
     ///
-    /// let version_control = client.version_control();
-    /// let vc_module = version_control.module(ModuleInfo::from_id_latest("abstract:version-control")?)?;
-    /// assert_eq!(vc_module.reference, ModuleReference::Native(version_control.address()?));
+    /// let registry = client.registry();
+    /// let vc_module = registry.module(ModuleInfo::from_id_latest("abstract:version-control")?)?;
+    /// assert_eq!(vc_module.reference, ModuleReference::Native(registry.address()?));
     /// # Ok::<(), AbstractClientError>(())
     /// ```
-    pub fn version_control(&self) -> &VersionControl<Chain> {
-        &self.abstr.version_control
+    pub fn registry(&self) -> &Registry<Chain> {
+        &self.abstr.registry
     }
 
     /// Abstract Name Service contract API
@@ -106,7 +107,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// use abstract_client::{AbstractClient, ClientResolve};
     /// use cw_asset::AssetInfo;
     /// use abstract_app::objects::AssetEntry;
-    /// // For getting version control address
+    /// // For getting registry address
     /// use cw_orch::prelude::*;
     ///
     /// let denom = "test_denom";
@@ -126,6 +127,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self.abstr.ans_host
     }
 
+    /// Abstract Module Factory contract API
+    pub fn module_factory(&self) -> &ModuleFactory<Chain> {
+        &self.abstr.module_factory
+    }
+
     /// Abstract Ibc Client contract API
     ///
     /// The Abstract Ibc Client contract allows users to create and use Interchain Abstract Accounts
@@ -137,7 +143,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn service<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
     ) -> AbstractClientResult<Service<Chain, M>> {
-        Service::new(self.version_control())
+        Service::new(self.registry())
     }
 
     /// Return current block info see [`BlockInfo`].
@@ -176,7 +182,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         source: T,
     ) -> AbstractClientResult<Account<Chain>> {
         let source = source.into();
-        let chain = self.abstr.version_control.environment();
+        let chain = self.abstr.registry.environment();
 
         match source {
             AccountSource::Namespace(namespace) => {
@@ -199,7 +205,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 Ok(Account::new(abstract_account, true))
             }
             AccountSource::App(app) => {
-                // Query app for manager address and get AccountId from it.
+                // Query app for account address and get AccountId from it.
                 let app_config: abstract_std::app::AppConfigResponse = chain
                     .query(
                         &abstract_std::app::QueryMsg::<Empty>::Base(
@@ -209,14 +215,14 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                     )
                     .map_err(Into::into)?;
 
-                let manager_config: abstract_std::account::ConfigResponse = chain
+                let account_config: abstract_std::account::ConfigResponse = chain
                     .query(
                         &abstract_std::account::QueryMsg::Config {},
                         &app_config.account,
                     )
                     .map_err(Into::into)?;
                 // This function verifies the account-id is valid and returns an error if not.
-                let abstract_account = AccountI::load_from(&self.abstr, manager_config.account_id)?;
+                let abstract_account = AccountI::load_from(&self.abstr, account_config.account_id)?;
                 Ok(Account::new(abstract_account, true))
             }
         }
@@ -276,12 +282,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         loop {
             let random_sequence = rng.gen_range(2147483648..u32::MAX);
             let potential_account_id = AccountId::local(random_sequence);
-            if self
-                .abstr
-                .version_control
-                .account(potential_account_id)
-                .is_err()
-            {
+            if self.abstr.registry.account(potential_account_id).is_err() {
                 return Ok(random_sequence);
             };
         }
@@ -312,7 +313,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<Addr> {
         let salt = generate_instantiate_salt(account_id);
         let wasm_querier = self.environment().wasm_querier();
-        let module = self.version_control().module(module_info)?;
+        let module = self.registry().module(module_info)?;
         let (code_id, creator) = match module.reference {
             // If Account - signer is creator
             ModuleReference::Account(id) => (id, self.environment().sender_addr()),
@@ -323,7 +324,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             _ => {
                 return Err(AbstractClientError::Abstract(
                     abstract_std::AbstractError::Assert(
-                        "module reference not account base, app or standalone".to_owned(),
+                        "module reference not account, app or standalone".to_owned(),
                     ),
                 ))
             }
@@ -337,12 +338,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Retrieves the status of a specified module.
     ///
-    /// This function checks the status of a module within the version control contract.
+    /// This function checks the status of a module within the registry contract.
     /// and returns appropriate `Some(ModuleStatus)`. If the module is not deployed, it returns `None`.
     pub fn module_status(&self, module: ModuleInfo) -> AbstractClientResult<Option<ModuleStatus>> {
-        self.version_control()
-            .module_status(module)
-            .map_err(Into::into)
+        self.registry().module_status(module).map_err(Into::into)
     }
 
     #[cfg(feature = "interchain")]

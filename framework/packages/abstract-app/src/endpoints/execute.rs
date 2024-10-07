@@ -55,41 +55,24 @@ impl<
     fn base_execute(
         &self,
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> AppResult {
         match message {
-            BaseExecuteMsg::UpdateConfig {
-                ans_host_address,
-                version_control_address,
-            } => self.update_config(deps, info, ans_host_address, version_control_address),
+            BaseExecuteMsg::UpdateConfig {} => self.update_config(deps, env, info),
         }
     }
 
-    fn update_config(
-        &self,
-        deps: DepsMut,
-        info: MessageInfo,
-        ans_host_address: Option<String>,
-        version_control_address: Option<String>,
-    ) -> AppResult {
+    fn update_config(&self, deps: DepsMut, env: Env, info: MessageInfo) -> AppResult {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
-        self.admin.assert_admin(deps.as_ref(), &info.sender)?;
+        self.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
 
-        let mut state = self.base_state.load(deps.storage)?;
+        // TODO: do anything here?
+        // let state = self.base_state.load(deps.storage)?;
 
-        if let Some(ans_host_address) = ans_host_address {
-            state.ans_host.address = deps.api.addr_validate(ans_host_address.as_str())?;
-        }
-
-        if let Some(version_control_address) = version_control_address {
-            state.version_control.address =
-                deps.api.addr_validate(version_control_address.as_str())?;
-        }
-
-        self.base_state.save(deps.storage, &state)?;
+        // self.base_state.save(deps.storage, &state)?;
 
         Ok(self.response("update_config"))
     }
@@ -103,83 +86,38 @@ mod test {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::app::BaseExecuteMsg;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, Addr, DepsMut, Response};
+    use cosmwasm_std::{testing::*, Addr, Response};
     use cw_controllers::AdminError;
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg>;
 
-    fn execute_as(deps: DepsMut, sender: &Addr, msg: AppExecuteMsg) -> Result<Response, MockError> {
+    fn execute_as(
+        deps: &mut MockDeps,
+        sender: &Addr,
+        msg: AppExecuteMsg,
+    ) -> Result<Response, MockError> {
         let info = message_info(sender, &[]);
-        MOCK_APP_WITH_DEP.execute(deps, mock_env(), info, msg)
+        let env = mock_env_validated(deps.api);
+        MOCK_APP_WITH_DEP.execute(deps.as_mut(), env, info, msg)
     }
 
     mod base {
         use super::*;
 
         #[test]
-        fn only_manager() -> AppTestResult {
+        fn only_account() -> AppTestResult {
             let mut deps = mock_init();
 
-            let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-                ans_host_address: None,
-                version_control_address: None,
-            });
+            let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {});
 
-            let not_manager = deps.api.addr_make("not_admin");
-            let res = execute_as(deps.as_mut(), &not_manager, msg);
+            let not_account = deps.api.addr_make("not_admin");
+            let res = execute_as(&mut deps, &not_account, msg);
             assert_eq!(
                 res,
                 Err(MockError::DappError(AppError::Admin(
                     AdminError::NotAdmin {}
                 )))
             );
-            Ok(())
-        }
-
-        #[test]
-        fn update_config_should_update_config() -> AppTestResult {
-            let mut deps = mock_init();
-            let account = test_account_base(deps.api);
-
-            let new_ans_host = deps.api.addr_make("new_ans_host");
-            let new_version_control = deps.api.addr_make("new_version_control");
-            let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-                ans_host_address: Some(new_ans_host.to_string()),
-                version_control_address: Some(new_version_control.to_string()),
-            });
-
-            let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
-
-            assert!(res.messages.is_empty());
-
-            let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
-
-            assert_eq!(state.ans_host.address, new_ans_host);
-            assert_eq!(state.version_control.address, new_version_control);
-
-            Ok(())
-        }
-
-        #[test]
-        fn update_config_with_none_host_should_leave_existing_host() -> AppTestResult {
-            let mut deps = mock_init();
-            let abstr = AbstractMockAddrs::new(deps.api);
-            let account = test_account_base(deps.api);
-
-            let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-                ans_host_address: None,
-                version_control_address: None,
-            });
-
-            let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
-
-            assert!(res.messages.is_empty());
-
-            let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
-
-            assert_eq!(state.ans_host.address, abstr.ans_host);
-            assert_eq!(state.version_control.address, abstr.version_control);
-
             Ok(())
         }
     }

@@ -13,7 +13,7 @@ use abstract_std::{
         module_reference::ModuleReference,
         ownership,
     },
-    version_control::state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES},
+    registry::state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES},
     ACCOUNT,
 };
 use cosmwasm_std::{
@@ -21,6 +21,7 @@ use cosmwasm_std::{
     testing::{MockApi, MockQuerier, MockStorage},
     to_json_binary, Addr, Binary, Empty, OwnedDeps,
 };
+use cosmwasm_std::{ContractInfo, Env};
 pub use mock_ans::MockAnsHost;
 pub use mock_querier::{
     map_key, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
@@ -38,7 +39,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
         if contract == abstr.account.addr() {
             // Return the default value
             Ok(Binary::default())
-        } else if contract == abstr.version_control {
+        } else if contract == abstr.registry {
             // Default value
             Ok(Binary::default())
         } else {
@@ -53,12 +54,12 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
     MockQuerierBuilder::new(mock_api)
         .with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
-            &abstr.version_control,
+            &abstr.registry,
             ACCOUNT_ADDRESSES,
             (&ABSTRACT_ACCOUNT_ID, abstr.account.clone()),
         )
         .with_contract_map_entry(
-            &abstr.version_control,
+            &abstr.registry,
             REGISTERED_MODULES,
             (
                 &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
@@ -81,7 +82,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             match from_json(msg).unwrap() {
                 AccountQueryMsg::Config {} => {
                     let resp = AccountConfigResponse {
-                        version_control_address: abstr.version_control,
+                        registry_address: abstr.registry,
                         module_factory_address: abstr.module_factory,
                         account_id: ABSTRACT_ACCOUNT_ID, // mock value, not used
                         is_suspended: false,
@@ -106,22 +107,33 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
 }
 
 /// A mock querier that returns the following responses for the following **RAW** contract -> queries:
-/// - TEST_PROXY
-///   - "admin" -> TEST_MANAGER
-/// - TEST_MANAGER
+/// - ABSTRACT_ACCOUNT
+///   - "admin" -> TEST_OWNER
 ///   - "modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
-///   - "account_id" -> TEST_ACCOUNT_ID
+///   - "account_id" -> ABSTRACT_ACCOUNT_ID
 /// - TEST_VERSION_CONTROL
-///   - "account" -> { TEST_PROXY, TEST_MANAGER }
+///   - "account" -> { ABSTRACT_ACCOUNT }
 pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
     abstract_mock_querier_builder(mock_api).build()
+}
+
+/// cosmwasm_std::mock_env_validated(deps.api), but address generated with MockApi
+pub fn mock_env_validated(mock_api: MockApi) -> Env {
+    Env {
+        contract: ContractInfo {
+            address: mock_api.addr_make(cosmwasm_std::testing::MOCK_CONTRACT_ADDR),
+        },
+        ..cosmwasm_std::testing::mock_env()
+    }
 }
 
 /// use the package version as test version, breaks tests otherwise.
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
-    use abstract_std::{native_addrs, version_control::Account};
-    use cosmwasm_std::{testing::MockApi, Addr, Api, CanonicalAddr};
+    use abstract_std::{native_addrs, registry::Account};
+    use cosmwasm_std::{testing::MockApi, Addr, Api};
+
+    use crate::mock_env_validated;
 
     // Test addr makers
     const ADMIN_ACCOUNT: &str = "admin_account_address";
@@ -132,28 +144,29 @@ pub mod addresses {
     }
 
     // TODO: remove it
-    pub fn test_account_base(mock_api: MockApi) -> Account {
+    pub fn test_account(mock_api: MockApi) -> Account {
         Account::new(mock_api.addr_make(TEST_ACCOUNT))
     }
 
     impl AbstractMockAddrs {
         pub fn new(mock_api: MockApi) -> AbstractMockAddrs {
+            let mock_env = mock_env_validated(mock_api);
+            let hrp = native_addrs::hrp_from_env(&mock_env);
+
             AbstractMockAddrs {
                 owner: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::TEST_ABSTRACT_CREATOR))
+                    .addr_validate(&native_addrs::creator_address(hrp).unwrap())
                     .unwrap(),
                 ans_host: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::ANS_ADDR))
+                    .addr_humanize(&native_addrs::ans_address(hrp, &mock_api).unwrap())
                     .unwrap(),
-                version_control: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::VERSION_CONTROL_ADDR))
+                registry: mock_api
+                    .addr_humanize(&native_addrs::version_control_address(hrp, &mock_api).unwrap())
                     .unwrap(),
                 module_factory: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
+                    .addr_humanize(&native_addrs::module_factory_address(hrp, &mock_api).unwrap())
                     .unwrap(),
-                module_address: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
-                    .unwrap(),
+                module_address: mock_api.addr_make("module"),
                 account: admin_account(mock_api),
             }
         }
@@ -163,7 +176,7 @@ pub mod addresses {
     pub struct AbstractMockAddrs {
         pub owner: Addr,
         pub ans_host: Addr,
-        pub version_control: Addr,
+        pub registry: Addr,
         pub module_factory: Addr,
         pub module_address: Addr,
         pub account: Account,
@@ -196,7 +209,7 @@ pub mod module {
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 }
 pub mod prelude {
-    pub use super::{abstract_mock_querier, abstract_mock_querier_builder};
+    pub use super::{abstract_mock_querier, abstract_mock_querier_builder, mock_env_validated};
     pub use abstract_mock_querier::AbstractMockQuerier;
     use abstract_std::objects::{AccountId, AccountTrace};
     pub use addresses::*;

@@ -4,9 +4,9 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
-pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-use abstract_std::{version_control::Account, VERSION_CONTROL};
-use cosmwasm_std::Deps;
+pub use abstract_std::objects::{ans_host::AnsHost, registry::RegistryContract};
+use abstract_std::{registry::Account, REGISTRY};
+use cosmwasm_std::{Deps, Env};
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
@@ -21,26 +21,25 @@ impl AccountIdentification for Account {
 }
 
 impl ModuleIdentification for Account {
-    /// Any actions executed by the core will be by the proxy address
     fn module_id(&self) -> &'static str {
         ACCOUNT
     }
 }
 
-impl crate::features::AbstractRegistryAccess for VersionControlContract {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+impl crate::features::AbstractRegistryAccess for RegistryContract {
+    fn abstract_registry(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<RegistryContract> {
         Ok(self.clone())
     }
 }
 
-impl ModuleIdentification for VersionControlContract {
+impl ModuleIdentification for RegistryContract {
     fn module_id(&self) -> abstract_std::objects::module::ModuleId<'static> {
-        VERSION_CONTROL
+        REGISTRY
     }
 }
 
 impl crate::features::AbstractNameService for AnsHost {
-    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<AnsHost> {
         Ok(self.clone())
     }
 }
@@ -52,7 +51,7 @@ mod tests {
 
     use super::*;
 
-    mod version_control {
+    mod registry {
         use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
@@ -61,9 +60,10 @@ mod tests {
         #[test]
         fn test_registry() {
             let deps = mock_dependencies();
-            let vc = VersionControlContract::new(&deps.api).unwrap();
+            let env = mock_env_validated(deps.api);
+            let vc = RegistryContract::new(&deps.api, &env).unwrap();
 
-            assert_that!(vc.abstract_registry(deps.as_ref()))
+            assert_that!(vc.abstract_registry(deps.as_ref(), &env))
                 .is_ok()
                 .is_equal_to(vc);
         }
@@ -75,20 +75,20 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_account() {
+        fn test_account_addr() {
             let deps = mock_dependencies();
-            let account_base = test_account_base(deps.api);
+            let account = test_account(deps.api);
 
-            assert_that!(account_base.account(deps.as_ref()))
+            assert_that!(account.account(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(account_base);
+                .is_equal_to(account);
         }
 
         #[test]
         fn should_identify_self_as_account() {
-            let account_base = Account::new(Addr::unchecked("test"));
+            let account = Account::new(Addr::unchecked("test"));
 
-            assert_that!(account_base.module_id()).is_equal_to(ACCOUNT);
+            assert_that!(account.module_id()).is_equal_to(ACCOUNT);
         }
     }
 }

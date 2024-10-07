@@ -40,6 +40,17 @@ jobs:
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./framework
         run: cargo generate-lockfile
+      - name: Free up disk space on runner
+        run: |
+          df -h
+          rm -rf /usr/share/dotnet/
+          sudo apt-get remove -y 'php.*'
+          sudo apt-get remove -y '^dotnet-.*'
+          sudo apt-get remove -y azure-cli firefox powershell mono-devel
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          df -h
+        shell: bash
       - uses: Swatinem/rust-cache@v2
         with: 
           workspaces: "framework -> target"

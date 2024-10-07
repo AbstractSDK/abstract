@@ -11,7 +11,7 @@ If this is the first time you hear about smart-contract migrations, we recommend
 ## Module Version Registry
 
 Upgrading a module is facilitated by the module version registry in
-the [version control contract](../5_platform/2_version_control.md). The mapping allows your Account to:
+the [registry contract](../5_platform/2_registry.md). The mapping allows your Account to:
 
 - Instantiate a module of the latest versions.
 - Upgrade a module to a new version.
@@ -23,7 +23,7 @@ There are two types of possible upgrade paths, although they appear the same to 
 ## Migration Upgrade
 
 Most module updates will perform a contract migration. The migration can be evoked by the owner and is executed by
-the manager contract. Migrations apply to the App and Standalone module types.
+the account. Migrations apply to the App and Standalone module types.
 
 ## Move Upgrade
 
@@ -32,7 +32,7 @@ address.
 
 When a user decides to upgrade an Adapter module, the abstract infrastructure **moves** that user's configuration on that Adapter  to the new Adapter and removes the permissions of the old Adapter.
 
-However, any modules that depend on the upgraded Adapter module don't have to update any of their state as a module's address is resolved dynamically through the manager contract, similar to how DNS works!
+However, any modules that depend on the upgraded Adapter module don't have to update any of their state as a module's address is resolved dynamically through the account contract, similar to how DNS works!
 
 ## Module Upgrade Flow
 
@@ -50,29 +50,25 @@ The process for upgrading modules is shown in the following diagram:
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
-    participant VC as Version Control
-    participant P as Proxy
-    U ->> M: Upgrade
+    participant A as Account
+    participant REG as Registry
+    U ->> A: Upgrade
     loop for each module
-        M -->> VC: Query reference
+        A -->> REG: Query reference
         alt adapter
-            VC -->> M: Return address
-            M ->> M: Update module address
-            M ->>+ P: Remove old adapter from allowlist
-            M ->> P: Add new adapter to allowlist
-            deactivate P
+            REG -->> A: Return address
+            A ->> A: Update module address and whitelist
         else app / standalone
-            VC -->> M: Return code_id
-            M ->> M: Migrate module to new code_id
+            REG -->> A: Return code_id
+            A ->> A: Migrate module to new code_id
         end
     end
 
     opt
-        M -> M: Migrate self
+        A -> A: Migrate self
     end
-    M -> M: Update dependencies
-    M --> M: Check dependencies  
+    A -> A: Update dependencies
+    A --> A: Check dependencies  
 ```
 
 An important aspect of this process is how the integrity of the modules is ensured.

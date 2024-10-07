@@ -44,11 +44,9 @@ pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
 pub mod base;
 
-pub use registry::*;
 pub mod adapter;
 pub mod app;
 pub mod objects;
-pub mod registry;
 pub mod standalone;
 
 mod error;
@@ -60,4 +58,6 @@ mod native;
 pub use crate::native::*;
 
 pub mod constants;
+pub use constants::*;
+
 pub mod native_addrs;

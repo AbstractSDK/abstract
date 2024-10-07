@@ -3,7 +3,7 @@
 //! `abstract_std::adapter` implements shared functionality that's useful for creating new Abstract adapters.
 //!
 //! ## Description
-//! An Abstract adapter contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
+//! An Abstract adapter contract is a contract that is allowed to perform actions on a [account](crate::account) contract.
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the Account.
 //! The adapter structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
@@ -16,10 +16,7 @@ use crate::{
         ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
         QueryMsg as MiddlewareQueryMsg,
     },
-    objects::{
-        ans_host::AnsHost, module_version::ModuleDataResponse,
-        version_control::VersionControlContract,
-    },
+    objects::module_version::ModuleDataResponse,
 };
 
 pub type ExecuteMsg<Request = Empty> =
@@ -57,14 +54,9 @@ impl<T: AdapterQueryMsg> From<T> for QueryMsg<T> {
 impl AdapterQueryMsg for Empty {}
 
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
+/// The contract is then registered on the registry contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
-pub struct BaseInstantiateMsg {
-    /// Used to easily perform address translation
-    pub ans_host_address: String,
-    /// Used to verify senders
-    pub version_control_address: String,
-}
+pub struct BaseInstantiateMsg {}
 
 impl<RequestMsg> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg> {
     fn from(adapter_msg: BaseExecuteMsg) -> Self {
@@ -81,7 +73,7 @@ impl<RequestMsg, BaseExecMsg> From<AdapterRequestMsg<RequestMsg>>
 }
 
 /// An adapter request.
-/// If proxy is None, then the sender must be an Account manager and the proxy address is extrapolated from the Account id.
+/// If account is None, then the sender must be an Account.
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterRequestMsg<Request> {
     pub account_address: Option<String>,
@@ -98,7 +90,7 @@ impl<Request: Serialize> AdapterRequestMsg<Request> {
     }
 }
 
-// serde attributes remain it compatible with previous versions in cases where proxy_address is omitted
+// serde attributes remain it compatible with previous versions in cases where account_address is omitted
 #[cosmwasm_schema::cw_serde]
 pub struct BaseExecuteMsg {
     /// The account address for which to apply the configuration
@@ -129,7 +121,7 @@ pub enum BaseQueryMsg {
     BaseConfig {},
     /// Returns [`AuthorizedAddressesResponse`].
     #[returns(AuthorizedAddressesResponse)]
-    AuthorizedAddresses { proxy_address: String },
+    AuthorizedAddresses { account_address: String },
     /// Returns module data
     /// Returns [`ModuleDataResponse`].
     #[returns(ModuleDataResponse)]
@@ -144,7 +136,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterConfigResponse {
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
     pub ans_host_address: Addr,
     pub dependencies: Vec<String>,
 }
@@ -158,9 +150,4 @@ pub struct AuthorizedAddressesResponse {
 /// The BaseState contains the main addresses needed for sending and verifying messages
 /// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
 #[cosmwasm_schema::cw_serde]
-pub struct AdapterState {
-    /// Used to verify requests
-    pub version_control: VersionControlContract,
-    /// AnsHost contract struct (address)
-    pub ans_host: AnsHost,
-}
+pub struct AdapterState {}

@@ -98,13 +98,13 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         let abstr = Abstract::load_from(self.environment().to_owned())?;
 
         abstr
-            .version_control
+            .registry
             .assert_dependencies_deployed(Self::dependencies())?;
 
         // check for existing version, if not force strategy
         let vc_has_module = || {
             abstr
-                .version_control
+                .registry
                 .registered_or_pending_module(
                     ModuleInfo::from_id(&self.id(), ModuleVersion::from(version.to_string()))
                         .unwrap(),
@@ -134,15 +134,12 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         self.upload_if_needed()?;
         let init_msg = abstract_std::adapter::InstantiateMsg {
             module: custom_init_msg,
-            base: abstract_std::adapter::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.address()?.into(),
-                version_control_address: abstr.version_control.address()?.into(),
-            },
+            base: abstract_std::adapter::BaseInstantiateMsg {},
         };
         self.instantiate(&init_msg, None, &[])?;
 
         abstr
-            .version_control
+            .registry
             .register_adapters(vec![(self.as_instance(), version.to_string())])?;
 
         Ok(())
@@ -164,13 +161,13 @@ pub trait AppDeployer<Chain: CwEnv>:
         let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
 
         abstr
-            .version_control
+            .registry
             .assert_dependencies_deployed(Self::dependencies())?;
 
         // check for existing version
         let vc_has_module = || {
             abstr
-                .version_control
+                .registry
                 .registered_or_pending_module(
                     ModuleInfo::from_id(&self.id(), ModuleVersion::from(version.to_string()))
                         .unwrap(),
@@ -199,7 +196,7 @@ pub trait AppDeployer<Chain: CwEnv>:
 
         self.upload_if_needed()?;
         abstr
-            .version_control
+            .registry
             .register_apps(vec![(self.as_instance(), version.to_string())])?;
 
         Ok(())
@@ -221,13 +218,13 @@ pub trait StandaloneDeployer<Chain: CwEnv>:
         let abstr = Abstract::<Chain>::load_from(self.environment().to_owned())?;
 
         abstr
-            .version_control
+            .registry
             .assert_dependencies_deployed(Self::dependencies())?;
 
         // check for existing version
         let vc_has_module = || {
             abstr
-                .version_control
+                .registry
                 .registered_or_pending_module(
                     ModuleInfo::from_id(&self.id(), ModuleVersion::from(version.to_string()))
                         .unwrap(),
@@ -256,7 +253,7 @@ pub trait StandaloneDeployer<Chain: CwEnv>:
 
         self.upload_if_needed()?;
         abstr
-            .version_control
+            .registry
             .register_standalones(vec![(self.as_instance(), version.to_string())])?;
 
         Ok(())
@@ -281,7 +278,7 @@ pub trait ServiceDeployer<Chain: CwEnv>:
         // check for existing version
         let vc_has_module = || {
             abstr
-                .version_control
+                .registry
                 .registered_or_pending_module(
                     ModuleInfo::from_id(&self.id(), ModuleVersion::from(version.to_string()))
                         .unwrap(),
@@ -311,7 +308,7 @@ pub trait ServiceDeployer<Chain: CwEnv>:
         self.upload_if_needed()?;
         self.instantiate(custom_init_msg, None, &[])?;
         abstr
-            .version_control
+            .registry
             .register_services(vec![(self.as_instance(), version.to_string())])?;
 
         Ok(())

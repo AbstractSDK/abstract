@@ -1,17 +1,17 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     std::{objects::ChannelEntry, ICS20},
     Resolve,
 };
 use abstract_std::{
     account::{self, ModuleInstallConfig},
     objects::{module::ModuleInfo, module_reference::ModuleReference, AccountId, TruncatedChainId},
-    version_control::Account,
+    registry::Account,
     ACCOUNT,
 };
 use cosmwasm_std::{
-    instantiate2_address, to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg,
-    Response, SubMsg, WasmMsg,
+    instantiate2_address, to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env,
+    IbcMsg, Response, SubMsg, WasmMsg,
 };
 
 use crate::{
@@ -23,39 +23,37 @@ use crate::{
 // one hour
 const PACKET_LIFETIME: u64 = 60 * 60;
 
-/// Creates and registers proxy for remote Account
+/// Creates and registers account for remote Account
 #[allow(clippy::too_many_arguments)]
 pub fn receive_register(
     deps: DepsMut,
     env: Env,
     account_id: AccountId,
-    name: String,
+    name: Option<String>,
     description: Option<String>,
     link: Option<String>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
 ) -> HostResult {
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
     let salt = cosmwasm_std::to_json_binary(&account_id)?;
 
     let account_module_info = ModuleInfo::from_id_latest(ACCOUNT)?;
-    let ModuleReference::Account(code_id) = version_control
+    let ModuleReference::Account(code_id) = registry
         .query_module(account_module_info.clone(), &deps.querier)?
         .reference
     else {
-        return Err(HostError::VersionControlError(
-            abstract_std::objects::version_control::VersionControlError::InvalidReference(
-                account_module_info,
-            ),
+        return Err(HostError::RegistryError(
+            abstract_std::objects::registry::RegistryError::InvalidReference(account_module_info),
         ));
     };
     let checksum = deps.querier.query_wasm_code_info(code_id)?.checksum;
     let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
 
-    let create_account_msg = account::InstantiateMsg {
+    let create_account_msg = account::InstantiateMsg::<cosmwasm_std::Empty> {
         owner: abstract_std::objects::gov_type::GovernanceDetails::External {
             governance_address: env.contract.address.into_string(),
             governance_type: "abstract-ibc".into(), // at least 4 characters
@@ -67,6 +65,7 @@ pub fn receive_register(
         account_id: Some(account_id.clone()),
         install_modules,
         namespace,
+        authenticator: None,
     };
 
     let account_canon_addr =
@@ -124,10 +123,16 @@ pub fn receive_send_all_back(
     deps: DepsMut,
     env: Env,
     account: Account,
-    client_proxy_address: String,
+    client_account_address: String,
     src_chain: TruncatedChainId,
 ) -> HostResult {
-    let wasm_msg = send_all_back(deps.as_ref(), env, account, client_proxy_address, src_chain)?;
+    let wasm_msg = send_all_back(
+        deps.as_ref(),
+        env,
+        account,
+        client_account_address,
+        src_chain,
+    )?;
 
     Ok(HostResponse::action("receive_dispatch").add_message(wasm_msg))
 }
@@ -137,11 +142,11 @@ pub fn send_all_back(
     deps: Deps,
     env: Env,
     account: Account,
-    client_proxy_address: String,
+    client_account_address: String,
     src_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
     // get the ICS20 channel information
-    let ans = AnsHost::new(deps.api)?;
+    let ans = AnsHost::new(deps.api, &env)?;
     let ics20_channel_entry = ChannelEntry {
         connected_chain: src_chain,
         protocol: ICS20.to_string(),
@@ -155,7 +160,7 @@ pub fn send_all_back(
         msgs.push(
             IbcMsg::Transfer {
                 channel_id: ics20_channel_id.clone(),
-                to_address: client_proxy_address.to_string(),
+                to_address: client_account_address.to_string(),
                 amount: coin,
                 timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
                 memo: None,
@@ -166,15 +171,15 @@ pub fn send_all_back(
     // call the message to send everything back through the account
     let account_msg = wasm_execute(
         account.into_addr(),
-        &account::ExecuteMsg::ModuleAction { msgs },
+        &account::ExecuteMsg::<Empty>::Execute { msgs },
         vec![],
     )?;
     Ok(account_msg.into())
 }
 
-/// get the account base from the version control contract
-pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<Account, HostError> {
-    let version_control = VersionControlContract::new(deps.api)?;
-    let account_base = version_control.account(account_id, &deps.querier)?;
-    Ok(account_base)
+/// get the account from the registry contract
+pub fn get_account(deps: Deps, env: &Env, account_id: &AccountId) -> Result<Account, HostError> {
+    let registry = RegistryContract::new(deps.api, env)?;
+    let account = registry.account(account_id, &deps.querier)?;
+    Ok(account)
 }

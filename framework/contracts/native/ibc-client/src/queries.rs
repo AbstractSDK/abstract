@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::{
     ibc_client::{
         state::{ACCOUNTS, IBC_INFRA},
@@ -13,7 +13,7 @@ use abstract_std::{
     },
     AbstractError,
 };
-use cosmwasm_std::{Deps, Order, StdError, StdResult};
+use cosmwasm_std::{Deps, Env, Order, StdError, StdResult};
 use cw_storage_plus::Bound;
 
 use crate::contract::IbcClientResult;
@@ -59,7 +59,7 @@ pub fn list_proxies_by_account_id(
             // Not using pagination as there are not a lot of chains.
             None,
             None,
-            |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+            |chain, account| Ok::<_, StdError>((chain, Some(account))),
         )?;
 
     Ok(ListRemoteProxiesResponse { proxies })
@@ -91,10 +91,10 @@ pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructur
     Ok(ListIbcInfrastructureResponse { counterparts })
 }
 
-pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
+pub fn config(deps: Deps, env: &Env) -> IbcClientResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps.api)?.address,
-        version_control_address: VersionControlContract::new(deps.api)?.address,
+        ans_host: AnsHost::new(deps.api, env)?.address,
+        registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
 
@@ -118,9 +118,11 @@ pub fn account(
 ) -> IbcClientResult<AccountResponse> {
     host_chain.verify()?;
 
-    let remote_proxy_addr = ACCOUNTS.may_load(
+    let remote_account_addr = ACCOUNTS.may_load(
         deps.storage,
         (account_id.trace(), account_id.seq(), &host_chain),
     )?;
-    Ok(AccountResponse { remote_proxy_addr })
+    Ok(AccountResponse {
+        remote_account_addr,
+    })
 }

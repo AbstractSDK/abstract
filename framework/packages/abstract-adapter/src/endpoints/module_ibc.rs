@@ -9,9 +9,13 @@ use cosmwasm_std::Addr;
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg> ModuleIbcEndpoint
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn ibc_host(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
+    fn ibc_host(
+        &self,
+        deps: cosmwasm_std::Deps,
+        env: &cosmwasm_std::Env,
+    ) -> Result<Addr, Self::Error> {
         let vc_query_result = self
-            .abstract_registry(deps)?
+            .abstract_registry(deps, env)?
             .query_module(
                 ModuleInfo::from_id(
                     IBC_HOST,

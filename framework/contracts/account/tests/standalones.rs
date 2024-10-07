@@ -21,7 +21,7 @@ fn account_install_standalone() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
     let standalone = MockStandalone::new(STANDALONE_ID, chain);
     standalone.deploy(STANDALONE_VERSION.parse().unwrap(), DeployStrategy::Try)?;
@@ -49,7 +49,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let standalone = MockStandalone::new_test(chain.clone());
@@ -75,7 +75,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     ) else {
         panic!("Expected error");
     };
-    let manager_err: AccountError = err.downcast().unwrap();
-    assert_eq!(manager_err, AccountError::ProhibitedReinstall {});
+    let account_err: AccountError = err.downcast().unwrap();
+    assert_eq!(account_err, AccountError::ProhibitedReinstall {});
     Ok(())
 }

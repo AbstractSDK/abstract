@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     features::AccountIdentification,
     namespaces::BASE_STATE,
     ModuleRegistryInterface, Resolve,
@@ -17,7 +17,7 @@ use abstract_std::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
     },
-    version_control::Account,
+    registry::Account,
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
@@ -148,32 +148,25 @@ fn send_remote_host_action(
 /// This is the top-level function to do IBC related actions.
 pub fn execute_send_packet(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     host_chain: TruncatedChainId,
     action: HostAction,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
     // The packet we need to send depends on the action we want to execute
 
     let note_message = match &action {
         HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
-            // Verify that the sender is a proxy contract
-            let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+            // Verify that the sender is a account contract
+            let account = registry.assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
-            let account_id = account_base.account_id(deps.as_ref())?;
+            let account_id = account.account_id(deps.as_ref())?;
 
-            send_remote_host_action(
-                deps.as_ref(),
-                account_id,
-                account_base,
-                host_chain,
-                action,
-                None,
-            )?
+            send_remote_host_action(deps.as_ref(), account_id, account, host_chain, action, None)?
         }
         HostAction::Internal(_) => {
             // Can only call non-internal actions
@@ -198,11 +191,11 @@ pub fn execute_send_module_to_module_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
     // Query the sender module information
-    let module_info = version_control
-        .module_registry(deps.as_ref())?
+    let module_info = registry
+        .module_registry(deps.as_ref(), &env)?
         .module_info(info.sender.clone())?;
 
     // We need additional information depending on the module type
@@ -220,11 +213,11 @@ pub fn execute_send_module_to_module_packet(
             let account = Item::<AppState>::new(BASE_STATE)
                 .query(&deps.querier, info.sender.clone())?
                 .account;
-            let account_id = version_control.account_id(account.addr(), &deps.querier)?;
-            let account_base = version_control.account(&account_id, &deps.querier)?;
+            let account_id = registry.account_id(account.addr(), &deps.querier)?;
+            let account = registry.account(&account_id, &deps.querier)?;
             let ibc_client = account::state::ACCOUNT_MODULES.query(
                 &deps.querier,
-                account_base.into_addr(),
+                account.into_addr(),
                 IBC_CLIENT,
             )?;
             // Check that ibc_client is installed on account
@@ -339,24 +332,24 @@ pub fn execute_register_account(
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
     host_chain.verify()?;
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
-    // Verify that the sender is a proxy contract
-    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+    // Verify that the sender is a account contract
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = account.account_id(deps.as_ref())?;
     // get auxiliary information
 
     let account_info: account::InfoResponse = deps
         .querier
-        .query_wasm_smart(account_base.addr(), &account::QueryMsg::Info {})?;
+        .query_wasm_smart(account.addr(), &account::QueryMsg::Info {})?;
     let account_info = account_info.info;
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
         account_id.clone(),
-        account_base,
+        account,
         host_chain,
         HostAction::Internal(InternalAction::Register {
             description: account_info.description,
@@ -384,14 +377,14 @@ pub fn execute_send_funds(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
-    let ans = AnsHost::new(deps.api)?;
-    // Verify that the sender is a proxy contract
+    let registry = RegistryContract::new(deps.api, &env)?;
+    let ans = AnsHost::new(deps.api, &env)?;
+    // Verify that the sender is a account contract
 
-    let account_base = version_control.assert_account(&info.sender, &deps.querier)?;
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id of Account
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = account.account_id(deps.as_ref())?;
     // load remote account
     let remote_addr = ACCOUNTS.load(
         deps.storage,
@@ -418,9 +411,7 @@ pub fn execute_send_funds(
         transfers.push(ics_20_send);
     }
 
-    Ok(IbcClientResponse::action("handle_send_funds")
-        //.add_message(proxy_msg)
-        .add_messages(transfers))
+    Ok(IbcClientResponse::action("handle_send_funds").add_messages(transfers))
 }
 
 fn _ics_20_send_msg(

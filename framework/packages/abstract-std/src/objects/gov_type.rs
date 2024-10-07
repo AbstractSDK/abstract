@@ -1,11 +1,9 @@
 //! # Governance structure object
 
-use crate::{account::state::ACCOUNT_ID, version_control};
+use crate::{account::state::ACCOUNT_ID, registry};
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw_address_like::AddressLike;
 use cw_utils::Expiration;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::AbstractError;
 
@@ -15,7 +13,8 @@ const MIN_GOV_TYPE_LENGTH: usize = 4;
 const MAX_GOV_TYPE_LENGTH: usize = 64;
 
 /// Governance types
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
+#[derive(Eq)]
 #[non_exhaustive]
 pub enum GovernanceDetails<T: AddressLike> {
     /// A single address is admin
@@ -35,13 +34,22 @@ pub enum GovernanceDetails<T: AddressLike> {
         /// Governance type used for doing extra off-chain queries depending on the type.
         governance_type: String,
     },
-    /// Renounced account
-    /// This account no longer has an owner and cannot be used.
-    Renounced {},
     NFT {
         collection_addr: T,
         token_id: String,
     },
+    /// Abstract account.
+    /// Admin actions have to be sent through signature bit flag
+    ///
+    /// More details: https://github.com/burnt-labs/abstract-account/blob/2c933a7b2a8dacc0ae5bf4344159a7d4ab080135/README.md
+    AbstractAccount {
+        /// Address of this abstract account
+        // TODO: Is there any point setting it T instead?
+        address: Addr,
+    },
+    /// Renounced account
+    /// This account no longer has an owner and cannot be used.
+    Renounced {},
 }
 
 /// Actions that can be taken to alter the contract's governance ownership
@@ -78,7 +86,7 @@ impl GovernanceDetails<String> {
         self,
         deps: Deps,
         // TODO: remove!
-        version_control_addr: Addr,
+        registry_addr: Addr,
     ) -> Result<GovernanceDetails<Addr>, AbstractError> {
         match self {
             GovernanceDetails::Monarchy { monarch } => {
@@ -88,9 +96,9 @@ impl GovernanceDetails<String> {
             GovernanceDetails::SubAccount { account } => {
                 let account_addr = deps.api.addr_validate(&account)?;
                 let account_id = ACCOUNT_ID.query(&deps.querier, account_addr.clone())?;
-                let base = version_control::state::ACCOUNT_ADDRESSES.query(
+                let base = registry::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
-                    version_control_addr,
+                    registry_addr,
                     &account_id,
                 )?;
                 let Some(b) = base else {
@@ -106,7 +114,7 @@ impl GovernanceDetails<String> {
                     })
                 } else {
                     Err(AbstractError::Std(cosmwasm_std::StdError::generic_err(
-                        "Verification of sub-account failed, manager and proxy has different account ids",
+                        "Verification of sub-account failed, account has different account ids",
                     )))
                 }
             }
@@ -159,6 +167,9 @@ impl GovernanceDetails<String> {
                 collection_addr: deps.api.addr_validate(&collection_addr.to_string())?,
                 token_id,
             }),
+            GovernanceDetails::AbstractAccount { address } => {
+                Ok(GovernanceDetails::AbstractAccount { address })
+            }
         }
     }
 }
@@ -188,6 +199,7 @@ impl GovernanceDetails<Addr> {
                     .ok();
                 res.map(|owner_response| Addr::unchecked(owner_response.owner))
             }
+            GovernanceDetails::AbstractAccount { address } => Some(address.to_owned()),
         }
     }
 }
@@ -216,6 +228,9 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
                 collection_addr: collection_addr.to_string(),
                 token_id,
             },
+            GovernanceDetails::AbstractAccount { address } => {
+                GovernanceDetails::AbstractAccount { address }
+            }
         }
     }
 }
@@ -230,6 +245,7 @@ impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
             } => governance_type.as_str(),
             GovernanceDetails::Renounced {} => "renounced",
             GovernanceDetails::NFT { .. } => "nft",
+            GovernanceDetails::AbstractAccount { .. } => "abstract-account",
         };
         write!(f, "{str}")
     }
@@ -255,27 +271,27 @@ mod test {
         let gov = GovernanceDetails::Monarchy {
             monarch: owner.to_string(),
         };
-        let mock_version_control = deps.api.addr_make("mock_version_control");
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
+        let mock_registry = deps.api.addr_make("mock_registry");
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
 
         let gov_addr = deps.api.addr_make("gov_addr");
         let gov = GovernanceDetails::External {
             governance_address: gov_addr.to_string(),
             governance_type: "external-multisig".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
 
         let gov = GovernanceDetails::Monarchy {
             monarch: "NOT_OK".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
 
         let gov = GovernanceDetails::External {
             governance_address: "gov_address".to_string(),
             governance_type: "gov_type".to_string(),
         };
         // '_' not allowed
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
 
         // too short
         let gov_address = deps.api.addr_make("gov_address");
@@ -283,21 +299,21 @@ mod test {
             governance_address: gov_address.to_string(),
             governance_type: "gov".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
 
         // too long
         let gov = GovernanceDetails::External {
             governance_address: gov_address.to_string(),
             governance_type: "a".repeat(190),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
 
         // invalid addr
         let gov = GovernanceDetails::External {
             governance_address: "NOT_OK".to_string(),
             governance_type: "gov_type".to_string(),
         };
-        assert!(gov.verify(deps.as_ref(), mock_version_control).is_err());
+        assert!(gov.verify(deps.as_ref(), mock_registry).is_err());
 
         // good nft
         let collection_addr = deps.api.addr_make("collection_addr");
@@ -305,7 +321,7 @@ mod test {
             collection_addr: collection_addr.to_string(),
             token_id: "1".to_string(),
         };
-        let mock_version_control = deps.api.addr_make("mock_version_control");
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
+        let mock_registry = deps.api.addr_make("mock_registry");
+        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
     }
 }

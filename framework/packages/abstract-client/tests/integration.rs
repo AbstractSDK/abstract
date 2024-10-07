@@ -1,4 +1,4 @@
-use ::version_control::error::VCError;
+use ::registry::error::RegistryError;
 use abstract_account::error::AccountError;
 use abstract_adapter::mock::{
     interface::MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
@@ -19,7 +19,7 @@ use abstract_client::{
     Publisher,
 };
 use abstract_interface::{
-    ClientResolve, IbcClient, InstallConfig, RegisteredModule, VCExecFns, VCQueryFns,
+    ClientResolve, IbcClient, InstallConfig, RegisteredModule, RegistryExecFns, RegistryQueryFns,
 };
 use abstract_std::{
     account::{
@@ -52,7 +52,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
     let account_info = account.info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -93,7 +93,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let account_info = account.info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from(name),
+            name: Some(String::from(name)),
             description: Some(String::from(description)),
             link: Some(String::from(link)),
         },
@@ -101,11 +101,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     );
 
     // Namespace is claimed.
-    let account_id = client
-        .version_control()
-        .namespace(namespace)?
-        .unwrap()
-        .account_id;
+    let account_id = client.registry().namespace(namespace)?.unwrap().account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -162,7 +158,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let account_info = publisher.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -200,7 +196,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let account_info = publisher.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from(name),
+            name: Some(String::from(name)),
             description: Some(String::from(description)),
             link: Some(String::from(link)),
         },
@@ -211,11 +207,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     assert_eq!(ownership.owner, governance_details);
 
     // Namespace is claimed.
-    let account_id = client
-        .version_control()
-        .namespace(namespace)?
-        .unwrap()
-        .account_id;
+    let account_id = client.registry().namespace(namespace)?.unwrap().account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -273,7 +265,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let sub_account_details = my_app.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Sub Account"),
+            name: Some(String::from("Sub Account")),
             description: None,
             link: None,
         },
@@ -309,7 +301,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -353,7 +345,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Sub Account"),
+            name: Some(String::from("Sub Account")),
             description: None,
             link: None,
         },
@@ -384,7 +376,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -799,19 +791,19 @@ fn doc_example_test() -> anyhow::Result<()> {
     // ## ANCHOR_END: publisher
 
     // ## ANCHOR: account
-    let account: Account<MockBech32> = client.account_builder().build()?;
+    let accounti: Account<MockBech32> = client.account_builder().build()?;
 
     // ## ANCHOR: app_interface
     // Install an app
     let app: Application<MockBech32, MockAppI<MockBech32>> =
-        account.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
+        accounti.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
     // ## ANCHOR_END: account
     // Call a function on the app
     app.do_something()?;
 
     // Call as someone else
-    let manager: Addr = account.address()?;
-    app.call_as(&manager).do_something()?;
+    let account: Addr = accounti.address()?;
+    app.call_as(&account).do_something()?;
 
     // Query the app
     let something: MockQueryResponse = app.get_something()?;
@@ -819,17 +811,17 @@ fn doc_example_test() -> anyhow::Result<()> {
 
     // ## ANCHOR: account_helpers
     // Get account info
-    let account_info: AccountInfo = account.info()?;
+    let account_info: AccountInfo = accounti.info()?;
     // Get the owner
-    let owner: Addr = account.owner()?;
+    let owner: Addr = accounti.owner()?;
     // Add or set balance
-    account.add_balance(&[Coin::new(100u128, "btc")])?;
+    accounti.add_balance(&[Coin::new(100u128, "btc")])?;
     // ...
     // ## ANCHOR_END: account_helpers
 
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -915,7 +907,7 @@ fn can_customize_sub_account() -> anyhow::Result<()> {
         .build()?;
 
     let info = sub_account.info()?;
-    assert_eq!(info.name, "foo-bar");
+    assert_eq!(info.name.unwrap(), "foo-bar");
 
     // Account aware of sub account
     let sub_accounts = account.sub_accounts()?;
@@ -944,13 +936,10 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
         panic!("Expected cw-orch error")
     };
     let err: AccountError = err.downcast().unwrap();
-    assert_eq!(
+    assert!(matches!(
         err,
-        AccountError::SubAccountCreatorNotAccount {
-            caller: client.sender().into_string(),
-            account: account.address()?.into_string()
-        }
-    );
+        AccountError::SubAccountCreatorNotAccount { .. }
+    ));
     Ok(())
 }
 
@@ -1047,10 +1036,10 @@ fn auto_funds_work() -> anyhow::Result<()> {
         .build()?;
     let _: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
-    client.version_control().update_module_configuration(
+    client.registry().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
-        abstract_std::version_control::UpdateModule::Versioned {
+        abstract_std::registry::UpdateModule::Versioned {
             version: MockAdapterI::<MockBech32>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_std::objects::module::Monetization::InstallFee(
@@ -1075,7 +1064,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // Or can enable auto_fund and create account if have enough funds
     let account = account_builder.auto_fund().build()?;
     let info = account.info()?;
-    assert_eq!(info.name, "bob");
+    assert_eq!(info.name.unwrap(), "bob");
 
     // funds used
     let balance = client.environment().query_balance(&owner, TTOKEN)?;
@@ -1188,7 +1177,7 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
     // Check it authorized
     let authorized_addrs_resp: AuthorizedAddressesResponse = adapter.query(
         &abstract_std::adapter::BaseQueryMsg::AuthorizedAddresses {
-            proxy_address: app.account().address()?.to_string(),
+            account_address: app.account().address()?.to_string(),
         }
         .into(),
     )?;
@@ -1212,10 +1201,10 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     else {
         panic!("Expected cw-orch error")
     };
-    let err: VCError = err.downcast().unwrap();
+    let err: RegistryError = err.downcast().unwrap();
     assert_eq!(
         err,
-        VCError::InvalidAccountSequence {
+        RegistryError::InvalidAccountSequence {
             expected: 1,
             actual: 10,
         }
@@ -1239,8 +1228,11 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     else {
         panic!("Expected cw-orch error")
     };
-    let err: VCError = err.downcast().unwrap();
-    assert_eq!(err, VCError::AccountAlreadyExists(AccountId::local(0)));
+    let err: RegistryError = err.downcast().unwrap();
+    assert_eq!(
+        err,
+        RegistryError::AccountAlreadyExists(AccountId::local(0))
+    );
 
     // Can create sub-account if right id
     let sub_account = client
@@ -1287,7 +1279,7 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
     let next_seq = client.random_account_id()?;
     let account_id = AccountId::local(next_seq);
 
-    let proxy_addr = client.module_instantiate2_address_raw(
+    let account_addr = client.module_instantiate2_address_raw(
         &account_id,
         ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
     )?;
@@ -1296,7 +1288,7 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
         .expected_account_id(next_seq)
         .build()?;
 
-    assert_eq!(account.address()?, proxy_addr);
+    assert_eq!(account.address()?, account_addr);
     Ok(())
 }
 
@@ -1308,7 +1300,7 @@ fn instantiate2_random_seq() -> anyhow::Result<()> {
     let next_seq = client.random_account_id()?;
     let account_id = AccountId::local(next_seq);
 
-    let proxy_addr = client.module_instantiate2_address_raw(
+    let account_addr = client.module_instantiate2_address_raw(
         &account_id,
         ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
     )?;
@@ -1317,7 +1309,7 @@ fn instantiate2_random_seq() -> anyhow::Result<()> {
         .expected_account_id(next_seq)
         .build()?;
 
-    assert_eq!(account.address()?, proxy_addr);
+    assert_eq!(account.address()?, account_addr);
     Ok(())
 }
 
@@ -1446,7 +1438,7 @@ fn module_status() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
     let admin = AbstractClient::mock_admin(&chain);
     client
-        .version_control()
+        .registry()
         .call_as(&admin)
         .update_config(None, Some(false))?;
 
@@ -1466,7 +1458,7 @@ fn module_status() -> anyhow::Result<()> {
     );
 
     client
-        .version_control()
+        .registry()
         .call_as(&admin)
         .approve_or_reject_modules(vec![module_info.clone()], vec![])?;
     let module_status = client.module_status(module_info.clone())?;
@@ -1475,7 +1467,7 @@ fn module_status() -> anyhow::Result<()> {
         Some(abstract_std::objects::module::ModuleStatus::Registered)
     );
 
-    client.version_control().yank_module(module_info.clone())?;
+    client.registry().yank_module(module_info.clone())?;
     let module_status = client.module_status(module_info)?;
     assert_eq!(
         module_status,

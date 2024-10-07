@@ -7,7 +7,7 @@ use abstract_app::std::{
 };
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
-    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
+    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, RegistryExecFns,
 };
 use cosmwasm_std::{coin, coins, to_json_binary, Decimal, Uint128};
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
@@ -61,7 +61,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
 
     // claim the namespace so app can be deployed
     abstr_deployment
-        .version_control
+        .registry
         .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
 
     app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
@@ -81,7 +81,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
         None,
     )?;
 
-    account.manager.update_adapter_authorized_addresses(
+    account.account.update_adapter_authorized_addresses(
         abstract_dex_adapter::DEX_ADAPTER_ID,
         vec![app.address()?.to_string()],
         vec![],
@@ -380,8 +380,8 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     let tipper_balance = cw20_token.balance(tipper.to_string())?.balance;
     assert_eq!(starting_balance - tip_amount, tipper_balance.u128());
 
-    let proxy_balance = cw20_token.balance(account.address()?.to_string())?.balance;
-    assert_eq!(tip_amount, proxy_balance.u128());
+    let account_balance = cw20_token.balance(account.address()?.to_string())?.balance;
+    assert_eq!(tip_amount, account_balance.u128());
 
     // Query tip count
     let tip_count_response: TipCountResponse = app.tip_count()?;

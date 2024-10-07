@@ -12,7 +12,7 @@ use abstract_std::{
     objects::{module::ModuleInfo, TruncatedChainId},
     ABSTRACT_VERSION, IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Env, QueryRequest};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
@@ -41,8 +41,12 @@ pub trait IbcInterface:
         let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
         ```
     */
-    fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
-        IbcClient { base: self, deps }
+    fn ibc_client<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> IbcClient<Self> {
+        IbcClient {
+            base: self,
+            deps,
+            env,
+        }
     }
 }
 
@@ -86,6 +90,7 @@ impl<'a, T: IbcInterface> ApiIdentification for IbcClient<'a, T> {
 pub struct IbcClient<'a, T: IbcInterface> {
     base: &'a T,
     deps: Deps<'a>,
+    env: &'a Env,
 }
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
@@ -94,7 +99,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(IBC_CLIENT)?;
         self.base
-            .module_registry(self.deps)?
+            .module_registry(self.deps, self.env)?
             .query_module(ModuleInfo::from_id(IBC_CLIENT, ABSTRACT_VERSION.into())?)?
             .reference
             .unwrap_native()
@@ -188,9 +193,9 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(msg.into())
     }
 
-    /// Address of the remote proxy
+    /// Address of the remote account
     /// Note: only Accounts that are remote to *this* chain are queryable
-    pub fn remote_proxy_addr(
+    pub fn remote_account_addr(
         &self,
         host_chain: &TruncatedChainId,
     ) -> AbstractSdkResult<Option<String>> {
@@ -217,7 +222,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction {
+            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     namespace: None,
@@ -237,7 +242,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction {
+            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: IbcClientMsg::RemoteAction { host_chain, action },
             },
             vec![],
@@ -245,7 +250,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         .into())
     }
 
-    /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
+    /// IbcClient the provided coins from the Account to its account on the `receiving_chain`.
     pub fn ics20_transfer(
         &self,
         host_chain: TruncatedChainId,
@@ -254,7 +259,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction {
+            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: IbcClientMsg::SendFunds {
                     host_chain,
                     funds,
@@ -305,7 +310,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     }
 
     /// A simple helper to execute on a module
-    /// Executes the message as the Manager of the remote account
+    /// Executes the message as the Account of the remote account
     /// I.e. can be used to execute admin actions on remote modules.
     pub fn execute_on_module<M: Serialize>(
         &self,
@@ -316,7 +321,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                account_msgs: vec![abstract_std::account::ExecuteMsg::ExecOnModule {
+                account_msgs: vec![abstract_std::account::ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
                 }],
@@ -324,9 +329,12 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         )
     }
 
-    /// Address of the remote proxy
+    /// Address of the remote account
     /// Note: only works if account is local
-    pub fn remote_proxy(&self, host_chain: &TruncatedChainId) -> AbstractSdkResult<Option<String>> {
+    pub fn remote_account(
+        &self,
+        host_chain: &TruncatedChainId,
+    ) -> AbstractSdkResult<Option<String>> {
         let account_id = self.base.account_id(self.deps)?;
         let ibc_client_addr = self.module_address()?;
 
@@ -356,8 +364,9 @@ mod test {
     #[test]
     fn test_host_action_no_callback() {
         let (deps, _, stub) = mock_module_setup();
+        let env = mock_env_validated(deps.api);
 
-        let client = stub.ibc_client(deps.as_ref());
+        let client = stub.ibc_client(deps.as_ref(), &env);
         let msg = client.host_action(
             TEST_HOST_CHAIN.parse().unwrap(),
             HostAction::Dispatch {
@@ -368,10 +377,10 @@ mod test {
         );
         assert_that!(msg).is_ok();
 
-        let base = test_account_base(deps.api);
+        let base = test_account(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
-            msg: to_json_binary(&ExecuteMsg::IbcAction {
+            msg: to_json_binary(&ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     action: HostAction::Dispatch {
@@ -391,8 +400,9 @@ mod test {
     #[test]
     fn test_ics20_transfer() {
         let (deps, _, stub) = mock_module_setup();
+        let env = mock_env_validated(deps.api);
 
-        let client = stub.ibc_client(deps.as_ref());
+        let client = stub.ibc_client(deps.as_ref(), &env);
 
         let expected_funds = coins(100, "denom");
 
@@ -403,10 +413,10 @@ mod test {
         );
         assert_that!(msg).is_ok();
 
-        let base = test_account_base(deps.api);
+        let base = test_account(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
-            msg: to_json_binary(&ExecuteMsg::IbcAction {
+            msg: to_json_binary(&ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
                 msg: IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     funds: expected_funds,

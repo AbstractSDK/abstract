@@ -1,26 +1,80 @@
-// TODO: fill bytes with CanonicalAddr of creator
+use bech32::{Bech32, Hrp};
+use cosmwasm_std::{instantiate2_address, Api, CanonicalAddr, Env};
+use ripemd::Ripemd160;
+use sha2::{Digest, Sha256};
+
+use crate::AbstractResult;
+
+pub use cw_blob::CHECKSUM as BLOB_CHECKSUM;
+
+// TODO: fill bytes with Public address of creator
 // Default local-juno used right now(for testing)
-pub const TEST_ABSTRACT_CREATOR: [u8; 20] = [
-    210, 20, 62, 221, 52, 61, 116, 51, 8, 49, 75, 191, 7, 17, 231, 72, 143, 140, 113, 214,
+const TEST_ABSTRACT_CREATOR: [u8; 33] = [
+    2, 146, 187, 207, 156, 96, 230, 188, 163, 167, 152, 64, 234, 101, 130, 38, 50, 89, 139, 233,
+    56, 192, 110, 242, 251, 222, 103, 198, 68, 80, 201, 159, 3,
 ];
 
-pub const ANS_ADDR: [u8; 32] = [
-    240, 207, 249, 98, 43, 113, 214, 211, 30, 136, 11, 140, 16, 81, 121, 153, 203, 165, 42, 12,
-    186, 176, 183, 241, 120, 71, 168, 99, 151, 45, 246, 17,
-];
-pub const VERSION_CONTROL_ADDR: [u8; 32] = [
-    63, 64, 169, 128, 123, 59, 202, 134, 217, 110, 202, 249, 109, 98, 167, 198, 137, 40, 248, 161,
-    93, 155, 156, 185, 154, 151, 139, 227, 50, 50, 82, 33,
-];
-pub const MODULE_FACTORY_ADDR: [u8; 32] = [
-    121, 55, 96, 223, 196, 175, 191, 179, 88, 157, 157, 75, 128, 40, 146, 221, 55, 25, 170, 118,
-    60, 114, 144, 135, 14, 112, 121, 51, 121, 16, 143, 170,
-];
-pub const IBC_CLIENT_ADDR: [u8; 32] = [
-    228, 125, 238, 160, 249, 112, 135, 11, 75, 67, 120, 65, 197, 204, 36, 101, 253, 118, 168, 128,
-    6, 185, 120, 142, 234, 14, 63, 147, 41, 2, 188, 63,
-];
-pub const IBC_HOST_ADDR: [u8; 32] = [
-    44, 146, 162, 40, 187, 80, 24, 132, 228, 88, 33, 40, 43, 128, 225, 186, 91, 130, 66, 104, 203,
-    168, 243, 231, 60, 219, 96, 133, 52, 130, 0, 193,
-];
+// Salts for deployments
+pub const ANS_HOST_SALT: &[u8] = b"ans";
+pub const VERSION_CONTROL_SALT: &[u8] = b"vc";
+pub const MODULE_FACTORY_SALT: &[u8] = b"mf";
+pub const IBC_CLIENT_SALT: &[u8] = b"ic";
+pub const IBC_HOST_SALT: &[u8] = b"ih";
+
+pub fn ans_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(hrp, ANS_HOST_SALT, api)
+}
+
+pub fn version_control_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(hrp, VERSION_CONTROL_SALT, api)
+}
+
+pub fn module_factory_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(hrp, MODULE_FACTORY_SALT, api)
+}
+
+pub fn ibc_client_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(hrp, IBC_CLIENT_SALT, api)
+}
+
+pub fn ibc_host_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(hrp, IBC_HOST_SALT, api)
+}
+
+pub fn derive_addr_from_pub_key(hrp: &str, pub_key: &[u8]) -> AbstractResult<String> {
+    let hrp: Hrp = Hrp::parse(hrp)?;
+
+    let hash = Sha256::digest(pub_key);
+    let rip_hash = Ripemd160::digest(hash);
+
+    let addr = bech32::encode::<Bech32>(hrp, &rip_hash)?;
+
+    Ok(addr)
+}
+
+/// Address of the abstract admin
+pub fn creator_address(hrp: &str) -> AbstractResult<String> {
+    derive_addr_from_pub_key(hrp, &TEST_ABSTRACT_CREATOR)
+}
+
+pub fn contract_canon_address(
+    hrp: &str,
+    salt: &[u8],
+    api: &dyn Api,
+) -> AbstractResult<CanonicalAddr> {
+    let creator_addr = creator_address(hrp)?;
+    let creator_canon = api.addr_canonicalize(&creator_addr)?;
+    let canon_addr = instantiate2_address(&BLOB_CHECKSUM, &creator_canon, salt)?;
+    Ok(canon_addr)
+}
+
+/// Hrp from the address of contract
+// https://en.bitcoin.it/wiki/BIP_0173#Specification
+pub fn hrp_from_env(env: &Env) -> &str {
+    env.contract
+        .address
+        .as_str()
+        .split_once("1")
+        .expect("Contract address is not bech32")
+        .0
+}

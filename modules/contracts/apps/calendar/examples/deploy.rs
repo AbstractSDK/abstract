@@ -1,4 +1,4 @@
-//! Deploys the module to the Abstract platform by uploading it and registering it on the version control contract.
+//! Deploys the module to the Abstract platform by uploading it and registering it on the registry contract.
 //!
 //! This should be used for mainnet/testnet deployments in combination with our front-end at https://console.abstract.money
 //!

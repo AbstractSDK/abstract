@@ -7,7 +7,7 @@ use cosmwasm_std::{Addr, Coin, StdError};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum VCError {
+pub enum RegistryError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -50,10 +50,10 @@ pub enum VCError {
     #[error("Module {0} cannot be updated")]
     NotUpdateableModule(ModuleInfo),
 
-    #[error("Account ID {} is not in version control register", id)]
+    #[error("Account ID {} is not in registry register", id)]
     UnknownAccountId { id: AccountId },
 
-    #[error("Namespace {} is not in version control register", namespace)]
+    #[error("Namespace {} is not in registry register", namespace)]
     UnknownNamespace { namespace: Namespace },
 
     #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
@@ -100,7 +100,7 @@ pub enum VCError {
     InvalidAccountSequence { expected: u32, actual: u32 },
 }
 
-impl From<semver::Error> for VCError {
+impl From<semver::Error> for RegistryError {
     fn from(err: semver::Error) -> Self {
         Self::SemVer(err.to_string())
     }

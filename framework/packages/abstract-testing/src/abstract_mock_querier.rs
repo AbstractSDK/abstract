@@ -1,12 +1,12 @@
 use abstract_std::{
-    account::state::ACCOUNT_ID,
+    account::state::{ACCOUNT_ID, CALLING_TO_AS_ADMIN},
     ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
     objects::{
         gov_type::GovernanceDetails, ownership::Ownership,
         storage_namespaces::OWNERSHIP_STORAGE_KEY, AccountId, AssetEntry, ChannelEntry,
         ContractEntry,
     },
-    version_control::{state::ACCOUNT_ADDRESSES, Account},
+    registry::{state::ACCOUNT_ADDRESSES, Account},
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfo;
@@ -15,11 +15,13 @@ use cw_storage_plus::Item;
 use crate::prelude::*;
 
 pub trait AbstractMockQuerier {
-    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to version control.
+    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to registry.
     fn account(self, account: &Account, account_id: AccountId) -> Self;
 
     /// Add mock assets into ANS
     fn assets(self, assets: Vec<(&AssetEntry, AssetInfo)>) -> Self;
+
+    fn set_account_admin_call_to(self, account: &Account) -> Self;
 
     fn contracts(self, contracts: Vec<(&ContractEntry, Addr)>) -> Self;
 
@@ -29,7 +31,7 @@ pub trait AbstractMockQuerier {
 }
 
 impl AbstractMockQuerier for MockQuerierBuilder {
-    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to version control.
+    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to registry.
     fn account(self, account: &Account, account_id: AccountId) -> Self {
         let abstract_addrs = self.addrs();
         self.with_contract_item(account.addr(), ACCOUNT_ID, &account_id)
@@ -46,7 +48,7 @@ impl AbstractMockQuerier for MockQuerierBuilder {
                 }),
             )
             .with_contract_map_entry(
-                &abstract_addrs.version_control,
+                &abstract_addrs.registry,
                 ACCOUNT_ADDRESSES,
                 (&account_id, account.clone()),
             )
@@ -76,5 +78,10 @@ impl AbstractMockQuerier for MockQuerierBuilder {
 
     fn addrs(&self) -> AbstractMockAddrs {
         AbstractMockAddrs::new(self.api)
+    }
+
+    fn set_account_admin_call_to(self, account: &Account) -> Self {
+        let env = mock_env_validated(self.api);
+        self.with_contract_item(account.addr(), CALLING_TO_AS_ADMIN, &env.contract.address)
     }
 }

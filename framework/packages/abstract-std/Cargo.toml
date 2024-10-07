@@ -30,7 +30,9 @@ cw-orch = { workspace = true }
 cw-ownable = { workspace = true }
 sha2 = { version = "0.10.8", default-features = false }
 cw-clearable = { workspace = true }
-# account = { git = "https://github.com/burnt-labs/contracts", branch = "main" }
+bech32 = { version = "0.11.0" }
+ripemd = { version = "0.1.3", default-features = false }
+cw-blob = { workspace = true, default-features = false }
 
 ## Stringify function names
 function_name = { version = "0.3.0" }

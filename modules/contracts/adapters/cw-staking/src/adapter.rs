@@ -1,4 +1,4 @@
-use abstract_adapter::std::version_control::Account;
+use abstract_adapter::std::registry::Account;
 
 use abstract_adapter::sdk::{
     features::{AbstractNameService, AbstractRegistryAccess},
@@ -27,10 +27,10 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
 
         provider.fetch_data(
             deps.as_ref(),
-            env,
+            env.clone(),
             Some(target_account.into_addr()),
-            &self.ans_host(deps.as_ref())?,
-            self.abstract_registry(deps.as_ref())?,
+            &self.ans_host(deps.as_ref(), &env)?,
+            self.abstract_registry(deps.as_ref(), &env)?,
             staking_asset,
         )?;
 

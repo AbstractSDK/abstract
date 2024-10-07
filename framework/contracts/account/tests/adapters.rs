@@ -49,7 +49,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     assert_that!(adapter_config).is_equal_to(adapter::AdapterConfigResponse {
         ans_host_address: deployment.ans_host.address()?,
         dependencies: vec![],
-        version_control_address: deployment.version_control.address()?,
+        registry_address: deployment.registry.address()?,
     });
 
     // no authorized addresses registered
@@ -146,7 +146,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
-    // assert proxy module
+    // assert account module
     // check staking adapter
     assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
@@ -213,7 +213,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = MockAdapterI1V1::new_test(chain.clone());
@@ -250,7 +250,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     // check that the latest staking version is the new one
     let latest_staking = deployment
-        .version_control
+        .registry
         .module(ModuleInfo::from_id_latest(&adapter1.id())?)?;
     assert_that!(latest_staking.info.version).is_equal_to(ModuleVersion::Version(V2.to_string()));
 
@@ -265,7 +265,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         id: adapter2.id(),
         version: cw2::ContractVersion {
             contract: adapter2.id(),
-            // IMPORTANT: The version of the contract did not change although the version of the module in version control did.
+            // IMPORTANT: The version of the contract did not change although the version of the module in registry did.
             // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
             version: V2.to_string(),
         },
@@ -296,7 +296,7 @@ fn unauthorized_exec() -> AResult {
         .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(format!(
-        "Sender: {} of request to tester:test-module-id is not a Manager or Authorized Address",
+        "Sender: {} of request to tester:test-module-id is not an Account or Authorized Address",
         unauthorized
     ));
     // neither can the ROOT directly
@@ -304,14 +304,14 @@ fn unauthorized_exec() -> AResult {
         .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
     assert_that!(&res.root().to_string()).contains(format!(
-        "Sender: {} of request to tester:test-module-id is not a Manager or Authorized Address",
+        "Sender: {} of request to tester:test-module-id is not an Account or Authorized Address",
         chain.sender_addr()
     ));
     Ok(())
 }
 
 #[test]
-fn manager_adapter_exec() -> AResult {
+fn account_adapter_exec() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
@@ -337,7 +337,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = MockAdapterI1V1::new_test(chain.clone());
@@ -379,7 +379,7 @@ fn account_install_adapter() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = MockAdapterI1V1::new_test(chain.clone());
@@ -404,40 +404,40 @@ fn account_adapter_ownership() -> AResult {
     let account = create_default_account(sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = MockAdapterI1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
     account.install_adapter(&adapter, &[])?;
 
-    let proxy_addr = account.address()?;
+    let account_addr = account.address()?;
 
     // Checking module requests
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     adapter.call_as(sender).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
         }),
         &[],
     )?;
     adapter.call_as(&account.address()?).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
         }),
         &[],
     )?;
 
-    // Not admin or manager
+    // Not admin or account
     let who = chain.addr_make("who");
     let err: MockError = adapter
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Module(AdapterRequestMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: MockExecMsg {},
             }),
             &[],
@@ -455,10 +455,10 @@ fn account_adapter_ownership() -> AResult {
 
     // Checking base requests
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     adapter.call_as(sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("123").to_string()],
                 to_remove: vec![],
@@ -466,23 +466,39 @@ fn account_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
-    adapter.call_as(&account.address()?).execute(
-        &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            account_address: Some(proxy_addr.to_string()),
+
+    account.call_as(sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
+            account_address: Some(account_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
             },
-        }),
-        &[],
+        }))?,
     )?;
 
-    // Not admin or manager
+    // Raw account without the calling_to_as_admin variable set, should err.
+    adapter
+        .call_as(&account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(account_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("456").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
+
+    // Not admin or account
     let err: MockError = adapter
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],
@@ -512,7 +528,7 @@ fn subaccount_adapter_ownership() -> AResult {
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = MockAdapterI1V1::new_test(chain.clone());
@@ -538,33 +554,48 @@ fn subaccount_adapter_ownership() -> AResult {
         .unwrap();
     adapter.set_address(&module.address);
 
-    let proxy_addr = sub_account.address()?;
+    let account_addr = sub_account.address()?;
 
     // Checking module requests
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Module(AdapterRequestMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
         }),
         &[],
     )?;
-    adapter.call_as(&sub_account.address()?).execute(
-        &mock::ExecuteMsg::Module(AdapterRequestMsg {
-            account_address: Some(proxy_addr.to_string()),
+    sub_account.call_as(&sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Module(AdapterRequestMsg {
+            account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
-        }),
-        &[],
+        }))?,
     )?;
 
-    // Not admin or manager
+    // Raw account without the calling_to_as_admin variable set, should err
+    adapter
+        .call_as(&account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(account_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("456").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
+
+    // Not admin or account
     let who = chain.addr_make("who");
     let err: MockError = adapter
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Module(AdapterRequestMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: MockExecMsg {},
             }),
             &[],
@@ -582,10 +613,10 @@ fn subaccount_adapter_ownership() -> AResult {
 
     // Checking base requests
 
-    // Can call either by account owner or manager
+    // Can call either by account owner or account
     adapter.call_as(&sender).execute(
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            account_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("123").to_string()],
                 to_remove: vec![],
@@ -593,23 +624,38 @@ fn subaccount_adapter_ownership() -> AResult {
         }),
         &[],
     )?;
-    adapter.call_as(&sub_account.address()?).execute(
-        &mock::ExecuteMsg::Base(BaseExecuteMsg {
-            account_address: Some(proxy_addr.to_string()),
+    sub_account.call_as(&sender).admin_execute(
+        adapter.address()?,
+        to_json_binary(&mock::ExecuteMsg::Base(BaseExecuteMsg {
+            account_address: Some(account_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                 to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
             },
-        }),
-        &[],
+        }))?,
     )?;
 
-    // Not admin or manager
+    // Raw account without the calling_to_as_admin variable set, should err
+    adapter
+        .call_as(&sub_account.address()?)
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                account_address: Some(account_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![chain.addr_make("345").to_string()],
+                    to_remove: vec![],
+                },
+            }),
+            &[],
+        )
+        .unwrap_err();
+
+    // Not admin or account
     let err: MockError = adapter
         .call_as(&who)
         .execute(
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
-                account_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],

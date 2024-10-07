@@ -4,7 +4,7 @@
 use abstract_app::mock::MockInitMsg;
 use abstract_framework_clone_testing::common;
 use abstract_integration_tests::account::mock_app::{MockApp, APP_VERSION};
-use abstract_interface::{Abstract, AccountI, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_interface::{Abstract, AccountI, AppDeployer, DeployStrategy, RegistryExecFns};
 use abstract_std::objects::gov_type::GovernanceDetails;
 use abstract_testing::prelude::*;
 use anyhow::Ok;
@@ -15,7 +15,7 @@ fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let (deployment, chain) = common::setup(JUNO_1)?;
     deployment.migrate_if_version_changed()?;
-    deployment.version_control.update_config(None, Some(true))?;
+    deployment.registry.update_config(None, Some(true))?;
     Ok((deployment, chain))
 }
 
@@ -23,10 +23,10 @@ fn setup_migrate_allowed_direct_module_registration(
 fn migrate_infra_success() -> anyhow::Result<()> {
     let (abstr_deployment, _) = common::setup(JUNO_1)?;
 
-    let pre_code_id = abstr_deployment.version_control.code_id()?;
+    let pre_code_id = abstr_deployment.registry.code_id()?;
     let migrated = abstr_deployment.migrate_if_version_changed()?;
     if migrated {
-        assert_ne!(abstr_deployment.version_control.code_id()?, pre_code_id);
+        assert_ne!(abstr_deployment.registry.code_id()?, pre_code_id);
     } else {
         // Just so there's something in the log,
         // for the opposite case since this test can be inconsistent
@@ -73,12 +73,10 @@ fn old_account_functions() -> anyhow::Result<()> {
     if migrated {
         // Claim namespace
         abstr_deployment
-            .version_control
+            .registry
             .claim_namespace(old_account.id()?, "tester".to_owned())?;
         // Allow registration
-        abstr_deployment
-            .version_control
-            .update_config(None, Some(true))?;
+        abstr_deployment.registry.update_config(None, Some(true))?;
         // Try to install
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
@@ -95,7 +93,7 @@ mod account {
     use abstract_integration_tests::account::{
         account_install_app, account_move_ownership_to_sub_account,
         create_account_with_installed_module_monetization_and_init_funds,
-        create_sub_account_with_modules_installed, install_app_with_proxy_action,
+        create_sub_account_with_modules_installed, install_app_with_account_action,
         installing_one_adapter_with_fee_should_succeed, uninstall_modules,
         update_adapter_with_authorized_addrs, with_response_data,
     };
@@ -122,10 +120,10 @@ mod account {
     }
 
     #[test]
-    fn install_app_with_proxy_action_after_migrate() -> anyhow::Result<()> {
+    fn install_app_with_account_action_after_migrate() -> anyhow::Result<()> {
         let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
 
-        install_app_with_proxy_action(chain)
+        install_app_with_account_action(chain)
     }
 
     #[test]

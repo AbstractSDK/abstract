@@ -4,12 +4,12 @@ use abstract_std::{
         module_reference::ModuleReference,
         module_version::MODULE,
         namespace::Namespace,
-        version_control::VersionControlContract,
+        registry::RegistryContract,
         AccountId,
     },
-    version_control::{ModuleConfiguration, ModuleResponse, NamespaceResponse, NamespacesResponse},
+    registry::{ModuleConfiguration, ModuleResponse, NamespaceResponse, NamespacesResponse},
 };
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::{Addr, Deps, Env};
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
@@ -21,7 +21,7 @@ use crate::{
 /// Access the Abstract Version Control and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification {
     /**
-        API for querying module information from the Abstract version control contract.
+        API for querying module information from the Abstract registry contract.
 
         # Example
         ```
@@ -36,8 +36,12 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
         ```
     */
-    fn module_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<ModuleRegistry<Self>> {
-        let vc = self.abstract_registry(deps)?;
+    fn module_registry<'a>(
+        &'a self,
+        deps: Deps<'a>,
+        env: &Env,
+    ) -> AbstractSdkResult<ModuleRegistry<Self>> {
+        let vc = self.abstract_registry(deps, env)?;
         Ok(ModuleRegistry {
             base: self,
             deps,
@@ -65,7 +69,7 @@ impl<'a, T: ModuleRegistryInterface> ApiIdentification for ModuleRegistry<'a, T>
 
 #[derive(Clone)]
 /**
-    API for querying module information from the Abstract version control contract.
+    API for querying module information from the Abstract registry contract.
 
     # Example
     ```
@@ -83,7 +87,7 @@ impl<'a, T: ModuleRegistryInterface> ApiIdentification for ModuleRegistry<'a, T>
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
     base: &'a T,
     deps: Deps<'a>,
-    vc: VersionControlContract,
+    vc: RegistryContract,
 }
 
 impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {

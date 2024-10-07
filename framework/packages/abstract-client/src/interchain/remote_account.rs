@@ -5,7 +5,7 @@
 
 use abstract_interface::{
     Abstract, AccountDetails, AccountI, AccountQueryFns as _, DependencyCreation, IbcClient,
-    InstallConfig, RegisteredModule, VCQueryFns as _,
+    InstallConfig, RegisteredModule, RegistryQueryFns as _,
 };
 use abstract_std::{
     account::{
@@ -72,7 +72,7 @@ impl<Chain: IbcQueryHandler> Account<Chain> {
         // Check it exists first
         let remote_account_response =
             ibc_client.remote_account(account_id.clone(), host_chain_name.clone())?;
-        if remote_account_response.remote_proxy_addr.is_none() {
+        if remote_account_response.remote_account_addr.is_none() {
             return Err(AbstractClientError::RemoteAccountNotFound {
                 account_id,
                 chain: host_chain_name,
@@ -245,14 +245,14 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         self.abstr_owner_account.environment().clone()
     }
 
-    /// Address of the account (proxy)
+    /// Address of the account
     pub fn address(&self) -> AbstractClientResult<Addr> {
         let base_response = self
             .host_abstract()?
-            .version_control
+            .registry
             .account(self.remote_account_id.clone())?;
 
-        Ok(base_response.account_base.addr().clone())
+        Ok(base_response.account.addr().clone())
     }
 
     /// Query account balance of a given denom
@@ -341,11 +341,11 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
 
     /// Upgrades the account to the latest version
     ///
-    /// Migrates manager and proxy contracts to their respective new versions.
+    /// Migrates account to its respective new versions.
     /// Note that execution will be done through source chain
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let modules = vec![(
-            ModuleInfo::from_id(abstract_std::registry::ACCOUNT, version.clone())?,
+            ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
             Some(
                 to_json_binary(&abstract_std::account::MigrateMsg {})
                     .map_err(Into::<CwOrchError>::into)?,
@@ -377,18 +377,16 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
             .map_err(Into::into)
     }
 
-    /// Executes a [`CosmosMsg`] on the proxy of the account.
+    /// Executes a [`CosmosMsg`] on the account.
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
-        self.execute_on_account(vec![abstract_std::account::ExecuteMsg::ModuleAction {
-            msgs,
-        }])
+        self.execute_on_account(vec![abstract_std::account::ExecuteMsg::Execute { msgs }])
     }
 
-    /// Executes a list of [manager::ExecuteMsg] on the manager of the account.
+    /// Executes a list of [account::ExecuteMsg] on the account.
     pub fn execute_on_account(
         &self,
         account_msgs: Vec<account::ExecuteMsg>,
@@ -414,7 +412,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         Ok(response)
     }
 
-    /// Deposit funds to the manager of the account with IBC transfer
+    /// Deposit funds to the account of the account with IBC transfer
     pub fn deposit(
         &self,
         funds: Vec<Coin>,
@@ -429,7 +427,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
 
     /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
-        let manager = self.address()?;
+        let account = self.address()?;
 
         let mut module_infos: Vec<AccountModuleInfo> = vec![];
         loop {
@@ -443,7 +441,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
                         start_after: last_module_id,
                         limit: None,
                     },
-                    &manager,
+                    &account,
                 )
                 .map_err(Into::into)?;
             if res.module_infos.is_empty() {
@@ -459,23 +457,23 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         &self,
         ids: Vec<String>,
     ) -> AbstractClientResult<ModuleAddressesResponse> {
-        let manager = self.address()?;
+        let account = self.address()?;
 
         self.host_chain()
-            .query(&account::QueryMsg::ModuleAddresses { ids }, &manager)
+            .query(&account::QueryMsg::ModuleAddresses { ids }, &account)
             .map_err(Into::into)
             .map_err(Into::into)
     }
 
     /// Check if module installed on account
     pub fn module_installed(&self, id: ModuleId) -> AbstractClientResult<bool> {
-        let manager = self.address()?;
+        let account = self.address()?;
 
         let key = account::state::ACCOUNT_MODULES.key(id).to_vec();
         let maybe_module_addr = self
             .host_chain()
             .wasm_querier()
-            .raw_query(&manager, key)
+            .raw_query(&account, key)
             .map_err(Into::into)?;
         Ok(!maybe_module_addr.is_empty())
     }
@@ -560,7 +558,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
 }
 
 impl<Chain: MutCwEnv + IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC> {
-    /// Set balance for the Proxy
+    /// Set balance for the Account
     pub fn set_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.host_chain()
             .set_balance(&self.address()?, amount.to_vec())
@@ -568,7 +566,7 @@ impl<Chain: MutCwEnv + IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount
             .map_err(Into::into)
     }
 
-    /// Add balance to the Proxy
+    /// Add balance to the Account
     pub fn add_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.host_chain()
             .add_balance(&self.address()?, amount.to_vec())

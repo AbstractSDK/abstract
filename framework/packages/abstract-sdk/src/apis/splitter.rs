@@ -1,6 +1,6 @@
 #![allow(unused)]
 use abstract_std::objects::AnsAsset;
-use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, StdResult, Uint128};
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
@@ -11,8 +11,12 @@ use crate::{
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
 pub trait SplitterInterface: TransferInterface + AccountExecutor + ModuleIdentification {
-    fn splitter<'a>(&'a self, deps: Deps<'a>) -> Splitter<Self> {
-        Splitter { base: self, deps }
+    fn splitter<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> Splitter<Self> {
+        Splitter {
+            base: self,
+            deps,
+            env,
+        }
     }
 }
 
@@ -38,6 +42,7 @@ impl<'a, T: SplitterInterface> ApiIdentification for Splitter<'a, T> {
 pub struct Splitter<'a, T: SplitterInterface> {
     base: &'a T,
     deps: Deps<'a>,
+    env: &'a Env,
 }
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
@@ -52,7 +57,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
         };
 
         // Retrieve the bank API
-        let bank = self.base.bank(self.deps);
+        let bank = self.base.bank(self.deps, self.env);
         receivers
             .iter()
             .map(|receiver| {
@@ -76,7 +81,10 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::objects::AnsAsset;
     use abstract_testing::{abstract_mock_querier_builder, prelude::*};
-    use cosmwasm_std::{testing::mock_dependencies, Addr, CosmosMsg, Response, StdError, Uint128};
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env},
+        Addr, CosmosMsg, Response, StdError, Uint128,
+    };
 
     use crate::{
         apis::splitter::SplitterInterface, mock_module::MockModule, AbstractSdkError, Execution,
@@ -85,7 +93,7 @@ mod test {
 
     fn split() -> Result<Response, AbstractSdkError> {
         let mut deps = mock_dependencies();
-        let account = test_account_base(deps.api);
+        let account = test_account(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
             .account(&account, TEST_ACCOUNT_ID)
             .build();
@@ -102,7 +110,9 @@ mod test {
             deps.api.addr_make("receiver3"),
         ];
 
-        let split_funds = module.splitter(deps.as_ref()).split(asset, &receivers)?;
+        let split_funds = module
+            .splitter(deps.as_ref(), &mock_env_validated(deps.api))
+            .split(asset, &receivers)?;
         assert_eq!(split_funds.messages().len(), 3);
 
         let msg: ExecutorMsg = module.executor(deps.as_ref()).execute(vec![split_funds])?;

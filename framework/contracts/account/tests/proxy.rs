@@ -13,7 +13,7 @@ use abstract_std::{
         ownership::{self},
         AccountId, ABSTRACT_ACCOUNT_ID,
     },
-    version_control::{NamespaceResponse, UpdateModule},
+    registry::{NamespaceResponse, UpdateModule},
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
@@ -81,13 +81,13 @@ fn instantiate() -> AResult {
 
     let modules = account.module_infos(None, None)?.module_infos;
 
-    // assert proxy module
+    // assert account module
     assert_that!(&modules).has_length(0);
 
     // assert account config
     assert_that!(account.config()?).is_equal_to(abstract_std::account::ConfigResponse {
         whitelisted_addresses: vec![],
-        version_control_address: deployment.version_control.address()?,
+        registry_address: deployment.registry.address()?,
         module_factory_address: deployment.module_factory.address()?,
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
@@ -104,23 +104,26 @@ fn exec_on_account() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
-    // Mint coins to proxy address
+    // Mint coins to account address
     chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
 
-    let proxy_balance = chain.bank_querier().balance(&account.address()?, None)?;
+    let account_balance = chain.bank_querier().balance(&account.address()?, None)?;
 
-    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000u128, TTOKEN)]);
+    assert_that!(account_balance).is_equal_to(vec![Coin::new(100_000u128, TTOKEN)]);
 
     let burn_amount = vec![Coin::new(10_000u128, TTOKEN)];
 
-    // Burn coins from proxy
-    account.module_action(vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
-        amount: burn_amount,
-    })])?;
+    // Burn coins from account
+    account.execute_msgs(
+        vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
+            amount: burn_amount,
+        })],
+        &[],
+    )?;
 
     // Assert balance has decreased
-    let proxy_balance = chain.bank_querier().balance(&account.address()?, None)?;
-    assert_that!(proxy_balance).is_equal_to(vec![Coin::new((100_000 - 10_000) as u128, TTOKEN)]);
+    let account_balance = chain.bank_querier().balance(&account.address()?, None)?;
+    assert_that!(account_balance).is_equal_to(vec![Coin::new((100_000 - 10_000) as u128, TTOKEN)]);
     take_storage_snapshot!(chain, "exec_on_account");
 
     Ok(())
@@ -153,7 +156,7 @@ fn with_response_data() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
     abstract_integration_tests::account::with_response_data(chain.clone())?;
-    take_storage_snapshot!(chain, "proxy_with_response_data");
+    take_storage_snapshot!(chain, "account_with_response_data");
 
     Ok(())
 }
@@ -180,7 +183,7 @@ fn install_standalone_modules() -> AResult {
     let standalone2_id = chain.app.borrow_mut().store_code(standalone2_contract);
 
     // install first standalone
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("abstract")?,
             name: "standalone1".to_owned(),
@@ -192,7 +195,7 @@ fn install_standalone_modules() -> AResult {
     account.install_module("abstract:standalone1", Some(&MockInitMsg {}), &[])?;
 
     // install second standalone
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("abstract")?,
             name: "standalone2".to_owned(),
@@ -202,7 +205,7 @@ fn install_standalone_modules() -> AResult {
     )])?;
 
     account.install_module("abstract:standalone2", Some(&MockInitMsg {}), &[])?;
-    take_storage_snapshot!(chain, "proxy_install_standalone_modules");
+    take_storage_snapshot!(chain, "account_install_standalone_modules");
     Ok(())
 }
 
@@ -221,7 +224,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let standalone1_id = chain.app.borrow_mut().store_code(standalone1_contract);
 
     // install first standalone
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("abstract")?,
             name: "standalone1".to_owned(),
@@ -274,7 +277,7 @@ fn install_multiple_modules() -> AResult {
     let standalone2_id = chain.app.borrow_mut().store_code(standalone2_contract);
 
     // install both standalone
-    deployment.version_control.propose_modules(vec![
+    deployment.registry.propose_modules(vec![
         (
             ModuleInfo {
                 namespace: Namespace::new("abstract")?,
@@ -295,7 +298,7 @@ fn install_multiple_modules() -> AResult {
 
     // add monetization on module1
     let monetization = Monetization::InstallFee(FixedFee::new(&coin(42, "token1")));
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "standalone1".to_owned(),
         Namespace::new("abstract").unwrap(),
         UpdateModule::Versioned {
@@ -307,7 +310,7 @@ fn install_multiple_modules() -> AResult {
     )?;
 
     // add init funds on module2
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "standalone2".to_owned(),
         Namespace::new("abstract").unwrap(),
         UpdateModule::Versioned {
@@ -387,7 +390,7 @@ fn install_multiple_modules() -> AResult {
 
     assert!(s1_balance.is_empty());
     assert_eq!(s2_balance, vec![coin(42, "token1"), coin(500, "token2")]);
-    take_storage_snapshot!(chain, "proxy_install_multiple_modules");
+    take_storage_snapshot!(chain, "account_install_multiple_modules");
 
     Ok(())
 }
@@ -414,16 +417,12 @@ fn renounce_cleans_namespace() -> AResult {
         &[],
     )?;
 
-    let namespace_result = deployment
-        .version_control
-        .namespace(Namespace::unchecked("bar"));
+    let namespace_result = deployment.registry.namespace(Namespace::unchecked("bar"));
     assert!(namespace_result.is_ok());
 
     account.update_ownership(ownership::GovAction::RenounceOwnership)?;
 
-    let namespace_result = deployment
-        .version_control
-        .namespace(Namespace::unchecked("bar"))?;
+    let namespace_result = deployment.registry.namespace(Namespace::unchecked("bar"))?;
     assert_eq!(namespace_result, NamespaceResponse::Unclaimed {});
 
     // Governance is in fact renounced
@@ -471,8 +470,8 @@ fn renounce_cleans_namespace() -> AResult {
 //     // fund nft account
 //     chain.set_balance(&account.address()?, start_balance.clone())?;
 
-//     // test sending msg as nft account by burning tokens from proxy
-//     let burn_msg = abstract_std::account::ExecuteMsg::ModuleAction {
+//     // test sending msg as nft account by burning tokens from account
+//     let burn_msg = abstract_std::account::ExecuteMsg::Execute {
 //         msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
 //             amount: burn_amount,
 //         })],
@@ -793,7 +792,7 @@ fn increment_not_effected_by_claiming() -> AResult {
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
-    let next_account_id = deployment.version_control.config()?.local_account_sequence;
+    let next_account_id = deployment.registry.config()?.local_account_sequence;
     assert_eq!(next_account_id, 1);
 
     AccountI::create(
@@ -812,7 +811,7 @@ fn increment_not_effected_by_claiming() -> AResult {
         &[],
     )?;
 
-    let next_account_id = deployment.version_control.config()?.local_account_sequence;
+    let next_account_id = deployment.registry.config()?.local_account_sequence;
     assert_eq!(next_account_id, 1);
 
     // create new account
@@ -823,7 +822,7 @@ fn increment_not_effected_by_claiming() -> AResult {
         },
     )?;
 
-    let next_account_id = deployment.version_control.config()?.local_account_sequence;
+    let next_account_id = deployment.registry.config()?.local_account_sequence;
     assert_eq!(next_account_id, 2);
 
     Ok(())

@@ -308,7 +308,7 @@ mod test {
         ans_host::*,
         objects::{pool_id::PoolAddressBase, PoolType, TruncatedChainId},
     };
-    use abstract_testing::addresses::AbstractMockAddrs;
+    use abstract_testing::{addresses::AbstractMockAddrs, mock_env_validated};
     use cosmwasm_std::{from_json, testing::*, Addr, DepsMut, OwnedDeps};
     use cw_asset::AssetInfo;
     use speculoos::prelude::*;
@@ -320,12 +320,18 @@ mod test {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
+        let env = mock_env_validated(deps.api);
 
-        instantiate(deps.as_mut(), mock_env(), info, InstantiateMsg { admin })
+        instantiate(deps.as_mut(), env, info, InstantiateMsg { admin })
     }
 
-    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
-        let res = contract::query(deps, mock_env(), msg)?;
+    fn query_helper(
+        deps: &OwnedDeps<MockStorage, MockApi, MockQuerier>,
+        msg: QueryMsg,
+    ) -> StdResult<Binary> {
+        let env = mock_env_validated(deps.api as MockApi);
+
+        let res = contract::query(deps.as_ref(), env, msg)?;
         Ok(res)
     }
 
@@ -600,7 +606,7 @@ mod test {
             names: vec!["bar".to_string(), "foo".to_string()],
         };
         // send query message
-        let res: AssetsResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetsResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = create_asset_response(create_test_assets(
@@ -630,7 +636,7 @@ mod test {
         let msg = QueryMsg::Contracts {
             entries: create_contract_entry(vec![("foo", "foo")]),
         };
-        let res: ContractsResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: ContractsResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = ContractsResponse {
@@ -664,7 +670,7 @@ mod test {
 
         // create and send and deserialise msg
         let msg = create_channel_msg(vec![("foo", "foo")]);
-        let res: ChannelsResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: ChannelsResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = ChannelsResponse {
@@ -705,15 +711,15 @@ mod test {
 
         // return all entries
         let msg = query_asset_list_msg("".to_string(), 42);
-        let res: AssetListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // limit response to 1st result - entries are stored alphabetically
         let msg = query_asset_list_msg("".to_string(), 1);
-        let res_first_entry: AssetListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_first_entry: AssetListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // results after specified entry
         let msg = query_asset_list_msg("foo".to_string(), 1);
-        let res_of_foobar: AssetListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_of_foobar: AssetListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = create_asset_list_response(create_test_assets(
@@ -771,7 +777,7 @@ mod test {
         update_asset_addresses(deps.as_mut(), test_assets_large)?;
 
         let msg = query_asset_list_msg("".to_string(), 42);
-        let res: AssetListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetListResponse = from_json(query_helper(&deps, msg)?)?;
         assert!(res.assets.len() == 25_usize);
 
         // Assert that despite 30 entries the returned data is capped at the `MAX_LIMIT` of 25 results
@@ -805,7 +811,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res: ContractListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: ContractListResponse = from_json(query_helper(&deps, msg)?)?;
 
         let msg = QueryMsg::ContractList {
             start_after: Some(ContractEntry {
@@ -815,7 +821,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_expect_foo: ContractListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_expect_foo: ContractListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = ContractListResponse {
@@ -870,7 +876,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_all = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_all = from_json(query_helper(&deps, msg)?)?;
 
         // Filter for entries after `Foo` - Alphabetically
         let msg = QueryMsg::ChannelList {
@@ -881,7 +887,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_foobar = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_foobar = from_json(query_helper(&deps, msg)?)?;
 
         // Return first entry - Alphabetically
         let msg = QueryMsg::ChannelList {
@@ -889,7 +895,7 @@ mod test {
             limit: Some(1_u8),
             filter: None,
         };
-        let res_bar = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_bar = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
 
@@ -934,7 +940,7 @@ mod test {
         // create msg
         let msg = QueryMsg::RegisteredDexes {};
         // deserialize response
-        let res: RegisteredDexesResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: RegisteredDexesResponse = from_json(query_helper(&deps, msg)?)?;
 
         // comparisons
         let expected = RegisteredDexesResponse {
@@ -961,7 +967,7 @@ mod test {
         let msg = QueryMsg::Pools {
             pairings: vec![create_dex_asset_pairing("btc", "eth", "foo")],
         };
-        let res: PoolsResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: PoolsResponse = from_json(query_helper(&deps, msg)?)?;
         //comparisons
         let expected = ASSET_PAIRINGS
             .load(
@@ -999,14 +1005,14 @@ mod test {
             None,
             None,
         )?;
-        let res_bar: PoolsResponse = from_json(query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolsResponse = from_json(query_helper(&deps, msg_bar)?)?;
 
         let msg_foo = create_pool_list_msg(
             Some(create_asset_pairing_filter("juno", "atom", None)?),
             None,
             Some(42),
         )?;
-        let res_foo: PoolsResponse = from_json(query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolsResponse = from_json(query_helper(&deps, msg_foo)?)?;
 
         let msg_foo_using_start_after = create_pool_list_msg(
             Some(AssetPairingFilter {
@@ -1017,7 +1023,7 @@ mod test {
             Some(42),
         )?;
         let res_foo_using_start_after: PoolsResponse =
-            from_json(query_helper(deps.as_ref(), msg_foo_using_start_after)?)?;
+            from_json(query_helper(&deps, msg_foo_using_start_after)?)?;
 
         // create comparisons - bar / foo / all
         let expected_bar =
@@ -1050,7 +1056,7 @@ mod test {
         };
         // comparison all
         let msg_all = create_pool_list_msg(None, None, Some(42))?;
-        let res_all: PoolsResponse = from_json(query_helper(deps.as_ref(), msg_all)?)?;
+        let res_all: PoolsResponse = from_json(query_helper(&deps, msg_all)?)?;
 
         // assert
         assert_eq!(&res_bar, &expected_bar);
@@ -1079,12 +1085,12 @@ mod test {
         let msg_bar = QueryMsg::PoolMetadatas {
             ids: vec![UniquePoolId::new(42)],
         };
-        let res_bar: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolMetadatasResponse = from_json(query_helper(&deps, msg_bar)?)?;
 
         let msg_foo = QueryMsg::PoolMetadatas {
             ids: vec![UniquePoolId::new(69)],
         };
-        let res_foo: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolMetadatasResponse = from_json(query_helper(&deps, msg_foo)?)?;
 
         // create comparisons
         let expected_bar = PoolMetadatasResponse {
@@ -1131,7 +1137,7 @@ mod test {
             start_after: None,
             limit: None,
         };
-        let res_bar: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolMetadatasResponse = from_json(query_helper(&deps, msg_bar)?)?;
         let expected_bar = PoolMetadatasResponse {
             metadatas: vec![(bar_key, bar_metadata.clone())],
         };
@@ -1149,7 +1155,7 @@ mod test {
             start_after: None,
             limit: Some(42),
         };
-        let res_both: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_both)?)?;
+        let res_both: PoolMetadatasResponse = from_json(query_helper(&deps, msg_both)?)?;
 
         let expected_both = PoolMetadatasResponse {
             metadatas: vec![
@@ -1167,7 +1173,7 @@ mod test {
             start_after: Some(bar_key),
             limit: Some(42),
         };
-        let res_foo: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolMetadatasResponse = from_json(query_helper(&deps, msg_foo)?)?;
 
         let expected_foo = PoolMetadatasResponse {
             metadatas: vec![(foo_key, foo_metadata)],

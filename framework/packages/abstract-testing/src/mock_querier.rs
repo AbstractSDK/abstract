@@ -416,7 +416,7 @@ mod tests {
     use abstract_std::{
         account::state::{ACCOUNT_ID, ACCOUNT_MODULES},
         objects::ABSTRACT_ACCOUNT_ID,
-        version_control::state::ACCOUNT_ADDRESSES,
+        registry::state::ACCOUNT_ADDRESSES,
     };
 
     use super::*;
@@ -424,7 +424,7 @@ mod tests {
 
     mod account {
 
-        use abstract_std::version_control::Account;
+        use abstract_std::registry::Account;
 
         use crate::abstract_mock_querier_builder;
 
@@ -438,7 +438,7 @@ mod tests {
 
             let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
-                abstr.version_control,
+                abstr.registry,
                 &ABSTRACT_ACCOUNT_ID,
             );
 
@@ -450,19 +450,19 @@ mod tests {
         #[test]
         fn should_return_account_address() {
             let mut deps = mock_dependencies();
-            let account_base = Account::new(deps.api.addr_make("my_account"));
+            let account = Account::new(deps.api.addr_make("my_account"));
             deps.querier = abstract_mock_querier_builder(deps.api)
-                .account(&account_base, TEST_ACCOUNT_ID)
+                .account(&account, TEST_ACCOUNT_ID)
                 .build();
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
-                abstr.version_control,
+                abstr.registry,
                 &TEST_ACCOUNT_ID,
             );
 
-            assert_eq!(actual, Ok(Some(account_base)));
+            assert_eq!(actual, Ok(Some(account)));
         }
     }
 
@@ -547,7 +547,7 @@ mod tests {
         #[test]
         fn should_return_test_acct_id() {
             let mut deps = mock_dependencies();
-            let test_base = test_account_base(deps.api);
+            let test_base = test_account(deps.api);
             deps.querier = abstract_mock_querier_builder(deps.api)
                 .account(&test_base, TEST_ACCOUNT_ID)
                 .build();
@@ -583,7 +583,7 @@ mod tests {
         //
         //     let actual = ACCOUNT_MODULES.query(
         //         &wrap_querier(&deps.querier),
-        //         Addr::unchecked(TEST_MANAGER),
+        //         Addr::unchecked(TEST_ACCOUNT),
         //         "unknown_module",
         //     );
         //

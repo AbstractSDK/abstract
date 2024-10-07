@@ -15,7 +15,7 @@ use abstract_std::{
         namespace::Namespace,
         ownership,
     },
-    version_control::UpdateModule,
+    registry::UpdateModule,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
@@ -43,7 +43,7 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
     let account = crate::create_default_account(&chain.sender_addr(), &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(account.id()?, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain.clone());
@@ -164,7 +164,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
     let standalone = standalone_cw2::StandaloneCw2::new_test(chain.clone());
     standalone.upload()?;
 
-    deployment.version_control.propose_modules(vec![(
+    deployment.registry.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("tester")?,
             name: "standalone".to_owned(),
@@ -174,7 +174,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
     )])?;
 
     // Add init_funds
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "mock-app1".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -184,7 +184,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             instantiation_funds: Some(vec![coin(3, coin1), coin(5, coin2)]),
         },
     )?;
-    deployment.version_control.update_module_configuration(
+    deployment.registry.update_module_configuration(
         "standalone".to_owned(),
         Namespace::new("tester").unwrap(),
         UpdateModule::Versioned {
@@ -264,7 +264,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
+        // we attach 1 extra coin1 and 5 extra coin2, rest should go to account
         &[coin(18, coin1), coin(20, coin2)],
     )
     .unwrap();
@@ -276,7 +276,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
     Ok(())
 }
 
-pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
+pub fn install_app_with_account_action<T: MutCwEnv>(mut chain: T) -> AResult {
     let abstr = Abstract::load_from(chain.clone())?;
     let account = AccountI::create_default_account(
         &abstr,
@@ -285,7 +285,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
         },
     )?;
     abstr
-        .version_control
+        .registry
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -295,7 +295,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     // install adapter 2
     let adapter2 = install_module_version(&account, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
-    // Add balance to proxy so
+    // Add balance to account so
     // app will transfer funds to adapter1 addr during instantiation
     chain
         .add_balance(&account.address()?, coins(123456, "TEST"))
@@ -316,7 +316,7 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
     let abstr = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
     abstr
-        .version_control
+        .registry
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -362,7 +362,7 @@ pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
     let account = create_default_account(&chain.sender_addr(), &deployment)?;
 
     deployment
-        .version_control
+        .registry
         .claim_namespace(account.id()?, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
@@ -421,9 +421,9 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 
     install_adapter(&account, TEST_MODULE_ID)?;
 
-    let account_address = account.address()?;
-    staking_adapter.call_as(&account_address).execute(
-        &abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Base(
+    account.admin_execute(
+        staking_adapter.address()?,
+        to_json_binary(&abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Base(
             abstract_std::adapter::BaseExecuteMsg {
                 account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -431,8 +431,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
                     to_remove: vec![],
                 },
             },
-        ),
-        &[],
+        ))?,
     )?;
 
     chain
@@ -442,8 +441,8 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
     let adapter_addr = account
         .module_info(TEST_MODULE_ID)?
         .expect("test module installed");
-    // proxy should be final executor because of the reply
-    let resp = account.module_action_with_data(
+    // account should be final executor because of the reply
+    let resp = account.execute_with_data(
         wasm_execute(
             adapter_addr.address,
             &abstract_std::adapter::ExecuteMsg::<MockExecMsg>::Module(AdapterRequestMsg {
@@ -453,6 +452,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
             vec![],
         )?
         .into(),
+        &[],
     )?;
 
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
@@ -485,12 +485,17 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     let new_account_account = new_account.address()?;
     let new_account_id = new_account.id()?;
 
-    sub_account.module_action(vec![wasm_execute(
-        new_account_account,
-        &abstract_std::account::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
-        vec![],
-    )?
-    .into()])?;
+    sub_account.execute_msgs(
+        vec![wasm_execute(
+            new_account_account,
+            &abstract_std::account::ExecuteMsg::<Empty>::UpdateOwnership(
+                ownership::GovAction::AcceptOwnership,
+            ),
+            vec![],
+        )?
+        .into()],
+        &[],
+    )?;
 
     // sub-accounts state updated
     let sub_ids = sub_account.sub_account_ids(None, None)?;

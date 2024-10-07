@@ -19,6 +19,11 @@ pub mod account {
     pub const ACCOUNT_ID: &str = "ag";
     pub const INSTALL_MODULES_CONTEXT: &str = "ah";
     pub const MIGRATE_CONTEXT: &str = "ai";
+    pub const CALLING_TO_AS_ADMIN: &str = "aj";
+
+    // XION authentificators, could be there could be not
+    pub const AUTH_ADMIN: &str = "ax";
+    pub const AUTHENTICATORS: &str = "az";
 }
 
 pub mod ans_host {
@@ -31,7 +36,7 @@ pub mod ans_host {
     pub const POOL_METADATA: &str = "bg";
 }
 
-pub mod version_control {
+pub mod registry {
     pub const PENDING_MODULES: &str = "ca";
     pub const REGISTERED_MODULES: &str = "cb";
     pub const STANDALONE_INFOS: &str = "cc";

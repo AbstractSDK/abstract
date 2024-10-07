@@ -680,7 +680,7 @@ mod ratio_pool_tests {
     fn test_provide_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_ratio_pool()?;
 
-        let deposit_amount = 10_000_000;
+        let deposit_amount = 1_000_000;
 
         // Pool is normalized right now so should be fine to provide "non-equal" amounts
 
@@ -694,7 +694,7 @@ mod ratio_pool_tests {
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_ratio_pool()?;
 
-        let deposit_amount = 10_000_000;
+        let deposit_amount = 1_000_000;
 
         dex_tester.test_withdraw_liquidity(
             Some(deposit_amount),

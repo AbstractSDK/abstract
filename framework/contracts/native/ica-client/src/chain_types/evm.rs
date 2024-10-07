@@ -1,6 +1,6 @@
 use abstract_ica::EVM_NOTE_ID;
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     Resolve,
 };
 use abstract_std::objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId};
@@ -13,7 +13,7 @@ use crate::{contract::IcaClientResult, error::IcaClientError, queries::PACKET_LI
 
 pub fn execute(
     querier: &QuerierWrapper,
-    vc: &VersionControlContract,
+    vc: &RegistryContract,
     msgs: Vec<EvmMsg<String>>,
     callback: Option<CallbackRequest>,
 ) -> IcaClientResult<WasmMsg> {
@@ -43,8 +43,8 @@ pub fn send_funds(
     let receiver: HexBinary = match receiver {
         Some(r) => r.into(),
         None => {
-            let version_control = VersionControlContract::new(deps.api)?;
-            let note_addr = evm_note_addr(&version_control, &deps.querier)?;
+            let registry = RegistryContract::new(deps.api, env)?;
+            let note_addr = evm_note_addr(&registry, &deps.querier)?;
 
             // TODO: could be turned into raw query!
             // If state objects will be public on evm_note
@@ -62,7 +62,7 @@ pub fn send_funds(
         }
     };
 
-    let ans_host = AnsHost::new(deps.api)?;
+    let ans_host = AnsHost::new(deps.api, env)?;
 
     // Resolve the transfer channel id for the given chain
     let ucs_channel_entry = ChannelEntry {
@@ -94,7 +94,7 @@ pub fn send_funds(
     Ok(forwarder_msg)
 }
 
-fn evm_note_addr(vc: &VersionControlContract, querier: &QuerierWrapper) -> IcaClientResult<Addr> {
+fn evm_note_addr(vc: &RegistryContract, querier: &QuerierWrapper) -> IcaClientResult<Addr> {
     let evm_note_entry =
         ModuleInfo::from_id(EVM_NOTE_ID, abstract_ica::POLYTONE_EVM_VERSION.parse()?)?;
 

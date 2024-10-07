@@ -8,7 +8,7 @@ use crate::{
     ibc_host::HostAction,
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
-        version_control::VersionControlContract, TruncatedChainId,
+        registry::RegistryContract, TruncatedChainId,
     },
     AbstractError,
 };
@@ -43,7 +43,7 @@ pub mod state {
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> =
         Map::new(storage_namespaces::ibc_client::REVERSE_POLYTONE_NOTE);
 
-    /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
+    /// (account_trace, account_sequence, chain_name) -> remote account address. We use a
     /// triple instead of including AccountId since nested tuples do not behave as expected due to
     /// a bug that will be fixed in a future release.
     pub const ACCOUNTS: Map<(&AccountTrace, AccountSequence, &TruncatedChainId), String> =
@@ -55,10 +55,7 @@ pub mod state {
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg {
-    pub ans_host_address: String,
-    pub version_control_address: String,
-}
+pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum MigrateMsg {
@@ -83,7 +80,7 @@ pub enum ExecuteMsg {
         /// Address of the abstract host deployed on the remote chain
         host: String,
     },
-    /// Only callable by Account proxy
+    /// Only callable by Account
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
     SendFunds {
@@ -93,9 +90,9 @@ pub enum ExecuteMsg {
         funds: Vec<Coin>,
         memo: Option<String>,
     },
-    /// Only callable by Account proxy
+    /// Only callable by Account
     /// Register an Account on a remote chain over IBC
-    /// This action creates a proxy for them on the remote chain.
+    /// This action creates a account for them on the remote chain.
     Register {
         /// host chain to be executed on
         /// Example: "osmosis"
@@ -127,9 +124,9 @@ pub enum ExecuteMsg {
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback: Callback,
     },
-    /// Only callable by Account Proxy
+    /// Only callable by Account
     /// Action on remote ibc host
-    /// Which currently only support manager messages
+    /// Which currently only support account messages
     RemoteAction {
         /// host chain to be executed on
         /// Example: "osmosis"
@@ -211,9 +208,10 @@ impl InstalledModuleIdentification {
     pub fn addr(
         &self,
         deps: Deps,
-        vc: VersionControlContract,
+        registry: RegistryContract,
     ) -> Result<ModuleAddr, AbstractError> {
-        let target_module_resolved = vc.query_module(self.module_info.clone(), &deps.querier)?;
+        let target_module_resolved =
+            registry.query_module(self.module_info.clone(), &deps.querier)?;
 
         let no_account_id_error =
             StdError::generic_err("Account id not specified in installed module definition");
@@ -221,18 +219,18 @@ impl InstalledModuleIdentification {
         let target_addr = match &target_module_resolved.reference {
             ModuleReference::Account(code_id) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account_base = vc.account(&target_account_id, &deps.querier)?;
+                let account = registry.account(&target_account_id, &deps.querier)?;
 
                 if deps
                     .querier
-                    .query_wasm_contract_info(account_base.addr().as_str())?
+                    .query_wasm_contract_info(account.addr().as_str())?
                     .code_id
                     == *code_id
                 {
-                    account_base.into_addr()
+                    account.into_addr()
                 } else {
                     Err(StdError::generic_err(
-                        "Account base contract doesn't correspond to any of the proxy or manager",
+                        "Account contract doesn't correspond to code id of the account",
                     ))?
                 }
             }
@@ -241,10 +239,10 @@ impl InstalledModuleIdentification {
             | ModuleReference::Service(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account_base = vc.account(&target_account_id, &deps.querier)?;
+                let account = registry.account(&target_account_id, &deps.querier)?;
 
                 let module_info: account::ModuleAddressesResponse = deps.querier.query_wasm_smart(
-                    account_base.into_addr(),
+                    account.into_addr(),
                     &account::QueryMsg::ModuleAddresses {
                         ids: vec![self.module_info.id()],
                     },
@@ -290,7 +288,7 @@ pub enum QueryMsg {
         limit: Option<u32>,
     },
 
-    /// Get remote proxy address for one chain
+    /// Get remote account address for one chain
     /// Returns [`AccountResponse`]
     #[returns(AccountResponse)]
     #[cw_orch(fn_name("remote_account"))]
@@ -323,7 +321,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub ans_host: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -354,7 +352,7 @@ pub struct HostResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
-    pub remote_proxy_addr: Option<String>,
+    pub remote_account_addr: Option<String>,
 }
 
 #[cosmwasm_schema::cw_serde]

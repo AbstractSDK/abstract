@@ -1,12 +1,12 @@
-use abstract_std::{account::state::ACCOUNT_ID, version_control::Account};
+use abstract_std::{account::state::ACCOUNT_ID, registry::Account};
 use cosmwasm_std::Deps;
 
 use crate::std::objects::AccountId;
-// see std::proxy::state::ADMIN
+// see std::account::state::ADMIN
 use crate::AbstractSdkResult;
 
 /// Retrieve identifying information about an Account.
-/// This includes the manager, proxy, core and account_id.
+/// This includes the account and account_id.
 pub trait AccountIdentification: Sized {
     /// Get the account address
     fn account(&self, deps: Deps) -> AbstractSdkResult<Account>;
@@ -34,8 +34,8 @@ mod test {
 
     impl AccountIdentification for MockBinding {
         fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
-            let account_base = test_account_base(self.mock_api);
-            Ok(account_base)
+            let account = test_account(self.mock_api);
+            Ok(account)
         }
     }
 
@@ -49,19 +49,19 @@ mod test {
             let deps = mock_dependencies();
             let binding = MockBinding { mock_api: deps.api };
 
-            let account_base = test_account_base(deps.api);
+            let account = test_account(deps.api);
 
             let res = binding.account(deps.as_ref());
-            assert_that!(res).is_ok().is_equal_to(account_base);
+            assert_that!(res).is_ok().is_equal_to(account);
         }
 
         #[test]
         fn account_id() {
             let mut deps = mock_dependencies();
-            let account_base = test_account_base(deps.api);
+            let account = test_account(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(account_base.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_item(account.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding { mock_api: deps.api };

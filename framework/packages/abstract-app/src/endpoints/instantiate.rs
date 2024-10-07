@@ -1,4 +1,3 @@
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_std::{
     app::{AppState, BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
@@ -31,33 +30,19 @@ impl<
         info: MessageInfo,
         msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
-        let BaseInstantiateMsg {
-            ans_host_address,
-            version_control_address,
-            account_base,
-        } = msg.base;
+        let BaseInstantiateMsg { account } = msg.base;
 
         let module_msg = msg.module;
 
-        let ans_host = AnsHost {
-            address: deps.api.addr_validate(&ans_host_address)?,
-        };
-        let version_control = VersionControlContract {
-            address: deps.api.addr_validate(&version_control_address)?,
-        };
-
         // Base state
         let state = AppState {
-            account: account_base.clone(),
-            ans_host,
-            version_control,
+            account: account.clone(),
         };
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
-        self.admin
-            .set(deps.branch(), Some(account_base.into_addr()))?;
+        self.admin.set(deps.branch(), Some(account.into_addr()))?;
 
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new());
@@ -81,20 +66,19 @@ mod test {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let info = message_info(&abstr.module_factory, &[]);
+        let env = mock_env_validated(deps.api);
 
         deps.querier = app_base_mock_querier(deps.api).build();
 
         let msg = SuperInstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
-                account_base: abstr.account,
+                account: abstr.account,
             },
             module: MockInitMsg {},
         };
 
         let res = MOCK_APP_WITH_DEP
-            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .instantiate(deps.as_mut(), env, info, msg)
             .unwrap();
         assert!(res.messages.is_empty());
     }

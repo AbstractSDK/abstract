@@ -3,17 +3,14 @@
 //! `abstract_std::app` implements shared functionality that's useful for creating new Abstract apps.
 //!
 //! ## Description
-//! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
+//! An app is a contract that is allowed to perform actions on a [account](crate::account) contract while also being migratable.
 use crate::{
     base::{
         ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
         MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
     },
-    objects::{
-        ans_host::AnsHost, gov_type::TopLevelOwnerResponse, module_version::ModuleDataResponse,
-        version_control::VersionControlContract,
-    },
-    version_control::Account,
+    objects::{gov_type::TopLevelOwnerResponse, module_version::ModuleDataResponse},
+    registry::Account,
 };
 
 pub type ExecuteMsg<ModuleMsg = Empty> = EndpointExecMsg<BaseExecuteMsg, ModuleMsg>;
@@ -53,19 +50,14 @@ impl AppQueryMsg for Empty {}
 /// Used by Module Factory to instantiate App
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
-    pub ans_host_address: String,
-    pub version_control_address: String,
-    pub account_base: Account,
+    pub account: Account,
 }
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
 pub enum BaseExecuteMsg {
     /// Updates the base config
-    UpdateConfig {
-        ans_host_address: Option<String>,
-        version_control_address: Option<String>,
-    },
+    UpdateConfig {},
 }
 
 impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
@@ -104,7 +96,7 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
 pub struct AppConfigResponse {
     pub account: Addr,
     pub ans_host_address: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -113,10 +105,6 @@ pub struct BaseMigrateMsg {}
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[cosmwasm_schema::cw_serde]
 pub struct AppState {
-    /// Account contract address for proxying transactions
+    /// Account contract address for accounting transactions
     pub account: Account,
-    /// AnsHost contract struct (address)
-    pub ans_host: AnsHost,
-    /// Used to verify requests
-    pub version_control: VersionControlContract,
 }

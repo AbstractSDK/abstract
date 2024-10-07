@@ -3,7 +3,7 @@ use cw_asset::AssetError;
 use semver::Version;
 use thiserror::Error;
 
-use crate::objects::{ans_host::AnsHostError, version_control::VersionControlError};
+use crate::objects::{ans_host::AnsHostError, registry::RegistryError};
 
 /// Wrapper error for the Abstract framework.
 #[derive(Error, Debug, PartialEq)]
@@ -18,10 +18,19 @@ pub enum AbstractError {
     Overflow(#[from] OverflowError),
 
     #[error("{0}")]
-    VersionControlError(#[from] VersionControlError),
+    RegistryError(#[from] RegistryError),
 
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),
+
+    #[error("{0}")]
+    Bech32Encode(#[from] bech32::EncodeError),
+
+    #[error("{0}")]
+    HrpError(#[from] bech32::primitives::hrp::Error),
+
+    #[error("{0}")]
+    Instantiate2AddressError(#[from] cosmwasm_std::Instantiate2AddressError),
 
     #[error("Semver error encountered while handling account object: {0}")]
     Semver(String),

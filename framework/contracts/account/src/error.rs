@@ -1,6 +1,6 @@
 use abstract_sdk::{std::objects::module::ModuleInfo, AbstractSdkError};
 use abstract_std::{
-    objects::{validation::ValidationError, version_control::VersionControlError},
+    objects::{registry::RegistryError, validation::ValidationError},
     AbstractError,
 };
 use cosmwasm_std::{Instantiate2AddressError, StdError};
@@ -27,14 +27,14 @@ pub enum AccountError {
     Instantiate2AddressError(#[from] Instantiate2AddressError),
 
     #[error("{0}")]
-    VersionControlError(#[from] VersionControlError),
+    RegistryError(#[from] RegistryError),
 
     #[error("Your account is currently suspended")]
     AccountSuspended {},
 
     // ** Modules Error ** //
     #[error("Failed to query modules to install: {error}")]
-    QueryModulesFailed { error: VersionControlError },
+    QueryModulesFailed { error: RegistryError },
 
     #[error("Module with id: {0} is already installed")]
     ModuleAlreadyInstalled(String),
@@ -108,4 +108,101 @@ pub enum AccountError {
 
     #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
     SubAccountCreatorNotAccount { caller: String, account: String },
+
+    #[error("Abstract Account Address don't match to the Contract address")]
+    AbsAccInvalidAddr {
+        abstract_account: String,
+        contract: String,
+    },
+
+    #[error("Abstract Account don't have Authentication")]
+    AbsAccNoAuth {},
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    EncodeError(#[from] cosmos_sdk_proto::prost::EncodeError),
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    DecodeError(#[from] cosmos_sdk_proto::prost::DecodeError),
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    Verification(#[from] cosmwasm_std::VerificationError),
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    FromHex(#[from] hex::FromHexError),
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    Bech32(#[from] bech32::Error),
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    Base64Decode(#[from] base64::DecodeError),
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    Rsa(#[from] rsa::Error),
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    P256EllipticCurve(#[from] p256::elliptic_curve::Error),
+
+    // TODO: no PartialEq implemented for it, see `secp256r1.rs`
+    // #[cfg(feature = "xion")]
+    // #[error(transparent)]
+    // P256EcdsaCurve(#[from] p256::ecdsa::Error),
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    RecoverPubkey(#[from] cosmwasm_std::RecoverPubkeyError),
+
+    #[cfg(feature = "xion")]
+    #[error("The pubkey recovered from the signature does not match")]
+    RecoveredPubkeyMismatch {},
+
+    #[cfg(feature = "xion")]
+    #[error("Signature is empty")]
+    EmptySignature {},
+
+    #[cfg(feature = "xion")]
+    #[error("Short signature")]
+    ShortSignature {},
+
+    #[cfg(feature = "xion")]
+    #[error("Signature is invalid")]
+    InvalidSignature {},
+
+    #[cfg(feature = "xion")]
+    #[error("Signature is invalid. expected: {expected}, received {received}")]
+    InvalidSignatureDetail { expected: String, received: String },
+
+    #[cfg(feature = "xion")]
+    #[error("Recovery id can only be one of 0, 1, 27, 28")]
+    InvalidRecoveryId {},
+
+    #[cfg(feature = "xion")]
+    #[error("Invalid token")]
+    InvalidToken {},
+
+    #[cfg(feature = "xion")]
+    #[error("url parse error: {url}")]
+    URLParse { url: String },
+
+    #[cfg(feature = "xion")]
+    #[error("cannot override existing authenticator at index {index}")]
+    OverridingIndex { index: u8 },
+
+    #[cfg(feature = "xion")]
+    #[error("cannot delete the last authenticator")]
+    MinimumAuthenticatorCount {},
+
+    #[cfg(feature = "xion")]
+    #[error("Authenticator id should be in range from 0 to 127")]
+    TooBigAuthId {},
+
+    #[cfg(feature = "xion")]
+    #[error(transparent)]
+    FromUTF8(#[from] std::string::FromUtf8Error),
 }

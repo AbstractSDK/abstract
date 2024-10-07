@@ -22,7 +22,7 @@ pub fn reply_execute_action(deps: DepsMut, env: Env, _reply: Reply) -> Result<Re
         deps,
         env,
         action_cache.chain_name,
-        action_cache.client_proxy_address,
+        action_cache.client_account_address,
         action_cache.account_id,
         action_cache.action,
     )

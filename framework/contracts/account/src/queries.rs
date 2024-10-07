@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::feature_objects::RegistryContract;
 use abstract_std::{
     account::{
         state::{
@@ -30,26 +30,28 @@ pub fn handle_module_address_query(deps: Deps, ids: Vec<String>) -> StdResult<Bi
     to_json_binary(&ModuleAddressesResponse { modules: vector })
 }
 
-pub fn handle_module_versions_query(deps: Deps, ids: Vec<String>) -> StdResult<Binary> {
-    let response = query_module_versions(deps, ids)?;
+pub fn handle_module_versions_query(deps: Deps, env: &Env, ids: Vec<String>) -> StdResult<Binary> {
+    let response = query_module_versions(deps, env, ids)?;
     let versions = response.into_values().collect();
     to_json_binary(&ModuleVersionsResponse { versions })
 }
 
 pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
-    let info: AccountInfo = INFO.load(deps.storage)?;
+    let info: AccountInfo = INFO.may_load(deps.storage)?.unwrap_or_default();
     to_json_binary(&InfoResponse { info })
 }
 
-pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
+pub fn handle_config_query(deps: Deps, env: &Env) -> StdResult<Binary> {
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let version_control = VersionControlContract::new(deps.api)?;
-    let module_factory = ModuleFactoryContract::new(deps.api)?;
+    let registry =
+        RegistryContract::new(deps.api, env).map_err(|e| StdError::generic_err(e.to_string()))?;
+    let module_factory = ModuleFactoryContract::new(deps.api, env)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
     let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
     to_json_binary(&ConfigResponse {
         account_id,
         is_suspended,
-        version_control_address: version_control.address,
+        registry_address: registry.address,
         module_factory_address: module_factory.address,
         whitelisted_addresses: WHITELISTED_MODULES.load(deps.storage)?.0,
     })
@@ -57,6 +59,7 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
 
 pub fn handle_module_info_query(
     deps: Deps,
+    env: &Env,
     last_module_id: Option<String>,
     limit: Option<u8>,
 ) -> StdResult<Binary> {
@@ -70,11 +73,12 @@ pub fn handle_module_info_query(
 
     let ids_and_addr = res?;
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry =
+        RegistryContract::new(deps.api, env).map_err(|e| StdError::generic_err(e.to_string()))?;
 
     let mut resp_vec: Vec<AccountModuleInfo> = vec![];
     for (id, address) in ids_and_addr.into_iter() {
-        let version = query_module_version(deps, address.clone(), &version_control)?;
+        let version = query_module_version(deps, address.clone(), &registry)?;
         resp_vec.push(AccountModuleInfo {
             id,
             version,
@@ -113,7 +117,7 @@ pub fn handle_top_level_owner_query(deps: Deps, env: Env) -> StdResult<Binary> {
 pub fn query_module_version(
     deps: Deps,
     module_addr: Addr,
-    version_control: &VersionControlContract,
+    registry: &RegistryContract,
 ) -> StdResult<ContractVersion> {
     if let Ok(info) = cw2::query_contract_info(&deps.querier, module_addr.to_string()) {
         // Check if it's abstract format and return now
@@ -130,8 +134,8 @@ pub fn query_module_version(
     // - failed cw2 query
     // - the query succeeded but the cw2 name doesn't adhere to our formatting standards
     //
-    // Which means this contract is a standalone or service contract. Hence we need to get its information from VersionControl.
-    let module_info = match version_control.query_service_info_raw(&module_addr, &deps.querier) {
+    // Which means this contract is a standalone or service contract. Hence we need to get its information from Registry.
+    let module_info = match registry.query_service_info_raw(&module_addr, &deps.querier) {
         // We got service
         Ok(module_info) => module_info,
         // Didn't got service, let's try to get standalone
@@ -140,7 +144,7 @@ pub fn query_module_version(
                 .querier
                 .query_wasm_contract_info(module_addr.to_string())?
                 .code_id;
-            version_control
+            registry
                 .query_standalone_info_raw(code_id, &deps.querier)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
         }
@@ -154,20 +158,22 @@ pub fn query_module_version(
 /// Errors if not present
 pub fn query_module_versions(
     deps: Deps,
+    env: &Env,
     module_names: Vec<String>,
 ) -> StdResult<BTreeMap<String, ContractVersion>> {
     let addresses: BTreeMap<String, Addr> = query_module_addresses(deps, module_names)?;
     let mut module_versions: BTreeMap<String, ContractVersion> = BTreeMap::new();
 
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry =
+        RegistryContract::new(deps.api, env).map_err(|e| StdError::generic_err(e.to_string()))?;
     for (name, address) in addresses.into_iter() {
-        let result = query_module_version(deps, address, &version_control)?;
+        let result = query_module_version(deps, address, &registry)?;
         module_versions.insert(name, result);
     }
     Ok(module_versions)
 }
 
-/// RawQuery module addresses from manager
+/// RawQuery module addresses from account
 /// Errors if not present
 pub fn query_module_addresses(
     deps: Deps,
@@ -177,7 +183,7 @@ pub fn query_module_addresses(
 
     // Query over
     for module in module_names {
-        // Add to map if present, skip otherwise. Allows version control to check what modules are present.
+        // Add to map if present, skip otherwise. Allows registry to check what modules are present.
         if let Some(address) = ACCOUNT_MODULES.may_load(deps.storage, &module)? {
             modules.insert(module, address);
         }
@@ -220,7 +226,7 @@ mod test {
 
         let config: ConfigResponse = from_json(query(
             deps.as_ref(),
-            mock_env(),
+            mock_env_validated(deps.api),
             abstract_std::account::QueryMsg::Config {},
         )?)?;
         assert_eq!(
@@ -229,14 +235,14 @@ mod test {
                 whitelisted_addresses: vec![],
                 account_id: AccountId::local(1),
                 is_suspended: false,
-                version_control_address: abstr.version_control.clone(),
+                registry_address: abstr.registry.clone(),
                 module_factory_address: abstr.module_factory.clone()
             }
         );
 
         let module_infos: ModuleInfosResponse = from_json(query(
             deps.as_ref(),
-            mock_env(),
+            mock_env_validated(deps.api),
             abstract_std::account::QueryMsg::ModuleInfos {
                 start_after: None,
                 limit: None,
@@ -267,7 +273,7 @@ mod test {
 
         let config: ConfigResponse = from_json(query(
             deps.as_ref(),
-            mock_env(),
+            mock_env_validated(deps.api),
             abstract_std::account::QueryMsg::Config {},
         )?)?;
         assert_eq!(
@@ -276,7 +282,7 @@ mod test {
                 whitelisted_addresses: vec![abstr.module_address],
                 account_id: AccountId::local(1),
                 is_suspended: false,
-                version_control_address: abstr.version_control,
+                registry_address: abstr.registry,
                 module_factory_address: abstr.module_factory
             }
         );

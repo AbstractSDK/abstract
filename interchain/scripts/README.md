@@ -52,4 +52,3 @@ Now that your script has access to the polytone deployment, you can use the [Abs
 - Registers the polytone note AND the remote IBC Host inside the local IBC Client.
 - Waits for a first message execution on the remote chain. This first message is not necessary for Polytone but allows us to register the remote proxy address inside the IBC Client
 - Registers the remote proxy address on the remote IBC Host to whitelist execution
-- Registers the ibc host inside the account factory to allow the ibc host to create accounts (this could be done at abstract deployment level, but is here for now).

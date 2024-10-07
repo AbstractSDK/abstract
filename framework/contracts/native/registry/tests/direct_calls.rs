@@ -17,16 +17,16 @@ fn instantiate() -> AResult {
     let factory_config = factory.config()?;
     let expected = module_factory::ConfigResponse {
         ans_host_address: deployment.ans_host.address()?,
-        version_control_address: deployment.version_control.address()?,
+        registry_address: deployment.registry.address()?,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
     Ok(())
 }
 
-/// This test calls the factory as the owner, which is not allowed because he is not a manager.
+/// This test calls the factory as the owner, which is not allowed because he is not an account.
 #[test]
-fn caller_must_be_manager() -> AResult {
+fn caller_must_be_account() -> AResult {
     let chain = MockBech32::new("mock");
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
 
@@ -43,7 +43,7 @@ fn caller_must_be_manager() -> AResult {
         )
         .unwrap_err();
     assert_that!(&res.root().to_string())
-        .contains("ensure that the contract is a Manager or Proxy contract");
+        .contains("ensure that the contract is an Account contract");
 
     Ok(())
 }

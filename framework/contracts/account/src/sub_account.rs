@@ -1,4 +1,4 @@
-use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::feature_objects::RegistryContract;
 use abstract_std::{
     account::{
         state::{ACCOUNT_ID, SUB_ACCOUNTS},
@@ -25,7 +25,7 @@ pub fn create_sub_account(
     deps: DepsMut,
     info: MessageInfo,
     env: Env,
-    name: String,
+    name: Option<String>,
     description: Option<String>,
     link: Option<String>,
     namespace: Option<String>,
@@ -34,10 +34,10 @@ pub fn create_sub_account(
 ) -> AccountResult {
     // only owner can create a subaccount
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    let version_control = VersionControlContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
     let seq = account_id.unwrap_or(
-        abstract_std::version_control::state::LOCAL_ACCOUNT_SEQUENCE
-            .query(&deps.querier, version_control.address.clone())?,
+        abstract_std::registry::state::LOCAL_ACCOUNT_SEQUENCE
+            .query(&deps.querier, registry.address.clone())?,
     );
     let account_id = AccountId::local(seq);
     let salt = salt::generate_instantiate_salt(&account_id);
@@ -59,6 +59,7 @@ pub fn create_sub_account(
         name,
         description,
         link,
+        authenticator: None::<Empty>,
     };
 
     let account_canon_addr =
@@ -83,25 +84,28 @@ pub fn create_sub_account(
 
 pub fn handle_sub_account_action(
     deps: DepsMut,
+    env: &Env,
     info: MessageInfo,
     action: UpdateSubAccountAction,
 ) -> AccountResult {
     match action {
         UpdateSubAccountAction::UnregisterSubAccount { id } => {
-            unregister_sub_account(deps, info, id)
+            unregister_sub_account(deps, env, info, id)
         }
-        UpdateSubAccountAction::RegisterSubAccount { id } => register_sub_account(deps, info, id),
+        UpdateSubAccountAction::RegisterSubAccount { id } => {
+            register_sub_account(deps, env, info, id)
+        }
         _ => unimplemented!(),
     }
 }
 
 // Unregister sub-account from the state
-fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let version_control = VersionControlContract::new(deps.api)?;
+fn unregister_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) -> AccountResult {
+    let registry = RegistryContract::new(deps.api, env)?;
 
-    let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
+    let account = abstract_std::registry::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
-        version_control.address,
+        registry.address,
         &AccountId::local(id),
     )?;
 
@@ -118,12 +122,12 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountR
 }
 
 // Register sub-account to the state
-fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> AccountResult {
-    let version_control = VersionControlContract::new(deps.api)?;
+fn register_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) -> AccountResult {
+    let registry = RegistryContract::new(deps.api, env)?;
 
-    let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
+    let account = abstract_std::registry::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
-        version_control.address,
+        registry.address,
         &AccountId::local(id),
     )?;
 
@@ -149,14 +153,14 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
         .pending_owner
         .ok_or(GovOwnershipError::TransferNotFound)?;
 
-    // Clear state for previous manager if it was sub-account
+    // Clear state for previous account if it was sub-account
     if let GovernanceDetails::SubAccount { account } = ownership.owner {
         let id = ACCOUNT_ID.load(deps.storage)?;
         let unregister_message = wasm_execute(
             account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
-                id: id.seq(),
-            }),
+            &ExecuteMsg::UpdateSubAccount::<cosmwasm_std::Empty>(
+                UpdateSubAccountAction::UnregisterSubAccount { id: id.seq() },
+            ),
             vec![],
         )?;
         // For optimizing the gas we save it, in case new owner is sub-account as well
@@ -164,7 +168,7 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
         msgs.push(unregister_message.into());
     }
 
-    // Update state for new manager if owner will be the sub-account
+    // Update state for new account if owner will be the sub-account
     if let GovernanceDetails::SubAccount { account } = &pending_governance {
         let id = if let Some(id) = account_id {
             id
@@ -173,9 +177,9 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
         };
         let register_message = wasm_execute(
             account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                id: id.seq(),
-            }),
+            &ExecuteMsg::UpdateSubAccount::<cosmwasm_std::Empty>(
+                UpdateSubAccountAction::RegisterSubAccount { id: id.seq() },
+            ),
             vec![],
         )?;
         msgs.push(register_message.into());
@@ -186,7 +190,7 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
 
 /// Renounce ownership of this account \
 /// **WARNING**: This will lock the account, making it unusable.
-pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosMsg>> {
+pub fn remove_account_from_contracts(deps: DepsMut, env: &Env) -> AccountResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
 
     let account_id = ACCOUNT_ID.load(deps.storage)?;
@@ -206,17 +210,19 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosM
         msgs.push(
             wasm_execute(
                 account,
-                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
-                    id: account_id.seq(),
-                }),
+                &ExecuteMsg::UpdateSubAccount::<cosmwasm_std::Empty>(
+                    UpdateSubAccountAction::UnregisterSubAccount {
+                        id: account_id.seq(),
+                    },
+                ),
                 vec![],
             )?
             .into(),
         );
     }
 
-    let vc = VersionControlContract::new(deps.api)?;
-    let mut namespaces = vc
+    let registry = RegistryContract::new(deps.api, env)?;
+    let mut namespaces = registry
         .query_namespaces(vec![account_id], &deps.querier)?
         .namespaces;
     let namespace = namespaces.pop();
@@ -224,8 +230,8 @@ pub fn remove_account_from_contracts(deps: DepsMut) -> AccountResult<Vec<CosmosM
         // Remove the namespace that this account holds.
         msgs.push(
             wasm_execute(
-                vc.address,
-                &abstract_std::version_control::ExecuteMsg::RemoveNamespaces {
+                registry.address,
+                &abstract_std::registry::ExecuteMsg::ForgoNamespace {
                     namespaces: vec![namespace.to_string()],
                 },
                 vec![],

@@ -1,12 +1,3 @@
-//! # Abstract Api Base
-//!
-//! `abstract_std::adapter` implements shared functionality that's useful for creating new Abstract adapters.
-//!
-//! ## Description
-//! An Abstract adapter contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
-//! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the Account.
-//! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
-
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 
@@ -34,14 +25,14 @@ pub mod state {
 
     #[cosmwasm_schema::cw_serde]
     pub struct ActionAfterCreationCache {
-        pub client_proxy_address: String,
+        pub client_account_address: String,
         pub account_id: AccountId,
         pub action: HostAction,
         pub chain_name: TruncatedChainId,
     }
 }
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
+/// The contract is then registered on the registry contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {}
 
@@ -59,7 +50,7 @@ pub enum MigrateMsg {
 pub enum InternalAction {
     /// Registers a new account from a remote chain
     Register {
-        name: String,
+        name: Option<String>,
         description: Option<String>,
         link: Option<String>,
         namespace: Option<String>,
@@ -157,7 +148,7 @@ pub enum QueryMsg {
 pub struct ConfigResponse {
     pub ans_host_address: Addr,
     pub module_factory_address: Addr,
-    pub version_control_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

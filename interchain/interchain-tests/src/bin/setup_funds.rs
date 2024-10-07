@@ -89,7 +89,7 @@
 
 //     let (origin_account, remote_account_id) =
 //         create_test_remote_account(&abstr_juno, JUNO, STARGAZE, &interchain, None)?;
-//     // let account_config = osmo_abstr.account.manager.config()?;
+//     // let account_config = osmo_abstr.account.account.config()?;
 //     // let account_id = AccountId::new(
 //     //     account_config.account_id.seq(),
 //     //     AccountTrace::Remote(vec![TruncatedChainId::from("osmosis")]),
@@ -106,7 +106,7 @@
 //         &origin_account.proxy.addr_str()?,
 //         vec![coin(test_amount, get_denom(&juno, token_subdenom.as_str()))],
 //     ))?;
-//     let send_funds_tx = origin_account.manager.execute_on_module(
+//     let send_funds_tx = origin_account.account.execute_on_module(
 //         PROXY,
 //         abstract_std::proxy::ExecuteMsg::IbcAction {
 //             msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
@@ -124,7 +124,7 @@
 
 //     // Verify the funds have been received
 //     let remote_account_config = abstr_stargaze
-//         .version_control
+//         .registry
 //         .get_account(remote_account_id.clone())?;
 
 //     let balance = stargaze

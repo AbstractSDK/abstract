@@ -24,14 +24,13 @@ let abstr_deployment = Abstract::deploy_on(mock, sender.to_string())?;
 // Create a new account to install the app onto
 let account =
     abstr_deployment
-        .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         })?;
 
 // Claim the namespace so app can be deployed
 abstr_deployment
-    .version_control
+    .registry
     .claim_namespace(1, "my-namespace".to_string())?;
 
 // Deploy the app!

@@ -1,15 +1,13 @@
 //! Mock module for API and feature testing
 
 use abstract_std::{
-    objects::{
-        ans_host::AnsHost, dependency::StaticDependency, version_control::VersionControlContract,
-    },
-    version_control::Account,
+    objects::{ans_host::AnsHost, dependency::StaticDependency, registry::RegistryContract},
+    registry::Account,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::{
     testing::{mock_dependencies, MockApi},
-    Deps,
+    Deps, Env,
 };
 
 use crate::{
@@ -35,7 +33,7 @@ impl ModuleIdentification for MockModule {
 }
 
 impl AbstractNameService for MockModule {
-    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<AnsHost> {
         let abstr = AbstractMockAddrs::new(self.mock_api);
         Ok(AnsHost {
             address: abstr.ans_host,
@@ -44,10 +42,10 @@ impl AbstractNameService for MockModule {
 }
 
 impl AbstractRegistryAccess for MockModule {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+    fn abstract_registry(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<RegistryContract> {
         let abstr = AbstractMockAddrs::new(self.mock_api);
-        Ok(VersionControlContract {
-            address: abstr.version_control,
+        Ok(RegistryContract {
+            address: abstr.registry,
         })
     }
 }
@@ -100,7 +98,7 @@ impl abstract_std::app::AppQueryMsg for MockModuleQueryMsg {}
 /// [`MockModule`] test setup
 pub fn mock_module_setup() -> (MockDeps, Account, MockModule) {
     let mut deps = mock_dependencies();
-    let account = test_account_base(deps.api);
+    let account = test_account(deps.api);
     deps.querier = abstract_mock_querier_builder(deps.api)
         .account(&account, TEST_ACCOUNT_ID)
         .build();

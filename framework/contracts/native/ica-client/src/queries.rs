@@ -1,5 +1,5 @@
 use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::objects::TruncatedChainId;
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
@@ -8,10 +8,10 @@ use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
 /// Timeout in seconds
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
-pub fn config(deps: Deps) -> IcaClientResult<ConfigResponse> {
+pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps.api)?.address,
-        version_control_address: VersionControlContract::new(deps.api)?.address,
+        ans_host: AnsHost::new(deps.api, env)?.address,
+        registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
 
@@ -40,9 +40,9 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
-                    let version_control = VersionControlContract::new(deps.api)?;
+                    let registry = RegistryContract::new(deps.api, &env)?;
 
-                    let msg = evm::execute(&deps.querier, &version_control, msgs, callback)?;
+                    let msg = evm::execute(&deps.querier, &registry, msgs, callback)?;
 
                     Ok(vec![msg.into()])
                 }
@@ -83,12 +83,12 @@ mod tests {
             module_reference::ModuleReference,
             ChannelEntry, ContractEntry,
         },
-        version_control::{self as vc, ModuleConfiguration},
+        registry::{self as vc, ModuleConfiguration},
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         from_json,
-        testing::{mock_dependencies, mock_env, MockApi},
+        testing::{mock_dependencies, MockApi},
         Addr, HexBinary,
     };
 
@@ -139,7 +139,7 @@ mod tests {
                     _ => panic!("should only query for RemoteAddress"),
                 }
             })
-            .with_smart_handler(&abstr.version_control, move |bin| {
+            .with_smart_handler(&abstr.registry, move |bin| {
                 let msg = from_json::<vc::QueryMsg>(bin).unwrap();
                 match msg {
                     vc::QueryMsg::Modules { infos } => {
@@ -180,6 +180,7 @@ mod tests {
         use abstract_ica::msg::QueryMsg;
         use abstract_std::objects::TruncatedChainId;
 
+        use abstract_testing::mock_env_validated;
         use cosmwasm_std::{coins, wasm_execute};
         use evm::types;
         use evm_note::msg::EvmMsg;
@@ -189,18 +190,19 @@ mod tests {
         #[test]
         fn config() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = state_setup(deps.api).build();
 
             mock_init(&mut deps)?;
-            let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {})?;
+            let res = query(deps.as_ref(), env, QueryMsg::Config {})?;
             let res: ConfigResponse = from_json(&res).unwrap();
             assert_eq!(
                 res,
                 ConfigResponse {
                     ans_host: abstr.ans_host,
-                    version_control_address: abstr.version_control
+                    registry_address: abstr.registry
                 }
             );
             Ok(())
@@ -209,6 +211,7 @@ mod tests {
         #[test]
         fn evm_exec_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
@@ -230,7 +233,7 @@ mod tests {
                 })],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -258,6 +261,7 @@ mod tests {
             use super::*;
 
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
@@ -277,7 +281,7 @@ mod tests {
                 }],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -318,7 +322,7 @@ mod tests {
                 }],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -361,7 +365,7 @@ mod tests {
                 })],
             };
 
-            let err = query(deps.as_ref(), mock_env(), msg).unwrap_err();
+            let err = query(deps.as_ref(), mock_env_validated(deps.api), msg).unwrap_err();
             assert_eq!(
                 err,
                 IcaClientError::WrongChainType {
