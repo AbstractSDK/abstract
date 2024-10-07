@@ -10,8 +10,8 @@ pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps.api, env)?.address,
-        registry_address: RegistryContract::new(deps.api, env)?.address,
+        ans_host_address: AnsHost::new(deps.api, env)?.address.to_string(),
+        registry_address: RegistryContract::new(deps.api, env)?.address.to_string(),
     })
 }
 
@@ -201,7 +201,7 @@ mod tests {
             assert_eq!(
                 res,
                 ConfigResponse {
-                    ans_host: abstr.ans_host,
+                    ans_host_address: abstr.ans_host,
                     registry_address: abstr.registry
                 }
             );

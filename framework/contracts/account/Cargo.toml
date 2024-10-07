@@ -56,8 +56,6 @@ abstract-std = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
 
-abstract-ica = { workspace = true }
-
 # XION absacc
 tiny-keccak = { version = "2", default-features = false, features = [
     "keccak",

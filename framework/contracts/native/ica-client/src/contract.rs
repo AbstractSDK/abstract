@@ -98,10 +98,7 @@ mod tests {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
-        let msg = InstantiateMsg {
-            ans_host_address: abstr.ans_host.to_string(),
-            registry_address: abstr.registry.to_string(),
-        };
+        let msg = InstantiateMsg {};
         let info = message_info(&abstr.owner, &[]);
         let res = instantiate(deps.as_mut(), env.clone(), info, msg).unwrap();
         assert_that!(res.messages).is_empty();

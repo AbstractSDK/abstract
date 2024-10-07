@@ -14,7 +14,10 @@ pub use polytone_evm::POLYTONE_EVM_VERSION;
 pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    Instantiate(InstantiateMsg),
+    Migrate {},
+}
 
 #[cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
@@ -32,8 +35,8 @@ pub enum QueryMsg {
 
     #[returns(IcaActionResult)]
     IcaAction {
-        // Proxy address used to query polytone implementations or proxy itself.
-        proxy_address: String,
+        // Account address address used to query polytone implementations or proxy itself.
+        account_address: String,
         // Chain to send to
         chain: TruncatedChainId,
         // Queries go first
@@ -56,8 +59,8 @@ pub struct IcaActionResult {
 mod chain_type {
     use std::fmt::Display;
 
+    use crate::constants::*;
     use crate::objects::TruncatedChainId;
-    use crate::registry::*;
 
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub enum ChainType {
