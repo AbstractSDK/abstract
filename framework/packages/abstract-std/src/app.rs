@@ -9,10 +9,7 @@ use crate::{
         ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
         MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
     },
-    objects::{
-        ans_host::AnsHost, gov_type::TopLevelOwnerResponse, module_version::ModuleDataResponse,
-        registry::RegistryContract,
-    },
+    objects::{gov_type::TopLevelOwnerResponse, module_version::ModuleDataResponse},
     registry::Account,
 };
 
@@ -53,8 +50,6 @@ impl AppQueryMsg for Empty {}
 /// Used by Module Factory to instantiate App
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
-    pub ans_host_address: String,
-    pub registry_address: String,
     pub account: Account,
 }
 
@@ -62,10 +57,7 @@ pub struct BaseInstantiateMsg {
 #[derive(cw_orch::ExecuteFns)]
 pub enum BaseExecuteMsg {
     /// Updates the base config
-    UpdateConfig {
-        ans_host_address: Option<String>,
-        registry_address: Option<String>,
-    },
+    UpdateConfig {},
 }
 
 impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
@@ -115,8 +107,4 @@ pub struct BaseMigrateMsg {}
 pub struct AppState {
     /// Account contract address for proxying transactions
     pub account: Account,
-    /// AnsHost contract struct (address)
-    pub ans_host: AnsHost,
-    /// Used to verify requests
-    pub registry: RegistryContract,
 }

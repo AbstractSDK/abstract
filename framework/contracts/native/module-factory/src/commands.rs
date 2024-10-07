@@ -13,7 +13,6 @@ use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, WasmMsg,
 };
-use feature_objects::AnsHost;
 use serde_cw_value::Value;
 
 use crate::{
@@ -33,8 +32,7 @@ pub fn execute_create_modules(
     let block_height = env.block.height;
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
-    let registry = RegistryContract::new(deps.api)?;
-    let ans_host = AnsHost::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
     // assert that sender is manager
     let account = registry.assert_account(&info.sender, &deps.querier)?;
@@ -100,8 +98,6 @@ pub fn execute_create_modules(
                 let init_msg_as_value: Value = from_json(init_msg)?;
                 // App base message
                 let app_base_msg = abstract_std::app::BaseInstantiateMsg {
-                    ans_host_address: ans_host.address.to_string(),
-                    registry_address: registry.address.to_string(),
                     account: account.clone(),
                 };
 
@@ -235,9 +231,10 @@ pub fn new_module_addrs(modules_to_register: &[Addr]) -> ModuleFactoryResult<Str
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
+    use abstract_testing::{mock_env_validated, MockDeps};
     use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage},
-        to_json_binary, OwnedDeps,
+        testing::{message_info, mock_dependencies},
+        to_json_binary,
     };
     use speculoos::prelude::*;
 
@@ -246,21 +243,15 @@ mod test {
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
-    fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute(deps, mock_env(), message_info(sender, &[]), msg)
+    fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
+        let env = mock_env_validated(deps.api);
+        execute(deps.as_mut(), env, message_info(sender, &[]), msg)
     }
 
-    fn test_only_admin(
-        msg: ExecuteMsg,
-        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-    ) -> ModuleFactoryTestResult {
+    fn test_only_admin(msg: ExecuteMsg, deps: &mut MockDeps) -> ModuleFactoryTestResult {
         let not_admin = deps.api.addr_make("not_admin");
-        let res = execute(
-            deps.as_mut(),
-            mock_env(),
-            message_info(&not_admin, &[]),
-            msg,
-        );
+        let env = mock_env_validated(deps.api);
+        let res = execute(deps.as_mut(), env, message_info(&not_admin, &[]), msg);
         assert_that!(&res)
             .is_err()
             .is_equal_to(ModuleFactoryError::Ownership(
@@ -301,11 +292,11 @@ mod test {
                 expiry: None,
             });
 
-            let _transfer_res = execute_as(deps.as_mut(), &abstr.owner, transfer_msg)?;
+            let _transfer_res = execute_as(&mut deps, &abstr.owner, transfer_msg)?;
 
             // Then update and accept as the new owner
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
-            let _accept_res = execute_as(deps.as_mut(), &new_admin, accept_msg).unwrap();
+            let _accept_res = execute_as(&mut deps, &new_admin, accept_msg).unwrap();
 
             assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
                 .is_some()

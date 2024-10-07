@@ -26,8 +26,6 @@ fn deploy_cw_staking(
         std::env::var("REGISTRY").expect("REGISTRY not set"),
     ));
 
-    let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-
     if let Some(prev_version) = prev_version {
         let Module { info, reference } = registry.module(ModuleInfo::from_id(
             CW_STAKING_ADAPTER_ID,
@@ -44,10 +42,7 @@ fn deploy_cw_staking(
         cw_staking.set_code_id(code_id);
         let init_msg = adapter::InstantiateMsg {
             module: Empty {},
-            base: adapter::BaseInstantiateMsg {
-                ans_host_address: ans_host.address()?.into(),
-                registry_address: registry.address()?.into(),
-            },
+            base: adapter::BaseInstantiateMsg {},
         };
         cw_staking
             .as_instance_mut()

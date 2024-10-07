@@ -6,7 +6,7 @@ use abstract_adapter::sdk::{
 use abstract_money_market_standard::{
     raw_action::MoneyMarketRawAction, MoneyMarketCommand, MoneyMarketError,
 };
-use cosmwasm_std::{Addr, CosmosMsg, Deps};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, Env};
 use cw_asset::{AssetBase, AssetInfoBase};
 
 use crate::state::MONEY_MARKET_FEES;
@@ -27,28 +27,29 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
     fn resolve_money_market_action(
         &self,
         deps: Deps,
+        env: &Env,
         sender: Addr,
         action: MoneyMarketRawAction,
         mut money_market: Box<dyn MoneyMarketCommand>,
     ) -> Result<(Vec<CosmosMsg>, ReplyId), MoneyMarketError> {
         Ok(match action.request {
             abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Deposit { lending_asset } => {
-                (self.resolve_deposit(deps, sender, lending_asset, action.contract_addr, money_market.as_mut())?, DEPOSIT)
+                (self.resolve_deposit(deps, env, sender, lending_asset, action.contract_addr, money_market.as_mut())?, DEPOSIT)
             }
             abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Withdraw { lent_asset } => {
-                (self.resolve_withdraw(deps, sender, lent_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW)
+                (self.resolve_withdraw(deps, env, sender, lent_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW)
             }
             abstract_money_market_standard::raw_action::MoneyMarketRawRequest::ProvideCollateral { borrowable_asset, collateral_asset } => {
-                (self.resolve_provide_collateral(deps, sender, borrowable_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, PROVIDE_COLLATERAL)
+                (self.resolve_provide_collateral(deps, env, sender, borrowable_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, PROVIDE_COLLATERAL)
             }
             abstract_money_market_standard::raw_action::MoneyMarketRawRequest::WithdrawCollateral { borrowable_asset, collateral_asset } => {
-                (self.resolve_withdraw_collateral(deps, sender, borrowable_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW_COLLATERAL)
+                (self.resolve_withdraw_collateral(deps, env, sender, borrowable_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW_COLLATERAL)
             }
             abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Borrow { borrow_asset, collateral_asset } => {
-                (self.resolve_borrow(deps, sender, borrow_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, BORROW)
+                (self.resolve_borrow(deps, env, sender, borrow_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, BORROW)
             }
             abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Repay { borrowed_asset, collateral_asset } => {
-                (self.resolve_repay(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, REPAY)
+                (self.resolve_repay(deps, env, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, REPAY)
             }
         })
     }
@@ -56,6 +57,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
     fn resolve_deposit(
         &self,
         deps: Deps,
+        env: &Env,
         sender: Addr,
         lending_asset: AssetBase<String>,
         contract_addr: String,
@@ -64,13 +66,14 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let asset = lending_asset.check(deps.api, None)?;
 
-        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps, env)?)?;
         money_market.deposit(deps, contract_addr, asset)
     }
 
     fn resolve_withdraw(
         &self,
         deps: Deps,
+        env: &Env,
         sender: Addr,
         lending_asset: AssetBase<String>,
         contract_addr: String,
@@ -79,7 +82,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let mut asset = lending_asset.check(deps.api, None)?;
 
-        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps, env)?)?;
         let mut withdraw_msgs = money_market.withdraw(deps, contract_addr, asset.clone())?;
 
         // account for fee
@@ -93,6 +96,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
     fn resolve_provide_collateral(
         &self,
         deps: Deps,
+        env: &Env,
         sender: Addr,
         _borrowed_asset: AssetInfoBase<String>,
         collateral_asset: AssetBase<String>,
@@ -102,13 +106,14 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let collateral_asset = collateral_asset.check(deps.api, None)?;
 
-        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps, env)?)?;
         money_market.provide_collateral(deps, contract_addr, collateral_asset)
     }
 
     fn resolve_withdraw_collateral(
         &self,
         deps: Deps,
+        env: &Env,
         sender: Addr,
         _borrowed_asset: AssetInfoBase<String>,
         collateral_asset: AssetBase<String>,
@@ -118,13 +123,14 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let collateral_asset = collateral_asset.check(deps.api, None)?;
 
-        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps, env)?)?;
         money_market.withdraw_collateral(deps, contract_addr, collateral_asset)
     }
 
     fn resolve_borrow(
         &self,
         deps: Deps,
+        env: &Env,
         sender: Addr,
         borrowed_asset: AssetBase<String>,
         _collateral_asset: AssetInfoBase<String>,
@@ -134,13 +140,14 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps, env)?)?;
         money_market.borrow(deps, contract_addr, borrowed_asset)
     }
 
     fn resolve_repay(
         &self,
         deps: Deps,
+        env: &Env,
         sender: Addr,
         borrowed_asset: AssetBase<String>,
         _collateral_asset: AssetInfoBase<String>,
@@ -150,7 +157,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps, env)?)?;
         money_market.repay(deps, contract_addr, borrowed_asset)
     }
 }

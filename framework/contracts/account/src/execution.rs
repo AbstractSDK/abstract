@@ -225,8 +225,9 @@ mod test {
             let msg = ExecuteMsg::Execute { msgs: vec![] };
 
             let info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
+            let env = mock_env_validated(deps.api);
 
-            let res = execute(deps.as_mut(), mock_env(), info, msg);
+            let res = execute(deps.as_mut(), env, info, msg);
             assert_that(&res)
                 .is_err()
                 .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
@@ -236,6 +237,7 @@ mod test {
         #[test]
         fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             // stub a module
@@ -260,12 +262,7 @@ mod test {
             };
 
             // execute it AS the module
-            let res = execute(
-                deps.as_mut(),
-                mock_env(),
-                message_info(&module_addr, &[]),
-                msg,
-            );
+            let res = execute(deps.as_mut(), env, message_info(&module_addr, &[]), msg);
             assert_that(&res).is_ok();
 
             let msgs = res?.messages;
@@ -286,6 +283,7 @@ mod test {
         #[test]
         fn add_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
@@ -303,11 +301,23 @@ mod test {
             };
 
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
-            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+            execute(
+                deps.as_mut(),
+                env.clone(),
+                not_whitelisted_info,
+                msg.clone(),
+            )
+            .unwrap_err();
 
             let manager_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
-            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            execute(
+                deps.as_mut(),
+                env.clone(),
+                manager_info.clone(),
+                msg.clone(),
+            )
+            .unwrap_err();
             // mock enabling ibc
             let ibc_client_addr = deps.api.addr_make("ibc_client_addr");
             deps.querier = MockQuerierBuilder::default()
@@ -324,7 +334,7 @@ mod test {
                 vec![],
             )?;
 
-            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
+            let res = execute(deps.as_mut(), env, manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
@@ -343,6 +353,7 @@ mod test {
         #[test]
         fn send_funds() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
             // whitelist creator
@@ -361,11 +372,23 @@ mod test {
             };
 
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
-            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+            execute(
+                deps.as_mut(),
+                env.clone(),
+                not_whitelisted_info,
+                msg.clone(),
+            )
+            .unwrap_err();
 
             let manager_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
-            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            execute(
+                deps.as_mut(),
+                env.clone(),
+                manager_info.clone(),
+                msg.clone(),
+            )
+            .unwrap_err();
             // mock enabling ibc
             let ibc_client_addr = deps.api.addr_make("ibc_client_addr");
             deps.querier = MockQuerierBuilder::default()
@@ -381,7 +404,7 @@ mod test {
                 vec![],
             )?;
 
-            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
+            let res = execute(deps.as_mut(), env, manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
@@ -410,6 +433,7 @@ mod test {
         #[test]
         fn ica_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let ica_client_addr = deps.api.addr_make("ica_client_addr");
             mock_init(&mut deps)?;
@@ -425,11 +449,23 @@ mod test {
             };
 
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
-            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+            execute(
+                deps.as_mut(),
+                env.clone(),
+                not_whitelisted_info,
+                msg.clone(),
+            )
+            .unwrap_err();
 
             let manager_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
-            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            execute(
+                deps.as_mut(),
+                env.clone(),
+                manager_info.clone(),
+                msg.clone(),
+            )
+            .unwrap_err();
             // mock enabling ibc
             update_module_addresses(
                 deps.as_mut(),
@@ -450,7 +486,7 @@ mod test {
                 })
                 .build();
 
-            let res = execute(deps.as_mut(), mock_env(), manager_info, msg)?;
+            let res = execute(deps.as_mut(), env, manager_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Custom(Empty {})));
             Ok(())

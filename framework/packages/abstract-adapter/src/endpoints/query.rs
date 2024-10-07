@@ -1,11 +1,14 @@
-use abstract_sdk::base::{Handler, QueryEndpoint};
+use abstract_sdk::{
+    base::{Handler, QueryEndpoint},
+    feature_objects::{AnsHost, RegistryContract},
+};
 use abstract_std::{
     adapter::{
         AdapterConfigResponse, AdapterQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
     },
     objects::module_version::{ModuleDataResponse, MODULE},
 };
-use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, StdError, StdResult};
 
 use crate::state::{AdapterContract, ContractError};
 
@@ -32,10 +35,11 @@ impl<
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
     AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
+    fn base_query(&self, deps: Deps, env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
             BaseQueryMsg::BaseConfig {} => {
-                to_json_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
+                to_json_binary(&self.dapp_config(deps, &env).map_err(Error::from)?)
+                    .map_err(Into::into)
             }
             BaseQueryMsg::AuthorizedAddresses { proxy_address } => {
                 let proxy_address = deps.api.addr_validate(&proxy_address)?;
@@ -55,11 +59,14 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         }
     }
 
-    fn dapp_config(&self, deps: Deps) -> StdResult<AdapterConfigResponse> {
-        let state = self.base_state.load(deps.storage)?;
+    fn dapp_config(&self, deps: Deps, env: &Env) -> StdResult<AdapterConfigResponse> {
         Ok(AdapterConfigResponse {
-            registry_address: state.registry.address,
-            ans_host_address: state.ans_host.address,
+            registry_address: RegistryContract::new(deps.api, env)
+                .map_err(|e| StdError::generic_err(e.to_string()))?
+                .address,
+            ans_host_address: AnsHost::new(deps.api, env)
+                .map_err(|e| StdError::generic_err(e.to_string()))?
+                .address,
             dependencies: self
                 .dependencies()
                 .iter()

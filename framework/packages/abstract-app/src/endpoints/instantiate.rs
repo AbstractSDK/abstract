@@ -1,4 +1,3 @@
-use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::{
     app::{AppState, BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
@@ -31,26 +30,13 @@ impl<
         info: MessageInfo,
         msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
-        let BaseInstantiateMsg {
-            ans_host_address,
-            registry_address,
-            account,
-        } = msg.base;
+        let BaseInstantiateMsg { account } = msg.base;
 
         let module_msg = msg.module;
-
-        let ans_host = AnsHost {
-            address: deps.api.addr_validate(&ans_host_address)?,
-        };
-        let registry = RegistryContract {
-            address: deps.api.addr_validate(&registry_address)?,
-        };
 
         // Base state
         let state = AppState {
             account: account.clone(),
-            ans_host,
-            registry,
         };
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
@@ -80,20 +66,19 @@ mod test {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let info = message_info(&abstr.module_factory, &[]);
+        let env = mock_env_validated(deps.api);
 
         deps.querier = app_base_mock_querier(deps.api).build();
 
         let msg = SuperInstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                registry_address: abstr.registry.to_string(),
                 account: abstr.account,
             },
             module: MockInitMsg {},
         };
 
         let res = MOCK_APP_WITH_DEP
-            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .instantiate(deps.as_mut(), env, info, msg)
             .unwrap();
         assert!(res.messages.is_empty());
     }
