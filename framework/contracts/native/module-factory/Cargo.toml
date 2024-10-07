@@ -29,7 +29,6 @@ cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 thiserror = { workspace = true }
 semver = { workspace = true }
-protobuf = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
 abstract-macros = { workspace = true }
