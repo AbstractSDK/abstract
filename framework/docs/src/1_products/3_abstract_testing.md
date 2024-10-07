@@ -12,7 +12,7 @@ framework's functionalities, and facilitating robust unit testing.
 - ️**Mock Data Creation** 🛠: Easily create mock data with predefined data for assets, contracts, accounts and more.
 - **Abstract Naming Service Integration** 🌐: Add mock assets into the Abstract Naming Service (ANS) for testing
   purposes.
-- **Flexible Configuration** 🔧: Adjust version control addresses, set up mock ANS hosts, and more.
+- **Flexible Configuration** 🔧: Adjust registry addresses, set up mock ANS hosts, and more.
 - **Assertion Tools** ✅: Assert the existence of accounts, assets, map entries and more.
 - **Predefined Test Scenarios** 📝: Run through common test scenarios with ease.
 - **Build & Execute** 🔄: Construct mock queries and execute them to test various functionalities.
@@ -43,12 +43,12 @@ fn returns_account_owner() -> VersionControlTestResult {
     let mut deps = mock_dependencies();
     // Set up mock querier with the account
     deps.querier = AbstractMockQuerierBuilder::default()
-        .account(TEST_MANAGER, TEST_PROXY, 0)
+        .account(TEST_ACCOUNT, 0)
         .build();
     mock_init_with_account(deps.as_mut(), true)?;
 
     let account_owner =
-        query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), 0)?;
+        query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_ACCOUNT), 0)?;
 
     assert_that!(account_owner).is_equal_to(Addr::unchecked(OWNER));
     Ok(())

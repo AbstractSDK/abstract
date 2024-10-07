@@ -43,7 +43,7 @@ pub enum HostError {
     #[error("Expected port {0} got {1} instead.")]
     ClientMismatch(String, String),
 
-    #[error("Chain or proxy address already registered.")]
+    #[error("Chain or account address already registered.")]
     ProxyAddressExists {},
 
     #[error("Can't send a module-to-module packet to {0}, wrong module type")]

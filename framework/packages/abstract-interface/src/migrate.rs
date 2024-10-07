@@ -16,7 +16,7 @@ impl<T: CwEnv> Abstract<T> {
             .module_factory
             .upload_and_migrate_if_needed(&module_factory::MigrateMsg::Migrate {})?;
 
-        // then VC and ANS
+        // then Registry and ANS
         let registry = self
             .registry
             .upload_and_migrate_if_needed(&registry::MigrateMsg::Migrate {})?;
@@ -81,7 +81,7 @@ impl<T: CwEnv> Abstract<T> {
             ));
         }
 
-        // We need to check the version in version control for the account contract
+        // We need to check the version in registry for the account contract
         let versions = self
             .registry
             .modules(vec![
@@ -120,7 +120,7 @@ impl<T: CwEnv> Abstract<T> {
         Ok(has_migrated)
     }
 
-    /// Registers the deployment in version control  
+    /// Registers the deployment in registry  
     pub fn register_in_registry(&self) -> Result<(), crate::AbstractInterfaceError> {
         let mut natives_to_register = vec![];
 

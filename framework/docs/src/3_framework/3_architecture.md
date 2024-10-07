@@ -9,8 +9,7 @@ In the upcoming sections, we will delve deeper into the architecture of Abstract
 ## Architecture
 
 Abstract's infrastructure provides users with the ability to create a sovereign *smart-contract wallet*. We call this smart-contract wallet
-an `Abstract Account`. The account's architecture has two primary components (smart-contracts): the **Manager** contract
-and the **Proxy** contract.
+an `Abstract Account`.
 
 ```mermaid
 flowchart LR
@@ -35,10 +34,10 @@ To do this the account needs the following components:
 
 - **Asset Management** 💰: Holding the account's assets, including tokens, NFTs, and other fungible and non-fungible assets.
 
-- **Transaction Forwarding (Proxying)** 🔀: Routing approved transactions from the **Manager** or other connected smart-contracts to other actors.
+- **Transaction Forwarding (Proxying)** 🔀: Executing approved transactions from the **owner** or other smart-contracts.
 
 <details>
-<summary>Example Interactions</summary>
+<summary><b>Example Interactions</b></summary>
 
 ### Perform an action on Your Abstract Account
 
@@ -64,12 +63,12 @@ sequenceDiagram
     autonumber
     actor U as Owner
     participant M as Account
-    participant VC as Version Control
+    participant REG as Registry
 
     U ->> M: UpdateSettings
     Note right of U: ibc_enabled
-    M -->>+ VC: Query IBC Client address
-    VC -->>- M: Return IBC Client address
+    M -->>+ REG: Query IBC Client address
+    REG -->>- M: Return IBC Client address
     M ->> M: Register IBC Client
 ```
 

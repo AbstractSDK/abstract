@@ -65,18 +65,17 @@ For the curious, here's how the process of installing a module and checking modu
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
+    participant A as Account
     participant F as Module Factory
     participant Mo as Module
-    participant P as Proxy
 
-    U ->> M: Install Module
-    M -->> F: Install Module
+    U ->> A: Install Module
+    A -->> F: Install Module
     opt App instantiate 
     F -->> Mo: Instantiate Module
     end
-    M -->> Mo: Query Module Dependencies
-    M -->> M: Assert Dependency Requirements
-    M -->>+ M: Add Module as Dependent on its Dependencies
-    M -->>+ P: Allowlist Module
+    A -->> Mo: Query Module Dependencies
+    A -->> A: Assert Dependency Requirements
+    A -->>+ A: Add Module as Dependent on its Dependencies
+    A -->>+ A: Allowlist Module
 ```

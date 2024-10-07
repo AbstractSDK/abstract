@@ -48,7 +48,7 @@ impl AbstractRegistryAccess for Osmosis {
         self.registry_contract
             .clone()
             .ok_or(AbstractSdkError::generic_err("registry address is not set"))
-        // We need to get to the version control somehow (possible from Ans Host ?)
+        // We need to get to the registry somehow (possible from Ans Host ?)
     }
 }
 
@@ -96,7 +96,7 @@ impl DexCommand for Osmosis {
             sender: self
                 .addr_as_sender
                 .as_ref()
-                .expect("no local proxy")
+                .expect("no local account")
                 .to_string(),
             routes,
             token_in: Some(token_in.into()),
@@ -139,7 +139,7 @@ impl DexCommand for Osmosis {
             sender: self
                 .addr_as_sender
                 .as_ref()
-                .expect("no local proxy")
+                .expect("no local account")
                 .to_string(),
             routes,
             token_in: Some(token_in.into()),

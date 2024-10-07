@@ -103,8 +103,8 @@ fn handle_local_request(
         action,
         exchange,
     )?;
-    let proxy_msg = module.executor(deps.as_ref()).execute(msgs)?;
-    Ok(Response::new().add_message(proxy_msg))
+    let account_msg = module.executor(deps.as_ref()).execute(msgs)?;
+    Ok(Response::new().add_message(account_msg))
 }
 
 /// Handle an adapter request that can be executed on an IBC chain
@@ -155,7 +155,7 @@ fn handle_ibc_request(
     };
     let ibc_action_msg = ibc_client.host_action(host_chain, host_action)?;
 
-    // call both messages on the proxy
+    // call both messages on the account
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
 }
 

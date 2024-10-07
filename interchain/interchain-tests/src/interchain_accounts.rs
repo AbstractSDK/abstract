@@ -80,7 +80,7 @@ mod test {
     use abstract_std::{
         account,
         account::{
-            state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
+            state::AccountInfo, ConfigResponse, ExecuteMsg as AccountExecuteMsg, InfoResponse,
         },
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
         ibc_client::AccountResponse,
@@ -116,7 +116,7 @@ mod test {
         // The user on origin chain wants to change the account description
         let ibc_action_result = origin_account.execute_on_remote(
             remote_name,
-            ManagerExecuteMsg::UpdateInfo {
+            AccountExecuteMsg::UpdateInfo {
                 name: Some(new_name.to_string()),
                 description: Some(new_description.to_string()),
                 link: Some(new_link.to_string()),
@@ -150,7 +150,7 @@ mod test {
 
         assert_eq!(
             AccountResponse {
-                remote_proxy_addr: Some(remote_abstract_account.address()?.to_string()),
+                remote_account_addr: Some(remote_abstract_account.address()?.to_string()),
             },
             account_response
         );
@@ -172,7 +172,7 @@ mod test {
         let remote_abstract_account =
             AccountI::load_from(&abstr_remote, remote_account_id.clone())?;
 
-        // Do stargate action on proxy to verify it's enabled
+        // Do stargate action on account to verify it's enabled
         let amount = Coin {
             denom: "ujuno".to_owned(),
             amount: Uint128::new(100),
@@ -219,11 +219,11 @@ mod test {
 
         mock_interchain.await_and_check_packets(JUNO, ibc_transfer_result)?;
 
-        let remote_proxy_balance = mock_interchain
+        let remote_account_balance = mock_interchain
             .get_chain(STARGAZE)
             .unwrap()
             .balance(&remote_abstract_account.address()?, None)?;
-        assert_eq!(remote_proxy_balance, coins(100, "ibc/channel-0/ujuno"));
+        assert_eq!(remote_account_balance, coins(100, "ibc/channel-0/ujuno"));
 
         Ok(())
     }
@@ -315,9 +315,9 @@ mod test {
         let destination_remote_account =
             AccountI::load_from(&abstr_host_remote, destination_remote_account_id.clone())?;
 
-        let manager_config = destination_remote_account.config()?;
+        let account_config = destination_remote_account.config()?;
         assert_eq!(
-            manager_config,
+            account_config,
             ConfigResponse {
                 account_id: destination_remote_account_id,
                 is_suspended: false,
@@ -346,9 +346,9 @@ mod test {
         // We assert the account was created with the right properties
         let remote_abstract_account =
             AccountI::load_from(&abstr_remote, remote_account_id.clone())?;
-        let manager_config = remote_abstract_account.config()?;
+        let account_config = remote_abstract_account.config()?;
         assert_eq!(
-            manager_config,
+            account_config,
             ConfigResponse {
                 account_id: remote_account_id,
                 is_suspended: false,
@@ -358,13 +358,13 @@ mod test {
             }
         );
 
-        let manager_info = remote_abstract_account.info()?;
+        let account_info = remote_abstract_account.info()?;
 
         let account_name = TEST_ACCOUNT_NAME.to_string();
         let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
         let link = Some(TEST_ACCOUNT_LINK.to_string());
         assert_eq!(
-            manager_info,
+            account_info,
             InfoResponse {
                 info: abstract_std::account::state::AccountInfo {
                     name: Some(account_name),
@@ -380,7 +380,7 @@ mod test {
             .iter()
             .any(|m| m.id == IBC_CLIENT));
 
-        // We try to execute a message from the proxy contract (account creation for instance)
+        // We try to execute a message from the account contract (account creation for instance)
         // ii. Now we test that we can indeed create an account remotely from the interchain account
 
         let account_name = String::from("Abstract Test Remote Remote account");
@@ -482,7 +482,7 @@ mod test {
     }
 
     #[test]
-    fn test_cannot_call_remote_manager_from_non_host_account() -> AnyResult<()> {
+    fn test_cannot_call_remote_account_from_non_host_account() -> AnyResult<()> {
         logger_test_init();
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
@@ -521,7 +521,7 @@ mod test {
     }
 
     #[test]
-    fn test_cannot_call_ibc_host_directly_with_remove_chain_proxy() -> AnyResult<()> {
+    fn test_cannot_call_ibc_host_directly_with_remove_chain_account() -> AnyResult<()> {
         logger_test_init();
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
@@ -576,7 +576,7 @@ mod test {
                 account_id: remote_account_id,
                 account_address: origin_account.address()?.to_string(),
                 action: HostAction::Dispatch {
-                    account_msgs: vec![ManagerExecuteMsg::UpdateInfo {
+                    account_msgs: vec![AccountExecuteMsg::UpdateInfo {
                         name: Some("name".to_owned()),
                         description: Some("description".to_owned()),
                         link: Some("link".to_owned()),

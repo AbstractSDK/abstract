@@ -6,11 +6,11 @@
 //! Code-ids and api-contract addresses are stored on this address. This data can not be changed and allows for complex factory logic.
 //! Both code-ids and addresses are stored on a per-module version basis which allows users to easily upgrade their modules.
 //!
-//! An internal account-id store provides external verification for manager and proxy addresses.  
+//! An internal account-id store provides external verification for accounts.  
 
 pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 
-/// Contains configuration info of version control.
+/// Contains configuration info of registry.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub security_disabled: bool,
@@ -181,7 +181,7 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         creator: String,
     },
-    /// Updates configuration of the VC contract
+    /// Updates configuration of the Registry contract
     UpdateConfig {
         /// Whether the contract allows direct module registration
         security_disabled: Option<bool>,

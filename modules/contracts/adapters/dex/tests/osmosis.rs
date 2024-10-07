@@ -170,14 +170,14 @@ fn swap() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, _pool_id) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let swap_value = 1_000_000_000u128;
 
-    chain.bank_send(proxy_addr.to_string(), coins(swap_value, "uatom"))?;
+    chain.bank_send(account_addr.to_string(), coins(swap_value, "uatom"))?;
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
     dex_adapter.ans_swap(
@@ -189,9 +189,9 @@ fn swap() -> AnyResult<()> {
     )?;
 
     // Assert balances
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert_eq!(balances.len(), 1);
-    let balance = chain.query_balance(proxy_addr.as_ref(), "uosmo")?;
+    let balance = chain.query_balance(account_addr.as_ref(), "uosmo")?;
     assert!(balance > Uint128::zero());
 
     Ok(())
@@ -202,11 +202,11 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, deployment, _pool_id) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let swap_value = 1_000_000_000u128;
 
-    chain.bank_send(proxy_addr.to_string(), coins(swap_value, "uatom"))?;
+    chain.bank_send(account_addr.to_string(), coins(swap_value, "uatom"))?;
 
     let lp = "osmosis/osmo2,atom2";
     let pool_id = chain.create_pool(vec![coin(1_000, "uosmo"), coin(1_000, "uatom")])?;
@@ -246,7 +246,7 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
         .unwrap();
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
     dex_adapter.ans_swap(
@@ -258,9 +258,9 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
     )?;
 
     // Assert balances
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert_eq!(balances.len(), 1);
-    let balance = chain.query_balance(proxy_addr.as_ref(), "uosmo")?;
+    let balance = chain.query_balance(account_addr.as_ref(), "uosmo")?;
     assert!(balance > Uint128::zero());
 
     Ok(())
@@ -271,15 +271,15 @@ fn provide_liquidity_two_sided() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, pool_id) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let provide_value = 1_000_000_000u128;
 
-    // Before providing, we need to have no assets in the proxy
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    // Before providing, we need to have no assets in the account
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert!(balances.is_empty());
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value * 2, "uatom"))?;
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value * 2, "uosmo"))?;
+    chain.bank_send(account_addr.to_string(), coins(provide_value * 2, "uatom"))?;
+    chain.bank_send(account_addr.to_string(), coins(provide_value * 2, "uosmo"))?;
 
     // provide to the pool
     provide(
@@ -303,7 +303,7 @@ fn provide_liquidity_two_sided() -> AnyResult<()> {
     )?;
 
     // After providing, we need to get the liquidity token
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert_eq!(
         balances,
         coins(
@@ -320,15 +320,15 @@ fn provide_liquidity_one_sided() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, pool_id) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let provide_value = 1_000_000_000u128;
 
-    // Before providing, we need to have no assets in the proxy
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    // Before providing, we need to have no assets in the account
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert!(balances.is_empty());
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uatom"))?;
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
+    chain.bank_send(account_addr.to_string(), coins(provide_value, "uatom"))?;
+    chain.bank_send(account_addr.to_string(), coins(provide_value, "uosmo"))?;
 
     // provide to the pool
     provide(
@@ -352,7 +352,7 @@ fn provide_liquidity_one_sided() -> AnyResult<()> {
     )?;
 
     // After providing, we need to get the liquidity token
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     let lp_balance = balances
         .iter()
         .find(|c| c.denom == get_pool_token(pool_id))
@@ -367,15 +367,15 @@ fn withdraw_liquidity() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, pool_id) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let provide_value = 1_000_000_000u128;
 
-    // Before providing, we need to have no assets in the proxy
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    // Before providing, we need to have no assets in the account
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert!(balances.is_empty());
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uatom"))?;
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
+    chain.bank_send(account_addr.to_string(), coins(provide_value, "uatom"))?;
+    chain.bank_send(account_addr.to_string(), coins(provide_value, "uosmo"))?;
 
     // provide to the pool
     provide(
@@ -388,7 +388,7 @@ fn withdraw_liquidity() -> AnyResult<()> {
     )?;
 
     // After providing, we need to get the liquidity token
-    let balance = chain.query_balance(proxy_addr.as_ref(), &get_pool_token(pool_id))?;
+    let balance = chain.query_balance(account_addr.as_ref(), &get_pool_token(pool_id))?;
 
     // withdraw from the pool
     withdraw(
@@ -401,7 +401,7 @@ fn withdraw_liquidity() -> AnyResult<()> {
     )?;
 
     // After withdrawing, we should get some tokens in return and have some lp token left
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert_eq!(balances.len(), 3);
 
     Ok(())
@@ -446,14 +446,14 @@ fn swap_route() -> AnyResult<()> {
         )
         .unwrap();
 
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let swap_value = 1_000_000_000u128;
 
-    chain.bank_send(proxy_addr.to_string(), coins(swap_value, "uatom"))?;
+    chain.bank_send(account_addr.to_string(), coins(swap_value, "uatom"))?;
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
     dex_adapter.raw_action(
@@ -477,9 +477,9 @@ fn swap_route() -> AnyResult<()> {
     )?;
 
     // Assert balances
-    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let balances = chain.query_all_balances(account_addr.as_ref())?;
     assert_eq!(balances.len(), 1);
-    let balance = chain.query_balance(proxy_addr.as_ref(), juno)?;
+    let balance = chain.query_balance(account_addr.as_ref(), juno)?;
     assert!(balance > Uint128::zero());
 
     Ok(())

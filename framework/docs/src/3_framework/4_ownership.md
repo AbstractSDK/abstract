@@ -75,37 +75,39 @@ To simplify accessing or configuring a sub-account or app we allow calling any s
 
 ```mermaid
 flowchart TB
-    direction TB
-    subgraph AbstrA[Sub-Account A]
-        direction TB
-        ManagerA[Manager] --> ProxyA[Proxy]
-        AppA[App]
-    end
+    %% Define the Owner and the main Account
+    Owner -- owns --> Account
 
-    subgraph AbstrB[Sub-Account B]
-        direction TB
-        ManagerB[Manager] --> ProxyB[Proxy]
-    end
+    %% Sub-Accounts hierarchy
+    Account -- owns --> SubAccountA[Sub-Account A]
+    Account -- owns --> SubAccountB[Sub-Account B]
+    SubAccountA -- owns --> SubAccountC[Sub-Account C]
 
-    subgraph AbstrC[Sub-Account C]
-        direction TB
-        ManagerC[Manager] --> ProxyC[Proxy]
-        App
-    end
+    %% Apps associated with Sub-Accounts
+    SubAccountA -- installed --> AppA[App A]
+    SubAccountC -- installed --> AppC[App C]
 
-    subgraph Abstr[Account]
-        direction TB
-        Manager --> Proxy
-    end
-
-Owner --> Manager
-Manager --> ManagerA
-Manager ---> ManagerB
-ManagerB --> ManagerC
-
-Owner -.Configure App.....-> AppA
-Owner -.Configure Account....-> ManagerC
+    %% Owner can configure Sub-Accounts and Apps directly
+    Owner -. configures .-> SubAccountA
+    Owner -. configures .-> SubAccountB
+    Owner -. configures .-> SubAccountC
+    Owner -. configures .-> AppA
+    Owner -. configures .-> AppC
 ```
+
+This diagram illustrates:
+
+- The Owner owns the main Account.
+- The Account owns Sub-Account A and Sub-Account B.
+- Sub-Account A owns Sub-Account C.
+- Sub-Account A installed App A, and Sub-Account C installed App C.
+- The Owner can directly configure any Sub-Account or App without needing to proxy through the main Account.
+
+Explanation of the Diagram:
+
+- **Ownership Relationships:** Solid arrows (`-- owns -->`) indicate ownership. The hierarchy shows how sub-accounts are nested and owned by parent accounts.
+- **App Associations:** Solid arrows labeled `installed` show which apps are associated with which sub-accounts.
+- **Direct Configuration:** Dashed arrows (`-. configures .->`) indicate that the owner can directly configure the sub-accounts and any of its apps.
 
 As a result of this structure, complex multi-account systems can easily be transferred between governance systems by simply changing the owner of the top-level account.
 

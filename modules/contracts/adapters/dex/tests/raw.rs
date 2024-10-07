@@ -50,7 +50,7 @@ fn setup_mock() -> anyhow::Result<(
 
     let account = create_default_account(&deployment.account_factory)?;
 
-    // mint to proxy
+    // mint to account
     chain.set_balance(&account.address()?, vec![coin(10_000, EUR)])?;
     // install exchange on OS
     account.install_adapter(&dex_adapter, None)?;
@@ -61,7 +61,7 @@ fn setup_mock() -> anyhow::Result<(
 #[test]
 fn raw_swap_native() -> anyhow::Result<()> {
     let (chain, wyndex, dex_adapter, os, abstr) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let pools = abstr.ans_host.pool_list(None, None, None)?;
     println!("{:?}", pools);
@@ -76,18 +76,18 @@ fn raw_swap_native() -> anyhow::Result<()> {
     )?;
 
     // check balances
-    let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
+    let eur_balance = chain.query_balance(&account_addr, EUR)?;
     assert_that!(eur_balance.u128()).is_equal_to(9_900);
 
-    let usd_balance = chain.query_balance(&proxy_addr, USD)?;
+    let usd_balance = chain.query_balance(&account_addr, USD)?;
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
-        .proxy
+    let os0_account = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
+        .account
         .address()?;
 
-    let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
+    let os0_eur_balance = chain.query_balance(&os0_account, EUR)?;
 
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 
@@ -97,7 +97,7 @@ fn raw_swap_native() -> anyhow::Result<()> {
 #[test]
 fn raw_swap_native_without_chain() -> anyhow::Result<()> {
     let (chain, wyndex, dex_adapter, os, abstr) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     // swap 100 EUR to USD
     dex_adapter.raw_swap_native(
@@ -109,19 +109,19 @@ fn raw_swap_native_without_chain() -> anyhow::Result<()> {
     )?;
 
     // check balances
-    let balances = chain.query_all_balances(&proxy_addr)?;
+    let balances = chain.query_all_balances(&account_addr)?;
     println!("{:?}", balances);
-    let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
+    let eur_balance = chain.query_balance(&account_addr, EUR)?;
     assert_that!(eur_balance.u128()).is_equal_to(9_900);
 
-    let usd_balance = chain.query_balance(&proxy_addr, USD)?;
+    let usd_balance = chain.query_balance(&account_addr, USD)?;
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
-        .proxy
+    let os0_account = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
+        .account
         .address()?;
-    let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
+    let os0_eur_balance = chain.query_balance(&os0_account, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 
     Ok(())
@@ -130,18 +130,18 @@ fn raw_swap_native_without_chain() -> anyhow::Result<()> {
 #[test]
 fn raw_swap_raw() -> anyhow::Result<()> {
     let (chain, wyndex, _, os, abstr) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     // transfer raw
     let owner = chain.addr_make(WYNDEX_OWNER);
     wyndex
         .raw_token
         .call_as(&owner)
-        .transfer(10_000u128, proxy_addr.to_string())?;
+        .transfer(10_000u128, account_addr.to_string())?;
 
     // swap 100 RAW to EUR
     let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(AdapterRequestMsg {
-        proxy_address: None,
+        account_address: None,
         request: DexExecuteMsg::Action {
             dex: WYNDEX.to_owned(),
             action: DexAction::Swap {
@@ -153,20 +153,20 @@ fn raw_swap_raw() -> anyhow::Result<()> {
             },
         },
     });
-    os.manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+    os.account.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
 
     // check balances
-    let raw_balance = wyndex.raw_token.balance(proxy_addr.to_string())?;
+    let raw_balance = wyndex.raw_token.balance(account_addr.to_string())?;
     assert_that!(raw_balance.balance.u128()).is_equal_to(9_900);
 
-    let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
+    let eur_balance = chain.query_balance(&account_addr, EUR)?;
     assert_that!(eur_balance.u128()).is_equal_to(10098);
 
     // assert that OS 0 received the swap fee
-    let account0_proxy = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
-        .proxy
+    let account0_account = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
+        .account
         .address()?;
-    let os0_raw_balance = wyndex.raw_token.balance(account0_proxy.to_string())?;
+    let os0_raw_balance = wyndex.raw_token.balance(account0_account.to_string())?;
     assert_that!(os0_raw_balance.balance.u128()).is_equal_to(1);
 
     Ok(())

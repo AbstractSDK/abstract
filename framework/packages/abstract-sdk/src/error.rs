@@ -67,9 +67,9 @@ pub enum AbstractSdkError {
     #[error("Called an IBC module action on {0}, when no endpoint was registered.")]
     NoModuleIbcHandler(String),
 
-    // admin of proxy is not set
-    #[error("Admin of proxy {proxy_addr} is not set.")]
-    AdminNotSet { proxy_addr: Addr },
+    // admin of account is not set
+    #[error("Admin of account {account_addr} is not set.")]
+    AdminNotSet { account_addr: Addr },
 
     // Query from api object failed
     #[error("API query for {api} failed in {module_id}: {error}")]

@@ -178,7 +178,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deposit_manager() {
+    fn test_deposit_account() {
         let mut storage = MockStorage::default();
         let deposits = DepositManager::new("test", "test2");
 

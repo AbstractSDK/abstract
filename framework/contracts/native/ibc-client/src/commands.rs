@@ -160,7 +160,7 @@ pub fn execute_send_packet(
 
     let note_message = match &action {
         HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
-            // Verify that the sender is a proxy contract
+            // Verify that the sender is a account contract
             let account = registry.assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
@@ -334,7 +334,7 @@ pub fn execute_register_account(
     host_chain.verify()?;
     let registry = RegistryContract::new(deps.api, &env)?;
 
-    // Verify that the sender is a proxy contract
+    // Verify that the sender is a account contract
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
@@ -379,7 +379,7 @@ pub fn execute_send_funds(
 
     let registry = RegistryContract::new(deps.api, &env)?;
     let ans = AnsHost::new(deps.api, &env)?;
-    // Verify that the sender is a proxy contract
+    // Verify that the sender is a account contract
 
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
@@ -411,9 +411,7 @@ pub fn execute_send_funds(
         transfers.push(ics_20_send);
     }
 
-    Ok(IbcClientResponse::action("handle_send_funds")
-        //.add_message(proxy_msg)
-        .add_messages(transfers))
+    Ok(IbcClientResponse::action("handle_send_funds").add_messages(transfers))
 }
 
 fn _ics_20_send_msg(

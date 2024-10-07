@@ -6,7 +6,7 @@ The [Account Console](https://console.abstract.money) is in beta. Please report 
 
 The [Account Console](https://console.abstract.money) is a web-based developer tool that allows you to inspect and interact with your Abstract Accounts.
 
-It also allows you to easily view the abstract-specific infrastructure details like the [Abstract Name Service](./1_ans.md) or the [Version Control](2_version_control.md).
+It also allows you to easily view the abstract-specific infrastructure details like the [Abstract Name Service](./1_ans.md) or the [Registry](2_registry.md).
 
 The Account Console offers:
 
@@ -39,8 +39,7 @@ to select the network you want to connect to, and then proceed to create your Ab
 
 ![](../resources/account_console/account_creation.webp)
 
-Once the account is created, you can see the overview of the account, including the manager and the proxy contracts,
-among other details.
+Once the account is created, you can see the overview of the account among other details.
 
 ![](../resources/account_console/account_overview.webp)
 

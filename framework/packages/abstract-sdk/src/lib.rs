@@ -47,7 +47,7 @@ pub mod namespaces {
     pub use abstract_std::objects::storage_namespaces::*;
 }
 
-/// Abstract reserved version control entries.
+/// Abstract reserved registry entries.
 pub mod register {
     pub use abstract_std::registry::*;
 }

@@ -30,11 +30,11 @@ pub fn execute_create_modules(
     salt: Binary,
 ) -> ModuleFactoryResult {
     let block_height = env.block.height;
-    // Verify sender is active Account manager
+    // Verify sender is active Account
     // Construct feature object to access registry functions
     let registry = RegistryContract::new(deps.api, &env)?;
 
-    // assert that sender is manager
+    // assert that sender is account
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
@@ -50,7 +50,7 @@ pub fn execute_create_modules(
     // install messages
     let mut module_instantiate_messages = Vec::with_capacity(modules_responses.len());
 
-    // Register modules on manager
+    // Register modules on account
     let mut modules_to_register: Vec<Addr> = vec![];
 
     // Attributes logging
@@ -67,7 +67,7 @@ pub fn execute_create_modules(
         let new_module_init_funds = module_response.config.instantiation_funds;
         module_ids.push(new_module.info.id_with_version());
 
-        // We validate the fee if it was required by the version control to install this module
+        // We validate the fee if it was required by the registry to install this module
         match new_module_monetization {
             module::Monetization::InstallFee(f) => {
                 let fee = f.fee();

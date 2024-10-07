@@ -15,7 +15,7 @@ use cw_storage_plus::Item;
 use crate::prelude::*;
 
 pub trait AbstractMockQuerier {
-    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to version control.
+    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to registry.
     fn account(self, account: &Account, account_id: AccountId) -> Self;
 
     /// Add mock assets into ANS
@@ -31,7 +31,7 @@ pub trait AbstractMockQuerier {
 }
 
 impl AbstractMockQuerier for MockQuerierBuilder {
-    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to version control.
+    /// Mock the existence of an Account by setting the Account id for the account along with registering the account to registry.
     fn account(self, account: &Account, account_id: AccountId) -> Self {
         let abstract_addrs = self.addrs();
         self.with_contract_item(account.addr(), ACCOUNT_ID, &account_id)

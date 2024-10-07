@@ -515,7 +515,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        // we attach 5 extra coin2, rest should go to proxy
+        // we attach 5 extra coin2, rest should go to account
         &[coin(10, "coin1"), coin(10, "coin2")],
     )
     .unwrap();
@@ -793,7 +793,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
+        // we attach 1 extra coin1 and 5 extra coin2, rest should go to account
         &[coin(10, "coin1"), coin(10, "coin2")],
     )
     .unwrap();
@@ -812,10 +812,10 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
 
 // See gen_app_mock for more details
 #[test]
-fn install_app_with_proxy_action() -> AResult {
+fn install_app_with_account_action() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::install_app_with_proxy_action(chain)
+    abstract_integration_tests::account::install_app_with_account_action(chain)
 }
 
 #[test]

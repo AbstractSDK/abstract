@@ -68,7 +68,7 @@ pub fn instantiate(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    InstantiateMsg {
+    #[cfg_attr(not(feature = "xion"), allow(unused_variables))] InstantiateMsg {
         account_id,
         owner,
         install_modules,
@@ -76,7 +76,6 @@ pub fn instantiate(
         description,
         link,
         namespace,
-
         authenticator,
     }: InstantiateMsg,
 ) -> AccountResult {
@@ -123,7 +122,7 @@ pub fn instantiate(
         .clone()
         .verify(deps.as_ref(), registry.address.clone())?;
     match governance {
-        // Check if the caller is the manager the proposed owner account when creating a sub-account.
+        // Check if the caller is the proposed owner account when creating a sub-account.
         // This prevents other users from creating sub-accounts for accounts they don't own.
         GovernanceDetails::SubAccount { account } => {
             ensure_eq!(
@@ -404,6 +403,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Ownership {} => {
             cosmwasm_std::to_json_binary(&ownership::get_ownership(deps.storage)?)
         }
+        #[cfg_attr(not(feature = "xion"), allow(unused_variables))]
         QueryMsg::AuthenticatorByID { id } => {
             #[cfg(feature = "xion")]
             {
