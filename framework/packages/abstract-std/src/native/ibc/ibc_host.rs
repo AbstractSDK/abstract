@@ -1,12 +1,3 @@
-//! # Abstract Api Base
-//!
-//! `abstract_std::adapter` implements shared functionality that's useful for creating new Abstract adapters.
-//!
-//! ## Description
-//! An Abstract adapter contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
-//! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the Account.
-//! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
-
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 

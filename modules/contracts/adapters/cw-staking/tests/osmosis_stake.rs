@@ -117,7 +117,7 @@ mod osmosis_test {
             account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
+                account_address: None,
                 request: StakingExecuteMsg {
                     provider,
                     action: StakingAction::Stake {
@@ -140,7 +140,7 @@ mod osmosis_test {
             account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
+                account_address: None,
                 request: StakingExecuteMsg {
                     provider,
                     action: StakingAction::Unstake {
@@ -162,7 +162,7 @@ mod osmosis_test {
             account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
+                account_address: None,
                 request: StakingExecuteMsg {
                     provider,
                     action: StakingAction::Claim {
@@ -183,7 +183,7 @@ mod osmosis_test {
             account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
+                account_address: None,
                 request: StakingExecuteMsg {
                     provider,
                     action: StakingAction::ClaimRewards {
@@ -218,7 +218,7 @@ mod osmosis_test {
         staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Error)?;
 
         let os = create_default_account(&deployment.account_factory)?;
-        // let proxy_addr = os.proxy.address()?;
+        // let account_addr = os.account.address()?;
         let _account_addr = os.account.address()?;
 
         // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
@@ -262,7 +262,7 @@ mod osmosis_test {
         os.install_adapter(&staking, None)?;
 
         tube.bank_send(
-            os.proxy.addr_str()?,
+            os.account.addr_str()?,
             coins(1_000u128, get_pool_token(pool_id)),
         )?;
 
@@ -291,7 +291,7 @@ mod osmosis_test {
     #[test]
     fn stake_lp() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let proxy_addr = os.proxy.address()?;
+        let account_addr = os.account.address()?;
 
         let dur = Some(cw_utils::Duration::Time(2));
 
@@ -302,7 +302,7 @@ mod osmosis_test {
         // query stake
         let res = staking.staked(
             OSMOSIS.into(),
-            proxy_addr.to_string(),
+            account_addr.to_string(),
             vec![AssetEntry::new(LP)],
             dur,
         );
@@ -315,7 +315,7 @@ mod osmosis_test {
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
             "/osmosis.lockup.Query/AccountLockedCoins",
             &AccountLockedCoinsRequest {
-                owner: proxy_addr.to_string(),
+                owner: account_addr.to_string(),
             },
         )?;
         assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
@@ -326,7 +326,7 @@ mod osmosis_test {
     #[test]
     fn unstake_lp() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let proxy_addr = os.proxy.address()?;
+        let account_addr = os.account.address()?;
 
         let dur = Some(cw_utils::Duration::Time(2));
 
@@ -337,7 +337,7 @@ mod osmosis_test {
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
             "/osmosis.lockup.Query/AccountLockedCoins",
             &AccountLockedCoinsRequest {
-                owner: proxy_addr.to_string(),
+                owner: account_addr.to_string(),
             },
         )?;
         assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
@@ -347,7 +347,7 @@ mod osmosis_test {
         // query unbond
         let unbonding = staking.unbonding(
             OSMOSIS.into(),
-            proxy_addr.to_string(),
+            account_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
         assert_that!(unbonding.claims[0][0].amount).is_equal_to(Uint128::new(50));
@@ -356,7 +356,7 @@ mod osmosis_test {
         tube.wait_seconds(2)?;
         let unbonding = staking.unbonding(
             OSMOSIS.into(),
-            proxy_addr.to_string(),
+            account_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
         assert_that!(unbonding.claims[0]).is_empty();
@@ -365,7 +365,7 @@ mod osmosis_test {
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
             "/osmosis.lockup.Query/AccountLockedCoins",
             &AccountLockedCoinsRequest {
-                owner: proxy_addr.to_string(),
+                owner: account_addr.to_string(),
             },
         )?;
         assert_that!(staked_balance.coins[0].amount).is_equal_to(50u128.to_string());
@@ -375,7 +375,7 @@ mod osmosis_test {
     #[test]
     fn claim_all() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let proxy_addr = os.proxy.address()?;
+        let account_addr = os.account.address()?;
 
         let dur = Some(cw_utils::Duration::Time(2));
 
@@ -386,7 +386,7 @@ mod osmosis_test {
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
             "/osmosis.lockup.Query/AccountLockedCoins",
             &AccountLockedCoinsRequest {
-                owner: proxy_addr.to_string(),
+                owner: account_addr.to_string(),
             },
         )?;
         assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
@@ -396,7 +396,7 @@ mod osmosis_test {
         // query unbond
         let unbonding = staking.unbonding(
             OSMOSIS.into(),
-            proxy_addr.to_string(),
+            account_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
         assert_that!(unbonding.claims[0][0].amount).is_equal_to(Uint128::new(100));
@@ -405,7 +405,7 @@ mod osmosis_test {
         tube.wait_seconds(2)?;
         let unbonding = staking.unbonding(
             OSMOSIS.into(),
-            proxy_addr.to_string(),
+            account_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
         assert_that!(unbonding.claims[0]).is_empty();
@@ -414,7 +414,7 @@ mod osmosis_test {
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
             "/osmosis.lockup.Query/AccountLockedCoins",
             &AccountLockedCoinsRequest {
-                owner: proxy_addr.to_string(),
+                owner: account_addr.to_string(),
             },
         )?;
         assert_that!(staked_balance.coins.len()).is_equal_to(0);
@@ -425,7 +425,7 @@ mod osmosis_test {
     #[test]
     fn concentrated_liquidity() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let proxy_addr = os.proxy.address()?;
+        let account_addr = os.account.address()?;
 
         let lp = "osmosis/osmo2,atom2";
         // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
@@ -488,7 +488,7 @@ mod osmosis_test {
         let (mut chain, pool_id, staking, os) = setup_osmosis()?;
         // For gauge
         chain.add_balance(chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
-        let proxy_addr = os.proxy.address()?;
+        let account_addr = os.account.address()?;
 
         let test_tube = chain.app.borrow();
         let incentives = super::incentives::Incentives::new(&*test_tube);
@@ -530,7 +530,7 @@ mod osmosis_test {
         let (mut chain, pool_id, staking, os) = setup_osmosis()?;
         // For gauge
         chain.add_balance(chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
-        let proxy_addr = os.proxy.address()?;
+        let account_addr = os.account.address()?;
 
         let test_tube = chain.app.borrow();
         let incentives = super::incentives::Incentives::new(&*test_tube);

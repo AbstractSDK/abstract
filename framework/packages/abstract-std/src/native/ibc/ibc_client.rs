@@ -43,7 +43,7 @@ pub mod state {
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> =
         Map::new(storage_namespaces::ibc_client::REVERSE_POLYTONE_NOTE);
 
-    /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
+    /// (account_trace, account_sequence, chain_name) -> remote account address. We use a
     /// triple instead of including AccountId since nested tuples do not behave as expected due to
     /// a bug that will be fixed in a future release.
     pub const ACCOUNTS: Map<(&AccountTrace, AccountSequence, &TruncatedChainId), String> =
@@ -83,7 +83,7 @@ pub enum ExecuteMsg {
         /// Address of the abstract host deployed on the remote chain
         host: String,
     },
-    /// Only callable by Account proxy
+    /// Only callable by Account
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
     SendFunds {
@@ -93,9 +93,9 @@ pub enum ExecuteMsg {
         funds: Vec<Coin>,
         memo: Option<String>,
     },
-    /// Only callable by Account proxy
+    /// Only callable by Account
     /// Register an Account on a remote chain over IBC
-    /// This action creates a proxy for them on the remote chain.
+    /// This action creates a account for them on the remote chain.
     Register {
         /// host chain to be executed on
         /// Example: "osmosis"
@@ -286,7 +286,7 @@ pub enum QueryMsg {
         limit: Option<u32>,
     },
 
-    /// Get remote proxy address for one chain
+    /// Get remote account address for one chain
     /// Returns [`AccountResponse`]
     #[returns(AccountResponse)]
     #[cw_orch(fn_name("remote_account"))]
@@ -350,7 +350,7 @@ pub struct HostResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
-    pub remote_proxy_addr: Option<String>,
+    pub remote_account_addr: Option<String>,
 }
 
 #[cosmwasm_schema::cw_serde]

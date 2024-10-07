@@ -2,7 +2,7 @@ use abstract_std::{account::state::ACCOUNT_ID, registry::Account};
 use cosmwasm_std::Deps;
 
 use crate::std::objects::AccountId;
-// see std::proxy::state::ADMIN
+// see std::account::state::ADMIN
 use crate::AbstractSdkResult;
 
 /// Retrieve identifying information about an Account.

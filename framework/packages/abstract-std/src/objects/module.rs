@@ -354,10 +354,10 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
 }
 
 impl Module {
-    // Helper to know if this module supposed to be whitelisted on proxy contract
+    // Helper to know if this module supposed to be whitelisted on account contract
     pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
-            // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
+            // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on account
             ModuleReference::Adapter(_) | ModuleReference::App(_) => true,
             _ => false,
         }

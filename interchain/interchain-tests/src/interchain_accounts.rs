@@ -150,7 +150,7 @@ mod test {
 
         assert_eq!(
             AccountResponse {
-                remote_proxy_addr: Some(remote_abstract_account.address()?.to_string()),
+                remote_account_addr: Some(remote_abstract_account.address()?.to_string()),
             },
             account_response
         );
@@ -172,7 +172,7 @@ mod test {
         let remote_abstract_account =
             AccountI::load_from(&abstr_remote, remote_account_id.clone())?;
 
-        // Do stargate action on proxy to verify it's enabled
+        // Do stargate action on account to verify it's enabled
         let amount = Coin {
             denom: "ujuno".to_owned(),
             amount: Uint128::new(100),
@@ -219,11 +219,11 @@ mod test {
 
         mock_interchain.await_and_check_packets(JUNO, ibc_transfer_result)?;
 
-        let remote_proxy_balance = mock_interchain
+        let remote_account_balance = mock_interchain
             .get_chain(STARGAZE)
             .unwrap()
             .balance(&remote_abstract_account.address()?, None)?;
-        assert_eq!(remote_proxy_balance, coins(100, "ibc/channel-0/ujuno"));
+        assert_eq!(remote_account_balance, coins(100, "ibc/channel-0/ujuno"));
 
         Ok(())
     }
@@ -380,7 +380,7 @@ mod test {
             .iter()
             .any(|m| m.id == IBC_CLIENT));
 
-        // We try to execute a message from the proxy contract (account creation for instance)
+        // We try to execute a message from the account contract (account creation for instance)
         // ii. Now we test that we can indeed create an account remotely from the interchain account
 
         let account_name = String::from("Abstract Test Remote Remote account");
@@ -521,7 +521,7 @@ mod test {
     }
 
     #[test]
-    fn test_cannot_call_ibc_host_directly_with_remove_chain_proxy() -> AnyResult<()> {
+    fn test_cannot_call_ibc_host_directly_with_remove_chain_account() -> AnyResult<()> {
         logger_test_init();
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);

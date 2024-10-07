@@ -188,9 +188,9 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(msg.into())
     }
 
-    /// Address of the remote proxy
+    /// Address of the remote account
     /// Note: only Accounts that are remote to *this* chain are queryable
-    pub fn remote_proxy_addr(
+    pub fn remote_account_addr(
         &self,
         host_chain: &TruncatedChainId,
     ) -> AbstractSdkResult<Option<String>> {
@@ -245,7 +245,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         .into())
     }
 
-    /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
+    /// IbcClient the provided coins from the Account to its account on the `receiving_chain`.
     pub fn ics20_transfer(
         &self,
         host_chain: TruncatedChainId,
@@ -324,9 +324,9 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         )
     }
 
-    /// Address of the remote proxy
+    /// Address of the remote account
     /// Note: only works if account is local
-    pub fn remote_proxy(&self, host_chain: &TruncatedChainId) -> AbstractSdkResult<Option<String>> {
+    pub fn remote_account(&self, host_chain: &TruncatedChainId) -> AbstractSdkResult<Option<String>> {
         let account_id = self.base.account_id(self.deps)?;
         let ibc_client_addr = self.module_address()?;
 

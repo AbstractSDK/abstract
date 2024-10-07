@@ -4,7 +4,7 @@
 //!
 //! ## Description
 //!
-//! The Account is part of the Core Abstract Account contracts along with the `abstract_std::proxy` contract.
+//! The Account is part of the Core Abstract Account contracts along with the `abstract_std::account` contract.
 //! This contract is responsible for:
 //! - Managing modules instantiation and migrations.
 //! - Managing permissions.

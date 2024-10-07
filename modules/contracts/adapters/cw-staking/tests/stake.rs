@@ -45,14 +45,14 @@ fn setup_mock() -> anyhow::Result<(
     staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Try)?;
 
     let os = create_default_account(&deployment.account_factory)?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
     let _account_addr = os.account.address()?;
 
     // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
     wyndex
         .eur_usd_lp
         .call_as(&chain.addr_make(WYNDEX_OWNER))
-        .transfer(1000u128, proxy_addr.to_string())?;
+        .transfer(1000u128, account_addr.to_string())?;
 
     // install exchange on AbstractAccount
     os.install_adapter(&staking, None)?;
@@ -100,7 +100,7 @@ fn staking_inited() -> anyhow::Result<()> {
 #[test]
 fn stake_lp() -> anyhow::Result<()> {
     let (_, _, staking, os) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
@@ -110,7 +110,7 @@ fn stake_lp() -> anyhow::Result<()> {
     // query stake
     let staked_balance = staking.staked(
         WYNDEX.into(),
-        proxy_addr.to_string(),
+        account_addr.to_string(),
         vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
@@ -122,7 +122,7 @@ fn stake_lp() -> anyhow::Result<()> {
 #[test]
 fn stake_lp_wthout_chain() -> anyhow::Result<()> {
     let (_, _, staking, os) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
@@ -137,7 +137,7 @@ fn stake_lp_wthout_chain() -> anyhow::Result<()> {
     // query stake
     let staked_balance = staking.staked(
         WYNDEX.into(),
-        proxy_addr.to_string(),
+        account_addr.to_string(),
         vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
@@ -149,7 +149,7 @@ fn stake_lp_wthout_chain() -> anyhow::Result<()> {
 #[test]
 fn unstake_lp() -> anyhow::Result<()> {
     let (_, _, staking, os) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
@@ -159,7 +159,7 @@ fn unstake_lp() -> anyhow::Result<()> {
     // query stake
     let staked_balance = staking.staked(
         WYNDEX.into(),
-        proxy_addr.to_string(),
+        account_addr.to_string(),
         vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
@@ -170,7 +170,7 @@ fn unstake_lp() -> anyhow::Result<()> {
     // query stake
     let staked_balance = staking.staked(
         WYNDEX.into(),
-        proxy_addr.to_string(),
+        account_addr.to_string(),
         vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
@@ -181,7 +181,7 @@ fn unstake_lp() -> anyhow::Result<()> {
 #[test]
 fn claim_unbonded_lp() -> anyhow::Result<()> {
     let (chain, wyndex, staking, os) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let dur = cw_utils::Duration::Time(2);
 
@@ -206,7 +206,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
     // query unbonding
     let unbonding_balance = staking.unbonding(
         WYNDEX.into(),
-        proxy_addr.to_string(),
+        account_addr.to_string(),
         vec![AssetEntry::new(EUR_USD_LP)],
     )?;
     let claimable_at = dur.after(&unstake_block_info);
@@ -224,7 +224,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
     staking.claim(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &os)?;
 
     // query balance
-    let balance = wyndex.eur_usd_lp.balance(proxy_addr.to_string())?;
+    let balance = wyndex.eur_usd_lp.balance(account_addr.to_string())?;
     assert_that!(balance.balance.u128()).is_equal_to(950u128);
 
     Ok(())
@@ -233,7 +233,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
 #[test]
 fn claim_rewards() -> anyhow::Result<()> {
     let (chain, mut wyndex, staking, os) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
+    let account_addr = os.account.address()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
@@ -253,7 +253,7 @@ fn claim_rewards() -> anyhow::Result<()> {
     staking.claim_rewards(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &os)?;
 
     // query balance
-    let balance = chain.query_balance(&proxy_addr, WYND_TOKEN)?;
+    let balance = chain.query_balance(&account_addr, WYND_TOKEN)?;
     assert_that!(balance.u128()).is_equal_to(10_000u128);
 
     Ok(())

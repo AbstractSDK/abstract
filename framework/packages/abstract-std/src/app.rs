@@ -3,7 +3,7 @@
 //! `abstract_std::app` implements shared functionality that's useful for creating new Abstract apps.
 //!
 //! ## Description
-//! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
+//! An app is a contract that is allowed to perform actions on a [account](crate::account) contract while also being migratable.
 use crate::{
     base::{
         ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
@@ -113,7 +113,7 @@ pub struct BaseMigrateMsg {}
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[cosmwasm_schema::cw_serde]
 pub struct AppState {
-    /// Account contract address for proxying transactions
+    /// Account contract address for accounting transactions
     pub account: Account,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,

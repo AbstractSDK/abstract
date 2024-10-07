@@ -108,7 +108,7 @@ fn handle_ibc_request(
 
     Ok(module
         .custom_response("handle_ibc_request", vec![("provider", provider_name)])
-        // call both messages on the proxy
+        // call both messages on the account
         .add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
 }
 
