@@ -573,7 +573,7 @@ mod tests {
                     to_add: to_add.clone(),
                     to_remove: vec![],
                 });
-            let too_many = execute_as(deps.as_mut(), &owner, too_many_msg).unwrap_err();
+            let too_many = execute_as(&mut deps, &owner, too_many_msg).unwrap_err();
             assert_eq!(too_many, AccountError::ModuleLimitReached {});
 
             // Exact amount
@@ -583,13 +583,13 @@ mod tests {
                     to_add: to_add.clone(),
                     to_remove: vec![],
                 });
-            let white_list_add = execute_as(deps.as_mut(), &owner, exactly_limit_msg);
+            let white_list_add = execute_as(&mut deps, &owner, exactly_limit_msg);
             assert!(white_list_add.is_ok());
 
             // Can't add after hitting limit
             let to_add = vec![deps.api.addr_make("over_limit").to_string()];
             let module_limit_reached = execute_as(
-                deps.as_mut(),
+                &mut deps,
                 &owner,
                 ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
                     to_add,
@@ -616,9 +616,9 @@ mod tests {
                 to_add: to_add.clone(),
                 to_remove: vec![],
             });
-            execute_as(deps.as_mut(), &owner, msg.clone()).unwrap();
+            execute_as(&mut deps, &owner, msg.clone()).unwrap();
 
-            let duplicate_err = execute_as(deps.as_mut(), &owner, msg).unwrap_err();
+            let duplicate_err = execute_as(&mut deps, &owner, msg).unwrap_err();
             assert_eq!(
                 duplicate_err,
                 AccountError::AlreadyWhitelisted(to_add[0].clone())
@@ -633,7 +633,7 @@ mod tests {
                 to_add: to_add.clone(),
                 to_remove: vec![],
             });
-            let duplicate_err = execute_as(deps.as_mut(), &owner, msg).unwrap_err();
+            let duplicate_err = execute_as(&mut deps, &owner, msg).unwrap_err();
             assert_eq!(
                 duplicate_err,
                 AccountError::AlreadyWhitelisted(to_add[0].clone())
@@ -656,7 +656,7 @@ mod tests {
                 to_add: to_add.clone(),
                 to_remove: to_add.clone(),
             });
-            let no_changes = execute_as(deps.as_mut(), &owner, msg.clone());
+            let no_changes = execute_as(&mut deps, &owner, msg.clone());
             assert!(no_changes.is_ok());
 
             // Remove not whitelisted
@@ -665,7 +665,7 @@ mod tests {
                 to_add: vec![],
                 to_remove,
             });
-            let not_whitelisted = execute_as(deps.as_mut(), &owner, msg.clone()).unwrap_err();
+            let not_whitelisted = execute_as(&mut deps, &owner, msg.clone()).unwrap_err();
             assert_eq!(not_whitelisted, AccountError::NotWhitelisted {});
 
             // Remove same twice
@@ -678,7 +678,7 @@ mod tests {
                 to_add: to_add.clone(),
                 to_remove: to_remove.clone(),
             });
-            let not_whitelisted = execute_as(deps.as_mut(), &owner, msg.clone()).unwrap_err();
+            let not_whitelisted = execute_as(&mut deps, &owner, msg.clone()).unwrap_err();
             assert_eq!(not_whitelisted, AccountError::NotWhitelisted {});
 
             Ok(())

@@ -3,8 +3,8 @@ use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 use abstract_interface::{Abstract, AccountQueryFns, RegistryExecFns};
 use abstract_std::{
     account::{
-        AccountModuleInfo, ExecuteMsg as AccountMsg, ModuleAddressesResponse, ModuleInfosResponse,
-        ModuleInstallConfig, QueryMsg as AccountQuery,
+        ExecuteMsg as AccountMsg, ModuleAddressesResponse, ModuleInstallConfig,
+        QueryMsg as AccountQuery,
     },
     objects::{module::ModuleInfo, ownership::GovOwnershipError},
 };

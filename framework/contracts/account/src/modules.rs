@@ -18,7 +18,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, Env,
-    MessageInfo, StdError, StdResult, Storage, SubMsg,
+    MessageInfo, StdResult, Storage, SubMsg,
 };
 use cw2::ContractVersion;
 use cw_storage_plus::Item;

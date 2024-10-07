@@ -1021,7 +1021,7 @@ mod test {
             None,
         )?;
         let res_full_filter_bar: PoolsResponse =
-            from_json(query_helper(deps.as_ref(), msg_full_filter_bar)?)?;
+            from_json(query_helper(&deps, msg_full_filter_bar)?)?;
 
         let msg_foo = create_pool_list_msg(
             Some(create_asset_pairing_filter("juno", "atom", None)?),
@@ -1223,7 +1223,7 @@ mod test {
                 cw20_2.clone().into(),
             ],
         };
-        let res: AssetInfosResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetInfosResponse = from_json(query_helper(&deps, msg)?)?;
         let expected_bar = AssetInfosResponse {
             infos: vec![
                 (native_1, AssetEntry::new("foo_n")),
@@ -1236,7 +1236,7 @@ mod test {
 
         // Query invalid asset
         let res = query_helper(
-            deps.as_ref(),
+            &deps,
             QueryMsg::AssetInfos {
                 infos: vec![AssetInfoUnchecked::cw20("invalid_addr".to_string())],
             },
@@ -1244,7 +1244,7 @@ mod test {
         assert!(res.is_err());
         // Query not saved asset
         let res = query_helper(
-            deps.as_ref(),
+            &deps,
             QueryMsg::AssetInfos {
                 infos: vec![AssetInfoUnchecked::native("not_saved".to_string())],
             },
@@ -1273,7 +1273,7 @@ mod test {
             start_after: None,
             limit: None,
         };
-        let res: AssetInfoListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetInfoListResponse = from_json(query_helper(&deps, msg)?)?;
         let expected_infos = AssetInfoListResponse {
             infos: vec![
                 (cw20_1.clone(), AssetEntry::new("foo_ft")),
@@ -1290,7 +1290,7 @@ mod test {
             start_after: Some(cw20_2.clone().into()),
             limit: None,
         };
-        let res: AssetInfoListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetInfoListResponse = from_json(query_helper(&deps, msg)?)?;
         let expected_infos = AssetInfoListResponse {
             infos: vec![
                 (native_2, AssetEntry::new("bar_n")),
@@ -1305,7 +1305,7 @@ mod test {
             start_after: None,
             limit: Some(1),
         };
-        let res: AssetInfoListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetInfoListResponse = from_json(query_helper(&deps, msg)?)?;
         let expected_infos = AssetInfoListResponse {
             infos: vec![(cw20_1.clone(), AssetEntry::new("foo_ft"))],
         };

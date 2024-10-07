@@ -548,7 +548,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             registry.register_account(
                 self.as_instance(),
                 ::account::contract::CONTRACT_VERSION.to_string(),
-            );
+            )?;
             true
         } else {
             false
