@@ -635,6 +635,17 @@ impl<Chain: CwEnv> Account<Chain> {
         self.configure(&account::ExecuteMsg::Execute { msgs }, funds)
     }
 
+    /// Executes a [`CosmosMsg`] on a module of the account.
+    pub fn execute_on_module<I: Serialize>(
+        &self,
+        module_id: &str,
+        execute_msg: &I,
+    ) -> AbstractClientResult<Chain::Response> {
+        self.abstr_account
+            .execute_on_module(module_id, to_json_binary(execute_msg)?)
+            .map_err(Into::into)
+    }
+
     /// Executes a [`account::ExecuteMsg`] on the account.
     pub fn configure(
         &self,

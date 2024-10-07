@@ -422,7 +422,7 @@ mod test {
     }
 
     mod ica_action {
-        use abstract_ica::msg::IcaActionResult;
+        use abstract_std::ica_client::IcaActionResult;
         use abstract_std::ICA_CLIENT;
         use cosmwasm_std::{Binary, Empty};
 

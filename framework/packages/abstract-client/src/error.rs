@@ -2,6 +2,7 @@
 
 use abstract_interface::AbstractInterfaceError;
 use abstract_std::{objects::validation::ValidationError, AbstractError};
+use cosmwasm_std::StdError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -16,6 +17,9 @@ pub enum AbstractClientError {
 
     #[error("{0}")]
     CwOrch(#[from] cw_orch::prelude::CwOrchError),
+
+    #[error("{0}")]
+    StdError(#[from] StdError),
 
     #[error("{0}")]
     Semver(#[from] semver::Error),

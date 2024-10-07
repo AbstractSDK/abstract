@@ -147,7 +147,9 @@ mod tests {
                             infos[0],
                             ModuleInfo::from_id(
                                 EVM_NOTE_ID,
-                                abstract_ica::POLYTONE_EVM_VERSION.parse().unwrap()
+                                abstract_std::ica_client::POLYTONE_EVM_VERSION
+                                    .parse()
+                                    .unwrap()
                             )
                             .unwrap()
                         );
@@ -157,7 +159,9 @@ mod tests {
                                 module: Module {
                                     info: ModuleInfo::from_id(
                                         EVM_NOTE_ID,
-                                        abstract_ica::POLYTONE_EVM_VERSION.parse().unwrap(),
+                                        abstract_std::ica_client::POLYTONE_EVM_VERSION
+                                            .parse()
+                                            .unwrap(),
                                     )
                                     .unwrap(),
                                     reference: ModuleReference::Native(env_note_addr(api)),
@@ -177,7 +181,7 @@ mod tests {
         use super::*;
         use std::str::FromStr;
 
-        use abstract_ica::msg::QueryMsg;
+        use abstract_std::ica_client::QueryMsg;
         use abstract_std::objects::TruncatedChainId;
 
         use abstract_testing::mock_env_validated;
@@ -201,8 +205,8 @@ mod tests {
             assert_eq!(
                 res,
                 ConfigResponse {
-                    ans_host_address: abstr.ans_host,
-                    registry_address: abstr.registry
+                    ans_host_address: abstr.ans_host.to_string(),
+                    registry_address: abstr.registry.to_string()
                 }
             );
             Ok(())
@@ -222,15 +226,15 @@ mod tests {
             let msg = QueryMsg::IcaAction {
                 account_address: abstr.account.addr().to_string(),
                 chain: chain_name,
-                actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
-                    msgs: vec![EvmMsg::Call {
-                        to: "to".to_string(),
-                        data: vec![0x01].into(),
-                        value: None,
-                        allow_failure: None,
-                    }],
-                    callback: None,
-                })],
+                actions: vec![IcaAction::Execute(
+                    abstract_std::ica_client::IcaExecute::Evm {
+                        msgs: vec![EvmMsg::Call {
+                            to: "to".to_string(),
+                            data: vec![0x01].into(),
+                        }],
+                        callback: None,
+                    },
+                )],
             };
 
             let res = query(deps.as_ref(), env, msg)?;
@@ -244,8 +248,6 @@ mod tests {
                         msgs: vec![EvmMsg::Call {
                             to: "to".to_string(),
                             data: vec![0x01].into(),
-                            value: None,
-                            allow_failure: None,
                         }],
                         timeout_seconds: PACKET_LIFETIME.into(),
                     },
@@ -354,15 +356,15 @@ mod tests {
             let msg = QueryMsg::IcaAction {
                 account_address: abstr.account.addr().to_string(),
                 chain: chain_name.clone(),
-                actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
-                    msgs: vec![EvmMsg::Call {
-                        to: "to".to_string(),
-                        data: vec![0x01].into(),
-                        value: None,
-                        allow_failure: None,
-                    }],
-                    callback: None,
-                })],
+                actions: vec![IcaAction::Execute(
+                    abstract_std::ica_client::IcaExecute::Evm {
+                        msgs: vec![EvmMsg::Call {
+                            to: "to".to_string(),
+                            data: vec![0x01].into(),
+                        }],
+                        callback: None,
+                    },
+                )],
             };
 
             let err = query(deps.as_ref(), mock_env_validated(deps.api), msg).unwrap_err();
