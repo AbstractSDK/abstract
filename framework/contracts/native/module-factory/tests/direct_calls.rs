@@ -42,8 +42,7 @@ fn caller_must_be_account() -> AResult {
             Binary::default(),
         )
         .unwrap_err();
-    assert_that(&res.root().to_string())
-        .contains("ensure that the contract is a Account contract");
+    assert_that(&res.root().to_string()).contains("ensure that the contract is an Account contract");
 
     Ok(())
 }

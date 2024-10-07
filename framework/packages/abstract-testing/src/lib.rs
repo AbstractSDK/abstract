@@ -106,13 +106,12 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
 }
 
 /// A mock querier that returns the following responses for the following **RAW** contract -> queries:
-/// - TEST_PROXY
-///   - "admin" -> TEST_MANAGER
-/// - TEST_MANAGER
+/// - ABSTRACT_ACCOUNT
+///   - "admin" -> TEST_OWNER
 ///   - "modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
-///   - "account_id" -> TEST_ACCOUNT_ID
+///   - "account_id" -> ABSTRACT_ACCOUNT_ID
 /// - TEST_VERSION_CONTROL
-///   - "account" -> { TEST_PROXY, TEST_MANAGER }
+///   - "account" -> { ABSTRACT_ACCOUNT }
 pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
     abstract_mock_querier_builder(mock_api).build()
 }

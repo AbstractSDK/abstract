@@ -482,8 +482,7 @@ mod tests {
         use cosmwasm_std::OwnedDeps;
 
         /// This sets up the test with the following:
-        /// TEST_PROXY has a single authorized address, test_authorized_address
-        /// TEST_MANAGER and TEST_PROXY are the Account base
+        /// TEST_ACCOUNT has a single authorized address, test_authorized_address
         ///
         /// Note that the querier needs to mock the Account base, as the account will
         /// query the Account base to get the list of authorized addresses.

@@ -17,7 +17,6 @@ mod osmosis_test {
         objects::{
             pool_id::PoolAddressBase, AccountId, AnsAsset, AssetEntry, PoolMetadata, PoolType,
         },
-        MANAGER,
     };
     use abstract_adapter::traits::{Dependencies, ModuleIdentification};
     use abstract_cw_staking::{
