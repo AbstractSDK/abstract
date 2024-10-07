@@ -10,12 +10,12 @@ use crate::{
 
 pub fn instantiate_handler(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     module: PaymentApp,
     msg: AppInstantiateMsg,
 ) -> AppResult {
-    let name_service = module.name_service(deps.as_ref());
+    let name_service = module.name_service(deps.as_ref(), &env);
 
     if let Some(asset) = &msg.desired_asset {
         name_service

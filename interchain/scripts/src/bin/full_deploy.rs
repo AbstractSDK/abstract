@@ -23,15 +23,15 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
         networks = SUPPORTED_CHAINS.iter().map(|x| x.clone().into()).collect();
     }
 
-    let deployment_status = read_deployment()?;
-    if deployment_status.success {
-        log::info!("Do you want to re-deploy to {:?}?", networks);
-        let mut input = String::new();
-        std::io::stdin().read_line(&mut input)?;
-        if input.to_lowercase().contains('n') {
-            return Ok(());
-        }
-    }
+    // let deployment_status = read_deployment()?;
+    // if deployment_status.success {
+    //     log::info!("Do you want to re-deploy to {:?}?", networks);
+    //     let mut input = String::new();
+    //     std::io::stdin().read_line(&mut input)?;
+    //     if input.to_lowercase().contains('n') {
+    //         return Ok(());
+    //     }
+    // }
     // let deployment_status = deployment_status.clone();
 
     // If some chains need to be deployed, deploy them
@@ -44,11 +44,6 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
     // write_deployment(&deployment_status)?;
 
     for network in networks {
-        let urls = network.grpc_urls.to_vec();
-        for url in urls {
-            rt.block_on(ping_grpc(&url))?;
-        }
-
         let chain = DaemonBuilder::new(network.clone())
             .handle(rt.handle())
             .build()?;
@@ -80,24 +75,6 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
-    let parsed_url = Url::parse(url_str)?;
-
-    let host = parsed_url
-        .host_str()
-        .ok_or_else(|| anyhow::anyhow!("No host in url"))?;
-
-    let port = parsed_url.port_or_known_default().ok_or_else(|| {
-        anyhow::anyhow!(
-            "No port in url, and no default for scheme {:?}",
-            parsed_url.scheme()
-        )
-    })?;
-    let socket_addr = format!("{}:{}", host, port);
-
-    let _ = TcpStream::connect(socket_addr);
-    Ok(())
-}
 #[allow(dead_code)]
 fn write_deployment(status: &DeploymentStatus) -> anyhow::Result<()> {
     let path = dirs::home_dir()

@@ -7,7 +7,7 @@ use abstract_std::{
 use abstract_testing::prelude::*;
 use cosmwasm_std::{
     testing::{mock_dependencies, MockApi},
-    Deps,
+    Deps, Env,
 };
 
 use crate::{
@@ -33,7 +33,7 @@ impl ModuleIdentification for MockModule {
 }
 
 impl AbstractNameService for MockModule {
-    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<AnsHost> {
         let abstr = AbstractMockAddrs::new(self.mock_api);
         Ok(AnsHost {
             address: abstr.ans_host,
@@ -42,7 +42,7 @@ impl AbstractNameService for MockModule {
 }
 
 impl AbstractRegistryAccess for MockModule {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<RegistryContract> {
+    fn abstract_registry(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<RegistryContract> {
         let abstr = AbstractMockAddrs::new(self.mock_api);
         Ok(RegistryContract {
             address: abstr.registry,

@@ -83,8 +83,8 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let registry = RegistryContract::new(deps.api)?;
-    let module_factory = ModuleFactoryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
+    let module_factory = ModuleFactoryContract::new(deps.api, &env)?;
 
     let account_id = match account_id {
         Some(account_id) => account_id,
@@ -229,6 +229,7 @@ pub fn instantiate(
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
+            &env,
             install_modules,
             simulate_resp.total_required_funds,
         )?;
@@ -295,10 +296,10 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     update_internal_config(deps, info, config).map_err(AccountError::from)
                 }
                 ExecuteMsg::InstallModules { modules } => {
-                    install_modules(deps, info, modules).map_err(AccountError::from)
+                    install_modules(deps, &env, info, modules).map_err(AccountError::from)
                 }
                 ExecuteMsg::UninstallModule { module_id } => {
-                    uninstall_module(deps, info, module_id).map_err(AccountError::from)
+                    uninstall_module(deps, &env, info, module_id).map_err(AccountError::from)
                 }
                 ExecuteMsg::Upgrade { modules } => {
                     upgrade_modules(deps, env, info, modules).map_err(AccountError::from)
@@ -316,10 +317,10 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             maybe_update_sub_account_governance(deps.branch())?
                         }
                         ownership::GovAction::RenounceOwnership => {
-                            remove_account_from_contracts(deps.branch())?
+                            remove_account_from_contracts(deps.branch(), &env)?
                         }
                     };
-                    let registry = RegistryContract::new(deps.api)?;
+                    let registry = RegistryContract::new(deps.api, &env)?;
 
                     let new_owner_attributes = ownership::update_ownership(
                         deps,
@@ -356,7 +357,7 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 )
                 .map_err(AccountError::from),
                 ExecuteMsg::UpdateSubAccount(action) => {
-                    handle_sub_account_action(deps, info, action).map_err(AccountError::from)
+                    handle_sub_account_action(deps, &env, info, action).map_err(AccountError::from)
                 }
 
                 // ## Other ##
@@ -389,11 +390,11 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => handle_config_query(deps),
-        QueryMsg::ModuleVersions { ids } => handle_module_versions_query(deps, ids),
+        QueryMsg::Config {} => handle_config_query(deps, &env),
+        QueryMsg::ModuleVersions { ids } => handle_module_versions_query(deps, &env, ids),
         QueryMsg::ModuleAddresses { ids } => handle_module_address_query(deps, ids),
         QueryMsg::ModuleInfos { start_after, limit } => {
-            handle_module_info_query(deps, start_after, limit)
+            handle_module_info_query(deps, &env, start_after, limit)
         }
         QueryMsg::Info {} => handle_account_info_query(deps),
         QueryMsg::SubAccountIds { start_after, limit } => {
@@ -458,9 +459,9 @@ mod tests {
         account,
         objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
     };
-    use abstract_testing::prelude::AbstractMockAddrs;
+    use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
     use cosmwasm_std::{
-        testing::{message_info, mock_dependencies, mock_env},
+        testing::{message_info, mock_dependencies},
         wasm_execute, CosmosMsg, SubMsg,
     };
 
@@ -470,10 +471,11 @@ mod tests {
 
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
+        let env = mock_env_validated(deps.api);
 
         let resp = super::instantiate(
             deps.as_mut(),
-            mock_env(),
+            env,
             info,
             account::InstantiateMsg {
                 account_id: AccountId::new(1, AccountTrace::Local).ok(),

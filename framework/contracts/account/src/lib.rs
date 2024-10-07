@@ -44,7 +44,7 @@ mod test_common {
         objects::{account::AccountTrace, gov_type::GovernanceDetails, ownership, AccountId},
     };
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, Addr, DepsMut, Empty, OwnedDeps};
+    use cosmwasm_std::{testing::*, Addr, Empty, OwnedDeps};
     use speculoos::prelude::*;
 
     use crate::{contract::AccountResult, error::AccountError, msg::ExecuteMsg};
@@ -56,10 +56,11 @@ mod test_common {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let info = message_info(&abstr.owner, &[]);
+        let env = mock_env_validated(deps.api);
 
         crate::contract::instantiate(
             deps.as_mut(),
-            mock_env(),
+            env,
             info,
             account::InstantiateMsg {
                 account_id: Some(AccountId::new(1, AccountTrace::Local).unwrap()),
@@ -81,7 +82,7 @@ mod test_common {
         let not_owner = deps.api.addr_make("not_owner");
         mock_init(&mut deps)?;
 
-        let res = execute_as(deps.as_mut(), &not_owner, msg);
+        let res = execute_as(&mut deps, &not_owner, msg);
         assert_that!(&res)
             .is_err()
             .is_equal_to(AccountError::Ownership(
@@ -91,13 +92,15 @@ mod test_common {
         Ok(())
     }
 
-    pub fn execute_as(deps: DepsMut, sender: &Addr, msg: ExecuteMsg) -> AccountResult {
-        crate::contract::execute(deps, mock_env(), message_info(sender, &[]), msg)
+    pub fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> AccountResult {
+        let env = mock_env_validated(deps.api);
+        crate::contract::execute(deps.as_mut(), env, message_info(sender, &[]), msg)
     }
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> AccountResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
-        crate::contract::execute(deps.as_mut(), mock_env(), info, msg)
+        let env = mock_env_validated(deps.api);
+        crate::contract::execute(deps.as_mut(), env, info, msg)
     }
 }

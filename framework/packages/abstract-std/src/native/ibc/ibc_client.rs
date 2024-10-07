@@ -55,10 +55,7 @@ pub mod state {
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg {
-    pub ans_host_address: String,
-    pub registry_address: String,
-}
+pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum MigrateMsg {
@@ -208,8 +205,13 @@ pub struct ModuleAddr {
 }
 
 impl InstalledModuleIdentification {
-    pub fn addr(&self, deps: Deps, vc: RegistryContract) -> Result<ModuleAddr, AbstractError> {
-        let target_module_resolved = vc.query_module(self.module_info.clone(), &deps.querier)?;
+    pub fn addr(
+        &self,
+        deps: Deps,
+        registry: RegistryContract,
+    ) -> Result<ModuleAddr, AbstractError> {
+        let target_module_resolved =
+            registry.query_module(self.module_info.clone(), &deps.querier)?;
 
         let no_account_id_error =
             StdError::generic_err("Account id not specified in installed module definition");
@@ -217,7 +219,7 @@ impl InstalledModuleIdentification {
         let target_addr = match &target_module_resolved.reference {
             ModuleReference::Account(code_id) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account = vc.account(&target_account_id, &deps.querier)?;
+                let account = registry.account(&target_account_id, &deps.querier)?;
 
                 if deps
                     .querier
@@ -237,7 +239,7 @@ impl InstalledModuleIdentification {
             | ModuleReference::Service(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
-                let account = vc.account(&target_account_id, &deps.querier)?;
+                let account = registry.account(&target_account_id, &deps.querier)?;
 
                 let module_info: account::ModuleAddressesResponse = deps.querier.query_wasm_smart(
                     account.into_addr(),

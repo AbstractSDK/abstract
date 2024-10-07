@@ -60,36 +60,19 @@ impl<
         message: BaseExecuteMsg,
     ) -> AppResult {
         match message {
-            BaseExecuteMsg::UpdateConfig {
-                ans_host_address,
-                registry_address,
-            } => self.update_config(deps, env, info, ans_host_address, registry_address),
+            BaseExecuteMsg::UpdateConfig {} => self.update_config(deps, env, info),
         }
     }
 
-    fn update_config(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        ans_host_address: Option<String>,
-        registry_address: Option<String>,
-    ) -> AppResult {
+    fn update_config(&self, deps: DepsMut, env: Env, info: MessageInfo) -> AppResult {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
         self.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
 
-        let mut state = self.base_state.load(deps.storage)?;
+        // TODO: do anything here?
+        // let state = self.base_state.load(deps.storage)?;
 
-        if let Some(ans_host_address) = ans_host_address {
-            state.ans_host.address = deps.api.addr_validate(ans_host_address.as_str())?;
-        }
-
-        if let Some(registry_address) = registry_address {
-            state.registry.address = deps.api.addr_validate(registry_address.as_str())?;
-        }
-
-        self.base_state.save(deps.storage, &state)?;
+        // self.base_state.save(deps.storage, &state)?;
 
         Ok(self.response("update_config"))
     }
@@ -103,14 +86,19 @@ mod test {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::app::BaseExecuteMsg;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, Addr, DepsMut, Response};
+    use cosmwasm_std::{testing::*, Addr, Response};
     use cw_controllers::AdminError;
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg>;
 
-    fn execute_as(deps: DepsMut, sender: &Addr, msg: AppExecuteMsg) -> Result<Response, MockError> {
+    fn execute_as(
+        deps: &mut MockDeps,
+        sender: &Addr,
+        msg: AppExecuteMsg,
+    ) -> Result<Response, MockError> {
         let info = message_info(sender, &[]);
-        MOCK_APP_WITH_DEP.execute(deps, mock_env(), info, msg)
+        let env = mock_env_validated(deps.api);
+        MOCK_APP_WITH_DEP.execute(deps.as_mut(), env, info, msg)
     }
 
     mod base {
@@ -120,72 +108,16 @@ mod test {
         fn only_manager() -> AppTestResult {
             let mut deps = mock_init();
 
-            let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-                ans_host_address: None,
-                registry_address: None,
-            });
+            let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {});
 
             let not_manager = deps.api.addr_make("not_admin");
-            let res = execute_as(deps.as_mut(), &not_manager, msg);
+            let res = execute_as(&mut deps, &not_manager, msg);
             assert_eq!(
                 res,
                 Err(MockError::DappError(AppError::Admin(
                     AdminError::NotAdmin {}
                 )))
             );
-            Ok(())
-        }
-
-        #[test]
-        fn update_config_should_update_config() -> AppTestResult {
-            let mut deps = mock_init();
-            let account = test_account(deps.api);
-            deps.querier = abstract_mock_querier_builder(deps.api)
-                .set_account_admin_call_to(&account)
-                .build();
-
-            let new_ans_host = deps.api.addr_make("new_ans_host");
-            let new_registry = deps.api.addr_make("new_registry");
-            let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-                ans_host_address: Some(new_ans_host.to_string()),
-                registry_address: Some(new_registry.to_string()),
-            });
-
-            let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
-
-            assert!(res.messages.is_empty());
-
-            let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
-
-            assert_eq!(state.ans_host.address, new_ans_host);
-            assert_eq!(state.registry.address, new_registry);
-
-            Ok(())
-        }
-
-        #[test]
-        fn update_config_with_none_host_should_leave_existing_host() -> AppTestResult {
-            let mut deps = mock_init();
-            let abstr = AbstractMockAddrs::new(deps.api);
-            let account = test_account(deps.api);
-            deps.querier = abstract_mock_querier_builder(deps.api)
-                .set_account_admin_call_to(&account)
-                .build();
-
-            let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-                ans_host_address: None,
-                registry_address: None,
-            });
-
-            let res = execute_as(deps.as_mut(), account.addr(), update_ans)?;
-
-            assert!(res.messages.is_empty());
-
-            let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
-
-            assert_eq!(state.ans_host.address, abstr.ans_host);
-            assert_eq!(state.registry.address, abstr.registry);
-
             Ok(())
         }
     }

@@ -6,7 +6,7 @@
 
 pub use abstract_std::objects::{ans_host::AnsHost, registry::RegistryContract};
 use abstract_std::{registry::Account, REGISTRY};
-use cosmwasm_std::Deps;
+use cosmwasm_std::{Deps, Env};
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
@@ -28,7 +28,7 @@ impl ModuleIdentification for Account {
 }
 
 impl crate::features::AbstractRegistryAccess for RegistryContract {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<RegistryContract> {
+    fn abstract_registry(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<RegistryContract> {
         Ok(self.clone())
     }
 }
@@ -40,7 +40,7 @@ impl ModuleIdentification for RegistryContract {
 }
 
 impl crate::features::AbstractNameService for AnsHost {
-    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<AnsHost> {
         Ok(self.clone())
     }
 }
@@ -61,9 +61,10 @@ mod tests {
         #[test]
         fn test_registry() {
             let deps = mock_dependencies();
-            let vc = RegistryContract::new(&deps.api).unwrap();
+            let env = mock_env_validated(deps.api);
+            let vc = RegistryContract::new(&deps.api, &env).unwrap();
 
-            assert_that!(vc.abstract_registry(deps.as_ref()))
+            assert_that!(vc.abstract_registry(deps.as_ref(), &env))
                 .is_ok()
                 .is_equal_to(vc);
         }

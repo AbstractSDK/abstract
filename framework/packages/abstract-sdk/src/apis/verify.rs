@@ -32,8 +32,12 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
         ```
     */
-    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<AccountRegistry<Self>> {
-        let vc = self.abstract_registry(deps)?;
+    fn account_registry<'a>(
+        &'a self,
+        deps: Deps<'a>,
+        env: &Env,
+    ) -> AbstractSdkResult<AccountRegistry<Self>> {
+        let vc = self.abstract_registry(deps, env)?;
         Ok(AccountRegistry {
             base: self,
             deps,
@@ -144,8 +148,8 @@ mod test {
     struct MockBinding {}
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
-            Ok(RegistryContract::new(deps.api)?)
+        fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+            RegistryContract::new(deps.api, env).map_err(Into::into)
         }
     }
 
@@ -164,6 +168,7 @@ mod test {
         #[test]
         fn not_account_fails() {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let not_account = Account::new(deps.api.addr_make("not_account"));
             let base = test_account(deps.api);
 
@@ -178,7 +183,7 @@ mod test {
             let binding = MockBinding {};
 
             let res = binding
-                .account_registry(deps.as_ref())
+                .account_registry(deps.as_ref(), &env)
                 .unwrap()
                 .assert_is_account(not_account.addr());
 
@@ -196,6 +201,7 @@ mod test {
         #[test]
         fn inactive_account_fails() {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
@@ -206,7 +212,7 @@ mod test {
             let binding = MockBinding {};
 
             let res = binding
-                .account_registry(deps.as_ref())
+                .account_registry(deps.as_ref(), &env)
                 .unwrap()
                 .assert_is_account(abstr.account.addr());
 
@@ -227,6 +233,7 @@ mod test {
         #[test]
         fn returns_account() {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let account = test_account(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -242,7 +249,7 @@ mod test {
             let binding = MockBinding {};
 
             let res = binding
-                .account_registry(deps.as_ref())
+                .account_registry(deps.as_ref(), &env)
                 .unwrap()
                 .assert_is_account(account.addr());
 

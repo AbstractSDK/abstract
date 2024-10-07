@@ -15,26 +15,26 @@ use crate::{contract::HostResult, HostError};
 
 use super::packet;
 
-pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
+pub fn query(deps: Deps, env: Env, query: QueryMsg) -> HostResult<Binary> {
     match query {
-        QueryMsg::Config {} => to_json_binary(&config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&config(deps, &env)?),
         QueryMsg::ClientProxies { start_after, limit } => {
             to_json_binary(&registered_chains(deps, start_after, limit)?)
         }
         QueryMsg::ClientProxy { chain } => to_json_binary(&associated_client(deps, chain)?),
         QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
         QueryMsg::ModuleQuery { target_module, msg } => {
-            return packet::handle_host_module_query(deps, target_module, msg);
+            return packet::handle_host_module_query(deps, env, target_module, msg);
         }
     }
     .map_err(Into::into)
 }
 
-fn config(deps: Deps) -> HostResult<ConfigResponse> {
+fn config(deps: Deps, env: &Env) -> HostResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host_address: AnsHost::new(deps.api)?.address,
-        module_factory_address: ModuleFactoryContract::new(deps.api)?.address,
-        registry_address: RegistryContract::new(deps.api)?.address,
+        ans_host_address: AnsHost::new(deps.api, env)?.address,
+        module_factory_address: ModuleFactoryContract::new(deps.api, env)?.address,
+        registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
 
@@ -65,6 +65,8 @@ fn associated_client(deps: Deps, chain: String) -> HostResult<ClientProxyRespons
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
 
+    use abstract_testing::mock_env_validated;
+
     #[test]
     fn test_registered_client() {
         use abstract_std::ibc_host::{ClientProxyResponse, InstantiateMsg, QueryMsg};
@@ -74,13 +76,14 @@ mod test {
         // Instantiate
         let mut deps = mock_dependencies();
         let info = message_info(&deps.api.addr_make("admin"), &[]);
-        instantiate(deps.as_mut(), mock_env(), info.clone(), InstantiateMsg {}).unwrap();
+        let env = mock_env_validated(deps.api);
+        instantiate(deps.as_mut(), env.clone(), info.clone(), InstantiateMsg {}).unwrap();
 
         // Register
         let proxy = deps.api.addr_make("juno-proxy");
         execute(
             deps.as_mut(),
-            mock_env(),
+            env.clone(),
             info,
             abstract_std::ibc_host::ExecuteMsg::RegisterChainProxy {
                 chain: "juno".parse().unwrap(),
@@ -92,7 +95,7 @@ mod test {
         // Query
         let client_name = query(
             deps.as_ref(),
-            mock_env(),
+            env,
             QueryMsg::ClientProxy {
                 chain: "juno".to_string(),
             },

@@ -101,7 +101,7 @@ impl<T: CwEnv> Abstract<T> {
             has_migrated = true
         }
 
-        if self.ibc.deploy_or_migrate_if_version_changed(self)? {
+        if self.ibc.deploy_or_migrate_if_version_changed()? {
             has_migrated = true;
 
             natives_to_register.push((
@@ -229,7 +229,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
     /// - If version change is non-breaking - ibc contracts migrated instead
     pub fn deploy_or_migrate_if_version_changed(
         &self,
-        abstr: &Abstract<Chain>,
     ) -> Result<bool, crate::AbstractInterfaceError> {
         let ibc_client_cw2_version = contract_version(&self.client)?.version;
         // Check if any version changes
@@ -260,7 +259,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 .expect("IBC host supposed to be migrated, but skipped instead");
         } else {
             // Version change is breaking, need to deploy new version
-            self.instantiate(abstr, &self.client.environment().sender_addr())?;
+            self.instantiate(&self.client.environment().sender_addr())?;
         }
 
         Ok(true)

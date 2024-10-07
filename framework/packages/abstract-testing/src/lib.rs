@@ -21,6 +21,7 @@ use cosmwasm_std::{
     testing::{MockApi, MockQuerier, MockStorage},
     to_json_binary, Addr, Binary, Empty, OwnedDeps,
 };
+use cosmwasm_std::{ContractInfo, Env};
 pub use mock_ans::MockAnsHost;
 pub use mock_querier::{
     map_key, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
@@ -117,11 +118,23 @@ pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
     abstract_mock_querier_builder(mock_api).build()
 }
 
+/// cosmwasm_std::mock_env_validated(deps.api), but address generated with MockApi
+pub fn mock_env_validated(mock_api: MockApi) -> Env {
+    Env {
+        contract: ContractInfo {
+            address: mock_api.addr_make(cosmwasm_std::testing::MOCK_CONTRACT_ADDR),
+        },
+        ..cosmwasm_std::testing::mock_env()
+    }
+}
+
 /// use the package version as test version, breaks tests otherwise.
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
     use abstract_std::{native_addrs, registry::Account};
-    use cosmwasm_std::{testing::MockApi, Addr, Api, CanonicalAddr};
+    use cosmwasm_std::{testing::MockApi, Addr, Api};
+
+    use crate::mock_env_validated;
 
     // Test addr makers
     const ADMIN_ACCOUNT: &str = "admin_account_address";
@@ -138,22 +151,23 @@ pub mod addresses {
 
     impl AbstractMockAddrs {
         pub fn new(mock_api: MockApi) -> AbstractMockAddrs {
+            let mock_env = mock_env_validated(mock_api);
+            let hrp = native_addrs::hrp_from_env(&mock_env);
+
             AbstractMockAddrs {
                 owner: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::TEST_ABSTRACT_CREATOR))
+                    .addr_validate(&native_addrs::creator_address(hrp).unwrap())
                     .unwrap(),
                 ans_host: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::ANS_ADDR))
+                    .addr_humanize(&native_addrs::ans_address(hrp, &mock_api).unwrap())
                     .unwrap(),
                 registry: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::REGISTRY_ADDR))
+                    .addr_humanize(&native_addrs::version_control_address(hrp, &mock_api).unwrap())
                     .unwrap(),
                 module_factory: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
+                    .addr_humanize(&native_addrs::module_factory_address(hrp, &mock_api).unwrap())
                     .unwrap(),
-                module_address: mock_api
-                    .addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))
-                    .unwrap(),
+                module_address: mock_api.addr_make("module"),
                 account: admin_account(mock_api),
             }
         }
@@ -196,7 +210,7 @@ pub mod module {
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 }
 pub mod prelude {
-    pub use super::{abstract_mock_querier, abstract_mock_querier_builder};
+    pub use super::{abstract_mock_querier, abstract_mock_querier_builder, mock_env_validated};
     pub use abstract_mock_querier::AbstractMockQuerier;
     use abstract_std::objects::{AccountId, AccountTrace};
     pub use addresses::*;
