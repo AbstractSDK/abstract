@@ -1,4 +1,3 @@
-use abstract_sdk::cw_helpers::load_many;
 use abstract_std::{
     ans_host::{
         state::{
@@ -37,13 +36,16 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
 }
 
 pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
-    let keys: Vec<AssetEntry> = keys.into_iter().map(|name| name.as_str().into()).collect();
+    let assets = keys
+        .into_iter()
+        .map(|name| {
+            let key = AssetEntry::new(&name);
+            let value = ASSET_ADDRESSES.load(deps.storage, &key)?;
+            Ok((key, value))
+        })
+        .collect::<StdResult<_>>()?;
 
-    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
-
-    to_json_binary(&AssetsResponse {
-        assets: assets.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
-    })
+    to_json_binary(&AssetsResponse { assets })
 }
 
 pub fn query_asset_list(
@@ -68,19 +70,18 @@ pub fn query_asset_infos(
     _env: Env,
     keys: Vec<AssetInfoUnchecked>,
 ) -> StdResult<Binary> {
-    let keys = keys
+    let infos = keys
         .into_iter()
         .map(|info| {
-            info.check(deps.api, None)
-                .map_err(|e| StdError::generic_err(e.to_string()))
+            let key = info
+                .check(deps.api, None)
+                .map_err(|err| StdError::generic_err(err.to_string()))?;
+            let value = REV_ASSET_ADDRESSES.load(deps.storage, &key)?;
+            Ok((key, value))
         })
-        .collect::<StdResult<Vec<_>>>()?;
+        .collect::<StdResult<_>>()?;
 
-    let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
-
-    to_json_binary(&AssetInfosResponse {
-        infos: infos.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
-    })
+    to_json_binary(&AssetInfosResponse { infos })
 }
 
 pub fn query_asset_info_list(
@@ -105,26 +106,28 @@ pub fn query_asset_info_list(
     to_json_binary(&AssetInfoListResponse { infos: res? })
 }
 
-pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdResult<Binary> {
-    let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
+pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdResult<Binary> {
+    let contracts = keys
+        .into_iter()
+        .map(|key| {
+            let value = CONTRACT_ADDRESSES.load(deps.storage, &key)?;
+            Ok((key, value))
+        })
+        .collect::<StdResult<_>>()?;
 
-    to_json_binary(&ContractsResponse {
-        contracts: contracts
-            .into_iter()
-            .map(|(x, a)| (x.to_owned(), a))
-            .collect(),
-    })
+    to_json_binary(&ContractsResponse { contracts })
 }
 
-pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> StdResult<Binary> {
-    let channels = load_many(CHANNELS, deps.storage, keys)?;
+pub fn query_channels(deps: Deps, _env: Env, keys: Vec<ChannelEntry>) -> StdResult<Binary> {
+    let channels = keys
+        .into_iter()
+        .map(|key| {
+            let value = CHANNELS.load(deps.storage, &key)?;
+            Ok((key, value))
+        })
+        .collect::<StdResult<_>>()?;
 
-    to_json_binary(&ChannelsResponse {
-        channels: channels
-            .into_iter()
-            .map(|(k, v)| (k.to_owned(), v))
-            .collect(),
-    })
+    to_json_binary(&ChannelsResponse { channels })
 }
 
 pub fn query_contract_list(
@@ -1188,6 +1191,120 @@ mod test {
         };
 
         assert_that!(res_foo).is_equal_to(expected_foo);
+        Ok(())
+    }
+
+    #[test]
+    fn test_query_asset_infos() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(&mut deps).unwrap();
+        let native_1 = AssetInfo::native("foo");
+        let native_2 = AssetInfo::native("bar");
+        let cw20_1 = AssetInfo::cw20(deps.api.addr_make("foo"));
+        let cw20_2 = AssetInfo::cw20(deps.api.addr_make("bar"));
+
+        // create asset entries
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &native_1, &AssetEntry::new("foo_n"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &native_2, &AssetEntry::new("bar_n"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &cw20_1, &AssetEntry::new("foo_ft"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &cw20_2, &AssetEntry::new("bar_ft"))?;
+
+        let msg = QueryMsg::AssetInfos {
+            infos: vec![
+                native_1.clone().into(),
+                native_2.clone().into(),
+                cw20_1.clone().into(),
+                cw20_2.clone().into(),
+            ],
+        };
+        let res: AssetInfosResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let expected_bar = AssetInfosResponse {
+            infos: vec![
+                (native_1, AssetEntry::new("foo_n")),
+                (native_2, AssetEntry::new("bar_n")),
+                (cw20_1, AssetEntry::new("foo_ft")),
+                (cw20_2, AssetEntry::new("bar_ft")),
+            ],
+        };
+        assert_eq!(res, expected_bar);
+
+        // Query invalid asset
+        let res = query_helper(
+            deps.as_ref(),
+            QueryMsg::AssetInfos {
+                infos: vec![AssetInfoUnchecked::cw20("invalid_addr".to_string())],
+            },
+        );
+        assert!(res.is_err());
+        // Query not saved asset
+        let res = query_helper(
+            deps.as_ref(),
+            QueryMsg::AssetInfos {
+                infos: vec![AssetInfoUnchecked::native("not_saved".to_string())],
+            },
+        );
+        assert!(res.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_query_asset_infos_list() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(&mut deps).unwrap();
+        let native_1 = AssetInfo::native("foo");
+        let native_2 = AssetInfo::native("bar");
+        let cw20_1 = AssetInfo::cw20(deps.api.addr_make("foo"));
+        let cw20_2 = AssetInfo::cw20(deps.api.addr_make("bar"));
+
+        // create asset entries
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &native_1, &AssetEntry::new("foo_n"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &native_2, &AssetEntry::new("bar_n"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &cw20_1, &AssetEntry::new("foo_ft"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &cw20_2, &AssetEntry::new("bar_ft"))?;
+
+        let msg = QueryMsg::AssetInfoList {
+            filter: None,
+            start_after: None,
+            limit: None,
+        };
+        let res: AssetInfoListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let expected_infos = AssetInfoListResponse {
+            infos: vec![
+                (cw20_1.clone(), AssetEntry::new("foo_ft")),
+                (cw20_2.clone(), AssetEntry::new("bar_ft")),
+                (native_2.clone(), AssetEntry::new("bar_n")),
+                (native_1.clone(), AssetEntry::new("foo_n")),
+            ],
+        };
+        assert_eq!(res, expected_infos);
+
+        // Start after
+        let msg = QueryMsg::AssetInfoList {
+            filter: None,
+            start_after: Some(cw20_2.clone().into()),
+            limit: None,
+        };
+        let res: AssetInfoListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let expected_infos = AssetInfoListResponse {
+            infos: vec![
+                (native_2, AssetEntry::new("bar_n")),
+                (native_1, AssetEntry::new("foo_n")),
+            ],
+        };
+        assert_eq!(res, expected_infos);
+
+        // Limit
+        let msg = QueryMsg::AssetInfoList {
+            filter: None,
+            start_after: None,
+            limit: Some(1),
+        };
+        let res: AssetInfoListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let expected_infos = AssetInfoListResponse {
+            infos: vec![(cw20_1.clone(), AssetEntry::new("foo_ft"))],
+        };
+        assert_eq!(res, expected_infos);
+
         Ok(())
     }
 }

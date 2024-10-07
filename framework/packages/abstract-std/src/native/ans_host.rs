@@ -284,11 +284,7 @@ pub struct AssetsResponse {
 }
 
 /// Query response
-#[cosmwasm_schema::cw_serde]
-pub struct AssetListResponse {
-    /// Assets (name, assetinfo)
-    pub assets: Vec<AssetMapEntry>,
-}
+pub type AssetListResponse = AssetsResponse;
 
 #[cosmwasm_schema::cw_serde]
 pub struct AssetInfosResponse {
@@ -296,11 +292,7 @@ pub struct AssetInfosResponse {
     pub infos: Vec<AssetInfoMapEntry>,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct AssetInfoListResponse {
-    /// Assets (assetinfo, name)
-    pub infos: Vec<AssetInfoMapEntry>,
-}
+pub type AssetInfoListResponse = AssetInfosResponse;
 
 #[cosmwasm_schema::cw_serde]
 pub struct ContractsResponse {
