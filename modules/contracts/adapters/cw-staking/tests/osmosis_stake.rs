@@ -7,8 +7,8 @@ mod osmosis_test {
     use std::path::PathBuf;
 
     use abstract_adapter::abstract_interface::{
-        Abstract, AbstractAccount, AbstractInterfaceError, AdapterDeployer, DeployStrategy,
-        Account, RegisteredModule,
+        Abstract, AbstractAccount, AbstractInterfaceError, Account, AdapterDeployer,
+        DeployStrategy, RegisteredModule,
     };
     use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::std::{
