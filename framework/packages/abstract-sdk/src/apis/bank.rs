@@ -292,6 +292,52 @@ mod test {
     use super::*;
     use crate::mock_module::*;
 
+    mod balance {
+        use super::*;
+
+        #[test]
+        fn balance() {
+            let (mut deps, account, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
+
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
+            let res = bank
+                .balances(&[AssetEntry::new("asset_entry")])
+                .unwrap_err();
+            let AbstractSdkError::ApiQuery {
+                api,
+                module_id,
+                error: _,
+            } = res
+            else {
+                panic!("expected api error");
+            };
+            assert_eq!(api, "Bank");
+            assert_eq!(module_id, app.module_id());
+            drop(bank);
+
+            let abstr = abstract_testing::prelude::AbstractMockAddrs::new(deps.api);
+            // update querier and balances
+            deps.querier = abstract_testing::abstract_mock_querier_builder(deps.api)
+                .with_contract_map_entry(
+                    &abstr.ans_host,
+                    abstract_std::ans_host::state::ASSET_ADDRESSES,
+                    (
+                        &AssetEntry::new("asset_entry"),
+                        cw_asset::AssetInfo::native("asset"),
+                    ),
+                )
+                .build();
+            let recipient: Addr = account.into_addr();
+            let coins: Vec<Coin> = coins(100u128, "asset");
+            deps.querier.bank.update_balance(recipient, coins.clone());
+
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
+            let res = bank.balances(&[AssetEntry::new("asset_entry")]).unwrap();
+            assert_eq!(res, vec![Asset::native("asset", 100u128)]);
+        }
+    }
+
     mod transfer_coins {
         use abstract_std::account::ExecuteMsg;
 

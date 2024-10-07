@@ -204,7 +204,11 @@ mod tests {
 
             let is_registered =
                 test_asset_entry.is_registered(&QuerierWrapper::new(&querier), &ans_host);
-            assert_that!(is_registered).is_true();
+            assert!(is_registered);
+
+            let assert_registered =
+                test_asset_entry.assert_registered(&QuerierWrapper::new(&querier), &ans_host);
+            assert!(assert_registered.is_ok())
         }
 
         #[test]
@@ -217,7 +221,9 @@ mod tests {
             let wrapper = wrap_querier(&querier);
 
             let is_registered = not_exist_asset.is_registered(&wrapper, &ans_host);
-            assert_that!(is_registered).is_false();
+            assert!(!is_registered);
+            let assert_registered = not_exist_asset.assert_registered(&wrapper, &ans_host);
+            assert!(assert_registered.is_err());
         }
     }
 

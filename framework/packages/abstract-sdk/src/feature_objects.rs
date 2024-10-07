@@ -5,7 +5,7 @@
 //! requiring the usage of a base contract.
 
 pub use abstract_std::objects::{ans_host::AnsHost, registry::RegistryContract};
-use abstract_std::{registry::Account, REGISTRY};
+use abstract_std::{registry::Account, ANS_HOST, REGISTRY};
 use cosmwasm_std::{Deps, Env};
 
 use crate::{
@@ -45,15 +45,20 @@ impl crate::features::AbstractNameService for AnsHost {
     }
 }
 
+impl ModuleIdentification for AnsHost {
+    fn module_id(&self) -> abstract_std::objects::module::ModuleId<'static> {
+        ANS_HOST
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use abstract_testing::prelude::*;
-    use speculoos::prelude::*;
+    use cosmwasm_std::testing::mock_dependencies;
 
     use super::*;
 
     mod registry {
-        use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
         use crate::features::AbstractRegistryAccess;
@@ -62,34 +67,44 @@ mod tests {
         fn test_registry() {
             let deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
-            let vc = RegistryContract::new(&deps.api, &env).unwrap();
+            let registry = RegistryContract::new(&deps.api, &env).unwrap();
 
-            assert_that!(vc.abstract_registry(deps.as_ref(), &env))
-                .is_ok()
-                .is_equal_to(vc);
+            assert_eq!(
+                registry.abstract_registry(deps.as_ref(), &env).unwrap(),
+                registry
+            );
+            assert_eq!(registry.module_id(), REGISTRY);
+        }
+    }
+
+    mod ans {
+
+        use abstract_std::ANS_HOST;
+
+        use super::*;
+        use crate::features::AbstractNameService;
+
+        #[test]
+        fn test_ans() {
+            let deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
+            let ans = AnsHost::new(&deps.api, &env).unwrap();
+
+            assert_eq!(ans.ans_host(deps.as_ref(), &env).unwrap(), ans);
+            assert_eq!(ans.module_id(), ANS_HOST);
         }
     }
 
     mod account {
-        use cosmwasm_std::{testing::mock_dependencies, Addr};
-
         use super::*;
 
         #[test]
-        fn test_account_addr() {
+        fn test_account_object() {
             let deps = mock_dependencies();
             let account = test_account(deps.api);
 
-            assert_that!(account.account(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(account);
-        }
-
-        #[test]
-        fn should_identify_self_as_account() {
-            let account = Account::new(Addr::unchecked("test"));
-
-            assert_that!(account.module_id()).is_equal_to(ACCOUNT);
+            assert_eq!(account.account(deps.as_ref()).unwrap(), account);
+            assert_eq!(account.module_id(), ACCOUNT);
         }
     }
 }

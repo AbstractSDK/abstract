@@ -64,7 +64,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .try_fold(AccountAction::new(), |mut acc, v| match v {
+            .try_fold(AccountAction::default(), |mut acc, v| match v {
                 Ok(action) => {
                     // Merge two AccountAction objects
                     acc.merge(action);
