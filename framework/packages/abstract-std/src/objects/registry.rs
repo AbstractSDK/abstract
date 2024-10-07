@@ -24,7 +24,7 @@ pub enum RegistryError {
     ModuleNotFound { module: String, registry_addr: Addr },
 
     // failed to query account id
-    #[error("Failed to query Account id on contract {contract_addr}. Please ensure that the contract is a Manager or Proxy contract.")]
+    #[error("Failed to query Account id on contract {contract_addr}. Please ensure that the contract is an Account contract.")]
     FailedToQueryAccountId { contract_addr: Addr },
 
     // standalone module not found in version registry

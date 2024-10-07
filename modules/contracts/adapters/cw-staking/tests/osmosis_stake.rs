@@ -8,7 +8,7 @@ mod osmosis_test {
 
     use abstract_adapter::abstract_interface::{
         Abstract, AbstractAccount, AbstractInterfaceError, AdapterDeployer, DeployStrategy,
-        Manager, RegisteredModule,
+        Account, RegisteredModule,
     };
     use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::std::{

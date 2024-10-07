@@ -305,7 +305,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     }
 
     /// A simple helper to execute on a module
-    /// Executes the message as the Manager of the remote account
+    /// Executes the message as the Account of the remote account
     /// I.e. can be used to execute admin actions on remote modules.
     pub fn execute_on_module<M: Serialize>(
         &self,

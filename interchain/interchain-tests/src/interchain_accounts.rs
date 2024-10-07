@@ -80,7 +80,7 @@ mod test {
     use abstract_std::{
         account,
         account::{
-            state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
+            state::AccountInfo, ConfigResponse, ExecuteMsg as AccountExecuteMsg, InfoResponse,
         },
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
         ibc_client::AccountResponse,
@@ -116,7 +116,7 @@ mod test {
         // The user on origin chain wants to change the account description
         let ibc_action_result = origin_account.execute_on_remote(
             remote_name,
-            ManagerExecuteMsg::UpdateInfo {
+            AccountExecuteMsg::UpdateInfo {
                 name: Some(new_name.to_string()),
                 description: Some(new_description.to_string()),
                 link: Some(new_link.to_string()),
@@ -576,7 +576,7 @@ mod test {
                 account_id: remote_account_id,
                 account_address: origin_account.address()?.to_string(),
                 action: HostAction::Dispatch {
-                    account_msgs: vec![ManagerExecuteMsg::UpdateInfo {
+                    account_msgs: vec![AccountExecuteMsg::UpdateInfo {
                         name: Some("name".to_owned()),
                         description: Some("description".to_owned()),
                         link: Some("link".to_owned()),

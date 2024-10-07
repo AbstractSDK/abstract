@@ -296,7 +296,7 @@ fn unauthorized_exec() -> AResult {
         .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(format!(
-        "Sender: {} of request to tester:test-module-id is not a Manager or Authorized Address",
+        "Sender: {} of request to tester:test-module-id is not an Account or Authorized Address",
         unauthorized
     ));
     // neither can the ROOT directly
@@ -304,7 +304,7 @@ fn unauthorized_exec() -> AResult {
         .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
     assert_that!(&res.root().to_string()).contains(format!(
-        "Sender: {} of request to tester:test-module-id is not a Manager or Authorized Address",
+        "Sender: {} of request to tester:test-module-id is not an Account or Authorized Address",
         chain.sender_addr()
     ));
     Ok(())
