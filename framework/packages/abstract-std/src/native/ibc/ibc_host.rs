@@ -25,7 +25,7 @@ pub mod state {
 
     #[cosmwasm_schema::cw_serde]
     pub struct ActionAfterCreationCache {
-        pub client_proxy_address: String,
+        pub client_account_address: String,
         pub account_id: AccountId,
         pub action: HostAction,
         pub chain_name: TruncatedChainId,

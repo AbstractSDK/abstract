@@ -46,10 +46,10 @@ pub fn redelegate_all(
     querier: &QuerierWrapper,
     source_validator: &str,
     destination_validator: &str,
-    proxy_address: &Addr,
+    account_address: &Addr,
 ) -> StdResult<CosmosMsg> {
     let delegation = querier
-        .query_delegation(proxy_address, source_validator)?
+        .query_delegation(account_address, source_validator)?
         .ok_or(StdError::generic_err(format!(
             "OS not delegated to validator {source_validator}"
         )))?;
@@ -77,9 +77,9 @@ pub fn withdraw_rewards(validator: &str) -> CosmosMsg {
 
 pub fn withdraw_all_rewards(
     querier: &QuerierWrapper,
-    proxy_address: &Addr,
+    account_address: &Addr,
 ) -> StdResult<Vec<CosmosMsg>> {
-    let delegations = querier.query_all_delegations(proxy_address)?;
+    let delegations = querier.query_all_delegations(account_address)?;
     let claim_msgs = delegations
         .into_iter()
         .map(|delegation| {
@@ -93,12 +93,12 @@ pub fn withdraw_all_rewards(
 
 pub fn undelegate_all_from(
     querier: &QuerierWrapper,
-    proxy_address: &Addr,
+    account_address: &Addr,
     validator: &str,
 ) -> StdResult<CosmosMsg> {
     let delegation =
         querier
-            .query_delegation(proxy_address, validator)?
+            .query_delegation(account_address, validator)?
             .ok_or(StdError::generic_err(format!(
                 "OS not delegated to validator {validator}"
             )))?;
@@ -108,8 +108,8 @@ pub fn undelegate_all_from(
     }))
 }
 
-pub fn undelegate_all(querier: &QuerierWrapper, proxy_address: &Addr) -> StdResult<Vec<CosmosMsg>> {
-    let delegations = querier.query_all_delegations(proxy_address)?;
+pub fn undelegate_all(querier: &QuerierWrapper, account_address: &Addr) -> StdResult<Vec<CosmosMsg>> {
+    let delegations = querier.query_all_delegations(account_address)?;
     let undelegate_msgs = delegations
         .into_iter()
         .map(|delegation| {

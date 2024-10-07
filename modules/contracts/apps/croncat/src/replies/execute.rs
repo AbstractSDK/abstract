@@ -28,10 +28,10 @@ pub fn create_task_reply(
         )));
     };
 
-    let proxy_execution_response = cw_utils::parse_execute_response_data(&b)?
+    let account_execution_response = cw_utils::parse_execute_response_data(&b)?
         .data
         .unwrap_or_default();
-    let task_bin = cw_utils::parse_execute_response_data(&proxy_execution_response.0)?
+    let task_bin = cw_utils::parse_execute_response_data(&account_execution_response.0)?
         .data
         .unwrap_or_default();
     let task: croncat_integration_utils::CronCatTaskExecutionInfo = from_json(&task_bin)?;
@@ -54,7 +54,7 @@ pub fn task_remove_reply(
     let response = module.response("task_remove_reply");
     let response = if user_balance_nonempty(
         deps.as_ref(),
-        module.proxy_address(deps.as_ref())?,
+        module.account_address(deps.as_ref())?,
         manager_addr.clone(),
     )? {
         // withdraw locked balance

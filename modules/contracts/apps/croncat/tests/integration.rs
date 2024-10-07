@@ -43,7 +43,7 @@ const VERSION: &str = "1.0";
 const DENOM: &str = "abstr";
 const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c52jqgfq000";
 
-fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Result<(Addr, Addr)> {
+fn setup_croncat_contracts(mock: MockBech32, account_addr: String) -> anyhow::Result<(Addr, Addr)> {
     let sender = mock.sender_addr();
     let pause_admin = Addr::unchecked(PAUSE_ADMIN);
     let agent_addr = mock.addr_make(AGENT);
@@ -59,7 +59,7 @@ fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Resu
             symbol: "ccc".to_owned(),
             decimals: 6,
             initial_balances: vec![Cw20Coin {
-                address: proxy_addr,
+                address: account_addr,
                 amount: Uint128::new(105),
             }],
             mint: None,
@@ -244,7 +244,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
     // Instantiating croncat contracts
     mock.set_balance(&sender, coins(100, DENOM))?;
     let (factory_addr, cw20_addr) =
-        setup_croncat_contracts(mock.clone(), account.proxy.addr_str()?)?;
+        setup_croncat_contracts(mock.clone(), account.account.addr_str()?)?;
 
     let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
     abstr_deployment.ans_host.execute(
@@ -373,11 +373,11 @@ fn all_in_one() -> anyhow::Result<()> {
     )?;
     assert!(module_cw20_balance.balance.is_zero());
 
-    // Saving current proxy balances to check balance changes
-    let proxy_balance1 = mock.query_balance(&account.address()?, DENOM)?;
-    let proxy_cw20_balance1: cw20::BalanceResponse = mock.query(
+    // Saving current account balances to check balance changes
+    let account_balance1 = mock.query_balance(&account.address()?, DENOM)?;
+    let account_cw20_balance1: cw20::BalanceResponse = mock.query(
         &Cw20QueryMsg::Balance {
-            address: account.proxy.addr_str()?,
+            address: account.account.addr_str()?,
         },
         &cw20_addr,
     )?;
@@ -407,18 +407,18 @@ fn all_in_one() -> anyhow::Result<()> {
     )?;
     assert!(module_cw20_balance.balance.is_zero());
 
-    // Everything landed on proxy contract
-    let proxy_balance2 = mock.query_balance(&account.address()?, DENOM)?;
-    assert_eq!(proxy_balance2, proxy_balance1 + Uint128::new(45_100));
-    let proxy_cw20_balance2: cw20::BalanceResponse = mock.query(
+    // Everything landed on account contract
+    let account_balance2 = mock.query_balance(&account.address()?, DENOM)?;
+    assert_eq!(account_balance2, account_balance1 + Uint128::new(45_100));
+    let account_cw20_balance2: cw20::BalanceResponse = mock.query(
         &Cw20QueryMsg::Balance {
-            address: account.proxy.addr_str()?,
+            address: account.account.addr_str()?,
         },
         &cw20_addr,
     )?;
     assert_eq!(
-        proxy_cw20_balance2.balance,
-        proxy_cw20_balance1.balance + Uint128::new(105)
+        account_cw20_balance2.balance,
+        account_cw20_balance1.balance + Uint128::new(105)
     );
 
     // State updated
@@ -543,7 +543,7 @@ fn create_task() -> anyhow::Result<()> {
         module_contract.task_info(active_tasks[0].0.to_string(), active_tasks[0].1.to_string())?;
     assert_eq!(
         task_info_response.task.unwrap().owner_addr,
-        account.proxy.addr_str()?
+        account.account.addr_str()?
     );
 
     // Task with some cw20s
@@ -870,34 +870,34 @@ fn remove_task() -> anyhow::Result<()> {
         removed_tasks.pop().unwrap().1,
     );
 
-    let proxy_cw20_balance1: cw20::BalanceResponse = mock.query(
+    let account_cw20_balance1: cw20::BalanceResponse = mock.query(
         &Cw20QueryMsg::Balance {
-            address: account.proxy.addr_str()?,
+            address: account.account.addr_str()?,
         },
         &cw20_addr,
     )?;
 
     module_contract.remove_task(not_active_task)?;
 
-    let proxy_cw20_balance2: cw20::BalanceResponse = mock.query(
+    let account_cw20_balance2: cw20::BalanceResponse = mock.query(
         &Cw20QueryMsg::Balance {
-            address: account.proxy.addr_str()?,
+            address: account.account.addr_str()?,
         },
         &cw20_addr,
     )?;
 
-    assert!(proxy_cw20_balance2.balance > proxy_cw20_balance1.balance);
+    assert!(account_cw20_balance2.balance > account_cw20_balance1.balance);
 
     module_contract.remove_task(active_task)?;
 
-    let proxy_cw20_balance3: cw20::BalanceResponse = mock.query(
+    let account_cw20_balance3: cw20::BalanceResponse = mock.query(
         &Cw20QueryMsg::Balance {
-            address: account.proxy.addr_str()?,
+            address: account.account.addr_str()?,
         },
         &cw20_addr,
     )?;
 
-    assert!(proxy_cw20_balance3.balance > proxy_cw20_balance2.balance);
+    assert!(account_cw20_balance3.balance > account_cw20_balance2.balance);
     Ok(())
 }
 

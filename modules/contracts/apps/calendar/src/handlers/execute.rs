@@ -200,11 +200,11 @@ fn handle_stake(
             amount: vec![Coin::new(amount_staked, config.denom)],
         }),
         StakeAction::FullSlash => {
-            let proxy_deposit_msgs: Vec<CosmosMsg> =
+            let account_deposit_msgs: Vec<CosmosMsg> =
                 bank.deposit(vec![Coin::new(amount_staked, config.denom)])?;
             module
                 .response("full_slash")
-                .add_messages(proxy_deposit_msgs)
+                .add_messages(account_deposit_msgs)
         }
         StakeAction::PartialSlash { minutes_late } => {
             // Cast should be safe given we cannot have a meeting longer than 24 hours.
@@ -216,7 +216,7 @@ fn handle_stake(
             let amount_to_slash =
                 amount_staked.multiply_ratio(minutes_late, meeting_duration_in_minutes as u128);
 
-            let proxy_deposit_msgs: Vec<CosmosMsg> =
+            let account_deposit_msgs: Vec<CosmosMsg> =
                 bank.deposit(vec![Coin::new(amount_to_slash, config.denom.clone())])?;
 
             module
@@ -225,7 +225,7 @@ fn handle_stake(
                     to_address: requester,
                     amount: vec![Coin::new(amount_staked - amount_to_slash, config.denom)],
                 })
-                .add_messages(proxy_deposit_msgs)
+                .add_messages(account_deposit_msgs)
         }
     };
 

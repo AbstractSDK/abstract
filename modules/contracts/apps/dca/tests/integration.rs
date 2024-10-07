@@ -62,7 +62,7 @@ const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c
 
 fn setup_croncat_contracts(
     mock: MockBech32,
-    proxy_addr: String,
+    account_addr: String,
 ) -> anyhow::Result<(CronCatAddrs, Addr)> {
     let sender = mock.sender_addr();
     let pause_admin = mock.addr_make(PAUSE_ADMIN);
@@ -79,7 +79,7 @@ fn setup_croncat_contracts(
             symbol: "ccc".to_owned(),
             decimals: 6,
             initial_balances: vec![Cw20Coin {
-                address: proxy_addr,
+                address: account_addr,
                 amount: Uint128::new(105),
             }],
             mint: None,
@@ -275,7 +275,7 @@ fn setup() -> anyhow::Result<(
     mock.add_balance(&sender, coins(6_000_000_000, DENOM))?;
     mock.add_balance(&mock.addr_make(AGENT), coins(6_000_000_000, DENOM))?;
 
-    let (cron_cat_addrs, _proxy) = setup_croncat_contracts(mock.clone(), sender.to_string())?;
+    let (cron_cat_addrs, _account) = setup_croncat_contracts(mock.clone(), sender.to_string())?;
 
     // Construct the DCA interface
     let mut dca_app = DCA::new(DCA_APP_ID, mock.clone());

@@ -128,6 +128,6 @@ fn handle_local_request(
         action,
         money_market,
     )?;
-    let proxy_msg = module.executor(deps.as_ref()).execute(msgs)?;
-    Ok(Response::new().add_message(proxy_msg))
+    let account_msg = module.executor(deps.as_ref()).execute(msgs)?;
+    Ok(Response::new().add_message(account_msg))
 }

@@ -380,8 +380,8 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     let tipper_balance = cw20_token.balance(tipper.to_string())?.balance;
     assert_eq!(starting_balance - tip_amount, tipper_balance.u128());
 
-    let proxy_balance = cw20_token.balance(account.address()?.to_string())?.balance;
-    assert_eq!(tip_amount, proxy_balance.u128());
+    let account_balance = cw20_token.balance(account.address()?.to_string())?.balance;
+    assert_eq!(tip_amount, account_balance.u128());
 
     // Query tip count
     let tip_count_response: TipCountResponse = app.tip_count()?;

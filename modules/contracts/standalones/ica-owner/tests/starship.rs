@@ -159,8 +159,8 @@ fn test_bank_send() -> anyhow::Result<()> {
         )?,
     )?;
 
-    let dst_proxy_balance = osmosis.balance(receiving_addr.clone(), None)?;
-    assert_eq!(dst_proxy_balance, amount);
+    let dst_account_balance = osmosis.balance(receiving_addr.clone(), None)?;
+    assert_eq!(dst_account_balance, amount);
 
     // It's possible to use control multiple ica with same ica controller
 
@@ -203,8 +203,8 @@ fn test_bank_send() -> anyhow::Result<()> {
         )?,
     )?;
 
-    let dst_proxy_balance = osmosis.balance(receiving_addr, None)?;
-    assert_eq!(dst_proxy_balance, amount);
+    let dst_account_balance = osmosis.balance(receiving_addr, None)?;
+    assert_eq!(dst_account_balance, amount);
 
     Ok(())
 }
