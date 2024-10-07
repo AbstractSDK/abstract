@@ -558,7 +558,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
 }
 
 impl<Chain: MutCwEnv + IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC> {
-    /// Set balance for the Proxy
+    /// Set balance for the Account
     pub fn set_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.host_chain()
             .set_balance(&self.address()?, amount.to_vec())
@@ -566,7 +566,7 @@ impl<Chain: MutCwEnv + IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount
             .map_err(Into::into)
     }
 
-    /// Add balance to the Proxy
+    /// Add balance to the Account
     pub fn add_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.host_chain()
             .add_balance(&self.address()?, amount.to_vec())

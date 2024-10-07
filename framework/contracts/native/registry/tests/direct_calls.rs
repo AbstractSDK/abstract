@@ -43,7 +43,7 @@ fn caller_must_be_account() -> AResult {
         )
         .unwrap_err();
     assert_that!(&res.root().to_string())
-        .contains("ensure that the contract is a Manager or Proxy contract");
+        .contains("ensure that the contract is a Account contract");
 
     Ok(())
 }

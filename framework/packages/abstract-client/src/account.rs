@@ -945,7 +945,7 @@ impl<Chain: CwEnv> Account<Chain> {
 }
 
 impl<Chain: MutCwEnv> Account<Chain> {
-    /// Set balance for the Proxy
+    /// Set balance for the Account
     pub fn set_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
             .set_balance(&self.address()?, amount.to_vec())
@@ -953,7 +953,7 @@ impl<Chain: MutCwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
-    /// Add balance to the Proxy
+    /// Add balance to the Account
     pub fn add_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
             .add_balance(&self.address()?, amount.to_vec())

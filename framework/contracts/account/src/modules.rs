@@ -736,7 +736,7 @@ mod tests {
     //     }
 
     //     #[test]
-    //     fn remove_module() -> ProxyTestResult {
+    //     fn remove_module() -> AccountTestResult {
     //         let mut deps = mock_dependencies();
     //         mock_init(&mut deps);
 
