@@ -6,9 +6,7 @@ pub const CHAIN_BECH_PREFIX: &str = "xion";
 use crate::contract::AccountResult;
 
 pub fn sha256(msg: &[u8]) -> Vec<u8> {
-    let mut hasher = Sha256::new();
-    hasher.update(msg);
-    hasher.finalize().to_vec()
+    Sha256::digest(msg).to_vec()
 }
 
 fn ripemd160(bytes: &[u8]) -> Vec<u8> {

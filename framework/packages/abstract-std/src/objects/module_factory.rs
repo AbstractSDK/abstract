@@ -1,6 +1,6 @@
-use cosmwasm_std::{Addr, Api, CanonicalAddr, StdResult};
+use cosmwasm_std::{Addr, Api, Env};
 
-use crate::native_addrs;
+use crate::{native_addrs, AbstractResult};
 
 /// Store the Module Factory contract.
 #[cosmwasm_schema::cw_serde]
@@ -11,8 +11,9 @@ pub struct ModuleFactoryContract {
 
 impl ModuleFactoryContract {
     /// Retrieve address of the Version Control
-    pub fn new(api: &dyn Api) -> StdResult<Self> {
-        let address = api.addr_humanize(&CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR))?;
+    pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
+        let hrp = native_addrs::hrp_from_env(env);
+        let address = api.addr_humanize(&native_addrs::module_factory_address(hrp, api)?)?;
         Ok(Self { address })
     }
 }

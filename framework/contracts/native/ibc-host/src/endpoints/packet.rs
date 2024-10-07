@@ -63,7 +63,7 @@ pub fn handle_host_action(
 
         action => {
             // If this account already exists, we can propagate the action
-            if let Ok(account) = account_commands::get_account(deps.as_ref(), &account_id) {
+            if let Ok(account) = account_commands::get_account(deps.as_ref(), &env, &account_id) {
                 match action {
                     HostAction::Dispatch { account_msgs } => {
                         receive_dispatch(deps, account, account_msgs)
@@ -126,7 +126,7 @@ pub fn handle_module_execute(
     msg: Binary,
 ) -> HostResult {
     // We resolve the target module
-    let vc = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
@@ -137,7 +137,7 @@ pub fn handle_module_execute(
             .map(|a| client_to_host_module_account_id(&env, src_chain.clone(), a)),
     };
 
-    let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
+    let target_module_resolved = target_module.addr(deps.as_ref(), registry)?;
 
     match target_module_resolved.reference {
         ModuleReference::Account(_) | ModuleReference::Native(_) | ModuleReference::Service(_) => {
@@ -169,13 +169,14 @@ pub fn handle_module_execute(
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
 pub fn handle_host_module_query(
     deps: Deps,
+    env: Env,
     target_module: InstalledModuleIdentification,
     msg: Binary,
 ) -> HostResult<Binary> {
     // We resolve the target module
-    let vc = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
-    let target_module_resolved = target_module.addr(deps, vc)?;
+    let target_module_resolved = target_module.addr(deps, registry)?;
 
     let query = QueryRequest::<Empty>::from(WasmQuery::Smart {
         contract_addr: target_module_resolved.address.into_string(),

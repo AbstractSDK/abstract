@@ -37,7 +37,7 @@ pub mod mock {
         IBC_CLIENT,
     };
     use cosmwasm_schema::QueryResponses;
-    pub(crate) use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env, MockApi};
+    pub(crate) use cosmwasm_std::testing::{message_info, mock_dependencies};
     use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
@@ -82,7 +82,7 @@ pub mod mock {
     pub struct MockSudoMsg;
 
     use abstract_sdk::{base::InstantiateEndpoint, features::Dependencies, AbstractSdkError};
-    use abstract_testing::prelude::*;
+    use abstract_testing::{mock_env_validated, prelude::*};
     use thiserror::Error;
 
     use self::interface::MockAppWithDepI;
@@ -195,7 +195,7 @@ pub mod mock {
 
     crate::export_endpoints!(MOCK_APP_WITH_DEP, MockAppContract);
 
-    pub fn app_base_mock_querier(mock_api: MockApi) -> MockQuerierBuilder {
+    pub fn app_base_mock_querier(mock_api: cosmwasm_std::testing::MockApi) -> MockQuerierBuilder {
         let abstr = AbstractMockAddrs::new(mock_api);
         MockQuerierBuilder::default()
             .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected messsage"))
@@ -207,21 +207,18 @@ pub mod mock {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.module_factory, &[]);
+        let env = mock_env_validated(deps.api);
         let account = test_account(deps.api);
 
         deps.querier = app_base_mock_querier(deps.api).build();
 
         let msg = app::InstantiateMsg {
-            base: app::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                registry_address: abstr.registry.to_string(),
-                account,
-            },
+            base: app::BaseInstantiateMsg { account },
             module: MockInitMsg {},
         };
 
         BASIC_MOCK_APP
-            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .instantiate(deps.as_mut(), env, info, msg)
             .unwrap();
 
         deps
@@ -288,7 +285,7 @@ pub mod mock {
             }
             Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
         })
-        .with_instantiate(|deps, _env, info, module, msg| {
+        .with_instantiate(|deps, env, info, module, msg| {
             let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
             // See test `create_sub_account_with_installed_module` where this will be triggered.
             if module.info().0 == "tester:mock-app1" {
@@ -308,7 +305,7 @@ pub mod mock {
                 if !balance.amount.is_zero() {
                 println!("sending amount from account: {balance:?}");
                     let action = module
-                        .bank(deps.as_ref())
+                        .bank(deps.as_ref(), &env)
                         .transfer::<::cosmwasm_std::Coin>(
                             vec![balance.into()],
                             &adapter1_addr.unwrap(),

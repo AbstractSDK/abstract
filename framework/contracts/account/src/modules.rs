@@ -5,9 +5,9 @@ use abstract_std::{
     },
     adapter::{AdapterBaseMsg, BaseExecuteMsg, ExecuteMsg as AdapterExecMsg},
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
-    native_addrs,
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
+        module_factory::ModuleFactoryContract,
         module_reference::ModuleReference,
         ownership::{self},
         registry::RegistryContract,
@@ -17,7 +17,7 @@ use abstract_std::{
     registry::ModuleResponse,
 };
 use cosmwasm_std::{
-    ensure, wasm_execute, Addr, Attribute, Binary, CanonicalAddr, Coin, CosmosMsg, Deps, DepsMut,
+    ensure, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps, DepsMut, Env,
     MessageInfo, StdError, StdResult, Storage, SubMsg,
 };
 use cw2::ContractVersion;
@@ -40,6 +40,7 @@ const LIST_SIZE_LIMIT: usize = 15;
 /// Attempts to install a new module through the Module Factory Contract
 pub fn install_modules(
     mut deps: DepsMut,
+    env: &Env,
     info: MessageInfo,
     modules: Vec<ModuleInstallConfig>,
 ) -> AccountResult {
@@ -48,6 +49,7 @@ pub fn install_modules(
 
     let (install_msgs, install_attribute) = _install_modules(
         deps.branch(),
+        env,
         modules,
         info.funds, // We forward all the funds to the module_factory address for them to use in the install
     )?;
@@ -61,16 +63,20 @@ pub fn install_modules(
 /// Adds the modules to the internal store for reference and adds them to the account allowlist if applicable.
 pub fn _install_modules(
     mut deps: DepsMut,
+    env: &Env,
     modules: Vec<ModuleInstallConfig>,
     funds: Vec<Coin>,
 ) -> AccountResult<(Vec<SubMsg>, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut account_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let registry = RegistryContract::new(deps.api)?;
 
-    let canonical_module_factory = CanonicalAddr::from(native_addrs::MODULE_FACTORY_ADDR);
-    let module_factory_address = deps.api.addr_humanize(&canonical_module_factory)?;
+    let registry = RegistryContract::new(deps.api, env)?;
+    let module_factory = ModuleFactoryContract::new(deps.api, env)?;
+
+    let canonical_module_factory = deps
+        .api
+        .addr_canonicalize(module_factory.address.as_str())?;
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
@@ -142,7 +148,7 @@ pub fn _install_modules(
     // Install modules message
     messages.push(SubMsg::reply_on_success(
         wasm_execute(
-            module_factory_address,
+            module_factory.address,
             &ModuleFactoryMsg::InstallModules {
                 modules: account_modules,
                 salt,
@@ -181,7 +187,12 @@ pub fn update_module_addresses(
 }
 
 /// Uninstall the module with the ID [`module_id`]
-pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String) -> AccountResult {
+pub fn uninstall_module(
+    mut deps: DepsMut,
+    env: &Env,
+    info: MessageInfo,
+    module_id: String,
+) -> AccountResult {
     // only owner can uninstall modules
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
@@ -203,7 +214,7 @@ pub fn uninstall_module(mut deps: DepsMut, info: MessageInfo, module_id: String)
     crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
     // Remove for account if needed
-    let vc = RegistryContract::new(deps.api)?;
+    let vc = RegistryContract::new(deps.api, env)?;
 
     let module = vc.query_module(
         ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
@@ -233,11 +244,12 @@ pub fn load_module_addr(storage: &dyn Storage, module_id: &String) -> AccountRes
 /// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
 pub fn query_module(
     deps: Deps,
+    env: &Env,
     module_info: ModuleInfo,
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, AccountError> {
     // Construct feature object to access registry functions
-    let registry = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, env)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -470,14 +482,14 @@ mod tests {
             let msg = ExecuteMsg::UpdateInternalConfig(action_add);
 
             // the registry can not call this
-            let res = execute_as(deps.as_mut(), &abstr.registry, msg.clone());
+            let res = execute_as(&mut deps, &abstr.registry, msg.clone());
             assert_that!(&res).is_err();
 
             // only the owner can
-            let res = execute_as(deps.as_mut(), &owner, msg.clone());
+            let res = execute_as(&mut deps, &owner, msg.clone());
             assert_that!(&res).is_ok();
 
-            let res = execute_as(deps.as_mut(), &not_account_factory, msg);
+            let res = execute_as(&mut deps, &not_account_factory, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
@@ -503,7 +515,7 @@ mod tests {
                 )],
             };
 
-            let res = execute_as(deps.as_mut(), &not_owner, msg);
+            let res = execute_as(&mut deps, &not_owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
@@ -542,7 +554,7 @@ mod tests {
             let dependents = HashSet::from_iter(vec!["test:dependent".to_string()]);
             DEPENDENTS.save(&mut deps.storage, test_module, &dependents)?;
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::ModuleHasDependents(Vec::from_iter(
@@ -576,7 +588,7 @@ mod tests {
                 &Addr::unchecked("not-important"),
             )?;
 
-            let res = execute_as(deps.as_mut(), &not_owner, msg);
+            let res = execute_as(&mut deps, &not_owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
@@ -597,7 +609,7 @@ mod tests {
                 exec_msg: to_json_binary(&"some msg")?,
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(AccountError::ModuleNotFound(missing_module));
@@ -626,7 +638,7 @@ mod tests {
                 exec_msg: to_json_binary(&exec_msg)?,
             };
 
-            let res = execute_as(deps.as_mut(), &owner, msg);
+            let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res).is_ok();
 
             let msgs = res.unwrap().messages;
@@ -659,7 +671,7 @@ mod tests {
     //     };
     //     let info = message_info(&deps.api.addr_make("not_admin"), &[]);
 
-    //     let res = execute(deps.as_mut(), mock_env(), info, msg);
+    //     let res = execute(deps.as_mut(), mock_env_validated(deps.api), info, msg);
     //     assert_that(&res)
     //         .is_err()
     //         .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))
@@ -729,7 +741,7 @@ mod tests {
     //         };
     //         let info = message_info(&deps.api.addr_make("not_admin"), &[]);
 
-    //         let res = execute(deps.as_mut(), mock_env(), info, msg);
+    //         let res = execute(deps.as_mut(), mock_env_validated(deps.api), info, msg);
     //         assert_that(&res)
     //             .is_err()
     //             .is_equal_to(AccountError::Admin(AdminError::NotAdmin {}))

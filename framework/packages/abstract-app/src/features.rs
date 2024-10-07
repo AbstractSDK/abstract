@@ -4,7 +4,7 @@ use abstract_sdk::{
     AbstractSdkResult,
 };
 use abstract_std::registry::Account;
-use cosmwasm_std::Deps;
+use cosmwasm_std::{Deps, Env};
 
 use crate::{state::ContractError, AppContract};
 
@@ -19,9 +19,8 @@ impl<
     > AbstractNameService
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
-        // Retrieve the ANS host address from the base state.
-        Ok(self.base_state.load(deps.storage)?.ans_host)
+    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
+        AnsHost::new(deps.api, env).map_err(Into::into)
     }
 }
 // ANCHOR_END: ans
@@ -51,8 +50,8 @@ impl<
     > AbstractRegistryAccess
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
-        Ok(self.base_state.load(deps.storage)?.registry)
+    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+        RegistryContract::new(deps.api, env).map_err(Into::into)
     }
 }
 
@@ -68,9 +67,10 @@ mod test {
     #[test]
     fn test_ans_host() -> AppTestResult {
         let deps = mock_init();
+        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref())?;
+        let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref(), &env)?;
 
         assert_eq!(ans_host.address, abstr.ans_host);
         Ok(())
@@ -79,9 +79,10 @@ mod test {
     #[test]
     fn test_abstract_registry() -> AppTestResult {
         let deps = mock_init();
+        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref())?;
+        let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref(), &env)?;
 
         assert_eq!(abstract_registry.address, abstr.registry);
         Ok(())
@@ -90,6 +91,7 @@ mod test {
     #[test]
     fn test_traits_generated() -> AppTestResult {
         let mut deps = mock_init();
+        let env = mock_env_validated(deps.api);
         let test_account = test_account(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
             .account(&test_account, TEST_ACCOUNT_ID)
@@ -99,19 +101,22 @@ mod test {
         assert_eq!(base, test_account.clone());
 
         // AbstractNameService
-        let host = MOCK_APP_WITH_DEP.name_service(deps.as_ref()).host().clone();
-        assert_eq!(host, AnsHost::new(&deps.api)?);
+        let host = MOCK_APP_WITH_DEP
+            .name_service(deps.as_ref(), &env)
+            .host()
+            .clone();
+        assert_eq!(host, AnsHost::new(&deps.api, &env)?);
 
         // AccountRegistry
         // TODO: really rust forces binding CONST variable here?
         // It's because of returning Result, most likely polonius bug
         let binding = MOCK_APP_WITH_DEP;
-        let account_registry = binding.account_registry(deps.as_ref())?;
+        let account_registry = binding.account_registry(deps.as_ref(), &env)?;
         let base = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account);
 
         // TODO: Make some of the module_registry queries raw as well?
-        let _module_registry = MOCK_APP_WITH_DEP.module_registry(deps.as_ref());
+        let _module_registry = MOCK_APP_WITH_DEP.module_registry(deps.as_ref(), &env);
         // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 
         Ok(())

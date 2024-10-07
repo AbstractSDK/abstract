@@ -12,7 +12,7 @@ use abstract_std::{
     objects::{module::ModuleInfo, TruncatedChainId},
     ABSTRACT_VERSION, IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Env, QueryRequest};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
@@ -41,8 +41,12 @@ pub trait IbcInterface:
         let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
         ```
     */
-    fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
-        IbcClient { base: self, deps }
+    fn ibc_client<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> IbcClient<Self> {
+        IbcClient {
+            base: self,
+            deps,
+            env,
+        }
     }
 }
 
@@ -86,6 +90,7 @@ impl<'a, T: IbcInterface> ApiIdentification for IbcClient<'a, T> {
 pub struct IbcClient<'a, T: IbcInterface> {
     base: &'a T,
     deps: Deps<'a>,
+    env: &'a Env,
 }
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
@@ -94,7 +99,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(IBC_CLIENT)?;
         self.base
-            .module_registry(self.deps)?
+            .module_registry(self.deps, self.env)?
             .query_module(ModuleInfo::from_id(IBC_CLIENT, ABSTRACT_VERSION.into())?)?
             .reference
             .unwrap_native()
@@ -359,8 +364,9 @@ mod test {
     #[test]
     fn test_host_action_no_callback() {
         let (deps, _, stub) = mock_module_setup();
+        let env = mock_env_validated(deps.api);
 
-        let client = stub.ibc_client(deps.as_ref());
+        let client = stub.ibc_client(deps.as_ref(), &env);
         let msg = client.host_action(
             TEST_HOST_CHAIN.parse().unwrap(),
             HostAction::Dispatch {
@@ -394,8 +400,9 @@ mod test {
     #[test]
     fn test_ics20_transfer() {
         let (deps, _, stub) = mock_module_setup();
+        let env = mock_env_validated(deps.api);
 
-        let client = stub.ibc_client(deps.as_ref());
+        let client = stub.ibc_client(deps.as_ref(), &env);
 
         let expected_funds = coins(100, "denom");
 

@@ -148,14 +148,14 @@ fn send_remote_host_action(
 /// This is the top-level function to do IBC related actions.
 pub fn execute_send_packet(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     host_chain: TruncatedChainId,
     action: HostAction,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let registry = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
     // The packet we need to send depends on the action we want to execute
 
     let note_message = match &action {
@@ -191,11 +191,11 @@ pub fn execute_send_module_to_module_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let registry = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
     // Query the sender module information
     let module_info = registry
-        .module_registry(deps.as_ref())?
+        .module_registry(deps.as_ref(), &env)?
         .module_info(info.sender.clone())?;
 
     // We need additional information depending on the module type
@@ -332,7 +332,7 @@ pub fn execute_register_account(
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
     host_chain.verify()?;
-    let registry = RegistryContract::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
     // Verify that the sender is a account contract
     let account = registry.assert_account(&info.sender, &deps.querier)?;
@@ -377,8 +377,8 @@ pub fn execute_send_funds(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let registry = RegistryContract::new(deps.api)?;
-    let ans = AnsHost::new(deps.api)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
+    let ans = AnsHost::new(deps.api, &env)?;
     // Verify that the sender is a account contract
 
     let account = registry.assert_account(&info.sender, &deps.querier)?;

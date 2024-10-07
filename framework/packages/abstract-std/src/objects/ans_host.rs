@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Api, CanonicalAddr, QuerierWrapper, StdResult};
+use cosmwasm_std::{Addr, Api, Env, QuerierWrapper};
 use cw_asset::AssetInfo;
 use thiserror::Error;
 
@@ -13,6 +13,7 @@ use crate::{
     },
     native_addrs,
     objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId},
+    AbstractResult,
 };
 
 #[derive(Error, Debug, PartialEq)]
@@ -77,8 +78,9 @@ pub struct AnsHost {
 
 impl AnsHost {
     /// Retrieve address of the ans host
-    pub fn new(api: &dyn Api) -> StdResult<Self> {
-        let address = api.addr_humanize(&CanonicalAddr::from(native_addrs::ANS_ADDR))?;
+    pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
+        let hrp = native_addrs::hrp_from_env(env);
+        let address = api.addr_humanize(&native_addrs::ans_address(hrp, api)?)?;
         Ok(Self { address })
     }
     /// Raw Query to AnsHost contract

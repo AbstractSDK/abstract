@@ -252,7 +252,9 @@ pub fn claim_emissions_msg(
         // Update only if there was claim
         subscriber.last_emission_claim_timestamp = env.block.time;
 
-        let send_msg = module.bank(deps).transfer(vec![asset], subscriber_addr)?;
+        let send_msg = module
+            .bank(deps, env)
+            .transfer(vec![asset], subscriber_addr)?;
         Ok(Some(send_msg))
     } else {
         Ok(None)

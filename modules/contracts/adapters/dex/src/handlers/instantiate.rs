@@ -10,13 +10,13 @@ use crate::{
 
 pub fn instantiate_handler(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     module: DexAdapter,
     msg: DexInstantiateMsg,
 ) -> DexResult {
     let recipient = module
-        .account_registry(deps.as_ref())?
+        .account_registry(deps.as_ref(), &env)?
         .account(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
     let dex_fees = DexFees::new(msg.swap_fee, recipient.into_addr())?;
     DEX_FEES.save(deps.storage, &dex_fees)?;

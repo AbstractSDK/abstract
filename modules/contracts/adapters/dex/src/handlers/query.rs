@@ -57,6 +57,7 @@ pub fn query_handler(
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
                         module,
                         deps,
+                        &env,
                         addr_as_sender,
                         action,
                         exchange,
@@ -72,7 +73,7 @@ pub fn query_handler(
             ask_asset,
             dex,
         } => {
-            let ans = module.name_service(deps);
+            let ans = module.name_service(deps, &env);
             let cw_offer_asset = ans.query(&offer_asset)?;
             let cw_ask_asset = ans.query(&ask_asset)?;
 

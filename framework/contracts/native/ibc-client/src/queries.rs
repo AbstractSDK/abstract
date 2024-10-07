@@ -13,7 +13,7 @@ use abstract_std::{
     },
     AbstractError,
 };
-use cosmwasm_std::{Deps, Order, StdError, StdResult};
+use cosmwasm_std::{Deps, Env, Order, StdError, StdResult};
 use cw_storage_plus::Bound;
 
 use crate::contract::IbcClientResult;
@@ -91,10 +91,10 @@ pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructur
     Ok(ListIbcInfrastructureResponse { counterparts })
 }
 
-pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
+pub fn config(deps: Deps, env: &Env) -> IbcClientResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps.api)?.address,
-        registry_address: RegistryContract::new(deps.api)?.address,
+        ans_host: AnsHost::new(deps.api, env)?.address,
+        registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
 

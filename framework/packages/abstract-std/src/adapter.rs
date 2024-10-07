@@ -16,7 +16,7 @@ use crate::{
         ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
         QueryMsg as MiddlewareQueryMsg,
     },
-    objects::{ans_host::AnsHost, module_version::ModuleDataResponse, registry::RegistryContract},
+    objects::module_version::ModuleDataResponse,
 };
 
 pub type ExecuteMsg<Request = Empty> =
@@ -56,12 +56,7 @@ impl AdapterQueryMsg for Empty {}
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the registry contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
-pub struct BaseInstantiateMsg {
-    /// Used to easily perform address translation
-    pub ans_host_address: String,
-    /// Used to verify senders
-    pub registry_address: String,
-}
+pub struct BaseInstantiateMsg {}
 
 impl<RequestMsg> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg> {
     fn from(adapter_msg: BaseExecuteMsg) -> Self {
@@ -155,9 +150,4 @@ pub struct AuthorizedAddressesResponse {
 /// The BaseState contains the main addresses needed for sending and verifying messages
 /// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
 #[cosmwasm_schema::cw_serde]
-pub struct AdapterState {
-    /// Used to verify requests
-    pub registry: RegistryContract,
-    /// AnsHost contract struct (address)
-    pub ans_host: AnsHost,
-}
+pub struct AdapterState {}

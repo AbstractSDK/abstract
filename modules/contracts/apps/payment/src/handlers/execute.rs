@@ -67,7 +67,7 @@ pub fn tip(
 
     // forward payment to the account contract
     let forward_payment_msgs = module
-        .bank(deps.as_ref())
+        .bank(deps.as_ref(), &env)
         .deposit(deposited_assets.to_vec())?;
 
     // resp
@@ -79,7 +79,7 @@ pub fn tip(
     let config = CONFIG.load(deps.storage)?;
 
     // Reverse query the deposited assets
-    let ans = module.name_service(deps.as_ref());
+    let ans = module.name_service(deps.as_ref(), &env);
     let asset_entries = ans.query(&deposited_assets.to_vec())?;
 
     // If there is no desired asset specified, just forward the payment.
@@ -120,7 +120,7 @@ pub fn tip(
             .into_iter()
             .find(|(pair, refs)| !refs.is_empty() && exchange_strs.contains(&pair.dex()))
         {
-            let dex = module.ans_dex(deps.as_ref(), pair.dex().to_owned());
+            let dex = module.ans_dex(deps.as_ref(), &env, pair.dex().to_owned());
             let trigger_swap_msg = dex.swap(
                 pay_asset.clone(),
                 desired_asset.clone(),
@@ -195,7 +195,7 @@ fn update_config(
     module
         .admin
         .assert_admin(deps.as_ref(), &env, &msg_info.sender)?;
-    let name_service = module.name_service(deps.as_ref());
+    let name_service = module.name_service(deps.as_ref(), &env);
 
     let mut config = CONFIG.load(deps.storage)?;
     if let Some(desired_asset) = desired_asset {

@@ -34,8 +34,12 @@ pub trait TransferInterface:
         let bank: Bank<MockModule>  = module.bank(deps.as_ref());
         ```
     */
-    fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
-        Bank { base: self, deps }
+    fn bank<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> Bank<Self> {
+        Bank {
+            base: self,
+            deps,
+            env,
+        }
     }
 }
 
@@ -79,6 +83,7 @@ impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
 pub struct Bank<'a, T: TransferInterface> {
     base: &'a T,
     deps: Deps<'a>,
+    env: &'a Env,
 }
 
 impl<'a, T: TransferInterface> Bank<'a, T> {
@@ -92,7 +97,10 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// Get the balance of the provided asset.
     pub fn balance(&self, asset: &AssetEntry) -> AbstractSdkResult<Asset> {
         let resolved_info = asset
-            .resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)
+            .resolve(
+                &self.deps.querier,
+                &self.base.ans_host(self.deps, self.env)?,
+            )
             .map_err(|error| self.wrap_query_error(error))?;
         let balance = resolved_info.query_balance(
             &self.deps.querier,
@@ -106,7 +114,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         let recipient = self.base.account(self.deps)?.into_addr();
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .map(|asset| asset.transferable_asset(self.base, self.deps, self.env))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         transferable_funds
             .iter()
@@ -165,7 +173,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .map(|asset| asset.transferable_asset(self.base, self.deps, self.env))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         let msgs = transferable_funds
             .iter()
@@ -196,7 +204,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
         recipient: &Addr,
         message: &M,
     ) -> AbstractSdkResult<AccountAction> {
-        let transferable_funds = funds.transferable_asset(self.base, self.deps)?;
+        let transferable_funds = funds.transferable_asset(self.base, self.deps, self.env)?;
 
         let msgs = transferable_funds.send_msg(recipient, to_json_binary(message)?)?;
 
@@ -211,6 +219,7 @@ pub trait Transferable {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset>;
 }
 
@@ -231,8 +240,9 @@ impl Transferable for &AnsAsset {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset> {
-        self.resolve(&deps.querier, &base.ans_host(deps)?)
+        self.resolve(&deps.querier, &base.ans_host(deps, env)?)
             .map_err(|error| transferable_api_error(base, error))
     }
 }
@@ -242,8 +252,9 @@ impl Transferable for AnsAsset {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset> {
-        self.resolve(&deps.querier, &base.ans_host(deps)?)
+        self.resolve(&deps.querier, &base.ans_host(deps, env)?)
             .map_err(|error| transferable_api_error(base, error))
     }
 }
@@ -253,6 +264,7 @@ impl Transferable for Asset {
         self,
         _base: &T,
         _deps: Deps,
+        _env: &Env,
     ) -> AbstractSdkResult<Asset> {
         Ok(self)
     }
@@ -263,6 +275,7 @@ impl Transferable for Coin {
         self,
         _base: &T,
         _deps: Deps,
+        _env: &Env,
     ) -> AbstractSdkResult<Asset> {
         Ok(Asset::from(self))
     }
@@ -271,8 +284,9 @@ impl Transferable for Coin {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
+    use abstract_testing::mock_env_validated;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, *};
+    use cosmwasm_std::*;
     use speculoos::prelude::*;
 
     use super::*;
@@ -287,10 +301,11 @@ mod test {
         #[test]
         fn transfer_asset_to_sender() {
             let (deps, account, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
             let coins: Vec<Coin> = coins(100u128, "asset");
             let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
 
@@ -328,10 +343,11 @@ mod test {
         #[test]
         fn deposit() {
             let (deps, account, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             // ANCHOR: deposit
             // Get bank API struct from the app
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
             // Define coins to send
             let coins: Vec<Coin> = coins(100u128, "denom");
             // Construct messages for deposit (transfer from this contract to the account)
@@ -357,9 +373,9 @@ mod test {
             let (deps, _, app) = mock_module_setup();
 
             let expected_amount = 100u128;
-            let env = mock_env();
+            let env = mock_env_validated(deps.api);
 
-            let bank = app.bank(deps.as_ref());
+            let bank = app.bank(deps.as_ref(), &env);
             let coins = coins(expected_amount, "asset");
             let actual_res = bank.withdraw(&env, coins.clone());
 
@@ -381,11 +397,12 @@ mod test {
         #[test]
         fn send_cw20() {
             let (deps, _, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 
-            let bank = app.bank(deps.as_ref());
+            let bank = app.bank(deps.as_ref(), &env);
             let hook_msg = Empty {};
             let asset = deps.api.addr_make("asset");
             let coin = Asset::cw20(asset.clone(), expected_amount);
@@ -408,11 +425,12 @@ mod test {
         #[test]
         fn send_coins() {
             let (deps, _, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 
-            let bank = app.bank(deps.as_ref());
+            let bank = app.bank(deps.as_ref(), &env);
             let coin = coin(expected_amount, "asset");
             let hook_msg = Empty {};
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
