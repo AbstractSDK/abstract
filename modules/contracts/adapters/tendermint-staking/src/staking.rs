@@ -96,19 +96,21 @@ pub fn undelegate_all_from(
     account_address: &Addr,
     validator: &str,
 ) -> StdResult<CosmosMsg> {
-    let delegation =
-        querier
-            .query_delegation(account_address, validator)?
-            .ok_or(StdError::generic_err(format!(
-                "OS not delegated to validator {validator}"
-            )))?;
+    let delegation = querier
+        .query_delegation(account_address, validator)?
+        .ok_or(StdError::generic_err(format!(
+            "OS not delegated to validator {validator}"
+        )))?;
     Ok(CosmosMsg::Staking(StakingMsg::Undelegate {
         validator: validator.to_string(),
         amount: delegation.amount,
     }))
 }
 
-pub fn undelegate_all(querier: &QuerierWrapper, account_address: &Addr) -> StdResult<Vec<CosmosMsg>> {
+pub fn undelegate_all(
+    querier: &QuerierWrapper,
+    account_address: &Addr,
+) -> StdResult<Vec<CosmosMsg>> {
     let delegations = querier.query_all_delegations(account_address)?;
     let undelegate_msgs = delegations
         .into_iter()
