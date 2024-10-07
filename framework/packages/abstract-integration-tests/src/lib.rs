@@ -5,7 +5,6 @@
 pub mod account;
 pub mod create;
 pub mod mock_modules;
-// pub mod proxy;
 
 use abstract_adapter::mock::{interface::MockAdapterI, MockInitMsg};
 use abstract_interface::*;

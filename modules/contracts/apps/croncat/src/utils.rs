@@ -26,13 +26,13 @@ pub(crate) fn assert_module_installed(
 // Check if user balance non empty
 pub(crate) fn user_balance_nonempty(
     deps: Deps,
-    proxy_addr: Addr,
+    account_addr: Addr,
     manager_addr: Addr,
 ) -> Result<bool, AppError> {
     let coins: Vec<Cw20CoinVerified> = deps.querier.query_wasm_smart(
         manager_addr,
         &ManagerQueryMsg::UsersBalances {
-            address: proxy_addr.into_string(),
+            address: account_addr.into_string(),
             from_index: None,
             // One is enough to know
             limit: Some(1),

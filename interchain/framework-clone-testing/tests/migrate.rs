@@ -93,7 +93,7 @@ mod account {
     use abstract_integration_tests::account::{
         account_install_app, account_move_ownership_to_sub_account,
         create_account_with_installed_module_monetization_and_init_funds,
-        create_sub_account_with_modules_installed, install_app_with_proxy_action,
+        create_sub_account_with_modules_installed, install_app_with_account_action,
         installing_one_adapter_with_fee_should_succeed, uninstall_modules,
         update_adapter_with_authorized_addrs, with_response_data,
     };
@@ -120,10 +120,10 @@ mod account {
     }
 
     #[test]
-    fn install_app_with_proxy_action_after_migrate() -> anyhow::Result<()> {
+    fn install_app_with_account_action_after_migrate() -> anyhow::Result<()> {
         let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
 
-        install_app_with_proxy_action(chain)
+        install_app_with_account_action(chain)
     }
 
     #[test]

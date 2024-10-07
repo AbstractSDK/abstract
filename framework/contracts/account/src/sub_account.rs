@@ -153,7 +153,7 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
         .pending_owner
         .ok_or(GovOwnershipError::TransferNotFound)?;
 
-    // Clear state for previous manager if it was sub-account
+    // Clear state for previous account if it was sub-account
     if let GovernanceDetails::SubAccount { account } = ownership.owner {
         let id = ACCOUNT_ID.load(deps.storage)?;
         let unregister_message = wasm_execute(
@@ -168,7 +168,7 @@ pub fn maybe_update_sub_account_governance(deps: DepsMut) -> AccountResult<Vec<C
         msgs.push(unregister_message.into());
     }
 
-    // Update state for new manager if owner will be the sub-account
+    // Update state for new account if owner will be the sub-account
     if let GovernanceDetails::SubAccount { account } = &pending_governance {
         let id = if let Some(id) = account_id {
             id

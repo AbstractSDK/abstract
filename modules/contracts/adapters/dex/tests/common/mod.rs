@@ -10,7 +10,7 @@ pub fn create_default_account<Chain: CwEnv>(
     Ok(os)
 }
 
-// /// Instantiates the dex adapter and registers it with the version control
+// /// Instantiates the dex adapter and registers it with the registry
 // #[allow(dead_code)]
 // pub fn init_dex_adapter(
 //     chain: Mock,

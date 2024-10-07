@@ -354,10 +354,10 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
 }
 
 impl Module {
-    // Helper to know if this module supposed to be whitelisted on proxy contract
+    // Helper to know if this module supposed to be whitelisted on account contract
     pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
-            // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
+            // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on account
             ModuleReference::Adapter(_) | ModuleReference::App(_) => true,
             _ => false,
         }
@@ -411,7 +411,7 @@ pub fn assert_module_data_validity(
             // now we need to have a module address provided
             let Some(addr) = module_address else {
                 // if no addr provided and module doesn't have it, just return
-                // this will be the case when registering a code-id on VC
+                // this will be the case when registering a code-id on Registry
                 return Ok(());
             };
             addr

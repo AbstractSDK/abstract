@@ -4,16 +4,16 @@
 //!
 //! ## Description
 //!
-//! The Account manager is part of the Core Abstract Account contracts along with the `abstract_std::proxy` contract.
+//! The Account is part of the Core Abstract Account contracts along with the `abstract_std::account` contract.
 //! This contract is responsible for:
 //! - Managing modules instantiation and migrations.
 //! - Managing permissions.
 //! - Upgrading the Account and its modules.
 //! - Providing module name to address resolution.
 //!
-//! **The manager should be set as the contract/CosmWasm admin by default on your modules.**
+//! **The account should be set as the contract/CosmWasm admin by default on your modules.**
 //! ## Migration
-//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
+//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::account` as module.
 //!
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, CosmosMsg, Empty};
@@ -96,19 +96,30 @@ pub struct MigrateMsg {}
 /// Account Instantiate Msg
 /// https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs
 #[cosmwasm_schema::cw_serde]
+// ANCHOR: init_msg
 pub struct InstantiateMsg<Authenticator = Empty> {
-    pub authenticator: Option<Authenticator>,
-    // pub authenticator: Option<AddAuthenticator>,
-    pub account_id: Option<AccountId>,
+    /// The ownership structure of the Account.
     pub owner: GovernanceDetails<String>,
+    /// Optionally specify an account-id for this account.
+    /// If provided must be between (u32::MAX/2)..u32::MAX range.
+    pub account_id: Option<AccountId>,
+    /// Optional authenticator for use with the `abstractaccount` cosmos-sdk module.
+    pub authenticator: Option<Authenticator>,
+    /// Optionally claim a namespace on instantiation.
+    /// Any fees will be deducted from the account and should be provided on instantiation.
     pub namespace: Option<String>,
-    /// Optionally modules can be provided. They will be installed after account registration.
+    /// Optionally install modules on instantiation.
+    /// Any fees will be deducted from the account and should be provided on instantiation.
     #[serde(default)]
     pub install_modules: Vec<ModuleInstallConfig>,
+    /// Optional account name.
     pub name: Option<String>,
+    /// Optional account description.
     pub description: Option<String>,
+    /// Optional account link.
     pub link: Option<String>,
 }
+// ANCHOR_END: init_msg
 
 /// Callback message to set the dependencies after module upgrades.
 #[cosmwasm_schema::cw_serde]
@@ -155,7 +166,7 @@ pub enum ExecuteMsg<Authenticator = Empty> {
         action_query_msg: Binary,
     },
     /// Update Abstract-specific configuration of the module.
-    /// Only callable by the account factory or owner.
+    /// Only callable by the owner.
     UpdateInternalConfig(InternalConfigAction),
     /// Install module using module factory, callable by Owner
     #[cw_orch(payable)]

@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
     // let account = abstract_deployment.registry.get_account(7)?;
     // let account = AbstractAccount::new(chain.clone(), None);
     // account.manager.set_address(&account.manager);
-    // account.proxy.set_address(&account.proxy);
+    // account.account.set_address(&account.account);
 
     // Claim namespace
     let account_config = account.manager.config()?;

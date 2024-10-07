@@ -28,7 +28,7 @@ pub enum ModuleFactoryError {
     #[error("{0}")]
     RegistryError(#[from] RegistryError),
 
-    #[error("Calling contract is not a registered Account Manager")]
+    #[error("Calling contract is not a registered Account")]
     UnknownCaller(),
 
     #[error("Reply ID does not match any known Reply ID")]

@@ -81,7 +81,7 @@ fn instantiate() -> AResult {
 
     let modules = account.module_infos(None, None)?.module_infos;
 
-    // assert proxy module
+    // assert account module
     assert_that!(&modules).has_length(0);
 
     // assert account config
@@ -104,16 +104,16 @@ fn exec_on_account() -> AResult {
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&sender, &deployment)?;
 
-    // Mint coins to proxy address
+    // Mint coins to account address
     chain.set_balance(&account.address()?, vec![Coin::new(100_000u128, TTOKEN)])?;
 
-    let proxy_balance = chain.bank_querier().balance(&account.address()?, None)?;
+    let account_balance = chain.bank_querier().balance(&account.address()?, None)?;
 
-    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000u128, TTOKEN)]);
+    assert_that!(account_balance).is_equal_to(vec![Coin::new(100_000u128, TTOKEN)]);
 
     let burn_amount = vec![Coin::new(10_000u128, TTOKEN)];
 
-    // Burn coins from proxy
+    // Burn coins from account
     account.execute_msgs(
         vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
             amount: burn_amount,
@@ -122,8 +122,8 @@ fn exec_on_account() -> AResult {
     )?;
 
     // Assert balance has decreased
-    let proxy_balance = chain.bank_querier().balance(&account.address()?, None)?;
-    assert_that!(proxy_balance).is_equal_to(vec![Coin::new((100_000 - 10_000) as u128, TTOKEN)]);
+    let account_balance = chain.bank_querier().balance(&account.address()?, None)?;
+    assert_that!(account_balance).is_equal_to(vec![Coin::new((100_000 - 10_000) as u128, TTOKEN)]);
     take_storage_snapshot!(chain, "exec_on_account");
 
     Ok(())
@@ -156,7 +156,7 @@ fn with_response_data() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
     abstract_integration_tests::account::with_response_data(chain.clone())?;
-    take_storage_snapshot!(chain, "proxy_with_response_data");
+    take_storage_snapshot!(chain, "account_with_response_data");
 
     Ok(())
 }
@@ -205,7 +205,7 @@ fn install_standalone_modules() -> AResult {
     )])?;
 
     account.install_module("abstract:standalone2", Some(&MockInitMsg {}), &[])?;
-    take_storage_snapshot!(chain, "proxy_install_standalone_modules");
+    take_storage_snapshot!(chain, "account_install_standalone_modules");
     Ok(())
 }
 
@@ -390,7 +390,7 @@ fn install_multiple_modules() -> AResult {
 
     assert!(s1_balance.is_empty());
     assert_eq!(s2_balance, vec![coin(42, "token1"), coin(500, "token2")]);
-    take_storage_snapshot!(chain, "proxy_install_multiple_modules");
+    take_storage_snapshot!(chain, "account_install_multiple_modules");
 
     Ok(())
 }
@@ -470,7 +470,7 @@ fn renounce_cleans_namespace() -> AResult {
 //     // fund nft account
 //     chain.set_balance(&account.address()?, start_balance.clone())?;
 
-//     // test sending msg as nft account by burning tokens from proxy
+//     // test sending msg as nft account by burning tokens from account
 //     let burn_msg = abstract_std::account::ExecuteMsg::Execute {
 //         msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
 //             amount: burn_amount,

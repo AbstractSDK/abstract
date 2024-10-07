@@ -791,19 +791,19 @@ fn doc_example_test() -> anyhow::Result<()> {
     // ## ANCHOR_END: publisher
 
     // ## ANCHOR: account
-    let account: Account<MockBech32> = client.account_builder().build()?;
+    let accounti: Account<MockBech32> = client.account_builder().build()?;
 
     // ## ANCHOR: app_interface
     // Install an app
     let app: Application<MockBech32, MockAppI<MockBech32>> =
-        account.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
+        accounti.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
     // ## ANCHOR_END: account
     // Call a function on the app
     app.do_something()?;
 
     // Call as someone else
-    let manager: Addr = account.address()?;
-    app.call_as(&manager).do_something()?;
+    let account: Addr = accounti.address()?;
+    app.call_as(&account).do_something()?;
 
     // Query the app
     let something: MockQueryResponse = app.get_something()?;
@@ -811,11 +811,11 @@ fn doc_example_test() -> anyhow::Result<()> {
 
     // ## ANCHOR: account_helpers
     // Get account info
-    let account_info: AccountInfo = account.info()?;
+    let account_info: AccountInfo = accounti.info()?;
     // Get the owner
-    let owner: Addr = account.owner()?;
+    let owner: Addr = accounti.owner()?;
     // Add or set balance
-    account.add_balance(&[Coin::new(100u128, "btc")])?;
+    accounti.add_balance(&[Coin::new(100u128, "btc")])?;
     // ...
     // ## ANCHOR_END: account_helpers
 
@@ -1177,7 +1177,7 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
     // Check it authorized
     let authorized_addrs_resp: AuthorizedAddressesResponse = adapter.query(
         &abstract_std::adapter::BaseQueryMsg::AuthorizedAddresses {
-            proxy_address: app.account().address()?.to_string(),
+            account_address: app.account().address()?.to_string(),
         }
         .into(),
     )?;
@@ -1279,7 +1279,7 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
     let next_seq = client.random_account_id()?;
     let account_id = AccountId::local(next_seq);
 
-    let proxy_addr = client.module_instantiate2_address_raw(
+    let account_addr = client.module_instantiate2_address_raw(
         &account_id,
         ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
     )?;
@@ -1288,7 +1288,7 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
         .expected_account_id(next_seq)
         .build()?;
 
-    assert_eq!(account.address()?, proxy_addr);
+    assert_eq!(account.address()?, account_addr);
     Ok(())
 }
 
@@ -1300,7 +1300,7 @@ fn instantiate2_random_seq() -> anyhow::Result<()> {
     let next_seq = client.random_account_id()?;
     let account_id = AccountId::local(next_seq);
 
-    let proxy_addr = client.module_instantiate2_address_raw(
+    let account_addr = client.module_instantiate2_address_raw(
         &account_id,
         ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
     )?;
@@ -1309,7 +1309,7 @@ fn instantiate2_random_seq() -> anyhow::Result<()> {
         .expected_account_id(next_seq)
         .build()?;
 
-    assert_eq!(account.address()?, proxy_addr);
+    assert_eq!(account.address()?, account_addr);
     Ok(())
 }
 

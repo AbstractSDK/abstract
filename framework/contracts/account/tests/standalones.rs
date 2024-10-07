@@ -75,7 +75,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     ) else {
         panic!("Expected error");
     };
-    let manager_err: AccountError = err.downcast().unwrap();
-    assert_eq!(manager_err, AccountError::ProhibitedReinstall {});
+    let account_err: AccountError = err.downcast().unwrap();
+    assert_eq!(account_err, AccountError::ProhibitedReinstall {});
     Ok(())
 }

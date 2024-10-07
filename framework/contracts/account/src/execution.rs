@@ -39,7 +39,7 @@ pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> 
     }
 }
 
-/// Executes `Vec<CosmosMsg>` on the proxy.
+/// Executes `Vec<CosmosMsg>` on the account.
 /// Permission: Module
 pub fn execute_msgs(
     mut deps: DepsMut,
@@ -51,7 +51,7 @@ pub fn execute_msgs(
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
 
-/// Executes `CosmosMsg` on the proxy and forwards its response.
+/// Executes `CosmosMsg` on the account and forwards its response.
 /// Permission: Module
 pub fn execute_msgs_with_data(
     mut deps: DepsMut,
@@ -173,10 +173,10 @@ pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
 /// Execute an action on an ICA.
 /// Permission: Module
 ///
-/// This function queries the `abstract:ica-client` contract from the account's manager.
+/// This function queries the `abstract:ica-client` contract from the account.
 /// It then fires a smart-query on that address of type [`QueryMsg::IcaAction`](abstract_ica::msg::QueryMsg).
 ///
-/// The resulting `Vec<CosmosMsg>` are then executed on the proxy contract.
+/// The resulting `Vec<CosmosMsg>` are then executed on the account contract.
 pub fn ica_action(mut deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> AccountResult {
     assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
 
@@ -309,12 +309,12 @@ mod test {
             )
             .unwrap_err();
 
-            let manager_info = message_info(abstr.account.addr(), &[]);
+            let account_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
             execute(
                 deps.as_mut(),
                 env.clone(),
-                manager_info.clone(),
+                account_info.clone(),
                 msg.clone(),
             )
             .unwrap_err();
@@ -334,7 +334,7 @@ mod test {
                 vec![],
             )?;
 
-            let res = execute(deps.as_mut(), env, manager_info, msg)?;
+            let res = execute(deps.as_mut(), env, account_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
@@ -380,12 +380,12 @@ mod test {
             )
             .unwrap_err();
 
-            let manager_info = message_info(abstr.account.addr(), &[]);
+            let account_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
             execute(
                 deps.as_mut(),
                 env.clone(),
-                manager_info.clone(),
+                account_info.clone(),
                 msg.clone(),
             )
             .unwrap_err();
@@ -404,7 +404,7 @@ mod test {
                 vec![],
             )?;
 
-            let res = execute(deps.as_mut(), env, manager_info, msg)?;
+            let res = execute(deps.as_mut(), env, account_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
@@ -457,12 +457,12 @@ mod test {
             )
             .unwrap_err();
 
-            let manager_info = message_info(abstr.account.addr(), &[]);
+            let account_info = message_info(abstr.account.addr(), &[]);
             // ibc not enabled
             execute(
                 deps.as_mut(),
                 env.clone(),
-                manager_info.clone(),
+                account_info.clone(),
                 msg.clone(),
             )
             .unwrap_err();
@@ -486,7 +486,7 @@ mod test {
                 })
                 .build();
 
-            let res = execute(deps.as_mut(), env, manager_info, msg)?;
+            let res = execute(deps.as_mut(), env, account_info, msg)?;
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Custom(Empty {})));
             Ok(())

@@ -202,7 +202,7 @@ pub mod mock {
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
-    /// This will set the [`abstract_testing::addresses::TEST_MANAGER`] as the admin.
+    /// This will set the [`abstract_testing::addresses::TEST_ACCOUNT`] as the admin.
     pub fn mock_init() -> MockDeps {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);
@@ -290,20 +290,20 @@ pub mod mock {
             // See test `create_sub_account_with_installed_module` where this will be triggered.
             if module.info().0 == "tester:mock-app1" {
                 println!("checking address of adapter1");
-                let manager = module.admin.get(deps.as_ref())?.unwrap();
+                let account = module.admin.get(deps.as_ref())?.unwrap();
                 // Check if the adapter has access to its dependency during instantiation.
-                let adapter1_addr = $crate::std::account::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
+                let adapter1_addr = $crate::std::account::state::ACCOUNT_MODULES.query(&deps.querier,account, "tester:mock-adapter1")?;
                 // We have address!
                 ::cosmwasm_std::ensure!(
                     adapter1_addr.is_some(),
                     ::cosmwasm_std::StdError::generic_err("no address")
                 );
                 println!("adapter_addr: {adapter1_addr:?}");
-                // See test `install_app_with_proxy_action` where this transfer will happen.
+                // See test `install_app_with_account_action` where this transfer will happen.
                 let account_addr = module.account(deps.as_ref())?;
                 let balance = deps.querier.query_balance(account_addr.addr(), "TEST")?;
                 if !balance.amount.is_zero() {
-                println!("sending amount from proxy: {balance:?}");
+                println!("sending amount from account: {balance:?}");
                     let action = module
                         .bank(deps.as_ref(), &env)
                         .transfer::<::cosmwasm_std::Coin>(

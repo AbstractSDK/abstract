@@ -60,7 +60,7 @@ pub fn upgrade_modules(
         &Addr::unchecked(CALLING_TO_AS_ADMIN_WILD_CARD),
     )?;
 
-    // Set the migrate messages for each module that's not the manager and update the dependency store
+    // Set the migrate messages for each module that's not the account and update the dependency store
     for (module_info, migrate_msg) in modules {
         let module_id = module_info.id();
 
@@ -127,7 +127,7 @@ pub fn set_migrate_msgs_and_context(
     )?;
 
     let migrate_msgs = match requested_module.module.reference {
-        // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
+        // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the account.
         ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
             deps,
             env,
@@ -254,7 +254,7 @@ pub fn replace_adapter(
     } = deps.querier.query_wasm_smart(
         old_adapter_addr.to_string(),
         &<AdapterQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
-            proxy_address: env.contract.address.to_string(),
+            account_address: env.contract.address.to_string(),
         }),
     )?;
     let authorized_to_migrate: Vec<String> = authorized_addresses
@@ -277,9 +277,9 @@ pub fn replace_adapter(
             to_remove: vec![],
         },
     )?);
-    // Remove adapter permissions from proxy
+    // Remove adapter permissions from account
     _remove_whitelist_modules(deps.branch(), vec![old_adapter_addr])?;
-    // Add new adapter to proxy
+    // Add new adapter to account
     _whitelist_modules(deps.branch(), vec![new_adapter_addr])?;
 
     Ok(msgs)
@@ -287,7 +287,7 @@ pub fn replace_adapter(
 
 /// Generate message for upgrading account
 ///
-/// Safety: Account cannot be upgraded to contract that is not confirmed by version control
+/// Safety: Account cannot be upgraded to contract that is not confirmed by registry
 pub(crate) fn self_upgrade_msg(
     deps: DepsMut,
     env: &Env,
@@ -296,10 +296,10 @@ pub(crate) fn self_upgrade_msg(
 ) -> AccountResult<CosmosMsg> {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), env, module_info.clone(), Some(contract))?;
-    if let ModuleReference::Account(manager_code_id) = module.module.reference {
+    if let ModuleReference::Account(account_code_id) = module.module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: env.contract.address.to_string(),
-            new_code_id: manager_code_id,
+            new_code_id: account_code_id,
             msg: migrate_msg,
         });
         Ok(migration_msg)

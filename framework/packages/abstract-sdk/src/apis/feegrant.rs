@@ -21,7 +21,7 @@ use crate::{
 pub trait GrantInterface: AccountExecutor {
     /// API for accessing the Cosmos SDK FeeGrant module.
     /// The **granter** is the address of the user granting an allowance of their funds.
-    /// By default, it is the proxy address of the Account.
+    /// By default, it is the account address.
 
     /// ```
     /// use abstract_sdk::prelude::*;
@@ -71,7 +71,7 @@ pub struct FeeGranter {
 
 impl FeeGranter {
     /// Retrieve the granter's address.
-    /// By default, this is the proxy address of the Account.
+    /// By default, this is the account address.
     fn granter(&self) -> Addr {
         self.granter.clone()
     }

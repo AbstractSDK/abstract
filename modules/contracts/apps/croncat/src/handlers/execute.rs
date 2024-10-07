@@ -101,7 +101,7 @@ fn create_task(
     let manager_addr =
         get_latest_croncat_contract(&deps.querier, factory_addr, MANAGER_NAME.to_owned())?;
 
-    // Making create task message that will be sended by the proxy
+    // Making create task message that will be sended by the account
     let create_task_msg: CosmosMsg = wasm_execute(
         tasks_addr,
         &TasksExecuteMsg::CreateTask { task: task_request },
@@ -199,7 +199,7 @@ fn remove_task(
         response.add_submessage(executor_submessage)
     } else if user_balance_nonempty(
         deps.as_ref(),
-        module.proxy_address(deps.as_ref())?,
+        module.account_address(deps.as_ref())?,
         manager_addr.clone(),
     )? {
         // withdraw locked balance
