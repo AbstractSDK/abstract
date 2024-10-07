@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@3.2.2
+  codecov: codecov/codecov@4.2.0
   discord: antonioned/discord@0.1.0
 
 parameters:
