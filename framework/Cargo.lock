@@ -7800,7 +7800,6 @@ dependencies = [
  "cw1-whitelist",
  "cw20-base",
  "der",
- "deranged",
  "derive_more 0.99.18",
  "digest 0.10.7",
  "ecdsa",
@@ -7822,7 +7821,6 @@ dependencies = [
  "getrandom",
  "group",
  "hashbrown 0.12.3",
- "hashbrown 0.14.5",
  "hyper 0.14.30",
  "ibc-proto",
  "ibc-relayer-types",
@@ -7864,7 +7862,6 @@ dependencies = [
  "smallvec",
  "spki",
  "subtle",
- "subtle-encoding",
  "syn 1.0.109",
  "syn 2.0.79",
  "tendermint 0.38.1",
@@ -7880,7 +7877,6 @@ dependencies = [
  "tracing-core",
  "unicode-normalization",
  "url",
- "uuid",
  "zeroize",
 ]
 
