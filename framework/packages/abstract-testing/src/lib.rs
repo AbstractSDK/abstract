@@ -1,3 +1,5 @@
+#![cfg(not(tarpaulin_include))]
+
 pub(crate) mod abstract_mock_querier;
 pub mod map_tester;
 pub mod mock_ans;

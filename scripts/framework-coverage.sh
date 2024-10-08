@@ -12,8 +12,10 @@ if [ ! -f Cargo.lock ]; then
   cargo generate-lockfile
 fi
 
-cargo llvm-cov --workspace --exclude abstract-testing --exclude abstract-integration-tests --exclude abstract-interface \
- --locked --lcov --output-path lcov.info
- 
+# cargo llvm-cov --workspace --exclude abstract-testing --exclude abstract-integration-tests --exclude abstract-interface \
+#  --locked --lcov --output-path lcov.info
+
+cargo tarpaulin --workspace --locked --out Lcov
+
 # print the result.
 ls -la .

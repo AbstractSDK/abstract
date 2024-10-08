@@ -1,4 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(tarpaulin_include))]
+
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 mod account;

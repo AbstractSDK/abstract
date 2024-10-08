@@ -54,6 +54,4 @@ abstract-sdk = { path = ".", features = ["test-utils"] }
 cw-ownable = { workspace = true }
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = [
-  'cfg(coverage,coverage_nightly)',
-] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)'] }

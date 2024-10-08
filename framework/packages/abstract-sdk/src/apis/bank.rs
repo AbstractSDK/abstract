@@ -300,21 +300,23 @@ mod test {
             let (mut deps, account, app) = mock_module_setup();
             let env = mock_env_validated(deps.api);
 
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
-            let res = bank
-                .balances(&[AssetEntry::new("asset_entry")])
-                .unwrap_err();
-            let AbstractSdkError::ApiQuery {
-                api,
-                module_id,
-                error: _,
-            } = res
-            else {
-                panic!("expected api error");
-            };
-            assert_eq!(api, "Bank");
-            assert_eq!(module_id, app.module_id());
-            drop(bank);
+            // API Query Error
+            {
+                let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
+                let res = bank
+                    .balances(&[AssetEntry::new("asset_entry")])
+                    .unwrap_err();
+                let AbstractSdkError::ApiQuery {
+                    api,
+                    module_id,
+                    error: _,
+                } = res
+                else {
+                    panic!("expected api error");
+                };
+                assert_eq!(api, "Bank");
+                assert_eq!(module_id, app.module_id());
+            }
 
             let abstr = abstract_testing::prelude::AbstractMockAddrs::new(deps.api);
             // update querier and balances
