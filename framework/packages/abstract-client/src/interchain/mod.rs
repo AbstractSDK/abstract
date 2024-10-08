@@ -2,17 +2,11 @@ pub(crate) mod remote_account;
 mod remote_application;
 use std::collections::HashMap;
 
-use cw_orch_interchain::{IbcQueryHandler, InterchainEnv, InterchainError};
+use cw_orch_interchain::prelude::*;
 pub use remote_account::RemoteAccount;
 pub use remote_application::RemoteApplication;
 
 use crate::{client::AbstractClientResult, AbstractClient, Environment};
-
-// TODO: Why are we not returning ibc tx analysis after await
-/// IbcTxAnalysis after waiting for interchain action
-pub struct IbcTxAnalysisV2<Chain: cw_orch::environment::CwEnv>(
-    pub cw_orch_interchain::types::IbcTxAnalysis<Chain>,
-);
 
 /// Client to interact with Abstract and setup interchain capabilities
 pub struct AbstractInterchainClient<Chain: IbcQueryHandler> {
@@ -46,7 +40,7 @@ impl<Chain: IbcQueryHandler> AbstractInterchainClient<Chain> {
         // We deploy Abstract on all chains
         let clients = interchain
             .chains()
-            .map(|chain| AbstractClient::builder(chain.clone()).build())
+            .map(|chain| AbstractClient::builder(chain.clone()).build(chain.sender().clone()))
             .collect::<Result<Vec<_>, _>>()?;
 
         // We connect all chains together

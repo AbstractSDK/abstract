@@ -344,6 +344,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         self.registry().module_status(module).map_err(Into::into)
     }
 
+
     #[cfg(feature = "interchain")]
     /// Connect this abstract client to the remote abstract client
     /// If [`cw_orch_polytone::Polytone`] is deployed between 2 chains, it will NOT redeploy it (good for actual chains)
@@ -351,10 +352,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn connect_to(
         &self,
         remote_abstr: &AbstractClient<Chain>,
-        ibc: &impl cw_orch_interchain::InterchainEnv<Chain>,
+        ibc: &impl cw_orch_interchain::prelude::InterchainEnv<Chain>,
     ) -> AbstractClientResult<()>
     where
-        Chain: cw_orch_interchain::IbcQueryHandler,
+        Chain: cw_orch_interchain::prelude::IbcQueryHandler,
     {
         self.abstr.connect_to(&remote_abstr.abstr, ibc)?;
 

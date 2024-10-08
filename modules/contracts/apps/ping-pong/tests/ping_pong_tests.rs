@@ -36,10 +36,10 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        let interchain_abstract = AbstractInterchainClient::build(mock_interchain)?;
+        let interchain_abstract = AbstractInterchainClient::new(&mock_interchain)?;
 
-        let abs_juno = interchain_abstract.get_abstract(JUNO)?;
-        let abs_stargaze = interchain_abstract.get_abstract(STARGAZE)?;
+        let abs_juno = interchain_abstract.client(JUNO)?;
+        let abs_stargaze = interchain_abstract.client(STARGAZE)?;
 
         let namespace = Namespace::from_id(APP_ID)?;
         // Publish and install on both chains
@@ -227,10 +227,10 @@ fn query_and_maybe_ping_pong() -> anyhow::Result<()> {
 
     let pp = app.query_and_maybe_ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
     let response = env.mock_interchain.await_packets(JUNO, pp)?;
-    response.into_result()?;
+    let parsed_response = response.assert()?;
 
     // juno should query and not play, check events
-    let abstract_action_events = response.event_attr_values(ABSTRACT_EVENT_TYPE, "action");
+    let abstract_action_events = parsed_response.event_attr_values(ABSTRACT_EVENT_TYPE, "action");
     assert!(abstract_action_events.contains(&String::from("dont_play")));
 
     // Check stats didn't change in any way
@@ -243,10 +243,10 @@ fn query_and_maybe_ping_pong() -> anyhow::Result<()> {
 
     let pp = app.query_and_maybe_ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
     let response = env.mock_interchain.await_packets(JUNO, pp)?;
-    response.into_result()?;
+    let parsed_response = response.assert()?;
 
     // juno should query and play, check events
-    let abstract_action_events = response.event_attr_values(ABSTRACT_EVENT_TYPE, "action");
+    let abstract_action_events = parsed_response.event_attr_values(ABSTRACT_EVENT_TYPE, "action");
     assert!(abstract_action_events.contains(&String::from("ping_pong")));
 
     // juno won as expected

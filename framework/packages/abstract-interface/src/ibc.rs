@@ -1,4 +1,4 @@
-use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, Registry};
+use crate::{AbstractInterfaceError, IbcClient, IbcHost, Registry};
 use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
 

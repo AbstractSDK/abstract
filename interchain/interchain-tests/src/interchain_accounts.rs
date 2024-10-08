@@ -474,7 +474,7 @@ mod test {
                 authenticator: None::<Empty>,
             },
             Some(&account_id.to_string()),
-            Some(&sender),
+            Some(sender),
             &[],
             salt,
         )?;
