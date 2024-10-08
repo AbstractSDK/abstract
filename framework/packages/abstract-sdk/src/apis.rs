@@ -1,3 +1,5 @@
+// Remove deprecated if we move to cosmwasm_2_0 feature
+
 pub mod adapter;
 pub mod app;
 pub mod bank;
@@ -20,3 +22,12 @@ pub mod distribution;
 pub mod feegrant;
 #[cfg(feature = "stargate")]
 pub mod stargate;
+
+#[cfg(feature = "stargate")]
+pub(crate) fn stargate_msg(
+    type_url: String,
+    value: cosmwasm_std::Binary,
+) -> cosmwasm_std::CosmosMsg {
+    #[allow(deprecated)]
+    cosmwasm_std::CosmosMsg::Stargate { type_url, value }
+}

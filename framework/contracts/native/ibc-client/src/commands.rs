@@ -21,8 +21,8 @@ use abstract_std::{
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
-    ensure, to_json_binary, wasm_execute, AnyMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty,
-    Env, IbcMsg, MessageInfo, QueryRequest, WasmQuery,
+    ensure, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
+    IbcMsg, MessageInfo, QueryRequest, WasmQuery,
 };
 use cw_storage_plus::Item;
 use prost::Name;
@@ -446,10 +446,11 @@ fn _ics_20_send_msg(
 
             let value = value.encode_to_vec();
             let value = Binary::from(value);
-            CosmosMsg::Any(AnyMsg {
+            #[allow(deprecated)]
+            CosmosMsg::Stargate {
                 type_url: MsgTransfer::type_url(),
                 value,
-            })
+            }
         }
         None => IbcMsg::Transfer {
             channel_id: ics20_channel_id,
@@ -474,7 +475,8 @@ fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<E
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),
         QueryRequest::Staking(query) => QueryRequest::Staking(query),
-        QueryRequest::Grpc(grpc) => QueryRequest::Grpc(grpc),
+        #[allow(deprecated)]
+        QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
         QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
         QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
         // Distribution flag not enabled on polytone, so should not be accepted.
