@@ -34,6 +34,7 @@ xion = [
     "ripemd",
     "cosmos-sdk-proto",
     "prost",
+    "cosmwasm-std/cosmwasm_2_0",
 ]
 
 [package.metadata.optimizer]
@@ -41,7 +42,7 @@ standard-build = true
 builds = [{ name = "xion", features = ["xion"] }]
 
 [dependencies]
-cosmwasm-std = { workspace = true, features = ["cosmwasm_2_0"] }
+cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
