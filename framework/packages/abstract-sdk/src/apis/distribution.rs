@@ -7,7 +7,7 @@ use cosmos_sdk_proto::{
     prost::Name,
     traits::Message,
 };
-use cosmwasm_std::{to_json_binary, Addr, AnyMsg, Coin, CosmosMsg};
+use cosmwasm_std::{to_json_binary, Addr, Coin};
 
 use crate::{features::AccountExecutor, AbstractSdkResult, AccountAction};
 
@@ -69,10 +69,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Any(AnyMsg {
-            type_url: distribution::v1beta1::MsgSetWithdrawAddress::type_url(),
-            value: to_json_binary(&msg)?,
-        });
+        let msg = super::stargate_msg(
+            distribution::v1beta1::MsgSetWithdrawAddress::type_url(),
+            to_json_binary(&msg)?,
+        );
 
         Ok(msg.into())
     }
@@ -89,10 +89,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Any(AnyMsg {
-            type_url: distribution::v1beta1::MsgWithdrawDelegatorReward::type_url(),
-            value: to_json_binary(&msg)?,
-        });
+        let msg = super::stargate_msg(
+            distribution::v1beta1::MsgWithdrawDelegatorReward::type_url(),
+            to_json_binary(&msg)?,
+        );
 
         Ok(msg.into())
     }
@@ -107,10 +107,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Any(AnyMsg {
-            type_url: distribution::v1beta1::MsgWithdrawValidatorCommission::type_url(),
-            value: to_json_binary(&msg)?,
-        });
+        let msg = super::stargate_msg(
+            distribution::v1beta1::MsgWithdrawValidatorCommission::type_url(),
+            to_json_binary(&msg)?,
+        );
 
         Ok(msg.into())
     }
@@ -133,10 +133,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Any(AnyMsg {
-            type_url: distribution::v1beta1::MsgFundCommunityPool::type_url(),
-            value: to_json_binary(&msg)?,
-        });
+        let msg = super::stargate_msg(
+            distribution::v1beta1::MsgFundCommunityPool::type_url(),
+            to_json_binary(&msg)?,
+        );
 
         Ok(msg.into())
     }

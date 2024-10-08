@@ -2327,9 +2327,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-networks"
-version = "0.24.2"
+version = "0.24.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21dc63b942a44796fd0b5e4aff3dd6f65b8b1ce456b478ed22512385f24df958"
+checksum = "032bee6b3f3231de3be5feef6450572307b953220e1acc18cc2e1a0afed196fe"
 dependencies = [
  "cw-orch-core",
  "serde",
@@ -5265,9 +5265,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.86"
+version = "1.0.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
+checksum = "b3e4daa0dcf6feba26f985457cdf104d4b4256fc5a09547140f3631bb076b19a"
 dependencies = [
  "unicode-ident",
 ]
