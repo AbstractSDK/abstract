@@ -33,7 +33,16 @@ impl<Chain: IbcQueryHandler> AbstractInterchainClient<Chain> {
         })
     }
 
+    /// Loads Abstract from all the environments specified inside `interchain_env`
+    /// Use [`AbstractInterchainClient::client`] to get a single abstract instance
+    pub fn load_from<Interchain: InterchainEnv<Chain>>(
+        interchain: &Interchain,
+    ) -> AbstractClientResult<Self> {
+        Self::new(interchain)
+    }
+
     /// Deploys and connects Abstract instances across all chains specified
+    /// Use [`AbstractInterchainClient::client`] to get a single abstract instance
     pub fn deploy_on<Interchain: InterchainEnv<Chain>>(
         interchain: &Interchain,
     ) -> AbstractClientResult<Self> {

@@ -427,7 +427,7 @@ mod test {
                 name: Some(account_name),
                 link: None,
             },
-            account_info.into()
+            account_info
         );
 
         Ok(())
