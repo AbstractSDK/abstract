@@ -54,5 +54,4 @@ pub mod register {
 }
 
 #[cfg(feature = "test-utils")]
-#[cfg_attr(coverage_nightly, coverage(off))]
 pub mod mock_module;
