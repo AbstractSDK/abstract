@@ -1,7 +1,6 @@
 //! # Testing Functions
 //!
 //! This module contains testing functions that can be used in different environments.
-#![cfg(not(tarpaulin_include))]
 
 pub mod account;
 pub mod create;
