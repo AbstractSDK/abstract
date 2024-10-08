@@ -6,12 +6,12 @@ orbs:
 
 commands:
   rust_install_nightly:
-  steps:
-    - run:
-        name: "Install nightly toolchain"
-        command: |
-          rustup toolchain install nightly-x86_64-unknown-linux-gnu
-          rustup component add llvm-tools-preview
+    steps:
+      - run:
+          name: "Install nightly toolchain"
+          command: |
+            rustup toolchain install nightly-x86_64-unknown-linux-gnu
+            rustup component add llvm-tools-preview
 
 parameters:
   GHA_Event:
