@@ -4,9 +4,9 @@ expression: all_storage
 ---
 "abstract:account-local-0":
   - - "\u0000\u0002acabstract:standalone1"
-    - "\"mock1kw7xtucfdzuptc4plzem3c3mnysw7v8rp62jtp276pztea574meqd4nen0\""
+    - "\"mock1x7x3ytgtqcgmq85hxtr4llsj9wdeg9wkp84l30pct39gf8257pfswcrwtx\""
   - - "\u0000\u0002acabstract:standalone2"
-    - "\"mock1qwff5lphmmgu0pawkn99p8a289ms46y5gyzwww24dzf9fcczhdpstzh8da\""
+    - "\"mock1k76kwzlgv6puhx37s3gx9554l487wk6n8ph5t0wrtm4eklz2vecqpv532h\""
   - - aa
     - "false"
   - - ab
@@ -16,58 +16,58 @@ expression: all_storage
   - - ag
     - "{\"trace\":\"local\",\"seq\":0}"
   - - ah
-    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":13}},\"mock1kw7xtucfdzuptc4plzem3c3mnysw7v8rp62jtp276pztea574meqd4nen0\"],[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":14}},\"mock1qwff5lphmmgu0pawkn99p8a289ms46y5gyzwww24dzf9fcczhdpstzh8da\"]]"
+    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":13}},\"mock1x7x3ytgtqcgmq85hxtr4llsj9wdeg9wkp84l30pct39gf8257pfswcrwtx\"],[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":14}},\"mock1k76kwzlgv6puhx37s3gx9554l487wk6n8ph5t0wrtm4eklz2vecqpv532h\"]]"
   - - ai
     - "[]"
   - - contract_info
-    - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
+    - "{\"contract\":\"abstract:account\",\"version\":\"0.24.0\"}"
   - - ownership
-    - "{\"owner\":{\"monarchy\":{\"monarch\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\"}},\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":{\"monarchy\":{\"monarch\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:ans-host":
   - - be
     - "[]"
   - - cfg
     - "{\"next_unique_pool_id\":1}"
   - - contract_info
-    - "{\"contract\":\"abstract:ans-host\",\"version\":\"0.23.0\"}"
+    - "{\"contract\":\"abstract:ans-host\",\"version\":\"0.24.0\"}"
   - - ownership
-    - "{\"owner\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\",\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:ibc-client":
   - - contract_info
-    - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.23.0\"}"
+    - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.24.0\"}"
   - - mod
-    - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.23.0\",\"dependencies\":[],\"metadata\":null}"
+    - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.24.0\",\"dependencies\":[],\"metadata\":null}"
   - - ownership
-    - "{\"owner\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\",\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:ibc-host":
   - - contract_info
-    - "{\"contract\":\"abstract:ibc-host\",\"version\":\"0.23.0\"}"
+    - "{\"contract\":\"abstract:ibc-host\",\"version\":\"0.24.0\"}"
   - - ownership
-    - "{\"owner\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\",\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
   - - contract_info
-    - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.23.0\"}"
+    - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.24.0\"}"
   - - da
-    - "\"mock183tnnc2hqt8tj677neekarwkmlygw09uqrchq4c2aaauleyxzc3sy9w235\""
+    - "\"mock1ys8clus4qf2haemyck0uljz74dj2k8hu4ggfpe7vty6zd5j2982q9sf90k\""
   - - ownership
-    - "{\"owner\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\",\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:version-control":
-  - - "\u0000\u0002cb\u0000\babstract\u0000\u0007account0.23.0"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\u0007account0.24.0"
     - "{\"account\":5}"
-  - - "\u0000\u0002cb\u0000\babstract\u0000\bans-host0.23.0"
-    - "{\"native\":\"mock17r8ljc3tw8tdx85gpwxpq5ten89622svh2ct0utcg75x89ed7cgsyz0g62\"}"
-  - - "\u0000\u0002cb\u0000\babstract\u0000\bibc-host0.23.0"
-    - "{\"native\":\"mock19jf2y29m2qvgfezcyy5zhq8phfdcysngew508eeumdsg2dyzqrqshlx44z\"}"
-  - - "\u0000\u0002cb\u0000\babstract\u0000\nibc-client0.23.0"
-    - "{\"native\":\"mock1u377ag8ewzrskj6r0pqutnpyvh7hd2yqq6uh3rh2pclex2gzhslsq3frn0\"}"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\bans-host0.24.0"
+    - "{\"native\":\"mock1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4qkernmj\"}"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\bibc-host0.24.0"
+    - "{\"native\":\"mock1dtw8lua8qpav6x3sngqwd3xqmyvg5q0pnv2lkmajzk0rjkjetm2s2pyq4n\"}"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\nibc-client0.24.0"
+    - "{\"native\":\"mock1l487rfqw2yevhvh4c3dw706mdy9u703zsawq7xt4h9e0h9up9fgqwk620q\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\u000bstandalone11.0.0"
     - "{\"standalone\":13}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\u000bstandalone21.0.0"
     - "{\"standalone\":14}"
-  - - "\u0000\u0002cb\u0000\babstract\u0000\u000emodule-factory0.23.0"
-    - "{\"native\":\"mock10ymkph7y47lmxkyan49cq2yjm5m3n2nk83efppcwwpunx7gs374qg8fkqs\"}"
-  - - "\u0000\u0002cb\u0000\babstract\u0000\u000fversion-control0.23.0"
-    - "{\"native\":\"mock18aq2nqrm809gdktwetuk6c48c6yj379ptkdeewv6j797xv3j2gssdzgurv\"}"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\u000emodule-factory0.24.0"
+    - "{\"native\":\"mock1wzrl9hf8xukhu7ukx5quted5m5c2vklmr70tg88a0zkduts7f0sqpr58lc\"}"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\u000fversion-control0.24.0"
+    - "{\"native\":\"mock1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsas0vscja\"}"
   - - "\u0000\u0002cc\u0000\u0000\u0000\u0000\u0000\u0000\u0000\r"
     - "{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}}"
   - - "\u0000\u0002cc\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e"
@@ -77,7 +77,7 @@ expression: all_storage
   - - "\u0000\u0002cf\u0000\babstract\u0000\u000bstandalone21.0.0"
     - "{\"monetization\":\"none\",\"metadata\":null,\"instantiation_funds\":[{\"denom\":\"token1\",\"amount\":\"42\"},{\"denom\":\"token2\",\"amount\":\"500\"}]}"
   - - "\u0000\u0002ch\u0000\u0005local\u0000\u0000\u0000\u0000"
-    - "\"mock183tnnc2hqt8tj677neekarwkmlygw09uqrchq4c2aaauleyxzc3sy9w235\""
+    - "\"mock1ys8clus4qf2haemyck0uljz74dj2k8hu4ggfpe7vty6zd5j2982q9sf90k\""
   - - "\u0000\u0005nmspcabstract"
     - "{\"trace\":\"local\",\"seq\":0}"
   - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0000abstract"
@@ -87,6 +87,6 @@ expression: all_storage
   - - ci
     - "1"
   - - contract_info
-    - "{\"contract\":\"abstract:version-control\",\"version\":\"0.23.0\"}"
+    - "{\"contract\":\"abstract:version-control\",\"version\":\"0.24.0\"}"
   - - ownership
-    - "{\"owner\":\"mock16g2rahf5846rxzp3fwlswy08fz8ccuwkgsny9p\",\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":\"mock14cl2dthqamgucg9sfvv4relp3aa83e40yfzzc8\",\"pending_owner\":null,\"pending_expiry\":null}"
