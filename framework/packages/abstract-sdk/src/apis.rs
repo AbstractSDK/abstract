@@ -10,7 +10,7 @@ mod traits;
 pub mod verify;
 pub mod version_registry;
 
-pub use traits::{AbstractApi, ApiIdentification};
+pub use traits::AbstractApi;
 
 #[cfg(feature = "stargate")]
 pub mod authz;

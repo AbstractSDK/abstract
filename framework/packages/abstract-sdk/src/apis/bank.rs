@@ -6,7 +6,7 @@ use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     ans_resolve::Resolve,
     cw_helpers::ApiQuery,
@@ -49,17 +49,13 @@ impl<T> TransferInterface for T where
 }
 
 impl<'a, T: TransferInterface> AbstractApi<T> for Bank<'a, T> {
+    const API_ID: &'static str = "Bank";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
-    fn api_id() -> String {
-        "Bank".to_owned()
     }
 }
 
@@ -290,12 +286,13 @@ mod test {
     use speculoos::prelude::*;
 
     use super::*;
+    use crate::apis::traits::test::abstract_api_test;
     use crate::mock_module::*;
 
     mod balance {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn balance() {
             let (mut deps, account, app) = mock_module_setup();
             let env = mock_env_validated(deps.api);
@@ -346,7 +343,7 @@ mod test {
         use super::*;
         use crate::{Execution, Executor, ExecutorMsg};
 
-        #[test]
+        #[coverage_helper::test]
         fn transfer_asset_to_sender() {
             let (deps, account, app) = mock_module_setup();
             let env = mock_env_validated(deps.api);
@@ -388,7 +385,7 @@ mod test {
         use super::*;
         use crate::apis::respond::AbstractResponse;
 
-        #[test]
+        #[coverage_helper::test]
         fn deposit() {
             let (deps, account, app) = mock_module_setup();
             let env = mock_env_validated(deps.api);
@@ -416,7 +413,7 @@ mod test {
     mod withdraw_coins {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn withdraw_coins() {
             let (deps, _, app) = mock_module_setup();
 
@@ -442,7 +439,7 @@ mod test {
         use cw20::Cw20ExecuteMsg;
         use cw_asset::AssetError;
 
-        #[test]
+        #[coverage_helper::test]
         fn send_cw20() {
             let (deps, _, app) = mock_module_setup();
             let env = mock_env_validated(deps.api);
@@ -470,7 +467,7 @@ mod test {
             assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn send_coins() {
             let (deps, _, app) = mock_module_setup();
             let env = mock_env_validated(deps.api);
@@ -489,5 +486,14 @@ mod test {
                 }),
             );
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let env = mock_env_validated(deps.api);
+        let bank = app.bank(deps.as_ref(), &env);
+
+        abstract_api_test(bank);
     }
 }

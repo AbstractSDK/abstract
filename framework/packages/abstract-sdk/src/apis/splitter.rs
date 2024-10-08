@@ -2,7 +2,7 @@
 use abstract_std::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, StdResult, Uint128};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     features::{AccountExecutor, ModuleIdentification},
     AbstractSdkResult, AccountAction, TransferInterface,
@@ -24,17 +24,13 @@ pub trait SplitterInterface: TransferInterface + AccountExecutor + ModuleIdentif
 impl<T> SplitterInterface for T where T: TransferInterface + AccountExecutor + ModuleIdentification {}
 
 impl<'a, T: SplitterInterface> AbstractApi<T> for Splitter<'a, T> {
+    const API_ID: &'static str = "Splitter";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: SplitterInterface> ApiIdentification for Splitter<'a, T> {
-    fn api_id() -> String {
-        "Splitter".to_owned()
     }
 }
 
@@ -87,8 +83,9 @@ mod test {
     };
 
     use crate::{
-        apis::splitter::SplitterInterface, mock_module::MockModule, AbstractSdkError, Execution,
-        ExecutorMsg,
+        apis::{splitter::SplitterInterface, traits::test::abstract_api_test},
+        mock_module::MockModule,
+        AbstractSdkError, Execution, ExecutorMsg,
     };
 
     fn split() -> Result<Response, AbstractSdkError> {
@@ -119,5 +116,16 @@ mod test {
 
         Ok(Response::new().add_message(msg))
         // ANCHOR_END: usage
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let mut deps = mock_dependencies();
+        let account = test_account(deps.api);
+        let module = MockModule::new(deps.api, account.clone());
+        let env = mock_env_validated(deps.api);
+        let splitter = module.splitter(deps.as_ref(), &env);
+
+        abstract_api_test(splitter);
     }
 }

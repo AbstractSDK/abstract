@@ -44,7 +44,7 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn account_action() {
         let mut account_action =
             AccountAction::from_vec(vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {

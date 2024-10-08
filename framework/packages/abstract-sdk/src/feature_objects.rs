@@ -62,7 +62,7 @@ mod tests {
         use super::*;
         use crate::features::AbstractRegistryAccess;
 
-        #[test]
+        #[coverage_helper::test]
         fn test_registry() {
             let deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -83,7 +83,7 @@ mod tests {
         use super::*;
         use crate::features::AbstractNameService;
 
-        #[test]
+        #[coverage_helper::test]
         fn test_ans() {
             let deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -97,7 +97,7 @@ mod tests {
     mod account {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn test_account_object() {
             let deps = mock_dependencies();
             let account = test_account(deps.api);

@@ -7,7 +7,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{Addr, Deps, Env};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     cw_helpers::ApiQuery,
     features::{AbstractRegistryAccess, ModuleIdentification},
@@ -49,17 +49,13 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
 impl<T> AccountVerification for T where T: AbstractRegistryAccess + ModuleIdentification {}
 
 impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
+    const API_ID: &'static str = "AccountRegistry";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: AccountVerification> ApiIdentification for AccountRegistry<'a, T> {
-    fn api_id() -> String {
-        "AccountRegistry".to_owned()
     }
 }
 
@@ -135,7 +131,7 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
 
-    use crate::AbstractSdkError;
+    use crate::{apis::traits::test::abstract_api_test, AbstractSdkError};
     use abstract_std::{
         account::state::ACCOUNT_ID,
         objects::{account::AccountTrace, module::ModuleId, registry::RegistryError},
@@ -165,7 +161,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn not_account_fails() {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -198,7 +194,7 @@ mod test {
             assert_eq!(res.unwrap_err(), expected_err);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn inactive_account_fails() {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -230,7 +226,7 @@ mod test {
                 });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn returns_account() {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -255,5 +251,16 @@ mod test {
 
             assert_that!(res).is_ok().is_equal_to(account);
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let deps = mock_dependencies();
+        let module = MockBinding {};
+        let env = mock_env_validated(deps.api);
+
+        let account_registry = module.account_registry(deps.as_ref(), &env).unwrap();
+
+        abstract_api_test(account_registry);
     }
 }

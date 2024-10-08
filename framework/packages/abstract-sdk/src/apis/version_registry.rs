@@ -11,7 +11,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{Addr, Deps, Env};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     cw_helpers::ApiQuery,
     features::{AbstractRegistryAccess, ModuleIdentification},
@@ -53,17 +53,13 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
 impl<T> ModuleRegistryInterface for T where T: AbstractRegistryAccess + ModuleIdentification {}
 
 impl<'a, T: ModuleRegistryInterface> AbstractApi<T> for ModuleRegistry<'a, T> {
+    const API_ID: &'static str = "ModuleRegistry";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: ModuleRegistryInterface> ApiIdentification for ModuleRegistry<'a, T> {
-    fn api_id() -> String {
-        "ModuleRegistry".to_owned()
     }
 }
 
@@ -205,5 +201,23 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
                 err: "got an un-implemented module reference".to_string(),
             }),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use crate::{apis::traits::test::abstract_api_test, mock_module::mock_module_setup};
+
+    use abstract_testing::prelude::*;
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let env = mock_env_validated(deps.api);
+        let module_registry = app.module_registry(deps.as_ref(), &env).unwrap();
+
+        abstract_api_test(module_registry);
     }
 }

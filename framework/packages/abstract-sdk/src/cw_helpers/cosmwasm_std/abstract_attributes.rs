@@ -41,7 +41,7 @@ mod test {
 
     use speculoos::prelude::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_add_abstract_attributes_no_abstract_event() {
         let mut response = Response::default();
 
@@ -59,7 +59,7 @@ mod test {
         assert_that!(attr.value).is_equal_to("value1".to_string());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_add_abstract_attributes_with_abstract_event() {
         const KEY_1: &str = "abstract_key1";
         const VALUE_1: &str = "abstract_value1";
