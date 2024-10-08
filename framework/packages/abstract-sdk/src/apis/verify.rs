@@ -151,7 +151,7 @@ mod test {
 
     impl ModuleIdentification for MockBinding {
         fn module_id(&self) -> ModuleId<'static> {
-            ModuleId::from("module")
+            ModuleId::from(TEST_MODULE_ID)
         }
     }
 
