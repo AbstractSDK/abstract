@@ -144,7 +144,7 @@ mod action {
     #[non_exhaustive]
     pub enum IcaExecute {
         Evm {
-            // TODO: move types to `abstract-ica` crate
+            // TODO: move types to `abstract-std` crate
             msgs: Vec<polytone_evm::evm::EvmMsg<String>>,
             callback: Option<polytone_evm::callbacks::CallbackRequest>,
         },

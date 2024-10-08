@@ -18,7 +18,9 @@ fn main() -> cw_orch::anyhow::Result<()> {
     let chain_info = UNION_TESTNET_8;
 
     let chain = Daemon::builder(chain_info.clone()).build()?;
-    let abs = AbstractClient::new(chain.clone())?;
+
+    let abs = AbstractClient::builder(chain.clone()).build(chain.sender().clone())?;
+    // let abs = AbstractClient::new(chain.clone())?;
 
     // We get the account and install the ICA client app on it
     let account = abs
