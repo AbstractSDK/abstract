@@ -37,7 +37,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
     CONFIG.save(
         deps.storage,
         &Config {
-            // Account factory should be set by `update_config`
             security_disabled: security_disabled.unwrap_or(false),
             namespace_registration_fee,
         },

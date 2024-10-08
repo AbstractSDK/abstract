@@ -2,11 +2,11 @@ use abstract_std::{account::state::ACCOUNT_ID, registry::Account};
 use cosmwasm_std::Deps;
 
 use crate::std::objects::AccountId;
-// see std::proxy::state::ADMIN
+// see std::account::state::ADMIN
 use crate::AbstractSdkResult;
 
 /// Retrieve identifying information about an Account.
-/// This includes the manager, proxy, core and account_id.
+/// This includes the account and account_id.
 pub trait AccountIdentification: Sized {
     /// Get the account address
     fn account(&self, deps: Deps) -> AbstractSdkResult<Account>;

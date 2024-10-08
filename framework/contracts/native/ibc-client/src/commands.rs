@@ -21,8 +21,8 @@ use abstract_std::{
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
-    ensure, to_json_binary, wasm_execute, AnyMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty,
-    Env, IbcMsg, MessageInfo, QueryRequest, WasmQuery,
+    ensure, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
+    IbcMsg, MessageInfo, QueryRequest, WasmQuery,
 };
 use cw_storage_plus::Item;
 use prost::Name;
@@ -160,7 +160,7 @@ pub fn execute_send_packet(
 
     let note_message = match &action {
         HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
-            // Verify that the sender is a proxy contract
+            // Verify that the sender is a account contract
             let account = registry.assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
@@ -334,7 +334,7 @@ pub fn execute_register_account(
     host_chain.verify()?;
     let registry = RegistryContract::new(deps.api, &env)?;
 
-    // Verify that the sender is a proxy contract
+    // Verify that the sender is a account contract
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
@@ -379,7 +379,7 @@ pub fn execute_send_funds(
 
     let registry = RegistryContract::new(deps.api, &env)?;
     let ans = AnsHost::new(deps.api, &env)?;
-    // Verify that the sender is a proxy contract
+    // Verify that the sender is a account contract
 
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
@@ -411,9 +411,7 @@ pub fn execute_send_funds(
         transfers.push(ics_20_send);
     }
 
-    Ok(IbcClientResponse::action("handle_send_funds")
-        //.add_message(proxy_msg)
-        .add_messages(transfers))
+    Ok(IbcClientResponse::action("handle_send_funds").add_messages(transfers))
 }
 
 fn _ics_20_send_msg(
@@ -448,10 +446,11 @@ fn _ics_20_send_msg(
 
             let value = value.encode_to_vec();
             let value = Binary::from(value);
-            CosmosMsg::Any(AnyMsg {
+            #[allow(deprecated)]
+            CosmosMsg::Stargate {
                 type_url: MsgTransfer::type_url(),
                 value,
-            })
+            }
         }
         None => IbcMsg::Transfer {
             channel_id: ics20_channel_id,
@@ -476,7 +475,8 @@ fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<E
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),
         QueryRequest::Staking(query) => QueryRequest::Staking(query),
-        QueryRequest::Grpc(grpc) => QueryRequest::Grpc(grpc),
+        #[allow(deprecated)]
+        QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
         QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
         QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
         // Distribution flag not enabled on polytone, so should not be accepted.

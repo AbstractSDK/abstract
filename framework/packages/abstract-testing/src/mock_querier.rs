@@ -583,7 +583,7 @@ mod tests {
         //
         //     let actual = ACCOUNT_MODULES.query(
         //         &wrap_querier(&deps.querier),
-        //         Addr::unchecked(TEST_MANAGER),
+        //         Addr::unchecked(TEST_ACCOUNT),
         //         "unknown_module",
         //     );
         //

@@ -142,7 +142,7 @@ pub mod mock {
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
-    /// This will set the [`abstract_testing::addresses::TEST_MANAGER`] as the admin.
+    /// This will set the [`abstract_testing::addresses::TEST_`] as the admin.
     pub fn mock_init() -> MockDeps {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);

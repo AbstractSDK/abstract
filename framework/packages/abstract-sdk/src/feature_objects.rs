@@ -21,7 +21,6 @@ impl AccountIdentification for Account {
 }
 
 impl ModuleIdentification for Account {
-    /// Any actions executed by the core will be by the proxy address
     fn module_id(&self) -> &'static str {
         ACCOUNT
     }

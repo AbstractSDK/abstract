@@ -3,7 +3,7 @@
 //! `abstract_std::module_factory` is a native contract that handles instantiation and migration of account modules.
 //!
 //! ## Description  
-//! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
+//! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::account::ExecuteMsg`] endpoint.  
 pub mod state {
     use cw_storage_plus::Item;
 

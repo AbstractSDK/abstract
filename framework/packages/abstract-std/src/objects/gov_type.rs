@@ -114,7 +114,7 @@ impl GovernanceDetails<String> {
                     })
                 } else {
                     Err(AbstractError::Std(cosmwasm_std::StdError::generic_err(
-                        "Verification of sub-account failed, manager and proxy has different account ids",
+                        "Verification of sub-account failed, account has different account ids",
                     )))
                 }
             }

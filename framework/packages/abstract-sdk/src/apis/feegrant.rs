@@ -8,7 +8,7 @@ use cosmos_sdk_proto::{
     cosmos::feegrant,
     traits::{Message, Name},
 };
-use cosmwasm_std::{Addr, AnyMsg, Binary, Coin, CosmosMsg, Timestamp};
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
 
 use super::stargate::feegrant::{BasicOrPeriodicAllowance, MsgAllowance};
 use crate::{
@@ -21,7 +21,7 @@ use crate::{
 pub trait GrantInterface: AccountExecutor {
     /// API for accessing the Cosmos SDK FeeGrant module.
     /// The **granter** is the address of the user granting an allowance of their funds.
-    /// By default, it is the proxy address of the Account.
+    /// By default, it is the account address.
 
     /// ```
     /// use abstract_sdk::prelude::*;
@@ -71,7 +71,7 @@ pub struct FeeGranter {
 
 impl FeeGranter {
     /// Retrieve the granter's address.
-    /// By default, this is the proxy address of the Account.
+    /// By default, this is the account address.
     fn granter(&self) -> Addr {
         self.granter.clone()
     }
@@ -88,10 +88,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
-            type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
-            value: Binary::new(msg),
-        })
+        super::stargate_msg(
+            feegrant::v1beta1::MsgRevokeAllowance::type_url(),
+            Binary::new(msg),
+        )
     }
 
     /// Grants an allowance to a **grantee**.
@@ -108,10 +108,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
-            type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
-            value: Binary::new(msg),
-        })
+        super::stargate_msg(
+            feegrant::v1beta1::MsgGrantAllowance::type_url(),
+            Binary::new(msg),
+        )
     }
 
     /// Grants a basic allowance.
@@ -190,9 +190,9 @@ mod test {
         grantee: Addr,
         allowance: impl StargateMessage,
     ) -> CosmosMsg {
-        CosmosMsg::Any(AnyMsg {
-            type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
-            value: Binary::new(
+        crate::apis::stargate_msg(
+            feegrant::v1beta1::MsgGrantAllowance::type_url(),
+            Binary::new(
                 feegrant::v1beta1::MsgGrantAllowance {
                     granter: granter.to_string(),
                     grantee: grantee.to_string(),
@@ -200,7 +200,7 @@ mod test {
                 }
                 .encode_to_vec(),
             ),
-        })
+        )
     }
 
     mod basic_allowance {
@@ -294,16 +294,16 @@ mod test {
 
             let revoke_msg = fee_granter.revoke_allowance(&grantee);
 
-            let expected_msg = CosmosMsg::Any(AnyMsg {
-                type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
-                value: Binary::new(
+            let expected_msg = crate::apis::stargate_msg(
+                feegrant::v1beta1::MsgRevokeAllowance::type_url(),
+                Binary::new(
                     feegrant::v1beta1::MsgRevokeAllowance {
                         granter: granter.to_string(),
                         grantee: grantee.to_string(),
                     }
                     .encode_to_vec(),
                 ),
-            });
+            );
             assert_eq!(revoke_msg, expected_msg);
         }
     }

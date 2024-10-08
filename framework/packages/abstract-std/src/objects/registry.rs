@@ -25,7 +25,7 @@ pub enum RegistryError {
     ModuleNotFound { module: String, registry_addr: Addr },
 
     // failed to query account id
-    #[error("Failed to query Account id on contract {contract_addr}. Please ensure that the contract is a Manager or Proxy contract.")]
+    #[error("Failed to query Account id on contract {contract_addr}. Please ensure that the contract is an Account contract.")]
     FailedToQueryAccountId { contract_addr: Addr },
 
     // standalone module not found in version registry
@@ -33,7 +33,7 @@ pub enum RegistryError {
     StandaloneNotFound { code_id: u64, registry_addr: Addr },
 
     // unknown Account id error
-    #[error("Unknown Account id {account_id} on version control {registry_addr}. Please ensure that you are using the correct Account id and version control address.")]
+    #[error("Unknown Account id {account_id} on registry {registry_addr}. Please ensure that you are using the correct Account id and registry address.")]
     UnknownAccountId {
         account_id: AccountId,
         registry_addr: Addr,
@@ -68,7 +68,7 @@ pub type RegistryResult<T> = Result<T, RegistryError>;
 /// Implements [`AbstractRegistryAccess`] (defined in abstract-sdk)
 #[cosmwasm_schema::cw_serde]
 pub struct RegistryContract {
-    /// Address of the version control contract
+    /// Address of the registry contract
     pub address: Addr,
 }
 
@@ -229,8 +229,8 @@ impl RegistryContract {
             })
     }
 
-    /// Get AccountId for given manager or proxy address.
-    /// Also verifies that that address is indeed a manager or proxy.
+    /// Get AccountId for given account address.
+    /// Also verifies that that address is indeed an account.
     pub fn account_id(
         &self,
         maybe_account_addr: &Addr,

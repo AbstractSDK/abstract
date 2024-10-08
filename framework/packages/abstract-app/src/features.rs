@@ -123,7 +123,7 @@ mod test {
     }
 
     #[test]
-    fn test_proxy_address() -> AppTestResult {
+    fn test_account_address() -> AppTestResult {
         let deps = mock_init();
         let expected_account = test_account(deps.api);
 

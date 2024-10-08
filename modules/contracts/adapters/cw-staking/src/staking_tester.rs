@@ -162,7 +162,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         )?;
 
         // Ensure user got his lp back
-        let lp_balance = self.query_proxy_balance(&account_addr, &lp_asset)?.u128();
+        let lp_balance = self.query_account_balance(&account_addr, &lp_asset)?.u128();
         assert_eq!(lp_balance, stake_value);
 
         // Unstake rest
@@ -193,7 +193,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         assert_eq!(stake_response.amounts, vec![Uint128::zero()]);
 
         // Ensure user got all of his lp back
-        let lp_balance = self.query_proxy_balance(&account_addr, &lp_asset)?.u128();
+        let lp_balance = self.query_account_balance(&account_addr, &lp_asset)?.u128();
         assert_eq!(lp_balance, stake_value * 2);
 
         Ok(())
@@ -246,7 +246,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             &[],
         )?;
         let reward = self
-            .query_proxy_balance(&account_addr, &self.provider.reward_asset())?
+            .query_account_balance(&account_addr, &self.provider.reward_asset())?
             .u128();
         assert!(reward >= reward_value);
 
@@ -314,7 +314,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         Ok(())
     }
 
-    fn query_proxy_balance(
+    fn query_account_balance(
         &self,
         account_addr: &Addr,
         asset: &AssetInfoUnchecked,

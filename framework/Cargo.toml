@@ -17,7 +17,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.23.0"
+version = "0.24.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -31,7 +31,7 @@ license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
-cosmwasm-std = { version = "2.0.0", features = ["cosmwasm_2_0"] }
+cosmwasm-std = { version = "2.0.0", features = ["cosmwasm_1_2"] }
 cosmwasm-schema = { version = "2.0" }
 cw-controllers = { version = "2.0" }
 cw-utils = { version = "2.0" }
@@ -52,8 +52,8 @@ protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-cw-orch = { version = "0.25.0" }
-cw-orch-interchain = { version = "0.5.0" }
+cw-orch = { version = "0.26.0" }
+cw-orch-interchain = { version = "0.7.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "2.0.0" }
@@ -81,14 +81,14 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 
 abstract-account = { path = "contracts/account", default-features = false }
 
-abstract-sdk = { version = "0.23.0", path = "packages/abstract-sdk" }
-abstract-testing = { version = "0.23.0", path = "packages/abstract-testing" }
-abstract-std = { version = "0.23.0", path = "packages/abstract-std" }
+abstract-sdk = { version = "0.24.0", path = "packages/abstract-sdk" }
+abstract-testing = { version = "0.24.0", path = "packages/abstract-testing" }
+abstract-std = { version = "0.24.0", path = "packages/abstract-std" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.23.0", path = "packages/abstract-macros" }
+abstract-macros = { version = "0.24.0", path = "packages/abstract-macros" }
 
-abstract-adapter-utils = { version = "0.23.0", path = "packages/standards/utils" }
+abstract-adapter-utils = { version = "0.24.0", path = "packages/standards/utils" }
 abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 
@@ -121,9 +121,9 @@ incremental = false
 
 [patch.crates-io]
 # TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep

@@ -1,6 +1,6 @@
 //! # Represents Abstract Service
 //!
-//! [`Service`] represents a module registered in version control
+//! [`Service`] represents a module registered in registry
 
 use std::marker::PhantomData;
 
@@ -10,7 +10,7 @@ use cw_orch::{contract::Contract, prelude::*};
 
 use crate::client::AbstractClientResult;
 
-/// An service represents a module registered in version control.
+/// An service represents a module registered in registry.
 ///
 /// It implements cw-orch traits of the module itself, so you can call its methods directly from the service struct.
 #[derive(Clone)]
@@ -55,9 +55,9 @@ impl<Chain: CwEnv, M: ContractInstance<Chain>> ContractInstance<Chain> for Servi
 }
 
 impl<Chain: CwEnv, M: RegisteredModule + From<Contract<Chain>>> Service<Chain, M> {
-    /// Get module interface installed from version control
+    /// Get module interface installed from registry
     pub(crate) fn new(registry: &Registry<Chain>) -> AbstractClientResult<Self> {
-        // The module must be in version control and service
+        // The module must be in registry and service
         let module_reference: ModuleReference = registry
             .module(ModuleInfo::from_id(
                 M::module_id(),

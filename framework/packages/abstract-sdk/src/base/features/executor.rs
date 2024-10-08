@@ -5,9 +5,9 @@ use crate::AbstractSdkResult;
 
 use super::AccountIdentification;
 
-/// Trait for modules that are allowed to execute on the proxy.
+/// Trait for modules that are allowed to execute on the account.
 pub trait AccountExecutor: AccountIdentification {
-    /// Execute proxy method on proxy contract
+    /// Execute method on account contract
     fn execute_on_account(
         &self,
         deps: Deps,

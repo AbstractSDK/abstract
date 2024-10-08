@@ -65,7 +65,7 @@ pub fn tip(
         deposited_assets.add(cw20_deposit)?;
     }
 
-    // forward payment to the proxy contract
+    // forward payment to the account contract
     let forward_payment_msgs = module
         .bank(deps.as_ref(), &env)
         .deposit(deposited_assets.to_vec())?;

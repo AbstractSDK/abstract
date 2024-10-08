@@ -106,8 +106,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 
     /// Handle a custom execution message sent to this api.
     /// Two success scenarios are possible:
-    /// 1. The sender is an authorized address of the given proxy address and has provided the proxy address in the message.
-    /// 2. The sender is a account of the given proxy address.
+    /// 1. The sender is an authorized address of the given account address and has provided the account address in the message.
+    /// 2. The sender is a account of the given account address.
     fn handle_app_msg(
         mut self,
         deps: DepsMut,
@@ -130,11 +130,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                 let requested_core = account_registry.assert_is_account(&account_address)?;
 
                 if requested_core.addr() == sender {
-                    // If the caller is the account of the indicated proxy_address, it's authorized to do the operation
-                    // This covers the case where the proxy field of the request is indicated where it doesn't need to be
+                    // If the caller is the account of the indicated account_address, it's authorized to do the operation
+                    // This covers the case where the account field of the request is indicated where it doesn't need to be
                     requested_core
                 } else {
-                    // If not, we load the authorized addresses for the given proxy address.
+                    // If not, we load the authorized addresses for the given account address.
                     let authorized = self
                         .authorized_addresses
                         .load(deps.storage, account_address)
@@ -276,11 +276,11 @@ mod tests {
 
         fn load_test_account_authorized_addresses(
             storage: &dyn Storage,
-            proxy_addr: &Addr,
+            account_addr: &Addr,
         ) -> Vec<Addr> {
             MOCK_ADAPTER
                 .authorized_addresses
-                .load(storage, proxy_addr.clone())
+                .load(storage, account_addr.clone())
                 .unwrap()
         }
 
@@ -483,10 +483,9 @@ mod tests {
         use cosmwasm_std::OwnedDeps;
 
         /// This sets up the test with the following:
-        /// TEST_PROXY has a single authorized address, test_authorized_address
-        /// TEST_MANAGER and TEST_PROXY are the Account base
+        /// TEST_ACCOUNT has a single authorized address, test_authorized_address
         ///
-        /// Note that the querier needs to mock the Account base, as the proxy will
+        /// Note that the querier needs to mock the Account base, as the account will
         /// query the Account base to get the list of authorized addresses.
         fn setup_with_authorized_addresses(
             deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
@@ -543,7 +542,7 @@ mod tests {
         }
 
         #[test]
-        fn executing_as_account_manager_is_allowed() {
+        fn executing_as_account_account_is_allowed() {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
@@ -564,7 +563,7 @@ mod tests {
         }
 
         #[test]
-        fn executing_as_authorized_address_not_allowed_without_proxy() {
+        fn executing_as_authorized_address_not_allowed_without_account() {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&test_account(deps.api), TEST_ACCOUNT_ID)
@@ -585,7 +584,7 @@ mod tests {
         }
 
         #[test]
-        fn executing_as_authorized_address_is_allowed_via_proxy() {
+        fn executing_as_authorized_address_is_allowed_via_account() {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
             deps.querier = MockQuerierBuilder::new(deps.api)
@@ -607,10 +606,10 @@ mod tests {
         }
 
         #[test]
-        fn executing_as_authorized_address_on_diff_proxy_should_err() {
+        fn executing_as_authorized_address_on_diff_account_should_err() {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
-            let another_account = Account::new(deps.api.addr_make("some_other_manager"));
+            let another_account = Account::new(deps.api.addr_make("some_other_account"));
             deps.querier = MockQuerierBuilder::new(deps.api)
                 .account(&account, TEST_ACCOUNT_ID)
                 .account(

@@ -175,7 +175,7 @@ mod test {
             deps.querier = MockQuerierBuilder::new(deps.api)
                 // Setup the addresses as if the Account was registered
                 .account(&not_account, TEST_ACCOUNT_ID)
-                // update the proxy to be proxy of a different Account
+                // update the account to be account of a different Account
                 .account(&base, SECOND_TEST_ACCOUNT_ID)
                 .with_contract_item(not_account.addr(), ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
                 .build();

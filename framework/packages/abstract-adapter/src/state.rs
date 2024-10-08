@@ -50,7 +50,7 @@ pub struct AdapterContract<
 {
     pub(crate) contract: AbstractContract<Self, Error>,
     pub(crate) base_state: Item<AdapterState>,
-    /// Map ProxyAddr -> AuthorizedAddrs
+    /// Map AccountAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
     pub target_account: Option<Account>,
@@ -85,7 +85,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         self.base_state.load(store)
     }
 
-    /// Return the address of the proxy for the Account associated with this Adapter.
+    /// Return the address of the account for the Account associated with this Adapter.
     /// Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, AdapterError> {
         Ok(self

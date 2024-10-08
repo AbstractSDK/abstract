@@ -242,7 +242,7 @@ mod tests {
     #[test]
     fn module_upgrade() {
         let mut store = MockStorage::new();
-        let contract_name = "abstract:manager";
+        let contract_name = "abstract:account";
         let contract_version = "0.19.2";
         cw2::CONTRACT
             .save(
@@ -278,7 +278,7 @@ mod tests {
     #[test]
     fn module_upgrade_err() {
         let mut store = MockStorage::new();
-        let contract_name = "abstract:manager";
+        let contract_name = "abstract:account";
         let contract_version = "0.19.2";
         cw2::CONTRACT
             .save(

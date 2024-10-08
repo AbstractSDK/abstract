@@ -31,6 +31,7 @@ impl State {
     }
 }
 
+#[derive(Clone)]
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub registry: Registry<Chain>,

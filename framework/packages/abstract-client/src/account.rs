@@ -596,9 +596,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    /// Upgrades the account to the latest version
-    ///
-    /// Migrates manager and proxy contracts to their respective new versions.
+    /// Upgrades the account to the latest version.
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .upgrade(vec![(
@@ -625,7 +623,7 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
-    /// Executes a [`CosmosMsg`] on the proxy of the account.
+    /// Executes a [`CosmosMsg`] on the account.
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
@@ -728,16 +726,16 @@ impl<Chain: CwEnv> Account<Chain> {
         let mut module_versions_response = self.abstr_account.module_versions(vec![module_id])?;
         let installed_version = module_versions_response.versions.pop().unwrap().version;
         let expected_version = match &module.version {
-            // If latest we need to find latest version stored in VC
+            // If latest we need to find latest version stored in Registry
             ModuleVersion::Latest => {
-                let manager_config = self.abstr_account.config()?;
+                let account_config = self.abstr_account.config()?;
                 let mut modules_response: registry::ModulesResponse = self
                     .environment()
                     .query(
                         &registry::QueryMsg::Modules {
                             infos: vec![module.clone()],
                         },
-                        &manager_config.registry_address,
+                        &account_config.registry_address,
                     )
                     .map_err(Into::into)?;
                 modules_response
@@ -790,7 +788,7 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(sub_accounts?)
     }
 
-    /// Address of the account (proxy)
+    /// Address of the account
     pub fn address(&self) -> AbstractClientResult<Addr> {
         Ok(self.abstr_account.address()?)
     }
@@ -958,7 +956,7 @@ impl<Chain: CwEnv> Account<Chain> {
 }
 
 impl<Chain: MutCwEnv> Account<Chain> {
-    /// Set balance for the Proxy
+    /// Set balance for the Account
     pub fn set_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
             .set_balance(&self.address()?, amount.to_vec())
@@ -966,7 +964,7 @@ impl<Chain: MutCwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
-    /// Add balance to the Proxy
+    /// Add balance to the Account
     pub fn add_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
             .add_balance(&self.address()?, amount.to_vec())

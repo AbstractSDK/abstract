@@ -34,6 +34,7 @@ xion = [
     "ripemd",
     "cosmos-sdk-proto",
     "prost",
+    "cosmwasm-std/cosmwasm_2_0",
 ]
 
 [package.metadata.optimizer]

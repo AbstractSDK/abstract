@@ -42,12 +42,12 @@ $ just publish uni-6
 
 This will use the module's `examples/publish.rs` script to deploy the module to the `uni-1` network. The resulting
 code-id of your contract should now be in the `state.json` file created for you. The script will also attempt to
-register the module on the Abstract Version Control, hence the mnemonic used in the script should be the same as the one
+register the module on the Abstract Registry, hence the mnemonic used in the script should be the same as the one
 you used to create the account and register the namespace.
 
 ## JSON Schema Linking
 
-To improve the user-experience for developers using your module we recommend linking your module's JSON schema to the Abstract Version Control. This will allow developers (and you) to use the Abstract web app to interact with your module.
+To improve the user-experience for developers using your module we recommend linking your module's JSON schema to the Abstract Registry. This will allow developers (and you) to use the Abstract web app to interact with your module.
 
 ```admonish warning
 You need to install [github cli](https://cli.github.com/) for this step.
@@ -63,10 +63,10 @@ $ just publish-schemas <namespace> <name> <version>
 ```
 
 Where you fill the `<namespace>`, `<name>` and `<version>` with the same values you used to register your module on the
-Abstract Version Control.
+Abstract Registry.
 
 ## Module Installation
 
 To install your module, go to the <a href="https://console.abstract.money" target="_blank">Abstract Account Dashboard</a>, enter the dev-mode by clicking Enter Dev Mode on Action tab, go to your Account (or a new one) and click on the `Modules` tab. Here you will find a list of all the modules you have
-registered on the Abstract Version Control. Click on the `Install` button next to your module and select the network you
+registered on the Abstract Registry. Click on the `Install` button next to your module and select the network you
 want to install it on. This will open a modal with the following fields:

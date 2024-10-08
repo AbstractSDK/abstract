@@ -264,7 +264,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
+        // we attach 1 extra coin1 and 5 extra coin2, rest should go to account
         &[coin(18, coin1), coin(20, coin2)],
     )
     .unwrap();
@@ -276,7 +276,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
     Ok(())
 }
 
-pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
+pub fn install_app_with_account_action<T: MutCwEnv>(mut chain: T) -> AResult {
     let abstr = Abstract::load_from(chain.clone())?;
     let account = AccountI::create_default_account(
         &abstr,
@@ -295,7 +295,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     // install adapter 2
     let adapter2 = install_module_version(&account, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
-    // Add balance to proxy so
+    // Add balance to account so
     // app will transfer funds to adapter1 addr during instantiation
     chain
         .add_balance(&account.address()?, coins(123456, "TEST"))
@@ -441,7 +441,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
     let adapter_addr = account
         .module_info(TEST_MODULE_ID)?
         .expect("test module installed");
-    // proxy should be final executor because of the reply
+    // account should be final executor because of the reply
     let resp = account.execute_with_data(
         wasm_execute(
             adapter_addr.address,

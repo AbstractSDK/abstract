@@ -1,6 +1,6 @@
 [package]
 name = "abstract-interchain-tests"
-version = "0.23.0"
+version = "0.24.0"
 edition = { workspace = true }
 license = { workspace = true }
 description = "Interchain testing library for the Abstract SDK. This is used primarily for tests but some elements are re-usable for testing apps and adapters"
@@ -13,7 +13,7 @@ cw2 = { workspace = true }
 cw-utils = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
-# cw-orch-proto = { workspace = true }
+cw-orch-proto = { workspace = true }
 
 abstract-std = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
@@ -29,7 +29,7 @@ log = "0.4.14"
 anyhow = { workspace = true }
 env_logger = "0.11.3"
 
-ibc-relayer-types = "0.25"
+ibc-relayer-types = "0.29"
 
 cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }

@@ -345,7 +345,7 @@ impl<Chain: CwEnv> Registry<Chain> {
         Ok(resp.account)
     }
 
-    /// Retrieves an Adapter's address from version control given the module **id** and **version**.
+    /// Retrieves an Adapter's address from registry given the module **id** and **version**.
     pub fn get_adapter_addr(
         &self,
         id: &str,
@@ -356,7 +356,7 @@ impl<Chain: CwEnv> Registry<Chain> {
         Ok(module.reference.unwrap_adapter()?)
     }
 
-    /// Retrieves an APP's code id from version control given the module **id** and **version**.
+    /// Retrieves an APP's code id from registry given the module **id** and **version**.
     pub fn get_app_code(
         &self,
         id: &str,
@@ -367,7 +367,7 @@ impl<Chain: CwEnv> Registry<Chain> {
         Ok(module.reference.unwrap_app()?)
     }
 
-    /// Retrieves an APP's code id from version control given the module **id** and **version**.
+    /// Retrieves an APP's code id from registry given the module **id** and **version**.
     pub fn get_standalone_code(
         &self,
         id: &str,
@@ -378,7 +378,7 @@ impl<Chain: CwEnv> Registry<Chain> {
         Ok(module.reference.unwrap_standalone()?)
     }
 
-    /// Retrieves latest Account's code id from version control.
+    /// Retrieves latest Account's code id from registry.
     pub fn get_account_code(&self) -> Result<u64, crate::AbstractInterfaceError> {
         let module: Module = self.module(ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?)?;
 
