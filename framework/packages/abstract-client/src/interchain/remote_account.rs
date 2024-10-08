@@ -528,7 +528,13 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         &self,
         exec_msg: ibc_client::ExecuteMsg,
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        let msg = account::ExecuteMsg::IbcAction { msg: exec_msg };
+        let msg = to_json_binary(&exec_msg).unwrap();
+        let funds = if let ibc_client::ExecuteMsg::SendFunds { funds, .. } = exec_msg {
+            funds
+        } else {
+            vec![]
+        };
+        let msg = account::ExecuteMsg::IbcAction { msg, funds };
 
         let tx_response = self.abstr_owner_account.execute(&msg, &[])?;
         let packets = self

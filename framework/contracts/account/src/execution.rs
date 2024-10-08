@@ -1,14 +1,11 @@
-use abstract_sdk::std::{
-    account::state::WHITELISTED_MODULES, ibc_client::ExecuteMsg as IbcClientMsg, IBC_CLIENT,
-};
+use abstract_sdk::std::{account::state::WHITELISTED_MODULES, IBC_CLIENT};
 use abstract_std::{
     account::state::{ACCOUNT_MODULES, CALLING_TO_AS_ADMIN},
     objects::ownership,
     ICA_CLIENT,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, StdError, SubMsg,
-    WasmMsg, WasmQuery,
+    Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, StdError, SubMsg, WasmMsg, WasmQuery,
 };
 
 use crate::{
@@ -122,7 +119,8 @@ pub fn admin_execute_on_module(
 pub fn execute_ibc_action(
     mut deps: DepsMut,
     msg_info: MessageInfo,
-    msg: IbcClientMsg,
+    msg: Binary,
+    funds: Vec<cosmwasm_std::Coin>,
 ) -> AccountResult {
     assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
 
@@ -134,12 +132,11 @@ pub fn execute_ibc_action(
             ))
         })?;
 
-    let funds_to_send = if let IbcClientMsg::SendFunds { funds, .. } = &msg {
-        funds.clone()
-    } else {
-        vec![]
-    };
-    let client_msg = wasm_execute(ibc_client_address, &msg, funds_to_send)?;
+    let client_msg = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: ibc_client_address.to_string(),
+        msg,
+        funds,
+    });
 
     Ok(AccountResponse::action("execute_ibc_action").add_message(client_msg))
 }
@@ -293,11 +290,12 @@ mod test {
             )?;
 
             let msg = ExecuteMsg::IbcAction {
-                msg: abstract_std::ibc_client::ExecuteMsg::Register {
+                msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".parse()?,
                     namespace: None,
                     install_modules: vec![],
-                },
+                })?,
+                funds: vec![],
             };
 
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
@@ -364,11 +362,12 @@ mod test {
 
             let funds = coins(10, "denom");
             let msg = ExecuteMsg::IbcAction {
-                msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
+                msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: "juno".parse()?,
                     funds: funds.clone(),
                     memo: None,
-                },
+                })?,
+                funds: funds.clone(),
             };
 
             let not_whitelisted_info = message_info(&deps.api.addr_make("not_whitelisted"), &[]);
