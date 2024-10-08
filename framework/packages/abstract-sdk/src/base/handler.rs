@@ -155,14 +155,7 @@ where
     /// Get a reply handler if it exists.
     fn maybe_reply_handler(&self, id: u64) -> Option<ReplyHandlerFn<Self, Self::Error>> {
         let contract = self.contract();
-        for reply_handlers in contract.reply_handlers {
-            for handler in reply_handlers {
-                if handler.0 == id {
-                    return Some(handler.1);
-                }
-            }
-        }
-        None
+        return contract.reply_handlers[0].get(id as usize).cloned();
     }
     /// Get a reply handler or return an error.
     fn reply_handler(&self, id: u64) -> AbstractSdkResult<ReplyHandlerFn<Self, Self::Error>> {

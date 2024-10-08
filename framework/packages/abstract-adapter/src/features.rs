@@ -41,10 +41,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 }
 #[cfg(test)]
 mod tests {
-    use abstract_sdk::base::ExecuteEndpoint;
+    use abstract_sdk::base::{response::Response, ExecuteEndpoint};
     use abstract_std::adapter::{AdapterRequestMsg, ExecuteMsg};
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, DepsMut, MessageInfo, Response};
+    use cosmwasm_std::{testing::*, DepsMut, MessageInfo};
 
     use super::*;
     use crate::mock::{
@@ -56,9 +56,9 @@ mod tests {
         deps: DepsMut,
         env: Env,
         _info: MessageInfo,
-        module: MockAdapterContract,
+        module: &MockAdapterContract,
         _msg: MockExecMsg,
-    ) -> Result<Response, MockError> {
+    ) -> Result<Response<MockAdapterContract, MockError>, MockError> {
         let mock_api = MockApi::default();
         let expected_account = test_account(mock_api);
         // assert with test values

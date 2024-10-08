@@ -131,7 +131,7 @@ impl<
 
     pub const fn with_replies(
         mut self,
-        reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
+        reply_handlers: &'static [ReplyHandlerFn<Self, Error>],
     ) -> Self {
         self.contract = self.contract.with_replies([&[], reply_handlers]);
         self
@@ -169,16 +169,20 @@ mod tests {
     fn builder() {
         let app = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .with_execute(|_, _, _, _, _| {
+                Ok(Response::new().set_data("mock_exec".as_bytes()).into())
+            })
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_ibc_callback(|_, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })
-            .with_replies(&[(1u64, |_, _, _, msg| {
+            .with_replies(&[|_, _, _, msg| {
                 #[allow(deprecated)]
-                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-            })])
+                Ok(Response::new()
+                    .set_data(msg.result.unwrap().data.unwrap())
+                    .into())
+            }])
             .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
 
         assert_eq!(app.module_id(), TEST_MODULE_ID);

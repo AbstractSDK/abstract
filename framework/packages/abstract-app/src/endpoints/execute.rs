@@ -33,7 +33,8 @@ impl<
         msg: Self::ExecuteMsg,
     ) -> Result<Response, Error> {
         match msg {
-            ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, self, request),
+            ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, &self, request)
+                .map(|response| response.into_cosmwasm_response(self.contract())),
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),

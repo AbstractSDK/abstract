@@ -21,7 +21,13 @@ pub type InstantiateHandlerFn<Module, CustomInitMsg, Error> =
 // ANCHOR: exec
 /// Function signature for an execute handler.
 pub type ExecuteHandlerFn<Module, CustomExecMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, CustomExecMsg) -> Result<Response, Error>;
+    fn(
+        DepsMut,
+        Env,
+        MessageInfo,
+        &Module,
+        CustomExecMsg,
+    ) -> Result<super::response::Response<Module, Error>, Error>;
 // ANCHOR_END: exec
 
 // ANCHOR: query
@@ -56,7 +62,13 @@ pub type SudoHandlerFn<Module, CustomSudoMsg, Error> =
 
 // ANCHOR: reply
 /// Function signature for a reply handler.
-pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
+pub type ReplyHandlerFn<Module, Error> =
+    fn(
+        DepsMut,
+        Env,
+        &Module,
+        Reply,
+    ) -> Result<crate::base::response::Response<Module, Error>, Error>;
 // ANCHOR_END: reply
 
 /// There can be two locations where reply handlers are added.
@@ -65,6 +77,7 @@ pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Resu
 const MAX_REPLY_COUNT: usize = 2;
 
 /// Abstract generic contract
+#[derive(Clone)]
 pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> {
     /// Static info about the contract, used for migration
     pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
@@ -85,7 +98,7 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
     /// Handler for sudo messages.
     pub(crate) sudo_handler: Option<SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>>,
     /// List of reply handlers per reply ID.
-    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
+    pub reply_handlers: [&'static [ReplyHandlerFn<Module, Error>]; MAX_REPLY_COUNT],
     /// IBC callback handler following an IBC action
     pub(crate) ibc_callback_handler: Option<IbcCallbackHandlerFn<Module, Error>>,
     /// Module IBC handler for passing messages between a module on different chains.
@@ -127,7 +140,7 @@ where
     /// Add reply handlers to the contract.
     pub const fn with_replies(
         mut self,
-        reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
+        reply_handlers: [&'static [ReplyHandlerFn<Module, Error>]; MAX_REPLY_COUNT],
     ) -> Self {
         self.reply_handlers = reply_handlers;
         self
@@ -235,6 +248,7 @@ mod test {
         Sdk(#[from] AbstractSdkError),
     }
 
+    #[derive(Clone)]
     struct MockModule;
 
     type MockAppContract = AbstractContract<MockModule, MockError>;
@@ -309,7 +323,9 @@ mod test {
     #[test]
     fn test_with_execute() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_execute(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "execute")));
+            .with_execute(|_, _, _, _, _| {
+                Ok(super::super::response::Response::default().add_attribute("test", "execute"))
+            });
 
         assert!(contract.execute_handler.is_some());
     }
@@ -332,13 +348,12 @@ mod test {
 
     #[test]
     fn test_with_reply_handlers() {
-        const REPLY_ID: u64 = 50u64;
         const HANDLER: ReplyHandlerFn<MockModule, MockError> =
-            |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
+            |_, _, _, _| Ok(Response::default().add_attribute("test", "reply").into());
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_replies([&[(REPLY_ID, HANDLER)], &[]]);
+            .with_replies([&[HANDLER], &[]]);
 
-        assert_that!(contract.reply_handlers[0][0].0).is_equal_to(REPLY_ID);
+        assert_that!(contract.reply_handlers[0][0]).is_equal_to(HANDLER);
         assert!(contract.reply_handlers[1].is_empty());
     }
 
