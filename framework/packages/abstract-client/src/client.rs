@@ -344,7 +344,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         self.registry().module_status(module).map_err(Into::into)
     }
 
-
     #[cfg(feature = "interchain")]
     /// Connect this abstract client to the remote abstract client
     /// If [`cw_orch_polytone::Polytone`] is deployed between 2 chains, it will NOT redeploy it (good for actual chains)
