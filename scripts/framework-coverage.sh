@@ -5,7 +5,8 @@ cd ./framework
 # Get host target
 host=$(rustc -Vv | grep host | sed 's/host: //')
 # # Download binary and install to $HOME/.cargo/bin
-curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-$host.tar.gz | tar xzf - -C $HOME/.cargo/bin
+# curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-$host.tar.gz | tar xzf - -C $HOME/.cargo/bin
+curl -LsSf https://github.com/taiki-e/xd009642/tarpaulin/releases/latest/download/cargo-tarpaulin-$host.tar.gz | tar xzf - -C $HOME/.cargo/bin
 
 # Create lock file if it does not exist
 if [ ! -f Cargo.lock ]; then
