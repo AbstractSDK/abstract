@@ -541,6 +541,7 @@ dependencies = [
  "cosmos-sdk-proto 0.24.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
+ "coverage-helper",
  "cw-asset",
  "cw-clearable",
  "cw-controllers",
@@ -1900,6 +1901,12 @@ dependencies = [
  "static_assertions",
  "thiserror",
 ]
+
+[[package]]
+name = "coverage-helper"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8174551717bb3d1e75935e38d33f5f8ee8f680dd8dd42c90851e6c644faad14e"
 
 [[package]]
 name = "cpufeatures"

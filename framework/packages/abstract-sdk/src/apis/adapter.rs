@@ -131,7 +131,7 @@ mod tests {
 
         use crate::std::adapter;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
@@ -142,7 +142,7 @@ mod tests {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn expected_adapter_request() {
             let (deps, account, app) = mock_module_setup();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -170,7 +170,7 @@ mod tests {
     mod query_api {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
@@ -181,7 +181,7 @@ mod tests {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn expected_adapter_query() {
             let (deps, _, app) = mock_module_setup();
 
