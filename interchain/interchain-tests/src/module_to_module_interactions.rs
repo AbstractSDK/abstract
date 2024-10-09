@@ -358,7 +358,7 @@ pub mod test {
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary};
     use cw_orch::{environment::Environment, prelude::*};
-    use cw_orch_interchain::{prelude::*, types::IbcPacketOutcome};
+    use cw_orch_interchain::prelude::*;
 
     #[test]
     fn target_module_must_exist() -> AnyResult<()> {
@@ -395,7 +395,7 @@ pub mod test {
             "Module {} does not have a stored module reference",
             target_module_info
         );
-        match &ibc_result.packets[0].outcome {
+        match &ibc_result.packets[0] {
             IbcPacketOutcome::Timeout { .. } => {
                 panic!("Expected a failed ack not a timeout !")
             }
@@ -455,7 +455,7 @@ pub mod test {
 
         let expected_error_outcome =
             format!("App {} not installed on Account", target_module_info,);
-        match &ibc_result.packets[0].outcome {
+        match &ibc_result.packets[0] {
             IbcPacketOutcome::Timeout { .. } => {
                 panic!("Expected a failed ack not a timeout !")
             }

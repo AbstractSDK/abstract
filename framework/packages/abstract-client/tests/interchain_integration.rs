@@ -5,7 +5,6 @@ use abstract_interface::IbcClient;
 use cw_orch::mock::MockBase;
 use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
-use cw_orch_interchain::MockBech32InterchainEnv;
 
 #[test]
 fn create_remote_account() -> anyhow::Result<()> {

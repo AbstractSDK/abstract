@@ -13,7 +13,7 @@ cw2 = { workspace = true }
 cw-utils = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
-# cw-orch-proto = { workspace = true }
+cw-orch-proto = { workspace = true }
 
 abstract-std = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
@@ -29,7 +29,7 @@ log = "0.4.14"
 anyhow = { workspace = true }
 env_logger = "0.11.3"
 
-ibc-relayer-types = "0.25"
+ibc-relayer-types = "0.29"
 
 cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }

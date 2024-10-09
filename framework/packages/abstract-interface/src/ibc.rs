@@ -1,6 +1,8 @@
-use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, Registry};
+use crate::{AbstractInterfaceError, IbcClient, IbcHost, Registry};
 use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
+
+#[derive(Clone)]
 pub struct AbstractIbc<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
     pub host: IbcHost<Chain>,
@@ -52,6 +54,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 // Helpers to create connection with another chain
 pub mod connection {
     use super::*;
+    use crate::Abstract;
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;

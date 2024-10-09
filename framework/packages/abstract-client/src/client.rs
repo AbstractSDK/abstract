@@ -51,6 +51,7 @@ use crate::{
 };
 
 /// Client to interact with Abstract accounts and modules
+#[derive(Clone)]
 pub struct AbstractClient<Chain: CwEnv> {
     pub(crate) abstr: Abstract<Chain>,
 }
@@ -350,10 +351,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn connect_to(
         &self,
         remote_abstr: &AbstractClient<Chain>,
-        ibc: &impl cw_orch_interchain::InterchainEnv<Chain>,
+        ibc: &impl cw_orch_interchain::prelude::InterchainEnv<Chain>,
     ) -> AbstractClientResult<()>
     where
-        Chain: cw_orch_interchain::IbcQueryHandler,
+        Chain: cw_orch_interchain::prelude::IbcQueryHandler,
     {
         self.abstr.connect_to(&remote_abstr.abstr, ibc)?;
 
