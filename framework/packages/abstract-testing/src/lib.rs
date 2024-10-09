@@ -32,8 +32,6 @@ pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
 pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
     let raw_handler = move |contract: &Addr, key: &Binary| {
-        // TODO: should we do something with the key?
-        let str_key = std::str::from_utf8(key.as_slice()).unwrap();
         let abstr = AbstractMockAddrs::new(mock_api);
 
         if contract == abstr.account.addr() {
@@ -43,6 +41,8 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             // Default value
             Ok(Binary::default())
         } else {
+            let str_key = std::str::from_utf8(key.as_slice()).unwrap();
+
             Err(format!(
                 "attempt to query {} with key {}",
                 contract, str_key
@@ -143,7 +143,6 @@ pub mod addresses {
         Account::new(mock_api.addr_make(ADMIN_ACCOUNT))
     }
 
-    // TODO: remove it
     pub fn test_account(mock_api: MockApi) -> Account {
         Account::new(mock_api.addr_make(TEST_ACCOUNT))
     }

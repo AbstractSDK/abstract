@@ -361,10 +361,6 @@ pub mod execute {
         id: u8,
         authenticator: &Authenticator,
     ) -> AccountResult<()> {
-        // TODO: recover check after discussion with xion
-        // if id > 127 {
-        //     return Err(AccountError::TooBigAuthId {});
-        // }
         if AUTHENTICATORS.has(deps.storage, id) {
             return Err(AccountError::OverridingIndex { index: id });
         }

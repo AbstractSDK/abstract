@@ -90,7 +90,7 @@ pub enum AccountError {
     #[error("Can't renounce account, with active sub account")]
     RenounceWithSubAccount {},
 
-    // ** Other Errors TODO: sort ? ** //
+    // ** Other Errors ** //
     #[error("No updates were included")]
     NoUpdates {},
 
@@ -150,10 +150,6 @@ pub enum AccountError {
     #[error(transparent)]
     P256EllipticCurve(#[from] p256::elliptic_curve::Error),
 
-    // TODO: no PartialEq implemented for it, see `secp256r1.rs`
-    // #[cfg(feature = "xion")]
-    // #[error(transparent)]
-    // P256EcdsaCurve(#[from] p256::ecdsa::Error),
     #[cfg(feature = "xion")]
     #[error(transparent)]
     RecoverPubkey(#[from] cosmwasm_std::RecoverPubkeyError),
