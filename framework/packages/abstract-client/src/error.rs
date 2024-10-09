@@ -2,6 +2,7 @@
 
 use abstract_interface::AbstractInterfaceError;
 use abstract_std::{objects::validation::ValidationError, AbstractError};
+use cosmwasm_std::StdError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -16,6 +17,9 @@ pub enum AbstractClientError {
 
     #[error("{0}")]
     CwOrch(#[from] cw_orch::prelude::CwOrchError),
+
+    #[error("{0}")]
+    StdError(#[from] StdError),
 
     #[error("{0}")]
     Semver(#[from] semver::Error),
@@ -48,7 +52,7 @@ pub enum AbstractClientError {
 
     #[cfg(feature = "interchain")]
     #[error("{0}")]
-    InterchainError(#[from] cw_orch_interchain::InterchainError),
+    InterchainError(#[from] cw_orch_interchain::core::InterchainError),
 
     #[error("Service API only allows claiming service modules")]
     ExpectedService {},

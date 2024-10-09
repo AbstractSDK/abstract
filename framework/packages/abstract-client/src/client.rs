@@ -30,7 +30,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AccountI, AnsHost, IbcClient, ModuleFactory, RegisteredModule, Registry,
+    Abstract, AccountI, AnsHost, IbcClient, IcaClient, ModuleFactory, RegisteredModule, Registry,
     RegistryQueryFns,
 };
 use abstract_std::objects::{
@@ -51,6 +51,7 @@ use crate::{
 };
 
 /// Client to interact with Abstract accounts and modules
+#[derive(Clone)]
 pub struct AbstractClient<Chain: CwEnv> {
     pub(crate) abstr: Abstract<Chain>,
 }
@@ -136,6 +137,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Abstract Ibc Client contract allows users to create and use Interchain Abstract Accounts
     pub fn ibc_client(&self) -> &IbcClient<Chain> {
         &self.abstr.ibc.client
+    }
+
+    /// Abstract Ica Client contract API
+    ///
+    /// The Abstract Ica Client contract allows users to query messages to send messages across chains (EVM)
+    pub fn ica_client(&self) -> &IcaClient<Chain> {
+        &self.abstr.ibc.ica_client
     }
 
     /// Service contract API
@@ -350,10 +358,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn connect_to(
         &self,
         remote_abstr: &AbstractClient<Chain>,
-        ibc: &impl cw_orch_interchain::InterchainEnv<Chain>,
+        ibc: &impl cw_orch_interchain::prelude::InterchainEnv<Chain>,
     ) -> AbstractClientResult<()>
     where
-        Chain: cw_orch_interchain::IbcQueryHandler,
+        Chain: cw_orch_interchain::prelude::IbcQueryHandler,
     {
         self.abstr.connect_to(&remote_abstr.abstr, ibc)?;
 

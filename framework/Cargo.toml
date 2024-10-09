@@ -52,8 +52,8 @@ protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-cw-orch = { version = "0.25.0" }
-cw-orch-interchain = { version = "0.5.0" }
+cw-orch = { version = "0.26.0" }
+cw-orch-interchain = { version = "0.7.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "2.0.0" }
@@ -70,6 +70,7 @@ abstract-standalone = { path = "packages/abstract-standalone" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { path = "packages/abstract-interface" }
+abstract-client = { path = "packages/abstract-client" }
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 registry = { package = "abstract-registry", path = "contracts/native/registry" }
@@ -80,7 +81,6 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 
 abstract-account = { path = "contracts/account", default-features = false }
 
-abstract-ica = { path = "packages/abstract-ica" }
 abstract-sdk = { version = "0.24.0", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.24.0", path = "packages/abstract-testing" }
 abstract-std = { version = "0.24.0", path = "packages/abstract-std" }
@@ -100,19 +100,19 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 # Predictable abstract addresses
-cw-blob = { version = "=0.1.3", features = ["library"] }
+cw-blob = { version = "=0.1.3" }
 
 [profile.dev]
 opt-level = 1
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = "s"
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
 lto = true
 overflow-checks = true
-opt-level = 's'
+opt-level = "s"
 debug = false
 debug-assertions = false
 codegen-units = 1
@@ -121,9 +121,9 @@ incremental = false
 
 [patch.crates-io]
 # TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep
