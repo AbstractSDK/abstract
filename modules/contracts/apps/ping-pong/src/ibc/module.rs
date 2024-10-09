@@ -37,7 +37,6 @@ pub fn receive_module_ibc(
     // if block is even, return pong
     let is_even = env.block.height % 2 == 0;
     if is_even {
-        // TODO: return `PingOrPong::Pong` in response.data instead of event.
         resp = resp.add_attribute("play", "pong");
     } else {
         // else we lost

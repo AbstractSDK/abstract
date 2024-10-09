@@ -29,7 +29,7 @@ pub trait CustomExecuteHandler<Module: Handler>: Sized {
     /// Module execute message (`crate::msg::ExecuteMsg` of your module)
     type ExecuteMsg;
 
-    // TODO: Can't use try_into because of conflicting impls, in core
+    // Can't use try_into because of conflicting impls, in core
     /// Convert custom execute message to your module execute message, or if not possible return custom
     fn try_into_base(self) -> Result<Self::ExecuteMsg, Self>;
 

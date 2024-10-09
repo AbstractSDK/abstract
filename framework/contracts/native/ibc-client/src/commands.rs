@@ -127,7 +127,6 @@ fn send_remote_host_action(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
                 &ibc_host::ExecuteMsg::Execute {
-                    // TODO: consider removing this field
                     account_address: account.addr().to_string(),
                     account_id,
                     action,
@@ -423,8 +422,6 @@ fn _ics_20_send_msg(
 ) -> CosmosMsg {
     match memo {
         Some(memo) => {
-            // If we have memo need to send it with stargate
-            // TODO: Remove when possible, cosmwasm-std 2.0.0+ supports memo
             use ibc_proto::{
                 cosmos::base::v1beta1::Coin, ibc::applications::transfer::v1::MsgTransfer,
             };

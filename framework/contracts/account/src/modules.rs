@@ -498,7 +498,6 @@ mod tests {
         }
     }
 
-    // TODO: move those tests to integrations tests, since we can't do query in unit tests
     mod install_module {
         use super::*;
 
@@ -652,8 +651,6 @@ mod tests {
             Ok(())
         }
     }
-
-    // TODO: move these tests to integration tests
 
     // mod add_module {
     //     use super::*;

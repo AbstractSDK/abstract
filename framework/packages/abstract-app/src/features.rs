@@ -108,14 +108,11 @@ mod test {
         assert_eq!(host, AnsHost::new(&deps.api, &env)?);
 
         // AccountRegistry
-        // TODO: really rust forces binding CONST variable here?
-        // It's because of returning Result, most likely polonius bug
         let binding = MOCK_APP_WITH_DEP;
         let account_registry = binding.account_registry(deps.as_ref(), &env)?;
         let base = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account);
 
-        // TODO: Make some of the module_registry queries raw as well?
         let _module_registry = MOCK_APP_WITH_DEP.module_registry(deps.as_ref(), &env);
         // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 

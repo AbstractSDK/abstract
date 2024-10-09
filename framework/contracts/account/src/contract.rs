@@ -175,13 +175,8 @@ pub fn instantiate(
     };
 
     // Set owner
-    let cw_gov_owner = ownership::initialize_owner(
-        deps.branch(),
-        // TODO: support no owner here (ownership handled in SUDO)
-        // Or do we want to add a `Sudo` governance type?
-        owner.clone(),
-        registry.address.clone(),
-    )?;
+    let cw_gov_owner =
+        ownership::initialize_owner(deps.branch(), owner.clone(), registry.address.clone())?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
@@ -365,7 +360,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 }
 
                 // ## Other ##
-                // TODO: Update module migrate logic to not use callback!
                 ExecuteMsg::UpdateStatus { is_suspended: _ } => {
                     unreachable!("Update status case is reached above")
                 }

@@ -52,10 +52,8 @@ pub fn before_tx(
             None => return Err(AccountError::InvalidSignature {}),
             Some(i) => *i,
         };
-        // TODO: should be conditional
-        // if admin {
         crate::state::AUTH_ADMIN.save(deps.storage, &true)?;
-        // }
+
         // retrieve the authenticator by index, or error
         let authenticator = AUTHENTICATORS.load(deps.storage, cred_index)?;
 

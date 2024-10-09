@@ -62,7 +62,6 @@ pub(crate) fn ica_action(
         }
     };
 
-    // TODO: can we use `flat_map` here?
     let maybe_msgs: Result<Vec<Vec<CosmosMsg>>, _> =
         actions.into_iter().map(process_action).collect();
     let msgs = maybe_msgs?.into_iter().flatten().collect();

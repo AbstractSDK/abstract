@@ -905,8 +905,3 @@ fn native_not_migratable() -> AResult {
     assert_eq!(err, AccountError::NotUpgradeable(latest_ibc_client));
     Ok(())
 }
-
-// TODO:
-// - adapter-adapter dependencies
-// - app-adapter dependencies
-// - app-app dependencies

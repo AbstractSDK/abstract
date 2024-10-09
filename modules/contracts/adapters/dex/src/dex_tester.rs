@@ -17,8 +17,6 @@ use cosmwasm_std::{coins, from_json, BankMsg, CosmosMsg, Decimal, Uint128, WasmM
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{environment::MutCwEnv, prelude::*};
 
-// TODO: beta clippy trips here, try again later
-#[allow(unused_imports)]
 use cw_orch::anyhow;
 
 pub trait MockDex {

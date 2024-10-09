@@ -394,7 +394,6 @@ fn assert_querrier_err_eq<E: std::fmt::Display>(left: CwOrchError, right: E) {
 
 #[test]
 fn can_install_using_abstract_client() -> anyhow::Result<()> {
-    // TODO: re-write this set-up code also using abstract-client.
     let (mock, _account, _abstr, _apps, _manager_addr) = setup()?;
     let client = AbstractClient::new(mock)?;
     let account: Account<MockBech32> = client.account_builder().build()?;
