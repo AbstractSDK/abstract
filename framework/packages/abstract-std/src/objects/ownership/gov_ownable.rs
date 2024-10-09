@@ -1,4 +1,3 @@
-// TODO: update for doctests to pass
 // #![doc = include_str!("README.md")]
 
 pub use crate::objects::gov_type::{GovAction, GovernanceDetails};

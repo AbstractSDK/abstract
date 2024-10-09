@@ -86,7 +86,6 @@ mod test {
         assert_eq!(host, AnsHost::new(&deps.api, &env)?);
 
         // AccountRegistry
-        // TODO: Why rust forces binding on static object what
         let binding = BASIC_MOCK_STANDALONE;
         let account_registry = binding.account_registry(deps.as_ref(), &env).unwrap();
         let account = account_registry.account(&TEST_ACCOUNT_ID)?;

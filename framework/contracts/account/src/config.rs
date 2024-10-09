@@ -71,7 +71,6 @@ pub fn update_internal_config(
 
             update_module_addresses(deps, add, to_remove)
         }
-        // TODO: Add tests for this action
         InternalConfigAction::UpdateWhitelist { to_add, to_remove } => {
             let module_addresses_to_add: Result<Vec<Addr>, _> = to_add
                 .into_iter()
