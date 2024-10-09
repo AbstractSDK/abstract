@@ -16,7 +16,7 @@ const TEST_ABSTRACT_CREATOR: [u8; 33] = [
 
 // Salts for deployments
 pub const ANS_HOST_SALT: &[u8] = b"ans";
-pub const VERSION_CONTROL_SALT: &[u8] = b"vc";
+pub const REGISTRY_SALT: &[u8] = b"vc";
 pub const MODULE_FACTORY_SALT: &[u8] = b"mf";
 pub const IBC_CLIENT_SALT: &[u8] = b"ic";
 pub const IBC_HOST_SALT: &[u8] = b"ih";
@@ -25,8 +25,8 @@ pub fn ans_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
     contract_canon_address(hrp, ANS_HOST_SALT, api)
 }
 
-pub fn version_control_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, VERSION_CONTROL_SALT, api)
+pub fn registry_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(hrp, REGISTRY_SALT, api)
 }
 
 pub fn module_factory_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
