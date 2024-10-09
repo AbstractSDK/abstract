@@ -9,7 +9,7 @@ exclude = ["contracts/apps/croncat", "contracts/apps/dca"]
 resolver = "2"
 
 [workspace.package]
-version = "0.24.0"
+version = "0.23.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -116,7 +116,7 @@ abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git
 rpath = false
 lto = true
 overflow-checks = true
-opt-level = 3
+opt-level = "s"
 debug = false
 debug-assertions = false
 codegen-units = 1

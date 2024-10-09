@@ -118,7 +118,7 @@ abstract-integration-tests = { workspace = true }
 rpath = false
 lto = true
 overflow-checks = true
-opt-level = 3
+opt-level = "s"
 debug = false
 debug-assertions = false
 codegen-units = 1

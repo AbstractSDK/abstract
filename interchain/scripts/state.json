@@ -343,13 +343,14 @@
   "union-testnet-8": {
     "code_ids": {
       "abstract:account-factory": 81,
-      "abstract:ans-host": 79,
+      "abstract:ans-host": 239,
       "abstract:ibc-client": 85,
       "abstract:ibc-host": 86,
       "abstract:manager": 83,
-      "abstract:module-factory": 82,
+      "abstract:module-factory": 241,
       "abstract:proxy": 84,
-      "abstract:version-control": 80,
+      "abstract:version-control": 240,
+      "cw:blob": 238,
       "polytone:note": 87,
       "polytone:proxy": 89,
       "polytone:voice": 88

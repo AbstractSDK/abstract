@@ -1,6 +1,6 @@
 [package]
 name = "abstract-interface"
-version = "0.24.0"
+version.workspace = true
 edition = { workspace = true }
 license = { workspace = true }
 description = "Abstract deployment helpers with cw-orchestrator"

@@ -1,4 +1,5 @@
 use abstract_client::{AbstractClient, Namespace};
+use abstract_interface::AccountI;
 use abstract_std::{
     ica_client::{IcaAction, IcaActionResult, QueryMsg},
     IBC_CLIENT, ICA_CLIENT,
@@ -18,6 +19,11 @@ fn main() -> cw_orch::anyhow::Result<()> {
     let chain_info = UNION_TESTNET_8;
 
     let chain = Daemon::builder(chain_info.clone()).build()?;
+
+    let account_wasm = AccountI::<Daemon>::wasm(&chain_info.into());
+
+    let img_size = std::fs::metadata(account_wasm.path()).unwrap().len();
+    panic!("{:?}", img_size);
 
     let abs = AbstractClient::builder(chain.clone()).build(chain.sender().clone())?;
     // let abs = AbstractClient::new(chain.clone())?;
