@@ -15,7 +15,7 @@ use abstract_std::{
     ICS20,
 };
 use anyhow::Result as AnyResult;
-use cosmwasm_std::{coin, coins};
+use cosmwasm_std::{coin, coins, to_json_binary};
 use cw_orch::{daemon::RUNTIME, prelude::*};
 use cw_orch_interchain::prelude::*;
 use cw_orch_proto::tokenfactory::{create_denom, get_denom, mint};
@@ -104,12 +104,14 @@ pub fn test_send_funds() -> AnyResult<()> {
         &origin_account.address()?,
         vec![coin(test_amount, get_denom(&juno, token_subdenom.as_str()))],
     ))?;
-    let send_funds_tx =
-        origin_account.ibc_action(abstract_std::ibc_client::ExecuteMsg::SendFunds {
+    let send_funds_tx = origin_account.ibc_action(
+        coins(test_amount, get_denom(&juno, token_subdenom.as_str())),
+        to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
             host_chain: TruncatedChainId::from_chain_id(STARGAZE),
             funds: coins(test_amount, get_denom(&juno, token_subdenom.as_str())),
             memo: Some("sent_some_tokens".to_owned()),
-        })?;
+        })?,
+    )?;
 
     let response = interchain.await_and_check_packets(JUNO, send_funds_tx)?;
     let memo = response.event_attr_value("fungible_token_packet", "memo")?;

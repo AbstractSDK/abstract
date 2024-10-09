@@ -398,11 +398,12 @@ impl<Chain: CwEnv> AccountI<Chain> {
 
         self.execute(
             &abstract_std::account::ExecuteMsg::IbcAction {
-                msg: abstract_std::ibc_client::ExecuteMsg::Register {
+                msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     namespace,
                     install_modules,
-                },
+                })?,
+                funds: vec![],
             },
             &[],
         )
@@ -429,12 +430,13 @@ impl<Chain: CwEnv> AccountI<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::account::ExecuteMsg::IbcAction {
-            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+            msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
                     account_msgs: vec![msg],
                 },
-            },
+            })?,
+            funds: vec![],
         };
 
         self.execute(&msg, &[]).map_err(Into::into)
@@ -448,7 +450,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::account::ExecuteMsg::IbcAction {
-            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+            msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
                     account_msgs: vec![ExecuteMsg::ExecuteOnModule {
@@ -456,7 +458,8 @@ impl<Chain: CwEnv> AccountI<Chain> {
                         exec_msg: msg,
                     }],
                 },
-            },
+            })?,
+            funds: vec![],
         };
 
         self.execute(&msg, &[]).map_err(Into::into)
@@ -468,10 +471,11 @@ impl<Chain: CwEnv> AccountI<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::account::ExecuteMsg::IbcAction {
-            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+            msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Helpers(HelperAction::SendAllBack),
-            },
+            })?,
+            funds: vec![],
         };
 
         self.execute(&msg, &[]).map_err(Into::into)

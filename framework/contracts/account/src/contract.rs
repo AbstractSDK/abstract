@@ -288,8 +288,8 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
                     admin_execute_on_module(deps, info, module_id, msg)
                 }
-                ExecuteMsg::IbcAction { msg } => {
-                    execute_ibc_action(deps, info, msg).map_err(AccountError::from)
+                ExecuteMsg::IbcAction { msg, funds } => {
+                    execute_ibc_action(deps, info, msg, funds).map_err(AccountError::from)
                 }
                 ExecuteMsg::IcaAction { action_query_msg } => {
                     ica_action(deps, info, action_query_msg).map_err(AccountError::from)

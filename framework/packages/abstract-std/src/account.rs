@@ -157,7 +157,9 @@ pub enum ExecuteMsg<Authenticator = Empty> {
 
     /// Execute IBC action on Client
     IbcAction {
-        msg: crate::ibc_client::ExecuteMsg,
+        /// Message of type `abstract-std::ibc_client::ExecuteMsg`
+        msg: Binary,
+        funds: Vec<cosmwasm_std::Coin>,
     },
     /// Queries the Abstract Ica Client with the provided action query.
     /// Provides access to different ICA implementations for different ecosystems.

@@ -1,5 +1,5 @@
 use abstract_std::{
-    ibc_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    ica_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     ICA_CLIENT,
 };
 
@@ -15,16 +15,16 @@ impl<Chain: CwEnv> Uploadable for IcaClient<Chain> {
     fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
-                ::ibc_client::contract::execute,
-                ::ibc_client::contract::instantiate,
-                ::ibc_client::contract::query,
+                ::ica_client::contract::execute,
+                ::ica_client::contract::instantiate,
+                ::ica_client::contract::query,
             )
-            .with_migrate(::ibc_client::contract::migrate),
+            .with_migrate(::ica_client::contract::migrate),
         )
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("ibc_client")
+            .find_wasm_path("ica_client")
             .unwrap()
     }
 }
@@ -36,7 +36,7 @@ impl<Chain: CwEnv> RegisteredModule for IcaClient<Chain> {
         ICA_CLIENT
     }
     fn module_version<'a>() -> &'a str {
-        ibc_client::contract::CONTRACT_VERSION
+        ica_client::contract::CONTRACT_VERSION
     }
 
     fn dependencies<'a>() -> &'a [abstract_std::objects::dependency::StaticDependency] {

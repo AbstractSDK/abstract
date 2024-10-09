@@ -223,11 +223,12 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: abstract_std::ibc_client::ExecuteMsg::Register {
+                msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     namespace: None,
                     install_modules: vec![],
-                },
+                })?,
+                funds: vec![],
             },
             vec![],
         )?
@@ -243,7 +244,8 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: IbcClientMsg::RemoteAction { host_chain, action },
+                msg: to_json_binary(&IbcClientMsg::RemoteAction { host_chain, action })?,
+                funds: vec![],
             },
             vec![],
         )?
@@ -260,11 +262,12 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.account(self.deps)?.into_addr().to_string(),
             &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: IbcClientMsg::SendFunds {
+                msg: to_json_binary(&IbcClientMsg::SendFunds {
                     host_chain,
-                    funds,
+                    funds: funds.clone(),
                     memo,
-                },
+                })?,
+                funds,
             },
             vec![],
         )?
@@ -381,14 +384,16 @@ mod test {
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: IbcClientMsg::RemoteAction {
+                msg: to_json_binary(&IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     action: HostAction::Dispatch {
                         account_msgs: vec![abstract_std::account::ExecuteMsg::UpdateStatus {
                             is_suspended: None,
                         }],
                     },
-                },
+                })
+                .unwrap(),
+                funds: vec![],
             })
             .unwrap(),
             funds: vec![],
@@ -417,11 +422,13 @@ mod test {
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: IbcClientMsg::SendFunds {
+                msg: to_json_binary(&IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
-                    funds: expected_funds,
+                    funds: expected_funds.clone(),
                     memo: None,
-                },
+                })
+                .unwrap(),
+                funds: expected_funds,
             })
             .unwrap(),
             // ensure empty

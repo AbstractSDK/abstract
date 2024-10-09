@@ -342,27 +342,33 @@
   },
   "union-testnet-8": {
     "code_ids": {
+      "abstract:account": 246,
       "abstract:account-factory": 81,
-      "abstract:ans-host": 239,
-      "abstract:ibc-client": 85,
-      "abstract:ibc-host": 86,
+      "abstract:ans-host": 243,
+      "abstract:ibc-client": 247,
+      "abstract:ibc-host": 248,
+      "abstract:ica-client": 250,
       "abstract:manager": 83,
-      "abstract:module-factory": 241,
+      "abstract:module-factory": 245,
       "abstract:proxy": 84,
-      "abstract:version-control": 240,
-      "cw:blob": 238,
+      "abstract:version-control": 244,
+      "cw:blob": 242,
       "polytone:note": 87,
       "polytone:proxy": 89,
       "polytone:voice": 88
     },
     "default": {
       "abstract:account-factory": "union1czy8k839ywhy8wxejphxq67xga63jf68ssymal2qh4sv842hmstsjh6h6u",
-      "abstract:ans-host": "union1kvxlhsq2p2ws8ewf8s96d5y9ck0ur95kalq0kzfhwax8mqdxlnyqa4tecl",
+      "abstract:account-local-0": "union1lq2sv0jwlxczwhwka0a38ffpvmwlp32au4ha0ghcacaksxau9kasz72s5n",
+      "abstract:account-local-1": "union1dr4kzjwvlu0hgnkp9czprz6p2uvymxuf6crpzwzsrysv0caq7ynqgpg2tf",
+      "abstract:ans-host": "union1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4q329zr7",
       "abstract:evm-ibc": "union1hfghs59ccj5vc8ql6j8pvmxemdxu6me0wxjcrzr6z0z7wm0xr8jqer4n4h",
-      "abstract:ibc-client": "union160zgd0kmkeq9m9elzhzk4m0j7xdwct426ylt5uu7ujkfqw8k6ndq7h8nw6",
-      "abstract:ibc-host": "union17ey07cp8fmtu4vfdrxffv5vttneym00228xamjty3xae8d49qgws2vr40m",
-      "abstract:module-factory": "union1va8ypx8rccnlmcez872lcklcqkpkeledny07lasttg2f6wehxfvs6q990c",
-      "abstract:version-control": "union19pw0rz9hnwcrv43zvqnna6q6ednun3qlt92vaxd8xwzv4rk7mzks5upw4t"
+      "abstract:evm-note": "union1dhzx2n0s3w609u2uuw2avkfnqn76mcjx3tj5cspng0cdv2s4tfyquuapet",
+      "abstract:ibc-client": "union1l487rfqw2yevhvh4c3dw706mdy9u703zsawq7xt4h9e0h9up9fgqf9umhv",
+      "abstract:ibc-host": "union1dtw8lua8qpav6x3sngqwd3xqmyvg5q0pnv2lkmajzk0rjkjetm2sdjz3dl",
+      "abstract:ica-client": "union1d9um56y4su87rder4lrt4gdqm9yc5nw7d4rd0juhc6alwqdwrq5sm3x3vf",
+      "abstract:module-factory": "union1wzrl9hf8xukhu7ukx5quted5m5c2vklmr70tg88a0zkduts7f0sqxsjk85",
+      "abstract:version-control": "union1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsasglkf23"
     }
   }
 }

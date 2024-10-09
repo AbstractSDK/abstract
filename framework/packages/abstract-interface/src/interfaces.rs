@@ -34,13 +34,3 @@ where
 
     Ok(account_interface)
 }
-
-pub fn get_ibc_contracts<Chain: CwEnv>(chain: Chain) -> (IbcClient<Chain>, IbcHost<Chain>)
-where
-    <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
-{
-    let ibc_client = IbcClient::new(IBC_CLIENT, chain.clone());
-    let ibc_host = IbcHost::new(IBC_HOST, chain);
-
-    (ibc_client, ibc_host)
-}

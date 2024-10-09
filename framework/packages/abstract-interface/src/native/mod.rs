@@ -5,4 +5,6 @@ mod ica_client;
 mod module_factory;
 mod registry;
 
-pub use self::{ans_host::*, ibc_client::*, ibc_host::*, module_factory::*, registry::*};
+pub use self::{
+    ans_host::*, ibc_client::*, ibc_host::*, ica_client::*, module_factory::*, registry::*,
+};

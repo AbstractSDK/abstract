@@ -106,7 +106,7 @@ fn evm_note_addr(vc: &RegistryContract, querier: &QuerierWrapper) -> IcaClientRe
         .map_err(Into::into)
 }
 
-pub(crate) mod types {
+pub mod types {
     use super::*;
 
     pub const UCS01_PROTOCOL: &str = "ucs01";

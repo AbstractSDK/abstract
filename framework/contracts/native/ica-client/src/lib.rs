@@ -1,7 +1,7 @@
 pub mod contract;
 pub mod error;
 pub use abstract_std::ica_client as msg;
-mod chain_types;
+pub mod chain_types;
 mod queries;
 
 #[cfg(test)]

@@ -23,6 +23,7 @@ abstract-testing = { workspace = true }
 abstract-interface = { workspace = true, features = ["interchain"] }
 abstract-scripts = { path = "../scripts" }
 abstract-client = { workspace = true }
+abstract-ica-client = { workspace = true }
 
 tokio = { workspace = true }
 log = "0.4.14"
@@ -43,6 +44,10 @@ ping-pong = { path = "../../modules/contracts/apps/ping-pong" }
 
 # Ica Client specific
 union-connector = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+evm-note = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+polytone-evm = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+
+
 protos = { git = "https://github.com/unionlabs/union", features = [
     "proto_full",
     "serde",
@@ -52,3 +57,12 @@ dotenv = "0.15.0"
 prost = "0.13.3"
 prost_union = { package = "prost", version = "0.12.3" }
 prost-types = "0.13.3"
+hex = "0.4.3"
+
+## To get balance information 
+alloy = { version = "0.2.1", features = [
+    "full",
+    "signer-mnemonic",
+    "reqwest",
+    "provider-http",
+] }
