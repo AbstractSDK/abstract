@@ -128,7 +128,6 @@ fn update_challenge(
         .may_load(deps.storage, challenge_id)?
         .ok_or(AppError::ChallengeNotFound {})?;
 
-    // TODO: are we ok to edit name/description during proposals?
     if let Some(name) = new_challenge.name {
         loaded_challenge.name = name;
     }
