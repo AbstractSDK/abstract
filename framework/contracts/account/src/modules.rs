@@ -652,8 +652,6 @@ mod tests {
         }
     }
 
-    // TODO: move these tests to integration tests
-
     // mod add_module {
     //     use super::*;
 
