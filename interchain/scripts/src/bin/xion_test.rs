@@ -82,7 +82,8 @@ fn main() -> anyhow::Result<()> {
         coins(1_000_000_000_000, "uxion"),
     ))?;
 
-    let abstr = AbstractClient::builder(xiond.clone()).build(abstract_sender);
+    let abstr = AbstractClient::new(xiond.clone())
+        .or_else(|_| AbstractClient::builder(xiond.clone()).build(abstract_sender));
 
     let abstr = abstr?;
     // Create the Abstract Account because it's needed for the fees for the dex module
