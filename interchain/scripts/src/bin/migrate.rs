@@ -55,7 +55,6 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         //     DeployStrategy::Try,
         // )?;
 
-
         // Challenge::new(CHALLENGE_APP_ID, chain.clone()).deploy(
         //     challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
         //     DeployStrategy::Try,
