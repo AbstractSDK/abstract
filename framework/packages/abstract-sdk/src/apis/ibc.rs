@@ -12,7 +12,9 @@ use abstract_std::{
     objects::{module::ModuleInfo, TruncatedChainId},
     ABSTRACT_VERSION, IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Env, QueryRequest};
+use cosmwasm_std::{
+    to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Empty, Env, QueryRequest,
+};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
@@ -214,25 +216,37 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 }
 
 impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
+    /// Execute on ibc client
+    pub fn execute(
+        &self,
+        msg: &abstract_std::ibc_client::ExecuteMsg,
+        funds: Vec<Coin>,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let wasm_msg = wasm_execute(
+            self.base.account(self.deps)?.into_addr().into_string(),
+            &ExecuteMsg::ExecuteOnModule::<Empty> {
+                module_id: IBC_CLIENT.to_owned(),
+                exec_msg: to_json_binary(&msg)?,
+                funds,
+            },
+            vec![],
+        )?;
+        Ok(wasm_msg.into())
+    }
     /// A simple helper to create and register a remote account
     pub fn create_remote_account(
         &self,
         // The chain on which you want to create an account
         host_chain: TruncatedChainId,
     ) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
-                    host_chain,
-                    namespace: None,
-                    install_modules: vec![],
-                })?,
-                funds: vec![],
+        self.execute(
+            &abstract_std::ibc_client::ExecuteMsg::Register {
+                host_chain,
+                namespace: None,
+                install_modules: vec![],
             },
             vec![],
-        )?
-        .into())
+        )
     }
 
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
@@ -241,15 +255,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         host_chain: TruncatedChainId,
         action: HostAction,
     ) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: to_json_binary(&IbcClientMsg::RemoteAction { host_chain, action })?,
-                funds: vec![],
-            },
-            vec![],
-        )?
-        .into())
+        self.execute(&IbcClientMsg::RemoteAction { host_chain, action }, vec![])
     }
 
     /// IbcClient the provided coins from the Account to its account on the `receiving_chain`.
@@ -259,19 +265,14 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         funds: Vec<Coin>,
         memo: Option<String>,
     ) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.account(self.deps)?.into_addr().to_string(),
-            &ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: to_json_binary(&IbcClientMsg::SendFunds {
-                    host_chain,
-                    funds: funds.clone(),
-                    memo,
-                })?,
-                funds,
+        self.execute(
+            &IbcClientMsg::SendFunds {
+                host_chain,
+                funds: funds.clone(),
+                memo,
             },
-            vec![],
-        )?
-        .into())
+            funds,
+        )
     }
 
     /// A simple helper to install an app on an account
@@ -327,6 +328,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
                 account_msgs: vec![abstract_std::account::ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
+                    funds: vec![],
                 }],
             },
         )
@@ -383,8 +385,9 @@ mod test {
         let base = test_account(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
-            msg: to_json_binary(&ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: to_json_binary(&IbcClientMsg::RemoteAction {
+            msg: to_json_binary(&ExecuteMsg::ExecuteOnModule::<cosmwasm_std::Empty> {
+                module_id: IBC_CLIENT.to_owned(),
+                exec_msg: to_json_binary(&IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     action: HostAction::Dispatch {
                         account_msgs: vec![abstract_std::account::ExecuteMsg::UpdateStatus {
@@ -421,8 +424,9 @@ mod test {
         let base = test_account(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: base.addr().to_string(),
-            msg: to_json_binary(&ExecuteMsg::IbcAction::<cosmwasm_std::Empty> {
-                msg: to_json_binary(&IbcClientMsg::SendFunds {
+            msg: to_json_binary(&ExecuteMsg::ExecuteOnModule::<cosmwasm_std::Empty> {
+                module_id: IBC_CLIENT.to_owned(),
+                exec_msg: to_json_binary(&IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     funds: expected_funds.clone(),
                     memo: None,

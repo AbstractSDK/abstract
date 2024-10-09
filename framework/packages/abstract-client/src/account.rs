@@ -640,7 +640,7 @@ impl<Chain: CwEnv> Account<Chain> {
         execute_msg: &I,
     ) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
-            .execute_on_module(module_id, to_json_binary(execute_msg)?)
+            .execute_on_module(module_id, to_json_binary(execute_msg)?, vec![])
             .map_err(Into::into)
     }
 
@@ -836,12 +836,22 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
+        let instantiate_msg = account::InstantiateMsg::<Empty> {
+            account_id: None,
+            owner: GovernanceDetails::SubAccount {
+                account: self.address()?.to_string(),
+            },
+            namespace: None,
+            install_modules: modules,
+            name: Some("Sub Account".to_owned()),
+            description: None,
+            link: None,
+            authenticator: None,
+        };
+
         let sub_account_response = self.abstr_account.create_sub_account(
-            modules,
-            None,
-            None,
-            None,
-            Some("Sub Account".to_owned()),
+            self.abstr_account.code_id()?,
+            to_json_binary(&instantiate_msg).map_err(Into::<CwOrchError>::into)?,
             None,
             funds,
         )?;

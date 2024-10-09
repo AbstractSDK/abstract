@@ -325,6 +325,7 @@ fn account_adapter_exec() -> AResult {
     account.execute_on_module(
         TEST_MODULE_ID,
         Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
+        vec![],
     )?;
 
     Ok(())
@@ -521,7 +522,7 @@ fn account_adapter_ownership() -> AResult {
 }
 
 #[test]
-fn subaccount_adapter_ownership() -> AResult {
+fn sub_account_adapter_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;

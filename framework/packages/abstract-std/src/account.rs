@@ -16,7 +16,7 @@
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::account` as module.
 //!
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Binary, CosmosMsg, Empty};
+use cosmwasm_std::{Binary, Coin, CosmosMsg, Empty};
 
 use crate::objects::{
     gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
@@ -143,6 +143,8 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     ExecuteOnModule {
         module_id: String,
         exec_msg: Binary,
+        /// Funds attached from account to the module
+        funds: Vec<Coin>,
     },
     /// Execute a Wasm Message with Account Admin privileges
     AdminExecute {
@@ -153,13 +155,6 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     AdminExecuteOnModule {
         module_id: String,
         msg: Binary,
-    },
-
-    /// Execute IBC action on Client
-    IbcAction {
-        /// Message of type `abstract-std::ibc_client::ExecuteMsg`
-        msg: Binary,
-        funds: Vec<cosmwasm_std::Coin>,
     },
     /// Queries the Abstract Ica Client with the provided action query.
     /// Provides access to different ICA implementations for different ecosystems.
@@ -189,16 +184,10 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     /// Creates a sub-account on the account
     #[cw_orch(payable)]
     CreateSubAccount {
-        // Name of the sub-account
-        name: Option<String>,
-        // Description of the account
-        description: Option<String>,
-        // URL linked to the account
-        link: Option<String>,
-        // optionally specify a namespace for the sub-account
-        namespace: Option<String>,
-        // Provide list of module to install after sub-account creation
-        install_modules: Vec<ModuleInstallConfig>,
+        /// Code id of abstract account
+        code_id: u64,
+        /// Instantiate message of the account
+        msg: Binary,
         /// If `None`, will create a new local account without asserting account-id.
         ///
         /// When provided sequence in 0..2147483648 range: The tx will error
