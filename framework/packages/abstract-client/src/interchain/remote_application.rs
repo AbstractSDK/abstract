@@ -44,7 +44,11 @@ impl<
     }
 
     /// Execute message on application
-    pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+    pub fn execute(
+        &self,
+        execute: &M::ExecuteMsg,
+        funds: Vec<Coin>,
+    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
         self.remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain_id(),
@@ -52,6 +56,7 @@ impl<
                     account_msgs: vec![account::ExecuteMsg::ExecuteOnModule {
                         module_id: M::module_id().to_owned(),
                         exec_msg: to_json_binary(execute).map_err(AbstractInterfaceError::from)?,
+                        funds,
                     }],
                 },
             })
@@ -96,6 +101,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chai
                     },
                 ))
                 .map_err(Into::<CwOrchError>::into)?,
+                funds: vec![],
             })
         }
 

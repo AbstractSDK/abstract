@@ -31,7 +31,7 @@ use crate::{
     config::{update_account_status, update_info, update_internal_config},
     error::AccountError,
     execution::{
-        add_auth_method, admin_execute, admin_execute_on_module, execute_ibc_action, execute_msgs,
+        add_auth_method, admin_execute, admin_execute_on_module, execute_msgs,
         execute_msgs_with_data, execute_on_module, ica_action, remove_auth_method,
     },
     modules::{
@@ -284,12 +284,11 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg,
-                } => execute_on_module(deps, info, module_id, exec_msg).map_err(AccountError::from),
+                    funds,
+                } => execute_on_module(deps, info, module_id, exec_msg, funds)
+                    .map_err(AccountError::from),
                 ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
                     admin_execute_on_module(deps, info, module_id, msg)
-                }
-                ExecuteMsg::IbcAction { msg, funds } => {
-                    execute_ibc_action(deps, info, msg, funds).map_err(AccountError::from)
                 }
                 ExecuteMsg::IcaAction { action_query_msg } => {
                     ica_action(deps, info, action_query_msg).map_err(AccountError::from)

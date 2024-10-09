@@ -144,6 +144,7 @@ fn default_without_response_data() -> AResult {
     let resp = account.execute_on_module(
         TEST_MODULE_ID,
         Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
+        vec![],
     )?;
     assert_that!(resp.data).is_none();
     take_storage_snapshot!(chain, "default_without_response_data");

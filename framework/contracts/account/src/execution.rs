@@ -1,11 +1,12 @@
-use abstract_sdk::std::{account::state::WHITELISTED_MODULES, IBC_CLIENT};
+use abstract_sdk::std::account::state::WHITELISTED_MODULES;
 use abstract_std::{
     account::state::{ACCOUNT_MODULES, CALLING_TO_AS_ADMIN},
     objects::ownership,
     ICA_CLIENT,
 };
 use cosmwasm_std::{
-    Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, StdError, SubMsg, WasmMsg, WasmQuery,
+    Addr, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, StdError, SubMsg, WasmMsg,
+    WasmQuery,
 };
 
 use crate::{
@@ -69,6 +70,7 @@ pub fn execute_on_module(
     info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
+    funds: Vec<Coin>,
 ) -> AccountResult {
     let module_addr = load_module_addr(deps.storage, &module_id)?;
     execute_msgs(
@@ -77,7 +79,7 @@ pub fn execute_on_module(
         vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: module_addr.into(),
             msg: exec_msg,
-            funds: info.funds,
+            funds,
         })],
     )
 }
@@ -112,33 +114,6 @@ pub fn admin_execute_on_module(
 ) -> AccountResult {
     let module_addr = load_module_addr(deps.storage, &module_id)?;
     admin_execute(deps, info, module_addr, exec_msg)
-}
-
-/// Executes IBC actions on the IBC client.
-/// Permission: Module
-pub fn execute_ibc_action(
-    mut deps: DepsMut,
-    msg_info: MessageInfo,
-    msg: Binary,
-    funds: Vec<cosmwasm_std::Coin>,
-) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
-
-    let ibc_client_address = ACCOUNT_MODULES
-        .may_load(deps.storage, IBC_CLIENT)?
-        .ok_or_else(|| {
-            StdError::generic_err(format!(
-                "ibc_client not found on account. Add it under the {IBC_CLIENT} name."
-            ))
-        })?;
-
-    let client_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: ibc_client_address.to_string(),
-        msg,
-        funds,
-    });
-
-    Ok(AccountResponse::action("execute_ibc_action").add_message(client_msg))
 }
 
 pub fn add_auth_method(
@@ -289,8 +264,9 @@ mod test {
                 &WhitelistedModules(vec![abstr.account.addr().clone()]),
             )?;
 
-            let msg = ExecuteMsg::IbcAction {
-                msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
+            let msg = ExecuteMsg::ExecuteOnModule {
+                module_id: IBC_CLIENT.to_owned(),
+                exec_msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".parse()?,
                     namespace: None,
                     install_modules: vec![],
@@ -361,8 +337,9 @@ mod test {
             )?;
 
             let funds = coins(10, "denom");
-            let msg = ExecuteMsg::IbcAction {
-                msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
+            let msg = ExecuteMsg::ExecuteOnModule {
+                module_id: IBC_CLIENT.to_owned(),
+                exec_msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: "juno".parse()?,
                     funds: funds.clone(),
                     memo: None,
