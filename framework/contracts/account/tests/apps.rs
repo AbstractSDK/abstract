@@ -7,7 +7,7 @@ use abstract_interface::*;
 use abstract_std::{
     account::ModuleInstallConfig,
     objects::{
-        gov_type::TopLevelOwnerResponse,
+        gov_type::{GovernanceDetails, TopLevelOwnerResponse},
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
         AccountId,
     },
@@ -131,7 +131,7 @@ fn account_app_ownership() -> AResult {
 }
 
 #[test]
-fn subaccount_app_ownership() -> AResult {
+fn sub_account_app_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
@@ -147,14 +147,22 @@ fn subaccount_app_ownership() -> AResult {
     let next_id = deployment.registry.config()?.local_account_sequence;
 
     account.create_sub_account(
-        vec![ModuleInstallConfig::new(
-            ModuleInfo::from_id_latest(APP_ID).unwrap(),
-            Some(to_json_binary(&MockInitMsg {}).unwrap()),
-        )],
-        None,
-        None,
-        None,
-        Some("My subaccount".to_string()),
+        account.code_id()?,
+        to_json_binary(&abstract_std::account::InstantiateMsg::<Empty> {
+            owner: GovernanceDetails::SubAccount {
+                account: account.addr_str()?,
+            },
+            name: Some("My subaccount".to_owned()),
+            account_id: None,
+            authenticator: None,
+            namespace: None,
+            install_modules: vec![ModuleInstallConfig::new(
+                ModuleInfo::from_id_latest(APP_ID).unwrap(),
+                Some(to_json_binary(&MockInitMsg {}).unwrap()),
+            )],
+            description: None,
+            link: None,
+        })?,
         None,
         &[],
     )?;

@@ -2,7 +2,7 @@ use abstract_sdk::feature_objects::RegistryContract;
 use abstract_std::{
     account::{
         state::{ACCOUNT_ID, SUB_ACCOUNTS},
-        ExecuteMsg, ModuleInstallConfig, UpdateSubAccountAction,
+        ExecuteMsg, UpdateSubAccountAction,
     },
     objects::{
         gov_type::GovernanceDetails,
@@ -11,25 +11,22 @@ use abstract_std::{
     },
 };
 use cosmwasm_std::{
-    ensure, instantiate2_address, to_json_binary, wasm_execute, Attribute, CosmosMsg, DepsMut,
-    Empty, Env, MessageInfo, WasmMsg,
+    ensure, instantiate2_address, wasm_execute, Attribute, Binary, CosmosMsg, DepsMut, Empty, Env,
+    MessageInfo, WasmMsg,
 };
 
 use crate::{
     contract::{AccountResponse, AccountResult},
     error::AccountError,
 };
-#[allow(clippy::too_many_arguments)]
+
 /// Creates a sub-account for this account,
 pub fn create_sub_account(
     deps: DepsMut,
     info: MessageInfo,
     env: Env,
-    name: Option<String>,
-    description: Option<String>,
-    link: Option<String>,
-    namespace: Option<String>,
-    install_modules: Vec<ModuleInstallConfig>,
+    code_id: u64,
+    init_msg: Binary,
     account_id: Option<u32>,
 ) -> AccountResult {
     // only owner can create a subaccount
@@ -42,25 +39,8 @@ pub fn create_sub_account(
     let account_id = AccountId::local(seq);
     let salt = salt::generate_instantiate_salt(&account_id);
 
-    let self_code_id = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?
-        .code_id;
-    let checksum = deps.querier.query_wasm_code_info(self_code_id)?.checksum;
+    let checksum = deps.querier.query_wasm_code_info(code_id)?.checksum;
     let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
-
-    let create_account_msg = abstract_std::account::InstantiateMsg {
-        account_id: Some(account_id.clone()),
-        owner: GovernanceDetails::SubAccount {
-            account: env.contract.address.into_string(),
-        },
-        namespace,
-        install_modules,
-        name,
-        description,
-        link,
-        authenticator: None::<Empty>,
-    };
 
     let account_canon_addr =
         instantiate2_address(checksum.as_slice(), &self_canon_addr, salt.as_slice())?;
@@ -69,9 +49,9 @@ pub fn create_sub_account(
     // Call factory and attach all funds that were provided.
     let account_creation_message = WasmMsg::Instantiate2 {
         admin: Some(account_addr.to_string()),
-        code_id: self_code_id,
+        code_id,
         label: account_id.to_string(),
-        msg: to_json_binary(&create_account_msg)?,
+        msg: init_msg,
         funds: info.funds,
         salt,
     };
