@@ -184,10 +184,16 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     /// Creates a sub-account on the account
     #[cw_orch(payable)]
     CreateSubAccount {
-        /// Code id of abstract account
-        code_id: u64,
-        /// Instantiate message of the account
-        msg: Binary,
+        // Name of the sub-account
+        name: Option<String>,
+        // Description of the account
+        description: Option<String>,
+        // URL linked to the account
+        link: Option<String>,
+        // optionally specify a namespace for the sub-account
+        namespace: Option<String>,
+        // Provide list of module to install after sub-account creation
+        install_modules: Vec<ModuleInstallConfig>,
         /// If `None`, will create a new local account without asserting account-id.
         ///
         /// When provided sequence in 0..2147483648 range: The tx will error

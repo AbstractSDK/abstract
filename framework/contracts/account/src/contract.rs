@@ -341,11 +341,24 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 
                 // ## Sub-Accounts ##
                 ExecuteMsg::CreateSubAccount {
-                    code_id,
-                    msg,
+                    name,
+                    description,
+                    link,
+                    namespace,
+                    install_modules,
                     account_id,
-                } => create_sub_account(deps, info, env, code_id, msg, account_id)
-                    .map_err(AccountError::from),
+                } => create_sub_account(
+                    deps,
+                    info,
+                    env,
+                    name,
+                    description,
+                    link,
+                    namespace,
+                    install_modules,
+                    account_id,
+                )
+                .map_err(AccountError::from),
                 ExecuteMsg::UpdateSubAccount(action) => {
                     handle_sub_account_action(deps, &env, info, action).map_err(AccountError::from)
                 }
