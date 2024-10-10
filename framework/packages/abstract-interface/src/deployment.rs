@@ -55,7 +55,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         let ibc_infra = AbstractIbc::new(&chain);
 
-        blob.upload()?;
+        blob.upload_if_needed()?;
         ans_host.upload()?;
         registry.upload()?;
         module_factory.upload()?;
