@@ -354,7 +354,7 @@ mod test {
     fn have_some_state() {
         State::get("state.json").unwrap();
         let state = State::load_state();
-        let vc_juno = &state["juno-1"]["code_ids"].get(REGISTRY);
+        let vc_juno = &state["pion-1"]["code_ids"].get(ANS_HOST);
         assert!(vc_juno.is_some());
     }
 
