@@ -60,6 +60,14 @@ polytone = { package = "abstract-polytone", version = "2.0.0" }
 polytone-note = { package = "abstract-polytone-note", version = "4.0.0" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
 
+## evm
+# evm-note = { version = "0.2.0", features = ["library"] }
+# polytone-evm = { version = "0.2.0" }
+polytone-evm = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+evm-note = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle", features = [
+  "library",
+] }
+
 
 ## crates in order of publishing ## see docs/Publishing.md
 
