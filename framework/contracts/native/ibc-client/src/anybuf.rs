@@ -116,8 +116,8 @@ mod test {
             token: token.clone(),
             sender: sender.clone(),
             receiver: receiver.clone(),
-            timeout_height: timeout_height.clone(),
-            timeout_timestamp: timeout_timestamp.clone(),
+            timeout_height,
+            timeout_timestamp,
             memo: memo.clone(),
         }
         .encode_to_vec();
