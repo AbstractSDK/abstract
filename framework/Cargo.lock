@@ -1683,7 +1683,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 [[package]]
 name = "cosmos-sdk-proto"
 version = "0.24.0-pre"
-source = "git+https://github.com/burnt-labs/cosmos-rust.git?rev=75e72f446629f98330e209e2f6268250d325cccb#75e72f446629f98330e209e2f6268250d325cccb"
+source = "git+https://github.com/burnt-labs/cosmos-rust.git?rev=d3b51db49b894f1c6b7836bb0a7b14f54f1dfb26#d3b51db49b894f1c6b7836bb0a7b14f54f1dfb26"
 dependencies = [
  "informalsystems-pbjson",
  "prost",
@@ -2067,9 +2067,9 @@ dependencies = [
 
 [[package]]
 name = "cw-blob"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fb52ef10c6b9600e78b4d06758558fe16511308a4e9655c511be07f25034eb6"
+checksum = "a3ced88fbdad3f107b089b6df81af38cd83ec0a85ae132cbdb7b3103b19dcfe0"
 dependencies = [
  "cosmrs 0.20.0",
  "cosmwasm-std 2.1.4",

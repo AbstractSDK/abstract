@@ -85,7 +85,7 @@ p256 = { version = "0.13.2", features = [
 ], optional = true }
 url = { version = "2.5.2", default-features = false, optional = true }
 ripemd = { version = "0.1.3", default-features = false, optional = true }
-cosmos-sdk-proto = { git = "https://github.com/burnt-labs/cosmos-rust.git", rev = "75e72f446629f98330e209e2f6268250d325cccb", default-features = false, features = [
+cosmos-sdk-proto = { git = "https://github.com/burnt-labs/cosmos-rust.git", rev = "d3b51db49b894f1c6b7836bb0a7b14f54f1dfb26", default-features = false, features = [
     "std",
     "cosmwasm",
     "xion",
