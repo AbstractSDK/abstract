@@ -157,7 +157,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                 .map_err(|_| unauthorized_sender())?,
         };
         self.target_account = Some(account);
-        self.execute_handler()?(deps, env, info, self, request.request)
+        self.execute_handler()?(deps, env, info, &self, request.request)
+            .map(|response| response.into_cosmwasm_response(self.contract()))
     }
 
     /// Update authorized addresses from the adapter.

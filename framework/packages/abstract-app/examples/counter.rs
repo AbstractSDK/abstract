@@ -1,8 +1,9 @@
 pub use abstract_std::app;
 pub use cosmwasm_std::testing::*;
-use cosmwasm_std::{Response, StdError};
+use cosmwasm_std::StdError;
 
-pub type CounterResult<T = Response> = Result<T, CounterError>;
+pub type CounterResult<T = abstract_sdk::base::response::Response<CounterApp, CounterError>> =
+    Result<T, CounterError>;
 
 #[cosmwasm_schema::cw_serde]
 pub struct CounterInitMsg;
@@ -73,7 +74,7 @@ pub const COUNTER_APP: CounterApp = CounterApp::new(COUNTER_ID, APP_VERSION, Non
     .with_execute(handlers::execute)
     .with_query(handlers::query)
     .with_sudo(handlers::sudo)
-    .with_replies(&[(1u64, handlers::reply)])
+    .with_replies(&[handlers::reply])
     .with_migrate(handlers::migrate);
 // ANCHOR_END: handlers
 
@@ -100,7 +101,8 @@ mod handlers {
         |_, _, _, _| Ok(Response::new().set_data("counter_sudo".as_bytes()));
     pub const reply: ReplyHandlerFn<CounterApp, CounterError> = |_, _, _, msg| {
         #[allow(deprecated)]
-        Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+        Ok(abstract_sdk::base::response::Response::new()
+            .set_data(msg.result.unwrap().data.unwrap()))
     };
     pub const migrate: MigrateHandlerFn<CounterApp, CounterMigrateMsg, CounterError> =
         |_, _, _, _| Ok(Response::new().set_data("counter_migrate".as_bytes()));
@@ -109,7 +111,7 @@ mod handlers {
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        module: CounterApp, // <-- Notice how the `CounterApp` is available here
+        module: &CounterApp, // <-- Notice how the `CounterApp` is available here
         msg: CounterExecMsg,
     ) -> CounterResult {
         match msg {
@@ -122,7 +124,7 @@ mod handlers {
         deps: DepsMut,
         env: Env,
         msg_info: MessageInfo,
-        module: CounterApp,
+        module: &CounterApp,
     ) -> CounterResult {
         // Only the admin should be able to call this
         module
@@ -131,7 +133,8 @@ mod handlers {
 
         Ok(module
             .response("update_config")
-            .set_data("counter_exec".as_bytes()))
+            .set_data("counter_exec".as_bytes())
+            .into())
     }
     // ANCHOR_END: execute
 }

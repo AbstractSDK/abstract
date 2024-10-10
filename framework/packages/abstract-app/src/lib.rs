@@ -128,7 +128,9 @@ pub mod mock {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
                 Ok(Response::new().set_data("mock_init".as_bytes()))
             })
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .with_execute(|_, _, _, _, _| {
+                Ok(Response::new().set_data("mock_exec".as_bytes()).into())
+            })
             .with_query(|deps, _, _, msg| match msg {
                 MockQueryMsg::GetSomething {} => {
                     to_json_binary(&MockQueryResponse {}).map_err(Into::into)
@@ -150,10 +152,12 @@ pub mod mock {
                 StaticDependency::new(TEST_MODULE_ID, &[TEST_VERSION]),
                 StaticDependency::new(IBC_CLIENT, &[abstract_std::constants::ABSTRACT_VERSION]),
             ])
-            .with_replies(&[(1u64, |_, _, _, msg| {
+            .with_replies(&[|_, _, _, msg| {
                 #[allow(deprecated)]
-                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-            })])
+                Ok(Response::new()
+                    .set_data(msg.result.unwrap().data.unwrap())
+                    .into())
+            }])
             .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
 
     crate::cw_orch_interface!(MOCK_APP_WITH_DEP, MockAppContract, MockAppWithDepI);
@@ -170,7 +174,9 @@ pub mod mock {
                 .with_instantiate(|_, _, _, _, _| {
                     Ok(Response::new().set_data("mock_init".as_bytes()))
                 })
-                .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+                .with_execute(|_, _, _, _, _| {
+                    Ok(Response::new().set_data("mock_exec".as_bytes()).into())
+                })
                 .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into));
 
         crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppI);
@@ -283,7 +289,7 @@ pub mod mock {
                 },
                 _ => {},
             }
-            Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
+            Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()).into())
         })
         .with_instantiate(|deps, env, info, module, msg| {
             let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());

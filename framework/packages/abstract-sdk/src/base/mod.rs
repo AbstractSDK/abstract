@@ -17,3 +17,6 @@ pub use endpoints::{
     MigrateEndpoint, ModuleIbcEndpoint, QueryEndpoint, ReplyEndpoint, SudoEndpoint,
 };
 pub use handler::Handler;
+
+pub mod response;
+pub mod submsg;

@@ -105,7 +105,9 @@ pub mod mock {
 
                 Ok(Response::new().set_data("mock_init".as_bytes()))
             })
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .with_execute(|_, _, _, _, _| {
+                Ok(Response::new().set_data("mock_exec".as_bytes()).into())
+            })
             .with_query(|deps, _, _, msg| match msg {
                 MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
                     to_json_binary(&ReceivedIbcCallbackStatus {
@@ -120,10 +122,12 @@ pub mod mock {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })
-            .with_replies(&[(1u64, |_, _, _, msg| {
+            .with_replies(&[|_, _, _, msg| {
                 #[allow(deprecated)]
-                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-            })]);
+                Ok(Response::new()
+                    .set_data(msg.result.unwrap().data.unwrap())
+                    .into())
+            }]);
 
     pub type AdapterMockResult = Result<(), MockError>;
     // export these for upload usage
@@ -176,7 +180,7 @@ pub mod mock {
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
         .with_dependencies($deps)
-        .with_execute(|_, _, _, _, _| Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes())));
+        .with_execute(|_, _, _, _, _| Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()).into()));
 
         fn instantiate(
             deps: ::cosmwasm_std::DepsMut,
