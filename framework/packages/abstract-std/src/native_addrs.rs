@@ -16,7 +16,7 @@ const TEST_ABSTRACT_CREATOR: [u8; 33] = [
 
 // Salts for deployments
 pub const ANS_HOST_SALT: &[u8] = b"ans";
-pub const REGISTRY_SALT: &[u8] = b"vc";
+pub const REGISTRY_SALT: &[u8] = b"reg";
 pub const MODULE_FACTORY_SALT: &[u8] = b"mf";
 pub const IBC_CLIENT_SALT: &[u8] = b"ic";
 pub const IBC_HOST_SALT: &[u8] = b"ih";
