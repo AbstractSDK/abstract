@@ -1,3 +1,4 @@
+mod anybuf;
 mod commands;
 pub mod contract;
 pub mod error;
