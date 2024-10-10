@@ -107,7 +107,7 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 
-# Workspace release profile
+# Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
 lto = true

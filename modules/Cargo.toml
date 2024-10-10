@@ -109,7 +109,7 @@ abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branc
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
-# Workspace release profile
+# Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
 lto = true
