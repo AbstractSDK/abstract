@@ -59,7 +59,6 @@ pub mod state {
     pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> =
         Item::new(storage_namespaces::registry::LOCAL_ACCOUNT_SEQUENCE);
     /// Sub indexes for namespaces.
-    // TODO: move to a two maps, we don't need multiindex for accountid
     pub struct NamespaceIndexes<'a> {
         pub account_id: MultiIndex<'a, AccountId, AccountId, &'a Namespace>,
     }

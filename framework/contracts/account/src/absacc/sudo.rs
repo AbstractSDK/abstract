@@ -72,12 +72,8 @@ pub fn before_tx(
                     return Err(AccountError::ShortSignature {});
                 }
             }
-            Authenticator::Jwt { .. } => {
-                // todo: figure out if there are minimum checks for JWTs
-            }
-            Authenticator::Passkey { .. } => {
-                // todo: figure out if there are minimum checks for passkeys
-            }
+            Authenticator::Jwt { .. } => {}
+            Authenticator::Passkey { .. } => {}
         }
 
         return match authenticator.verify(deps.as_ref(), env, tx_bytes, sig_bytes)? {

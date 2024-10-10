@@ -88,7 +88,6 @@ impl<'a> PrimaryKey<'a> for &AssetEntry {
 
     type SuperSuffix = Self;
 
-    // TODO: make this key implementation use src_chain as prefix
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         self.0.key()
     }
