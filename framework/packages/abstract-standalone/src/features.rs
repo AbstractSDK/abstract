@@ -91,7 +91,6 @@ mod test {
         let account = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(account, expected_account);
 
-        // TODO: Make some of the module_registry queries raw as well?
         let _module_registry = BASIC_MOCK_STANDALONE.module_registry(deps.as_ref(), &env);
         // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 

@@ -46,7 +46,6 @@ pub fn send_funds(
             let registry = RegistryContract::new(deps.api, env)?;
             let note_addr = evm_note_addr(&registry, &deps.querier)?;
 
-            // TODO: could be turned into raw query!
             // If state objects will be public on evm_note
             let remote_acc: Option<String> = deps.querier.query_wasm_smart(
                 &note_addr,

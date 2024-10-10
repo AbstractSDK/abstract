@@ -60,13 +60,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::AssetList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_asset_list(deps, start_after, limit),
         QueryMsg::AssetInfos { infos } => queries::query_asset_infos(deps, env, infos),
         QueryMsg::AssetInfoList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_asset_info_list(deps, start_after, limit),
         QueryMsg::Contracts { entries } => {
             queries::query_contract(deps, env, entries.iter().collect())
@@ -74,7 +74,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::ContractList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_contract_list(deps, start_after, limit),
         QueryMsg::Channels { entries: names } => {
             queries::query_channels(deps, env, names.iter().collect())
@@ -82,7 +82,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::ChannelList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_channel_list(deps, start_after, limit),
         QueryMsg::RegisteredDexes {} => queries::query_registered_dexes(deps, env),
         QueryMsg::PoolList {

@@ -9,7 +9,6 @@ pub trait StargateMessage {
     /// Returned proto type
     type ProtoType: Message;
 
-    // TODO: replacable by `Name` trait for ProtoType when authz gets it
     fn type_url() -> String;
 
     /// Get `Any`
