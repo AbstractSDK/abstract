@@ -72,7 +72,7 @@ expression: all_storage
   - - "\u0000\u0002cb\u0000\babstract\u0000\bibc-host0.24.0"
     - "{\"native\":\"mock1dtw8lua8qpav6x3sngqwd3xqmyvg5q0pnv2lkmajzk0rjkjetm2s2pyq4n\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\bregistry0.24.0"
-    - "{\"native\":\"mock1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsas0vscja\"}"
+    - "{\"native\":\"mock1nhjtxw8enkzn84u24vq5pravwxel8sry793uuhakxwxnzjrz5v4stcajlt\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\nibc-client0.24.0"
     - "{\"native\":\"mock1l487rfqw2yevhvh4c3dw706mdy9u703zsawq7xt4h9e0h9up9fgqwk620q\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\u000emodule-factory0.24.0"
