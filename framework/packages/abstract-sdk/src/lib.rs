@@ -2,6 +2,7 @@
 #![doc = include_str ! ("../README.md")]
 // #![doc(test(attr(warn(unused), deny(warnings), allow(unused_extern_crates, unused),)))]
 #![warn(missing_docs)]
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 
 /// Result returned by the Abstract SDK APIs and features.
 pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;

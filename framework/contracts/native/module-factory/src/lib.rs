@@ -1,7 +1,6 @@
 mod commands;
 pub mod contract;
 pub mod error;
-mod response;
 
 pub(crate) use abstract_sdk::std::module_factory::state;
 

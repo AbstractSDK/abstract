@@ -52,3 +52,10 @@ doc-comment = "0.3.3"
 # Set our own feature when running tests!
 abstract-sdk = { path = ".", features = ["test-utils"] }
 cw-ownable = { workspace = true }
+
+coverage-helper = { version = "0.2.2" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+  'cfg(coverage,coverage_nightly)',
+] }

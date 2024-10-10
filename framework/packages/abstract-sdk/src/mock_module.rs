@@ -28,7 +28,7 @@ impl AccountIdentification for MockModule {
 
 impl ModuleIdentification for MockModule {
     fn module_id(&self) -> &'static str {
-        "mock_module"
+        TEST_MODULE_ID
     }
 }
 

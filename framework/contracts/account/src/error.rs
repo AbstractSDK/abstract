@@ -72,7 +72,7 @@ pub enum AccountError {
     DependencyNotMet(String, String),
 
     #[error("Max amount of modules registered")]
-    ModuleLimitReached,
+    ModuleLimitReached {},
 
     #[error("Module with address {0} is already whitelisted")]
     AlreadyWhitelisted(String),

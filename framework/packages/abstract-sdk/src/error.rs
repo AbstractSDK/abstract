@@ -20,6 +20,7 @@ impl Display for EndpointError {
         write!(f, "Error in {} - {}", self.module_id, self.source)
     }
 }
+
 /// Error type for the abstract sdk crate.
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
