@@ -302,11 +302,13 @@ impl<Chain: CwEnv> AccountI<Chain> {
         &self,
         module: &str,
         msg: impl Serialize,
+        funds: Vec<Coin>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         <AccountI<Chain> as AccountExecFns<Chain, abstract_std::account::ExecuteMsg>>::execute_on_module(
             self,
             to_json_binary(&msg).unwrap(),
+            funds,
             module,
             &[],
         )
@@ -396,15 +398,14 @@ impl<Chain: CwEnv> AccountI<Chain> {
             account_id: _,
         } = account_details;
 
-        self.execute(
-            &abstract_std::account::ExecuteMsg::IbcAction {
-                msg: abstract_std::ibc_client::ExecuteMsg::Register {
-                    host_chain,
-                    namespace,
-                    install_modules,
-                },
+        self.execute_on_module(
+            IBC_CLIENT,
+            &abstract_std::ibc_client::ExecuteMsg::Register {
+                host_chain,
+                namespace,
+                install_modules,
             },
-            &[],
+            vec![],
         )
         .map_err(Into::into)
     }
@@ -428,38 +429,44 @@ impl<Chain: CwEnv> AccountI<Chain> {
         msg: ExecuteMsg,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_std::account::ExecuteMsg::IbcAction {
-            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+        self.execute_on_module(
+            IBC_CLIENT,
+            abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
                     account_msgs: vec![msg],
                 },
             },
-        };
-
-        self.execute(&msg, &[]).map_err(Into::into)
+            vec![],
+        )
+        .map_err(Into::into)
     }
 
+    /// Execute action on remote module.
+    /// Funds attached from remote account to the module
     pub fn execute_on_remote_module(
         &self,
         host_chain: TruncatedChainId,
         module_id: &str,
         msg: Binary,
+        funds: Vec<Coin>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_std::account::ExecuteMsg::IbcAction {
-            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+        self.execute_on_module(
+            IBC_CLIENT,
+            &(abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Dispatch {
                     account_msgs: vec![ExecuteMsg::ExecuteOnModule {
                         module_id: module_id.to_string(),
                         exec_msg: msg,
+                        funds,
                     }],
                 },
-            },
-        };
-
-        self.execute(&msg, &[]).map_err(Into::into)
+            }),
+            vec![],
+        )
+        .map_err(Into::into)
     }
 
     pub fn send_all_funds_back(
@@ -467,14 +474,15 @@ impl<Chain: CwEnv> AccountI<Chain> {
         host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_std::account::ExecuteMsg::IbcAction {
-            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+        self.execute_on_module(
+            IBC_CLIENT,
+            &abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain,
                 action: HostAction::Helpers(HelperAction::SendAllBack),
             },
-        };
-
-        self.execute(&msg, &[]).map_err(Into::into)
+            vec![],
+        )
+        .map_err(Into::into)
     }
 }
 

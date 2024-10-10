@@ -23,7 +23,7 @@ cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
-cosmos-sdk-proto = { version = "0.24.0", optional = true, default-features = false, features = [
+cosmos-sdk-proto = { version = "0.24", optional = true, default-features = false, features = [
   "cosmwasm",
 ] }
 ibc-proto = { version = "0.47.0", optional = true, default-features = false }

@@ -232,6 +232,12 @@ impl<Chain: CwEnv> Registry<Chain> {
         let to_register = self.contracts_into_module_entries(natives, |c| {
             ModuleReference::Native(c.address().unwrap())
         })?;
+        let to_register_module_ids = to_register
+            .iter()
+            .map(|to_register| to_register.0.id())
+            .collect::<Vec<String>>()
+            .join(",");
+        log::info!("Modules {to_register_module_ids} registered");
         self.propose_modules(to_register)?;
         Ok(())
     }

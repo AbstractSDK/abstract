@@ -536,6 +536,7 @@ mod tests {
             let msg = ExecuteMsg::ExecuteOnModule {
                 module_id: TEST_MODULE_ID.to_string(),
                 exec_msg: to_json_binary(&"some msg")?,
+                funds: vec![],
             };
 
             let mut deps = mock_dependencies();
@@ -567,6 +568,7 @@ mod tests {
             let msg = ExecuteMsg::ExecuteOnModule {
                 module_id: missing_module.clone(),
                 exec_msg: to_json_binary(&"some msg")?,
+                funds: vec![],
             };
 
             let res = execute_as(&mut deps, &owner, msg);
@@ -596,6 +598,7 @@ mod tests {
             let msg = ExecuteMsg::ExecuteOnModule {
                 module_id: "test_mod".to_string(),
                 exec_msg: to_json_binary(&exec_msg)?,
+                funds: vec![],
             };
 
             let res = execute_as(&mut deps, &owner, msg);
