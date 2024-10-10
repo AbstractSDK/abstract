@@ -39,3 +39,14 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true }
 speculoos = { workspace = true }
+
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
