@@ -40,14 +40,3 @@ speculoos = { workspace = true }
 
 ibc-proto = { version = "0.47.0", default-features = false }
 prost = { version = "0.13.1", default-features = false }
-
-[profile.release]
-rpath = false
-lto = true
-overflow-checks = true
-opt-level = 3
-debug = false
-debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
