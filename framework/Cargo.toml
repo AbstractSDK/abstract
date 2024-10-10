@@ -100,7 +100,7 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 # Predictable abstract addresses
-cw-blob = { version = "=0.1.3", features = ["library"] }
+cw-blob = { version = "=0.1.4", features = ["library"] }
 
 [profile.dev]
 opt-level = 1
