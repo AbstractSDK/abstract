@@ -2,6 +2,7 @@ pub(crate) mod remote_account;
 mod remote_application;
 use std::collections::HashMap;
 
+use abstract_interface::Abstract;
 use cosmwasm_std::Addr;
 use cw_orch_interchain::prelude::*;
 pub use remote_account::RemoteAccount;
@@ -93,7 +94,12 @@ impl<Chain: IbcQueryHandler<Sender = Addr>> AbstractInterchainClient<Chain> {
         // We connect all chains together
         for i in 0..clients.len() {
             for j in i + 1..clients.len() {
-                clients[i].connect_to(&clients[j], interchain)?;
+                clients[i]
+                    .call_as(&Abstract::mock_admin(&clients[i].environment()))
+                    .connect_to(
+                        &clients[j].call_as(&Abstract::mock_admin(&clients[j].environment())),
+                        interchain,
+                    )?;
             }
         }
 

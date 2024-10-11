@@ -344,6 +344,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         self.registry().module_status(module).map_err(Into::into)
     }
 
+    /// Clones the Abstract Client with a different sender.
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            abstr: self.abstr.call_as(sender),
+        }
+    }
+
     #[cfg(feature = "interchain")]
     /// Connect this abstract client to the remote abstract client
     /// If [`cw_orch_polytone::Polytone`] is deployed between 2 chains, it will NOT redeploy it (good for actual chains)

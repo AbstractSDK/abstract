@@ -85,7 +85,6 @@ pub fn instantiate(
     let registry = RegistryContract::new(deps.api, &env)?;
     let module_factory = ModuleFactoryContract::new(deps.api, &env)?;
 
-    println!("aBSTRACT REGISTRY inside contract {}", registry.address);
     let account_id = match account_id {
         Some(account_id) => account_id,
         None => {

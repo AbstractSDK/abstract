@@ -316,6 +316,17 @@ impl<Chain: CwEnv> Abstract<Chain> {
         ibc.client.set_sender(sender);
         ibc.host.set_sender(sender);
     }
+
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            ans_host: self.ans_host.clone().call_as(sender),
+            registry: self.registry.clone().call_as(sender),
+            module_factory: self.module_factory.clone().call_as(sender),
+            ibc: self.ibc.call_as(sender),
+            account: self.account.call_as(sender),
+            blob: self.blob.clone(),
+        }
+    }
 }
 
 // Sender addr means it's mock or CloneTest(which is also mock)

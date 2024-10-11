@@ -125,10 +125,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
             name: "Default Abstract Account".into(),
             ..Default::default()
         };
-        println!(
-            "aBSTRACT REGISTRY {}",
-            abstract_deployment.registry.address()?
-        );
         Self::create(abstract_deployment, details, governance_details, &[])
     }
 }

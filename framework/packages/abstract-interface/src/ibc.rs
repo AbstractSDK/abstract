@@ -48,6 +48,13 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             ),
         ])
     }
+
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            client: self.client.call_as(sender),
+            host: self.host.call_as(sender),
+        }
+    }
 }
 
 #[cfg(feature = "interchain")]
