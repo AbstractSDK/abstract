@@ -4,7 +4,7 @@ pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_std::{
     objects::namespace::Namespace,
     registry::{
-        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES_INFO},
+        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES},
         Config,
     },
 };
@@ -46,7 +46,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(&admin))?;
 
     // Save the abstract namespace to the Abstract admin account
-    NAMESPACES_INFO.save(
+    NAMESPACES.save(
         deps.storage,
         &Namespace::new(ABSTRACT_NAMESPACE)?,
         &ABSTRACT_ACCOUNT_ID,
@@ -285,7 +285,7 @@ mod tests {
             };
             use abstract_testing::prelude::AbstractMockAddrs;
             use contract::{VCResult, VcResponse};
-            use registry::state::NAMESPACES_INFO;
+            use registry::state::NAMESPACES;
 
             use super::*;
 
@@ -308,7 +308,7 @@ mod tests {
                     },
                 )?;
 
-                let account_id = NAMESPACES_INFO.load(
+                let account_id = NAMESPACES.load(
                     deps.as_ref().storage,
                     &Namespace::try_from(ABSTRACT_NAMESPACE)?,
                 )?;

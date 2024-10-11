@@ -210,7 +210,216 @@ mod test {
 
     use crate::{apis::traits::test::abstract_api_test, mock_module::mock_module_setup};
 
+    use abstract_std::{
+        objects::{
+            module::{ModuleId, Monetization},
+            module_version::ModuleData,
+            namespace::ABSTRACT_NAMESPACE,
+            ABSTRACT_ACCOUNT_ID,
+        },
+        registry::ModulesResponse,
+    };
     use abstract_testing::prelude::*;
+    use cosmwasm_std::testing::mock_dependencies;
+
+    struct MockBinding {}
+
+    impl AbstractRegistryAccess for MockBinding {
+        fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+            RegistryContract::new(deps.api, env).map_err(Into::into)
+        }
+    }
+
+    impl ModuleIdentification for MockBinding {
+        fn module_id(&self) -> ModuleId<'static> {
+            ModuleId::from(TEST_MODULE_ID)
+        }
+    }
+
+    #[coverage_helper::test]
+    fn query_module_reference_raw() {
+        let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
+        deps.querier = abstract_mock_querier(deps.api);
+
+        let binding = MockBinding {};
+        let module_registry = binding.module_registry(deps.as_ref(), &env).unwrap();
+        let module_reference = module_registry
+            .query_module_reference_raw(
+                &ModuleInfo::from_id(abstract_std::ACCOUNT, TEST_VERSION.parse().unwrap()).unwrap(),
+            )
+            .unwrap();
+        assert_eq!(module_reference, ModuleReference::Account(1));
+    }
+
+    #[coverage_helper::test]
+    fn query_namespace() {
+        let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .with_smart_handler(&abstr.registry, |_| {
+                Ok(to_json_binary(&NamespaceResponse::Unclaimed {}).unwrap())
+            })
+            .build();
+
+        let binding = MockBinding {};
+        let module_registry = binding.module_registry(deps.as_ref(), &env).unwrap();
+        let namespace = module_registry
+            .query_namespace(Namespace::new(ABSTRACT_NAMESPACE).unwrap())
+            .unwrap();
+        assert_eq!(namespace, NamespaceResponse::Unclaimed {});
+    }
+
+    #[coverage_helper::test]
+    fn query_namespaces() {
+        let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .with_smart_handler(&abstr.registry, |_| {
+                Ok(to_json_binary(&NamespacesResponse {
+                    namespaces: vec![(
+                        Namespace::new(ABSTRACT_NAMESPACE).unwrap(),
+                        ABSTRACT_ACCOUNT_ID,
+                    )],
+                })
+                .unwrap())
+            })
+            .build();
+
+        let binding = MockBinding {};
+        let module_registry = binding.module_registry(deps.as_ref(), &env).unwrap();
+        let namespaces = module_registry
+            .query_namespaces(vec![ABSTRACT_ACCOUNT_ID])
+            .unwrap();
+        assert_eq!(
+            namespaces,
+            NamespacesResponse {
+                namespaces: vec![(
+                    Namespace::new(ABSTRACT_NAMESPACE).unwrap(),
+                    ABSTRACT_ACCOUNT_ID,
+                )],
+            }
+        );
+    }
+
+    #[coverage_helper::test]
+    fn query_modules() {
+        let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
+        let account = test_account(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            // Setup the addresses as if the Account was registered
+            .account(&account, TEST_ACCOUNT_ID)
+            .with_contract_item(
+                &abstr.module_address,
+                MODULE,
+                &ModuleData {
+                    module: TEST_MODULE_ID.to_owned(),
+                    version: TEST_VERSION.to_owned(),
+                    dependencies: vec![],
+                    metadata: None,
+                },
+            )
+            .with_smart_handler(&abstr.registry, move |_| {
+                Ok(to_json_binary(&ModulesResponse {
+                    modules: vec![
+                        ModuleResponse {
+                            module: Module {
+                                info: ModuleInfo::from_id(TEST_MODULE_ID, "0.1.0".parse().unwrap())
+                                    .unwrap(),
+                                reference: ModuleReference::App(1),
+                            },
+                            config: ModuleConfiguration::new(
+                                Monetization::None,
+                                Some("metadata".to_owned()),
+                                vec![],
+                            ),
+                        },
+                        ModuleResponse {
+                            module: Module {
+                                info: ModuleInfo::from_id("test:module", "0.1.0".parse().unwrap())
+                                    .unwrap(),
+                                reference: ModuleReference::Standalone(2),
+                            },
+                            config: ModuleConfiguration::new(
+                                Monetization::None,
+                                Some("metadata2".to_owned()),
+                                vec![],
+                            ),
+                        },
+                    ],
+                })
+                .unwrap())
+            })
+            .build();
+
+        let binding = MockBinding {};
+
+        let module_info1 = ModuleInfo::from_id(TEST_MODULE_ID, "0.1.0".parse().unwrap()).unwrap();
+        let module_info2 = ModuleInfo::from_id("test:module", "0.1.0".parse().unwrap()).unwrap();
+
+        let module_registry = binding.module_registry(deps.as_ref(), &env).unwrap();
+        let module = module_registry.query_module(module_info1.clone()).unwrap();
+        assert_eq!(
+            module,
+            Module {
+                info: ModuleInfo::from_id(TEST_MODULE_ID, "0.1.0".parse().unwrap()).unwrap(),
+                reference: ModuleReference::App(1),
+            }
+        );
+
+        let module_config = module_registry.query_config(module_info1.clone()).unwrap();
+        assert_eq!(
+            module_config,
+            ModuleConfiguration::new(Monetization::None, Some("metadata".to_owned()), vec![])
+        );
+
+        let modules_configs = module_registry
+            .query_modules_configs(vec![module_info1, module_info2])
+            .unwrap();
+        assert_eq!(
+            modules_configs,
+            vec![
+                ModuleResponse {
+                    module: Module {
+                        info: ModuleInfo::from_id(TEST_MODULE_ID, "0.1.0".parse().unwrap())
+                            .unwrap(),
+                        reference: ModuleReference::App(1),
+                    },
+                    config: ModuleConfiguration::new(
+                        Monetization::None,
+                        Some("metadata".to_owned()),
+                        vec![]
+                    )
+                },
+                ModuleResponse {
+                    module: Module {
+                        info: ModuleInfo::from_id("test:module", "0.1.0".parse().unwrap()).unwrap(),
+                        reference: ModuleReference::Standalone(2),
+                    },
+                    config: ModuleConfiguration::new(
+                        Monetization::None,
+                        Some("metadata2".to_owned()),
+                        vec![]
+                    )
+                }
+            ]
+        );
+        let module_info = module_registry.module_info(abstr.module_address).unwrap();
+        assert_eq!(
+            module_info,
+            Module {
+                info: ModuleInfo::from_id(TEST_MODULE_ID, "0.1.0".parse().unwrap()).unwrap(),
+                reference: ModuleReference::App(1),
+            }
+        )
+    }
 
     #[coverage_helper::test]
     fn abstract_api() {

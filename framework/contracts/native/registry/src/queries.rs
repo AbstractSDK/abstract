@@ -14,7 +14,7 @@ use abstract_sdk::std::{
 use abstract_std::{
     objects::module::ModuleStatus,
     registry::{
-        state::{NAMESPACES_INFO, PENDING_MODULES},
+        state::{NAMESPACES, PENDING_MODULES, REV_NAMESPACES},
         ModuleConfiguration, NamespaceInfo, NamespaceResponse,
     },
 };
@@ -155,23 +155,20 @@ pub fn handle_namespaces_query(
     deps: Deps,
     accounts: Vec<AccountId>,
 ) -> StdResult<NamespaceListResponse> {
-    let mut namespaces_response = NamespaceListResponse { namespaces: vec![] };
-    for account_id in accounts {
-        namespaces_response.namespaces.extend(
-            NAMESPACES_INFO
-                .idx
-                .account_id
-                .prefix(account_id)
-                .range(deps.storage, None, None, Order::Ascending)
-                .collect::<StdResult<Vec<_>>>()?,
-        );
-    }
-
-    Ok(namespaces_response)
+    let namespaces = accounts
+        .into_iter()
+        .filter_map(|account_id| {
+            REV_NAMESPACES
+                .may_load(deps.storage, &account_id)
+                .transpose()
+                .map(|namespace_res| namespace_res.map(|namespace| (namespace, account_id)))
+        })
+        .collect::<StdResult<Vec<_>>>()?;
+    Ok(NamespaceListResponse { namespaces })
 }
 
 pub fn handle_namespace_query(deps: Deps, namespace: Namespace) -> StdResult<NamespaceResponse> {
-    let account_id = NAMESPACES_INFO.may_load(deps.storage, &namespace)?;
+    let account_id = NAMESPACES.may_load(deps.storage, &namespace)?;
     let Some(account_id) = account_id else {
         return Ok(NamespaceResponse::Unclaimed {});
     };
@@ -191,7 +188,7 @@ pub fn handle_namespace_list_query(
     let start_bound = start_after.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
-    let namespaces = NAMESPACES_INFO
+    let namespaces = NAMESPACES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect::<StdResult<Vec<_>>>()?;

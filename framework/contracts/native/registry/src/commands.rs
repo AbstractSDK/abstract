@@ -494,15 +494,7 @@ fn claim_namespace_internal(
     namespace_to_claim: &str,
 ) -> VCResult<Option<CosmosMsg>> {
     // check if the account already has a namespace
-    let has_namespace = NAMESPACES_INFO
-        .idx
-        .account_id
-        .prefix(account_id.clone())
-        .range(storage, None, None, Order::Ascending)
-        .take(1)
-        .count()
-        == 1;
-    if has_namespace {
+    if REV_NAMESPACES.has(storage, &account_id) {
         return Err(RegistryError::ExceedsNamespaceLimit {
             limit: 1,
             current: 1,
@@ -524,13 +516,14 @@ fn claim_namespace_internal(
     };
 
     let namespace = Namespace::try_from(namespace_to_claim)?;
-    if let Some(id) = NAMESPACES_INFO.may_load(storage, &namespace)? {
+    if let Some(id) = NAMESPACES.may_load(storage, &namespace)? {
         return Err(RegistryError::NamespaceOccupied {
             namespace: namespace.to_string(),
             id,
         });
     }
-    NAMESPACES_INFO.save(storage, &namespace, &account_id)?;
+    NAMESPACES.save(storage, &namespace, &account_id)?;
+    REV_NAMESPACES.save(storage, &account_id, &namespace)?;
 
     Ok(fee_msg)
 }
@@ -543,7 +536,7 @@ pub fn forgo_namespace(deps: DepsMut, msg_info: MessageInfo, namespaces: Vec<Str
     let mut logs = vec![];
     for namespace in namespaces.iter() {
         let namespace = Namespace::try_from(namespace)?;
-        if !NAMESPACES_INFO.has(deps.storage, &namespace) {
+        if !NAMESPACES.has(deps.storage, &namespace) {
             return Err(RegistryError::UnknownNamespace { namespace });
         }
         if !is_admin {
@@ -565,12 +558,10 @@ pub fn forgo_namespace(deps: DepsMut, msg_info: MessageInfo, namespaces: Vec<Str
             YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
 
-        logs.push(format!(
-            "({}, {})",
-            namespace,
-            NAMESPACES_INFO.load(deps.storage, &namespace)?
-        ));
-        NAMESPACES_INFO.remove(deps.storage, &namespace)?;
+        let owner = NAMESPACES.load(deps.storage, &namespace)?;
+        logs.push(format!("({namespace}, {owner})"));
+        NAMESPACES.remove(deps.storage, &namespace);
+        REV_NAMESPACES.remove(deps.storage, &owner);
     }
 
     Ok(VcResponse::new(
@@ -643,7 +634,7 @@ pub fn validate_account_owner(
     sender: &Addr,
 ) -> Result<(), RegistryError> {
     let sender = sender.clone();
-    let account_id = NAMESPACES_INFO
+    let account_id = NAMESPACES
         .may_load(deps.storage, &namespace.clone())?
         .ok_or_else(|| RegistryError::UnknownNamespace {
             namespace: namespace.to_owned(),
@@ -958,9 +949,9 @@ mod tests {
             let res = execute_as(&mut deps, &abstr.owner, msg);
             assert_that!(&res).is_ok();
 
-            let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace1)?;
+            let account_id = NAMESPACES.load(&deps.storage, &new_namespace1)?;
             assert_that!(account_id).is_equal_to(FIRST_TEST_ACCOUNT_ID);
-            let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace2)?;
+            let account_id = NAMESPACES.load(&deps.storage, &new_namespace2)?;
             assert_that!(account_id).is_equal_to(SECOND_TEST_ACCOUNT_ID);
             Ok(())
         }
@@ -980,7 +971,7 @@ mod tests {
             let res = execute_as(&mut deps, &abstr.owner, msg);
             assert_that!(&res).is_ok();
 
-            let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace1)?;
+            let account_id = NAMESPACES.load(&deps.storage, &new_namespace1)?;
             assert_that!(account_id).is_equal_to(FIRST_TEST_ACCOUNT_ID);
 
             create_second_account(&mut deps);
@@ -1284,7 +1275,7 @@ mod tests {
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
             assert_that!(&res).is_ok();
-            let exists = NAMESPACES_INFO.has(&deps.storage, &new_namespace1);
+            let exists = NAMESPACES.has(&deps.storage, &new_namespace1);
             assert_that!(exists).is_equal_to(false);
 
             let msg = ExecuteMsg::ClaimNamespace {
@@ -1299,7 +1290,7 @@ mod tests {
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
             assert_that!(&res).is_ok();
-            let exists = NAMESPACES_INFO.has(&deps.storage, &new_namespace2);
+            let exists = NAMESPACES.has(&deps.storage, &new_namespace2);
             assert_that!(exists).is_equal_to(false);
             assert_eq!(
                 res.unwrap().events[0].attributes[2],

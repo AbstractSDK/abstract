@@ -90,7 +90,7 @@ mod test {
         AbstractSdkError, Execution, ExecutorMsg,
     };
 
-    #[test]
+    #[coverage_helper::test]
     fn split() -> Result<(), AbstractSdkError> {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);

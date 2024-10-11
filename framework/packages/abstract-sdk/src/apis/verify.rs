@@ -139,7 +139,6 @@ mod test {
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Coin};
-    use speculoos::prelude::*;
 
     struct MockBinding {}
 
