@@ -2,6 +2,7 @@ pub(crate) mod remote_account;
 mod remote_application;
 use std::collections::HashMap;
 
+use cosmwasm_std::Addr;
 use cw_orch_interchain::prelude::*;
 pub use remote_account::RemoteAccount;
 pub use remote_application::RemoteApplication;
@@ -74,5 +75,33 @@ impl<Chain: IbcQueryHandler> AbstractInterchainClient<Chain> {
             .cloned()
             .ok_or(InterchainError::ChainNotFound(chain_id.to_string()))
             .map_err(Into::into)
+    }
+}
+
+impl<Chain: IbcQueryHandler<Sender = Addr>> AbstractInterchainClient<Chain> {
+    /// Deploys and connects Abstract instances across all chains specified
+    /// Use [`AbstractInterchainClient::client`] to get a single abstract instance
+    pub fn deploy_mock<Interchain: InterchainEnv<Chain>>(
+        interchain: &Interchain,
+    ) -> AbstractClientResult<Self> {
+        // We deploy Abstract on all chains
+        let clients = interchain
+            .chains()
+            .map(|chain| AbstractClient::builder(chain.clone()).build_mock())
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // We connect all chains together
+        for i in 0..clients.len() {
+            for j in i + 1..clients.len() {
+                clients[i].connect_to(&clients[j], interchain)?;
+            }
+        }
+
+        Ok(AbstractInterchainClient {
+            clients: clients
+                .into_iter()
+                .map(|c| (c.environment().chain_id(), c))
+                .collect(),
+        })
     }
 }
