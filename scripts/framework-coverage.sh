@@ -12,7 +12,7 @@ if [ ! -f Cargo.lock ]; then
   cargo generate-lockfile
 fi
 
-cargo +nightly llvm-cov --all-features --workspace --locked --lcov --output-path lcov.info
+cargo +nightly llvm-cov --all-features --workspace --locked --ignore-filename-regex error --lcov --output-path lcov.info
 
 # print the result.
 ls -la .
