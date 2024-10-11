@@ -529,9 +529,19 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
 
     pub(crate) fn ibc_client_execute(
         &self,
-        exec_msg: ibc_client::ExecuteMsg,
+        msg: ibc_client::ExecuteMsg,
     ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
-        let msg = account::ExecuteMsg::IbcAction { msg: exec_msg };
+        let exec_msg = to_json_binary(&msg).unwrap();
+        let funds = if let ibc_client::ExecuteMsg::SendFunds { funds, .. } = msg {
+            funds
+        } else {
+            vec![]
+        };
+        let msg = account::ExecuteMsg::ExecuteOnModule {
+            module_id: IBC_CLIENT.to_owned(),
+            exec_msg,
+            funds,
+        };
 
         let tx_response = self.abstr_owner_account.execute(&msg, &[])?;
         let packets = self

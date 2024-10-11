@@ -25,7 +25,6 @@ use cosmwasm_std::{
     IbcMsg, MessageInfo, QueryRequest, WasmQuery,
 };
 use cw_storage_plus::Item;
-use prost::Name;
 
 use crate::{
     contract::{IbcClientResponse, IbcClientResult},
@@ -425,18 +424,11 @@ fn _ics_20_send_msg(
         Some(memo) => {
             // If we have memo need to send it with stargate
             // TODO: Remove when possible, cosmwasm-std 2.0.0+ supports memo
-            use ibc_proto::{
-                cosmos::base::v1beta1::Coin, ibc::applications::transfer::v1::MsgTransfer,
-            };
-            use prost::Message;
 
-            let value = MsgTransfer {
+            let value = crate::anybuf::ibc::MsgTransfer {
                 source_port: "transfer".to_string(), // ics20 default
                 source_channel: ics20_channel_id,
-                token: Some(Coin {
-                    denom: coin.denom,
-                    amount: coin.amount.to_string(),
-                }),
+                token: Some(coin.into()),
                 sender: env.contract.address.to_string(),
                 receiver,
                 timeout_height: None,
@@ -444,11 +436,11 @@ fn _ics_20_send_msg(
                 memo,
             };
 
-            let value = value.encode_to_vec();
+            let value = value.to_anybuf().into_vec();
             let value = Binary::from(value);
             #[allow(deprecated)]
             CosmosMsg::Stargate {
-                type_url: MsgTransfer::type_url(),
+                type_url: crate::anybuf::ibc::MsgTransfer::type_url(),
                 value,
             }
         }

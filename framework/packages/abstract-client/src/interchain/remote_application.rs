@@ -47,6 +47,7 @@ impl<
     pub fn execute(
         &self,
         execute: &M::ExecuteMsg,
+        funds: Vec<Coin>,
     ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
         self.remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
@@ -55,6 +56,7 @@ impl<
                     account_msgs: vec![account::ExecuteMsg::ExecuteOnModule {
                         module_id: M::module_id().to_owned(),
                         exec_msg: to_json_binary(execute).map_err(AbstractInterfaceError::from)?,
+                        funds,
                     }],
                 },
             })
@@ -99,6 +101,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chai
                     },
                 ))
                 .map_err(Into::<CwOrchError>::into)?,
+                funds: vec![],
             })
         }
 

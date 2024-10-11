@@ -23,25 +23,7 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
         networks = SUPPORTED_CHAINS.iter().map(|x| x.clone().into()).collect();
     }
 
-    // let deployment_status = read_deployment()?;
-    // if deployment_status.success {
-    //     log::info!("Do you want to re-deploy to {:?}?", networks);
-    //     let mut input = String::new();
-    //     std::io::stdin().read_line(&mut input)?;
-    //     if input.to_lowercase().contains('n') {
-    //         return Ok(());
-    //     }
-    // }
-    // let deployment_status = deployment_status.clone();
-
-    // If some chains need to be deployed, deploy them
-    // if !deployment_status.chain_ids.is_empty() {
-    //     networks = deployment_status.chain_ids.into_iter().map(|n| parse_network(&n)).collect();
-    // }
-
     let networks = rt.block_on(assert_wallet_balance(networks));
-
-    // write_deployment(&deployment_status)?;
 
     for network in networks {
         let chain = DaemonBuilder::new(network.clone())
@@ -73,29 +55,6 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
 
     // fs::copy(Path::new("~/.cw-orchestrator/state.json"), to)
     Ok(())
-}
-
-#[allow(dead_code)]
-fn write_deployment(status: &DeploymentStatus) -> anyhow::Result<()> {
-    let path = dirs::home_dir()
-        .unwrap()
-        .join(".cw-orchestrator")
-        .join("chains.json");
-    let status_str = serde_json::to_string_pretty(status)?;
-    fs::write(path, status_str)?;
-    Ok(())
-}
-
-fn read_deployment() -> anyhow::Result<DeploymentStatus> {
-    let path = dirs::home_dir()
-        .unwrap()
-        .join(".cw-orchestrator")
-        .join("chains.json");
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-
-    // Read the JSON contents of the file as an instance of `DeploymentStatus`. If not present use default.
-    Ok(serde_json::from_reader(reader).unwrap_or_default())
 }
 
 #[derive(Parser, Default, Debug)]

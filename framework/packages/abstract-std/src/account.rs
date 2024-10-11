@@ -16,7 +16,7 @@
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::account` as module.
 //!
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Binary, CosmosMsg, Empty};
+use cosmwasm_std::{Binary, Coin, CosmosMsg, Empty};
 
 use crate::objects::{
     gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
@@ -143,6 +143,8 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     ExecuteOnModule {
         module_id: String,
         exec_msg: Binary,
+        /// Funds attached from account to the module
+        funds: Vec<Coin>,
     },
     /// Execute a Wasm Message with Account Admin privileges
     AdminExecute {
@@ -153,11 +155,6 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     AdminExecuteOnModule {
         module_id: String,
         msg: Binary,
-    },
-
-    /// Execute IBC action on Client
-    IbcAction {
-        msg: crate::ibc_client::ExecuteMsg,
     },
     /// Queries the Abstract Ica Client with the provided action query.
     /// Provides access to different ICA implementations for different ecosystems.

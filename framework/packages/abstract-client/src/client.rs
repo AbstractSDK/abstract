@@ -90,7 +90,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// use cw_orch::prelude::*;
     ///
     /// let registry = client.registry();
-    /// let vc_module = registry.module(ModuleInfo::from_id_latest("abstract:version-control")?)?;
+    /// let vc_module = registry.module(ModuleInfo::from_id_latest("abstract:registry")?)?;
     /// assert_eq!(vc_module.reference, ModuleReference::Native(registry.address()?));
     /// # Ok::<(), AbstractClientError>(())
     /// ```

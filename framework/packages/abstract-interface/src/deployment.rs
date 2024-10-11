@@ -56,7 +56,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         let ibc_infra = AbstractIbc::new(&chain);
 
-        blob.upload()?;
+        blob.upload_if_needed()?;
         ans_host.upload()?;
         registry.upload()?;
         module_factory.upload()?;
@@ -118,8 +118,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 },
             ),
             blob_code_id,
-            expected_addr(native_addrs::VERSION_CONTROL_SALT)?,
-            Binary::from(native_addrs::VERSION_CONTROL_SALT),
+            expected_addr(native_addrs::REGISTRY_SALT)?,
+            Binary::from(native_addrs::REGISTRY_SALT),
         )?;
         deployment.module_factory.deterministic_instantiate(
             &abstract_std::module_factory::MigrateMsg::Instantiate(
@@ -355,8 +355,8 @@ mod test {
     fn have_some_state() {
         State::get("state.json").unwrap();
         let state = State::load_state();
-        let vc_juno = &state["juno-1"]["code_ids"].get(REGISTRY);
-        assert!(vc_juno.is_some());
+        let ans_neutron_testnet = &state["pion-1"]["code_ids"].get(ANS_HOST);
+        assert!(ans_neutron_testnet.is_some());
     }
 
     #[test]
@@ -376,10 +376,7 @@ mod test {
 
         // REGISTRY
         let registry = api.addr_canonicalize(&abstr.registry.addr_str()?)?;
-        assert_eq!(
-            registry,
-            native_addrs::version_control_address(prefix, api)?
-        );
+        assert_eq!(registry, native_addrs::registry_address(prefix, api)?);
 
         // MODULE_FACTORY
         let module_factory = api.addr_canonicalize(&abstr.module_factory.addr_str()?)?;
