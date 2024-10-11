@@ -270,7 +270,6 @@ pub enum QueryMsg {
     Ownership {},
 
     /// Query the pubkey associated with this account.
-    // TODO: return type?
     #[returns(Binary)]
     AuthenticatorByID { id: u8 },
     /// Query the pubkey associated with this account.

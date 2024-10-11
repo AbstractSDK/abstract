@@ -108,7 +108,6 @@ fn handle_local_request(
 }
 
 /// Handle an adapter request that can be executed on an IBC chain
-/// TODO, this doesn't work as is, would have to change this for working with IBC hooks
 fn handle_ibc_request(
     deps: &DepsMut,
     env: &Env,
@@ -117,7 +116,7 @@ fn handle_ibc_request(
     dex_name: DexName,
     action: &DexAction,
 ) -> DexResult {
-    let host_chain = TruncatedChainId::from_string(dex_name.clone())?; // TODO, this is faulty
+    let host_chain = TruncatedChainId::from_string(dex_name.clone())?;
 
     let ans = module.name_service(deps.as_ref(), env);
     let ibc_client = module.ibc_client(deps.as_ref(), env);

@@ -85,7 +85,7 @@ impl UserDeposit<'_> {
 
 pub struct DepositManager {
     total_deposits: Item<Deposit>,
-    user_deposits: UserDeposit<'static>, // TODO: Check if lifetime can be improved
+    user_deposits: UserDeposit<'static>,
 }
 
 impl DepositManager {
