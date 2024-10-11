@@ -75,12 +75,14 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_std::objects::AnsAsset;
+    use abstract_std::objects::{AnsAsset, AssetEntry};
     use abstract_testing::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{
+        coins,
         testing::{mock_dependencies, mock_env},
-        Addr, CosmosMsg, Response, StdError, Uint128,
+        Addr, BankMsg, CosmosMsg, Empty, Response, StdError, SubMsg, Uint128, WasmMsg,
     };
+    use cw_asset::AssetInfo;
 
     use crate::{
         apis::{splitter::SplitterInterface, traits::test::abstract_api_test},
@@ -88,34 +90,69 @@ mod test {
         AbstractSdkError, Execution, ExecutorMsg,
     };
 
-    fn split() -> Result<Response, AbstractSdkError> {
+    #[test]
+    fn split() -> Result<(), AbstractSdkError> {
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
         let account = test_account(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
             .account(&account, TEST_ACCOUNT_ID)
+            .assets(vec![(&AssetEntry::new("usd"), AssetInfo::native("usd"))])
             .build();
         let module = MockModule::new(deps.api, account.clone());
-        // ANCHOR: usage
-        let asset = AnsAsset {
-            amount: Uint128::from(100u128),
-            name: "usd".into(),
+        let receiver1 = deps.api.addr_make("receiver1");
+        let receiver2 = deps.api.addr_make("receiver2");
+        let receiver3 = deps.api.addr_make("receiver3");
+        let usage_anchor: Result<Response, AbstractSdkError> = {
+            // ANCHOR: usage
+            let asset = AnsAsset {
+                amount: Uint128::from(100u128),
+                name: "usd".into(),
+            };
+
+            let receivers = vec![receiver1, receiver2, receiver3];
+
+            let split_funds = module
+                .splitter(deps.as_ref(), &env)
+                .split(asset, &receivers)?;
+            assert_eq!(split_funds.messages().len(), 3);
+
+            let msg: ExecutorMsg = module.executor(deps.as_ref()).execute(vec![split_funds])?;
+
+            Ok(Response::new().add_message(msg))
+            // ANCHOR_END: usage
         };
+        let response = usage_anchor.unwrap();
+        assert_eq!(
+            response.messages,
+            vec![SubMsg::new(WasmMsg::Execute {
+                contract_addr: account.addr().to_string(),
+                msg: to_json_binary(&abstract_std::account::ExecuteMsg::Execute::<Empty> {
+                    msgs: vec![
+                        BankMsg::Send {
+                            to_address: deps.api.addr_make("receiver1").to_string(),
+                            amount: coins(33, "usd")
+                        }
+                        .into(),
+                        BankMsg::Send {
+                            to_address: deps.api.addr_make("receiver2").to_string(),
+                            amount: coins(33, "usd")
+                        }
+                        .into(),
+                        BankMsg::Send {
+                            to_address: deps.api.addr_make("receiver3").to_string(),
+                            amount: coins(33, "usd")
+                        }
+                        .into()
+                    ]
+                })
+                .unwrap(),
+                funds: vec![]
+            })]
+        );
 
-        let receivers = vec![
-            deps.api.addr_make("receiver1"),
-            deps.api.addr_make("receiver2"),
-            deps.api.addr_make("receiver3"),
-        ];
-
-        let split_funds = module
-            .splitter(deps.as_ref(), &mock_env_validated(deps.api))
-            .split(asset, &receivers)?;
-        assert_eq!(split_funds.messages().len(), 3);
-
-        let msg: ExecutorMsg = module.executor(deps.as_ref()).execute(vec![split_funds])?;
-
-        Ok(Response::new().add_message(msg))
-        // ANCHOR_END: usage
+        Ok(())
     }
 
     #[coverage_helper::test]
