@@ -371,7 +371,6 @@ pub fn execute_send_funds(
     env: Env,
     info: MessageInfo,
     host_chain: TruncatedChainId,
-    funds: Vec<Coin>,
     memo: Option<String>,
 ) -> IbcClientResult {
     host_chain.verify()?;
@@ -397,7 +396,7 @@ pub fn execute_send_funds(
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;
 
     let mut transfers: Vec<CosmosMsg> = vec![];
-    for coin in funds {
+    for coin in info.funds.into_iter() {
         // construct a packet to send
 
         let ics_20_send = _ics_20_send_msg(

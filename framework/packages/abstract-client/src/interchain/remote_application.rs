@@ -59,7 +59,7 @@ impl<
                         funds,
                     }],
                 },
-            })
+            }, vec![])
     }
 
     /// Queries request on  application
@@ -110,7 +110,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chai
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain_id(),
                 action: ibc_host::HostAction::Dispatch { account_msgs },
-            })?;
+            }, vec![])?;
         Ok(())
     }
 }
