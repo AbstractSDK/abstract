@@ -421,9 +421,6 @@ fn _ics_20_send_msg(
 ) -> CosmosMsg {
     match memo {
         Some(memo) => {
-            // If we have memo need to send it with stargate
-            // TODO: Remove when possible, cosmwasm-std 2.0.0+ supports memo
-
             let value = crate::anybuf::ibc::MsgTransfer {
                 source_port: "transfer".to_string(), // ics20 default
                 source_channel: ics20_channel_id,
