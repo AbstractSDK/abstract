@@ -45,7 +45,7 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         Ok(ModuleRegistry {
             base: self,
             deps,
-            vc,
+            registry: vc,
         })
     }
 }
@@ -83,7 +83,7 @@ impl<'a, T: ModuleRegistryInterface> AbstractApi<T> for ModuleRegistry<'a, T> {
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
     base: &'a T,
     deps: Deps<'a>,
-    vc: RegistryContract,
+    registry: RegistryContract,
 }
 
 impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
@@ -92,7 +92,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         &self,
         module_info: &ModuleInfo,
     ) -> AbstractSdkResult<ModuleReference> {
-        self.vc
+        self.registry
             .query_module_reference_raw(module_info, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
@@ -118,7 +118,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         &self,
         infos: Vec<ModuleInfo>,
     ) -> AbstractSdkResult<Vec<ModuleResponse>> {
-        self.vc
+        self.registry
             .query_modules_configs(infos, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
@@ -126,7 +126,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     /// Queries the account that owns the namespace
     /// Is also returns the base modules of that account (Account)
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
-        self.vc
+        self.registry
             .query_namespace(namespace, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
@@ -136,14 +136,14 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         &self,
         accounts: Vec<AccountId>,
     ) -> AbstractSdkResult<NamespacesResponse> {
-        self.vc
+        self.registry
             .query_namespaces(accounts, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Queries the module info of the standalone code id
     pub fn query_standalone_info_raw(&self, code_id: u64) -> AbstractSdkResult<ModuleInfo> {
-        self.vc
+        self.registry
             .query_standalone_info_raw(code_id, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
