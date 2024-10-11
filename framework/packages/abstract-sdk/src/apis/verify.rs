@@ -41,7 +41,7 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         Ok(AccountRegistry {
             base: self,
             deps,
-            vc,
+            registry: vc,
         })
     }
 }
@@ -79,34 +79,34 @@ impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
 pub struct AccountRegistry<'a, T: AccountVerification> {
     base: &'a T,
     deps: Deps<'a>,
-    vc: RegistryContract,
+    registry: RegistryContract,
 }
 
 impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided address is indeed an Abstract Account.
     pub fn assert_is_account(&self, maybe_account: &Addr) -> AbstractSdkResult<Account> {
-        self.vc
+        self.registry
             .assert_account(maybe_account, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Get the account for a given account id.
     pub fn account(&self, account_id: &AccountId) -> AbstractSdkResult<Account> {
-        self.vc
+        self.registry
             .account(account_id, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Get AccountId for given address.
     pub fn account_id(&self, maybe_account_contract_addr: &Addr) -> AbstractSdkResult<AccountId> {
-        self.vc
+        self.registry
             .account_id(maybe_account_contract_addr, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Get namespace registration fee
     pub fn namespace_registration_fee(&self) -> AbstractSdkResult<Option<cosmwasm_std::Coin>> {
-        self.vc
+        self.registry
             .namespace_registration_fee(&self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
@@ -135,10 +135,10 @@ mod test {
     use abstract_std::{
         account::state::ACCOUNT_ID,
         objects::{account::AccountTrace, module::ModuleId, registry::RegistryError},
-        registry::state::ACCOUNT_ADDRESSES,
+        registry::{self, state::ACCOUNT_ADDRESSES},
     };
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::*;
+    use cosmwasm_std::{testing::*, Coin};
     use speculoos::prelude::*;
 
     struct MockBinding {}
@@ -212,18 +212,18 @@ mod test {
                 .unwrap()
                 .assert_is_account(abstr.account.addr());
 
-            assert_that!(res)
-                .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
-                .matches(|e| {
-                    e.to_string().contains(
-                        &RegistryError::UnknownAccountId {
-                            account_id: TEST_ACCOUNT_ID,
-                            registry_addr: abstr.registry.clone(),
-                        }
-                        .to_string(),
-                    )
-                });
+            let expected_err = AbstractSdkError::ApiQuery {
+                api: AccountRegistry::<MockBinding>::api_id(),
+                module_id: binding.module_id().to_owned(),
+                error: Box::new(
+                    RegistryError::UnknownAccountId {
+                        account_id: TEST_ACCOUNT_ID,
+                        registry_addr: abstr.registry,
+                    }
+                    .into(),
+                ),
+            };
+            assert_eq!(res.unwrap_err(), expected_err);
         }
 
         #[coverage_helper::test]
@@ -231,26 +231,56 @@ mod test {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
             let account = test_account(deps.api);
-            let abstr = AbstractMockAddrs::new(deps.api);
 
-            deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(account.addr(), ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_entry(
-                    &abstr.registry,
-                    ACCOUNT_ADDRESSES,
-                    (&TEST_ACCOUNT_ID, account.clone()),
-                )
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding {};
 
-            let res = binding
-                .account_registry(deps.as_ref(), &env)
-                .unwrap()
-                .assert_is_account(account.addr());
+            let registry = binding.account_registry(deps.as_ref(), &env).unwrap();
+            let res = registry.assert_is_account(account.addr());
 
-            assert_that!(res).is_ok().is_equal_to(account);
+            assert_eq!(res, Ok(account.clone()));
+
+            let account_id = registry.account_id(account.addr());
+            assert_eq!(account_id, Ok(TEST_ACCOUNT_ID));
         }
+    }
+
+    #[coverage_helper::test]
+    fn namespace_fee() {
+        let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
+
+        deps.querier = abstract_mock_querier(deps.api);
+
+        let binding = MockBinding {};
+
+        // Namespace registration fee query
+        {
+            let registry = binding.account_registry(deps.as_ref(), &env).unwrap();
+            let res = registry.namespace_registration_fee();
+
+            assert_eq!(res, Ok(None));
+        }
+
+        let abstr = AbstractMockAddrs::new(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .with_contract_item(
+                &abstr.registry,
+                registry::state::CONFIG,
+                &registry::Config {
+                    security_disabled: true,
+                    namespace_registration_fee: Some(Coin::new(42_u128, "foo")),
+                },
+            )
+            .build();
+
+        let registry = binding.account_registry(deps.as_ref(), &env).unwrap();
+        let res = registry.namespace_registration_fee();
+
+        assert_eq!(res, Ok(Some(Coin::new(42_u128, "foo"))));
     }
 
     #[coverage_helper::test]
