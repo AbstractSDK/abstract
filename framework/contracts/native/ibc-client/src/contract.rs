@@ -673,7 +673,12 @@ mod tests {
             };
 
             let env = mock_env_validated(deps.api);
-            let res = execute(deps.as_mut(), env, message_info(account.addr(), &funds.clone()), msg)?;
+            let res = execute(
+                deps.as_mut(),
+                env,
+                message_info(account.addr(), &funds.clone()),
+                msg,
+            )?;
 
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()

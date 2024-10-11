@@ -351,12 +351,15 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
                     .map_err(Into::<CwOrchError>::into)?,
             ),
         )];
-        self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-            host_chain: self.host_chain_id(),
-            action: ibc_host::HostAction::Dispatch {
-                account_msgs: vec![account::ExecuteMsg::Upgrade { modules }],
+        self.ibc_client_execute(
+            ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: self.host_chain_id(),
+                action: ibc_host::HostAction::Dispatch {
+                    account_msgs: vec![account::ExecuteMsg::Upgrade { modules }],
+                },
             },
-        }, vec![])
+            vec![],
+        )
     }
 
     /// Returns owner of the account
@@ -391,10 +394,13 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         &self,
         account_msgs: Vec<account::ExecuteMsg>,
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-            host_chain: self.host_chain_id(),
-            action: ibc_host::HostAction::Dispatch { account_msgs },
-        }, vec![])
+        self.ibc_client_execute(
+            ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: self.host_chain_id(),
+                action: ibc_host::HostAction::Dispatch { account_msgs },
+            },
+            vec![],
+        )
     }
 
     /// Queries a module on the account.
@@ -511,12 +517,15 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         &self,
         modules: Vec<ModuleInstallConfig>,
     ) -> AbstractClientResult<RemoteApplication<Chain, IBC, M>> {
-        let _ = self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-            host_chain: self.host_chain_id(),
-            action: ibc_host::HostAction::Dispatch {
-                account_msgs: vec![account::ExecuteMsg::InstallModules { modules }],
+        let _ = self.ibc_client_execute(
+            ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: self.host_chain_id(),
+                action: ibc_host::HostAction::Dispatch {
+                    account_msgs: vec![account::ExecuteMsg::InstallModules { modules }],
+                },
             },
-        }, vec![])?;
+            vec![],
+        )?;
 
         let module = self.module()?;
         RemoteApplication::new(self.clone(), module)

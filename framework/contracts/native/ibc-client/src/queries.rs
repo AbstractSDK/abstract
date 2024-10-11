@@ -5,7 +5,7 @@ use abstract_std::{
     ibc_client::{
         state::{ACCOUNTS, IBC_INFRA},
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
-        ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteAccountsResponse,
+        ListIbcInfrastructureResponse, ListRemoteAccountsResponse, ListRemoteHostsResponse,
     },
     objects::{
         account::{AccountSequence, AccountTrace},
