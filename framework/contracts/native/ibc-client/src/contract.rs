@@ -144,7 +144,7 @@ mod tests {
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies},
-        Addr,
+        Addr, Coin,
     };
     use cw2::CONTRACT;
     use cw_ownable::{Ownership, OwnershipError};
@@ -155,6 +155,16 @@ mod tests {
     fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> IbcClientResult {
         let env = mock_env_validated(deps.api);
         execute(deps.as_mut(), env, message_info(sender, &[]), msg)
+    }
+
+    fn execute_as_funds(
+        deps: &mut MockDeps,
+        sender: &Addr,
+        msg: ExecuteMsg,
+        funds: &[Coin],
+    ) -> IbcClientResult {
+        let env = mock_env_validated(deps.api);
+        execute(deps.as_mut(), env, message_info(sender, funds), msg)
     }
 
     fn test_only_admin(msg: ExecuteMsg) -> IbcClientTestResult {
@@ -603,7 +613,7 @@ mod tests {
             objects::{registry::RegistryError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
-        use cosmwasm_std::{coin, coins, Binary, CosmosMsg, IbcMsg};
+        use cosmwasm_std::{coins, Binary, CosmosMsg, IbcMsg};
         use prost::Name;
         use std::str::FromStr;
 
@@ -672,13 +682,7 @@ mod tests {
                 memo: None,
             };
 
-            let env = mock_env_validated(deps.api);
-            let res = execute(
-                deps.as_mut(),
-                env,
-                message_info(account.addr(), &funds.clone()),
-                msg,
-            )?;
+            let res = execute_as_funds(&mut deps, account.addr(), msg, &funds)?;
 
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()
@@ -711,7 +715,7 @@ mod tests {
                 memo: memo.clone(),
             };
 
-            let res = execute_as(&mut deps, account.addr(), msg)?;
+            let res = execute_as_funds(&mut deps, account.addr(), msg, &funds)?;
 
             use prost::Message;
             #[allow(deprecated)]
