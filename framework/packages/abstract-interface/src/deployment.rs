@@ -83,7 +83,17 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     ) -> Result<Self, AbstractInterfaceError> {
         let original_sender = chain.sender().clone();
         chain.set_sender(deploy_data);
-        let admin = chain.sender_addr().to_string();
+
+        // Ensure we have expected sender address
+        let sender_addr = chain.sender_addr();
+        let hrp = sender_addr.as_str().split_once("1").unwrap().0;
+        assert_eq!(
+            sender_addr.as_str(),
+            native_addrs::creator_address(hrp)?,
+            "Only predetermined abstract admin can deploy abstract contracts, see `native_addrs.rs`"
+        );
+
+        let admin = sender_addr.to_string();
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
