@@ -88,6 +88,7 @@ fn handle_ibc_request(
                     }
                     .into(),
                 )?,
+                funds: vec![],
             },
         ],
     };

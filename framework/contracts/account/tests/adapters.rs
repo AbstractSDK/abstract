@@ -323,6 +323,7 @@ fn account_adapter_exec() -> AResult {
     account.execute_on_module(
         TEST_MODULE_ID,
         Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
+        vec![],
     )?;
 
     Ok(())

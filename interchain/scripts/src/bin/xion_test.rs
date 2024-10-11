@@ -8,7 +8,7 @@ use abstract_std::{
     ACCOUNT,
 };
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
-use cosmwasm_std::{to_json_binary, Binary};
+use cosmwasm_std::{coins, to_json_binary, Binary};
 use cosmwasm_std::{to_json_vec, Addr};
 use cw_orch::{
     daemon::{networks::xion::XION_NETWORK, Daemon, TxSender, RUNTIME},
@@ -64,21 +64,29 @@ pub const LOCAL_XION: ChainInfo = ChainInfo {
 
 fn main() -> anyhow::Result<()> {
     set_var("RUST_LOG", "info");
+    dotenv::dotenv()?;
     env_logger::init();
 
     let xiond = Daemon::builder(LOCAL_XION)
-        .build_sender(CosmosOptions::default().mnemonic(LOCAL_MNEMONIC))?;
+        .mnemonic(LOCAL_MNEMONIC)
+        .build()?;
 
     let wallet = xiond.sender();
 
-    let abstract_sender = xiond.rt_handle.block_on(CosmosSender::from_mnemonic(
+    let abstract_sender = xiond.rt_handle.block_on(CosmosSender::new(
         &Arc::new(xiond.chain_info().to_owned()),
-        JUNO_MNEMONIC,
+        CosmosOptions::default(),
     ))?;
+    xiond.rt_handle.block_on(wallet.bank_send(
+        &abstract_sender.address(),
+        coins(1_000_000_000_000, "uxion"),
+    ))?;
+
     let abstr = AbstractClient::new(xiond.clone())
         .or_else(|_| AbstractClient::builder(xiond.clone()).build(abstract_sender));
 
     let abstr = abstr?;
+    // Create the Abstract Account because it's needed for the fees for the dex module
     let maybe_account = abstr.account_from(Namespace::new("test")?);
 
     println!("Wallet Addr: {}", wallet.pub_addr_str());

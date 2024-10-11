@@ -1,33 +1,22 @@
 {
   "pion-1": {
     "code_ids": {
-      "abstract:account": 7200,
-      "abstract:account-factory": 5560,
-      "abstract:ans-host": 7197,
-      "abstract:challenge": 4845,
-      "abstract:cw-staking": 5568,
-      "abstract:dca": 4844,
-      "abstract:dex": 4841,
-      "abstract:etf": 5570,
-      "abstract:ibc-client": 7201,
-      "abstract:ibc-host": 7202,
-      "abstract:module-factory": 7199,
-      "abstract:money-market": 5569,
-      "abstract:version-control": 7198,
-      "cw:blob": 7196
+      "abstract:account": 7403,
+      "abstract:ans-host": 7400,
+      "abstract:ibc-client": 7404,
+      "abstract:ibc-host": 7405,
+      "abstract:module-factory": 7402,
+      "abstract:registry": 7401,
+      "cw:blob": 7399
     },
     "default": {
-      "abstract:account-factory": "neutron120t0zkewul37gfuurtlvf8j7a5ekp8eq48xjf4s54z5c7mve0mxsk3zuyu",
-      "abstract:account-local-0": "neutron1u0fmqvqhurjxa662xqt8vs8nhlgvc65360wqntj04re7uvqwytfs6nq54a",
-      "abstract:account-local-1": "neutron1v48g7ehduymkj289ceh2j6yqr6d7rgynm57kptx7fgagyq8vpkuqc7d3xr",
-      "abstract:ans-host": "neutron1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4q5t2jm5",
-      "abstract:cw-staking": "neutron1nryquq9q0fqxq29srquqlg47pte3sv833ln6ykxgxm048jklpwyq759myt",
-      "abstract:dex": "neutron1vwfanzccg2fw2nf37zl5m25puc5rc5e79pfs7vzqq76q7hqu4mdqkuwa4a",
-      "abstract:ibc-client": "neutron1l487rfqw2yevhvh4c3dw706mdy9u703zsawq7xt4h9e0h9up9fgqvynt0x",
-      "abstract:ibc-host": "neutron1dtw8lua8qpav6x3sngqwd3xqmyvg5q0pnv2lkmajzk0rjkjetm2sgndp44",
-      "abstract:module-factory": "neutron1wzrl9hf8xukhu7ukx5quted5m5c2vklmr70tg88a0zkduts7f0sqr3axl7",
-      "abstract:money-market": "neutron1krttzmecnrta5fpmt6ktr8czdlteccyeyfr9g8y6pz2kk5at78dqqszas2",
-      "abstract:version-control": "neutron1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsasd7eejm"
+      "abstract:account-local-0": "neutron12x9fcuwl382vv9l22dkcvcx6uxpeqy9rq5fe3jt8cgvqkyjnj2hs5da0m4",
+      "abstract:account-local-1": "neutron1mxahhvpj467088td8lvysyw7m8v880tzls0sxk0zuljn6tsufqksy8whnv",
+      "abstract:ans-host": "neutron1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsdn69ty",
+      "abstract:ibc-client": "neutron1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqf33ujf",
+      "abstract:ibc-host": "neutron1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqs6g6lrh",
+      "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
+      "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7"
     }
   }
 }

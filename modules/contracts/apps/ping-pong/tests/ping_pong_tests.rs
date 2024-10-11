@@ -191,6 +191,7 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
             opponent_chain: TruncatedChainId::from_chain_id(JUNO),
         }
         .into(),
+        vec![],
     )?;
 
     // stargaze wins, juno lost.
@@ -206,6 +207,7 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
             opponent_chain: TruncatedChainId::from_chain_id(JUNO),
         }
         .into(),
+        vec![],
     )?;
 
     // juno won, stargaze lost.

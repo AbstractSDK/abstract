@@ -111,7 +111,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
 ///   - "admin" -> TEST_OWNER
 ///   - "modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
 ///   - "account_id" -> ABSTRACT_ACCOUNT_ID
-/// - TEST_VERSION_CONTROL
+/// - REGISTRY
 ///   - "account" -> { ABSTRACT_ACCOUNT }
 pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
     abstract_mock_querier_builder(mock_api).build()
@@ -160,7 +160,7 @@ pub mod addresses {
                     .addr_humanize(&native_addrs::ans_address(hrp, &mock_api).unwrap())
                     .unwrap(),
                 registry: mock_api
-                    .addr_humanize(&native_addrs::version_control_address(hrp, &mock_api).unwrap())
+                    .addr_humanize(&native_addrs::registry_address(hrp, &mock_api).unwrap())
                     .unwrap(),
                 module_factory: mock_api
                     .addr_humanize(&native_addrs::module_factory_address(hrp, &mock_api).unwrap())
