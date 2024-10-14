@@ -4,7 +4,7 @@ use abstract_std::{
 };
 use cosmwasm_std::Binary;
 use cw_orch::prelude::*;
-use speculoos::prelude::*;
+use assertor::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 

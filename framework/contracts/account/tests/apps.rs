@@ -17,7 +17,7 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
 use cw_orch::prelude::*;
-use speculoos::prelude::*;
+use assertor::*;
 
 const APP_ID: &str = "tester:app";
 const APP_VERSION: &str = "1.0.0";

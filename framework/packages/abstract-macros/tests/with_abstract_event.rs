@@ -2,7 +2,7 @@
 mod tests {
     use abstract_macros::with_abstract_event;
     use cosmwasm_std::Response;
-    use speculoos::prelude::*;
+    use assertor::*;
 
     #[test]
     fn test_abstract_response() {

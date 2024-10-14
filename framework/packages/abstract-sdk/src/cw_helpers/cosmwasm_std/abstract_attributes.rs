@@ -39,7 +39,7 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
 
-    use speculoos::prelude::*;
+    use assertor::*;
 
     #[test]
     fn test_add_abstract_attributes_no_abstract_event() {

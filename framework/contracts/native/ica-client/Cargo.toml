@@ -38,7 +38,7 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true }
-speculoos = { workspace = true }
+assertor = { workspace = true }
 
 [profile.release]
 overflow-checks = true

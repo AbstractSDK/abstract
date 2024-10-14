@@ -490,7 +490,7 @@ mod test {
     use abstract_adapter::sdk::mock_module::MockModule;
     use abstract_adapter::std::adapter::AdapterRequestMsg;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
-    use speculoos::prelude::*;
+    use assertor::*;
 
     fn expected_request_with_test_account(
         request: MoneyMarketExecuteMsg,

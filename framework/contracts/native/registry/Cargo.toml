@@ -40,7 +40,7 @@ cosmwasm-schema = { workspace = true }
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true }
 anyhow = { workspace = true }
-speculoos = { workspace = true }
+assertor = { workspace = true }
 abstract-testing = { workspace = true }
 
 [profile.release]

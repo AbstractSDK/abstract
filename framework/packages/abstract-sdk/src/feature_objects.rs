@@ -47,7 +47,7 @@ impl crate::features::AbstractNameService for AnsHost {
 #[cfg(test)]
 mod tests {
     use abstract_testing::prelude::*;
-    use speculoos::prelude::*;
+    use assertor::*;
 
     use super::*;
 

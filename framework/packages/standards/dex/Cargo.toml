@@ -46,7 +46,7 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 abstract-interface = { workspace = true, features = ["daemon"] }
 semver = { workspace = true }
 anyhow = { workspace = true }
-speculoos = { workspace = true }
+assertor = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.11.3"
 clap = { workspace = true }

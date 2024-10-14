@@ -24,7 +24,7 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::coin;
 use cw2::ContractVersion;
 use cw_orch::prelude::*;
-use speculoos::prelude::*;
+use assertor::*;
 
 #[test]
 fn install_app_successful() -> AResult {

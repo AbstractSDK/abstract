@@ -51,7 +51,7 @@ cw-orch = { workspace = true }
 calendar-app = { path = ".", features = ["testing"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-client = { workspace = true, features = ["test-utils"] }
-speculoos = { workspace = true }
+assertor = { workspace = true }
 semver = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.11.3"

@@ -151,7 +151,7 @@ mod tests {
     };
     use cw2::CONTRACT;
     use cw_ownable::{Ownership, OwnershipError};
-    use speculoos::prelude::*;
+    use assertor::*;
 
     type IbcClientTestResult = Result<(), IbcClientError>;
 

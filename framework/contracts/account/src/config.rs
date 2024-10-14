@@ -127,9 +127,9 @@ mod tests {
     };
     use abstract_std::account::ExecuteMsg;
     use abstract_testing::prelude::*;
+    use assertor::*;
     use cosmwasm_std::{testing::*, Addr, StdError};
     use ownership::{GovAction, GovOwnershipError, GovernanceDetails};
-    use speculoos::prelude::*;
 
     mod set_owner_and_gov_type {
 
@@ -165,7 +165,7 @@ mod tests {
             });
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(res).is_err().matches(|err| {
+            assert_that!(res).err().matches(|err| {
                 matches!(
                     err,
                     AccountError::Ownership(GovOwnershipError::Abstract(
@@ -342,7 +342,7 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
+            assert_that!(&res).err().matches(|e| {
                 matches!(
                     e,
                     AccountError::Validation(ValidationError::TitleInvalidShort(_))
@@ -356,7 +356,7 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
+            assert_that!(&res).err().matches(|e| {
                 matches!(
                     e,
                     AccountError::Validation(ValidationError::TitleInvalidLong(_))
@@ -381,7 +381,7 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
+            assert_that!(&res).err().matches(|e| {
                 matches!(
                     e,
                     AccountError::Validation(ValidationError::LinkInvalidShort(_))
@@ -395,7 +395,7 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
+            assert_that!(&res).err().matches(|e| {
                 matches!(
                     e,
                     AccountError::Validation(ValidationError::LinkInvalidLong(_))
@@ -424,7 +424,7 @@ mod tests {
             let res = contract::execute(deps.as_mut(), env, message_info(&not_contract, &[]), msg);
 
             assert_that!(&res)
-                .is_err()
+                .err()
                 .matches(|err| matches!(err, AccountError::Std(StdError::GenericErr { .. })));
 
             Ok(())
@@ -471,7 +471,7 @@ mod tests {
             let res = execute_as(&mut deps, &owner, update_info_msg);
 
             assert_that!(&res)
-                .is_err()
+                .err()
                 .is_equal_to(AccountError::AccountSuspended {});
 
             Ok(())
@@ -539,14 +539,14 @@ mod tests {
             let res = execute_as(&mut deps, &bad_sender, msg.clone());
 
             assert_that!(&res)
-                .is_err()
+                .err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             let vc_res = execute_as(&mut deps, &abstr.registry, msg.clone());
-            assert_that!(&vc_res).is_err();
+            assert_that!(&vc_res).err();
 
             let owner_res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&owner_res).is_ok();
+            assert_that!(&owner_res).ok();
 
             Ok(())
         }

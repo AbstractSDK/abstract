@@ -350,7 +350,7 @@ mod test {
         abstract_testing::prelude::AbstractMockAddrs, sdk::mock_module::MockModule,
     };
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute, Addr};
-    use speculoos::prelude::*;
+    use assertor::*;
 
     pub const POOL: u64 = 1278734;
 
