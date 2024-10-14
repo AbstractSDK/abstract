@@ -120,8 +120,9 @@ mod tests {
         let res = modules_fn(&app, deps.as_ref());
 
         assert_that!(res)
-            .is_err()
-            .matches(|e| e.to_string().contains(&fake_module.to_string()));
+            .err()
+            .as_string()
+            .contains(&fake_module.to_string());
     }
 
     mod app_request {
@@ -152,7 +153,7 @@ mod tests {
             let expected_msg: app::ExecuteMsg<_> = app::ExecuteMsg::Module(MockModuleExecuteMsg {});
 
             assert_that!(res)
-                .is_ok()
+                .ok()
                 .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: abstr.module_address.into(),
                     msg: to_json_binary(&expected_msg).unwrap(),
@@ -184,7 +185,7 @@ mod tests {
             let res = mods.query::<_, String>(TEST_MODULE_ID, Empty {});
 
             assert_that!(res)
-                .is_ok()
+                .ok()
                 .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
     }

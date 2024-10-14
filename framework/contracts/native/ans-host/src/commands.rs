@@ -1273,10 +1273,10 @@ mod test {
             let expected_pairing_count = 20;
 
             let actual_pairings = load_asset_pairings(&deps.storage)?;
-            assert_that!(&actual_pairings).has_length(expected_pairing_count);
+            assert_that!(actual_pairings).has_length(expected_pairing_count);
 
             for (_pairing, ref_vec) in actual_pairings {
-                assert_that!(&ref_vec).has_length(1);
+                assert_that!(ref_vec).has_length(1);
                 // check the pool id is correct
                 assert_that!(&UncheckedPoolAddress::from(&ref_vec[0].pool_address))
                     .is_equal_to(&unchecked_pool_id);
@@ -1302,14 +1302,14 @@ mod test {
 
             let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
-            assert_that!(&res)
+            assert_that!(res)
                 .err()
                 .is_equal_to(AnsHostError::UnregisteredDex {
                     dex: unregistered_dex.into(),
                 });
 
             let actual_pools = load_pool_metadata(&deps.storage)?;
-            assert_that!(&actual_pools).is_empty();
+            assert_that!(actual_pools).is_empty();
 
             Ok(())
         }

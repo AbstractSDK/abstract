@@ -80,7 +80,7 @@ fn create_one_account() -> AResult {
 
     let account_list = registry.account(TEST_ACCOUNT_ID)?;
 
-    assert_that!(&account_list.account.into()).is_equal_to(Account::new(account));
+    assert_that!(Account::new(account)).is_equal_to(account_list.account.into());
 
     Ok(())
 }
@@ -285,7 +285,7 @@ fn create_one_account_with_namespace() -> AResult {
         .registry
         .namespace(Namespace::new(namespace_to_claim)?)?;
 
-    assert_that!(&namespace).is_equal_to(NamespaceResponse::Claimed(NamespaceInfo {
+    assert_that!(namespace).is_equal_to(NamespaceResponse::Claimed(NamespaceInfo {
         account_id: TEST_ACCOUNT_ID,
         account: Account::new(Addr::unchecked(account_addr)),
     }));

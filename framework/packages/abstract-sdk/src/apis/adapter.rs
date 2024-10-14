@@ -106,8 +106,8 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
 mod tests {
 
     use abstract_testing::prelude::*;
+    use assertor::*;
     use cosmwasm_std::*;
-    use speculoos::{assert_that, result::ResultAssertions};
 
     use super::*;
     use crate::mock_module::*;
@@ -123,8 +123,9 @@ mod tests {
         let res = modules_fn(&app, deps.as_ref());
 
         assert_that!(res)
-            .is_err()
-            .matches(|e| e.to_string().contains(&fake_module.to_string()));
+            .err()
+            .as_string()
+            .contains(&fake_module.to_string());
     }
     mod adapter_request {
         use super::*;
@@ -158,7 +159,7 @@ mod tests {
                 });
 
             assert_that!(res)
-                .is_ok()
+                .ok()
                 .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: abstr.module_address.to_string(),
                     msg: to_json_binary(&expected_msg).unwrap(),
@@ -192,7 +193,7 @@ mod tests {
             let res = mods.query::<_, String>(TEST_MODULE_ID, inner_msg);
 
             assert_that!(res)
-                .is_ok()
+                .ok()
                 .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
     }

@@ -3,7 +3,7 @@ use abstract_interface::{Abstract, AccountI, AccountQueryFns};
 use abstract_std::IBC_CLIENT;
 use anyhow::bail;
 use cw_orch::prelude::*;
-use speculoos::{assert_that, result::ResultAssertions};
+use assertor::*;
 
 pub fn ibc_client_installed<Chain: CwEnv>(account: &AccountI<Chain>) -> AResult {
     let ibc_addr = account.module_addresses(vec![IBC_CLIENT.to_string()])?;
@@ -23,7 +23,7 @@ fn throws_if_enabling_when_already_enabled() -> AResult {
     account.set_ibc_status(true)?;
     let res = account.set_ibc_status(true);
 
-    assert_that!(&res).is_err();
+    assert_that!(res).is_err();
 
     Ok(())
 }
@@ -37,7 +37,7 @@ fn throws_if_disabling_without_ibc_client_installed() -> AResult {
 
     let res = account.set_ibc_status(false);
 
-    assert_that!(&res).is_err();
+    assert_that!(res).is_err();
 
     Ok(())
 }

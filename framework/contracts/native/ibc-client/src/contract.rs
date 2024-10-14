@@ -166,9 +166,9 @@ mod tests {
         let not_admin = deps.api.addr_make("not_admin");
 
         let res = execute_as(&mut deps, &not_admin, msg);
-        assert_that!(&res)
-            .is_err()
-            .matches(|e| matches!(e, IbcClientError::Ownership(OwnershipError::NotOwner)));
+        assert_that!(res)
+            .err()
+            .is_equal_to(IbcClientError::Ownership(OwnershipError::NotOwner));
 
         Ok(())
     }
@@ -214,7 +214,7 @@ mod tests {
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
-                .is_err()
+                .err()
                 .is_equal_to(IbcClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: IBC_CLIENT.to_string(),
@@ -240,7 +240,7 @@ mod tests {
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
-                .is_err()
+                .err()
                 .is_equal_to(IbcClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: IBC_CLIENT.to_string(),
@@ -265,7 +265,7 @@ mod tests {
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
-                .is_err()
+                .err()
                 .is_equal_to(IbcClientError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
@@ -343,9 +343,9 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::HostAddressExists {}));
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::HostAddressExists {});
 
             Ok(())
         }
@@ -492,12 +492,12 @@ mod tests {
 
             let res = execute_as(&mut deps, &not_account, msg);
 
-            assert_that!(res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    IbcClientError::RegistryError(RegistryError::NotAccount(..))
-                )
-            });
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::RegistryError(RegistryError::NotAccount(
+                    not_account,
+                    TEST_ACCOUNT_ID,
+                )));
             Ok(())
         }
 
@@ -526,8 +526,8 @@ mod tests {
             let res = execute_as(&mut deps, account.addr(), msg);
 
             assert_that!(res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::ForbiddenInternalCall {}));
+                .err()
+                .is_equal_to(IbcClientError::ForbiddenInternalCall {});
             Ok(())
         }
 
@@ -791,12 +791,12 @@ mod tests {
 
             let res = execute_as(&mut deps, &not_account, msg);
 
-            assert_that!(res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    IbcClientError::RegistryError(RegistryError::NotAccount(..))
-                )
-            });
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::RegistryError(RegistryError::NotAccount(
+                    not_account,
+                    TEST_ACCOUNT_ID,
+                )));
             Ok(())
         }
 
@@ -976,9 +976,9 @@ mod tests {
 
             let res = execute_as(&mut deps, &note_addr, msg);
 
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::Unauthorized { .. }));
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::Unauthorized {});
 
             Ok(())
         }
@@ -1004,9 +1004,9 @@ mod tests {
             let not_note = deps.api.addr_make("not_note");
             let res = execute_as(&mut deps, &not_note, msg);
 
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::Unauthorized { .. }));
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::Unauthorized {});
 
             Ok(())
         }
@@ -1032,9 +1032,9 @@ mod tests {
 
             let res = execute_as(&mut deps, &note_addr, msg);
 
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::UnregisteredChain { .. }));
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::UnregisteredChain(TEST_CHAIN.to_string()));
 
             Ok(())
         }
@@ -1069,9 +1069,9 @@ mod tests {
 
             let res = execute_as(&mut deps, &note_addr, msg);
 
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::IbcFailed(callback_msg));
 
             Ok(())
         }
@@ -1152,9 +1152,9 @@ mod tests {
 
             let res = execute_as(&mut deps, &note_addr, msg);
 
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::IbcFailed(callback_msg));
 
             Ok(())
         }
@@ -1190,9 +1190,9 @@ mod tests {
 
             let res = execute_as(&mut deps, &note_addr, msg);
 
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::IbcFailed(callback_msg));
 
             Ok(())
         }
@@ -1228,9 +1228,9 @@ mod tests {
 
             let res = execute_as(&mut deps, &note_addr, msg);
 
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+            assert_that!(res)
+                .err()
+                .is_equal_to(IbcClientError::IbcFailed(callback_msg));
 
             Ok(())
         }

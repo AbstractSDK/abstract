@@ -19,10 +19,10 @@ use abstract_std::{
     *,
 };
 use abstract_testing::prelude::*;
+use assertor::*;
 use cosmwasm_std::{coin, coins};
 use cw_orch::prelude::*;
 use mock_modules::{adapter_1, V1, V2};
-use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
@@ -35,7 +35,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
-    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
+    assert_that!(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -148,7 +148,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
 
     // assert account module
     // check staking adapter
-    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
+    assert_that!(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -160,8 +160,9 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
     // install again
     let second_install_res = install_adapter(&account, TEST_MODULE_ID);
     assert_that!(second_install_res)
-        .is_err()
-        .matches(|e| e.to_string().contains("test-module-id"));
+        .err()
+        .as_string()
+        .contains("test-module-id");
 
     account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
@@ -181,7 +182,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
     // check staking adapter
-    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
+    assert_that!(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
@@ -226,7 +227,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let modules = account.expect_modules(vec![adapter1.address()?.to_string()])?;
 
     // check staking adapter
-    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
+    assert_that!(&modules[0]).is_equal_to(&AccountModuleInfo {
         address: adapter1.address()?,
         id: adapter1.id(),
         version: cw2::ContractVersion {
@@ -303,7 +304,7 @@ fn unauthorized_exec() -> AResult {
     let res = staking_adapter
         .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
-    assert_that!(&res.root().to_string()).contains(format!(
+    assert_that!(res.root().to_string()).contains(format!(
         "Sender: {} of request to tester:test-module-id is not an Account or Authorized Address",
         chain.sender_addr()
     ));

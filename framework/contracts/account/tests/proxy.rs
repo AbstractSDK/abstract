@@ -82,7 +82,7 @@ fn instantiate() -> AResult {
     let modules = account.module_infos(None, None)?.module_infos;
 
     // assert account module
-    assert_that!(&modules).has_length(0);
+    assert_that!(modules).has_length(0);
 
     // assert account config
     assert_that!(account.config()?).is_equal_to(abstract_std::account::ConfigResponse {
