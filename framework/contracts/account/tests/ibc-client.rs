@@ -2,8 +2,8 @@ use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::{Abstract, AccountI, AccountQueryFns};
 use abstract_std::IBC_CLIENT;
 use anyhow::bail;
-use cw_orch::prelude::*;
 use assertor::*;
+use cw_orch::prelude::*;
 
 pub fn ibc_client_installed<Chain: CwEnv>(account: &AccountI<Chain>) -> AResult {
     let ibc_addr = account.module_addresses(vec![IBC_CLIENT.to_string()])?;
