@@ -422,7 +422,7 @@ mod test {
                 name: Some(account_name),
                 link: None,
             },
-            account_info.into()
+            account_info
         );
 
         Ok(())
@@ -469,7 +469,7 @@ mod test {
                 authenticator: None::<Empty>,
             },
             Some(&account_id.to_string()),
-            Some(&sender),
+            Some(sender),
             &[],
             salt,
         )?;

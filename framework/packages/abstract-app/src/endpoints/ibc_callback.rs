@@ -43,7 +43,7 @@ mod test {
 
         deps.querier = abstract_mock_querier_builder(deps.api)
             .with_contract_map_entry(
-                &test_account.addr(),
+                test_account.addr(),
                 ACCOUNT_MODULES,
                 (IBC_CLIENT, ibc_client_addr.clone()),
             )

@@ -27,7 +27,7 @@ where
             contract_code_id,
             &instantiate_msg,
             Some("label"),
-            Some(&chain.sender()),
+            Some(chain.sender()),
             &[],
         )?
         .instantiated_contract_address()?;
@@ -39,7 +39,7 @@ where
             blob_code_id,
             &Empty {},
             Some("label"),
-            Some(&chain.sender()),
+            Some(chain.sender()),
             &[],
         )?
         .instantiated_contract_address()?;
