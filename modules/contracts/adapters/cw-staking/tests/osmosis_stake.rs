@@ -49,7 +49,7 @@ mod osmosis_test {
     use cw_orch_osmosis_test_tube::OsmosisTestTube;
 
     use cw_orch::{interface, prelude::*};
-    use assertor::*;
+    use speculoos::prelude::*;
 
     const OSMOSIS: &str = "osmosis";
     const DENOM: &str = "uosmo";

@@ -204,7 +204,7 @@ mod test {
     use std::collections::HashSet;
 
     use cosmwasm_std::testing::mock_dependencies;
-    use assertor::*;
+    use speculoos::prelude::*;
 
     use super::*;
 

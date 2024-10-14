@@ -19,9 +19,9 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
 #[cfg(test)]
 mod tests {
     use abstract_testing::mock_env_validated;
-    use assertor::*;
     use cosmwasm_std::testing::*;
     use semver::Version;
+    use speculoos::prelude::*;
 
     use super::*;
     use crate::error::AccountError;
@@ -41,7 +41,7 @@ mod tests {
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
         assert_that!(res)
-            .err()
+            .is_err()
             .is_equal_to(AccountError::Abstract(
                 AbstractError::CannotDowngradeContract {
                     contract: ACCOUNT.to_string(),
@@ -67,7 +67,7 @@ mod tests {
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
         assert_that!(res)
-            .err()
+            .is_err()
             .is_equal_to(AccountError::Abstract(
                 AbstractError::CannotDowngradeContract {
                     contract: ACCOUNT.to_string(),
@@ -92,7 +92,7 @@ mod tests {
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
         assert_that!(res)
-            .err()
+            .is_err()
             .is_equal_to(AccountError::Abstract(
                 AbstractError::ContractNameMismatch {
                     from: old_name.parse().unwrap(),

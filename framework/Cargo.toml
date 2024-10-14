@@ -96,7 +96,7 @@ abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 
 ## Testing
 rstest = "0.17.0"
-assertor = "0.0.3"
+speculoos = "0.11.0"
 anyhow = "1"
 
 # Predictable abstract addresses

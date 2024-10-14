@@ -146,7 +146,7 @@ mod tests {
             testing::{message_info, mock_dependencies, MockApi},
             OwnedDeps, Response,
         };
-        use assertor::*;
+        use speculoos::prelude::*;
 
         use crate::{contract, error::RegistryError};
 

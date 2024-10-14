@@ -122,7 +122,7 @@ pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> AnsHostResult {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::testing::*;
-    use assertor::*;
+    use speculoos::prelude::*;
 
     use super::*;
     use crate::test_common::*;

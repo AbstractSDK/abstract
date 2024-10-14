@@ -236,7 +236,7 @@ mod test {
         testing::{message_info, mock_dependencies},
         to_json_binary,
     };
-    use assertor::*;
+    use speculoos::prelude::*;
 
     use super::*;
     use crate::{contract::execute, test_common::*};

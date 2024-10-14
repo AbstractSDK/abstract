@@ -272,7 +272,7 @@ mod test {
         testing::{message_info, mock_dependencies, MockApi},
         Addr, Binary, StdError,
     };
-    use assertor::*;
+    use speculoos::prelude::*;
 
     type RegistryTestResult = Result<(), RegistryError>;
 

@@ -119,7 +119,7 @@ impl KeyDeserialize for Namespace {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use assertor::*;
+    use speculoos::prelude::*;
 
     use super::*;
 

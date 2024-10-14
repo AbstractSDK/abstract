@@ -20,7 +20,6 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "anyhow",
- "assertor",
  "base64 0.22.1",
  "bech32 0.9.1",
  "cosmos-sdk-proto 0.24.0-pre",
@@ -44,6 +43,7 @@ dependencies = [
  "semver",
  "serde",
  "sha2 0.10.8",
+ "speculoos",
  "thiserror",
  "tiny-keccak",
  "url",
@@ -91,7 +91,6 @@ dependencies = [
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-asset",
@@ -103,6 +102,7 @@ dependencies = [
  "rstest",
  "semver",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -213,7 +213,6 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "anyhow",
- "assertor",
  "clap",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -227,6 +226,7 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -240,7 +240,6 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "anybuf",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-ownable",
@@ -252,6 +251,7 @@ dependencies = [
  "prost",
  "semver",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -292,7 +292,6 @@ dependencies = [
  "alloy",
  "alloy-sol-types",
  "anyhow",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-orch",
@@ -304,6 +303,7 @@ dependencies = [
  "rstest",
  "schemars",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -317,7 +317,6 @@ dependencies = [
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-ownable",
@@ -327,6 +326,7 @@ dependencies = [
  "polytone-evm",
  "semver",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -343,7 +343,6 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "anyhow",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-asset",
@@ -352,6 +351,7 @@ dependencies = [
  "cw2",
  "log",
  "semver",
+ "speculoos",
  "workspace-hack",
 ]
 
@@ -368,7 +368,6 @@ dependencies = [
  "abstract-registry",
  "abstract-std",
  "abstract-testing",
- "assertor",
  "cosmrs 0.19.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -389,6 +388,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -397,10 +397,10 @@ dependencies = [
 name = "abstract-macros"
 version = "0.24.0"
 dependencies = [
- "assertor",
  "cosmwasm-std 2.1.4",
  "proc-macro2",
  "quote",
+ "speculoos",
  "syn 1.0.109",
 ]
 
@@ -415,7 +415,6 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "anyhow",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-asset",
@@ -427,6 +426,7 @@ dependencies = [
  "protobuf",
  "semver",
  "serde-cw-value",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -519,7 +519,6 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "anyhow",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-orch",
@@ -528,6 +527,7 @@ dependencies = [
  "cw2",
  "semver",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -540,7 +540,6 @@ dependencies = [
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
- "assertor",
  "cosmos-sdk-proto 0.24.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -557,6 +556,7 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -572,7 +572,6 @@ dependencies = [
  "abstract-std",
  "abstract-testing",
  "anyhow",
- "assertor",
  "clap",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -586,6 +585,7 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -600,7 +600,6 @@ dependencies = [
  "abstract-standalone",
  "abstract-std",
  "abstract-testing",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-asset",
@@ -611,6 +610,7 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -621,7 +621,6 @@ version = "0.24.0"
 dependencies = [
  "abstract-testing",
  "anyhow",
- "assertor",
  "bech32 0.11.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -644,6 +643,7 @@ dependencies = [
  "semver",
  "serde",
  "sha2 0.10.8",
+ "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -654,7 +654,6 @@ version = "0.24.0"
 dependencies = [
  "abstract-sdk",
  "abstract-std",
- "assertor",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "cw-asset",
@@ -665,6 +664,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
+ "speculoos",
  "workspace-hack",
 ]
 
@@ -1035,16 +1035,6 @@ name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
-
-[[package]]
-name = "assertor"
-version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b02f2af4042fbbed4d5732c517666629512c574c8e2edb5cfe2cf8a86564d52"
-dependencies = [
- "anyhow",
- "num-traits",
-]
 
 [[package]]
 name = "async-broadcast"

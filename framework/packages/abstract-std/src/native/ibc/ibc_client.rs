@@ -366,7 +366,7 @@ pub struct RemoteProxyResponse {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
-    use assertor::*;
+    use speculoos::prelude::*;
 
     use crate::app::ExecuteMsg;
     use crate::ibc::{Callback, IbcResponseMsg, IbcResult};

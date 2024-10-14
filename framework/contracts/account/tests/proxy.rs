@@ -18,7 +18,7 @@ use abstract_std::{
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_orch::prelude::*;
-use assertor::*;
+use speculoos::prelude::*;
 
 // /// Deploys and mints an NFT to *sender*.
 // fn deploy_and_mint_nft(

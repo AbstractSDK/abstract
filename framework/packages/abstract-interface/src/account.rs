@@ -33,7 +33,7 @@ use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, interface, prelude::*};
 use semver::{Version, VersionReq};
 use serde::Serialize;
-use assertor::*;
+use speculoos::prelude::*;
 use std::{collections::HashSet, fmt::Debug};
 
 /// A helper struct that contains fields from [`abstract_std::account::state::AccountInfo`]

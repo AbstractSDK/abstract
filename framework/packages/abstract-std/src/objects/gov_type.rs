@@ -262,7 +262,7 @@ mod test {
     use super::*;
 
     use cosmwasm_std::testing::mock_dependencies;
-    use assertor::*;
+    use speculoos::prelude::*;
 
     #[test]
     fn test_verify() {

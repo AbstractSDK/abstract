@@ -124,7 +124,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
-    use assertor::*;
+    use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;

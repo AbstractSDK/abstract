@@ -21,7 +21,7 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
 use cw2::ContractVersion;
 use cw_orch::{environment::MutCwEnv, prelude::*};
-use assertor::*;
+use speculoos::prelude::*;
 
 use crate::{
     add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,

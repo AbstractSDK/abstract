@@ -179,9 +179,9 @@ mod test {
     use abstract_std::account::{state::*, *};
     use abstract_std::{account, IBC_CLIENT};
     use abstract_testing::prelude::*;
-    use assertor::*;
     use cosmwasm_std::testing::*;
     use cosmwasm_std::{coins, CosmosMsg, SubMsg};
+    use speculoos::prelude::*;
 
     mod execute_action {
 
@@ -200,8 +200,8 @@ mod test {
             let env = mock_env_validated(deps.api);
 
             let res = execute(deps.as_mut(), env, info, msg);
-            assert_that!(&res)
-                .err()
+            assert_that(&res)
+                .is_err()
                 .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
             Ok(())
         }

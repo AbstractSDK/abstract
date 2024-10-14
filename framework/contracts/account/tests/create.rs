@@ -9,7 +9,7 @@ use abstract_std::{
 };
 use abstract_testing::prelude::*;
 use cw_orch::prelude::*;
-use assertor::*;
+use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 

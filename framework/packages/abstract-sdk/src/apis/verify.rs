@@ -142,8 +142,8 @@ mod test {
         registry::state::ACCOUNT_ADDRESSES,
     };
     use abstract_testing::prelude::*;
-    use assertor::*;
     use cosmwasm_std::testing::*;
+    use speculoos::prelude::*;
 
     struct MockBinding {}
 

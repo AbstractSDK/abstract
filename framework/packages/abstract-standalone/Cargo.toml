@@ -39,6 +39,6 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
-assertor = { workspace = true }
+speculoos = { workspace = true }
 abstract-standalone = { path = ".", features = ["test-utils"] }
 abstract-integration-tests = { workspace = true }

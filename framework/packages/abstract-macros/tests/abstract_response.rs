@@ -2,7 +2,7 @@
 mod tests {
     use abstract_macros::abstract_response;
     use cosmwasm_std::Response;
-    use assertor::*;
+    use speculoos::prelude::*;
 
     const TEST_CONTRACT: &str = "test:contract";
 

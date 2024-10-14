@@ -114,7 +114,7 @@ impl KeyDeserialize for &AssetEntry {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use rstest::rstest;
-    use assertor::*;
+    use speculoos::prelude::*;
 
     use super::*;
 

@@ -83,7 +83,7 @@ abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-ma
 
 ## Testing
 rstest = "0.17.0"
-assertor = "0.0.3"
+speculoos = "0.11.0"
 anyhow = "1"
 
 # Do not remove, none of interchain packages are deployed
