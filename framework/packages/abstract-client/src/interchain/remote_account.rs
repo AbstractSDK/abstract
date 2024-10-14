@@ -5,7 +5,7 @@
 
 use abstract_interface::{
     Abstract, AccountDetails, AccountI, AccountQueryFns as _, DependencyCreation, IbcClient,
-    InstallConfig, RegisteredModule, RegistryQueryFns as _,
+    InstallConfig, RegisteredModule,
 };
 use abstract_std::{
     account::{
@@ -250,9 +250,9 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         let base_response = self
             .host_abstract()?
             .registry
-            .account(self.remote_account_id.clone())?;
+            .get_account(self.remote_account_id.clone())?;
 
-        Ok(base_response.account.addr().clone())
+        Ok(base_response.addr().clone())
     }
 
     /// Query account balance of a given denom

@@ -347,8 +347,11 @@ impl<Chain: CwEnv> Registry<Chain> {
         &self,
         account_id: AccountId,
     ) -> Result<Account, crate::AbstractInterfaceError> {
-        let resp: AccountResponse = self.query(&QueryMsg::Account { account_id })?;
-        Ok(resp.account)
+        let resp: AccountsResponse = self.query(&QueryMsg::Accounts {
+            account_ids: vec![account_id.clone()],
+        })?;
+        // If the account id is not registered, an err is returned, so we can safely get index 0 in the vec
+        Ok(resp.accounts[0].clone())
     }
 
     /// Retrieves an Adapter's address from registry given the module **id** and **version**.

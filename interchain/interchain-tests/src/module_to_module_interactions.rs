@@ -348,7 +348,7 @@ pub mod test {
     };
     use abstract_app::objects::{module::ModuleInfo, TruncatedChainId};
     use abstract_interface::{
-        AccountI, AccountQueryFns, AppDeployer, DeployStrategy, RegistryExecFns, RegistryQueryFns,
+        AccountI, AccountQueryFns, AppDeployer, DeployStrategy, RegistryExecFns,
     };
     use abstract_std::account::{self, ModuleInstallConfig};
     use abstract_testing::{
@@ -519,7 +519,7 @@ pub mod test {
         mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
         // We get the object for handling the actual module on the remote account
-        let remote_account = abstr_remote.registry.account(remote_account_id)?.account;
+        let remote_account = abstr_remote.registry.get_account(remote_account_id)?;
         let account = AccountI::new(
             "remote-account-account",
             abstr_remote.registry.environment().clone(),
@@ -694,7 +694,7 @@ pub mod test {
             mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
             // We get the object for handling the actual module on the remote account
-            let remote_account = abstr_remote.registry.account(remote_account_id)?.account;
+            let remote_account = abstr_remote.registry.get_account(remote_account_id)?;
             let account = AccountI::new(
                 "remote-account-account",
                 abstr_remote.registry.environment().clone(),

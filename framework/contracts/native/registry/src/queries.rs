@@ -7,15 +7,15 @@ use abstract_sdk::std::{
     },
     registry::{
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
-        AccountResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
-        NamespaceListResponse,
+        ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse, NamespaceListResponse,
     },
 };
 use abstract_std::{
     objects::module::ModuleStatus,
     registry::{
         state::{NAMESPACES_INFO, PENDING_MODULES},
-        ModuleConfiguration, NamespaceInfo, NamespaceResponse,
+        AccountListResponse, AccountsResponse, ModuleConfiguration, NamespaceInfo,
+        NamespaceResponse,
     },
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
@@ -26,17 +26,26 @@ use crate::{contract::VCResult, error::RegistryError};
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
-pub fn handle_account_address_query(
+pub fn handle_accounts_address_query(
     deps: Deps,
-    account_id: AccountId,
-) -> StdResult<AccountResponse> {
-    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, &account_id);
-    match account_address {
-        Err(_) => Err(StdError::generic_err(
-            RegistryError::UnknownAccountId { id: account_id }.to_string(),
-        )),
-        Ok(base) => Ok(AccountResponse { account: base }),
-    }
+    account_ids: Vec<AccountId>,
+) -> StdResult<AccountsResponse> {
+    let account_address = account_ids
+        .into_iter()
+        .map(|account_id| {
+            ACCOUNT_ADDRESSES
+                .load(deps.storage, &account_id)
+                .map_err(|_| {
+                    StdError::generic_err(
+                        RegistryError::UnknownAccountId { id: account_id }.to_string(),
+                    )
+                })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(AccountsResponse {
+        accounts: account_address,
+    })
 }
 
 pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<ModulesResponse> {
@@ -79,6 +88,24 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
     }
 
     Ok(modules_response)
+}
+
+pub fn handle_account_list_query(
+    deps: Deps,
+    start_after: Option<AccountId>,
+    limit: Option<u8>,
+) -> VCResult<AccountListResponse> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+
+    let start_bound = start_after.as_ref().map(Bound::exclusive);
+
+    // Load all accounts
+    let accounts = ACCOUNT_ADDRESSES
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect::<StdResult<Vec<_>>>()?;
+
+    Ok(AccountListResponse { accounts })
 }
 
 pub fn handle_module_list_query(
@@ -1064,8 +1091,8 @@ mod test {
             let not_registered = AccountId::new(15, AccountTrace::Local)?;
             let res = query_helper(
                 &deps,
-                QueryMsg::Account {
-                    account_id: not_registered.clone(),
+                QueryMsg::Accounts {
+                    account_ids: vec![not_registered.clone()],
                 },
             );
 
@@ -1086,14 +1113,14 @@ mod test {
 
             let res = query_helper(
                 &deps,
-                QueryMsg::Account {
-                    account_id: TEST_ACCOUNT_ID,
+                QueryMsg::Accounts {
+                    account_ids: vec![TEST_ACCOUNT_ID],
                 },
             );
 
             assert_that!(res).is_ok().map(|res| {
-                let AccountResponse { account } = from_json(res).unwrap();
-                assert_that!(account).is_equal_to(test_account(deps.api));
+                let AccountsResponse { accounts } = from_json(res).unwrap();
+                assert_that!(accounts).is_equal_to(vec![test_account(deps.api)]);
                 res
             });
 
