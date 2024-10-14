@@ -295,7 +295,7 @@ fn configure_adapter(
 }
 
 /// Update whitelist by adding or removing addresses
-/// Note: modules added first after removal, so if module included in both it will be removed
+/// Note: modules added first before removal, so if module included in both it will be removed
 pub(crate) fn _update_whitelisted_modules(
     storage: &mut dyn Storage,
     to_add_module_addresses: Vec<Addr>,
