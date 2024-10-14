@@ -4,9 +4,9 @@ expression: all_storage
 ---
 "abstract:account-local-0":
   - - "\u0000\u0002acabstract:standalone1"
-    - "\"mock1x7x3ytgtqcgmq85hxtr4llsj9wdeg9wkp84l30pct39gf8257pfswcrwtx\""
+    - "\"mock12hm8apxqfskv44wgapew6dptfyc44vfrvvkac0c2aq8h7mzvnygst0wqrf\""
   - - "\u0000\u0002acabstract:standalone2"
-    - "\"mock1k76kwzlgv6puhx37s3gx9554l487wk6n8ph5t0wrtm4eklz2vecqpv532h\""
+    - "\"mock1fmsfc9fz2gkc52k885szysmyeunghp07dhg94ll4qqpqhm3t85vsf9xwld\""
   - - aa
     - "false"
   - - ab
@@ -16,7 +16,7 @@ expression: all_storage
   - - ag
     - "{\"trace\":\"local\",\"seq\":0}"
   - - ah
-    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":13}},\"mock1x7x3ytgtqcgmq85hxtr4llsj9wdeg9wkp84l30pct39gf8257pfswcrwtx\"],[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":14}},\"mock1k76kwzlgv6puhx37s3gx9554l487wk6n8ph5t0wrtm4eklz2vecqpv532h\"]]"
+    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":13}},\"mock12hm8apxqfskv44wgapew6dptfyc44vfrvvkac0c2aq8h7mzvnygst0wqrf\"],[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":14}},\"mock1fmsfc9fz2gkc52k885szysmyeunghp07dhg94ll4qqpqhm3t85vsf9xwld\"]]"
   - - ai
     - "[]"
   - - contract_info
@@ -55,19 +55,19 @@ expression: all_storage
   - - "\u0000\u0002cb\u0000\babstract\u0000\u0007account0.24.0"
     - "{\"account\":5}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\bans-host0.24.0"
-    - "{\"native\":\"mock1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4qkernmj\"}"
+    - "{\"native\":\"mock1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cds0pnytz\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\bibc-host0.24.0"
-    - "{\"native\":\"mock1dtw8lua8qpav6x3sngqwd3xqmyvg5q0pnv2lkmajzk0rjkjetm2s2pyq4n\"}"
+    - "{\"native\":\"mock1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqsc6n7r3\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\bregistry0.24.0"
-    - "{\"native\":\"mock1nhjtxw8enkzn84u24vq5pravwxel8sry793uuhakxwxnzjrz5v4stcajlt\"}"
+    - "{\"native\":\"mock1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqapxshc\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\nibc-client0.24.0"
-    - "{\"native\":\"mock1l487rfqw2yevhvh4c3dw706mdy9u703zsawq7xt4h9e0h9up9fgqwk620q\"}"
+    - "{\"native\":\"mock1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqtrcaj0\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\u000bstandalone11.0.0"
     - "{\"standalone\":13}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\u000bstandalone21.0.0"
     - "{\"standalone\":14}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\u000emodule-factory0.24.0"
-    - "{\"native\":\"mock1wzrl9hf8xukhu7ukx5quted5m5c2vklmr70tg88a0zkduts7f0sqpr58lc\"}"
+    - "{\"native\":\"mock1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqwxdk4n\"}"
   - - "\u0000\u0002cc\u0000\u0000\u0000\u0000\u0000\u0000\u0000\r"
     - "{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}}"
   - - "\u0000\u0002cc\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e"
