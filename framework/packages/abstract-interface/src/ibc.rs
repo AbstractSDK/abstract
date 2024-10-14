@@ -60,8 +60,9 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 #[cfg(feature = "interchain")]
 // Helpers to create connection with another chain
 pub mod connection {
-    use super::*;
     use crate::Abstract;
+
+    use super::*;
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;

@@ -224,8 +224,6 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     RemoveAuthMethod {
         id: u8,
     },
-    /// Callback endpoint
-    Callback(CallbackMsg),
 }
 
 #[cosmwasm_schema::cw_serde]
