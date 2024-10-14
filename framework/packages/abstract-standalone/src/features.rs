@@ -47,7 +47,7 @@ mod test {
 
     #[test]
     fn test_ans_host() -> StandaloneTestResult {
-        let deps = mock_init();
+        let deps = mock_init(true);
         let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -59,7 +59,7 @@ mod test {
 
     #[test]
     fn test_abstract_registry() -> StandaloneTestResult {
-        let deps = mock_init();
+        let deps = mock_init(true);
         let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -71,7 +71,7 @@ mod test {
 
     #[test]
     fn test_traits_generated() -> StandaloneTestResult {
-        let mut deps = mock_init();
+        let mut deps = mock_init(true);
         let env = mock_env_validated(deps.api);
         let expected_account = test_account(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)

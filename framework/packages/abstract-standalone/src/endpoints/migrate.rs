@@ -31,3 +31,17 @@ impl StandaloneContract {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::mock::*;
+    use abstract_testing::prelude::*;
+
+    #[test]
+    fn test_migrate_migratable() {
+        let mut deps = mock_init(true);
+        let env = mock_env_validated(deps.api);
+        let res = migrate(deps.as_mut(), env, MockMigrateMsg {}).unwrap();
+        assert!(res.messages.is_empty());
+    }
+}
