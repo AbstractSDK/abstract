@@ -154,44 +154,17 @@ fn main() -> cw_orch::anyhow::Result<()> {
     {
         let muno_erc20_addr = evm_config.muno_erc20.unwrap();
 
-        let approve_msg = EvmMsg::call(
-            muno_erc20_addr.to_string(),
-            HexBinary::from(
-                ERC20::approveCall::new((
-                    Address::parse_checksummed(evm_config.ucs01_handler, None)?,
-                    alloy::primitives::U256::from(3),
-                ))
-                .abi_encode(),
-            ),
-        );
-        let send_back_msg = EvmMsg::call(
-            evm_config.ucs01_handler.to_string(),
-            HexBinary::from(
-                polytone_evm::bind::irelay::IRelay::sendCall::new(
-                    // srcChannel: channel-90 - receiver: 0x3d95c07a0380cff70fb9d086f076e19a8a3807cb - denom: 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14 - amount: 50000000000000 - extension:  - revNumber: 9 - revHeight: 1000000099 - timeStamp: 0
-                    (
-                        evm_config.ics20_src_channel.to_string(),
-                        bech32::decode(&account.address()?.to_string())?.1.into(),
-                        vec![polytone_evm::bind::irelay::IRelay::LocalToken {
-                            denom: Address::parse_checksummed(muno_erc20_addr, None)?,
-                            amount: account_coins.amount.u128(),
-                        }],
-                        "".to_string(),
-                        polytone_evm::bind::irelay::IRelay::IbcCoreClientV1HeightData {
-                            revision_number: 9,
-                            revision_height: 1000000099,
-                        },
-                        0,
-                    ),
-                )
-                .abi_encode(),
-            ),
-        );
+        let send_back_msgs = interchain.ibc_send_back_msgs(
+            evm_config.chain_id.to_string(),
+            muno_erc20_addr,
+            account_coins.amount.u128(),
+            account.address()?,
+        )?;
 
         let ica_action = abs.ica_client().ica_action(
             account.address()?.to_string(),
             vec![IcaAction::Execute(IcaExecute::Evm {
-                msgs: vec![approve_msg, send_back_msg],
+                msgs: send_back_msgs,
                 callback: None,
             })],
             CHAIN_NAME.parse()?,

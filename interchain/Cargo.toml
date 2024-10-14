@@ -109,10 +109,10 @@ abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", 
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
 
 
-# # Only for local testing and union-connector tweaking
-# [patch."https://github.com/abstractsdk/evm-ibc"]
-# union-connector = { path = "../../evm-ibc/cw/packages/union-connector" }
-# polytone-evm = { path = "../../evm-ibc/cw/packages/polytone-evm" }
+# Only for local testing and union-connector tweaking
+[patch."https://github.com/abstractsdk/evm-ibc"]
+union-connector = { path = "../../evm-ibc/cw/packages/union-connector" }
+polytone-evm = { path = "../../evm-ibc/cw/packages/polytone-evm" }
 
 
 # Backup release profile, will result in warnings during optimization
