@@ -21,10 +21,10 @@ use abstract_std::{
     AbstractError, IBC_CLIENT,
 };
 use abstract_testing::prelude::*;
-use assertor::*;
 use cosmwasm_std::coin;
 use cw2::ContractVersion;
 use cw_orch::prelude::*;
+use assertor::*;
 
 #[test]
 fn install_app_successful() -> AResult {

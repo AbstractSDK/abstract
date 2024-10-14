@@ -40,13 +40,15 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res).err().is_equal_to(AccountError::Abstract(
-            AbstractError::CannotDowngradeContract {
-                contract: ACCOUNT.to_string(),
-                from: version.clone(),
-                to: version,
-            },
-        ));
+        assert_that!(res)
+            .err()
+            .is_equal_to(AccountError::Abstract(
+                AbstractError::CannotDowngradeContract {
+                    contract: ACCOUNT.to_string(),
+                    from: version.clone(),
+                    to: version,
+                },
+            ));
 
         Ok(())
     }
@@ -64,13 +66,15 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res).err().is_equal_to(AccountError::Abstract(
-            AbstractError::CannotDowngradeContract {
-                contract: ACCOUNT.to_string(),
-                from: big_version.parse().unwrap(),
-                to: version,
-            },
-        ));
+        assert_that!(res)
+            .err()
+            .is_equal_to(AccountError::Abstract(
+                AbstractError::CannotDowngradeContract {
+                    contract: ACCOUNT.to_string(),
+                    from: big_version.parse().unwrap(),
+                    to: version,
+                },
+            ));
 
         Ok(())
     }
@@ -87,12 +91,14 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res).err().is_equal_to(AccountError::Abstract(
-            AbstractError::ContractNameMismatch {
-                from: old_name.parse().unwrap(),
-                to: ACCOUNT.parse().unwrap(),
-            },
-        ));
+        assert_that!(res)
+            .err()
+            .is_equal_to(AccountError::Abstract(
+                AbstractError::ContractNameMismatch {
+                    from: old_name.parse().unwrap(),
+                    to: ACCOUNT.parse().unwrap(),
+                },
+            ));
 
         Ok(())
     }

@@ -92,9 +92,9 @@ mod tests {
         Addr, HexBinary,
     };
 
-    use assertor::*;
     use evm::types;
     use polytone_evm::EVM_NOTE_ID;
+    use assertor::*;
 
     type IbcClientTestResult = Result<(), IcaClientError>;
 

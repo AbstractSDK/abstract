@@ -232,11 +232,11 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
     use abstract_testing::{mock_env_validated, MockDeps};
-    use assertor::*;
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies},
         to_json_binary,
     };
+    use assertor::*;
 
     use super::*;
     use crate::{contract::execute, test_common::*};

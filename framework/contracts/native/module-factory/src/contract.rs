@@ -131,8 +131,8 @@ pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> ModuleFactoryResult 
 
 #[cfg(test)]
 mod tests {
-    use assertor::*;
     use cosmwasm_std::testing::*;
+    use assertor::*;
 
     use super::*;
     use crate::{contract, test_common::*};

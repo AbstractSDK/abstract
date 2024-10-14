@@ -268,11 +268,11 @@ mod test {
     use crate::contract;
     use abstract_std::{account, objects::account::AccountTrace, registry::*};
     use abstract_testing::{prelude::*, MockQuerierOwnership};
-    use assertor::*;
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies, MockApi},
         Addr, Binary, StdError,
     };
+    use assertor::*;
 
     type RegistryTestResult = Result<(), RegistryError>;
 

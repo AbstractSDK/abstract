@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use abstract_macros::abstract_response;
-    use assertor::*;
     use cosmwasm_std::Response;
+    use assertor::*;
 
     const TEST_CONTRACT: &str = "test:contract";
 

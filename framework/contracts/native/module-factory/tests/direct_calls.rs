@@ -2,9 +2,9 @@ use abstract_interface::*;
 use abstract_std::{
     module_factory, module_factory::FactoryModuleInstallConfig, objects::module::ModuleInfo,
 };
-use assertor::*;
 use cosmwasm_std::Binary;
 use cw_orch::prelude::*;
+use assertor::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
