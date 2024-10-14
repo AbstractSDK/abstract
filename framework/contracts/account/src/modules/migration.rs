@@ -1,8 +1,5 @@
 use abstract_std::{
-    account::{
-        state::{CALLING_TO_AS_ADMIN, CALLING_TO_AS_ADMIN_WILD_CARD},
-        CallbackMsg, ExecuteMsg,
-    },
+    account::state::{CALLING_TO_AS_ADMIN, CALLING_TO_AS_ADMIN_WILD_CARD},
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg as AdapterQuery,
     },
@@ -17,8 +14,8 @@ use abstract_std::{
     ACCOUNT,
 };
 use cosmwasm_std::{
-    ensure, ensure_eq, to_json_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env,
-    MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    ensure, to_json_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response,
+    StdResult, Storage, SubMsg, WasmMsg,
 };
 use cw2::get_contract_version;
 use cw_storage_plus::Item;
@@ -28,7 +25,7 @@ use super::{
     query_module, update_module_addresses,
 };
 use crate::{
-    contract::{AccountResponse, AccountResult},
+    contract::{AccountResponse, AccountResult, ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID},
     error::AccountError,
     queries::query_module_version,
 };
@@ -94,18 +91,16 @@ pub fn upgrade_modules(
         )?);
     }
 
-    let callback_msg = wasm_execute(
-        env.contract.address,
-        &ExecuteMsg::Callback::<cosmwasm_std::Empty>(CallbackMsg {}),
-        vec![],
-    )?;
+    let assert_dependency_msg = upgrade_msgs
+        .pop()
+        .map(|msg| SubMsg::reply_on_success(msg, ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID));
 
     Ok(AccountResponse::new(
         "upgrade_modules",
         vec![("upgraded_modules", upgraded_module_ids.join(","))],
     )
     .add_messages(upgrade_msgs)
-    .add_message(callback_msg))
+    .add_submessages(assert_dependency_msg))
 }
 
 pub fn set_migrate_msgs_and_context(
@@ -310,12 +305,7 @@ pub(crate) fn self_upgrade_msg(
     }
 }
 
-pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> AccountResult {
-    ensure_eq!(
-        info.sender,
-        env.contract.address,
-        StdError::generic_err("Callback must be called by contract")
-    );
+pub fn assert_modules_dependency_requirements(mut deps: DepsMut) -> AccountResult {
     let migrated_modules = MIGRATE_CONTEXT.load(deps.storage)?;
 
     for (migrated_module_id, old_deps) in migrated_modules {
