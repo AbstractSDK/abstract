@@ -67,6 +67,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         Self {
             client: self.client.call_as(sender),
             host: self.host.call_as(sender),
+            ica_client: self.ica_client.call_as(sender),
         }
     }
 }
