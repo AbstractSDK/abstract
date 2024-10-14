@@ -108,7 +108,7 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 # Predictable abstract addresses
-cw-blob = { version = "=0.1.3" }
+cw-blob = { version = "=0.2.0", features = ["library"] }
 
 [profile.dev]
 opt-level = 1
@@ -117,10 +117,11 @@ opt-level = "s"
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
+
 rpath = false
 lto = true
 overflow-checks = true
-opt-level = "s"
+opt-level = 's'
 debug = false
 debug-assertions = false
 codegen-units = 1

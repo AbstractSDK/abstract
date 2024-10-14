@@ -36,7 +36,7 @@ use crate::{
     },
     modules::{
         _install_modules, install_modules,
-        migration::{handle_callback, upgrade_modules},
+        migration::{assert_modules_dependency_requirements, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
@@ -62,6 +62,7 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const FORWARD_RESPONSE_REPLY_ID: u64 = 1;
 pub const ADMIN_ACTION_REPLY_ID: u64 = 2;
 pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 3;
+pub const ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID: u64 = 4;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -360,7 +361,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 }
                 #[allow(unused)]
                 ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
-                ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
             }
         }
     }
@@ -372,6 +372,9 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
         FORWARD_RESPONSE_REPLY_ID => forward_response_reply(msg),
         ADMIN_ACTION_REPLY_ID => admin_action_reply(deps),
         REGISTER_MODULES_DEPENDENCIES_REPLY_ID => register_dependencies(deps),
+        ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID => {
+            assert_modules_dependency_requirements(deps)
+        }
 
         _ => Err(AccountError::UnexpectedReply {}),
     }

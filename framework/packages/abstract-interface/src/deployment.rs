@@ -56,7 +56,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         let ibc_infra = AbstractIbc::new(&chain);
 
-        blob.upload()?;
+        blob.upload_if_needed()?;
         ans_host.upload()?;
         registry.upload()?;
         module_factory.upload()?;
@@ -83,7 +83,17 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     ) -> Result<Self, AbstractInterfaceError> {
         let original_sender = chain.sender().clone();
         chain.set_sender(deploy_data);
-        let admin = chain.sender_addr().to_string();
+
+        // Ensure we have expected sender address
+        let sender_addr = chain.sender_addr();
+        let hrp = sender_addr.as_str().split_once("1").unwrap().0;
+        assert_eq!(
+            sender_addr.as_str(),
+            native_addrs::creator_address(hrp)?,
+            "Only predetermined abstract admin can deploy abstract contracts, see `native_addrs.rs`"
+        );
+
+        let admin = sender_addr.to_string();
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
@@ -118,8 +128,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 },
             ),
             blob_code_id,
-            expected_addr(native_addrs::VERSION_CONTROL_SALT)?,
-            Binary::from(native_addrs::VERSION_CONTROL_SALT),
+            expected_addr(native_addrs::REGISTRY_SALT)?,
+            Binary::from(native_addrs::REGISTRY_SALT),
         )?;
         deployment.module_factory.deterministic_instantiate(
             &abstract_std::module_factory::MigrateMsg::Instantiate(
@@ -312,6 +322,17 @@ impl<Chain: CwEnv> Abstract<Chain> {
         ibc.client.set_sender(sender);
         ibc.host.set_sender(sender);
     }
+
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            ans_host: self.ans_host.clone().call_as(sender),
+            registry: self.registry.clone().call_as(sender),
+            module_factory: self.module_factory.clone().call_as(sender),
+            ibc: self.ibc.call_as(sender),
+            account: self.account.call_as(sender),
+            blob: self.blob.clone(),
+        }
+    }
 }
 
 // Sender addr means it's mock or CloneTest(which is also mock)
@@ -351,8 +372,8 @@ mod test {
     fn have_some_state() {
         State::get("state.json").unwrap();
         let state = State::load_state();
-        let vc_juno = &state["juno-1"]["code_ids"].get(REGISTRY);
-        assert!(vc_juno.is_some());
+        let ans_neutron_testnet = &state["pion-1"]["code_ids"].get(ANS_HOST);
+        assert!(ans_neutron_testnet.is_some());
     }
 
     #[test]
@@ -372,10 +393,7 @@ mod test {
 
         // REGISTRY
         let registry = api.addr_canonicalize(&abstr.registry.addr_str()?)?;
-        assert_eq!(
-            registry,
-            native_addrs::version_control_address(prefix, api)?
-        );
+        assert_eq!(registry, native_addrs::registry_address(prefix, api)?);
 
         // MODULE_FACTORY
         let module_factory = api.addr_canonicalize(&abstr.module_factory.addr_str()?)?;

@@ -90,7 +90,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// use cw_orch::prelude::*;
     ///
     /// let registry = client.registry();
-    /// let vc_module = registry.module(ModuleInfo::from_id_latest("abstract:version-control")?)?;
+    /// let vc_module = registry.module(ModuleInfo::from_id_latest("abstract:registry")?)?;
     /// assert_eq!(vc_module.reference, ModuleReference::Native(registry.address()?));
     /// # Ok::<(), AbstractClientError>(())
     /// ```
@@ -349,6 +349,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// and returns appropriate `Some(ModuleStatus)`. If the module is not deployed, it returns `None`.
     pub fn module_status(&self, module: ModuleInfo) -> AbstractClientResult<Option<ModuleStatus>> {
         self.registry().module_status(module).map_err(Into::into)
+    }
+
+    /// Clones the Abstract Client with a different sender.
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            abstr: self.abstr.call_as(sender),
+        }
     }
 
     #[cfg(feature = "interchain")]

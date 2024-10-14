@@ -293,12 +293,14 @@ mod test {
         // Create account from JUNO on OSMOSIS by going through STARGAZE
         let create_account_remote_tx = origin_account.execute_on_remote(
             TruncatedChainId::from_chain_id(STARGAZE),
-            abstract_std::account::ExecuteMsg::IbcAction {
-                msg: abstract_std::ibc_client::ExecuteMsg::Register {
+            abstract_std::account::ExecuteMsg::ExecuteOnModule {
+                module_id: IBC_CLIENT.to_owned(),
+                exec_msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: TruncatedChainId::from_chain_id(OSMOSIS),
                     namespace: None,
                     install_modules: vec![],
-                },
+                })?,
+                funds: vec![],
             },
         )?;
 
@@ -723,12 +725,13 @@ mod test {
 
         // Send funds from juno to stargaze.
         let send_funds_tx = origin_account.execute(
-            &abstract_std::account::ExecuteMsg::IbcAction {
-                msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                    funds: coins(10, origin_denom),
+            &abstract_std::account::ExecuteMsg::ExecuteOnModule {
+                module_id: IBC_CLIENT.to_owned(),
+                exec_msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: TruncatedChainId::from_chain_id(STARGAZE),
                     memo: None,
-                },
+                })?,
+                funds: coins(10, origin_denom),
             },
             &[],
         )?;
