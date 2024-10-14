@@ -8,7 +8,8 @@ use abstract_interchain_tests::{
     interchain_accounts::{create_test_remote_account, set_env},
     JUNO, STARGAZE,
 };
-use abstract_interface::{Abstract, AccountExecFns, AccountI, AccountQueryFns};
+use abstract_interface::{Abstract, AccountI, AccountQueryFns};
+use abstract_std::IBC_CLIENT;
 use abstract_std::{
     ans_host::ExecuteMsgFns,
     objects::{TruncatedChainId, UncheckedChannelEntry},
@@ -104,12 +105,15 @@ pub fn test_send_funds() -> AnyResult<()> {
         &origin_account.address()?,
         vec![coin(test_amount, get_denom(&juno, token_subdenom.as_str()))],
     ))?;
-    let send_funds_tx =
-        origin_account.ibc_action(abstract_std::ibc_client::ExecuteMsg::SendFunds {
+    let send_funds_tx = origin_account.execute_on_module(
+        IBC_CLIENT,
+        abstract_std::ibc_client::ExecuteMsg::SendFunds {
             host_chain: TruncatedChainId::from_chain_id(STARGAZE),
             funds: coins(test_amount, get_denom(&juno, token_subdenom.as_str())),
             memo: Some("sent_some_tokens".to_owned()),
-        })?;
+        },
+        vec![],
+    )?;
 
     let response = interchain.await_and_check_packets(JUNO, send_funds_tx)?;
     let memo = response.event_attr_value("fungible_token_packet", "memo")?;
