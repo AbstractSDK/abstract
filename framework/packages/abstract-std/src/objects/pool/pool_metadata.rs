@@ -117,7 +117,7 @@ impl fmt::Display for PoolMetadata {
 
 #[cfg(test)]
 mod tests {
-    use speculoos::prelude::*;
+    use assertor::*;
 
     use super::*;
 

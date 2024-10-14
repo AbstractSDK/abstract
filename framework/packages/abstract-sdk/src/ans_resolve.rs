@@ -132,11 +132,11 @@ mod tests {
 
     use abstract_std::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::*;
+    use assertor::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, MockApi},
         Binary, Empty,
     };
-    use speculoos::prelude::*;
     use std::fmt::Debug;
 
     fn default_test_querier(ans_host: &AnsHost) -> MockQuerier {

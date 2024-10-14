@@ -355,9 +355,9 @@ mod tests {
     use abstract_std::objects::dependency::Dependency;
     use abstract_testing::module::TEST_MODULE_ID;
     use abstract_testing::prelude::AbstractMockAddrs;
+    use assertor::*;
     use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
     use ownership::GovOwnershipError;
-    use speculoos::prelude::*;
 
     fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
         ACCOUNT_MODULES
@@ -435,7 +435,7 @@ mod tests {
 
             let res = update_module_addresses(deps.as_mut(), to_add, vec![]);
             assert_that!(&res)
-                .is_err()
+                .err()
                 .is_equal_to(AccountError::InvalidModuleName {});
 
             Ok(())
@@ -483,15 +483,15 @@ mod tests {
 
             // the registry can not call this
             let res = execute_as(&mut deps, &abstr.registry, msg.clone());
-            assert_that!(&res).is_err();
+            assert_that!(&res).err();
 
             // only the owner can
             let res = execute_as(&mut deps, &owner, msg.clone());
-            assert_that!(&res).is_ok();
+            assert_that!(&res).ok();
 
             let res = execute_as(&mut deps, &not_account_factory, msg);
             assert_that!(&res)
-                .is_err()
+                .err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
@@ -517,7 +517,7 @@ mod tests {
 
             let res = execute_as(&mut deps, &not_owner, msg);
             assert_that!(&res)
-                .is_err()
+                .err()
                 .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
@@ -556,7 +556,7 @@ mod tests {
 
             let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res)
-                .is_err()
+                .err()
                 .is_equal_to(AccountError::ModuleHasDependents(Vec::from_iter(
                     dependents,
                 )));
@@ -591,7 +591,7 @@ mod tests {
 
             let res = execute_as(&mut deps, &not_owner, msg);
             assert_that!(&res)
-                .is_err()
+                .err()
                 .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
             Ok(())
         }
@@ -613,7 +613,7 @@ mod tests {
 
             let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res)
-                .is_err()
+                .err()
                 .is_equal_to(AccountError::ModuleNotFound(missing_module));
 
             Ok(())

@@ -52,7 +52,7 @@ impl Display for LpToken {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use speculoos::prelude::*;
+    use assertor::*;
 
     use super::*;
 

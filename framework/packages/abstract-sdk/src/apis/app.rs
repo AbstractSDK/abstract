@@ -102,8 +102,8 @@ impl<'a, T: AppInterface> Apps<'a, T> {
 mod tests {
     use abstract_std::registry::Account;
     use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use assertor::*;
     use cosmwasm_std::{testing::*, *};
-    use speculoos::prelude::*;
 
     pub use super::*;
     use crate::mock_module::*;

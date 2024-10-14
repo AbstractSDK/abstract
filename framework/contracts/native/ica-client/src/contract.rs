@@ -84,6 +84,7 @@ mod tests {
 
     use crate::test_common::mock_init;
     use abstract_testing::{mock_env_validated, prelude::*};
+    use assertor::*;
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies},
@@ -91,7 +92,6 @@ mod tests {
     };
     use cw2::CONTRACT;
     use cw_ownable::Ownership;
-    use speculoos::prelude::*;
 
     #[test]
     fn instantiate_works() -> IcaClientResult<()> {
@@ -136,7 +136,7 @@ mod tests {
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
-                .is_err()
+                .err()
                 .is_equal_to(IcaClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ICA_CLIENT.to_string(),
@@ -162,7 +162,7 @@ mod tests {
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
-                .is_err()
+                .err()
                 .is_equal_to(IcaClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ICA_CLIENT.to_string(),
@@ -187,7 +187,7 @@ mod tests {
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
-                .is_err()
+                .err()
                 .is_equal_to(IcaClientError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),

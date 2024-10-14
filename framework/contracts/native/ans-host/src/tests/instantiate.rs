@@ -1,7 +1,7 @@
 use abstract_std::ans_host::*;
 use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
 use cosmwasm_std::{testing::*, MessageInfo, OwnedDeps};
-use speculoos::prelude::*;
+use assertor::*;
 
 use crate::{
     contract::instantiate,

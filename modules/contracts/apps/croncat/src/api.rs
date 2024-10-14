@@ -188,7 +188,7 @@ mod test {
     use cosmwasm_std::{coins, testing::mock_dependencies, wasm_execute, BankMsg};
     use croncat_integration_utils::*;
     use cw_asset::AssetList;
-    use speculoos::prelude::*;
+    use assertor::*;
 
     use super::*;
     use crate::msg::ExecuteMsg;

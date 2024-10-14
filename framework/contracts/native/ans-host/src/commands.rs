@@ -365,8 +365,8 @@ fn validate_pool_assets(
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::{map_tester::CwMapTester, prelude::*};
+    use assertor::*;
     use cosmwasm_std::{testing::*, Addr};
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::{contract, error::AnsHostError, test_common::*};
@@ -1203,7 +1203,7 @@ mod test {
             let actual_pools: Result<Vec<PoolMetadataMapEntry>, _> =
                 load_pool_metadata(&deps.storage);
 
-            assert_that(&actual_pools?).is_equal_to(&expected_pools);
+            assert_that!(&actual_pools?).is_equal_to(&expected_pools);
 
             let _pairing =
                 DexAssetPairing::<AssetEntry>::new("juno".into(), "osmo".into(), "junoswap");
@@ -1226,7 +1226,7 @@ mod test {
             ];
             let actual_pairings: Result<Vec<AssetPairingMapEntry>, _> =
                 load_asset_pairings(&deps.storage);
-            assert_that(&actual_pairings?).is_equal_to(&expected_pairings);
+            assert_that!(&actual_pairings?).is_equal_to(&expected_pairings);
 
             Ok(())
         }
@@ -1261,7 +1261,7 @@ mod test {
             let actual_pools: Result<Vec<PoolMetadataMapEntry>, _> =
                 load_pool_metadata(&deps.storage);
 
-            assert_that(&actual_pools?).is_equal_to(&expected_pools);
+            assert_that!(&actual_pools?).is_equal_to(&expected_pools);
 
             let _pairing =
                 DexAssetPairing::<AssetEntry>::new("juno".into(), "osmo".into(), "junoswap");
@@ -1273,12 +1273,12 @@ mod test {
             let expected_pairing_count = 20;
 
             let actual_pairings = load_asset_pairings(&deps.storage)?;
-            assert_that(&actual_pairings).has_length(expected_pairing_count);
+            assert_that!(&actual_pairings).has_length(expected_pairing_count);
 
             for (_pairing, ref_vec) in actual_pairings {
-                assert_that(&ref_vec).has_length(1);
+                assert_that!(&ref_vec).has_length(1);
                 // check the pool id is correct
-                assert_that(&UncheckedPoolAddress::from(&ref_vec[0].pool_address))
+                assert_that!(&UncheckedPoolAddress::from(&ref_vec[0].pool_address))
                     .is_equal_to(&unchecked_pool_id);
             }
 
@@ -1302,14 +1302,14 @@ mod test {
 
             let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
-            assert_that(&res)
-                .is_err()
+            assert_that!(&res)
+                .err()
                 .is_equal_to(AnsHostError::UnregisteredDex {
                     dex: unregistered_dex.into(),
                 });
 
             let actual_pools = load_pool_metadata(&deps.storage)?;
-            assert_that(&actual_pools).is_empty();
+            assert_that!(&actual_pools).is_empty();
 
             Ok(())
         }
@@ -1340,11 +1340,11 @@ mod test {
 
             // metadata should be emtpy
             let actual_pools = load_pool_metadata(&deps.storage)?;
-            assert_that(&actual_pools).is_empty();
+            assert_that!(&actual_pools).is_empty();
 
             // all pairs should be empty
             let actual_pairs = load_asset_pairings(&deps.storage)?;
-            assert_that(&actual_pairs).is_empty();
+            assert_that!(&actual_pairs).is_empty();
 
             Ok(())
         }
@@ -1361,15 +1361,15 @@ mod test {
                 &abstr.owner,
             );
 
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             // metadata should be empty
             let actual_pools = load_pool_metadata(&deps.storage)?;
-            assert_that(&actual_pools).is_empty();
+            assert_that!(&actual_pools).is_empty();
 
             // all pairs should be empty
             let actual_pairs = load_asset_pairings(&deps.storage)?;
-            assert_that(&actual_pairs).is_empty();
+            assert_that!(&actual_pairs).is_empty();
 
             Ok(())
         }
@@ -1391,10 +1391,10 @@ mod test {
 
             let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
-            assert_that(&res).is_err();
+            assert_that!(&res).is_err();
 
-            assert_that(&res)
-                .is_err()
+            assert_that!(&res)
+                .err()
                 .is_equal_to(AnsHostError::UnregisteredAsset {
                     asset: "juno".to_string(),
                 });
@@ -1439,8 +1439,8 @@ mod test {
             let deps = mock_dependencies();
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
-            assert_that(&res)
-                .is_err()
+            assert_that!(&res)
+                .err()
                 .is_equal_to(AnsHostError::UnregisteredAsset {
                     asset: "a".to_string(),
                 });
@@ -1457,7 +1457,7 @@ mod test {
 
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let mut assets: Vec<AssetEntry> = vec!["a", "b", "c", "d", "e"]
                 .into_iter()
@@ -1467,7 +1467,7 @@ mod test {
             register_assets_helper(&mut deps, assets.clone(), &abstr.owner).unwrap();
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
         }
 
         #[test]

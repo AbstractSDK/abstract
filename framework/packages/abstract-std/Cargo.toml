@@ -41,7 +41,7 @@ function_name = { version = "0.3.0" }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
-speculoos = { workspace = true }
+assertor = { workspace = true }
 rstest = { workspace = true }
 anyhow = { workspace = true }
 abstract-testing = { path = "../abstract-testing" }

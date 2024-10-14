@@ -134,7 +134,7 @@ impl KeyDeserialize for &TruncatedChainId {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::testing::mock_env;
-    use speculoos::prelude::*;
+    use assertor::*;
 
     use super::*;
 

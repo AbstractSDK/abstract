@@ -40,7 +40,7 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
     use abstract_testing::prelude::*;
-    use speculoos::prelude::*;
+    use assertor::*;
 
     use super::*;
     use crate::mock::*;

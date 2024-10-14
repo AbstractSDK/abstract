@@ -107,7 +107,7 @@ ans-host = { workspace = true }
 registry = { workspace = true }
 module-factory = { workspace = true }
 rstest = { workspace = true }
-speculoos = { workspace = true }
+assertor = { workspace = true, features = ["anyhow"] }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-app = { workspace = true, features = ["test-utils"] }

@@ -189,8 +189,8 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::account::ExecuteMsg;
     use abstract_testing::prelude::*;
+    use assertor::*;
     use cosmwasm_std::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;

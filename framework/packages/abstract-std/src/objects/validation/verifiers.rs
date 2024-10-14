@@ -64,7 +64,7 @@ pub fn validate_description(maybe_description: Option<&str>) -> Result<(), Valid
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use speculoos::prelude::*;
+    use assertor::*;
 
     use super::*;
 

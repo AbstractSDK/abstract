@@ -94,7 +94,7 @@ mod tests {
 
     use evm::types;
     use polytone_evm::EVM_NOTE_ID;
-    use speculoos::prelude::*;
+    use assertor::*;
 
     type IbcClientTestResult = Result<(), IcaClientError>;
 

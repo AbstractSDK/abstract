@@ -20,4 +20,4 @@ syn = { version = "1", features = ["full", "extra-traits"] }
 
 [dev-dependencies]
 cosmwasm-std = { workspace = true }
-speculoos = { workspace = true }
+assertor = { workspace = true }
