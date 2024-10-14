@@ -16,9 +16,9 @@ use abstract_std::{
     registry::{NamespaceResponse, UpdateModule},
 };
 use abstract_testing::prelude::*;
+use assertor::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_orch::prelude::*;
-use assertor::*;
 
 // /// Deploys and mints an NFT to *sender*.
 // fn deploy_and_mint_nft(

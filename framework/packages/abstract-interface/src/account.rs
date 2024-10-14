@@ -27,13 +27,13 @@ use abstract_std::{
     registry::{state::LOCAL_ACCOUNT_SEQUENCE, ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, ACCOUNT, IBC_CLIENT,
 };
+use assertor::*;
 use cosmwasm_std::{from_json, to_json_binary};
 use cosmwasm_std::{Binary, Empty};
 use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, interface, prelude::*};
 use semver::{Version, VersionReq};
 use serde::Serialize;
-use assertor::*;
 use std::{collections::HashSet, fmt::Debug};
 
 /// A helper struct that contains fields from [`abstract_std::account::state::AccountInfo`]

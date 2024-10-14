@@ -144,6 +144,7 @@ mod tests {
     use crate::test_common::mock_init;
     use abstract_std::{account, ibc_client::state::*, registry};
     use abstract_testing::prelude::*;
+    use assertor::*;
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies},
@@ -151,7 +152,6 @@ mod tests {
     };
     use cw2::CONTRACT;
     use cw_ownable::{Ownership, OwnershipError};
-    use assertor::*;
 
     type IbcClientTestResult = Result<(), IbcClientError>;
 
