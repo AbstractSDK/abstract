@@ -49,8 +49,8 @@ impl<
         execute: &M::ExecuteMsg,
         funds: Vec<Coin>,
     ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        self.remote_account
-            .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
+        self.remote_account.ibc_client_execute(
+            ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain_id(),
                 action: ibc_host::HostAction::Dispatch {
                     account_msgs: vec![account::ExecuteMsg::ExecuteOnModule {
@@ -59,7 +59,9 @@ impl<
                         funds,
                     }],
                 },
-            })
+            },
+            vec![],
+        )
     }
 
     /// Queries request on  application
@@ -105,12 +107,13 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chai
             })
         }
 
-        let _ = self
-            .remote_account
-            .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
+        let _ = self.remote_account.ibc_client_execute(
+            ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain_id(),
                 action: ibc_host::HostAction::Dispatch { account_msgs },
-            })?;
+            },
+            vec![],
+        )?;
         Ok(())
     }
 }
