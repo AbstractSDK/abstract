@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use abstract_macros::with_abstract_event;
-    use cosmwasm_std::Response;
     use assertor::*;
+    use cosmwasm_std::Response;
 
     #[test]
     fn test_abstract_response() {

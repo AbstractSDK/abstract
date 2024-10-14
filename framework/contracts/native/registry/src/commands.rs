@@ -669,6 +669,7 @@ mod tests {
     use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
     use abstract_std::{objects::account::AccountTrace, registry::*, ACCOUNT};
     use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use assertor::*;
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies, MockApi},
@@ -677,7 +678,6 @@ mod tests {
     use cw_ownable::OwnershipError;
     use cw_storage_plus::Item;
     use ownership::{GovernanceDetails, Ownership};
-    use assertor::*;
 
     use super::*;
     use crate::contract;

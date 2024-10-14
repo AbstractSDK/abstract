@@ -261,8 +261,8 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
 
-    use cosmwasm_std::testing::mock_dependencies;
     use assertor::*;
+    use cosmwasm_std::testing::mock_dependencies;
 
     #[test]
     fn test_verify() {

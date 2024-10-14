@@ -8,8 +8,8 @@ use abstract_std::{
     ABSTRACT_EVENT_TYPE, ACCOUNT,
 };
 use abstract_testing::prelude::*;
-use cw_orch::prelude::*;
 use assertor::*;
+use cw_orch::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 

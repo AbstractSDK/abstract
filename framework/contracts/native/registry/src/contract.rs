@@ -142,11 +142,11 @@ mod tests {
     mod testing {
         use abstract_std::registry;
         use abstract_testing::prelude::*;
+        use assertor::*;
         use cosmwasm_std::{
             testing::{message_info, mock_dependencies, MockApi},
             OwnedDeps, Response,
         };
-        use assertor::*;
 
         use crate::{contract, error::RegistryError};
 

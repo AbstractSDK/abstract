@@ -358,8 +358,8 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
-    use cosmwasm_std::*;
     use assertor::*;
+    use cosmwasm_std::*;
 
     use super::*;
     use crate::mock_module::*;

@@ -177,8 +177,8 @@ impl fmt::Display for PoolAddress {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use cosmwasm_std::testing::MockApi;
     use assertor::*;
+    use cosmwasm_std::testing::MockApi;
 
     use super::*;
 
