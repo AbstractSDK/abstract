@@ -153,11 +153,12 @@ impl<Chain: CwEnv> Publisher<Chain> {
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + ServiceDeployer<Chain>,
     >(
         &self,
+        init_msg: &<M as InstantiableContract>::InstantiateMsg,
     ) -> AbstractClientResult<()> {
         let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
         let service: M = contract.into();
         service
-            .deploy(M::module_version().parse()?, DeployStrategy::Try)
+            .deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)
             .map_err(Into::into)
     }
 

@@ -11,6 +11,9 @@ use crate::{
 };
 use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
 
+const CW_BLOB: &str = "cw:blob";
+
+#[derive(Clone)]
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub registry: Registry<Chain>,
@@ -338,7 +341,6 @@ impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use std::borrow::Cow;
 
     use cosmwasm_std::Api;
     use cw_orch::anyhow;
