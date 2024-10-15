@@ -123,10 +123,7 @@ pub fn update_info(
 mod tests {
     use super::*;
     use crate::test_common::test_only_owner;
-    use crate::{
-        contract,
-        test_common::{execute_as, mock_init},
-    };
+    use crate::test_common::{execute_as, mock_init};
     use abstract_std::account::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, StdError};
@@ -403,31 +400,6 @@ mod tests {
                     AccountError::Validation(ValidationError::LinkInvalidLong(_))
                 )
             });
-
-            Ok(())
-        }
-    }
-
-    mod handle_callback {
-        use abstract_std::account::CallbackMsg;
-
-        use super::*;
-
-        #[test]
-        fn only_by_contract() -> anyhow::Result<()> {
-            let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
-            let not_contract = deps.api.addr_make("not_contract");
-            mock_init(&mut deps)?;
-            let callback = CallbackMsg {};
-
-            let msg = ExecuteMsg::Callback(callback);
-
-            let res = contract::execute(deps.as_mut(), env, message_info(&not_contract, &[]), msg);
-
-            assert_that!(&res)
-                .is_err()
-                .matches(|err| matches!(err, AccountError::Std(StdError::GenericErr { .. })));
 
             Ok(())
         }

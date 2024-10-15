@@ -49,12 +49,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
-        ExecuteMsg::SendFunds {
-            host_chain,
-            funds,
-            memo,
-        } => commands::execute_send_funds(deps, env, info, host_chain, funds, memo)
-            .map_err(Into::into),
+        ExecuteMsg::SendFunds { host_chain, memo } => {
+            commands::execute_send_funds(deps, env, info, host_chain, memo).map_err(Into::into)
+        }
         ExecuteMsg::Register {
             host_chain,
             namespace,
@@ -113,7 +110,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespon
         QueryMsg::ListIbcInfrastructures {} => {
             to_json_binary(&queries::list_ibc_counterparts(deps)?)
         }
-        QueryMsg::ListRemoteProxiesByAccountId { account_id } => {
+        QueryMsg::ListRemoteAccountsByAccountId { account_id } => {
             to_json_binary(&queries::list_proxies_by_account_id(deps, account_id)?)
         }
     }
@@ -147,7 +144,7 @@ mod tests {
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies},
-        Addr,
+        Addr, Coin,
     };
     use cw2::CONTRACT;
     use cw_ownable::{Ownership, OwnershipError};
@@ -158,6 +155,16 @@ mod tests {
     fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> IbcClientResult {
         let env = mock_env_validated(deps.api);
         execute(deps.as_mut(), env, message_info(sender, &[]), msg)
+    }
+
+    fn execute_as_funds(
+        deps: &mut MockDeps,
+        sender: &Addr,
+        msg: ExecuteMsg,
+        funds: &[Coin],
+    ) -> IbcClientResult {
+        let env = mock_env_validated(deps.api);
+        execute(deps.as_mut(), env, message_info(sender, funds), msg)
     }
 
     fn test_only_admin(msg: ExecuteMsg) -> IbcClientTestResult {
@@ -426,12 +433,12 @@ mod tests {
             let hosts = remote_hosts_response.hosts;
             assert_eq!(vec![(chain_name.clone(), host)], hosts);
 
-            let remote_proxies_response: ListRemoteProxiesResponse = from_json(query(
+            let remote_proxies_response: ListRemoteAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env_validated(deps.api),
                 QueryMsg::ListRemoteProxies {},
             )?)?;
-            let hosts = remote_proxies_response.proxies;
+            let hosts = remote_proxies_response.accounts;
             assert_eq!(vec![(chain_name.clone(), None)], hosts);
 
             let ibc_infratructures_response: ListIbcInfrastructureResponse = from_json(query(
@@ -631,7 +638,6 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
-                funds: coins(1, "denom"),
                 memo: None,
             };
 
@@ -673,11 +679,10 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name.clone(),
-                funds: funds.clone(),
                 memo: None,
             };
 
-            let res = execute_as(&mut deps, account.addr(), msg)?;
+            let res = execute_as_funds(&mut deps, account.addr(), msg, &funds)?;
 
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()
@@ -707,11 +712,10 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
-                funds: funds.clone(),
                 memo: memo.clone(),
             };
 
-            let res = execute_as(&mut deps, account.addr(), msg)?;
+            let res = execute_as_funds(&mut deps, account.addr(), msg, &funds)?;
 
             use prost::Message;
             #[allow(deprecated)]
@@ -1315,17 +1319,17 @@ mod tests {
                 accounts_response
             );
 
-            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+            let proxies_response: ListRemoteAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env_validated(deps.api),
-                QueryMsg::ListRemoteProxiesByAccountId {
+                QueryMsg::ListRemoteAccountsByAccountId {
                     account_id: TEST_ACCOUNT_ID,
                 },
             )?)?;
 
             assert_eq!(
-                ListRemoteProxiesResponse {
-                    proxies: vec![(chain_name, Some(remote_account))]
+                ListRemoteAccountsResponse {
+                    accounts: vec![(chain_name, Some(remote_account))]
                 },
                 proxies_response
             );
@@ -1356,17 +1360,17 @@ mod tests {
             ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain1), &account1)?;
             ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain2), &account2)?;
 
-            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+            let proxies_response: ListRemoteAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env_validated(deps.api),
-                QueryMsg::ListRemoteProxiesByAccountId {
+                QueryMsg::ListRemoteAccountsByAccountId {
                     account_id: TEST_ACCOUNT_ID,
                 },
             )?)?;
 
             assert_eq!(
-                ListRemoteProxiesResponse {
-                    proxies: vec![(chain1, Some(account1)), (chain2, Some(account2))]
+                ListRemoteAccountsResponse {
+                    accounts: vec![(chain1, Some(account1)), (chain2, Some(account2))]
                 },
                 proxies_response
             );
@@ -1406,15 +1410,15 @@ mod tests {
                 &archway_account,
             )?;
 
-            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+            let proxies_response: ListRemoteAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env_validated(deps.api),
-                QueryMsg::ListRemoteProxiesByAccountId { account_id },
+                QueryMsg::ListRemoteAccountsByAccountId { account_id },
             )?)?;
 
             assert_eq!(
-                ListRemoteProxiesResponse {
-                    proxies: vec![
+                ListRemoteAccountsResponse {
+                    accounts: vec![
                         (archway_chain, Some(archway_account)),
                         (terra_chain, Some(terra_account)),
                     ]

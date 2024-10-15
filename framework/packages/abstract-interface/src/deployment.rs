@@ -31,6 +31,7 @@ impl State {
     }
 }
 
+#[derive(Clone)]
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub registry: Registry<Chain>,
@@ -82,7 +83,17 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     ) -> Result<Self, AbstractInterfaceError> {
         let original_sender = chain.sender().clone();
         chain.set_sender(deploy_data);
-        let admin = chain.sender_addr().to_string();
+
+        // Ensure we have expected sender address
+        let sender_addr = chain.sender_addr();
+        let hrp = sender_addr.as_str().split_once("1").unwrap().0;
+        assert_eq!(
+            sender_addr.as_str(),
+            native_addrs::creator_address(hrp)?,
+            "Only predetermined abstract admin can deploy abstract contracts, see `native_addrs.rs`"
+        );
+
+        let admin = sender_addr.to_string();
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
@@ -314,6 +325,17 @@ impl<Chain: CwEnv> Abstract<Chain> {
         account.set_sender(sender);
         ibc.client.set_sender(sender);
         ibc.host.set_sender(sender);
+    }
+
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            ans_host: self.ans_host.clone().call_as(sender),
+            registry: self.registry.clone().call_as(sender),
+            module_factory: self.module_factory.clone().call_as(sender),
+            ibc: self.ibc.call_as(sender),
+            account: self.account.call_as(sender),
+            blob: self.blob.clone(),
+        }
     }
 }
 
