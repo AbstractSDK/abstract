@@ -8,10 +8,10 @@ use abstract_interface::{AbstractInterfaceError, RegisteredModule};
 use abstract_std::{account, adapter, ibc_client, ibc_host};
 use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};
-use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
+use cw_orch_interchain::{core::SuccessNestedPacketsFlow, prelude::*};
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::{client::AbstractClientResult, remote_account::RemoteAccount, IbcTxAnalysisV2};
+use crate::{client::AbstractClientResult, remote_account::RemoteAccount};
 
 /// An application represents a module installed on a [`RemoteAccount`].
 pub struct RemoteApplication<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M> {
@@ -48,7 +48,7 @@ impl<
         &self,
         execute: &M::ExecuteMsg,
         funds: Vec<Coin>,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
         self.remote_account.ibc_client_execute(
             ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain_id(),

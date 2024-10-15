@@ -27,12 +27,12 @@ use cw_orch::{
     environment::{Environment as _, MutCwEnv},
     prelude::*,
 };
-use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
+use cw_orch_interchain::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     client::AbstractClientResult, AbstractClient, AbstractClientError, Account, Environment,
-    IbcTxAnalysisV2, RemoteApplication,
+    RemoteApplication,
 };
 
 /// A builder for creating [`RemoteAccounts`](RemoteAccount).
@@ -343,7 +343,10 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
     ///
     /// Migrates account to its respective new versions.
     /// Note that execution will be done through source chain
-    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+    pub fn upgrade(
+        &self,
+        version: ModuleVersion,
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
         let modules = vec![(
             ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
             Some(
@@ -384,7 +387,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.execute_on_account(vec![abstract_std::account::ExecuteMsg::Execute { msgs }])
     }
@@ -393,7 +396,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
     pub fn execute_on_account(
         &self,
         account_msgs: Vec<account::ExecuteMsg>,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
         self.ibc_client_execute(
             ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.host_chain_id(),
@@ -423,7 +426,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         &self,
         funds: Vec<Coin>,
         memo: Option<String>,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
         self.ibc_client_execute(
             ibc_client::ExecuteMsg::SendFunds {
                 host_chain: self.host_chain_id(),
@@ -539,7 +542,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         &self,
         msg: ibc_client::ExecuteMsg,
         funds: Vec<Coin>,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
         let exec_msg = to_json_binary(&msg).unwrap();
         let msg = account::ExecuteMsg::ExecuteOnModule {
             module_id: IBC_CLIENT.to_owned(),
@@ -552,8 +555,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
             .ibc_env
             .await_packets(&self.origin_chain().chain_id(), tx_response)
             .map_err(Into::into)?;
-        packets.into_result()?;
-        Ok(IbcTxAnalysisV2(packets))
+        packets.assert().map_err(Into::into)
     }
 
     pub(crate) fn module<T: RegisteredModule + From<Contract<Chain>>>(

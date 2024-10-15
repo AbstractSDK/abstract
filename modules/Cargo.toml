@@ -46,8 +46,9 @@ protobuf = { version = "2", features = ["with-bytes"] }
 chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-cw-orch = { version = "0.25.0" }
-cw-orch-interchain = { version = "0.5.0" }
+
+cw-orch = { version = "0.26.0" }
+cw-orch-interchain = { version = "0.7.0" }
 # cw-orch-osmosis-test-tube = { version = "0.2.0" }
 tokio = { version = "1.4", features = ["full"] }
 
@@ -105,9 +106,10 @@ abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 
 # TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

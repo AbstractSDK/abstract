@@ -1,6 +1,8 @@
 use crate::{AbstractInterfaceError, IbcClient, IbcHost, Registry};
 use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
+
+#[derive(Clone)]
 pub struct AbstractIbc<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
     pub host: IbcHost<Chain>,
@@ -45,6 +47,13 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 ibc_host::contract::CONTRACT_VERSION.to_string(),
             ),
         ])
+    }
+
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            client: self.client.call_as(sender),
+            host: self.host.call_as(sender),
+        }
     }
 }
 
