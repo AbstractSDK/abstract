@@ -1,53 +1,44 @@
 {
-  "pion-1": {
-    "code_ids": {
-      "abstract:account": 7403,
-      "abstract:ans-host": 7400,
-      "abstract:ibc-client": 7404,
-      "abstract:ibc-host": 7405,
-      "abstract:module-factory": 7402,
-      "abstract:registry": 7401,
-      "cw:blob": 7399
+    "pion-1": {
+        "code_ids": {
+            "abstract:account": 7403,
+            "abstract:ans-host": 7400,
+            "abstract:ibc-client": 7404,
+            "abstract:ibc-host": 7405,
+            "abstract:module-factory": 7402,
+            "abstract:registry": 7401,
+            "cw:blob": 7399
+        },
+        "default": {
+            "abstract:account-local-0": "neutron12x9fcuwl382vv9l22dkcvcx6uxpeqy9rq5fe3jt8cgvqkyjnj2hs5da0m4",
+            "abstract:account-local-1": "neutron1mxahhvpj467088td8lvysyw7m8v880tzls0sxk0zuljn6tsufqksy8whnv",
+            "abstract:ans-host": "neutron1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsdn69ty",
+            "abstract:ibc-client": "neutron1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqf33ujf",
+            "abstract:ibc-host": "neutron1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqs6g6lrh",
+            "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
+            "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7"
+        }
     },
-    "default": {
-      "abstract:account-local-0": "neutron12x9fcuwl382vv9l22dkcvcx6uxpeqy9rq5fe3jt8cgvqkyjnj2hs5da0m4",
-      "abstract:account-local-1": "neutron1mxahhvpj467088td8lvysyw7m8v880tzls0sxk0zuljn6tsufqksy8whnv",
-      "abstract:ans-host": "neutron1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsdn69ty",
-      "abstract:ibc-client": "neutron1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqf33ujf",
-      "abstract:ibc-host": "neutron1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqs6g6lrh",
-      "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
-      "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7"
+    "union-testnet-8": {
+        "code_ids": {
+            "abstract:account": 285,
+            "abstract:ans-host": 282,
+            "abstract:ibc-client": 286,
+            "abstract:ibc-host": 287,
+            "abstract:ica-client": 288,
+            "abstract:module-factory": 284,
+            "abstract:registry": 283,
+            "cw:blob": 270
+        },
+        "default": {
+            "abstract:account-local-0": "union1m2u6h87pqspk0vvuyav7hquhc7z6u6hnj2hl87vs4xz8tm9mepuslwg9js",
+            "abstract:ans-host": "union1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsgj44nw",
+            "abstract:ibc-client": "union1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqvs7v2r",
+            "abstract:ibc-host": "union1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqslf40ma",
+            "abstract:ica-client": "union1kyeazk4vpt9a7h4zzxanj89tyyx6dtad98scyq8c5p5ueaa66r9splqlhd",
+            "abstract:module-factory": "union1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqf4t8dl",
+            "abstract:registry": "union1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq6jqp05",
+            "abstract:evm-note": "union1dhzx2n0s3w609u2uuw2avkfnqn76mcjx3tj5cspng0cdv2s4tfyquuapet"
+        }
     }
-  },
-  "union-testnet-8": {
-    "code_ids": {
-      "abstract:account": 246,
-      "abstract:account-factory": 81,
-      "abstract:ans-host": 243,
-      "abstract:ibc-client": 247,
-      "abstract:ibc-host": 248,
-      "abstract:ica-client": 250,
-      "abstract:manager": 83,
-      "abstract:module-factory": 245,
-      "abstract:proxy": 84,
-      "abstract:version-control": 244,
-      "cw:blob": 242,
-      "polytone:note": 87,
-      "polytone:proxy": 89,
-      "polytone:voice": 88
-    },
-    "default": {
-      "abstract:account-factory": "union1czy8k839ywhy8wxejphxq67xga63jf68ssymal2qh4sv842hmstsjh6h6u",
-      "abstract:account-local-0": "union1lq2sv0jwlxczwhwka0a38ffpvmwlp32au4ha0ghcacaksxau9kasz72s5n",
-      "abstract:account-local-1": "union1dr4kzjwvlu0hgnkp9czprz6p2uvymxuf6crpzwzsrysv0caq7ynqgpg2tf",
-      "abstract:ans-host": "union1pzf4rfa8ly8y306c2zxm9ka4hegpv9c4tsffcxejc3mz4jkcac4q329zr7",
-      "abstract:evm-ibc": "union1hfghs59ccj5vc8ql6j8pvmxemdxu6me0wxjcrzr6z0z7wm0xr8jqer4n4h",
-      "abstract:evm-note": "union1dhzx2n0s3w609u2uuw2avkfnqn76mcjx3tj5cspng0cdv2s4tfyquuapet",
-      "abstract:ibc-client": "union1l487rfqw2yevhvh4c3dw706mdy9u703zsawq7xt4h9e0h9up9fgqf9umhv",
-      "abstract:ibc-host": "union1dtw8lua8qpav6x3sngqwd3xqmyvg5q0pnv2lkmajzk0rjkjetm2sdjz3dl",
-      "abstract:ica-client": "union1d9um56y4su87rder4lrt4gdqm9yc5nw7d4rd0juhc6alwqdwrq5sm3x3vf",
-      "abstract:module-factory": "union1wzrl9hf8xukhu7ukx5quted5m5c2vklmr70tg88a0zkduts7f0sqxsjk85",
-      "abstract:version-control": "union1tnv2hfx6gqdtelccc57aru3ju8wlff8pslrsfdqn862qjc69gsasglkf23"
-    }
-  }
 }

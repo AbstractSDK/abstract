@@ -43,9 +43,9 @@ base64 = "0.22.1"
 ping-pong = { path = "../../modules/contracts/apps/ping-pong" }
 
 # Ica Client specific
+evm-note = { version = "0.3.0", features = ["library"] }
+polytone-evm = { version = "0.3.0" }
 union-connector = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
-evm-note = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
-polytone-evm = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
 
 
 protos = { git = "https://github.com/unionlabs/union", features = [
@@ -67,3 +67,8 @@ alloy = { version = "0.2.1", features = [
     "provider-http",
 ] }
 bech32 = "0.11.0"
+
+
+[patch.crates-io]
+evm-note = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+polytone-evm = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }

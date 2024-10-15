@@ -159,6 +159,12 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             expected_addr(native_addrs::IBC_HOST_SALT)?,
             Binary::from(native_addrs::IBC_HOST_SALT),
         )?;
+
+        deployment.ibc.ica_client.instantiate(
+            &abstract_std::ica_client::InstantiateMsg {},
+            Some(&sender_addr),
+            &[],
+        )?;
         deployment.ibc.register(&deployment.registry)?;
 
         deployment.registry.register_base(&deployment.account)?;
