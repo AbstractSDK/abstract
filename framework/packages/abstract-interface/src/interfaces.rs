@@ -29,7 +29,7 @@ where
 
     let account_interface = AccountI::new_from_id(&account_id, chain.clone());
 
-    let account = registry.get_account(account_id.clone())?;
+    let account = registry.account(account_id.clone())?;
     account_interface.set_address(account.addr());
 
     Ok(account_interface)

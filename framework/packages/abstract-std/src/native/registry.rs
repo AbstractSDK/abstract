@@ -223,10 +223,10 @@ pub struct ModuleFilter {
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
-    /// Query Core of an Account
-    /// Returns [`AccountResponse`]
-    #[returns(AccountResponse)]
-    Account { account_id: AccountId },
+    /// Query Core of Accounts
+    /// Returns [`AccountsResponse`]
+    #[returns(AccountsResponse)]
+    Accounts { account_ids: Vec<AccountId> },
     /// Queries module information
     /// Modules that are yanked are not returned
     /// Returns [`ModulesResponse`]
@@ -243,6 +243,12 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
+    /// Returns [`AccountListResponse`]
+    #[returns(AccountListResponse)]
+    AccountList {
+        start_after: Option<AccountId>,
+        limit: Option<u8>,
+    },
     /// Returns [`ModulesListResponse`]
     #[returns(ModulesListResponse)]
     ModuleList {
@@ -259,8 +265,13 @@ pub enum QueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AccountResponse {
-    pub account: Account,
+pub struct AccountsResponse {
+    pub accounts: Vec<Account>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct AccountListResponse {
+    pub accounts: Vec<(AccountId, Account)>,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -31,7 +31,6 @@
 
 use abstract_interface::{
     Abstract, AccountI, AnsHost, IbcClient, ModuleFactory, RegisteredModule, Registry,
-    RegistryQueryFns,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleStatus, ModuleVersion},
@@ -282,7 +281,12 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         loop {
             let random_sequence = rng.gen_range(2147483648..u32::MAX);
             let potential_account_id = AccountId::local(random_sequence);
-            if self.abstr.registry.account(potential_account_id).is_err() {
+            if self
+                .abstr
+                .registry
+                .account(potential_account_id)
+                .is_err()
+            {
                 return Ok(random_sequence);
             };
         }

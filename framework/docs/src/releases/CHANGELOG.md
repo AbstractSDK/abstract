@@ -20,6 +20,8 @@
 - Removed `UpdateConfig` endpoints from most native contracts and `App`/`Native` bases.
 - Minified the storage keys and made them available via constants
 - Version Control renamed to registry
+- `registry::QueryMsg::Account` was changed to `registry::QueryMsg::Accounts` for simultaneous queries
+- Added `registry::QueryMsg::AccountList` for paginated account queries
 
 #### Abstract Client
 
