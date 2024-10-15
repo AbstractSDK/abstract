@@ -58,8 +58,10 @@ pub mod state {
     /// Account sequences
     pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> =
         Item::new(storage_namespaces::registry::LOCAL_ACCOUNT_SEQUENCE);
-    pub const NAMESPACES: Map<&Namespace, AccountId> = Map::new("bbbmb");
-    pub const REV_NAMESPACES: Map<&AccountId, Namespace> = Map::new("blblblbl");
+    pub const NAMESPACES: Map<&Namespace, AccountId> =
+        Map::new(storage_namespaces::registry::NAMESPACES);
+    pub const REV_NAMESPACES: Map<&AccountId, Namespace> =
+        Map::new(storage_namespaces::registry::REV_NAMESPACES);
 }
 
 use cosmwasm_schema::QueryResponses;
