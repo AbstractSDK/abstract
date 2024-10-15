@@ -22,7 +22,6 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins};
 use cw_orch::prelude::*;
 use mock_modules::{adapter_1, V1, V2};
-use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
@@ -35,27 +34,35 @@ fn installing_one_adapter_should_succeed() -> AResult {
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
-    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
-        address: staking_adapter.address()?,
-        id: TEST_MODULE_ID.to_string(),
-        version: cw2::ContractVersion {
-            contract: TEST_MODULE_ID.into(),
-            version: TEST_VERSION.into(),
+    assert_eq!(
+        modules[0],
+        AccountModuleInfo {
+            address: staking_adapter.address()?,
+            id: TEST_MODULE_ID.to_string(),
+            version: cw2::ContractVersion {
+                contract: TEST_MODULE_ID.into(),
+                version: TEST_VERSION.into(),
+            },
         },
-    });
+    );
 
     // Configuration is correct
     let adapter_config = staking_adapter.base_config()?;
-    assert_that!(adapter_config).is_equal_to(adapter::AdapterConfigResponse {
-        ans_host_address: deployment.ans_host.address()?,
-        dependencies: vec![],
-        registry_address: deployment.registry.address()?,
-    });
+    assert_eq!(
+        adapter_config,
+        adapter::AdapterConfigResponse {
+            ans_host_address: deployment.ans_host.address()?,
+            dependencies: vec![],
+            registry_address: deployment.registry.address()?,
+        }
+    );
 
     // no authorized addresses registered
     let authorized = staking_adapter.authorized_addresses(account.addr_str()?)?;
-    assert_that!(authorized)
-        .is_equal_to(adapter::AuthorizedAddressesResponse { addresses: vec![] });
+    assert_eq!(
+        authorized,
+        adapter::AuthorizedAddressesResponse { addresses: vec![] }
+    );
 
     take_storage_snapshot!(chain, "install_one_adapter");
 
@@ -75,16 +82,11 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
         Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
         None,
     )?;
-    // TODO, match the exact error
-    assert_that!(install_adapter(&account, TEST_MODULE_ID)).is_err();
+    // TODO: match the exact error
+    assert!(install_adapter(&account, TEST_MODULE_ID).is_err());
 
-    // TODO, match the exact error
-    assert_that!(install_adapter_with_funds(
-        &account,
-        TEST_MODULE_ID,
-        &coins(12, "ujunox")
-    ))
-    .is_err();
+    // TODO: match the exact error
+    assert!(install_adapter_with_funds(&account, TEST_MODULE_ID, &coins(12, "ujunox")).is_err());
 
     Ok(())
 }
@@ -109,7 +111,7 @@ fn install_non_existent_adapterid_should_fail() -> AResult {
 
     let res = install_adapter(&account, "lol:no_chance");
 
-    assert_that!(res).is_err();
+    assert!(res.is_err());
     Ok(())
 }
 
@@ -128,8 +130,8 @@ fn install_non_existent_version_should_fail() -> AResult {
         &[],
     );
 
-    // testtodo: check error
-    assert_that!(res).is_err();
+    // TODO: check error
+    assert!(res.is_err());
 
     Ok(())
 }
@@ -148,20 +150,24 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
 
     // assert account module
     // check staking adapter
-    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
-        address: staking_adapter.address()?,
-        id: TEST_MODULE_ID.to_string(),
-        version: cw2::ContractVersion {
-            contract: TEST_MODULE_ID.into(),
-            version: TEST_VERSION.into(),
+    assert_eq!(
+        modules[0],
+        AccountModuleInfo {
+            address: staking_adapter.address()?,
+            id: TEST_MODULE_ID.to_string(),
+            version: cw2::ContractVersion {
+                contract: TEST_MODULE_ID.into(),
+                version: TEST_VERSION.into(),
+            },
         },
-    });
+    );
 
     // install again
     let second_install_res = install_adapter(&account, TEST_MODULE_ID);
-    assert_that!(second_install_res)
-        .is_err()
-        .matches(|e| e.to_string().contains("test-module-id"));
+    assert!(second_install_res
+        .unwrap_err()
+        .to_string()
+        .contains("test-module-id"));
 
     account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
@@ -181,14 +187,17 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
 
     // check staking adapter
-    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
-        address: staking_adapter.address()?,
-        id: TEST_MODULE_ID.to_string(),
-        version: cw2::ContractVersion {
-            contract: TEST_MODULE_ID.into(),
-            version: TEST_VERSION.into(),
+    assert_eq!(
+        modules[0],
+        AccountModuleInfo {
+            address: staking_adapter.address()?,
+            id: TEST_MODULE_ID.to_string(),
+            version: cw2::ContractVersion {
+                contract: TEST_MODULE_ID.into(),
+                version: TEST_VERSION.into(),
+            },
         },
-    });
+    );
 
     // uninstall
     account.uninstall_module(TEST_MODULE_ID.to_string())?;
@@ -226,14 +235,17 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let modules = account.expect_modules(vec![adapter1.address()?.to_string()])?;
 
     // check staking adapter
-    assert_that(&modules[0]).is_equal_to(&AccountModuleInfo {
-        address: adapter1.address()?,
-        id: adapter1.id(),
-        version: cw2::ContractVersion {
-            contract: adapter1.id(),
-            version: V1.into(),
+    assert_eq!(
+        modules[0],
+        AccountModuleInfo {
+            address: adapter1.address()?,
+            id: adapter1.id(),
+            version: cw2::ContractVersion {
+                contract: adapter1.id(),
+                version: V1.into(),
+            },
         },
-    });
+    );
 
     // uninstall tendermint staking
     account.uninstall_module(adapter1.id())?;
@@ -252,28 +264,34 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let latest_staking = deployment
         .registry
         .module(ModuleInfo::from_id_latest(&adapter1.id())?)?;
-    assert_that!(latest_staking.info.version).is_equal_to(ModuleVersion::Version(V2.to_string()));
+    assert_eq!(
+        latest_staking.info.version,
+        ModuleVersion::Version(V2.to_string())
+    );
 
     // reinstall
     install_adapter(&account, &adapter2.id())?;
 
     let modules = account.expect_modules(vec![adapter2.address()?.to_string()])?;
 
-    assert_that!(modules[0]).is_equal_to(&AccountModuleInfo {
-        // the address stored for MockAdapterI was updated when we instantiated the new version, so this is the new address
-        address: adapter2.address()?,
-        id: adapter2.id(),
-        version: cw2::ContractVersion {
-            contract: adapter2.id(),
-            // IMPORTANT: The version of the contract did not change although the version of the module in registry did.
-            // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
-            version: V2.to_string(),
-        },
-    });
+    assert_eq!(
+        modules[0],
+        AccountModuleInfo {
+            // the address stored for MockAdapterI was updated when we instantiated the new version, so this is the new address
+            address: adapter2.address()?,
+            id: adapter2.id(),
+            version: cw2::ContractVersion {
+                contract: adapter2.id(),
+                // IMPORTANT: The version of the contract did not change although the version of the module in registry did.
+                // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
+                version: V2.to_string(),
+            },
+        }
+    );
     // assert that the new staking adapter has a different address
     assert_ne!(old_adapter_addr, adapter2.address()?);
 
-    assert_that!(modules[0].address).is_equal_to(adapter2.as_instance().address()?);
+    assert_eq!(modules[0].address, adapter2.as_instance().address()?);
     take_storage_snapshot!(chain, "reinstalling_new_version_should_install_latest");
 
     Ok(())
@@ -295,18 +313,18 @@ fn unauthorized_exec() -> AResult {
         .call_as(&unauthorized)
         .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
-    assert_that!(res.root().to_string()).contains(format!(
+    assert!(res.root().to_string().contains(&format!(
         "Sender: {} of request to tester:test-module-id is not an Account or Authorized Address",
         unauthorized
-    ));
+    )));
     // neither can the ROOT directly
     let res = staking_adapter
         .execute(&MockExecMsg {}.into(), &[])
         .unwrap_err();
-    assert_that!(&res.root().to_string()).contains(format!(
+    assert!(res.root().to_string().contains(&format!(
         "Sender: {} of request to tester:test-module-id is not an Account or Authorized Address",
         chain.sender_addr()
-    ));
+    )));
     Ok(())
 }
 
@@ -366,7 +384,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
 
     let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;
     let installed_module: AccountModuleInfo = modules[0].clone();
-    assert_that!(installed_module.id).is_equal_to(adapter1.id());
+    assert_eq!(installed_module.id, adapter1.id());
     take_storage_snapshot!(chain, "installing_specific_version_should_install_expected");
 
     Ok(())
@@ -390,7 +408,7 @@ fn account_install_adapter() -> AResult {
         .module_info(adapter_1::MOCK_ADAPTER_ID)?
         .unwrap()
         .address;
-    assert_that!(adapter_addr).is_equal_to(module_addr);
+    assert_eq!(adapter_addr, module_addr);
     take_storage_snapshot!(chain, "account_install_adapter");
     Ok(())
 }
