@@ -18,5 +18,9 @@
       "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
       "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7"
     }
+  },
+  "union-testnet-8": {
+    "code_ids": {},
+    "default": {}
   }
 }

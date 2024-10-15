@@ -110,9 +110,10 @@ abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git
 
 
 # Only for local testing and union-connector tweaking
-[patch."https://github.com/abstractsdk/evm-ibc"]
-union-connector = { path = "../../evm-ibc/cw/packages/union-connector" }
-polytone-evm = { path = "../../evm-ibc/cw/packages/polytone-evm" }
+# [patch."https://github.com/abstractsdk/evm-ibc"]
+# union-connector = { path = "../../evm-ibc/cw/packages/union-connector" }
+# polytone-evm = { path = "../../evm-ibc/cw/packages/polytone-evm" }
+# evm-note = { path = "../../evm-ibc/cw/contracts/evm-note" }
 
 
 # Backup release profile, will result in warnings during optimization

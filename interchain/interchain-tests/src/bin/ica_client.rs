@@ -109,10 +109,10 @@ fn main() -> cw_orch::anyhow::Result<()> {
     let evm_note = EvmNote::new(chain.clone());
     let interchain = UnionInterchainEnv::new(chain.clone(), &evm_config);
 
-    let remote_address = get_remote_address(
+    let remote_address = UnionInterchainEnv::get_remote_address(
         &evm_note,
         &interchain,
-        &evm_config,
+        &evm_config.chain_id,
         account.address()?.as_str(),
     )?;
 
@@ -157,7 +157,7 @@ fn main() -> cw_orch::anyhow::Result<()> {
         let send_back_msgs = interchain.ibc_send_back_msgs(
             evm_config.chain_id.to_string(),
             muno_erc20_addr,
-            account_coins.amount.u128(),
+            account_coins.amount,
             account.address()?,
         )?;
 
@@ -201,105 +201,4 @@ fn get_balance(
         .block_on(muno_erc20.balanceOf(*address).call().into_future())?;
 
     Ok(remote_muno_balance._0)
-}
-
-// let evm= EvmVoice::new(evm_note_address, evm);
-
-fn predict_remote_address(
-    cosmos_note: &EvmNote<Daemon>,
-    interchain: UnionInterchainEnv,
-    evm_config: &UncheckedRemoteEvmConfig,
-    sender_address: &str,
-) -> anyhow::Result<Address> {
-    let rt = &cosmos_note.environment().rt_handle;
-    let evm_voice = {
-        let voice_address = cosmos_note.pair()?.unwrap().remote_port;
-        let evm = interchain.get_evm_chain(evm_config.chain_id)?;
-        EvmVoice::new(voice_address.parse()?, evm)
-    };
-    let source_port = format!("wasm.{}", cosmos_note.addr_str()?);
-    let connection = {
-        let source_channel = cosmos_note.active_channel()?.unwrap();
-        let node: Ibc = cosmos_note.environment().querier();
-        let active_channel = rt.block_on(node._channel(source_port.clone(), source_channel))?;
-        let destination_channel = active_channel.counterparty.unwrap().channel_id;
-        rt.block_on(
-            evm_voice
-                .channelToConnection(destination_channel.to_string())
-                .call()
-                .into_future(),
-        )?
-        ._0
-    };
-
-    let sender = Sender {
-        connection: connection.to_string(),
-        port: source_port.to_string(),
-        sender: sender_address.to_string(),
-    };
-    Ok(rt
-        .block_on(
-            evm_voice
-                .getExpectedProxyAddress(sender.clone())
-                .call()
-                .into_future(),
-        )?
-        ._0)
-}
-
-fn get_remote_address(
-    cosmos_note: &EvmNote<Daemon>,
-    interchain: &UnionInterchainEnv,
-    evm_config: &UncheckedRemoteEvmConfig,
-    sender_address: &str,
-) -> anyhow::Result<Address> {
-    let rt = &cosmos_note.environment().rt_handle;
-    let evm_voice = {
-        let voice_address = cosmos_note.pair()?.unwrap().remote_port;
-        let evm = interchain.get_evm_chain(evm_config.chain_id)?;
-        EvmVoice::new(voice_address.parse()?, evm)
-    };
-    let source_port = format!("wasm.{}", cosmos_note.addr_str()?);
-    let connection = {
-        let source_channel = cosmos_note.active_channel()?.unwrap();
-        let node: Ibc = cosmos_note.environment().querier();
-        let active_channel = rt.block_on(node._channel(source_port.clone(), source_channel))?;
-        let destination_channel = active_channel.counterparty.unwrap().channel_id;
-        rt.block_on(
-            evm_voice
-                .channelToConnection(destination_channel.to_string())
-                .call()
-                .into_future(),
-        )?
-        ._0
-    };
-
-    let sender = Sender {
-        connection: connection.to_string(),
-        port: source_port.to_string(),
-        sender: sender_address.to_string(),
-    };
-    let proxy_address = rt
-        .block_on(
-            evm_voice
-                .getProxyAddress(sender.clone())
-                .call()
-                .into_future(),
-        )?
-        ._0;
-    if proxy_address != Address::ZERO {
-        Ok(proxy_address)
-    } else {
-        // In case no proxy address is registered, we fetch it !
-        let proxy_address = rt
-            .block_on(
-                evm_voice
-                    .getExpectedProxyAddress(sender.clone())
-                    .call()
-                    .into_future(),
-            )?
-            ._0;
-
-        Ok(proxy_address)
-    }
 }
