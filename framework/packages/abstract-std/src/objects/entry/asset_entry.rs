@@ -114,36 +114,32 @@ impl KeyDeserialize for &AssetEntry {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use rstest::rstest;
-    use speculoos::prelude::*;
 
     use super::*;
 
     #[coverage_helper::test]
     fn test_asset_entry() {
         let mut entry = AssetEntry::new("CRAB");
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
         entry.format();
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
     }
 
     #[coverage_helper::test]
     fn test_src_chain() -> AbstractResult<()> {
         // technically invalid, but we don't care here
         let entry = AssetEntry::new("CRAB");
-        assert_that!(entry.src_chain())
-            .is_err()
-            .is_equal_to(AbstractError::EntryFormattingError {
+        assert_eq!(
+            entry.src_chain(),
+            Err(AbstractError::EntryFormattingError {
                 actual: "crab".to_string(),
                 expected: "src_chain>asset_name".to_string(),
-            });
+            })
+        );
         let entry = AssetEntry::new("osmosis>crab");
-        assert_that!(entry.src_chain())
-            .is_ok()
-            .is_equal_to("osmosis".to_string());
+        assert_eq!(entry.src_chain(), Ok("osmosis".to_string()));
         let entry = AssetEntry::new("osmosis>juno>crab");
-        assert_that!(entry.src_chain())
-            .is_ok()
-            .is_equal_to("osmosis".to_string());
+        assert_eq!(entry.src_chain(), Ok("osmosis".to_string()));
 
         Ok(())
     }
@@ -156,36 +152,37 @@ mod test {
     fn test_src_chain_error(#[case] input: &str) {
         let entry = AssetEntry::new(input);
 
-        assert_that!(entry.src_chain())
-            .is_err()
-            .is_equal_to(AbstractError::EntryFormattingError {
+        assert_eq!(
+            entry.src_chain(),
+            Err(AbstractError::EntryFormattingError {
                 actual: input.to_ascii_lowercase(),
                 expected: "src_chain>asset_name".to_string(),
-            });
+            })
+        );
     }
 
     #[coverage_helper::test]
     fn test_from_string() {
         let entry = AssetEntry::from("CRAB".to_string());
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
     }
 
     #[coverage_helper::test]
     fn test_from_str() {
         let entry = AssetEntry::from("CRAB");
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
     }
 
     #[coverage_helper::test]
     fn test_from_ref_string() {
         let entry = AssetEntry::from(&"CRAB".to_string());
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
     }
 
     #[coverage_helper::test]
     fn test_to_string() {
         let entry = AssetEntry::new("CRAB");
-        assert_that!(entry.to_string()).is_equal_to("crab".to_string());
+        assert_eq!(entry.to_string(), "crab".to_string());
     }
 
     #[coverage_helper::test]

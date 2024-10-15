@@ -283,7 +283,6 @@ mod test {
     use abstract_testing::mock_env_validated;
     use abstract_testing::prelude::*;
     use cosmwasm_std::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::apis::traits::test::abstract_api_test;
@@ -364,8 +363,9 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(response.messages[0].msg).is_equal_to(
-                &wasm_execute(
+            assert_eq!(
+                response.messages[0].msg,
+                wasm_execute(
                     account.addr(),
                     &ExecuteMsg::<Empty>::Execute {
                         msgs: vec![expected_msg],
@@ -406,7 +406,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(response.messages[0].msg).is_equal_to::<CosmosMsg>(bank_msg);
+            assert_eq!(response.messages[0].msg, bank_msg);
         }
     }
 
@@ -429,7 +429,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_eq!(actual_res.unwrap().messages()[0], expected_msg);
         }
     }
 
@@ -464,7 +464,7 @@ mod test {
                 funds: vec![],
             });
 
-            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_eq!(actual_res.unwrap().messages()[0], expected_msg);
         }
 
         #[coverage_helper::test]
@@ -480,10 +480,13 @@ mod test {
             let hook_msg = Empty {};
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
 
-            assert_that!(actual_res.unwrap_err()).is_equal_to::<AbstractSdkError>(
-                AbstractSdkError::Asset(AssetError::UnavailableMethodForNative {
-                    method: "send".into(),
-                }),
+            assert_eq!(
+                actual_res,
+                Err(AbstractSdkError::Asset(
+                    AssetError::UnavailableMethodForNative {
+                        method: "send".into(),
+                    }
+                )),
             );
         }
     }

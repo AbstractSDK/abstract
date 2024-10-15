@@ -262,7 +262,6 @@ mod test {
     use super::*;
 
     use cosmwasm_std::testing::mock_dependencies;
-    use speculoos::prelude::*;
 
     #[coverage_helper::test]
     fn test_verify() {
@@ -272,26 +271,26 @@ mod test {
             monarch: owner.to_string(),
         };
         let mock_registry = deps.api.addr_make("mock_registry");
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
+        assert!(gov.verify(deps.as_ref(), mock_registry.clone()).is_ok());
 
         let gov_addr = deps.api.addr_make("gov_addr");
         let gov = GovernanceDetails::External {
             governance_address: gov_addr.to_string(),
             governance_type: "external-multisig".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
+        assert!(gov.verify(deps.as_ref(), mock_registry.clone()).is_ok());
 
         let gov = GovernanceDetails::Monarchy {
             monarch: "NOT_OK".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
+        assert!(gov.verify(deps.as_ref(), mock_registry.clone()).is_err());
 
         let gov = GovernanceDetails::External {
             governance_address: "gov_address".to_string(),
             governance_type: "gov_type".to_string(),
         };
         // '_' not allowed
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
+        assert!(gov.verify(deps.as_ref(), mock_registry.clone()).is_err());
 
         // too short
         let gov_address = deps.api.addr_make("gov_address");
@@ -299,14 +298,14 @@ mod test {
             governance_address: gov_address.to_string(),
             governance_type: "gov".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
+        assert!(gov.verify(deps.as_ref(), mock_registry.clone()).is_err());
 
         // too long
         let gov = GovernanceDetails::External {
             governance_address: gov_address.to_string(),
             governance_type: "a".repeat(190),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
+        assert!(gov.verify(deps.as_ref(), mock_registry.clone()).is_err());
 
         // invalid addr
         let gov = GovernanceDetails::External {
@@ -322,6 +321,6 @@ mod test {
             token_id: "1".to_string(),
         };
         let mock_registry = deps.api.addr_make("mock_registry");
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
+        assert!(gov.verify(deps.as_ref(), mock_registry.clone()).is_ok());
     }
 }

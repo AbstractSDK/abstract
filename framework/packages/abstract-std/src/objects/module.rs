@@ -517,7 +517,6 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -600,10 +599,12 @@ mod test {
             map.save(deps.as_mut().storage, &info1, &42069).unwrap();
             map.save(deps.as_mut().storage, &info2, &69420).unwrap();
 
-            assert_that!(map
-                .keys_raw(&deps.storage, None, None, Order::Ascending)
-                .collect::<Vec<_>>())
-            .has_length(2);
+            assert_eq!(
+                map.keys_raw(&deps.storage, None, None, Order::Ascending)
+                    .collect::<Vec<_>>()
+                    .len(),
+                2
+            );
         }
 
         #[coverage_helper::test]
@@ -723,9 +724,7 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            assert_that!(info.validate())
-                .is_err()
-                .matches(|e| e.to_string().contains("empty"));
+            assert!(info.validate().unwrap_err().to_string().contains("empty"));
         }
 
         #[coverage_helper::test]
@@ -736,9 +735,7 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            assert_that!(info.validate())
-                .is_err()
-                .matches(|e| e.to_string().contains("empty"));
+            assert!(info.validate().unwrap_err().to_string().contains("empty"));
         }
 
         use rstest::rstest;
@@ -754,9 +751,11 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            assert_that!(info.validate())
-                .is_err()
-                .matches(|e| e.to_string().contains("alphanumeric"));
+            assert!(info
+                .validate()
+                .unwrap_err()
+                .to_string()
+                .contains("alphanumeric"));
         }
 
         #[rstest]
@@ -769,9 +768,11 @@ mod test {
                 version: ModuleVersion::Version(version.into()),
             };
 
-            assert_that!(info.validate())
-                .is_err()
-                .matches(|e| e.to_string().contains("Invalid version"));
+            assert!(info
+                .validate()
+                .unwrap_err()
+                .to_string()
+                .contains("Invalid version"));
         }
 
         #[coverage_helper::test]
@@ -784,7 +785,7 @@ mod test {
 
             let expected = "namespace:name".to_string();
 
-            assert_that!(info.id()).is_equal_to(expected);
+            assert_eq!(info.id(), expected);
         }
 
         #[coverage_helper::test]
@@ -797,7 +798,7 @@ mod test {
 
             let expected = "namespace:name:1.0.0".to_string();
 
-            assert_that!(info.id_with_version()).is_equal_to(expected);
+            assert_eq!(info.id_with_version(), expected);
         }
     }
 
@@ -812,7 +813,7 @@ mod test {
 
             let actual: Version = version.try_into().unwrap();
 
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[coverage_helper::test]
@@ -821,7 +822,7 @@ mod test {
 
             let actual: Result<Version, _> = version.try_into();
 
-            assert_that!(actual).is_err();
+            assert!(actual.is_err());
         }
     }
 
