@@ -193,7 +193,7 @@ dependencies = [
 [[package]]
 name = "abstract-cw-orch-polytone"
 version = "5.0.0"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2-and-interchain-core#d30d1da6dae6729387563870dd72fb344128713b"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#6dfe1103c06160caa02f1bd4258d3e02f0e3754c"
 dependencies = [
  "abstract-polytone-note",
  "abstract-polytone-proxy",
@@ -456,7 +456,7 @@ dependencies = [
 [[package]]
 name = "abstract-polytone"
 version = "2.0.0"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2-and-interchain-core#d30d1da6dae6729387563870dd72fb344128713b"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#6dfe1103c06160caa02f1bd4258d3e02f0e3754c"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -467,7 +467,7 @@ dependencies = [
 [[package]]
 name = "abstract-polytone-note"
 version = "4.0.0"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2-and-interchain-core#d30d1da6dae6729387563870dd72fb344128713b"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#6dfe1103c06160caa02f1bd4258d3e02f0e3754c"
 dependencies = [
  "abstract-polytone",
  "cosmwasm-schema",
@@ -482,7 +482,7 @@ dependencies = [
 [[package]]
 name = "abstract-polytone-proxy"
 version = "4.0.0"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2-and-interchain-core#d30d1da6dae6729387563870dd72fb344128713b"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#6dfe1103c06160caa02f1bd4258d3e02f0e3754c"
 dependencies = [
  "abstract-polytone",
  "cosmwasm-schema",
@@ -497,7 +497,7 @@ dependencies = [
 [[package]]
 name = "abstract-polytone-voice"
 version = "4.0.0"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2-and-interchain-core#d30d1da6dae6729387563870dd72fb344128713b"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#6dfe1103c06160caa02f1bd4258d3e02f0e3754c"
 dependencies = [
  "abstract-polytone",
  "abstract-polytone-proxy",

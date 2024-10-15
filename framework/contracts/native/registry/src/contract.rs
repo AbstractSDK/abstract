@@ -92,8 +92,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
     match msg {
-        QueryMsg::Account { account_id } => {
-            to_json_binary(&queries::handle_account_address_query(deps, account_id)?)
+        QueryMsg::Accounts { account_ids } => {
+            to_json_binary(&queries::handle_accounts_address_query(deps, account_ids)?)
         }
         QueryMsg::Modules { infos } => to_json_binary(&queries::handle_modules_query(deps, infos)?),
         QueryMsg::Namespaces { accounts } => {
@@ -111,6 +111,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
                 local_account_sequence,
             })
         }
+        QueryMsg::AccountList { start_after, limit } => to_json_binary(
+            &queries::handle_account_list_query(deps, start_after, limit)?,
+        ),
+
         QueryMsg::ModuleList {
             filter,
             start_after,
