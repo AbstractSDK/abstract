@@ -6,12 +6,12 @@ use abstract_interface::{Abstract, AccountDetails, AccountI, AccountQueryFns, Re
 use abstract_std::objects::AccountId;
 use abstract_testing::TEST_VERSION;
 use anyhow::{bail, Ok};
-use cw_orch::{daemon::networks::PION_1, prelude::*};
+use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
 use semver::Version;
 
 fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
-    let (abstr_deployment, chain) = common::setup(PION_1)?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1)?;
 
     abstr_deployment.migrate_if_version_changed()?;
     // List accounts
@@ -52,7 +52,7 @@ fn upgrade_account_iteratively() -> anyhow::Result<()> {
 
 #[test]
 fn upgrade_accounts_and_sub_accounts() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = common::setup(PION_1)?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1)?;
 
     let account = AccountI::create_default_account(
         &abstr_deployment,
