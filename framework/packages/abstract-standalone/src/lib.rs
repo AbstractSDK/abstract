@@ -107,7 +107,7 @@ pub mod mock {
     pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
     pub fn standalone_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default()
-            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected messsage"))
+            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected message"))
     }
 
     #[cosmwasm_std::entry_point]
