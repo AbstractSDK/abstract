@@ -344,10 +344,7 @@ impl<Chain: CwEnv> Registry<Chain> {
         modules_to_register
     }
 
-    pub fn account(
-        &self,
-        account_id: AccountId,
-    ) -> Result<Account, crate::AbstractInterfaceError> {
+    pub fn account(&self, account_id: AccountId) -> Result<Account, crate::AbstractInterfaceError> {
         let resp: AccountsResponse = self.accounts(vec![account_id.clone()])?;
         // If the account id is not registered, an err is returned, so we can safely get index 0 in the vec
         Ok(resp.accounts[0].clone())
