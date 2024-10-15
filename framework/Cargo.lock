@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "abstract-account"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-adapter",
  "abstract-ans-host",
@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-adapter"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-adapter",
  "abstract-ibc-client",
@@ -77,7 +77,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-adapter-utils"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "cosmwasm-std",
  "cw-asset",
@@ -87,7 +87,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ans-host"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -112,7 +112,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-app"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-app",
  "abstract-ibc-host",
@@ -138,7 +138,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-client"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-account",
  "abstract-adapter",
@@ -210,7 +210,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-dex-standard"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -239,7 +239,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ibc-client"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -265,7 +265,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ibc-host"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-adapter",
  "abstract-interface",
@@ -293,7 +293,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ica"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-sdk",
  "abstract-testing",
@@ -319,7 +319,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ica-client"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-ica",
  "abstract-macros",
@@ -343,7 +343,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-integration-tests"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-account",
  "abstract-adapter",
@@ -367,7 +367,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-interface"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-account",
  "abstract-ans-host",
@@ -408,7 +408,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-macros"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "cosmwasm-std",
  "coverage-helper",
@@ -420,7 +420,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-module-factory"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-integration-tests",
  "abstract-interface",
@@ -447,7 +447,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-money-market-standard"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -525,7 +525,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-registry"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-interface",
  "abstract-macros",
@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-sdk"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -579,7 +579,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-staking-standard"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -608,7 +608,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-standalone"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-integration-tests",
  "abstract-interface",
@@ -634,7 +634,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-std"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-testing",
  "anyhow",
@@ -668,7 +668,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-testing"
-version = "0.24.0"
+version = "0.24.1-beta.1"
 dependencies = [
  "abstract-sdk",
  "abstract-std",
@@ -1531,9 +1531,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.28"
+version = "1.1.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e80e3b6a3ab07840e1cae9b0666a63970dc28e8ed5ffbcdacbfc760c281bfc1"
+checksum = "b16803a61b81d9eabb7eae2588776c4c1e584b738ede45fdbb4c972cec1e9945"
 dependencies = [
  "shlex",
 ]
@@ -2121,9 +2121,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-daemon"
-version = "0.27.0"
+version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9e470c0dbd4c3989df7888306a832fd4405545b7346f8ab3f301262f43b1dc2"
+checksum = "d8a47b02c7cb0b1482097bb7889fe66e5126b459bcfd1c7000674f1fda2f216e"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2208,9 +2208,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-core"
-version = "0.8.5"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "353ce0bcc5c2f36569dbded1c05c0ac49b841b9710fba1753d1f303499d23600"
+checksum = "505d8feb64c5c433dea8ef5f3a5e591ec8ae616490b48ffc4af8d61ddb0f2874"
 dependencies = [
  "base64 0.22.1",
  "cosmwasm-schema",
@@ -2222,6 +2222,7 @@ dependencies = [
  "ibc-relayer-types",
  "log",
  "prost",
+ "serde",
  "serde_json",
  "thiserror",
  "tokio",
@@ -4946,9 +4947,9 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "pest"
-version = "2.7.13"
+version = "2.7.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdbef9d1d47087a895abd220ed25eb4ad973a5e26f6a4367b038c25e28dfc2d9"
+checksum = "879952a81a83930934cbf1786752d6dedc3b1f29e8f8fb2ad1d0a36f377cf442"
 dependencies = [
  "memchr",
  "thiserror",
@@ -4957,9 +4958,9 @@ dependencies = [
 
 [[package]]
 name = "pest_derive"
-version = "2.7.13"
+version = "2.7.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d3a6e3394ec80feb3b6393c725571754c6188490265c61aaf260810d6b95aa0"
+checksum = "d214365f632b123a47fd913301e14c946c61d1c183ee245fa76eb752e59a02dd"
 dependencies = [
  "pest",
  "pest_generator",
@@ -4967,9 +4968,9 @@ dependencies = [
 
 [[package]]
 name = "pest_generator"
-version = "2.7.13"
+version = "2.7.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94429506bde1ca69d1b5601962c73f4172ab4726571a59ea95931218cb0e930e"
+checksum = "eb55586734301717aea2ac313f50b2eb8f60d2fc3dc01d190eefa2e625f60c4e"
 dependencies = [
  "pest",
  "pest_meta",
@@ -4980,9 +4981,9 @@ dependencies = [
 
 [[package]]
 name = "pest_meta"
-version = "2.7.13"
+version = "2.7.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac8a071862e93690b6e34e9a5fb8e33ff3734473ac0245b27232222c4906a33f"
+checksum = "b75da2a70cf4d9cb76833c990ac9cd3923c9a8905a8929789ce347c84564d03d"
 dependencies = [
  "once_cell",
  "pest",
@@ -5755,9 +5756,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-pki-types"
-version = "1.9.0"
+version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e696e35370c65c9c541198af4543ccd580cf17fc25d8e05c5a242b202488c55"
+checksum = "16f1201b3c9a7ee8039bcadc17b7e605e2945b27eee7631788c1bd2b0643674b"
 
 [[package]]
 name = "rustls-webpki"
@@ -5782,9 +5783,9 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.17"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "955d28af4278de8121b7ebeb796b6a45735dc01436d898801014aced2773a3d6"
+checksum = "0e819f2bc632f285be6d7cd36e25940d45b2391dd6d9b939e79de557f7014248"
 
 [[package]]
 name = "ryu"
