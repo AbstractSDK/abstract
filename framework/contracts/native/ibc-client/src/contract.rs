@@ -180,7 +180,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn instantiate_works() -> IbcClientResult<()> {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
@@ -210,7 +210,7 @@ mod tests {
         use crate::contract;
         use abstract_std::AbstractError;
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_same_version() -> IbcClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -233,7 +233,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_downgrade() -> IbcClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -259,7 +259,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_name_change() -> IbcClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -283,7 +283,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> IbcClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -316,7 +316,7 @@ mod tests {
         use super::*;
         use crate::commands::PACKET_LIFETIME;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_admin() -> IbcClientResult<()> {
             test_only_admin(ExecuteMsg::RegisterInfrastructure {
                 chain: "host-chain".parse().unwrap(),
@@ -325,7 +325,7 @@ mod tests {
             })
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn cannot_register_if_already_exists() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -357,7 +357,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn register_infrastructure() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -467,7 +467,7 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
 
-        #[test]
+        #[coverage_helper::test]
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
@@ -508,7 +508,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn cannot_make_internal_call() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
@@ -538,7 +538,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn send_packet_with_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
@@ -617,7 +617,7 @@ mod tests {
         use prost::Name;
         use std::str::FromStr;
 
-        #[test]
+        #[coverage_helper::test]
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
@@ -650,7 +650,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
@@ -768,7 +768,7 @@ mod tests {
         use cosmwasm_std::wasm_execute;
         use std::str::FromStr;
 
-        #[test]
+        #[coverage_helper::test]
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
@@ -804,7 +804,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
@@ -896,14 +896,14 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_admin() -> IbcClientTestResult {
             test_only_admin(ExecuteMsg::RemoveHost {
                 host_chain: "host-chain".parse().unwrap(),
             })
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_existing_host() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -932,7 +932,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_host_nonexistent_should_not_throw() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -960,7 +960,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn invalid_initiator() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -987,7 +987,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn caller_not_note() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1015,7 +1015,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn who_am_i_unregistered_chain() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1043,7 +1043,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn who_am_i_fatal_error() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1080,7 +1080,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn who_am_i_success() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1134,7 +1134,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn create_account_fatal_error() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1163,7 +1163,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn create_account_missing_wasm_event() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1201,7 +1201,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn create_account_missing_account_address_attribute() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1239,7 +1239,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn create_account_success() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1344,7 +1344,7 @@ mod tests {
 
         use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
 
-        #[test]
+        #[coverage_helper::test]
         fn works_with_multiple_local_accounts() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1378,7 +1378,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works_with_multiple_remote_accounts() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;

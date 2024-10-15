@@ -4,7 +4,7 @@ pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_std::{
     objects::namespace::Namespace,
     registry::{
-        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES_INFO},
+        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES},
         Config,
     },
 };
@@ -46,7 +46,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(&admin))?;
 
     // Save the abstract namespace to the Abstract admin account
-    NAMESPACES_INFO.save(
+    NAMESPACES.save(
         deps.storage,
         &Namespace::new(ABSTRACT_NAMESPACE)?,
         &ABSTRACT_ACCOUNT_ID,
@@ -182,7 +182,7 @@ mod tests {
 
             use super::*;
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_same_version() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -205,7 +205,7 @@ mod tests {
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_downgrade() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -231,7 +231,7 @@ mod tests {
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_name_change() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -255,7 +255,7 @@ mod tests {
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn works() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -289,11 +289,11 @@ mod tests {
             };
             use abstract_testing::prelude::AbstractMockAddrs;
             use contract::{VCResult, VcResponse};
-            use registry::state::NAMESPACES_INFO;
+            use registry::state::NAMESPACES;
 
             use super::*;
 
-            #[test]
+            #[coverage_helper::test]
             fn sets_abstract_namespace() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let abstr = AbstractMockAddrs::new(deps.api);
@@ -312,7 +312,7 @@ mod tests {
                     },
                 )?;
 
-                let account_id = NAMESPACES_INFO.load(
+                let account_id = NAMESPACES.load(
                     deps.as_ref().storage,
                     &Namespace::try_from(ABSTRACT_NAMESPACE)?,
                 )?;

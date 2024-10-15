@@ -1,7 +1,7 @@
 [workspace]
 members = [
   "scripts",
-  "interchain-tests",
+  "interchain-end_to_end_testing",
   "framework-clone-testing",
   "modules-clone-testing",
 ]

@@ -74,10 +74,8 @@ expression: all_storage
     - "{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}}"
   - - "\u0000\u0002ch\u0000\u0005local\u0000\u0000\u0000\u0000"
     - "\"mock1ys8clus4qf2haemyck0uljz74dj2k8hu4ggfpe7vty6zd5j2982q9sf90k\""
-  - - "\u0000\u0005nmspcabstract"
+  - - "\u0000\u0002cjabstract"
     - "{\"trace\":\"local\",\"seq\":0}"
-  - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0000abstract"
-    - "8"
   - - cfg
     - "{\"security_disabled\":true,\"namespace_registration_fee\":null}"
   - - ci

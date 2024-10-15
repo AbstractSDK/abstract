@@ -38,5 +38,3 @@ cw-controllers = { workspace = true }
 cw-storage-plus.workspace = true
 thiserror.workspace = true
 base64 = "0.22.1"
-
-ping-pong = { path = "../../modules/contracts/apps/ping-pong" }

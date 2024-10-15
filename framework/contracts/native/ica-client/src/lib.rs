@@ -1,3 +1,5 @@
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
+
 pub mod contract;
 pub mod error;
 pub use abstract_ica::msg;

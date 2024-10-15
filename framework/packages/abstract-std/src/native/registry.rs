@@ -18,7 +18,7 @@ pub struct Config {
 }
 
 pub mod state {
-    use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
+    use cw_storage_plus::{Item, Map};
 
     use super::{Account, Config, ModuleConfiguration, ModuleDefaultConfiguration};
     use crate::objects::{
@@ -58,27 +58,10 @@ pub mod state {
     /// Account sequences
     pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> =
         Item::new(storage_namespaces::registry::LOCAL_ACCOUNT_SEQUENCE);
-    /// Sub indexes for namespaces.
-    // TODO: move to a two maps, we don't need multiindex for accountid
-    pub struct NamespaceIndexes<'a> {
-        pub account_id: MultiIndex<'a, AccountId, AccountId, &'a Namespace>,
-    }
-
-    impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
-        fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<AccountId>> + '_> {
-            let v: Vec<&dyn Index<AccountId>> = vec![&self.account_id];
-            Box::new(v.into_iter())
-        }
-    }
-
-    /// Primary index for namespaces.
-    pub const NAMESPACES_INFO: IndexedMap<&Namespace, AccountId, NamespaceIndexes> =
-        IndexedMap::new(
-            "nmspc",
-            NamespaceIndexes {
-                account_id: MultiIndex::new(|_pk, d| d.clone(), "nmspc", "nmspc_a"),
-            },
-        );
+    pub const NAMESPACES: Map<&Namespace, AccountId> =
+        Map::new(storage_namespaces::registry::NAMESPACES);
+    pub const REV_NAMESPACES: Map<&AccountId, Namespace> =
+        Map::new(storage_namespaces::registry::REV_NAMESPACES);
 }
 
 use cosmwasm_schema::QueryResponses;

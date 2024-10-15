@@ -16,7 +16,7 @@ publish = false
 [dependencies]
 anstream = { version = "0.6" }
 anyhow = { version = "1" }
-bytes = { version = "1", features = ["serde"] }
+bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
 cw-orch = { version = "0.26", features = ["daemon", "snapshot-testing"] }
 cw-orch-interchain = { version = "0.7", features = ["daemon"] }
@@ -45,7 +45,7 @@ zeroize = { version = "1" }
 [build-dependencies]
 anstream = { version = "0.6" }
 anyhow = { version = "1" }
-bytes = { version = "1", features = ["serde"] }
+bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
 cw-orch = { version = "0.26", features = ["daemon", "snapshot-testing"] }
 cw-orch-interchain = { version = "0.7", features = ["daemon"] }
@@ -83,6 +83,7 @@ bitcoin_hashes = { version = "0.13", default-features = false, features = ["serd
 bitflags = { version = "2", default-features = false, features = ["std"] }
 bs58 = { version = "0.5", features = ["check"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
@@ -125,7 +126,6 @@ num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-protobuf = { version = "2", default-features = false, features = ["with-bytes"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -161,6 +161,7 @@ bitcoin_hashes = { version = "0.13", default-features = false, features = ["serd
 bitflags = { version = "2", default-features = false, features = ["std"] }
 bs58 = { version = "0.5", features = ["check"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
@@ -204,7 +205,6 @@ num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-protobuf = { version = "2", default-features = false, features = ["with-bytes"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -240,6 +240,7 @@ bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bs58 = { version = "0.5", features = ["check"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
@@ -282,7 +283,6 @@ num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-protobuf = { version = "2", default-features = false, features = ["with-bytes"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -317,6 +317,7 @@ bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bs58 = { version = "0.5", features = ["check"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
@@ -360,7 +361,6 @@ num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-protobuf = { version = "2", default-features = false, features = ["with-bytes"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }

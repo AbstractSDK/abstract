@@ -10,6 +10,8 @@ repository = "https://github.com/AbstractSDK/abstract"
 
 exclude = ["contract.wasm", "hash.txt"]
 
+[lints]
+workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -42,6 +44,7 @@ cw-orch = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }
 abstract-testing = { workspace = true }
+coverage-helper = { workspace = true }
 
 [profile.release]
 overflow-checks = true

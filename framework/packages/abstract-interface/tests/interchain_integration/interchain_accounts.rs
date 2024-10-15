@@ -1,18 +1,13 @@
 use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 use abstract_interface::{Abstract, AccountDetails, AccountI, AccountQueryFns};
-use anyhow::Result as AnyResult;
+use cw_orch::anyhow::Result as AnyResult;
 use cw_orch::{environment::Environment, prelude::*};
 use cw_orch_interchain::prelude::*;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of an account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
-
-pub fn set_env() {
-    std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
-    std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
-}
 
 pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     abstr_origin: &Abstract<Chain>,
@@ -71,9 +66,8 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
-    use crate::{
-        setup::{ibc_abstract_setup, mock_test::logger_test_init},
-        JUNO, OSMOSIS, STARGAZE,
+    use crate::interchain_integration::{
+        ibc_abstract_setup, logger_test_init, JUNO, OSMOSIS, STARGAZE,
     };
 
     use abstract_interface::AccountExecFns;
@@ -91,7 +85,6 @@ mod test {
         ACCOUNT, IBC_CLIENT, ICS20,
     };
 
-    use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, CosmosMsg, IbcTimeout, Uint128, WasmMsg};
     use cw_orch::{environment::Environment, mock::cw_multi_test::AppResponse};
 

@@ -124,7 +124,7 @@ mod tests {
     mod implementation {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn new_works() {
             let dex = "junoswap";
             let pool_type = PoolType::Stable;
@@ -141,7 +141,7 @@ mod tests {
             assert_that!(actual.to_string()).is_equal_to("junoswap/uusd,uust:stable".to_string());
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn stable_works() {
             let dex = "junoswap";
             let assets = vec!["uusd".to_string(), "uust".to_string()];
@@ -155,7 +155,7 @@ mod tests {
             assert_that!(actual).is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn weighted_works() {
             let dex = "junoswap";
             let assets = vec!["uusd".to_string(), "uust".to_string()];
@@ -169,7 +169,7 @@ mod tests {
             assert_that!(actual).is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn constant_product_works() {
             let dex = "junoswap";
             let assets = vec!["uusd".to_string(), "uust".to_string()];
@@ -183,7 +183,7 @@ mod tests {
             assert_that!(actual).is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn liquidity_bootstrap_works() {
             let dex = "junoswap";
             let assets = vec!["uusd".to_string(), "uust".to_string()];
@@ -198,7 +198,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_pool_metadata_from_str() {
         let pool_metadata_str = "junoswap/uusd,uust:stable";
         let pool_metadata = PoolMetadata::from_str(pool_metadata_str).unwrap();
@@ -222,7 +222,7 @@ mod tests {
         )));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_pool_metadata_to_string() {
         let pool_metadata_str = "junoswap/uusd,uust:weighted";
         let pool_metadata = PoolMetadata::from_str(pool_metadata_str).unwrap();

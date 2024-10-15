@@ -557,7 +557,7 @@ mod test {
             )
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -576,7 +576,7 @@ mod test {
             assert_eq!(items[0], (key, 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn storage_key_with_overlapping_name_namespace() {
             let mut deps = mock_dependencies();
             let info1 = ModuleInfo {
@@ -606,7 +606,7 @@ mod test {
             .has_length(2);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -637,7 +637,7 @@ mod test {
             assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn partial_key_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3, key4) = mock_keys();
@@ -682,7 +682,7 @@ mod test {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn partial_key_versions_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3, key4) = mock_keys();
@@ -715,7 +715,7 @@ mod test {
     mod module_info {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn validate_with_empty_name() {
             let info = ModuleInfo {
                 namespace: Namespace::try_from("abstract").unwrap(),
@@ -728,7 +728,7 @@ mod test {
                 .matches(|e| e.to_string().contains("empty"));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn validate_with_empty_namespace() {
             let info = ModuleInfo {
                 namespace: Namespace::unchecked(""),
@@ -774,7 +774,7 @@ mod test {
                 .matches(|e| e.to_string().contains("Invalid version"));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn id() {
             let info = ModuleInfo {
                 name: "name".to_string(),
@@ -787,7 +787,7 @@ mod test {
             assert_that!(info.id()).is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn id_with_version() {
             let info = ModuleInfo {
                 name: "name".to_string(),
@@ -804,7 +804,7 @@ mod test {
     mod module_version {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn try_into_version_happy_path() {
             let version = ModuleVersion::Version("1.0.0".into());
 
@@ -815,7 +815,7 @@ mod test {
             assert_that!(actual).is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn try_into_version_with_latest() {
             let version = ModuleVersion::Latest;
 
@@ -830,7 +830,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn no_cw2_contract() {
             let deps = mock_dependencies();
             let res = assert_module_data_validity(

@@ -12,7 +12,7 @@ use crate::{
 /**
  * Test disallowed address update
  */
-#[test]
+#[coverage_helper::test]
 fn unauthorized_ans_host_update() {
     let mut deps = mock_dependencies(&[]);
     mock_init(&mut deps);
@@ -55,7 +55,7 @@ fn unauthorized_ans_host_update() {
 /**
  * Test allowed ans_host update
  */
-#[test]
+#[coverage_helper::test]
 fn authorized_ans_host_update() {
     let mut deps = mock_dependencies(&[]);
     mock_init(&mut deps);

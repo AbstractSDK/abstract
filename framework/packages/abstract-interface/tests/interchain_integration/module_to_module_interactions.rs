@@ -1,4 +1,5 @@
-pub use abstract_std::app;
+use crate::interchain_integration::{ibc_abstract_setup, logger_test_init, JUNO, STARGAZE};
+
 use abstract_std::{
     ibc::{Callback, IbcResult},
     ibc_client::{self, InstalledModuleIdentification},
@@ -6,14 +7,12 @@ use abstract_std::{
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
-pub use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::{
     from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
 };
 use cw_controllers::AdminError;
+use cw_orch::anyhow::Result as AnyResult;
 use cw_storage_plus::Item;
-
-pub type AppTestResult = Result<(), MockError>;
 
 abstract_app::app_msg_types!(MockAppContract, MockExecMsg, MockQueryMsg);
 
@@ -281,6 +280,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             }
         })
         .with_replies(&[(1u64, |_, _, _, msg| {
+            #[allow(deprecated)]
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
@@ -313,6 +313,8 @@ pub mod remote_app {
 #[cfg(test)]
 pub mod test {
 
+    use super::*;
+
     fn assert_remote_module_call_status(
         module: &MockAppRemoteI<MockBech32>,
         source_module_expected: Option<ModuleInfo>,
@@ -335,16 +337,12 @@ pub mod test {
         );
         Ok(())
     }
-    use crate::{
-        interchain_accounts::create_test_remote_account,
-        module_to_module_interactions::{
-            origin_app::interface::MockAppOriginI,
-            remote_app::{interface::MockAppRemoteI, TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE},
-            MockExecMsgFns, MockInitMsg, MockQueryMsgFns, ReceivedIbcCallbackStatus,
-            ReceivedIbcQueryCallbackStatus,
-        },
-        setup::{ibc_abstract_setup, mock_test::logger_test_init},
-        JUNO, STARGAZE,
+    use super::super::interchain_accounts::create_test_remote_account;
+    use super::{
+        origin_app::interface::MockAppOriginI,
+        remote_app::{interface::MockAppRemoteI, TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE},
+        MockExecMsgFns, MockInitMsg, MockQueryMsgFns, ReceivedIbcCallbackStatus,
+        ReceivedIbcQueryCallbackStatus,
     };
     use abstract_app::objects::{module::ModuleInfo, TruncatedChainId};
     use abstract_interface::{
@@ -355,7 +353,6 @@ pub mod test {
         module::{TEST_MODULE_ID, TEST_NAMESPACE},
         TEST_VERSION,
     };
-    use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary};
     use cw_orch::{environment::Environment, prelude::*};
     use cw_orch_interchain::prelude::*;
@@ -519,7 +516,7 @@ pub mod test {
         mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
         // We get the object for handling the actual module on the remote account
-        let remote_account = abstr_remote.registry.get_account(remote_account_id)?;
+        let remote_account = abstr_remote.registry.account(remote_account_id)?;
         let account = AccountI::new(
             "remote-account-account",
             abstr_remote.registry.environment().clone(),
@@ -626,8 +623,6 @@ pub mod test {
     pub mod security {
         use abstract_std::ibc_client::ExecuteMsgFns;
 
-        use crate::module_to_module_interactions::IbcModuleToModuleMsg;
-
         use super::*;
 
         #[test]
@@ -694,7 +689,7 @@ pub mod test {
             mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
             // We get the object for handling the actual module on the remote account
-            let remote_account = abstr_remote.registry.get_account(remote_account_id)?;
+            let remote_account = abstr_remote.registry.account(remote_account_id)?;
             let account = AccountI::new(
                 "remote-account-account",
                 abstr_remote.registry.environment().clone(),

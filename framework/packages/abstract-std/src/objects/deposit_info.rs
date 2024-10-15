@@ -44,7 +44,7 @@ mod tests {
     pub const TEST_ADDR1: &str = "1234";
     pub const TEST_ADDR2: &str = "4321";
 
-    #[test]
+    #[coverage_helper::test]
     fn test_failing_assert_for_native_tokens() {
         let deposit_info = DepositInfo {
             asset_info: AssetInfo::Native(TEST_DENOM1.to_string()),
@@ -53,7 +53,7 @@ mod tests {
         assert!(deposit_info.assert(&other_native_token).is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_passing_assert_for_native_tokens() {
         let deposit_info = DepositInfo {
             asset_info: AssetInfo::Native(TEST_DENOM1.to_string()),
@@ -62,7 +62,7 @@ mod tests {
         assert!(deposit_info.assert(&other_native_token).is_ok());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_failing_assert_for_nonnative_tokens() {
         let deposit_info = DepositInfo {
             asset_info: AssetInfo::Cw20(Addr::unchecked(TEST_ADDR1.to_string())),
@@ -71,7 +71,7 @@ mod tests {
         assert!(deposit_info.assert(&other_native_token).is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_passing_assert_for_nonnative_tokens() {
         let deposit_info = DepositInfo {
             asset_info: AssetInfo::Cw20(Addr::unchecked(TEST_ADDR1.to_string())),
@@ -80,7 +80,7 @@ mod tests {
         assert!(deposit_info.assert(&other_native_token).is_ok());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_failing_assert_for_mixed_tokens() {
         let deposit_info = DepositInfo {
             asset_info: AssetInfo::Native(TEST_DENOM1.to_string()),

@@ -79,7 +79,7 @@ mod tests {
             .with_execute(feature_exec_fn)
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn custom_exec() {
         let mut deps = mock_dependencies();
         let account = test_account(deps.api);
@@ -102,7 +102,7 @@ mod tests {
         assert!(res.is_ok());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn targets_not_set() {
         let mut deps = mock_dependencies();
         deps.querier = MockQuerierBuilder::new(deps.api)

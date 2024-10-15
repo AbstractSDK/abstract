@@ -582,7 +582,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn threshold_validation() {
         assert!(Threshold::Majority {}.validate_percentage().is_ok());
         assert!(Threshold::Percentage(Decimal::one())
@@ -604,7 +604,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn assert_active_proposal() {
         let end_timestamp = Timestamp::from_seconds(100);
 
@@ -632,7 +632,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn create_proposal() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -697,7 +697,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn create_proposal_duplicate_friends() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -716,7 +716,7 @@ mod tests {
         assert_eq!(err, VoteError::DuplicateAddrs {});
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn cancel_vote() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -768,7 +768,7 @@ mod tests {
     }
 
     // Check it updates status when required
-    #[test]
+    #[coverage_helper::test]
     fn load_proposal() {
         let mut deps = mock_dependencies();
         let mut env = mock_env();
@@ -838,7 +838,7 @@ mod tests {
         assert_eq!(proposal.status, ProposalStatus::WaitingForCount,);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn cast_vote() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -1007,7 +1007,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn invalid_cast_votes() {
         let mut deps = mock_dependencies();
         let mut env = mock_env();
@@ -1109,7 +1109,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn count_votes() {
         let mut deps = mock_dependencies();
         let mut env = mock_env();

@@ -25,6 +25,7 @@ dependencies = [
  "cosmos-sdk-proto 0.24.0-pre",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-asset",
  "cw-controllers",
  "cw-orch 0.26.0",
@@ -63,6 +64,7 @@ dependencies = [
  "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-controllers",
  "cw-orch 0.26.0",
  "cw-storage-plus",
@@ -93,6 +95,7 @@ dependencies = [
  "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-asset",
  "cw-controllers",
  "cw-ownable",
@@ -120,6 +123,7 @@ dependencies = [
  "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-asset",
  "cw-controllers",
  "cw-orch 0.26.0",
@@ -148,6 +152,7 @@ dependencies = [
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-asset",
  "cw-controllers",
  "cw-orch 0.26.0",
@@ -157,6 +162,7 @@ dependencies = [
  "cw2",
  "cw20",
  "cw20-base",
+ "env_logger",
  "rand",
  "semver",
  "serde",
@@ -242,6 +248,7 @@ dependencies = [
  "anybuf",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-ownable",
  "cw-paginate",
  "cw-storage-plus",
@@ -269,6 +276,7 @@ dependencies = [
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-controllers",
  "cw-orch 0.26.0",
  "cw-ownable",
@@ -294,6 +302,7 @@ dependencies = [
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-orch 0.26.0",
  "cw-ownable",
  "cw-storage-plus",
@@ -319,6 +328,7 @@ dependencies = [
  "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-ownable",
  "cw-storage-plus",
  "cw2",
@@ -361,16 +371,19 @@ version = "0.24.0"
 dependencies = [
  "abstract-account",
  "abstract-ans-host",
+ "abstract-app",
  "abstract-cw-orch-polytone",
  "abstract-ibc-client",
  "abstract-ibc-host",
  "abstract-module-factory",
  "abstract-registry",
+ "abstract-sdk",
  "abstract-std",
  "abstract-testing",
  "cosmrs 0.19.0",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-address-like",
  "cw-asset",
  "cw-blob",
@@ -398,6 +411,7 @@ name = "abstract-macros"
 version = "0.24.0"
 dependencies = [
  "cosmwasm-std",
+ "coverage-helper",
  "proc-macro2",
  "quote",
  "speculoos",
@@ -417,13 +431,13 @@ dependencies = [
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-asset",
  "cw-controllers",
  "cw-orch 0.26.0",
  "cw-ownable",
  "cw-storage-plus",
  "cw2",
- "protobuf",
  "semver",
  "serde-cw-value",
  "speculoos",
@@ -521,6 +535,7 @@ dependencies = [
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-orch 0.26.0",
  "cw-ownable",
  "cw-storage-plus",
@@ -543,6 +558,7 @@ dependencies = [
  "cosmos-sdk-proto 0.24.0",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-asset",
  "cw-clearable",
  "cw-controllers",
@@ -602,6 +618,7 @@ dependencies = [
  "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-asset",
  "cw-controllers",
  "cw-orch 0.26.0",
@@ -624,6 +641,7 @@ dependencies = [
  "bech32 0.11.0",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "coverage-helper",
  "cw-address-like",
  "cw-asset",
  "cw-blob",
@@ -1836,6 +1854,12 @@ dependencies = [
  "static_assertions",
  "thiserror",
 ]
+
+[[package]]
+name = "coverage-helper"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8174551717bb3d1e75935e38d33f5f8ee8f680dd8dd42c90851e6c644faad14e"
 
 [[package]]
 name = "cpufeatures"
@@ -5216,9 +5240,6 @@ name = "protobuf"
 version = "2.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "106dd99e98437432fed6519dedecfade6a06a73bb7b2a1e019fdd2bee5778d94"
-dependencies = [
- "bytes",
-]
 
 [[package]]
 name = "quanta"
@@ -7713,7 +7734,6 @@ dependencies = [
  "primeorder",
  "prost",
  "prost-types",
- "protobuf",
  "rand",
  "rand_chacha",
  "rand_core",

@@ -238,13 +238,13 @@ mod test {
         use super::*;
         use crate::objects::truncated_chain_id::MAX_CHAIN_NAME_LENGTH;
 
-        #[test]
+        #[coverage_helper::test]
         fn local_works() {
             let trace = AccountTrace::from_str(LOCAL).unwrap();
             assert_eq!(trace, AccountTrace::Local);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remote_works() {
             let trace = AccountTrace::from_str("bitcoin").unwrap();
             assert_eq!(
@@ -253,7 +253,7 @@ mod test {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remote_multi_works() {
             let trace = AccountTrace::from_str("bitcoin>ethereum").unwrap();
             assert_eq!(
@@ -265,7 +265,7 @@ mod test {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remote_multi_multi_works() {
             let trace = AccountTrace::from_str("bitcoin>ethereum>cosmos").unwrap();
             assert_eq!(
@@ -279,27 +279,27 @@ mod test {
         }
 
         // now test failures
-        #[test]
+        #[coverage_helper::test]
         fn local_empty_fails() {
             AccountTrace::from_str("").unwrap_err();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn local_too_short_fails() {
             AccountTrace::from_str("a").unwrap_err();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn local_too_long_fails() {
             AccountTrace::from_str(&"a".repeat(MAX_CHAIN_NAME_LENGTH + 1)).unwrap_err();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn local_uppercase_fails() {
             AccountTrace::from_str("AAAAA").unwrap_err();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn local_non_alphanumeric_fails() {
             AccountTrace::from_str("a!aoeuoau").unwrap_err();
         }
@@ -312,7 +312,7 @@ mod test {
             AccountTrace::Remote(vec![TruncatedChainId::from_str("bitcoin").unwrap()])
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -331,7 +331,7 @@ mod test {
             assert_eq!(items[0], (key, 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();

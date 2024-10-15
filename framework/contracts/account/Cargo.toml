@@ -10,6 +10,9 @@ repository = "https://github.com/AbstractSDK/abstract"
 
 exclude = ["contract.wasm", "hash.txt"]
 
+[lints]
+workspace = true
+
 [[example]]
 name = "schema"
 required-features = ["xion"]
@@ -115,6 +118,7 @@ abstract-standalone = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
 abstract-integration-tests = { workspace = true }
+coverage-helper = { workspace = true }
 
 [profile.release]
 overflow-checks = true

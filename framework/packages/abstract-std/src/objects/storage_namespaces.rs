@@ -46,6 +46,8 @@ pub mod registry {
     pub const MODULE_DEFAULT_CONFIG: &str = "cg";
     pub const ACCOUNT_ADDRESSES: &str = "ch";
     pub const LOCAL_ACCOUNT_SEQUENCE: &str = "ci";
+    pub const NAMESPACES: &str = "cj";
+    pub const REV_NAMESPACES: &str = "ck";
 }
 
 pub mod module_factory {

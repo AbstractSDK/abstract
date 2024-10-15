@@ -113,10 +113,8 @@ expression: all_storage
     - "\"mock1zrcvn33rptsj7t6hacjrhuekqplf8eagqs3dg7m9vqqrhnyaxtxsa9tlkx\""
   - - "\u0000\u0002ch\u0000\u0005local\u0000\u0000\u0000\u0003"
     - "\"mock1a5yd8d2ehutd0p65czuq2c44f8ur8026d39j7kkktxgtqu6fj9hsc9xes4\""
-  - - "\u0000\u0005nmspcabstract"
+  - - "\u0000\u0002cjabstract"
     - "{\"trace\":\"local\",\"seq\":0}"
-  - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0000abstract"
-    - "8"
   - - cfg
     - "{\"security_disabled\":true,\"namespace_registration_fee\":null}"
   - - ci
