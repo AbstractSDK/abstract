@@ -8,6 +8,8 @@ license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract"
 
+[lints]
+workspace = true
 
 [features]
 # for quicker tests, cargo test --lib
@@ -46,3 +48,4 @@ rstest = { workspace = true }
 anyhow = { workspace = true }
 abstract-testing = { path = "../abstract-testing" }
 cw20-base = { workspace = true }
+coverage-helper = { workspace = true }

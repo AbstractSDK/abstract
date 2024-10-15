@@ -1,3 +1,5 @@
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
+
 mod anybuf;
 mod commands;
 pub mod contract;

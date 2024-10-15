@@ -6,6 +6,9 @@ license = { workspace = true }
 description = "base app contract implementation"
 resolver = "2"
 
+[lints]
+workspace = true
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -41,3 +44,4 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 cosmwasm-schema = { workspace = true }
 abstract-app = { path = ".", features = ["test-utils"] }
 abstract-integration-tests = { workspace = true }
+coverage-helper = { workspace = true }

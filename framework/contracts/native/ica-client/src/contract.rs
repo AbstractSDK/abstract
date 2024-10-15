@@ -93,7 +93,7 @@ mod tests {
     use cw_ownable::Ownership;
     use speculoos::prelude::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn instantiate_works() -> IcaClientResult<()> {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
@@ -125,7 +125,7 @@ mod tests {
         use crate::contract;
         use abstract_std::AbstractError;
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_same_version() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -148,7 +148,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_downgrade() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -174,7 +174,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_name_change() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -198,7 +198,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> IcaClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);

@@ -80,7 +80,7 @@ fn create_one_account() -> AResult {
 
     let account_list = registry.account(TEST_ACCOUNT_ID)?;
 
-    assert_that!(&account_list.account.into()).is_equal_to(Account::new(account));
+    assert_that!(&account_list.into()).is_equal_to(Account::new(account));
 
     Ok(())
 }
@@ -146,10 +146,10 @@ fn create_two_accounts() -> AResult {
 
     assert_that!(&registry_config).is_equal_to(&expected);
 
-    let account_1 = registry.account(account_1_id)?.account;
+    let account_1 = registry.account(account_1_id)?;
     assert_that!(account_1.into()).is_equal_to(Account::new(account1));
 
-    let account_2 = registry.account(account_2_id)?.account;
+    let account_2 = registry.account(account_2_id)?;
     assert_that!(account_2.into()).is_equal_to(Account::new(account2));
 
     Ok(())
@@ -183,7 +183,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "account_address")?;
     account.set_address(&Addr::unchecked(&account_addr));
 
-    let registered_account = registry.account(TEST_ACCOUNT_ID)?.account;
+    let registered_account = registry.account(TEST_ACCOUNT_ID)?;
 
     assert_that!(account_addr).is_equal_to(registered_account.addr().to_string());
 

@@ -60,7 +60,7 @@ mod test {
     use abstract_std::app::BaseInstantiateMsg;
     use abstract_testing::prelude::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_instantiate() {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);

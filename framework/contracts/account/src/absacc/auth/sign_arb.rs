@@ -40,7 +40,7 @@ mod tests {
     use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env};
     use cosmwasm_std::{Addr, Api, Binary};
 
-    #[test]
+    #[coverage_helper::test]
     fn test_derive_addr() {
         let pub_key = "AxVQixKMvKkMWMgEBn5E+QjXxFLLiOUNs3EG3vvsgaGs";
         let pub_key_bytes = general_purpose::STANDARD.decode(pub_key).unwrap();
@@ -57,7 +57,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_verify_sign_arb() {
         let pubkey = "AxVQixKMvKkMWMgEBn5E+QjXxFLLiOUNs3EG3vvsgaGs";
         let pubkey_bytes = general_purpose::STANDARD.decode(pubkey).unwrap();
@@ -94,7 +94,7 @@ mod tests {
         assert!(verification)
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_init_sign_arb() {
         let mut deps = mock_dependencies();
         deps.api = deps.api.with_prefix("xion");

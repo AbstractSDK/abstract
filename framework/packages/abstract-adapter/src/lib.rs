@@ -1,6 +1,7 @@
 //! # Abstract Adapter
 //!
 //! Basis for an interfacing contract to an external service.
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 use cosmwasm_std::{Empty, Response};
 
 pub type AdapterResult<C = Empty> = Result<Response<C>, AdapterError>;

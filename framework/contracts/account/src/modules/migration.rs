@@ -1,8 +1,5 @@
 use abstract_std::{
-    account::{
-        state::{CALLING_TO_AS_ADMIN, CALLING_TO_AS_ADMIN_WILD_CARD},
-        CallbackMsg, ExecuteMsg,
-    },
+    account::state::{CALLING_TO_AS_ADMIN, CALLING_TO_AS_ADMIN_WILD_CARD},
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg as AdapterQuery,
     },
@@ -17,18 +14,18 @@ use abstract_std::{
     ACCOUNT,
 };
 use cosmwasm_std::{
-    ensure, ensure_eq, to_json_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env,
-    MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    ensure, to_json_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, Response,
+    StdResult, Storage, SubMsg, WasmMsg,
 };
 use cw2::get_contract_version;
 use cw_storage_plus::Item;
 
 use super::{
-    _remove_whitelist_modules, _whitelist_modules, configure_adapter, load_module_addr,
-    query_module, update_module_addresses,
+    _update_whitelisted_modules, configure_adapter, load_module_addr, query_module,
+    update_module_addresses,
 };
 use crate::{
-    contract::{AccountResponse, AccountResult},
+    contract::{AccountResponse, AccountResult, ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID},
     error::AccountError,
     queries::query_module_version,
 };
@@ -94,18 +91,16 @@ pub fn upgrade_modules(
         )?);
     }
 
-    let callback_msg = wasm_execute(
-        env.contract.address,
-        &ExecuteMsg::Callback::<cosmwasm_std::Empty>(CallbackMsg {}),
-        vec![],
-    )?;
+    let assert_dependency_msg = upgrade_msgs
+        .pop()
+        .map(|msg| SubMsg::reply_on_success(msg, ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID));
 
     Ok(AccountResponse::new(
         "upgrade_modules",
         vec![("upgraded_modules", upgraded_module_ids.join(","))],
     )
     .add_messages(upgrade_msgs)
-    .add_message(callback_msg))
+    .add_submessages(assert_dependency_msg))
 }
 
 pub fn set_migrate_msgs_and_context(
@@ -142,14 +137,14 @@ pub fn set_migrate_msgs_and_context(
             requested_module.module.info,
             code_id,
         )?,
-        ModuleReference::Account(code_id) | ModuleReference::Standalone(code_id) => {
+        ModuleReference::Standalone(code_id) => {
             vec![build_module_migrate_msg(
                 old_module_addr,
                 code_id,
                 migrate_msg.unwrap(),
             )]
         }
-
+        // Account migrated separately
         _ => return Err(AccountError::NotUpgradeable(module_info)),
     };
     msgs.extend(migrate_msgs);
@@ -242,7 +237,7 @@ pub(crate) fn build_module_migrate_msg(
 /// Replaces the current adapter with a different version
 /// Also moves all the authorized address permissions to the new contract and removes them from the old
 pub fn replace_adapter(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: &Env,
     new_adapter_addr: Addr,
     old_adapter_addr: Addr,
@@ -277,10 +272,8 @@ pub fn replace_adapter(
             to_remove: vec![],
         },
     )?);
-    // Remove adapter permissions from account
-    _remove_whitelist_modules(deps.branch(), vec![old_adapter_addr])?;
-    // Add new adapter to account
-    _whitelist_modules(deps.branch(), vec![new_adapter_addr])?;
+    // Replace adapter permissions from old to new address to account
+    _update_whitelisted_modules(deps.storage, vec![new_adapter_addr], vec![old_adapter_addr])?;
 
     Ok(msgs)
 }
@@ -310,12 +303,7 @@ pub(crate) fn self_upgrade_msg(
     }
 }
 
-pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> AccountResult {
-    ensure_eq!(
-        info.sender,
-        env.contract.address,
-        StdError::generic_err("Callback must be called by contract")
-    );
+pub fn assert_modules_dependency_requirements(mut deps: DepsMut) -> AccountResult {
     let migrated_modules = MIGRATE_CONTEXT.load(deps.storage)?;
 
     for (migrated_module_id, old_deps) in migrated_modules {

@@ -8,7 +8,11 @@ use abstract_std::{
 use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
 use semver::{Comparator, Version};
 
-use crate::{contract::AccountResult, error::AccountError, modules::MIGRATE_CONTEXT};
+use crate::{
+    contract::AccountResult,
+    error::AccountError,
+    modules::{load_module_addr, MIGRATE_CONTEXT},
+};
 
 /// Assert the dependencies that this app or adapter relies on are installed.
 pub fn assert_install_requirements(deps: Deps, module_id: &str) -> AccountResult<Vec<Dependency>> {
@@ -143,7 +147,7 @@ pub fn assert_dependency_requirements(
 
 pub fn load_module_data(deps: Deps, module_id: &str) -> AccountResult<ModuleData> {
     let querier = &deps.querier;
-    let module_addr = ACCOUNT_MODULES.load(deps.storage, module_id)?;
+    let module_addr = load_module_addr(deps.storage, module_id)?;
     let module_data = MODULE.query(querier, module_addr)?;
     Ok(module_data)
 }
@@ -212,7 +216,7 @@ mod test {
         use super::*;
 
         // This should add dependency -> [module] to the map
-        #[test]
+        #[coverage_helper::test]
         fn add() {
             let mut deps = mock_dependencies();
             let new_module_id = "module";
@@ -245,7 +249,7 @@ mod test {
         // autocompounder depends on dex
         // dex -> autocompounder
         // to uninstall autocompounder, remove dex
-        #[test]
+        #[coverage_helper::test]
         fn remove() {
             let mut deps = mock_dependencies();
 

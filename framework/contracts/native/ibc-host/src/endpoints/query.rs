@@ -67,7 +67,7 @@ mod test {
 
     use abstract_testing::mock_env_validated;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_registered_client() {
         use abstract_std::ibc_host::{ClientProxyResponse, InstantiateMsg, QueryMsg};
         use cosmwasm_std::{from_json, testing::*};

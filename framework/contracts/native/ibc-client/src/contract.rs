@@ -49,12 +49,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
-        ExecuteMsg::SendFunds {
-            host_chain,
-            funds,
-            memo,
-        } => commands::execute_send_funds(deps, env, info, host_chain, funds, memo)
-            .map_err(Into::into),
+        ExecuteMsg::SendFunds { host_chain, memo } => {
+            commands::execute_send_funds(deps, env, info, host_chain, memo).map_err(Into::into)
+        }
         ExecuteMsg::Register {
             host_chain,
             namespace,
@@ -113,7 +110,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespon
         QueryMsg::ListIbcInfrastructures {} => {
             to_json_binary(&queries::list_ibc_counterparts(deps)?)
         }
-        QueryMsg::ListRemoteProxiesByAccountId { account_id } => {
+        QueryMsg::ListRemoteAccountsByAccountId { account_id } => {
             to_json_binary(&queries::list_proxies_by_account_id(deps, account_id)?)
         }
     }
@@ -147,7 +144,7 @@ mod tests {
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies},
-        Addr,
+        Addr, Coin,
     };
     use cw2::CONTRACT;
     use cw_ownable::{Ownership, OwnershipError};
@@ -158,6 +155,16 @@ mod tests {
     fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> IbcClientResult {
         let env = mock_env_validated(deps.api);
         execute(deps.as_mut(), env, message_info(sender, &[]), msg)
+    }
+
+    fn execute_as_funds(
+        deps: &mut MockDeps,
+        sender: &Addr,
+        msg: ExecuteMsg,
+        funds: &[Coin],
+    ) -> IbcClientResult {
+        let env = mock_env_validated(deps.api);
+        execute(deps.as_mut(), env, message_info(sender, funds), msg)
     }
 
     fn test_only_admin(msg: ExecuteMsg) -> IbcClientTestResult {
@@ -173,7 +180,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn instantiate_works() -> IbcClientResult<()> {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
@@ -203,7 +210,7 @@ mod tests {
         use crate::contract;
         use abstract_std::AbstractError;
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_same_version() -> IbcClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -226,7 +233,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_downgrade() -> IbcClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -252,7 +259,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_name_change() -> IbcClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -276,7 +283,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> IbcClientResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -309,7 +316,7 @@ mod tests {
         use super::*;
         use crate::commands::PACKET_LIFETIME;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_admin() -> IbcClientResult<()> {
             test_only_admin(ExecuteMsg::RegisterInfrastructure {
                 chain: "host-chain".parse().unwrap(),
@@ -318,7 +325,7 @@ mod tests {
             })
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn cannot_register_if_already_exists() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -350,7 +357,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn register_infrastructure() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -426,12 +433,12 @@ mod tests {
             let hosts = remote_hosts_response.hosts;
             assert_eq!(vec![(chain_name.clone(), host)], hosts);
 
-            let remote_proxies_response: ListRemoteProxiesResponse = from_json(query(
+            let remote_proxies_response: ListRemoteAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env_validated(deps.api),
                 QueryMsg::ListRemoteProxies {},
             )?)?;
-            let hosts = remote_proxies_response.proxies;
+            let hosts = remote_proxies_response.accounts;
             assert_eq!(vec![(chain_name.clone(), None)], hosts);
 
             let ibc_infratructures_response: ListIbcInfrastructureResponse = from_json(query(
@@ -460,7 +467,7 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
 
-        #[test]
+        #[coverage_helper::test]
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
@@ -501,7 +508,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn cannot_make_internal_call() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
@@ -531,7 +538,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn send_packet_with_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
@@ -610,7 +617,7 @@ mod tests {
         use prost::Name;
         use std::str::FromStr;
 
-        #[test]
+        #[coverage_helper::test]
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
@@ -631,7 +638,6 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
-                funds: coins(1, "denom"),
                 memo: None,
             };
 
@@ -644,7 +650,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
@@ -673,11 +679,10 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name.clone(),
-                funds: funds.clone(),
                 memo: None,
             };
 
-            let res = execute_as(&mut deps, account.addr(), msg)?;
+            let res = execute_as_funds(&mut deps, account.addr(), msg, &funds)?;
 
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()
@@ -707,11 +712,10 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
-                funds: funds.clone(),
                 memo: memo.clone(),
             };
 
-            let res = execute_as(&mut deps, account.addr(), msg)?;
+            let res = execute_as_funds(&mut deps, account.addr(), msg, &funds)?;
 
             use prost::Message;
             #[allow(deprecated)]
@@ -764,7 +768,7 @@ mod tests {
         use cosmwasm_std::wasm_execute;
         use std::str::FromStr;
 
-        #[test]
+        #[coverage_helper::test]
         fn throw_when_sender_is_not_account() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstract_addrs = AbstractMockAddrs::new(deps.api);
@@ -800,7 +804,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
@@ -892,14 +896,14 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_admin() -> IbcClientTestResult {
             test_only_admin(ExecuteMsg::RemoveHost {
                 host_chain: "host-chain".parse().unwrap(),
             })
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_existing_host() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -928,7 +932,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_host_nonexistent_should_not_throw() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -956,7 +960,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn invalid_initiator() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -983,7 +987,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn caller_not_note() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1011,7 +1015,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn who_am_i_unregistered_chain() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1039,7 +1043,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn who_am_i_fatal_error() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1076,7 +1080,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn who_am_i_success() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1130,7 +1134,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn create_account_fatal_error() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1159,7 +1163,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn create_account_missing_wasm_event() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1197,7 +1201,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn create_account_missing_account_address_attribute() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1235,7 +1239,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn create_account_success() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1315,17 +1319,17 @@ mod tests {
                 accounts_response
             );
 
-            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+            let proxies_response: ListRemoteAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env_validated(deps.api),
-                QueryMsg::ListRemoteProxiesByAccountId {
+                QueryMsg::ListRemoteAccountsByAccountId {
                     account_id: TEST_ACCOUNT_ID,
                 },
             )?)?;
 
             assert_eq!(
-                ListRemoteProxiesResponse {
-                    proxies: vec![(chain_name, Some(remote_account))]
+                ListRemoteAccountsResponse {
+                    accounts: vec![(chain_name, Some(remote_account))]
                 },
                 proxies_response
             );
@@ -1340,7 +1344,7 @@ mod tests {
 
         use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
 
-        #[test]
+        #[coverage_helper::test]
         fn works_with_multiple_local_accounts() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1356,17 +1360,17 @@ mod tests {
             ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain1), &account1)?;
             ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain2), &account2)?;
 
-            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+            let proxies_response: ListRemoteAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env_validated(deps.api),
-                QueryMsg::ListRemoteProxiesByAccountId {
+                QueryMsg::ListRemoteAccountsByAccountId {
                     account_id: TEST_ACCOUNT_ID,
                 },
             )?)?;
 
             assert_eq!(
-                ListRemoteProxiesResponse {
-                    proxies: vec![(chain1, Some(account1)), (chain2, Some(account2))]
+                ListRemoteAccountsResponse {
+                    accounts: vec![(chain1, Some(account1)), (chain2, Some(account2))]
                 },
                 proxies_response
             );
@@ -1374,7 +1378,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works_with_multiple_remote_accounts() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1406,15 +1410,15 @@ mod tests {
                 &archway_account,
             )?;
 
-            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+            let proxies_response: ListRemoteAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env_validated(deps.api),
-                QueryMsg::ListRemoteProxiesByAccountId { account_id },
+                QueryMsg::ListRemoteAccountsByAccountId { account_id },
             )?)?;
 
             assert_eq!(
-                ListRemoteProxiesResponse {
-                    proxies: vec![
+                ListRemoteAccountsResponse {
+                    accounts: vec![
                         (archway_chain, Some(archway_account)),
                         (terra_chain, Some(terra_account)),
                     ]

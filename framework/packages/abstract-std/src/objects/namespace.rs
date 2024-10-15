@@ -123,37 +123,37 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_namespace() {
         let namespace = Namespace::new("test").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_string() {
         let namespace = Namespace::try_from("test".to_string()).unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_str() {
         let namespace = Namespace::try_from("test").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_ref_string() {
         let namespace = Namespace::try_from(&"test".to_string()).unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_to_string() {
         let namespace = Namespace::new("test").unwrap();
         assert_that!(namespace.to_string()).is_equal_to("test".to_string());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn string_key_works() {
         let k = &Namespace::new("test").unwrap();
         let path = k.key();

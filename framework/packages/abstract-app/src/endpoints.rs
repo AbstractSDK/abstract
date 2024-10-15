@@ -134,7 +134,7 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{Binary, SubMsgResult};
 
-    #[test]
+    #[coverage_helper::test]
     fn exports_endpoints() {
         export_endpoints!(MOCK_APP_WITH_DEP, MockAppContract);
 
@@ -212,7 +212,7 @@ mod test {
         assert_eq!(actual_reply, expected_reply);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn exports_endpoints_custom() {
         #[cosmwasm_schema::cw_serde]
         #[derive(cw_orch::ExecuteFns)]

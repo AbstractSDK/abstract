@@ -378,14 +378,14 @@ pub mod execute {
 mod test {
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn auth_id_err() {
         for id in 128..=u8::MAX {
             assert!(AuthId::new(id, true).is_none())
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn auth_id() {
         for id in 0..0b10000000 {
             let (unmasked_id, admin) = AuthId::new(id, true).unwrap().cred_id();

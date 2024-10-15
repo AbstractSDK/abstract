@@ -36,7 +36,7 @@ use crate::{
     },
     modules::{
         _install_modules, install_modules,
-        migration::{handle_callback, upgrade_modules},
+        migration::{assert_modules_dependency_requirements, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
@@ -62,6 +62,7 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const FORWARD_RESPONSE_REPLY_ID: u64 = 1;
 pub const ADMIN_ACTION_REPLY_ID: u64 = 2;
 pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 3;
+pub const ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID: u64 = 4;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -175,13 +176,8 @@ pub fn instantiate(
     };
 
     // Set owner
-    let cw_gov_owner = ownership::initialize_owner(
-        deps.branch(),
-        // TODO: support no owner here (ownership handled in SUDO)
-        // Or do we want to add a `Sudo` governance type?
-        owner.clone(),
-        registry.address.clone(),
-    )?;
+    let cw_gov_owner =
+        ownership::initialize_owner(deps.branch(), owner.clone(), registry.address.clone())?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
@@ -373,7 +369,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 }
                 #[allow(unused)]
                 ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
-                ExecuteMsg::Callback(_) => handle_callback(deps, env, info),
             }
         }
     }
@@ -385,6 +380,9 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
         FORWARD_RESPONSE_REPLY_ID => forward_response_reply(msg),
         ADMIN_ACTION_REPLY_ID => admin_action_reply(deps),
         REGISTER_MODULES_DEPENDENCIES_REPLY_ID => register_dependencies(deps),
+        ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID => {
+            assert_modules_dependency_requirements(deps)
+        }
 
         _ => Err(AccountError::UnexpectedReply {}),
     }
@@ -461,15 +459,24 @@ fn verify_nft_ownership(
 mod tests {
     use abstract_std::{
         account,
-        objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
+        objects::{
+            account::AccountTrace, gov_type::GovernanceDetails, ownership::GovOwnershipError,
+            AccountId,
+        },
     };
-    use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
+    use abstract_testing::{
+        abstract_mock_querier_builder, mock_env_validated, prelude::AbstractMockAddrs,
+    };
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies},
-        wasm_execute, CosmosMsg, SubMsg,
+        to_json_binary, wasm_execute, CosmosMsg, SubMsg,
     };
 
-    #[test]
+    use crate::error::AccountError;
+
+    use super::verify_nft_ownership;
+
+    #[coverage_helper::test]
     fn successful_instantiate() {
         let mut deps = mock_dependencies();
 
@@ -509,5 +516,42 @@ mod tests {
         .into();
 
         assert_eq!(resp.unwrap().messages, vec![SubMsg::new(expected_msg)]);
+    }
+
+    #[coverage_helper::test]
+    fn verify_nft() {
+        let mut deps = mock_dependencies();
+        let nft_addr = deps.api.addr_make("nft");
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .with_smart_handler(&nft_addr, move |_| {
+                Ok(
+                    to_json_binary(&abstract_std::objects::ownership::cw721::OwnerOfResponse {
+                        owner: deps.api.addr_make("owner").to_string(),
+                    })
+                    .unwrap(),
+                )
+            })
+            .build();
+
+        // Owner
+        let res = verify_nft_ownership(
+            deps.as_ref(),
+            deps.api.addr_make("owner"),
+            nft_addr.clone(),
+            "foo".to_owned(),
+        );
+        assert!(res.is_ok());
+
+        // Not owner
+        let res = verify_nft_ownership(
+            deps.as_ref(),
+            deps.api.addr_make("not_owner"),
+            nft_addr,
+            "foo".to_owned(),
+        );
+        assert_eq!(
+            res,
+            Err(AccountError::Ownership(GovOwnershipError::NotOwner))
+        );
     }
 }

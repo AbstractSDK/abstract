@@ -16,10 +16,10 @@ publish = false
 [dependencies]
 anstream = { version = "0.6" }
 anyhow = { version = "1" }
-bytes = { version = "1", features = ["serde"] }
+bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
-cw-orch = { version = "0.25", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.5", features = ["daemon"] }
+cw-orch = { version = "0.26", features = ["daemon", "snapshot-testing"] }
+cw-orch-interchain = { version = "0.7", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
@@ -45,10 +45,10 @@ zeroize = { version = "1" }
 [build-dependencies]
 anstream = { version = "0.6" }
 anyhow = { version = "1" }
-bytes = { version = "1", features = ["serde"] }
+bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
-cw-orch = { version = "0.25", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.5", features = ["daemon"] }
+cw-orch = { version = "0.26", features = ["daemon", "snapshot-testing"] }
+cw-orch-interchain = { version = "0.7", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
@@ -78,16 +78,19 @@ ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.21" }
+bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
+bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bitflags = { version = "2", default-features = false, features = ["std"] }
 bs58 = { version = "0.5", features = ["check"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.6", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
@@ -107,13 +110,13 @@ futures-task = { version = "0.3", default-features = false, features = ["std"] }
 futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 getrandom = { version = "0.2", default-features = false, features = ["js"] }
 group = { version = "0.13", default-features = false, features = ["alloc"] }
-hashbrown = { version = "0.12", features = ["raw"] }
+hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
 hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
 ibc-proto = { version = "0.47", features = ["serde"] }
 ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
 informalsystems-pbjson = { version = "0.7" }
-k256 = { version = "0.13" }
+k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["serde"] }
@@ -122,9 +125,7 @@ num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
-pkcs8 = { version = "0.10", default-features = false, features = ["pem", "std"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-protobuf = { version = "2", default-features = false, features = ["with-bytes"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -148,22 +149,26 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
 url = { version = "2" }
+uuid = { version = "1", features = ["v4"] }
 
 [target.x86_64-unknown-linux-gnu.build-dependencies]
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.21" }
+bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
+bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bitflags = { version = "2", default-features = false, features = ["std"] }
 bs58 = { version = "0.5", features = ["check"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.6", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 derive_more = { version = "0.99" }
@@ -184,13 +189,13 @@ futures-task = { version = "0.3", default-features = false, features = ["std"] }
 futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 getrandom = { version = "0.2", default-features = false, features = ["js"] }
 group = { version = "0.13", default-features = false, features = ["alloc"] }
-hashbrown = { version = "0.12", features = ["raw"] }
+hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
 hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
 ibc-proto = { version = "0.47", features = ["serde"] }
 ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
 informalsystems-pbjson = { version = "0.7" }
-k256 = { version = "0.13" }
+k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["serde"] }
@@ -199,9 +204,7 @@ num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
-pkcs8 = { version = "0.10", default-features = false, features = ["pem", "std"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-protobuf = { version = "2", default-features = false, features = ["with-bytes"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -226,21 +229,25 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
 url = { version = "2" }
+uuid = { version = "1", features = ["v4"] }
 
 [target.aarch64-apple-darwin.dependencies]
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.21" }
+bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
+bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bs58 = { version = "0.5", features = ["check"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.6", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
@@ -260,13 +267,13 @@ futures-task = { version = "0.3", default-features = false, features = ["std"] }
 futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 getrandom = { version = "0.2", default-features = false, features = ["js"] }
 group = { version = "0.13", default-features = false, features = ["alloc"] }
-hashbrown = { version = "0.12", features = ["raw"] }
+hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
 hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
 ibc-proto = { version = "0.47", features = ["serde"] }
 ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
 informalsystems-pbjson = { version = "0.7" }
-k256 = { version = "0.13" }
+k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2", features = ["extra_traits"] }
 log = { version = "0.4", default-features = false, features = ["serde"] }
@@ -275,9 +282,7 @@ num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
-pkcs8 = { version = "0.10", default-features = false, features = ["pem", "std"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-protobuf = { version = "2", default-features = false, features = ["with-bytes"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -301,21 +306,25 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
 url = { version = "2" }
+uuid = { version = "1", features = ["v4"] }
 
 [target.aarch64-apple-darwin.build-dependencies]
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.21" }
+bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
+bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bs58 = { version = "0.5", features = ["check"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
 cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.6", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 derive_more = { version = "0.99" }
@@ -336,13 +345,13 @@ futures-task = { version = "0.3", default-features = false, features = ["std"] }
 futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 getrandom = { version = "0.2", default-features = false, features = ["js"] }
 group = { version = "0.13", default-features = false, features = ["alloc"] }
-hashbrown = { version = "0.12", features = ["raw"] }
+hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
 hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
 ibc-proto = { version = "0.47", features = ["serde"] }
 ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
 informalsystems-pbjson = { version = "0.7" }
-k256 = { version = "0.13" }
+k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2", features = ["extra_traits"] }
 log = { version = "0.4", default-features = false, features = ["serde"] }
@@ -351,9 +360,7 @@ num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
-pkcs8 = { version = "0.10", default-features = false, features = ["pem", "std"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-protobuf = { version = "2", default-features = false, features = ["with-bytes"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -378,5 +385,6 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
 url = { version = "2" }
+uuid = { version = "1", features = ["v4"] }
 
 ### END HAKARI SECTION

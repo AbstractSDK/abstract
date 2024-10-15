@@ -3,7 +3,7 @@ use abstract_std::{app as msg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     cw_helpers::ApiQuery, features::ModuleIdentification, AbstractSdkResult, AccountAction,
     ModuleInterface,
@@ -35,17 +35,13 @@ pub trait AppInterface: ModuleInterface + ModuleIdentification {
 impl<T> AppInterface for T where T: ModuleInterface + ModuleIdentification {}
 
 impl<'a, T: AppInterface> AbstractApi<T> for Apps<'a, T> {
+    const API_ID: &'static str = "Apps";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: AppInterface> ApiIdentification for Apps<'a, T> {
-    fn api_id() -> String {
-        "Apps".to_owned()
     }
 }
 
@@ -106,7 +102,7 @@ mod tests {
     use speculoos::prelude::*;
 
     pub use super::*;
-    use crate::mock_module::*;
+    use crate::{apis::traits::test::abstract_api_test, mock_module::*};
 
     /// Helper to check that the method is not callable when the module is not a dependency
     fn fail_when_not_dependency_test<T: std::fmt::Debug>(
@@ -128,7 +124,7 @@ mod tests {
         use super::*;
         use crate::{mock_module::MockModuleExecuteMsg, std::app};
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
@@ -139,7 +135,7 @@ mod tests {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn expected_app_request() {
             let (deps, _, app) = mock_module_setup();
 
@@ -164,7 +160,7 @@ mod tests {
     mod query_app {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
@@ -175,7 +171,7 @@ mod tests {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn expected_app_query() {
             let (deps, _, app) = mock_module_setup();
 
@@ -187,5 +183,13 @@ mod tests {
                 .is_ok()
                 .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let apps = app.apps(deps.as_ref());
+
+        abstract_api_test(apps);
     }
 }

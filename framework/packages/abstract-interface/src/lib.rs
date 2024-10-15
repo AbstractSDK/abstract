@@ -1,4 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
+
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 mod account;

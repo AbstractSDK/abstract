@@ -32,7 +32,7 @@ pub fn mock_init<Q: cosmwasm_std::Querier>(deps: &mut OwnedDeps<MockStorage, Moc
 /**
  * Tests successful instantiation of the contract.
  */
-#[test]
+#[coverage_helper::test]
 fn successful_initialization() {
     let mut deps = mock_dependencies(&[]);
     let env = mock_env_validated(deps.api);
@@ -44,7 +44,7 @@ fn successful_initialization() {
     assert_eq!(0, res.messages.len());
 }
 
-#[test]
+#[coverage_helper::test]
 fn successful_update_ownership() {
     let mut deps = mock_dependencies(&[]);
     mock_init(&mut deps);
