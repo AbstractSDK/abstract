@@ -10,6 +10,7 @@
 - `AbstractClient`: `service` to get api of Service module
 - `CustomExecuteHandler` To improve support for fully custom execute messages on Apps or Adapters
 - `balance` method for `AnsHost` to query balance of `AssetEntry`
+- `AbstractInterchainClient` to simplify Abstract deployments across multiple chains
 
 ### Changed
 
