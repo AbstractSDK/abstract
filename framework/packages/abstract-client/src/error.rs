@@ -48,7 +48,7 @@ pub enum AbstractClientError {
 
     #[cfg(feature = "interchain")]
     #[error("{0}")]
-    InterchainError(#[from] cw_orch_interchain::InterchainError),
+    InterchainError(#[from] cw_orch_interchain::core::InterchainError),
 
     #[error("Service API only allows claiming service modules")]
     ExpectedService {},
