@@ -42,6 +42,7 @@
 - `cw-semver` dependency removed
 - Manager no longer able to migrate pre `0.19` abstract adapters
 - Account Factory native contract
+- Unused `DepositManager` and `PagedMap` objects from abstract-std
 
 ### Fixed
 

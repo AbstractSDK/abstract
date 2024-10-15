@@ -7,15 +7,15 @@ use abstract_std::objects::module::ModuleInfo;
 use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};
 
-use crate::{account::Account, client::AbstractClientResult};
+use crate::{account::Account, client::AbstractClientResult, Service};
 
 /// An application represents a module installed on a (sub)-[`Account`].
 ///
 /// It implements cw-orch traits of the module itself, so you can call its methods directly from the application struct.
 #[derive(Clone)]
 pub struct Application<T: CwEnv, M> {
-    account: Account<T>,
-    module: M,
+    pub(crate) account: Account<T>,
+    pub(crate) module: M,
 }
 
 /// Allows to access the module's methods directly from the application struct
@@ -70,6 +70,11 @@ impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
     /// module of type `M`.
     pub fn module<T: RegisteredModule + From<Contract<Chain>>>(&self) -> AbstractClientResult<T> {
         self.account.module()
+    }
+
+    /// Turn the `Application` into a [`Service`] for registration in ANS.
+    pub fn into_service(self) -> Service<Chain, M> {
+        Service::from(self)
     }
 }
 

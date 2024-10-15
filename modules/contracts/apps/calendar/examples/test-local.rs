@@ -23,6 +23,7 @@ use cw_orch::{
 use semver::Version;
 use speculoos::{assert_that, prelude::BooleanAssertions};
 
+// From https://github.com/CosmosContracts/juno/blob/32568dba828ff7783aea8cb5bb4b8b5832888255/docker/test-user.env#L2
 const LOCAL_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
 
 fn main() -> anyhow::Result<()> {

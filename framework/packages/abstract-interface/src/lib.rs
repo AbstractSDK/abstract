@@ -18,6 +18,7 @@ mod interfaces;
 
 pub use crate::interfaces::*;
 
+mod daemon_state;
 mod deployers;
 mod deployment;
 mod error;
@@ -25,3 +26,5 @@ mod error;
 pub use error::AbstractInterfaceError;
 
 pub use crate::{deployers::*, deployment::*};
+
+pub use daemon_state::AbstractDaemonState;

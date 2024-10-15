@@ -15,7 +15,6 @@ pub use pool::*;
 
 pub mod dependency;
 pub mod deposit_info;
-pub mod deposit_manager;
 pub mod fee;
 pub mod gov_type;
 pub mod module;
@@ -23,7 +22,6 @@ pub mod module_reference;
 pub mod module_version;
 pub mod namespace;
 pub mod ownership;
-pub mod paged_map;
 pub mod time_weighted_average;
 pub(crate) mod truncated_chain_id;
 pub mod validation;
