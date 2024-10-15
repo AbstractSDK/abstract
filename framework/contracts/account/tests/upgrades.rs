@@ -877,7 +877,8 @@ mod upgrade_account {
                     abstract_account::contract::instantiate,
                     abstract_account::contract::query,
                 )
-                .with_migrate(fake_migrate),
+                .with_migrate(fake_migrate)
+                .with_reply(abstract_account::contract::reply),
             ),
         )?;
         let account_custom_code_id = account_custom.uploaded_code_id().unwrap();
