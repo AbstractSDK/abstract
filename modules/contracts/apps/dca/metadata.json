@@ -1,9 +1,0 @@
-{
-  "name": "DCA",
-  "description": "Create DCA strategies for any token using any dex",
-  "website": "https://abstract.money/",
-  "docs": "",
-  "type": "app",
-  "icon": "RiCoinsLine",
-  "enabled": false
-}
