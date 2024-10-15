@@ -250,7 +250,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         let base_response = self
             .host_abstract()?
             .registry
-            .get_account(self.remote_account_id.clone())?;
+            .account(self.remote_account_id.clone())?;
 
         Ok(base_response.addr().clone())
     }

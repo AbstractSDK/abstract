@@ -284,7 +284,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             if self
                 .abstr
                 .registry
-                .get_account(potential_account_id)
+                .account(potential_account_id)
                 .is_err()
             {
                 return Ok(random_sequence);
