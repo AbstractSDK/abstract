@@ -47,3 +47,4 @@ abstract-std = { workspace = true }
 anyhow.workspace = true
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
+coverage-helper = { workspace = true }

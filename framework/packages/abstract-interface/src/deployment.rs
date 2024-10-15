@@ -366,13 +366,13 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn only_state_json_included() {
         let files = State::iter().collect::<Vec<_>>();
         assert_eq!(files, vec![Cow::Borrowed("state.json")])
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn have_some_state() {
         State::get("state.json").unwrap();
         let state = State::load_state();
@@ -380,7 +380,7 @@ mod test {
         assert!(ans_neutron_testnet.is_some());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn deploy2() -> anyhow::Result<()> {
         let prefix = "mock";
         let mut chain = MockBech32::new(prefix);

@@ -93,7 +93,7 @@ mod tests {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn verifying_ethereum_signature() {
         let api = MockApi::default();
 

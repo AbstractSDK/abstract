@@ -35,7 +35,7 @@ mod test {
 
     use crate::mock::{mock_init, BASIC_MOCK_APP};
 
-    #[test]
+    #[coverage_helper::test]
     fn ibc_client_address() {
         let mut deps = mock_init();
         let test_account = test_account(deps.api);

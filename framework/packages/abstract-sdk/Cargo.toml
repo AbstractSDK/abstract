@@ -53,7 +53,7 @@ doc-comment = "0.3.3"
 abstract-sdk = { path = ".", features = ["test-utils"] }
 cw-ownable = { workspace = true }
 
-coverage-helper = { version = "0.2.2" }
+coverage-helper = { workspace = true }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [

@@ -56,7 +56,7 @@ mod test {
 
     use crate::mock::{AdapterMockResult, MockInitMsg, MOCK_ADAPTER, MOCK_DEP, TEST_METADATA};
 
-    #[test]
+    #[coverage_helper::test]
     fn successful() -> AdapterMockResult {
         let api = MOCK_ADAPTER.with_dependencies(&[MOCK_DEP]);
         let mut deps = mock_dependencies();

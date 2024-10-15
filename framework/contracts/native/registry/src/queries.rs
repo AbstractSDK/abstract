@@ -462,7 +462,7 @@ mod test {
             assert_that!(&res).is_ok();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn get_module() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -490,7 +490,7 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn none_when_no_matching_version() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -520,7 +520,7 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn get_latest_when_multiple_registered() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -622,7 +622,7 @@ mod test {
     mod modules {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn get_cw_plus_modules() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -660,7 +660,7 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn get_modules_not_found() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -693,7 +693,7 @@ mod test {
             }
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -721,7 +721,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_default_returns_only_non_yanked() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -771,7 +771,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_yanked_by_namespace_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -824,7 +824,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_non_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -857,7 +857,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_and_name() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -888,7 +888,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_and_name_with_multiple_versions() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -931,7 +931,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_only_version_many() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -960,7 +960,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_only_version_none() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -985,7 +985,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_name_and_version() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -1018,7 +1018,7 @@ mod test {
             });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_and_version() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -1056,7 +1056,7 @@ mod test {
     mod query_namespaces {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn namespaces() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -1080,7 +1080,7 @@ mod test {
     mod handle_account_address_query {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn not_registered_should_be_unknown() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1102,7 +1102,7 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn registered_should_return_account() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();

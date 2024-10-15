@@ -43,7 +43,7 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::message_info;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_instantiate() {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);

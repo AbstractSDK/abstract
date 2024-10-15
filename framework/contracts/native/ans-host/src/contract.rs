@@ -131,7 +131,7 @@ mod tests {
         use super::*;
         use crate::contract;
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_same_version() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -154,7 +154,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_downgrade() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -180,7 +180,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_name_change() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -204,7 +204,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);

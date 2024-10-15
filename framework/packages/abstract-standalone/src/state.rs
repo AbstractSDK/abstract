@@ -79,7 +79,7 @@ mod tests {
 
     use crate::mock::{mock_init, MockStandaloneContract, BASIC_MOCK_STANDALONE};
 
-    #[test]
+    #[coverage_helper::test]
     fn builder() {
         let standalone = MockStandaloneContract::new(TEST_MODULE_ID, TEST_VERSION, None)
             .with_dependencies(&[StaticDependency {
@@ -101,7 +101,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn load_state() {
         let deps = mock_init(true);
         let account = test_account(deps.api);

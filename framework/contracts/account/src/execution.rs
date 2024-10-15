@@ -189,7 +189,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_whitelisted_can_execute() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -206,7 +206,7 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -252,7 +252,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn add_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -324,7 +324,7 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn send_funds() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -404,7 +404,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn ica_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);

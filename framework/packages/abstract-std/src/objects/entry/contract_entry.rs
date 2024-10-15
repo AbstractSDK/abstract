@@ -171,7 +171,7 @@ mod test {
             )
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -190,7 +190,7 @@ mod test {
             assert_eq!(items[0], (key, 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -221,7 +221,7 @@ mod test {
             assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn partial_key_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3) = mock_keys();
@@ -244,7 +244,7 @@ mod test {
             assert_eq!(items[1], ("sailing-ship".to_string(), 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_contract_entry_from_str() {
             let contract_entry_str = "abstract:rocket-ship";
             let contract_entry = ContractEntry::from_str(contract_entry_str).unwrap();
@@ -270,7 +270,7 @@ mod test {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_contract_entry_to_string() {
             let contract_entry_str = "abstract:app";
             let contract_entry = ContractEntry::from_str(contract_entry_str).unwrap();

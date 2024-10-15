@@ -34,7 +34,7 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_new() {
         let AnsAsset { name, amount } = AnsAsset::new("crab", 100u128);
 
@@ -42,7 +42,7 @@ mod test {
         assert_that!(amount).is_equal_to(Uint128::new(100));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_to_string() {
         let asset = AnsAsset::new("crab", 100u128);
 

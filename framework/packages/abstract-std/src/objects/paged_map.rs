@@ -280,7 +280,7 @@ mod tests {
 
     const USERS: PagedMap<Data, IncomeAcc> = PagedMap::new("people", "status");
 
-    #[test]
+    #[coverage_helper::test]
     fn save_and_load() {
         let mut store = MockStorage::new();
 
@@ -305,7 +305,7 @@ mod tests {
         assert_eq!(None, john.may_load(&store).unwrap());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn page_with_accumulator() {
         // Change balance to 0, add balance to total and return value if even
         fn accumulate_and_subtract_balances(
@@ -399,7 +399,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn page_without_accumulator() {
         // Change balance to 0, add balance to total and return value if even
         fn subtract_balances(

@@ -122,7 +122,7 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn core() {
         let account = ModuleReference::Account(1);
         assert_eq!(account.unwrap_account().unwrap(), 1);
@@ -133,7 +133,7 @@ mod test {
         assert!(account.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn native() {
         let native = ModuleReference::Native(Addr::unchecked("addr"));
         assert!(native.unwrap_account().is_err());
@@ -144,7 +144,7 @@ mod test {
         assert!(native.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn service() {
         let service = ModuleReference::Service(Addr::unchecked("addr"));
         assert!(service.unwrap_account().is_err());
@@ -155,7 +155,7 @@ mod test {
         assert_eq!(service.unwrap_service().unwrap(), Addr::unchecked("addr"));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn adapter() {
         let adapter = ModuleReference::Adapter(Addr::unchecked("addr"));
         assert!(adapter.unwrap_account().is_err());
@@ -166,7 +166,7 @@ mod test {
         assert!(adapter.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn app() {
         let app = ModuleReference::App(1);
         assert!(app.unwrap_account().is_err());
@@ -177,7 +177,7 @@ mod test {
         assert!(app.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn standalone() {
         let standalone = ModuleReference::Standalone(1);
         assert!(standalone.unwrap_account().is_err());
@@ -188,7 +188,7 @@ mod test {
         assert!(standalone.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn unwrap_addr() {
         let native = ModuleReference::Native(Addr::unchecked("addr"));
         assert_eq!(native.unwrap_addr().unwrap(), Addr::unchecked("addr"));
@@ -201,7 +201,7 @@ mod test {
         assert!(account.unwrap_addr().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_validate_happy_path() {
         let deps = mock_dependencies();
 
@@ -224,7 +224,7 @@ mod test {
         assert_that!(standalone.validate(deps.as_ref())).is_ok();
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_validate_bad_address() {
         let deps = mock_dependencies();
 

@@ -588,7 +588,7 @@ mod test {
         )
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -625,7 +625,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_contract() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -659,7 +659,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_channels() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -686,7 +686,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_asset_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -749,7 +749,7 @@ mod test {
 
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_asset_list_above_max() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -787,7 +787,7 @@ mod test {
         assert!(res.assets.len() == 25_usize);
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_contract_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -857,7 +857,7 @@ mod test {
 
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_channel_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -927,7 +927,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_registered_dexes() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -957,7 +957,7 @@ mod test {
         assert!(res.dexes[1] == ("bar"));
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_pools() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -987,7 +987,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_pool_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -1083,7 +1083,7 @@ mod test {
         assert_eq!(&res_all, &expected_all);
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_pool_metadata() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -1137,7 +1137,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_pool_metadata_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -1200,7 +1200,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_asset_infos() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -1253,7 +1253,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_asset_infos_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();

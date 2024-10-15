@@ -42,6 +42,7 @@ cw-orch = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }
 abstract-testing = { workspace = true }
+coverage-helper = { workspace = true }
 
 [profile.release]
 overflow-checks = true

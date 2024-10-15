@@ -357,7 +357,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_allow_migrate_msg() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -379,7 +379,7 @@ mod tests {
     mod update_module_addresses {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn manual_adds_module_to_account_modules() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let module1_addr = deps.api.addr_make("module1");
@@ -411,7 +411,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn missing_id() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
 
@@ -428,7 +428,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn manual_removes_module_from_account_modules() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -452,7 +452,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn only_account_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -490,7 +490,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_owner() -> anyhow::Result<()> {
             let msg = ExecuteMsg::UninstallModule {
                 module_id: "test:module".to_string(),
@@ -499,7 +499,7 @@ mod tests {
             test_only_owner(msg)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn errors_with_existing_dependents() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -532,7 +532,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_owner() -> anyhow::Result<()> {
             let msg = ExecuteMsg::ExecuteOnModule {
                 module_id: TEST_MODULE_ID.to_string(),
@@ -557,7 +557,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn fails_with_nonexistent_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -580,7 +580,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn forwards_exec_to_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);

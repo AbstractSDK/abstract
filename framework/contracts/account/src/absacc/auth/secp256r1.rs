@@ -23,7 +23,7 @@ mod tests {
     use cosmwasm_std::Binary;
     use p256::ecdsa::{signature::Signer, Signature, SigningKey, VerifyingKey};
 
-    #[test]
+    #[coverage_helper::test]
     fn test_verify_signature() {
         let key_serialized = "3ee21644150adb50dc4c20e330184fabf12e75ecbf31fe167885587e6ebf2255";
         let key_bytes = hex::decode(key_serialized).unwrap();

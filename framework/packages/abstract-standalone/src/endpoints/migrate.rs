@@ -37,7 +37,7 @@ mod test {
     use crate::mock::*;
     use abstract_testing::prelude::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_migrate_migratable() {
         let mut deps = mock_init(true);
         let env = mock_env_validated(deps.api);

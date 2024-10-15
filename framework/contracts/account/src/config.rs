@@ -134,7 +134,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_owner() -> anyhow::Result<()> {
             let deps = mock_dependencies();
             let test_owner = deps.api.addr_make("test_owner");
@@ -149,7 +149,7 @@ mod tests {
             test_only_owner(msg)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn validates_new_owner_address() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -175,7 +175,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn updates_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -205,7 +205,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn updates_governance_type() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -251,7 +251,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_owner() -> anyhow::Result<()> {
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
@@ -263,7 +263,7 @@ mod tests {
         }
         // integration tests
 
-        #[test]
+        #[coverage_helper::test]
         fn updates() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -292,7 +292,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn removals() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -327,7 +327,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn validates_name() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -365,7 +365,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn validates_link() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -408,7 +408,7 @@ mod tests {
     mod update_suspension_status {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -420,7 +420,7 @@ mod tests {
             test_only_owner(msg)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn exec_fails_when_suspended() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -451,7 +451,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn suspend_account() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -470,7 +470,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn unsuspend_account() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -498,7 +498,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_account_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -528,7 +528,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn whitelist_size_limit() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -574,7 +574,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn whitelist_duplicates() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -614,7 +614,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn whitelist_remove() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -663,7 +663,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn allows_ownership_acceptance() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);

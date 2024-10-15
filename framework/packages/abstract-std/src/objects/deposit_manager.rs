@@ -140,7 +140,7 @@ mod tests {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_user_deposits() {
         let mut storage = MockStorage::default();
         let user_deposits = UserDeposit::new("test");
@@ -177,7 +177,7 @@ mod tests {
         assert!(res.is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_deposit_account() {
         let mut storage = MockStorage::default();
         let deposits = DepositManager::new("test", "test2");

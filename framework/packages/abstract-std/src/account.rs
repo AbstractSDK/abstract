@@ -367,7 +367,7 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn minimal_deser_instantiate_test() {
         let init_msg_binary: InstantiateMsg =
             cosmwasm_std::from_json(br#"{"owner": {"renounced": {}}}"#).unwrap();

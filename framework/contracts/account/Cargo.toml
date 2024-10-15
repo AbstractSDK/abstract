@@ -115,6 +115,7 @@ abstract-standalone = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
 abstract-integration-tests = { workspace = true }
+coverage-helper = { workspace = true }
 
 [profile.release]
 overflow-checks = true

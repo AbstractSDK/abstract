@@ -45,7 +45,7 @@ mod test {
     use super::*;
     use crate::mock::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_ans_host() -> StandaloneTestResult {
         let deps = mock_init(true);
         let env = mock_env_validated(deps.api);
@@ -57,7 +57,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_abstract_registry() -> StandaloneTestResult {
         let deps = mock_init(true);
         let env = mock_env_validated(deps.api);
@@ -69,7 +69,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_traits_generated() -> StandaloneTestResult {
         let mut deps = mock_init(true);
         let env = mock_env_validated(deps.api);
@@ -99,7 +99,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_module_id() -> StandaloneTestResult {
         let module_id = BASIC_MOCK_STANDALONE.module_id();
 

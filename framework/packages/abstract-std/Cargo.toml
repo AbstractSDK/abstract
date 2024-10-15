@@ -46,3 +46,4 @@ rstest = { workspace = true }
 anyhow = { workspace = true }
 abstract-testing = { path = "../abstract-testing" }
 cw20-base = { workspace = true }
+coverage-helper = { workspace = true }

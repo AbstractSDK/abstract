@@ -182,7 +182,7 @@ mod tests {
 
             use super::*;
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_same_version() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -205,7 +205,7 @@ mod tests {
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_downgrade() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -231,7 +231,7 @@ mod tests {
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_name_change() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -255,7 +255,7 @@ mod tests {
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn works() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -293,7 +293,7 @@ mod tests {
 
             use super::*;
 
-            #[test]
+            #[coverage_helper::test]
             fn sets_abstract_namespace() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let abstr = AbstractMockAddrs::new(deps.api);

@@ -366,7 +366,7 @@ mod tests {
 
     // ... (other test functions)
 
-    #[test]
+    #[coverage_helper::test]
     fn test_response_msg_to_callback_msg() {
         let receiver = "receiver".to_string();
 

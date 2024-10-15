@@ -476,7 +476,7 @@ mod tests {
 
     use super::verify_nft_ownership;
 
-    #[test]
+    #[coverage_helper::test]
     fn successful_instantiate() {
         let mut deps = mock_dependencies();
 
@@ -518,7 +518,7 @@ mod tests {
         assert_eq!(resp.unwrap().messages, vec![SubMsg::new(expected_msg)]);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn verify_nft() {
         let mut deps = mock_dependencies();
         let nft_addr = deps.api.addr_make("nft");

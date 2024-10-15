@@ -41,3 +41,4 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 cosmwasm-schema = { workspace = true }
 abstract-app = { path = ".", features = ["test-utils"] }
 abstract-integration-tests = { workspace = true }
+coverage-helper = { workspace = true }

@@ -266,7 +266,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_admin() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -279,7 +279,7 @@ mod test {
             test_only_admin(msg, &mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn update_owner() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -312,7 +312,7 @@ mod test {
         use abstract_std::objects::{module::ModuleVersion, AccountId};
         use cosmwasm_std::{coin, Api, Checksum, CodeInfoResponse, Empty, QuerierResult};
 
-        #[test]
+        #[coverage_helper::test]
         fn should_create_msg_with_instantiate2_msg() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
             deps.querier.update_wasm(|request| match request {

@@ -40,6 +40,7 @@ speculoos = { workspace = true }
 
 ibc-proto = { version = "0.47.0", default-features = false }
 prost = { version = "0.13.1", default-features = false }
+coverage-helper = { workspace = true }
 
 [profile.release]
 overflow-checks = true
