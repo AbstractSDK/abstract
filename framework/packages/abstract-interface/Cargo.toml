@@ -6,6 +6,9 @@ license = { workspace = true }
 description = "Abstract deployment helpers with cw-orchestrator"
 repository = "https://github.com/AbstractSDK/abstract"
 
+[lints]
+workspace = true
+
 [[example]]
 name = "mock-ibc-deploy"
 required-features = ["interchain"]

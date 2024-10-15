@@ -38,7 +38,7 @@ You can find the latest version of the package on [crates.io](https://crates.io/
 use abstract_testing::MockQuerierBuilder;
 use abstract_testing::prelude::*;
 
-#[coverage_helper::test]
+#[test]
 fn returns_account_owner() -> VersionControlTestResult {
     let mut deps = mock_dependencies();
     // Set up mock querier with the account

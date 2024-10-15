@@ -130,3 +130,8 @@ abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git
 # ensures CI doens't flag workspace-hack as unused dep
 normal = ["workspace-hack"]
 development = ["workspace-hack"]
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+  'cfg(coverage,coverage_nightly)',
+] }

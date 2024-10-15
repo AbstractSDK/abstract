@@ -10,6 +10,8 @@ repository = "https://github.com/AbstractSDK/abstract"
 
 exclude = ["contract.wasm", "hash.txt"]
 
+[lints]
+workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
