@@ -127,6 +127,11 @@ impl<Chain: CwEnv> AccountI<Chain> {
         };
         Self::create(abstract_deployment, details, governance_details, &[])
     }
+
+    pub fn code_id(&self) -> Result<u64, AbstractInterfaceError> {
+        ContractInstance::code_id(&AccountI::new(ACCOUNT, self.environment().clone()))
+            .map_err(Into::into)
+    }
 }
 
 // Module related operations
@@ -514,13 +519,24 @@ impl<Chain: CwEnv> AccountI<Chain> {
             account_id,
         } = account_details;
 
-        let result = self.create_sub_account(
+        let code_id = self.code_id()?;
+        let instantiate_msg = InstantiateMsg::<Empty> {
+            account_id: account_id.map(AccountId::local),
+            owner: GovernanceDetails::SubAccount {
+                account: self.addr_str()?,
+            },
+            namespace,
             install_modules,
-            account_id,
+            name: Some(name),
             description,
             link,
-            Some(name),
-            namespace,
+            authenticator: None,
+        };
+
+        let result = self.create_sub_account(
+            code_id,
+            to_json_binary(&instantiate_msg)?,
+            account_id,
             funds,
         )?;
 
