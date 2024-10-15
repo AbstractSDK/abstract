@@ -516,7 +516,7 @@ pub mod test {
         mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
         // We get the object for handling the actual module on the remote account
-        let remote_account = abstr_remote.registry.get_account(remote_account_id)?;
+        let remote_account = abstr_remote.registry.account(remote_account_id)?;
         let account = AccountI::new(
             "remote-account-account",
             abstr_remote.registry.environment().clone(),
@@ -689,7 +689,7 @@ pub mod test {
             mock_interchain.await_and_check_packets(JUNO, remote_install_response)?;
 
             // We get the object for handling the actual module on the remote account
-            let remote_account = abstr_remote.registry.get_account(remote_account_id)?;
+            let remote_account = abstr_remote.registry.account(remote_account_id)?;
             let account = AccountI::new(
                 "remote-account-account",
                 abstr_remote.registry.environment().clone(),
