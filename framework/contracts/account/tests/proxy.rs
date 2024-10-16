@@ -563,7 +563,7 @@ fn renounce_cleans_namespace() -> AResult {
 //     let not_nft_owner = chain.addr_make("not_nft_owner");
 
 //     // NFT owned account governance cannot be transferred
-//     let err: AbstractXionError = account
+//     let err: AccountError = account
 //         .update_ownership(GovAction::TransferOwnership {
 //             new_owner: GovernanceDetails::Monarchy {
 //                 monarch: not_nft_owner.to_string(),
@@ -575,18 +575,18 @@ fn renounce_cleans_namespace() -> AResult {
 //         .unwrap();
 //     assert_eq!(
 //         err,
-//         AbstractXionError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
+//         AccountError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
 //     );
 
 //     // NFT owned account governance cannot be renounced
-//     let err: AbstractXionError = account
+//     let err: AccountError = account
 //         .update_ownership(ownership::GovAction::RenounceOwnership)
 //         .unwrap_err()
 //         .downcast()
 //         .unwrap();
 //     assert_eq!(
 //         err,
-//         AbstractXionError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
+//         AccountError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
 //     );
 
 //     // create nft-owned sub-account
@@ -603,7 +603,7 @@ fn renounce_cleans_namespace() -> AResult {
 //     )?;
 
 //     // NFT owned sub-account governance cannot be transferred
-//     let err: AbstractXionError = sub_account
+//     let err: AccountError = sub_account
 //         .update_ownership(GovAction::TransferOwnership {
 //             new_owner: GovernanceDetails::Monarchy {
 //                 monarch: not_nft_owner.to_string(),
@@ -615,18 +615,18 @@ fn renounce_cleans_namespace() -> AResult {
 //         .unwrap();
 //     assert_eq!(
 //         err,
-//         AbstractXionError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
+//         AccountError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
 //     );
 
 //     // NFT owned sub-account governance cannot be renounced
-//     let err: AbstractXionError = sub_account
+//     let err: AccountError = sub_account
 //         .update_ownership(ownership::GovAction::RenounceOwnership)
 //         .unwrap_err()
 //         .downcast()
 //         .unwrap();
 //     assert_eq!(
 //         err,
-//         AbstractXionError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
+//         AccountError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
 //     );
 
 //     Ok(())
@@ -652,7 +652,7 @@ fn renounce_cleans_namespace() -> AResult {
 //         },
 //     )?;
 //     // Transferring to token id that pending governance don't own act same way as transferring to renounced governance
-//     let err: AbstractXionError = account
+//     let err: AccountError = account
 //         .update_ownership(GovAction::TransferOwnership {
 //             new_owner: GovernanceDetails::NFT {
 //                 collection_addr: nft_addr.to_string(),
@@ -665,7 +665,7 @@ fn renounce_cleans_namespace() -> AResult {
 //         .unwrap();
 //     assert_eq!(
 //         err,
-//         AbstractXionError::Ownership(ownership::GovOwnershipError::TransferToRenounced)
+//         AccountError::Ownership(ownership::GovOwnershipError::TransferToRenounced)
 //     );
 
 //     // Now transfer to correct token id
@@ -684,14 +684,14 @@ fn renounce_cleans_namespace() -> AResult {
 //     let ownership = account.ownership()?;
 //     assert_eq!(ownership.pending_owner.unwrap(), gov);
 
-//     let err: AbstractXionError = account
+//     let err: AccountError = account
 //         .update_ownership(GovAction::AcceptOwnership)
 //         .unwrap_err()
 //         .downcast()
 //         .unwrap();
 //     assert_eq!(
 //         err,
-//         AbstractXionError::Ownership(ownership::GovOwnershipError::TransferNotFound)
+//         AccountError::Ownership(ownership::GovOwnershipError::TransferNotFound)
 //     );
 
 //     // Mint new NFT, since we burned previous one
@@ -709,7 +709,7 @@ fn renounce_cleans_namespace() -> AResult {
 //     })?;
 
 //     // Only NFT owner can accept it
-//     let err: AbstractXionError = account
+//     let err: AccountError = account
 //         .call_as(&chain.addr_make("not_nft_owner"))
 //         .update_ownership(GovAction::AcceptOwnership)
 //         .unwrap_err()
@@ -717,7 +717,7 @@ fn renounce_cleans_namespace() -> AResult {
 //         .unwrap();
 //     assert_eq!(
 //         err,
-//         AbstractXionError::Ownership(ownership::GovOwnershipError::NotPendingOwner)
+//         AccountError::Ownership(ownership::GovOwnershipError::NotPendingOwner)
 //     );
 
 //     // Now accept without accidents
@@ -732,14 +732,14 @@ fn renounce_cleans_namespace() -> AResult {
 //         &nft_addr,
 //     )?;
 
-//     let err: AbstractXionError = account
+//     let err: AccountError = account
 //         .update_info(Some("RIP Account".to_owned()), None, None)
 //         .unwrap_err()
 //         .downcast()
 //         .unwrap();
 //     assert_eq!(
 //         err,
-//         AbstractXionError::Ownership(ownership::GovOwnershipError::NoOwner)
+//         AccountError::Ownership(ownership::GovOwnershipError::NoOwner)
 //     );
 //     Ok(())
 // }
