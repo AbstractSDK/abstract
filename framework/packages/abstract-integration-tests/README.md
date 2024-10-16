@@ -3,7 +3,6 @@
 ## Account Creation
 
 - Create account with namespace fee
-- TODO: Create interchain account
 
 ## Account
 

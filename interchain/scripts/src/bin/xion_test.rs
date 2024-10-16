@@ -382,8 +382,6 @@ mod xion_sender {
                 .unwrap();
             let signature = self.cosmos_private_key().sign(&sign_doc_bytes)?;
 
-            // TODO: make it better, for now just always admin and one id
-            // Raising warning on purpose here, it's very bad to always set admin to true
             let AUTHID = abstract_xion::auth::AuthId::new(1u8, true).unwrap();
             let smart_contract_sig = AUTHID.signature(signature.to_vec());
 
@@ -456,7 +454,6 @@ mod xion_sender {
             let account_number = account.account_number;
 
             let any_pub_key = xionrs::Any {
-                // TODO: Does it make sense to have empty type url here?
                 type_url: "/abstractaccount.v1.NilPubKey".to_string(),
                 value: NilPubKey {
                     address_bytes: account_id.to_bytes(),

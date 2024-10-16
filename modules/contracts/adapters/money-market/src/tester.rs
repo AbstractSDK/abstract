@@ -22,8 +22,6 @@ use cosmwasm_std::{coins, Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{environment::MutCwEnv, prelude::*};
 
-// TODO: beta clippy trips here, try again later
-#[allow(unused_imports)]
 use cw_orch::anyhow;
 
 pub const BORROW_VALUE: u128 = 1_000_000u128;

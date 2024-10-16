@@ -75,10 +75,8 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
         Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
         None,
     )?;
-    // TODO, match the exact error
     assert_that!(install_adapter(&account, TEST_MODULE_ID)).is_err();
 
-    // TODO, match the exact error
     assert_that!(install_adapter_with_funds(
         &account,
         TEST_MODULE_ID,

@@ -5,7 +5,6 @@ use abstract_std::{
 use cosmwasm_std::StdError;
 use thiserror::Error;
 
-// TODO: Remove unused errs
 #[derive(Error, Debug, PartialEq)]
 pub enum IcaClientError {
     #[error("{0}")]

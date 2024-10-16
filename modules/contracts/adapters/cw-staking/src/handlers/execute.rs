@@ -60,7 +60,6 @@ fn handle_local_request(
 }
 
 /// Handle a request that needs to be executed on a remote chain
-/// TODO, this doesn't work as is. This should be corrected when working with ibc hooks ?
 fn handle_ibc_request(
     deps: &DepsMut,
     env: &Env,
@@ -69,7 +68,7 @@ fn handle_ibc_request(
     provider_name: ProviderName,
     action: &StakingAction,
 ) -> StakingResult {
-    let host_chain = TruncatedChainId::from_string(provider_name.clone())?; // TODO : Especially this line is faulty
+    let host_chain = TruncatedChainId::from_string(provider_name.clone())?;
     let ans = module.name_service(deps.as_ref(), env);
     let ibc_client = module.ibc_client(deps.as_ref(), env);
     // get the to-be-sent assets from the action
