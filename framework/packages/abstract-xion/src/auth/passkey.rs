@@ -1,15 +1,14 @@
-use base64::engine::general_purpose::{self};
-use base64::Engine;
-use cosmos_sdk_proto::prost::Message;
-use cosmos_sdk_proto::traits::MessageExt;
-use cosmos_sdk_proto::xion::v1::{
+use crate::xion_proto::{
     QueryWebAuthNVerifyAuthenticateRequest, QueryWebAuthNVerifyRegisterRequest,
     QueryWebAuthNVerifyRegisterResponse,
 };
+use base64::engine::general_purpose::{self};
+use base64::Engine;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Binary, Deps};
+use prost::Message;
 
-use crate::contract::AccountResult;
+use crate::AbstractXionResult;
 
 #[cw_serde]
 struct QueryRegisterRequest {
@@ -27,7 +26,7 @@ struct QueryRegisterResponse {
 #[cw_serde]
 struct QueryAuthenticateResponse {}
 
-pub fn register(deps: Deps, addr: Addr, rp: String, data: Binary) -> AccountResult<Binary> {
+pub fn register(deps: Deps, addr: Addr, rp: String, data: Binary) -> AbstractXionResult<Binary> {
     let query = QueryWebAuthNVerifyRegisterRequest {
         addr: addr.clone().into(),
         challenge: Binary::from(addr.as_bytes()).to_base64(),
@@ -35,7 +34,7 @@ pub fn register(deps: Deps, addr: Addr, rp: String, data: Binary) -> AccountResu
         data: data.to_vec(),
     };
 
-    let query_bz = query.to_bytes()?;
+    let query_bz = query.encode_to_vec();
     let query_response = deps.querier.query_grpc(
         String::from("/xion.v1.Query/WebAuthNVerifyRegister"),
         Binary::new(query_bz),
@@ -60,7 +59,7 @@ pub fn verify(
     signature: &Binary,
     tx_hash: Vec<u8>,
     credential: &Binary,
-) -> AccountResult<bool> {
+) -> AbstractXionResult<bool> {
     let challenge =
         general_purpose::URL_SAFE_NO_PAD.encode(general_purpose::STANDARD.encode(tx_hash));
 
@@ -72,7 +71,7 @@ pub fn verify(
         data: signature.clone().into(),
     };
 
-    let query_bz = query.to_bytes()?;
+    let query_bz = query.encode_to_vec();
     deps.querier.query_grpc(
         String::from("/xion.v1.Query/WebAuthNVerifyAuthenticate"),
         Binary::new(query_bz),

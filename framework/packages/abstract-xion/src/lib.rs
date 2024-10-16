@@ -1,5 +1,15 @@
+use error::AbstractXionError;
+
 pub mod auth;
+pub mod error;
+pub mod queries;
+pub mod state;
 pub mod sudo;
+
+// Copied types from https://github.com/burnt-labs/cosmos-rust/tree/d3b51db49b894f1c6b7836bb0a7b14f54f1dfb26/cosmos-sdk-proto/src/prost/xion
+pub mod xion_proto;
+
+pub type AbstractXionResult<R = cosmwasm_std::Response> = Result<R, AbstractXionError>;
 
 /// Any contract must implement this sudo message (both variants) in order to
 /// qualify as an abstract account.
@@ -33,3 +43,14 @@ pub enum AccountSudoMsg {
         simulate: bool,
     },
 }
+
+// the random function must be disabled in cosmwasm
+use core::num::NonZeroU32;
+use getrandom::Error;
+
+pub fn always_fail(_buf: &mut [u8]) -> Result<(), Error> {
+    let code = NonZeroU32::new(Error::CUSTOM_START).unwrap();
+    Err(Error::from(code))
+}
+use getrandom::register_custom_getrandom;
+register_custom_getrandom!(always_fail);

@@ -1,15 +1,10 @@
-use cosmwasm_std::{Binary, DepsMut, Env};
+use cosmwasm_std::{Binary, DepsMut, Env, Response};
 
-use crate::{
-    contract::{AccountResponse, AccountResult},
-    error::AccountError,
-    state::AUTHENTICATORS,
-};
+use crate::{error::AbstractXionError, state::AUTHENTICATORS, AbstractXionResult};
 
 use super::{auth::Authenticator, AccountSudoMsg};
 
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: AccountSudoMsg) -> AccountResult {
+pub fn sudo(deps: DepsMut, env: Env, msg: AccountSudoMsg) -> AbstractXionResult {
     match msg {
         AccountSudoMsg::BeforeTx {
             tx_bytes,
@@ -17,7 +12,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: AccountSudoMsg) -> AccountResult {
             simulate,
             msgs: _,
         } => {
-            let cred_bytes = cred_bytes.ok_or(AccountError::EmptySignature {})?;
+            let cred_bytes = cred_bytes.ok_or(AbstractXionError::EmptySignature {})?;
             before_tx(
                 deps,
                 &env,
@@ -36,20 +31,20 @@ pub fn before_tx(
     tx_bytes: &Binary,
     cred_bytes: Option<&Binary>,
     simulate: bool,
-) -> AccountResult {
+) -> AbstractXionResult {
     if !simulate {
-        let cred_bytes = cred_bytes.ok_or(AccountError::EmptySignature {})?;
+        let cred_bytes = cred_bytes.ok_or(AbstractXionError::EmptySignature {})?;
         // currently, the minimum size of a signature by any auth method is 64 bytes
         // this may change in the future, and this check will need to be re-evaluated.
         //
         // checking the cred_bytes are at least 1 + 64 bytes long
         if cred_bytes.len() < 65 {
-            return Err(AccountError::ShortSignature {});
+            return Err(AbstractXionError::ShortSignature {});
         }
 
         // the first byte of the signature is the index of the authenticator
         let cred_index = match cred_bytes.first() {
-            None => return Err(AccountError::InvalidSignature {}),
+            None => return Err(AbstractXionError::InvalidSignature {}),
             Some(i) => *i,
         };
         // TODO: should be conditional
@@ -66,12 +61,12 @@ pub fn before_tx(
             | Authenticator::Ed25519 { .. }
             | Authenticator::Secp256R1 { .. } => {
                 if sig_bytes.len() != 64 {
-                    return Err(AccountError::ShortSignature {});
+                    return Err(AbstractXionError::ShortSignature {});
                 }
             }
             Authenticator::EthWallet { .. } => {
                 if sig_bytes.len() != 65 {
-                    return Err(AccountError::ShortSignature {});
+                    return Err(AbstractXionError::ShortSignature {});
                 }
             }
             Authenticator::Jwt { .. } => {
@@ -83,14 +78,14 @@ pub fn before_tx(
         }
 
         return match authenticator.verify(deps.as_ref(), env, tx_bytes, sig_bytes)? {
-            true => Ok(AccountResponse::action("before_tx")),
-            false => Err(AccountError::InvalidSignature {}),
+            true => Ok(Response::new().add_attribute("method", "before_tx")),
+            false => Err(AbstractXionError::InvalidSignature {}),
         };
     }
 
-    Ok(AccountResponse::action("before_tx"))
+    Ok(Response::new().add_attribute("method", "before_tx"))
 }
 
-pub fn after_tx() -> AccountResult {
-    Ok(AccountResponse::action("after_tx"))
+pub fn after_tx() -> AbstractXionResult {
+    Ok(Response::new().add_attribute("method", "after_tx"))
 }
