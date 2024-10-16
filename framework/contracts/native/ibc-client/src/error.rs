@@ -9,8 +9,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum IbcClientError {
-    // #[error("{0}")]
-    // Std(#[from] StdError),
+    #[error("{0}")]
+    Std(#[from] StdError),
 
     #[error("{0}")]
     Abstract(#[from] AbstractError),
@@ -30,20 +30,8 @@ pub enum IbcClientError {
     #[error("No account for chain {0}")]
     UnregisteredChain(String),
 
-    #[error("remote account changed from {old} to {addr}")]
-    RemoteAccountChanged { addr: String, old: String },
-
     #[error("Calling internal actions externally is not allowed")]
     ForbiddenInternalCall {},
-
-    #[error("A non-module package (native or accounts) cannot execute an ibc module call")]
-    ForbiddenModuleCall {},
-
-    #[error("The host you are trying to connect is already connected")]
-    HostAlreadyExists {},
-
-    #[error("Only authorized ports can connect to the contract on the remote chain")]
-    UnauthorizedConnection {},
 
     #[error("Unauthorized")]
     Unauthorized {},
