@@ -55,10 +55,12 @@ xion_sdk_proto = { version = "0.24.0-pre", package = "cosmos-sdk-proto", git = "
   "cosmwasm",
 ] }
 xionrs = { version = "0.19.0-pre", package = "cosmrs", git = "https://github.com/CyberHoward/cosmos-rust.git", branch = "patch-1" }
+prost-types = { version = "0.13" }
 
 bitcoin = { version = "0.32.2" }
 tonic = { version = "0.12.2", features = ["tls"] }
 cosmrs = { version = "0.19.0", features = ["dev", "cosmwasm", "grpc"] }
-prost = { version = "0.13" }
+prost = "0.13"
 
 cw-orch-core = "2.0.0"
+flate2 = { version = "1.0.31" }
