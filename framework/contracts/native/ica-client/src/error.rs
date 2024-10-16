@@ -1,4 +1,3 @@
-use abstract_sdk::AbstractSdkError;
 use abstract_std::{
     objects::{ans_host::AnsHostError, registry::RegistryError},
     AbstractError,
@@ -14,9 +13,6 @@ pub enum IcaClientError {
 
     #[error("{0}")]
     Abstract(#[from] AbstractError),
-
-    #[error("{0}")]
-    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
     Ownership(#[from] cw_ownable::OwnershipError),
