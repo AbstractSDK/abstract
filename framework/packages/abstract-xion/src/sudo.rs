@@ -47,10 +47,8 @@ pub fn before_tx(
             None => return Err(AbstractXionError::InvalidSignature {}),
             Some(i) => *i,
         };
-        // TODO: should be conditional
-        // if admin {
         crate::state::AUTH_ADMIN.save(deps.storage, &true)?;
-        // }
+
         // retrieve the authenticator by index, or error
         let authenticator = AUTHENTICATORS.load(deps.storage, cred_index)?;
 
@@ -69,12 +67,8 @@ pub fn before_tx(
                     return Err(AbstractXionError::ShortSignature {});
                 }
             }
-            Authenticator::Jwt { .. } => {
-                // todo: figure out if there are minimum checks for JWTs
-            }
-            Authenticator::Passkey { .. } => {
-                // todo: figure out if there are minimum checks for passkeys
-            }
+            Authenticator::Jwt { .. } => {}
+            Authenticator::Passkey { .. } => {}
         }
 
         return match authenticator.verify(deps.as_ref(), env, tx_bytes, sig_bytes)? {

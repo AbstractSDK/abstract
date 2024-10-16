@@ -696,6 +696,7 @@ dependencies = [
  "thiserror",
  "tiny-keccak",
  "url",
+ "workspace-hack",
 ]
 
 [[package]]

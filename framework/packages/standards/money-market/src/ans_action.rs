@@ -62,7 +62,6 @@ pub struct MoneyMarketActionResolveWrapper(
 impl Resolve for MoneyMarketActionResolveWrapper {
     type Output = MoneyMarketRawAction;
 
-    /// TODO: this only works for protocols where there is only one address for depositing
     fn resolve(
         &self,
         querier: &cosmwasm_std::QuerierWrapper,

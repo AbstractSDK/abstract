@@ -14,7 +14,6 @@ type DexName = String;
 
 /// The key for an asset pairing
 /// Consists of the two assets and the dex name
-/// TODO: what if we made keys equal based on the two assets either way?
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
 pub struct DexAssetPairing<Asset = AssetEntry>((Asset, Asset, DexName));
 
@@ -80,7 +79,6 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
     .into())
 }
 
-/// @todo: use existing method for triple tuple
 impl KeyDeserialize for &DexAssetPairing {
     type Output = DexAssetPairing;
     const KEY_ELEMS: u16 = 1;

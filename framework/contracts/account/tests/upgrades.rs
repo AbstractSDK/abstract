@@ -951,8 +951,3 @@ mod upgrade_account {
         Ok(())
     }
 }
-
-// TODO:
-// - adapter-adapter dependencies
-// - app-adapter dependencies
-// - app-app dependencies
