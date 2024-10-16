@@ -11,26 +11,9 @@ use crate::{
 };
 use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
 
-use rust_embed::RustEmbed;
-
 const CW_BLOB: &str = "cw:blob";
 
-#[derive(RustEmbed)]
-// Can't use symlinks in debug mode
-// https://github.com/pyrossh/rust-embed/pull/234
-#[folder = "./"]
-#[include = "state.json"]
-struct State;
-
-impl State {
-    #[allow(unused)]
-    pub fn load_state() -> serde_json::Value {
-        let state_file =
-            State::get("state.json").expect("Unable to read abstract-interface state.json");
-        serde_json::from_slice(&state_file.data).unwrap()
-    }
-}
-
+#[derive(Clone)]
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub registry: Registry<Chain>,
@@ -82,7 +65,17 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     ) -> Result<Self, AbstractInterfaceError> {
         let original_sender = chain.sender().clone();
         chain.set_sender(deploy_data);
-        let admin = chain.sender_addr().to_string();
+
+        // Ensure we have expected sender address
+        let sender_addr = chain.sender_addr();
+        let hrp = sender_addr.as_str().split_once("1").unwrap().0;
+        assert_eq!(
+            sender_addr.as_str(),
+            native_addrs::creator_address(hrp)?,
+            "Only predetermined abstract admin can deploy abstract contracts, see `native_addrs.rs`"
+        );
+
+        let admin = sender_addr.to_string();
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
@@ -189,7 +182,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         #[cfg(feature = "daemon")]
         {
             // We register all the contracts default state
-            let state = State::load_state();
+            let state = crate::AbstractDaemonState::default().state();
 
             abstr.set_contracts_state(Some(state));
         }
@@ -315,6 +308,17 @@ impl<Chain: CwEnv> Abstract<Chain> {
         ibc.client.set_sender(sender);
         ibc.host.set_sender(sender);
     }
+
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            ans_host: self.ans_host.clone().call_as(sender),
+            registry: self.registry.clone().call_as(sender),
+            module_factory: self.module_factory.clone().call_as(sender),
+            ibc: self.ibc.call_as(sender),
+            account: self.account.call_as(sender),
+            blob: self.blob.clone(),
+        }
+    }
 }
 
 // Sender addr means it's mock or CloneTest(which is also mock)
@@ -337,28 +341,13 @@ impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use std::borrow::Cow;
 
     use cosmwasm_std::Api;
     use cw_orch::anyhow;
 
     use super::*;
 
-    #[test]
-    fn only_state_json_included() {
-        let files = State::iter().collect::<Vec<_>>();
-        assert_eq!(files, vec![Cow::Borrowed("state.json")])
-    }
-
-    #[test]
-    fn have_some_state() {
-        State::get("state.json").unwrap();
-        let state = State::load_state();
-        let ans_neutron_testnet = &state["pion-1"]["code_ids"].get(ANS_HOST);
-        assert!(ans_neutron_testnet.is_some());
-    }
-
-    #[test]
+    #[coverage_helper::test]
     fn deploy2() -> anyhow::Result<()> {
         let prefix = "mock";
         let mut chain = MockBech32::new(prefix);

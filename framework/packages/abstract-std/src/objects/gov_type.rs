@@ -262,7 +262,7 @@ mod test {
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_verify() {
         let deps = mock_dependencies();
         let owner = deps.api.addr_make("monarch");

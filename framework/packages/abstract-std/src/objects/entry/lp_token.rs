@@ -59,7 +59,7 @@ mod test {
     mod implementation {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn new_works() {
             let dex_name = "junoswap";
             let mut assets = vec![AssetEntry::from("junox"), AssetEntry::from("crab")];
@@ -72,7 +72,7 @@ mod test {
             assert_that!(actual).is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn assets_returns_asset_entries() {
             let dex_name = "junoswap";
             let assets = vec![AssetEntry::from("crab"), AssetEntry::from("junox")];
@@ -87,7 +87,7 @@ mod test {
         use super::*;
         use crate::objects::AnsEntryConvertor;
 
-        #[test]
+        #[coverage_helper::test]
         fn test_from_asset_entry() {
             let asset = AssetEntry::new("junoswap/crab,junox");
             let lp_token = AnsEntryConvertor::new(asset).lp_token().unwrap();
@@ -96,14 +96,14 @@ mod test {
                 .is_equal_to(vec![AssetEntry::from("crab"), AssetEntry::from("junox")]);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_from_invalid_asset_entry() {
             let asset = AssetEntry::new("junoswap/");
             let lp_token = AnsEntryConvertor::new(asset).lp_token();
             assert_that!(&lp_token).is_err();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_fewer_than_two_assets() {
             let asset = AssetEntry::new("junoswap/crab");
             let lp_token = AnsEntryConvertor::new(asset).lp_token();
@@ -115,7 +115,7 @@ mod test {
         use super::*;
         use crate::objects::AnsEntryConvertor;
 
-        #[test]
+        #[coverage_helper::test]
         fn into_asset_entry_works() {
             let lp_token = LpToken::new("junoswap", vec!["crab".to_string(), "junox".to_string()]);
             let expected = AssetEntry::new("junoswap/crab,junox");
@@ -128,7 +128,7 @@ mod test {
         use super::*;
         use crate::objects::{AnsEntryConvertor, PoolMetadata, PoolType};
 
-        #[test]
+        #[coverage_helper::test]
         fn test_from_pool_metadata() {
             let assets: Vec<AssetEntry> = vec!["crab".into(), "junox".into()];
             let dex = "junoswap".to_string();

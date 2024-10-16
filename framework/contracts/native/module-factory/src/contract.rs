@@ -144,7 +144,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_same_version() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -167,7 +167,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_downgrade() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -193,7 +193,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_name_change() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -217,7 +217,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);

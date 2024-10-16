@@ -29,7 +29,7 @@ fn account_install_standalone() -> AResult {
         &standalone,
         &MockInitMsg {
             base: standalone::StandaloneInstantiateMsg {},
-            random_field: "LMAO".to_owned(),
+            migratable: true,
         },
         &[],
     )?;
@@ -58,7 +58,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
         &standalone,
         &MockInitMsg {
             base: standalone::StandaloneInstantiateMsg {},
-            random_field: "foo".to_owned(),
+            migratable: true,
         },
         &[],
     )?;
@@ -69,7 +69,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
         &standalone,
         &MockInitMsg {
             base: standalone::StandaloneInstantiateMsg {},
-            random_field: "foo".to_owned(),
+            migratable: true,
         },
         &[],
     ) else {

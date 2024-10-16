@@ -17,14 +17,14 @@ mod test {
     use super::*;
     use crate::objects::{account::AccountTrace, TruncatedChainId};
 
-    #[test]
+    #[coverage_helper::test]
     fn generate_module_salt_local() {
         let salt = generate_instantiate_salt(&AccountId::local(5));
         assert!(!salt.is_empty());
         assert!(salt.len() <= 64);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn generate_module_salt_trace() {
         let salt = generate_instantiate_salt(
             &AccountId::new(

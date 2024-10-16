@@ -5,6 +5,7 @@ pub(crate) mod mock_querier;
 
 use abstract_std::account::{ConfigResponse as AccountConfigResponse, QueryMsg as AccountQueryMsg};
 use abstract_std::objects::ABSTRACT_ACCOUNT_ID;
+use abstract_std::registry;
 use abstract_std::{
     account::state::ACCOUNT_ID,
     account::state::ACCOUNT_MODULES,
@@ -57,6 +58,14 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             &abstr.registry,
             ACCOUNT_ADDRESSES,
             (&ABSTRACT_ACCOUNT_ID, abstr.account.clone()),
+        )
+        .with_contract_item(
+            &abstr.registry,
+            registry::state::CONFIG,
+            &registry::Config {
+                security_disabled: true,
+                namespace_registration_fee: None,
+            },
         )
         .with_contract_map_entry(
             &abstr.registry,

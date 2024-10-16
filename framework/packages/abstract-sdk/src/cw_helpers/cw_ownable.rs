@@ -76,7 +76,7 @@ mod tests {
     const NEW_OWNER: &str = "new_owner";
     const OLD_OWNER: &str = "old_owner";
 
-    #[test]
+    #[coverage_helper::test]
     fn test_update_ownership_macro() -> Result<(), MockError> {
         let mut deps = mock_dependencies();
 
@@ -117,7 +117,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_ownership_macro() -> Result<(), MockError> {
         let mut deps = mock_dependencies();
         let _env = mock_env_validated(deps.api);

@@ -207,7 +207,7 @@ mod test {
     use abstract_testing::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::testing::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn query_config() -> anyhow::Result<()> {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);

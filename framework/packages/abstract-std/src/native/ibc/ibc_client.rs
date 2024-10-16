@@ -1,5 +1,5 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Deps, Empty, QueryRequest, StdError, Uint64};
+use cosmwasm_std::{Addr, Binary, CosmosMsg, Deps, Empty, QueryRequest, StdError, Uint64};
 
 use self::state::IbcInfrastructure;
 use crate::{
@@ -87,7 +87,6 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: TruncatedChainId,
-        funds: Vec<Coin>,
         memo: Option<String>,
     },
     /// Only callable by Account
@@ -302,15 +301,15 @@ pub enum QueryMsg {
     #[returns(ListRemoteHostsResponse)]
     ListRemoteHosts {},
 
-    /// Get the IBC execution proxies
+    /// Get the Polytone execution proxies
     /// Returns [`ListRemoteProxiesResponse`]
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxies {},
 
     /// Get the IBC execution proxies based on the account id passed
-    /// Returns [`ListRemoteProxiesResponse`]
-    #[returns(ListRemoteProxiesResponse)]
-    ListRemoteProxiesByAccountId { account_id: AccountId },
+    /// Returns [`ListRemoteAccountsResponse`]
+    #[returns(ListRemoteAccountsResponse)]
+    ListRemoteAccountsByAccountId { account_id: AccountId },
 
     /// Get the IBC counterparts connected to this abstract ibc client
     /// Returns [`ListIbcInfrastructureResponse`]
@@ -335,9 +334,11 @@ pub struct ListRemoteHostsResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ListRemoteProxiesResponse {
-    pub proxies: Vec<(TruncatedChainId, Option<String>)>,
+pub struct ListRemoteAccountsResponse {
+    pub accounts: Vec<(TruncatedChainId, Option<String>)>,
 }
+
+pub type ListRemoteProxiesResponse = ListRemoteAccountsResponse;
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListIbcInfrastructureResponse {
@@ -355,14 +356,6 @@ pub struct AccountResponse {
     pub remote_account_addr: Option<String>,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct RemoteProxyResponse {
-    /// last block balance was updated (0 is never)
-    pub channel_id: String,
-    /// address of the remote proxy
-    pub proxy_address: String,
-}
-
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
@@ -373,7 +366,7 @@ mod tests {
 
     // ... (other test functions)
 
-    #[test]
+    #[coverage_helper::test]
     fn test_response_msg_to_callback_msg() {
         let receiver = "receiver".to_string();
 

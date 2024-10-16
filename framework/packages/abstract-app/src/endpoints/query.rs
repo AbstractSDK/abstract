@@ -114,7 +114,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn without_handler() {
             let deps = mock_init();
             let msg = AppQueryMsg::Module(MockQueryMsg::GetSomething {});
@@ -139,7 +139,7 @@ mod test {
             to_json_binary(&msg).map_err(Into::into)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn with_handler() {
             let deps = mock_init();
             let msg = AppQueryMsg::Module(MockQueryMsg::GetSomething {});
@@ -155,11 +155,14 @@ mod test {
     mod base_query {
         use super::*;
 
-        use abstract_std::app::{AppConfigResponse, BaseQueryMsg};
+        use abstract_std::{
+            app::{AppConfigResponse, BaseQueryMsg},
+            objects::module_version::ModuleDataResponse,
+        };
         use abstract_testing::prelude::*;
         use cw_controllers::AdminResponse;
 
-        #[test]
+        #[coverage_helper::test]
         fn config() -> AppTestResult {
             let deps = mock_init();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -180,7 +183,7 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn admin() -> AppTestResult {
             let deps = mock_init();
             let account = test_account(deps.api);
@@ -191,6 +194,30 @@ mod test {
             assert_eq!(
                 AdminResponse {
                     admin: Some(account.addr().to_string()),
+                },
+                from_json(res).unwrap()
+            );
+
+            Ok(())
+        }
+
+        #[coverage_helper::test]
+        fn module_data() -> AppTestResult {
+            let deps = mock_init();
+
+            let module_data_query = QueryMsg::Base(BaseQueryMsg::ModuleData {});
+            let res = query_helper(
+                deps.as_ref(),
+                mock_env_validated(deps.api),
+                module_data_query,
+            )?;
+
+            assert_eq!(
+                ModuleDataResponse {
+                    module_id: TEST_MODULE_ID.to_string(),
+                    version: TEST_VERSION.to_string(),
+                    dependencies: vec![],
+                    metadata: None
                 },
                 from_json(res).unwrap()
             );

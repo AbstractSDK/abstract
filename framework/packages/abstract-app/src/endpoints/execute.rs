@@ -98,7 +98,7 @@ mod test {
     mod base {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_account() -> AppTestResult {
             let mut deps = mock_init();
 

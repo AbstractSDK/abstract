@@ -3,10 +3,13 @@ name = "abstract-ica-client"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
-description = "Abstract IBC Client Contract"
+description = "Abstract ICA Client Contract"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract"
+
+[lints]
+workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -39,6 +42,7 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true }
 speculoos = { workspace = true }
+coverage-helper = { workspace = true }
 
 [profile.release]
 overflow-checks = true

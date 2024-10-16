@@ -1,4 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
+
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 mod account;
@@ -16,6 +18,7 @@ mod interfaces;
 
 pub use crate::interfaces::*;
 
+mod daemon_state;
 mod deployers;
 mod deployment;
 mod error;
@@ -23,3 +26,5 @@ mod error;
 pub use error::AbstractInterfaceError;
 
 pub use crate::{deployers::*, deployment::*};
+
+pub use daemon_state::AbstractDaemonState;

@@ -162,7 +162,7 @@ mod tests {
     use super::*;
     use crate::mock::{AdapterMockResult, MOCK_ADAPTER, TEST_METADATA};
 
-    #[test]
+    #[coverage_helper::test]
     fn set_and_get_target() -> AdapterMockResult {
         let mut mock = MOCK_ADAPTER;
         let target = Addr::unchecked("target");
@@ -171,7 +171,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn builder_functions() {
         crate::mock::MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
