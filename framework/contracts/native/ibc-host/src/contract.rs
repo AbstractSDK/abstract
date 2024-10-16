@@ -58,11 +58,18 @@ pub fn reply(deps: DepsMut, env: Env, reply_msg: Reply) -> HostResult {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> HostResult {
-    let to_version: Version = CONTRACT_VERSION.parse().unwrap();
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> HostResult {
+    match msg {
+        MigrateMsg::Instantiate(instantiate_msg) => {
+            abstract_sdk::cw_helpers::migrate_instantiate(deps, env, instantiate_msg, instantiate)
+        }
+        MigrateMsg::Migrate {} => {
+            let to_version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_cw_contract_upgrade(deps.storage, IBC_HOST, to_version)?;
-    cw2::set_contract_version(deps.storage, IBC_HOST, CONTRACT_VERSION)?;
-    migrate_module_data(deps.storage, IBC_HOST, CONTRACT_VERSION, None::<String>)?;
-    Ok(HostResponse::action("migrate"))
+            assert_cw_contract_upgrade(deps.storage, IBC_HOST, to_version)?;
+            cw2::set_contract_version(deps.storage, IBC_HOST, CONTRACT_VERSION)?;
+            migrate_module_data(deps.storage, IBC_HOST, CONTRACT_VERSION, None::<String>)?;
+            Ok(HostResponse::action("migrate"))
+        }
+    }
 }

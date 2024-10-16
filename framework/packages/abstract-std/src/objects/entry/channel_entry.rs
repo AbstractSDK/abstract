@@ -83,6 +83,7 @@ impl<'a> Prefixer<'a> for &ChannelEntry {
 
 impl KeyDeserialize for &ChannelEntry {
     type Output = ChannelEntry;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -145,7 +146,7 @@ mod test {
         )
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
@@ -164,7 +165,7 @@ mod test {
         assert_eq!(items[0], (key, 42069));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
@@ -195,7 +196,7 @@ mod test {
         assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn partial_key_works() {
         let mut deps = mock_dependencies();
         let (key1, key2, key3) = mock_keys();

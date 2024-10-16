@@ -33,12 +33,12 @@ impl<Chain: CwEnv, T> Infrastructure<Chain> for T where T: Environment<Chain> {}
 
 impl<Chain: CwEnv> Environment<Chain> for Account<Chain> {
     fn environment(&self) -> Chain {
-        self.abstr_account.proxy.environment().clone()
+        self.abstr_account.environment().clone()
     }
 }
 
 impl<Chain: CwEnv> Environment<Chain> for AbstractClient<Chain> {
     fn environment(&self) -> Chain {
-        self.abstr.version_control.environment().clone()
+        self.abstr.registry.environment().clone()
     }
 }

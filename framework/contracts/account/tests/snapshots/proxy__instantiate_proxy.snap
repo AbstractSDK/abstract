@@ -1,0 +1,99 @@
+---
+source: contracts/account/tests/proxy.rs
+expression: all_storage
+---
+"abstract:account-local-0":
+  - - a
+    - "false"
+  - - b
+    - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"module_factory_address\":\"mock1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sep3g9s\"}"
+  - - c
+    - "{\"name\":\"Abstract\"}"
+  - - context
+    - "[]"
+  - - contract_info
+    - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
+  - - g
+    - "[]"
+  - - h
+    - "{\"trace\":\"local\",\"seq\":0}"
+  - - ownership
+    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"pending_owner\":null,\"pending_expiry\":null}"
+"abstract:account-local-1":
+  - - a
+    - "false"
+  - - b
+    - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"module_factory_address\":\"mock1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sep3g9s\"}"
+  - - c
+    - "{\"name\":\"Default Abstract Account\"}"
+  - - context
+    - "[]"
+  - - contract_info
+    - "{\"contract\":\"abstract:account\",\"version\":\"0.23.0\"}"
+  - - g
+    - "[]"
+  - - h
+    - "{\"trace\":\"local\",\"seq\":1}"
+  - - ownership
+    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"pending_owner\":null,\"pending_expiry\":null}"
+"abstract:ans-host":
+  - - config
+    - "{\"next_unique_pool_id\":1}"
+  - - contract_info
+    - "{\"contract\":\"abstract:ans-host\",\"version\":\"0.23.0\"}"
+  - - ownership
+    - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
+  - - registered_dexes
+    - "[]"
+"abstract:ibc-client":
+  - - config
+    - "{\"version_control\":{\"address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"},\"ans_host\":{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}}"
+  - - contract_info
+    - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.23.0\"}"
+  - - module_data
+    - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.23.0\",\"dependencies\":[],\"metadata\":null}"
+  - - ownership
+    - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
+"abstract:ibc-host":
+  - - cfg
+    - "{\"ans_host\":{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"},\"module_factory_addr\":\"mock1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sep3g9s\",\"version_control\":{\"address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"}}"
+  - - contract_info
+    - "{\"contract\":\"abstract:ibc-host\",\"version\":\"0.23.0\"}"
+  - - ownership
+    - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
+"abstract:module-factory":
+  - - "\u0000{5}config"
+    - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
+  - - contract_info
+    - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.23.0\"}"
+  - - ownership
+    - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
+"abstract:version-control":
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u0007account0.23.0"
+    - "{\"account\":4}"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\bans-host0.23.0"
+    - "{\"native\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\bibc-host0.23.0"
+    - "{\"native\":\"mock1466nf3zuxpya8q9emxukd7vftaf6h4psr0a07srl5zw74zh84yjqqk0lq9\"}"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\nibc-client0.23.0"
+    - "{\"native\":\"mock1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqgfzm3q\"}"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u000emodule-factory0.23.0"
+    - "{\"native\":\"mock1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sep3g9s\"}"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u000fversion-control0.23.0"
+    - "{\"native\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"}"
+  - - "\u0000\u0004accs\u0000\u0005local\u0000\u0000\u0000\u0000"
+    - "\"mock1z7qajs3haler54gl59dvtv2724uldm4adyvuv902wjaqy4c8rkasjkqa9y\""
+  - - "\u0000\u0004accs\u0000\u0005local\u0000\u0000\u0000\u0001"
+    - "\"mock1yqr49tzlfk452g2tlx87nddpy0pu6m6z7yh8740rg2sgz5g6arqs8xeh2h\""
+  - - "\u0000\u0005nmspcabstract"
+    - "{\"trace\":\"local\",\"seq\":0}"
+  - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0000abstract"
+    - "8"
+  - - acseq
+    - "2"
+  - - config
+    - "{\"security_disabled\":true,\"namespace_registration_fee\":null}"
+  - - contract_info
+    - "{\"contract\":\"abstract:version-control\",\"version\":\"0.23.0\"}"
+  - - ownership
+    - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"

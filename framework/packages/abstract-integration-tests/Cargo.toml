@@ -10,7 +10,7 @@ cosmwasm-std = { workspace = true }
 abstract-interface = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
-abstract-manager = { path = "../../contracts/account/manager" }
+abstract-account = { path = "../../contracts/account" }
 semver = { workspace = true }
 
 cw-ownable = { workspace = true }

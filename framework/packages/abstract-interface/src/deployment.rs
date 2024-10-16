@@ -1,154 +1,230 @@
-use std::path::PathBuf;
+use cosmwasm_std::{instantiate2_address, Binary, CanonicalAddr, Instantiate2AddressError};
+use cw_blob::interface::{CwBlob, DeterministicInstantiation};
+#[cfg(feature = "daemon")]
+use cw_orch::daemon::DeployedChains;
 
-use cw_orch::prelude::*;
+use cw_orch::{mock::MockBase, prelude::*};
 
 use crate::{
-    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
+    get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
+    AnsHost, ModuleFactory, Registry,
 };
-use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
 
+const CW_BLOB: &str = "cw:blob";
+
+#[derive(Clone)]
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
-    pub version_control: VersionControl<Chain>,
-    pub account_factory: AccountFactory<Chain>,
+    pub registry: Registry<Chain>,
     pub module_factory: ModuleFactory<Chain>,
     pub ibc: AbstractIbc<Chain>,
-    pub(crate) account: AbstractAccount<Chain>,
+    pub(crate) account: AccountI<Chain>,
+    pub(crate) blob: CwBlob<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = AbstractInterfaceError;
-    type DeployData = String;
+    type DeployData = Chain::Sender;
 
     fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
-        let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-        let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
-        let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
-        let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-        let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain.clone());
+        let blob = CwBlob::new(CW_BLOB, chain.clone());
 
-        let mut account = AbstractAccount { manager, proxy };
+        let ans_host = AnsHost::new(ANS_HOST, chain.clone());
+        let registry = Registry::new(REGISTRY, chain.clone());
+        let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
+        let account = AccountI::new(ACCOUNT, chain.clone());
+
         let ibc_infra = AbstractIbc::new(&chain);
 
+        blob.upload_if_needed()?;
         ans_host.upload()?;
-        version_control.upload()?;
-        account_factory.upload()?;
+        registry.upload()?;
         module_factory.upload()?;
         account.upload()?;
         ibc_infra.upload()?;
 
         let deployment = Abstract {
             ans_host,
-            account_factory,
-            version_control,
+            registry,
             module_factory,
             account,
             ibc: ibc_infra,
+            blob,
         };
 
         Ok(deployment)
     }
 
-    fn deploy_on(chain: Chain, data: String) -> Result<Self, AbstractInterfaceError> {
+    /// Deploys abstract using provided [`TxHandler::Sender`].
+    /// After deployment sender of abstract contracts is a sender of provided `chain`
+    fn deploy_on(
+        mut chain: Chain,
+        deploy_data: Self::DeployData,
+    ) -> Result<Self, AbstractInterfaceError> {
+        let original_sender = chain.sender().clone();
+        chain.set_sender(deploy_data);
+
+        // Ensure we have expected sender address
+        let sender_addr = chain.sender_addr();
+        let hrp = sender_addr.as_str().split_once("1").unwrap().0;
+        assert_eq!(
+            sender_addr.as_str(),
+            native_addrs::creator_address(hrp)?,
+            "Only predetermined abstract admin can deploy abstract contracts, see `native_addrs.rs`"
+        );
+
+        let admin = sender_addr.to_string();
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
+        let blob_code_id = deployment.blob.code_id()?;
 
-        // ########### Instantiate ##############
-        deployment.instantiate(data)?;
+        let creator_account_id: cosmrs::AccountId = admin.as_str().parse().unwrap();
+        let canon_creator = CanonicalAddr::from(creator_account_id.to_bytes());
 
-        // Set Factory
-        deployment.version_control.execute(
-            &abstract_std::version_control::ExecuteMsg::UpdateConfig {
-                account_factory_address: Some(deployment.account_factory.address()?.into_string()),
-                namespace_registration_fee: None,
-                security_disabled: None,
-            },
-            None,
+        let expected_addr = |salt: &[u8]| -> Result<CanonicalAddr, Instantiate2AddressError> {
+            instantiate2_address(&cw_blob::CHECKSUM, &canon_creator, salt)
+        };
+
+        deployment.ans_host.deterministic_instantiate(
+            &abstract_std::ans_host::MigrateMsg::Instantiate(
+                abstract_std::ans_host::InstantiateMsg {
+                    admin: admin.to_string(),
+                },
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::ANS_HOST_SALT)?,
+            Binary::from(native_addrs::ANS_HOST_SALT),
         )?;
 
-        // ########### upload modules and token ##############
+        deployment.registry.deterministic_instantiate(
+            &abstract_std::registry::MigrateMsg::Instantiate(
+                abstract_std::registry::InstantiateMsg {
+                    admin: admin.to_string(),
+                    #[cfg(feature = "integration")]
+                    security_disabled: Some(true),
+                    #[cfg(not(feature = "integration"))]
+                    security_disabled: Some(false),
+                    namespace_registration_fee: None,
+                },
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::REGISTRY_SALT)?,
+            Binary::from(native_addrs::REGISTRY_SALT),
+        )?;
+        deployment.module_factory.deterministic_instantiate(
+            &abstract_std::module_factory::MigrateMsg::Instantiate(
+                abstract_std::module_factory::InstantiateMsg {
+                    admin: admin.to_string(),
+                },
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::MODULE_FACTORY_SALT)?,
+            Binary::from(native_addrs::MODULE_FACTORY_SALT),
+        )?;
 
-        deployment
-            .version_control
-            .register_base(&deployment.account)?;
+        // We also instantiate ibc contracts
+        deployment.ibc.client.deterministic_instantiate(
+            &abstract_std::ibc_client::MigrateMsg::Instantiate(
+                abstract_std::ibc_client::InstantiateMsg {},
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::IBC_CLIENT_SALT)?,
+            Binary::from(native_addrs::IBC_CLIENT_SALT),
+        )?;
+        deployment.ibc.host.deterministic_instantiate(
+            &abstract_std::ibc_host::MigrateMsg::Instantiate(
+                abstract_std::ibc_host::InstantiateMsg {},
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::IBC_HOST_SALT)?,
+            Binary::from(native_addrs::IBC_HOST_SALT),
+        )?;
+        deployment.ibc.register(&deployment.registry)?;
 
+        deployment.registry.register_base(&deployment.account)?;
         deployment
-            .version_control
+            .registry
             .register_natives(deployment.contracts())?;
-
-        // Approve abstract contracts if needed
-        deployment.version_control.approve_any_abstract_modules()?;
+        deployment.registry.approve_any_abstract_modules()?;
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
         use abstract_std::objects::gov_type::GovernanceDetails;
         #[cfg(feature = "integration")]
-        deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
+        AccountI::create_default_account(
+            &deployment,
+            GovernanceDetails::Monarchy {
                 monarch: chain.sender_addr().to_string(),
-            })?;
+            },
+        )?;
+
+        // Return original sender
+        deployment.update_sender(&original_sender);
         Ok(deployment)
     }
 
     fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Chain>>> {
         vec![
             Box::new(&mut self.ans_host),
-            Box::new(&mut self.version_control),
-            Box::new(&mut self.account_factory),
+            Box::new(&mut self.registry),
             Box::new(&mut self.module_factory),
-            Box::new(&mut self.account.manager),
-            Box::new(&mut self.account.proxy),
+            Box::new(&mut self.account),
             Box::new(&mut self.ibc.client),
             Box::new(&mut self.ibc.host),
         ]
     }
 
-    fn deployed_state_file_path() -> Option<String> {
-        let crate_path = env!("CARGO_MANIFEST_DIR");
-
-        Some(
-            PathBuf::from(crate_path)
-                .join("state.json")
-                .display()
-                .to_string(),
-        )
-    }
-
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
+        #[allow(unused_mut)]
         let mut abstr = Self::new(chain);
-        // We register all the contracts default state
-        let state = crate::AbstractDaemonState::default().state();
-        abstr.set_contracts_state(Some(state));
+        #[cfg(feature = "daemon")]
+        {
+            // We register all the contracts default state
+            let state = crate::AbstractDaemonState::default().state();
 
+            abstr.set_contracts_state(Some(state));
+        }
         // Check if abstract deployed, for successful load
-        if let Err(CwOrchError::AddrNotInStore(_)) = abstr.version_control.address() {
+        if let Err(CwOrchError::AddrNotInStore(_)) = abstr.registry.address() {
+            return Err(AbstractInterfaceError::NotDeployed {});
+        } else if abstr.registry.item_query(cw2::CONTRACT).is_err() {
             return Err(AbstractInterfaceError::NotDeployed {});
         }
         Ok(abstr)
     }
 }
 
+#[cfg(feature = "daemon")]
+impl<Chain: CwEnv> DeployedChains<Chain> for Abstract<Chain> {
+    fn deployed_state_file_path() -> Option<String> {
+        let crate_path = env!("CARGO_MANIFEST_DIR");
+
+        Some(
+            std::path::PathBuf::from(crate_path)
+                .join("state.json")
+                .display()
+                .to_string(),
+        )
+    }
+}
+
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
-        let (ans_host, account_factory, version_control, module_factory) =
-            get_native_contracts(chain.clone());
+        let (ans_host, registry, module_factory) = get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
-        let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain);
+        let account = AccountI::new(ACCOUNT, chain.clone());
         Self {
-            account: AbstractAccount { manager, proxy },
+            account,
             ans_host,
-            version_control,
-            account_factory,
+            registry,
             module_factory,
             ibc: AbstractIbc {
                 client: ibc_client,
                 host: ibc_host,
             },
+            blob: CwBlob::new(CW_BLOB, chain),
         }
     }
 
@@ -160,11 +236,11 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 admin: admin.to_string(),
             },
             Some(&admin),
-            None,
+            &[],
         )?;
 
-        self.version_control.instantiate(
-            &abstract_std::version_control::InstantiateMsg {
+        self.registry.instantiate(
+            &abstract_std::registry::InstantiateMsg {
                 admin: admin.to_string(),
                 #[cfg(feature = "integration")]
                 security_disabled: Some(true),
@@ -173,33 +249,20 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 namespace_registration_fee: None,
             },
             Some(&admin),
-            None,
+            &[],
         )?;
 
         self.module_factory.instantiate(
             &abstract_std::module_factory::InstantiateMsg {
                 admin: admin.to_string(),
-                version_control_address: self.version_control.address()?.into_string(),
-                ans_host_address: self.ans_host.address()?.into_string(),
             },
             Some(&admin),
-            None,
-        )?;
-
-        self.account_factory.instantiate(
-            &abstract_std::account_factory::InstantiateMsg {
-                admin: admin.to_string(),
-                version_control_address: self.version_control.address()?.into_string(),
-                ans_host_address: self.ans_host.address()?.into_string(),
-                module_factory_address: self.module_factory.address()?.into_string(),
-            },
-            Some(&admin),
-            None,
+            &[],
         )?;
 
         // We also instantiate ibc contracts
-        self.ibc.instantiate(self, &admin)?;
-        self.ibc.register(&self.version_control)?;
+        self.ibc.instantiate(&admin)?;
+        self.ibc.register(&self.registry)?;
 
         Ok(())
     }
@@ -211,12 +274,8 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 ans_host::contract::CONTRACT_VERSION.to_string(),
             ),
             (
-                self.version_control.as_instance(),
-                version_control::contract::CONTRACT_VERSION.to_string(),
-            ),
-            (
-                self.account_factory.as_instance(),
-                account_factory::contract::CONTRACT_VERSION.to_string(),
+                self.registry.as_instance(),
+                registry::contract::CONTRACT_VERSION.to_string(),
             ),
             (
                 self.module_factory.as_instance(),
@@ -231,5 +290,97 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 ibc_host::contract::CONTRACT_VERSION.to_string(),
             ),
         ]
+    }
+
+    pub fn update_sender(&mut self, sender: &Chain::Sender) {
+        let Self {
+            ans_host,
+            registry,
+            module_factory,
+            ibc,
+            account,
+            blob: _,
+        } = self;
+        ans_host.set_sender(sender);
+        registry.set_sender(sender);
+        module_factory.set_sender(sender);
+        account.set_sender(sender);
+        ibc.client.set_sender(sender);
+        ibc.host.set_sender(sender);
+    }
+
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            ans_host: self.ans_host.clone().call_as(sender),
+            registry: self.registry.clone().call_as(sender),
+            module_factory: self.module_factory.clone().call_as(sender),
+            ibc: self.ibc.call_as(sender),
+            account: self.account.call_as(sender),
+            blob: self.blob.clone(),
+        }
+    }
+}
+
+// Sender addr means it's mock or CloneTest(which is also mock)
+impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
+    pub fn deploy_on_mock(chain: Chain) -> Result<Self, AbstractInterfaceError> {
+        let admin = Self::mock_admin(&chain);
+        Self::deploy_on(chain, admin)
+    }
+
+    pub fn mock_admin(chain: &Chain) -> <MockBase as TxHandler>::Sender {
+        // Getting prefix
+        let sender_addr: cosmrs::AccountId = chain.sender().as_str().parse().unwrap();
+        let prefix = sender_addr.prefix();
+        // Building mock_admin
+        let mock_admin = native_addrs::creator_address(prefix).unwrap();
+        Addr::unchecked(mock_admin)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    #![allow(clippy::needless_borrows_for_generic_args)]
+
+    use cosmwasm_std::Api;
+    use cw_orch::anyhow;
+
+    use super::*;
+
+    #[coverage_helper::test]
+    fn deploy2() -> anyhow::Result<()> {
+        let prefix = "mock";
+        let mut chain = MockBech32::new(prefix);
+        let sender = native_addrs::creator_address(prefix)?;
+        chain.set_sender(Addr::unchecked(sender));
+
+        let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+        let app = chain.app.borrow();
+        let api = app.api();
+
+        // ANS
+        let ans_addr = api.addr_canonicalize(&abstr.ans_host.addr_str()?)?;
+        assert_eq!(ans_addr, native_addrs::ans_address(prefix, api)?);
+
+        // REGISTRY
+        let registry = api.addr_canonicalize(&abstr.registry.addr_str()?)?;
+        assert_eq!(registry, native_addrs::registry_address(prefix, api)?);
+
+        // MODULE_FACTORY
+        let module_factory = api.addr_canonicalize(&abstr.module_factory.addr_str()?)?;
+        assert_eq!(
+            module_factory,
+            native_addrs::module_factory_address(prefix, api)?
+        );
+
+        // IBC_CLIENT
+        let ibc_client = api.addr_canonicalize(&abstr.ibc.client.addr_str()?)?;
+        assert_eq!(ibc_client, native_addrs::ibc_client_address(prefix, api)?);
+
+        // IBC_HOST
+        let ibc_host = api.addr_canonicalize(&abstr.ibc.host.addr_str()?)?;
+        assert_eq!(ibc_host, native_addrs::ibc_host_address(prefix, api)?);
+
+        Ok(())
     }
 }

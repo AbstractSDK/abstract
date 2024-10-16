@@ -40,8 +40,8 @@ pub mod state {
     use crate::{
         ans_host::{DexAssetPairing, DexName, UniquePoolId},
         objects::{
-            pool_metadata::PoolMetadata, pool_reference::PoolReference, AssetEntry, ChannelEntry,
-            ContractEntry,
+            pool_metadata::PoolMetadata, pool_reference::PoolReference, storage_namespaces,
+            AssetEntry, ChannelEntry, ContractEntry,
         },
     };
 
@@ -51,28 +51,35 @@ pub mod state {
         pub next_unique_pool_id: UniquePoolId,
     }
 
-    pub const CONFIG: Item<Config> = Item::new("config");
+    pub const CONFIG: Item<Config> = Item::new(storage_namespaces::CONFIG_STORAGE_KEY);
     // ANCHOR: ans_state
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
-    pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> = Map::new("assets");
-    pub const REV_ASSET_ADDRESSES: Map<&AssetInfo, AssetEntry> = Map::new("rev_assets");
+    pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> =
+        Map::new(storage_namespaces::ans_host::ASSET_ADDRESSES);
+    pub const REV_ASSET_ADDRESSES: Map<&AssetInfo, AssetEntry> =
+        Map::new(storage_namespaces::ans_host::REV_ASSET_ADDRESSES);
 
     /// Stores contract addresses
-    pub const CONTRACT_ADDRESSES: Map<&ContractEntry, Addr> = Map::new("contracts");
+    pub const CONTRACT_ADDRESSES: Map<&ContractEntry, Addr> =
+        Map::new(storage_namespaces::ans_host::CONTRACT_ADDRESSES);
 
     /// stores channel-ids
-    pub const CHANNELS: Map<&ChannelEntry, String> = Map::new("channels");
+    pub const CHANNELS: Map<&ChannelEntry, String> =
+        Map::new(storage_namespaces::ans_host::CHANNELS);
 
     /// Stores the registered dex names
-    pub const REGISTERED_DEXES: Item<Vec<DexName>> = Item::new("registered_dexes");
+    pub const REGISTERED_DEXES: Item<Vec<DexName>> =
+        Item::new(storage_namespaces::ans_host::REGISTERED_DEXES);
 
     /// Stores the asset pairing entries to their pool ids
     /// (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
-    pub const ASSET_PAIRINGS: Map<&DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
+    pub const ASSET_PAIRINGS: Map<&DexAssetPairing, Vec<PoolReference>> =
+        Map::new(storage_namespaces::ans_host::ASSET_PAIRINGS);
 
     /// Stores the metadata for the pools using the unique pool id as the key
-    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
+    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> =
+        Map::new(storage_namespaces::ans_host::POOL_METADATA);
     // ANCHOR_END: ans_state
 }
 
@@ -258,7 +265,12 @@ pub enum QueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    /// Migrating from blob contract
+    Instantiate(InstantiateMsg),
+    /// Migrating from previous version
+    Migrate {},
+}
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
@@ -272,11 +284,7 @@ pub struct AssetsResponse {
 }
 
 /// Query response
-#[cosmwasm_schema::cw_serde]
-pub struct AssetListResponse {
-    /// Assets (name, assetinfo)
-    pub assets: Vec<AssetMapEntry>,
-}
+pub type AssetListResponse = AssetsResponse;
 
 #[cosmwasm_schema::cw_serde]
 pub struct AssetInfosResponse {
@@ -284,11 +292,7 @@ pub struct AssetInfosResponse {
     pub infos: Vec<AssetInfoMapEntry>,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct AssetInfoListResponse {
-    /// Assets (assetinfo, name)
-    pub infos: Vec<AssetInfoMapEntry>,
-}
+pub type AssetInfoListResponse = AssetInfosResponse;
 
 #[cosmwasm_schema::cw_serde]
 pub struct ContractsResponse {

@@ -59,7 +59,7 @@ mod tests {
 
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env},
-        to_json_binary, Addr, CosmosMsg, Decimal, SubMsg, WasmMsg,
+        to_json_binary, CosmosMsg, Decimal, SubMsg, WasmMsg,
     };
 
     use super::*;
@@ -74,6 +74,7 @@ mod tests {
     #[test]
     fn unsubscribe_no_hook_msg() {
         let mut deps = mock_dependencies();
+        let bob = deps.api.addr_make("bob");
         let depsmut = deps.as_mut();
         let env = mock_env();
         let app = SUBSCRIPTION_MODULE;
@@ -95,7 +96,7 @@ mod tests {
         SUBSCRIBERS
             .save(
                 depsmut.storage,
-                &Addr::unchecked("bob"),
+                &bob,
                 &Subscriber {
                     expiration_timestamp: env.block.time,
                     last_emission_claim_timestamp: env.block.time,
@@ -106,8 +107,7 @@ mod tests {
             .save(depsmut.storage, &SubscriptionState { active_subs: 1 })
             .unwrap();
 
-        let res =
-            handlers::execute::unsubscribe(depsmut, env, app, vec!["bob".to_string()]).unwrap();
+        let res = handlers::execute::unsubscribe(depsmut, env, app, vec![bob.to_string()]).unwrap();
 
         assert!(res.messages.is_empty());
     }
@@ -115,6 +115,8 @@ mod tests {
     #[test]
     fn unsubscribe_with_hook_msg() {
         let mut deps = mock_dependencies();
+        let alice = deps.api.addr_make("alice");
+        let bob = deps.api.addr_make("bob");
         let depsmut = deps.as_mut();
         let env = mock_env();
         let app = SUBSCRIPTION_MODULE;
@@ -129,14 +131,14 @@ mod tests {
                     payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
                     subscription_cost_per_second: Decimal::from_str("0.1").unwrap(),
                     subscription_per_second_emissions: crate::state::EmissionType::None,
-                    unsubscribe_hook_addr: Some(Addr::unchecked("alice")),
+                    unsubscribe_hook_addr: Some(alice.clone()),
                 },
             )
             .unwrap();
         SUBSCRIBERS
             .save(
                 depsmut.storage,
-                &Addr::unchecked("bob"),
+                &bob,
                 &Subscriber {
                     expiration_timestamp: env.block.time,
                     last_emission_claim_timestamp: env.block.time,
@@ -147,13 +149,12 @@ mod tests {
             .save(depsmut.storage, &SubscriptionState { active_subs: 1 })
             .unwrap();
 
-        let res =
-            handlers::execute::unsubscribe(depsmut, env, app, vec!["bob".to_string()]).unwrap();
+        let res = handlers::execute::unsubscribe(depsmut, env, app, vec![bob.to_string()]).unwrap();
 
         let expected_msg = SubMsg::new(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: "alice".to_owned(),
+            contract_addr: alice.to_string(),
             msg: to_json_binary(&HookReceiverExecuteMsg::Unsubscribed(UnsubscribedHookMsg {
-                unsubscribed: vec!["bob".to_owned()],
+                unsubscribed: vec![bob.to_string()],
             }))
             .unwrap(),
             funds: vec![],

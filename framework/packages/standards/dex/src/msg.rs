@@ -112,12 +112,13 @@ impl SwapNode<String> {
     ///
     /// ```rust,no_run
     /// use cosmwasm_std::{Addr, Api};
-    /// use abstract_std::{abstract_dex_standard::msg::SwapNode, AbstractResult};
+    /// use abstract_dex_standard::msg::SwapNode;
+    /// use abstract_std::AbstractResult;
     ///
-    /// fn validate_swap_node(api: &dyn Api, swap_node_unchecked: &SwapNode<String>) {
+    /// fn validate_swap_node(api: &dyn Api, swap_node_unchecked: SwapNode<String>) {
     ///     match swap_node_unchecked.check(api) {
-    ///         Ok(info) => println!("swap node is valid: {}", info.to_string()),
-    ///         Err(err) => println!("swap node is invalid! reason: {}", err),
+    ///         Ok(info) => println!("swap node is valid: {}", info.pool_id.to_string()),
+    ///         Err(err) => println!("swap node is invalid! reason: {:?}", err),
     ///     }
     /// }
     /// ```

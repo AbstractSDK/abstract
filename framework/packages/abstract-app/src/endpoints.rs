@@ -132,82 +132,87 @@ mod test {
     };
     use abstract_sdk::base::CustomExecuteHandler;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::SubMsgResult;
-    use speculoos::prelude::*;
+    use cosmwasm_std::{Binary, SubMsgResult};
 
-    #[test]
+    #[coverage_helper::test]
     fn exports_endpoints() {
         export_endpoints!(MOCK_APP_WITH_DEP, MockAppContract);
 
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
         // init
         let init_msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
-                account_base: test_account_base(),
+                account: abstr.account,
             },
             module: MockInitMsg {},
         };
         let actual_init = instantiate(
             deps.as_mut(),
-            mock_env(),
-            mock_info(OWNER, &[]),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
             init_msg.clone(),
         );
         let expected_init = MOCK_APP_WITH_DEP.instantiate(
             deps.as_mut(),
-            mock_env(),
-            mock_info(OWNER, &[]),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
             init_msg,
         );
-        assert_that!(actual_init).is_equal_to(expected_init);
+        assert_eq!(actual_init, expected_init);
 
         // exec
         let exec_msg = app::ExecuteMsg::Module(MockExecMsg::DoSomething {});
         let actual_exec = execute(
             deps.as_mut(),
-            mock_env(),
-            mock_info(OWNER, &[]),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
             exec_msg.clone(),
         );
-        let expected_exec =
-            MOCK_APP_WITH_DEP.execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
-        assert_that!(actual_exec).is_equal_to(expected_exec);
+        let expected_exec = MOCK_APP_WITH_DEP.execute(
+            deps.as_mut(),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
+            exec_msg,
+        );
+        assert_eq!(actual_exec, expected_exec);
 
         // query
         let query_msg = app::QueryMsg::Module(MockQueryMsg::GetSomething {});
-        let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
-        let expected_query = MOCK_APP_WITH_DEP.query(deps.as_ref(), mock_env(), query_msg);
-        assert_that!(actual_query).is_equal_to(expected_query);
+        let actual_query = query(deps.as_ref(), env.clone(), query_msg.clone());
+        let expected_query = MOCK_APP_WITH_DEP.query(deps.as_ref(), env.clone(), query_msg);
+        assert_eq!(actual_query, expected_query);
 
         // migrate
         let migrate_msg = app::MigrateMsg {
             base: app::BaseMigrateMsg {},
             module: MockMigrateMsg,
         };
-        let actual_migrate = migrate(deps.as_mut(), mock_env(), migrate_msg.clone());
-        let expected_migrate = MOCK_APP_WITH_DEP.migrate(deps.as_mut(), mock_env(), migrate_msg);
-        assert_that!(actual_migrate).is_equal_to(expected_migrate);
+        let actual_migrate = migrate(deps.as_mut(), env.clone(), migrate_msg.clone());
+        let expected_migrate = MOCK_APP_WITH_DEP.migrate(deps.as_mut(), env.clone(), migrate_msg);
+        assert_eq!(actual_migrate, expected_migrate);
 
         // sudo
         let sudo_msg = MockSudoMsg {};
-        let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
-        let expected_sudo = MOCK_APP_WITH_DEP.sudo(deps.as_mut(), mock_env(), sudo_msg);
-        assert_that!(actual_sudo).is_equal_to(expected_sudo);
+        let actual_sudo = sudo(deps.as_mut(), env.clone(), sudo_msg.clone());
+        let expected_sudo = MOCK_APP_WITH_DEP.sudo(deps.as_mut(), env.clone(), sudo_msg);
+        assert_eq!(actual_sudo, expected_sudo);
 
         // reply
         let reply_msg = ::cosmwasm_std::Reply {
             id: 0,
             result: SubMsgResult::Err("test".into()),
+            payload: Binary::default(),
+            gas_used: 0,
         };
-        let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
-        let expected_reply = MOCK_APP_WITH_DEP.reply(deps.as_mut(), mock_env(), reply_msg);
-        assert_that!(actual_reply).is_equal_to(expected_reply);
+        let actual_reply = reply(deps.as_mut(), env.clone(), reply_msg.clone());
+        let expected_reply = MOCK_APP_WITH_DEP.reply(deps.as_mut(), env, reply_msg);
+        assert_eq!(actual_reply, expected_reply);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn exports_endpoints_custom() {
         #[cosmwasm_schema::cw_serde]
         #[derive(cw_orch::ExecuteFns)]
@@ -252,12 +257,14 @@ mod test {
         export_endpoints!(MOCK_APP_WITH_DEP, MockAppContract, CustomExecMsg);
 
         let mut deps = mock_dependencies();
+        let env = mock_env_validated(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
         // custom
         let actual_custom_exec = execute(
             deps.as_mut(),
-            mock_env(),
-            mock_info(OWNER, &[]),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
             CustomExecMsg::Foo {},
         )
         .unwrap();
@@ -270,66 +277,70 @@ mod test {
         // init
         let init_msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
-                account_base: test_account_base(),
+                account: test_account(deps.api),
             },
             module: MockInitMsg {},
         };
         let actual_init = instantiate(
             deps.as_mut(),
-            mock_env(),
-            mock_info(OWNER, &[]),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
             init_msg.clone(),
         );
         let expected_init = MOCK_APP_WITH_DEP.instantiate(
             deps.as_mut(),
-            mock_env(),
-            mock_info(OWNER, &[]),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
             init_msg,
         );
-        assert_that!(actual_init).is_equal_to(expected_init);
+        assert_eq!(actual_init, expected_init);
 
         // exec
         let exec_msg = app::ExecuteMsg::Module(MockExecMsg::DoSomething {});
         let actual_exec = execute(
             deps.as_mut(),
-            mock_env(),
-            mock_info(OWNER, &[]),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
             CustomExecMsg::Module(MockExecMsg::DoSomething {}),
         );
-        let expected_exec =
-            MOCK_APP_WITH_DEP.execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
-        assert_that!(actual_exec).is_equal_to(expected_exec);
+        let expected_exec = MOCK_APP_WITH_DEP.execute(
+            deps.as_mut(),
+            env.clone(),
+            message_info(&abstr.owner, &[]),
+            exec_msg,
+        );
+        assert_eq!(actual_exec, expected_exec);
 
         // query
         let query_msg = app::QueryMsg::Module(MockQueryMsg::GetSomething {});
-        let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
-        let expected_query = MOCK_APP_WITH_DEP.query(deps.as_ref(), mock_env(), query_msg);
-        assert_that!(actual_query).is_equal_to(expected_query);
+        let actual_query = query(deps.as_ref(), env.clone(), query_msg.clone());
+        let expected_query = MOCK_APP_WITH_DEP.query(deps.as_ref(), env.clone(), query_msg);
+        assert_eq!(actual_query, expected_query);
 
         // migrate
         let migrate_msg = app::MigrateMsg {
             base: app::BaseMigrateMsg {},
             module: MockMigrateMsg,
         };
-        let actual_migrate = migrate(deps.as_mut(), mock_env(), migrate_msg.clone());
-        let expected_migrate = MOCK_APP_WITH_DEP.migrate(deps.as_mut(), mock_env(), migrate_msg);
-        assert_that!(actual_migrate).is_equal_to(expected_migrate);
+        let actual_migrate = migrate(deps.as_mut(), env.clone(), migrate_msg.clone());
+        let expected_migrate = MOCK_APP_WITH_DEP.migrate(deps.as_mut(), env.clone(), migrate_msg);
+        assert_eq!(actual_migrate, expected_migrate);
 
         // sudo
         let sudo_msg = MockSudoMsg {};
-        let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
-        let expected_sudo = MOCK_APP_WITH_DEP.sudo(deps.as_mut(), mock_env(), sudo_msg);
-        assert_that!(actual_sudo).is_equal_to(expected_sudo);
+        let actual_sudo = sudo(deps.as_mut(), env.clone(), sudo_msg.clone());
+        let expected_sudo = MOCK_APP_WITH_DEP.sudo(deps.as_mut(), env.clone(), sudo_msg);
+        assert_eq!(actual_sudo, expected_sudo);
 
         // reply
         let reply_msg = ::cosmwasm_std::Reply {
             id: 0,
             result: SubMsgResult::Err("test".into()),
+            payload: Binary::default(),
+            gas_used: 0,
         };
-        let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
-        let expected_reply = MOCK_APP_WITH_DEP.reply(deps.as_mut(), mock_env(), reply_msg);
-        assert_that!(actual_reply).is_equal_to(expected_reply);
+        let actual_reply = reply(deps.as_mut(), env.clone(), reply_msg.clone());
+        let expected_reply = MOCK_APP_WITH_DEP.reply(deps.as_mut(), env, reply_msg);
+        assert_eq!(actual_reply, expected_reply);
     }
 }

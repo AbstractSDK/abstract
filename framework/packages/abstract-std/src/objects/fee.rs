@@ -27,7 +27,7 @@ impl UsageFee {
     }
 
     pub fn compute(&self, amount: Uint128) -> Uint128 {
-        amount * self.share()
+        amount.mul_floor(self.share())
     }
 
     pub fn recipient(&self) -> Addr {
@@ -58,7 +58,7 @@ impl Fee {
     }
 
     pub fn compute(&self, amount: Uint128) -> Uint128 {
-        amount * self.share
+        amount.mul_floor(self.share)
     }
 
     pub fn msg(&self, asset: Asset, recipient: Addr) -> AbstractResult<CosmosMsg> {
@@ -149,7 +149,7 @@ mod tests {
     mod fee {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn test_fee_manual_construction() {
             let fee = Fee {
                 share: Decimal::percent(20u64),
@@ -159,7 +159,7 @@ mod tests {
             assert_eq!(deposit_fee, Uint128::from(200000u64));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_fee_new() {
             let fee = Fee::new(Decimal::percent(20u64)).unwrap();
             let deposit = Uint128::from(1000000u64);
@@ -167,7 +167,7 @@ mod tests {
             assert_eq!(deposit_fee, Uint128::from(200000u64));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_fee_new_gte_100() {
             let fee = Fee::new(Decimal::percent(100u64));
             assert!(fee.is_err());
@@ -175,14 +175,14 @@ mod tests {
             assert!(fee.is_err());
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_fee_share() {
             let expected_percent = 20u64;
             let fee = Fee::new(Decimal::percent(expected_percent)).unwrap();
             assert_eq!(fee.share(), Decimal::percent(expected_percent));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_fee_msg() {
             let fee = Fee::new(Decimal::percent(20u64)).unwrap();
             let asset = Asset::native("uusd", Uint128::from(1000000u64));
@@ -193,11 +193,11 @@ mod tests {
         }
     }
     mod transfer_fee {
-        use cosmwasm_std::{coin, coins, testing::mock_info};
+        use cosmwasm_std::{coin, coins, testing::message_info};
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn test_transfer_fee_new() {
             let fee = UsageFee::new(Decimal::percent(20u64), Addr::unchecked("recipient")).unwrap();
             let deposit = Uint128::from(1000000u64);
@@ -205,7 +205,7 @@ mod tests {
             assert_eq!(deposit_fee, Uint128::from(200000u64));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_transfer_fee_share() {
             let expected_percent = 20u64;
             let fee = UsageFee::new(
@@ -216,7 +216,7 @@ mod tests {
             assert_eq!(fee.share(), Decimal::percent(expected_percent));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_transfer_fee_msg() {
             let fee = UsageFee::new(Decimal::percent(20u64), Addr::unchecked("recipient")).unwrap();
             let asset = Asset::native("uusd", Uint128::from(1000000u64));
@@ -226,7 +226,7 @@ mod tests {
             assert_eq!(msg, asset.transfer_msg(recipient).unwrap(),);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_transfer_fee_new_gte_100() {
             let fee = UsageFee::new(Decimal::percent(100u64), Addr::unchecked("recipient"));
             assert!(fee.is_err());
@@ -234,7 +234,7 @@ mod tests {
             assert!(fee.is_err());
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn test_transfer_fee_set_recipient() {
             let mut fee =
                 UsageFee::new(Decimal::percent(20u64), Addr::unchecked("recipient")).unwrap();
@@ -242,7 +242,7 @@ mod tests {
             fee.set_recipient(new_recipient.clone());
             assert_eq!(fee.recipient(), Addr::unchecked(new_recipient));
         }
-        #[test]
+        #[coverage_helper::test]
         fn test_transfer_fee_set_share() {
             let mut fee =
                 UsageFee::new(Decimal::percent(20u64), Addr::unchecked("recipient")).unwrap();
@@ -250,10 +250,10 @@ mod tests {
             fee.set_share(new_share).unwrap();
             assert_eq!(fee.share(), new_share);
         }
-        #[test]
+        #[coverage_helper::test]
         fn test_loose_fee_validation() {
             let fee = FixedFee::new(&coin(45, "ujunox"));
-            let mut info = mock_info("anyone", &coins(47, "ujunox"));
+            let mut info = message_info(&Addr::unchecked("anyone"), &coins(47, "ujunox"));
             fee.charge(&mut info).unwrap();
             assert_eq!(info.funds, coins(2, "ujunox"));
         }

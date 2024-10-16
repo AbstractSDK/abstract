@@ -19,9 +19,6 @@ const LP_STAKING_ADDR: &str = "archway13xeat9u6s0x7vphups0r096fl3tkr3zenhdvfjrsc
 const LP_ASSET_ADDR: &str = "archway123h0jfnk3rhhuapkytrzw22u6w4xkf563lqhy42a9r5lmv32w73s8f6ql2";
 const POOL_ADDR: &str = "archway1vq9jza8kuz80f7ypyvm3pttvpcwlsa5fvum9hxhew5u95mffknxsjy297r";
 
-// mainnet addr of abstract
-const SENDER: &str = "archway1kjzpqv393k4g064xh04j4hwy5d0s03wf0exd9k";
-
 const ASSET_A: &str = "archway>archv2";
 const ASSET_B: &str = "archway>xarchv2";
 const ASSET_A_DENOM: &str = "aarch";
@@ -152,20 +149,21 @@ impl MockStaking for AstrovaultStake {
     fn generate_rewards(&self, addr: &Addr, amount: u128) -> anyhow::Result<()> {
         let chain = &self.chain;
 
-        let mint_distributor_addr = &self.rewards_source.address;
+        let mint_distributor_addr = Addr::unchecked(&self.rewards_source.address);
 
         let config: astrovault::mint_distributor::query_msg::ConfigResponse =
             chain.wasm_querier().smart_query(
-                mint_distributor_addr,
+                &mint_distributor_addr,
                 &astrovault::mint_distributor::query_msg::QueryMsg::Config {},
             )?;
 
         chain.call_as(&Addr::unchecked(config.owner)).execute(
             &astrovault::mint_distributor::handle_msg::ExecuteMsg::UpdateExternalMintAllowlist {
                 allowlist: Some(vec![chain.sender_addr().to_string()]),
+                allowlist_allowances: None,
             },
             &[],
-            &Addr::unchecked(mint_distributor_addr),
+            &mint_distributor_addr,
         )?;
 
         chain.execute(
@@ -174,7 +172,7 @@ impl MockStaking for AstrovaultStake {
                 amount: amount.into(),
             },
             &[],
-            &Addr::unchecked(mint_distributor_addr),
+            &mint_distributor_addr,
         )?;
 
         Ok(())
@@ -198,8 +196,7 @@ impl MockStaking for AstrovaultStake {
 
 fn setup() -> anyhow::Result<StakingTester<CloneTesting, AstrovaultStake>> {
     let chain_info = ARCHWAY_1;
-    let sender = Addr::unchecked(SENDER);
-    let abstr_deployment = load_abstr(chain_info, sender)?;
+    let abstr_deployment = load_abstr(chain_info)?;
     let chain = abstr_deployment.environment();
     StakingTester::new(abstr_deployment, AstrovaultStake::new(chain)?)
 }

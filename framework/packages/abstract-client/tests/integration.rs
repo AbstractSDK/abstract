@@ -1,3 +1,5 @@
+use ::registry::error::RegistryError;
+use abstract_account::error::AccountError;
 use abstract_adapter::mock::{
     interface::MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
     MockQueryMsg as AdapterMockQueryMsg, TEST_METADATA,
@@ -12,29 +14,26 @@ use abstract_app::{
     traits::ModuleIdentification,
 };
 use abstract_client::{
-    builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
+    builder::cw20_builder::{self, ExecuteMsgInterfaceFns, QueryMsgInterfaceFns},
     AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
     Publisher,
 };
 use abstract_interface::{
-    ClientResolve, IbcClient, InstallConfig, RegisteredModule, VCExecFns, VCQueryFns,
+    ClientResolve, IbcClient, InstallConfig, RegisteredModule, RegistryExecFns, RegistryQueryFns,
 };
 use abstract_std::{
+    account::{
+        state::AccountInfo, AccountModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
+    },
     adapter::AuthorizedAddressesResponse,
     ans_host::QueryMsgFns,
-    manager::{
-        state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
-    },
     objects::{
         dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
         module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
     },
     IBC_CLIENT,
 };
-use abstract_testing::{
-    addresses::{TEST_MODULE_NAME, TTOKEN},
-    prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
-};
+use abstract_testing::prelude::*;
 use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;
@@ -46,15 +45,14 @@ mod mock_service;
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let account: Account<MockBech32> = client.account_builder().build()?;
 
     let account_info = account.info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -74,7 +72,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone())
         .asset(asset, AssetInfoUnchecked::native(asset))
-        .build()?;
+        .build_mock()?;
 
     let name = "test-account";
     let description = "description";
@@ -95,8 +93,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let account_info = account.info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from(name),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from(name)),
             description: Some(String::from(description)),
             link: Some(String::from(link)),
         },
@@ -104,11 +101,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     );
 
     // Namespace is claimed.
-    let account_id = client
-        .version_control()
-        .namespace(namespace)?
-        .unwrap()
-        .account_id;
+    let account_id = client.registry().namespace(namespace)?.unwrap().account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -117,7 +110,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
 #[test]
 fn can_get_account_from_namespace() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain.clone()).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let namespace = Namespace::new("namespace")?;
     let account: Account<MockBech32> = client
@@ -135,7 +128,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 #[test]
 fn err_fetching_unclaimed_namespace() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let namespace = Namespace::new("namespace")?;
 
@@ -156,7 +149,7 @@ fn err_fetching_unclaimed_namespace() -> anyhow::Result<()> {
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -165,8 +158,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let account_info = publisher.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -184,7 +176,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone())
         .asset(asset, AssetInfoUnchecked::native(asset))
-        .build()?;
+        .build_mock()?;
 
     let name = "test-account";
     let description = "description";
@@ -204,8 +196,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let account_info = publisher.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from(name),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from(name)),
             description: Some(String::from(description)),
             link: Some(String::from(link)),
         },
@@ -216,11 +207,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     assert_eq!(ownership.owner, governance_details);
 
     // Namespace is claimed.
-    let account_id = client
-        .version_control()
-        .namespace(namespace)?
-        .unwrap()
-        .account_id;
+    let account_id = client.registry().namespace(namespace)?.unwrap().account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -229,7 +216,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
 #[test]
 fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let namespace = Namespace::new("namespace")?;
     let publisher: Publisher<MockBech32> = client.publisher_builder(namespace.clone()).build()?;
@@ -248,7 +235,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
 #[test]
 fn can_publish_and_install_app() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -256,8 +243,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
         .build()?;
 
     let publisher_account = publisher.account();
-    let publisher_manager = publisher_account.manager()?;
-    let publisher_proxy = publisher_account.proxy()?;
+    let publisher_account_address = publisher_account.address()?;
 
     publisher.publish_app::<MockAppI<MockBech32>>()?;
 
@@ -265,7 +251,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let my_app: Application<_, MockAppI<_>> =
         publisher_account.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
 
-    my_app.call_as(&publisher_manager).do_something()?;
+    my_app.call_as(&publisher_account_address).do_something()?;
 
     let something = my_app.get_something()?;
 
@@ -279,8 +265,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let sub_account_details = my_app.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Sub Account"),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from("Sub Account")),
             description: None,
             link: None,
         },
@@ -290,8 +275,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     assert_eq!(
         sub_account_ownership.owner,
         GovernanceDetails::SubAccount {
-            manager: publisher_manager.to_string(),
-            proxy: publisher_proxy.to_string(),
+            account: publisher_account_address.to_string(),
         }
     );
 
@@ -307,7 +291,9 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let my_adapter: Application<_, MockAppI<_>> =
         publisher.account().install_app(&MockInitMsg {}, &[])?;
 
-    my_adapter.call_as(&publisher_manager).do_something()?;
+    my_adapter
+        .call_as(&publisher_account_address)
+        .do_something()?;
     let mock_query: MockQueryResponse = my_adapter.get_something()?;
 
     assert_eq!(MockQueryResponse {}, mock_query);
@@ -315,8 +301,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -336,15 +321,14 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 #[test]
 fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<_> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .install_on_sub_account(true)
         .build()?;
 
-    let publisher_manager = publisher.account().manager()?;
-    let publisher_proxy = publisher.account().proxy()?;
+    let publisher_account_address = publisher.account().address()?;
 
     publisher.publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
 
@@ -352,8 +336,8 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
-        .call_as(&publisher_manager)
-        .execute(&AdapterMockExecMsg {}.into(), None)?;
+        .call_as(&publisher_account_address)
+        .execute(&AdapterMockExecMsg {}.into(), &[])?;
     let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
@@ -361,8 +345,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Sub Account"),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from("Sub Account")),
             description: None,
             link: None,
         },
@@ -372,8 +355,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     assert_eq!(
         sub_account_ownership.owner,
         GovernanceDetails::SubAccount {
-            manager: publisher_manager.to_string(),
-            proxy: publisher_proxy.to_string(),
+            account: publisher_account_address.to_string(),
         }
     );
 
@@ -385,8 +367,8 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
-        .call_as(&publisher_manager)
-        .execute(&AdapterMockExecMsg {}.into(), None)?;
+        .call_as(&publisher_account_address)
+        .execute(&AdapterMockExecMsg {}.into(), &[])?;
     let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
@@ -394,8 +376,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let sub_account_details = my_adapter.account().info()?;
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -415,7 +396,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 #[test]
 fn can_fetch_account_from_id() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let account1 = client.account_builder().build()?;
 
@@ -429,7 +410,7 @@ fn can_fetch_account_from_id() -> anyhow::Result<()> {
 #[test]
 fn can_fetch_account_from_app() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -455,7 +436,7 @@ fn can_fetch_account_from_app() -> anyhow::Result<()> {
 #[test]
 fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
@@ -477,7 +458,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
         )?;
 
     my_app
-        .call_as(&app_publisher.account().manager()?)
+        .call_as(&app_publisher.account().address()?)
         .do_something()?;
 
     let something = my_app.get_something()?;
@@ -507,7 +488,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 
     assert!(module_infos_response
         .module_infos
-        .contains(&ManagerModuleInfo {
+        .contains(&AccountModuleInfo {
             id: TEST_MODULE_ID.to_owned(),
             version: cw2::ContractVersion {
                 contract: TEST_MODULE_ID.to_owned(),
@@ -518,7 +499,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 
     assert!(module_infos_response
         .module_infos
-        .contains(&ManagerModuleInfo {
+        .contains(&AccountModuleInfo {
             id: TEST_MODULE_ID.to_owned(),
             version: cw2::ContractVersion {
                 contract: TEST_MODULE_ID.to_owned(),
@@ -534,7 +515,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let client = AbstractClient::builder(chain.clone()).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let name = "name";
     let symbol = "symbol";
@@ -606,7 +587,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
 fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let name = "name";
     let symbol = "symbol";
@@ -644,12 +625,12 @@ fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
 #[test]
 fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
     let account = client.account_builder().build()?;
 
-    let coin1 = Coin::new(50, "denom1");
-    let coin2 = Coin::new(20, "denom2");
-    let coin3 = Coin::new(10, "denom3");
+    let coin1 = Coin::new(50u128, "denom1");
+    let coin2 = Coin::new(20u128, "denom2");
+    let coin3 = Coin::new(10u128, "denom3");
     account.set_balance(&[coin1.clone(), coin2.clone()])?;
     account.add_balance(&[coin3.clone()])?;
 
@@ -664,7 +645,7 @@ fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
 #[test]
 fn can_get_module_dependency() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
@@ -689,12 +670,12 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
 #[test]
 fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain.clone()).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let user = chain.addr_make("user");
-    let coin1 = Coin::new(50, "denom1");
-    let coin2 = Coin::new(20, "denom2");
-    let coin3 = Coin::new(10, "denom3");
+    let coin1 = Coin::new(50u128, "denom1");
+    let coin2 = Coin::new(20u128, "denom2");
+    let coin3 = Coin::new(10u128, "denom3");
     client.set_balance(&user, &[coin1.clone(), coin2.clone()])?;
     client.add_balance(&user, &[coin3.clone()])?;
 
@@ -710,7 +691,7 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
 #[test]
 fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -729,11 +710,11 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 
 /// ANCHOR: mock_integration_test
 #[test]
-fn can_execute_on_proxy() -> anyhow::Result<()> {
+fn can_execute_on_account() -> anyhow::Result<()> {
     let denom = "denom";
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain.clone()).build()?;
-    client.set_balances([(client.sender(), coins(100, denom).as_slice())])?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
+    client.set_balances([(&client.sender(), coins(100, denom).as_slice())])?;
 
     let user = chain.addr_make("user");
 
@@ -758,9 +739,9 @@ fn resolve_works() -> anyhow::Result<()> {
     let denom = "test_denom";
     let entry = "denom";
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain)
+    let client = AbstractClient::builder(chain.clone())
         .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
-        .build()?;
+        .build_mock()?;
 
     let name_service = client.name_service();
     let asset_entry = AssetEntry::new(entry);
@@ -781,17 +762,17 @@ fn doc_example_test() -> anyhow::Result<()> {
     let sender: Addr = env.sender_addr();
 
     // Build the client
-    let client: AbstractClient<MockBech32> = AbstractClient::builder(env).build()?;
+    let client: AbstractClient<MockBech32> = AbstractClient::builder(env.clone()).build_mock()?;
     // ## ANCHOR_END: build_client
 
     // ## ANCHOR: balances
-    let coins = &[Coin::new(50, "eth"), Coin::new(20, "btc")];
+    let coins = &[Coin::new(50u128, "eth"), Coin::new(20u128, "btc")];
 
     // Set a balance
     client.set_balance(&sender, coins)?;
 
     // Add to an address's balance
-    client.add_balance(&sender, &[Coin::new(50, "eth")])?;
+    client.add_balance(&sender, &[Coin::new(50u128, "eth")])?;
 
     // Query an address's balance
     let coin1_balance = client.query_balance(&sender, "eth")?;
@@ -810,19 +791,19 @@ fn doc_example_test() -> anyhow::Result<()> {
     // ## ANCHOR_END: publisher
 
     // ## ANCHOR: account
-    let account: Account<MockBech32> = client.account_builder().build()?;
+    let accounti: Account<MockBech32> = client.account_builder().build()?;
 
     // ## ANCHOR: app_interface
     // Install an app
     let app: Application<MockBech32, MockAppI<MockBech32>> =
-        account.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
+        accounti.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
     // ## ANCHOR_END: account
     // Call a function on the app
     app.do_something()?;
 
     // Call as someone else
-    let manager: Addr = account.manager()?;
-    app.call_as(&manager).do_something()?;
+    let account: Addr = accounti.address()?;
+    app.call_as(&account).do_something()?;
 
     // Query the app
     let something: MockQueryResponse = app.get_something()?;
@@ -830,18 +811,17 @@ fn doc_example_test() -> anyhow::Result<()> {
 
     // ## ANCHOR: account_helpers
     // Get account info
-    let account_info: AccountInfo = account.info()?;
+    let account_info: AccountInfo = accounti.info()?;
     // Get the owner
-    let owner: Addr = account.owner()?;
+    let owner: Addr = accounti.owner()?;
     // Add or set balance
-    account.add_balance(&[Coin::new(100, "btc")])?;
+    accounti.add_balance(&[Coin::new(100u128, "btc")])?;
     // ...
     // ## ANCHOR_END: account_helpers
 
     assert_eq!(
         AccountInfo {
-            name: String::from("Default Abstract Account"),
-            chain_id: String::from("cosmos-testnet-14002"),
+            name: Some(String::from("Default Abstract Account")),
             description: None,
             link: None,
         },
@@ -859,10 +839,10 @@ fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
 
     // Build the client
-    let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+    let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let account = client.account_builder().build()?;
-    let abstract_account: &abstract_interface::AbstractAccount<MockBech32> = account.as_ref();
+    let abstract_account: &abstract_interface::AccountI<MockBech32> = account.as_ref();
     assert_eq!(abstract_account.id()?, AccountId::local(1));
     Ok(())
 }
@@ -870,7 +850,7 @@ fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
 #[test]
 fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+    let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone()).build_mock()?;
     let publisher = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
@@ -903,9 +883,9 @@ fn can_register_dex_with_client() -> anyhow::Result<()> {
     let dexes = vec!["foo".to_owned(), "bar".to_owned()];
     let chain = MockBech32::new("mock");
 
-    let client: AbstractClient<MockBech32> = AbstractClient::builder(chain)
+    let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone())
         .dexes(dexes.clone())
-        .build()?;
+        .build_mock()?;
 
     let dexes_response = client.name_service().registered_dexes()?;
     assert_eq!(
@@ -918,7 +898,7 @@ fn can_register_dex_with_client() -> anyhow::Result<()> {
 #[test]
 fn can_customize_sub_account() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
     let account = client.account_builder().build()?;
     let sub_account = client
         .account_builder()
@@ -927,7 +907,7 @@ fn can_customize_sub_account() -> anyhow::Result<()> {
         .build()?;
 
     let info = sub_account.info()?;
-    assert_eq!(info.name, "foo-bar");
+    assert_eq!(info.name.unwrap(), "foo-bar");
 
     // Account aware of sub account
     let sub_accounts = account.sub_accounts()?;
@@ -939,14 +919,13 @@ fn can_customize_sub_account() -> anyhow::Result<()> {
 #[test]
 fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
     let account = client.account_builder().build()?;
     let result = client
         .account_builder()
         .name("foo-bar")
         .ownership(GovernanceDetails::SubAccount {
-            manager: account.manager()?.into_string(),
-            proxy: account.proxy()?.into_string(),
+            account: account.address()?.into_string(),
         })
         .build();
 
@@ -956,20 +935,18 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
     else {
         panic!("Expected cw-orch error")
     };
-    let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
-    assert_eq!(
+    let err: AccountError = err.downcast().unwrap();
+    assert!(matches!(
         err,
-        account_factory::error::AccountFactoryError::SubAccountCreatorNotManager {
-            caller: client.sender().into_string(),
-            manager: account.manager()?.into_string()
-        }
-    );
+        AccountError::SubAccountCreatorNotAccount { .. }
+    ));
     Ok(())
 }
 
 #[test]
 fn install_adapter_on_account_builder() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(MockBech32::new("mock")).build()?;
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -990,7 +967,7 @@ fn install_adapter_on_account_builder() -> anyhow::Result<()> {
 
     assert_eq!(
         *adapter_info,
-        ManagerModuleInfo {
+        AccountModuleInfo {
             id: MockAdapterI::<MockBech32>::module_id().to_owned(),
             version: cw2::ContractVersion {
                 contract: MockAdapterI::<MockBech32>::module_id().to_owned(),
@@ -1005,7 +982,8 @@ fn install_adapter_on_account_builder() -> anyhow::Result<()> {
 
 #[test]
 fn install_application_on_account_builder() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(MockBech32::new("mock")).build()?;
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -1032,7 +1010,7 @@ fn install_application_on_account_builder() -> anyhow::Result<()> {
 
     assert_eq!(
         *app_info,
-        ManagerModuleInfo {
+        AccountModuleInfo {
             id: MockAppI::<MockBech32>::module_id().to_owned(),
             version: cw2::ContractVersion {
                 contract: MockAppI::<MockBech32>::module_id().to_owned(),
@@ -1051,17 +1029,17 @@ fn auto_funds_work() -> anyhow::Result<()> {
     let owner = chain.sender_addr();
     chain.set_balance(&owner, coins(50, TTOKEN))?;
 
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
     let _: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
-    client.version_control().update_module_configuration(
+    client.registry().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
-        abstract_std::version_control::UpdateModule::Versioned {
+        abstract_std::registry::UpdateModule::Versioned {
             version: MockAdapterI::<MockBech32>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_std::objects::module::Monetization::InstallFee(
@@ -1086,7 +1064,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // Or can enable auto_fund and create account if have enough funds
     let account = account_builder.auto_fund().build()?;
     let info = account.info()?;
-    assert_eq!(info.name, "bob");
+    assert_eq!(info.name.unwrap(), "bob");
 
     // funds used
     let balance = client.environment().query_balance(&owner, TTOKEN)?;
@@ -1097,7 +1075,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
 #[test]
 fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
@@ -1130,7 +1108,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 
     assert_eq!(
         *app_info,
-        ManagerModuleInfo {
+        AccountModuleInfo {
             id: MockAppI::<MockBech32>::module_id().to_owned(),
             version: cw2::ContractVersion {
                 contract: MockAppI::<MockBech32>::module_id().to_owned(),
@@ -1144,7 +1122,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
     let my_app = account.application::<MockAppWithDepI<_>>()?;
 
     my_app
-        .call_as(&app_publisher.account().manager()?)
+        .call_as(&app_publisher.account().address()?)
         .do_something()?;
 
     let something = my_app.get_something()?;
@@ -1158,7 +1136,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 
     assert_eq!(
         *app_info,
-        ManagerModuleInfo {
+        AccountModuleInfo {
             id: MockAppWithDepI::<MockBech32>::module_id().to_owned(),
             version: cw2::ContractVersion {
                 contract: MockAppWithDepI::<MockBech32>::module_id().to_owned(),
@@ -1173,7 +1151,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 #[test]
 fn authorize_app_on_adapters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -1199,7 +1177,7 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
     // Check it authorized
     let authorized_addrs_resp: AuthorizedAddressesResponse = adapter.query(
         &abstract_std::adapter::BaseQueryMsg::AuthorizedAddresses {
-            proxy_address: app.account().proxy()?.to_string(),
+            account_address: app.account().address()?.to_string(),
         }
         .into(),
     )?;
@@ -1210,7 +1188,7 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
 #[test]
 fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     // Check it fails on wrong account_id
     let next_id = client.random_account_id()?;
@@ -1223,10 +1201,13 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     else {
         panic!("Expected cw-orch error")
     };
-    let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
+    let err: RegistryError = err.downcast().unwrap();
     assert_eq!(
         err,
-        account_factory::error::AccountFactoryError::PredictableAccountIdFailed {}
+        RegistryError::InvalidAccountSequence {
+            expected: 1,
+            actual: 10,
+        }
     );
 
     // Can create if right id
@@ -1247,10 +1228,10 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     else {
         panic!("Expected cw-orch error")
     };
-    let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
+    let err: RegistryError = err.downcast().unwrap();
     assert_eq!(
         err,
-        account_factory::error::AccountFactoryError::PredictableAccountIdFailed {}
+        RegistryError::AccountAlreadyExists(AccountId::local(0))
     );
 
     // Can create sub-account if right id
@@ -1267,7 +1248,7 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
 #[test]
 fn instantiate2_addr() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -1293,28 +1274,49 @@ fn instantiate2_addr() -> anyhow::Result<()> {
 #[test]
 fn instantiate2_raw_addr() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let next_seq = client.random_account_id()?;
     let account_id = AccountId::local(next_seq);
 
-    let proxy_addr = client.module_instantiate2_address_raw(
+    let account_addr = client.module_instantiate2_address_raw(
         &account_id,
-        ModuleInfo::from_id_latest(abstract_std::PROXY)?,
+        ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
     )?;
     let account = client
         .account_builder()
         .expected_account_id(next_seq)
         .build()?;
 
-    assert_eq!(account.proxy()?, proxy_addr);
+    assert_eq!(account.address()?, account_addr);
+    Ok(())
+}
+
+#[test]
+fn instantiate2_random_seq() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
+
+    let next_seq = client.random_account_id()?;
+    let account_id = AccountId::local(next_seq);
+
+    let account_addr = client.module_instantiate2_address_raw(
+        &account_id,
+        ModuleInfo::from_id_latest(abstract_std::ACCOUNT)?,
+    )?;
+    let account = client
+        .account_builder()
+        .expected_account_id(next_seq)
+        .build()?;
+
+    assert_eq!(account.address()?, account_addr);
     Ok(())
 }
 
 #[test]
 fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -1350,30 +1352,9 @@ fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
 }
 
 #[test]
-fn instantiate2_random_seq() -> anyhow::Result<()> {
-    let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
-
-    let next_seq = client.random_account_id()?;
-    let account_id = AccountId::local(next_seq);
-
-    let proxy_addr = client.module_instantiate2_address_raw(
-        &account_id,
-        ModuleInfo::from_id_latest(abstract_std::PROXY)?,
-    )?;
-    let account = client
-        .account_builder()
-        .expected_account_id(next_seq)
-        .build()?;
-
-    assert_eq!(account.proxy()?, proxy_addr);
-    Ok(())
-}
-
-#[test]
 fn install_ibc_client_on_creation() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let account = client
         .account_builder()
@@ -1387,7 +1368,7 @@ fn install_ibc_client_on_creation() -> anyhow::Result<()> {
 #[test]
 fn module_installed() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let account = client
         .account_builder()
@@ -1403,7 +1384,7 @@ fn module_installed() -> anyhow::Result<()> {
 #[test]
 fn module_version_installed() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let account = client
         .account_builder()
@@ -1431,7 +1412,7 @@ fn module_version_installed() -> anyhow::Result<()> {
 #[test]
 fn retrieve_account_builder_install_missing_modules() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -1454,10 +1435,12 @@ fn retrieve_account_builder_install_missing_modules() -> anyhow::Result<()> {
 #[test]
 fn module_status() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
+    let admin = AbstractClient::mock_admin(&chain);
     client
-        .version_control()
-        .update_config(None, None, Some(false))?;
+        .registry()
+        .call_as(&admin)
+        .update_config(None, Some(false))?;
 
     let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -1475,7 +1458,8 @@ fn module_status() -> anyhow::Result<()> {
     );
 
     client
-        .version_control()
+        .registry()
+        .call_as(&admin)
         .approve_or_reject_modules(vec![module_info.clone()], vec![])?;
     let module_status = client.module_status(module_info.clone())?;
     assert_eq!(
@@ -1483,7 +1467,7 @@ fn module_status() -> anyhow::Result<()> {
         Some(abstract_std::objects::module::ModuleStatus::Registered)
     );
 
-    client.version_control().yank_module(module_info.clone())?;
+    client.registry().yank_module(module_info.clone())?;
     let module_status = client.module_status(module_info)?;
     assert_eq!(
         module_status,
@@ -1495,7 +1479,7 @@ fn module_status() -> anyhow::Result<()> {
 #[test]
 fn cant_upload_module_with_non_deployed_deps() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
@@ -1524,7 +1508,7 @@ fn cant_upload_module_with_non_deployed_deps() -> anyhow::Result<()> {
 #[test]
 fn register_service() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let service_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -1558,7 +1542,7 @@ fn ans_balance() -> anyhow::Result<()> {
             "mock",
             cw_asset::AssetInfoBase::Native("mockdenom".to_owned()),
         )
-        .build()?;
+        .build_mock()?;
 
     chain.add_balance(&chain.sender_addr(), coins(101, "mockdenom"))?;
 

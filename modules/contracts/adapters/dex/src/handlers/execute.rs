@@ -41,7 +41,7 @@ pub fn execute_handler(
 
             // if exchange is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
-                handle_ibc_request(&deps, info, &module, local_dex_name, &action)
+                handle_ibc_request(&deps, &env, info, &module, local_dex_name, &action)
             } else {
                 // the action can be executed on the local chain
                 handle_local_request(deps, env, info, &module, local_dex_name, action)
@@ -53,13 +53,13 @@ pub fn execute_handler(
         } => {
             // Only namespace owner (abstract) can change recipient address
             let namespace = module
-                .module_registry(deps.as_ref())?
+                .module_registry(deps.as_ref(), &env)?
                 .query_namespace(Namespace::new(ABSTRACT_NAMESPACE)?)?;
 
             // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
             let namespace_info = namespace.unwrap();
             ensure_eq!(
-                namespace_info.account_base,
+                namespace_info.account,
                 module.target_account.clone().unwrap(),
                 DexError::Unauthorized {}
             );
@@ -73,9 +73,9 @@ pub fn execute_handler(
             // Update recipient account id
             if let Some(account_id) = recipient_account_id {
                 let recipient = module
-                    .account_registry(deps.as_ref())?
-                    .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
-                fee.recipient = recipient;
+                    .account_registry(deps.as_ref(), &env)?
+                    .account(&AccountId::new(account_id, AccountTrace::Local)?)?;
+                fee.recipient = recipient.into_addr();
             }
 
             DEX_FEES.save(deps.storage, &fee)?;
@@ -87,29 +87,31 @@ pub fn execute_handler(
 /// Handle an adapter request that can be executed on the local chain
 fn handle_local_request(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     module: &DexAdapter,
     exchange: String,
     action: DexAction,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let target_account = module.account_base(deps.as_ref())?;
+    let target_account = module.account(deps.as_ref())?;
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
         module,
         deps.as_ref(),
-        target_account.proxy,
+        &env,
+        target_account.into_addr(),
         action,
         exchange,
     )?;
-    let proxy_msg = module.executor(deps.as_ref()).execute(msgs)?;
-    Ok(Response::new().add_message(proxy_msg))
+    let account_msg = module.executor(deps.as_ref()).execute(msgs)?;
+    Ok(Response::new().add_message(account_msg))
 }
 
 /// Handle an adapter request that can be executed on an IBC chain
 /// TODO, this doesn't work as is, would have to change this for working with IBC hooks
 fn handle_ibc_request(
     deps: &DepsMut,
+    env: &Env,
     info: MessageInfo,
     module: &DexAdapter,
     dex_name: DexName,
@@ -117,24 +119,27 @@ fn handle_ibc_request(
 ) -> DexResult {
     let host_chain = TruncatedChainId::from_string(dex_name.clone())?; // TODO, this is faulty
 
-    let ans = module.name_service(deps.as_ref());
-    let ibc_client = module.ibc_client(deps.as_ref());
+    let ans = module.name_service(deps.as_ref(), env);
+    let ibc_client = module.ibc_client(deps.as_ref(), env);
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins, None)?;
     // construct the action to be called on the host
     let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
-        manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
-            module_id: DEX_ADAPTER_ID.to_string(),
-            exec_msg: to_json_binary::<ExecuteMsg>(
-                &DexExecuteMsg::Action {
-                    dex: dex_name.clone(),
-                    action: action.clone(),
-                }
-                .into(),
-            )?,
-        }],
+        account_msgs: vec![
+            abstract_adapter::std::account::ExecuteMsg::ExecuteOnModule {
+                module_id: DEX_ADAPTER_ID.to_string(),
+                exec_msg: to_json_binary::<ExecuteMsg>(
+                    &DexExecuteMsg::Action {
+                        dex: dex_name.clone(),
+                        action: action.clone(),
+                    }
+                    .into(),
+                )?,
+                funds: vec![],
+            },
+        ],
     };
 
     // If the calling entity is a contract, we provide a callback on successful swap
@@ -151,7 +156,7 @@ fn handle_ibc_request(
     };
     let ibc_action_msg = ibc_client.host_action(host_chain, host_action)?;
 
-    // call both messages on the proxy
+    // call both messages on the account
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
 }
 

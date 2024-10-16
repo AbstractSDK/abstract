@@ -1,4 +1,4 @@
-use abstract_sdk::std::objects::version_control::VersionControlContract;
+use abstract_sdk::std::objects::registry::RegistryContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -6,7 +6,7 @@ use crate::{AVAILABLE_CHAINS, OSMOSIS};
 
 #[derive(Default)]
 pub struct Osmosis {
-    pub version_control_contract: Option<VersionControlContract>,
+    pub registry_contract: Option<RegistryContract>,
     pub addr_as_sender: Option<Addr>,
     pub tokens: Vec<OsmosisTokenContext>,
 }
@@ -126,13 +126,11 @@ pub mod fns {
         fn abstract_registry(
             &self,
             _: cosmwasm_std::Deps<'_>,
-        ) -> std::result::Result<VersionControlContract, abstract_sdk::AbstractSdkError> {
-            self.version_control_contract
+        ) -> std::result::Result<RegistryContract, abstract_sdk::AbstractSdkError> {
+            self.registry_contract
                 .clone()
-                .ok_or(AbstractSdkError::generic_err(
-                    "version_control address is not set",
-                ))
-            // We need to get to the version control somehow (possible from Ans Host ?)
+                .ok_or(AbstractSdkError::generic_err("registry address is not set"))
+            // We need to get to the registry somehow (possible from Ans Host ?)
         }
     }
 
@@ -144,10 +142,10 @@ pub mod fns {
             _env: Env,
             addr_as_sender: Option<Addr>,
             ans_host: &AnsHost,
-            version_control_contract: VersionControlContract,
+            registry_contract: RegistryContract,
             staking_assets: Vec<AssetEntry>,
         ) -> Result<(), CwStakingError> {
-            self.version_control_contract = Some(version_control_contract);
+            self.registry_contract = Some(registry_contract);
 
             self.addr_as_sender = addr_as_sender;
 

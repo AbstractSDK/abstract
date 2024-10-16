@@ -1,6 +1,7 @@
 //! # Abstract Adapter
 //!
 //! Basis for an interfacing contract to an external service.
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 use cosmwasm_std::{Empty, Response};
 
 pub type AdapterResult<C = Empty> = Result<Response<C>, AdapterError>;
@@ -38,11 +39,8 @@ pub mod state;
 pub mod mock {
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_std::{adapter::*, objects::dependency::StaticDependency};
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_env, mock_info},
-        DepsMut, Response, StdError,
-    };
+    use abstract_testing::{mock_env_validated, prelude::*, TEST_VERSION};
+    use cosmwasm_std::{testing::*, OwnedDeps, Response, StdError};
     use cw_storage_plus::Item;
     use thiserror::Error;
 
@@ -51,7 +49,7 @@ pub mod mock {
     crate::adapter_msg_types!(MockAdapterContract, MockExecMsg, MockQueryMsg);
 
     pub const TEST_METADATA: &str = "test_metadata";
-    pub const TEST_AUTHORIZED_ADDRESS: &str = "test_authorized_address";
+    pub const TEST_AUTHORIZED_ADDR: &str = "test_authorized_address";
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
@@ -124,6 +122,7 @@ pub mod mock {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })
             .with_replies(&[(1u64, |_, _, _, msg| {
+                #[allow(deprecated)]
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })]);
 
@@ -132,32 +131,34 @@ pub mod mock {
     crate::export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
 
     crate::cw_orch_interface!(MOCK_ADAPTER, MockAdapterContract, MockInitMsg, MockAdapterI);
-    pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
+    pub fn mock_init(
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+    ) -> Result<Response, MockError> {
         let adapter = MOCK_ADAPTER;
-        let info = mock_info(OWNER, &[]);
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        let info = message_info(&abstr.owner, &[]);
+        let env = mock_env_validated(deps.api);
         let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address: TEST_VERSION_CONTROL.into(),
-            },
+            base: BaseInstantiateMsg {},
             module: MockInitMsg {},
         };
-        adapter.instantiate(deps, mock_env(), info, init_msg)
+        adapter.instantiate(deps.as_mut(), env, info, init_msg)
     }
 
     pub fn mock_init_custom(
-        deps: DepsMut,
+        deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
         module: MockAdapterContract,
     ) -> Result<Response, MockError> {
-        let info = mock_info(OWNER, &[]);
+        let abstr = AbstractMockAddrs::new(deps.api);
+
+        let info = message_info(&abstr.owner, &[]);
+        let env = mock_env_validated(deps.api);
         let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address: TEST_VERSION_CONTROL.into(),
-            },
+            base: BaseInstantiateMsg {},
             module: MockInitMsg {},
         };
-        module.instantiate(deps, mock_env(), info, init_msg)
+        module.instantiate(deps.as_mut(), env, info, init_msg)
     }
 
     /// Generate a cw-orch instance for a mock adapter

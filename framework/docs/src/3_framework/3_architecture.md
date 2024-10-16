@@ -9,20 +9,14 @@ In the upcoming sections, we will delve deeper into the architecture of Abstract
 ## Architecture
 
 Abstract's infrastructure provides users with the ability to create a sovereign *smart-contract wallet*. We call this smart-contract wallet
-an `Abstract Account`. The account's architecture has two primary components (smart-contracts): the **Manager** contract
-and the **Proxy** contract.
+an `Abstract Account`.
 
 ```mermaid
 flowchart LR
-    subgraph Abstr[Abstract Account]
-        direction TB
-        Manager --> Proxy
-    end
-
-    Owner -.-> Manager
+    Owner -."owns".-> Account
 ```
 
-As shown in the image above, an *owner* of an account, can configure his Abstract Account by sending messages to the manager contract. We don't make any assumptions about the nature of this owner, it can be a wallet, multi-sig or any other ownership structure, allowing you to customize your ownership structure to fit your needs.
+As shown in the image above, an *owner* of an account, can configure his Abstract Account by sending messages to the contract. We don't make any assumptions about the nature of this owner, it can be a wallet, multi-sig or any other ownership structure, allowing you to customize your ownership structure to fit your needs.
 
 ```admonish info
 You can read up on the different ownership structures that we explicitly support in our [Ownership](./4_ownership.md) section.
@@ -30,11 +24,7 @@ You can read up on the different ownership structures that we explicitly support
 
 The account's architecture centers around **configurable programmability**. In other words, how can one configure the account (install applications, set permissions, etc.) to enable users and developers to easily customize it to do what they want?
 
-Let's dive deeper into the two components of the Abstract Account.
-
-### Manager Contract
-
-The *Manager* is responsible for the account's configuration and security, serving as the controller of the Abstract Account. It is responsible for the account's important operations, including:
+To do this the account needs the following components:
 
 - **Authentication** 🔐: Authenticating privileged calls and ensuring only approved entities can interact with the account.
 
@@ -42,60 +32,43 @@ The *Manager* is responsible for the account's configuration and security, servi
 
 - **Account Details** 📄: Storing the account's details, such as its name, description, and other relevant information.
 
-### Proxy Contract
+- **Asset Management** 💰: Holding the account's assets, including tokens, NFTs, and other fungible and non-fungible assets.
 
-The *Proxy* is responsible for the account's programmability and assets management, serving as the asset vault of the
-Abstract Account, taking care of:
-
-- **Asset Management & Pricing** 💰: Holding the account's assets, including tokens, NFTs, and other fungible and
-  non-fungible assets as well as allows for pricing assets based on decentralized exchange or oracle prices.
-
-- **Transaction Forwarding (Proxying)** 🔀: Routing approved transactions from the **Manager** or other connected
-  smart-contracts to other actors.
-
-```admonish question
-**Why are these two contracts instead of one?**
-
-1. *Separation of concerns:* By separating the contracts the proxy's functionality (and attack surface) is as small as possible. The separation also allows for simple permission management as we want to separate the admin calls (verified by the manager) from module calls.
-
-2. *Minimizing WASM size:* Whenever a contract is loaded for execution the whole WASM binary needs to be loaded into memory. Because all the apps proxy their messages through the Proxy contract it would be smart to have this contract be as small as possible to make it cheap to load. While CosmWasm currently has a fixed cost for loading a contract irrespective of its size. We think that might change in the future.
-```
+- **Transaction Forwarding (Proxying)** 🔀: Executing approved transactions from the **owner** or other smart-contracts.
 
 <details>
-<summary>Example Interactions</summary>
+<summary><b>Example Interactions</b></summary>
 
-### Proxy: Perform an action on Your Abstract Account
+### Perform an action on Your Abstract Account
 
-The diagram below depicts an Owner interacting with his Abstract Account through the **Manager**, and proxying a call to an external contract through the **Proxy**.
+The diagram below depicts an Owner interacting with his Abstract Account and proxying a call to an external contract.
 
 ```mermaid
 sequenceDiagram
     actor Owner
-    participant Manager
-    participant Proxy
+    participant Account
     participant External Contract
 
 
-    Owner ->> Manager: Account Action
-    Manager ->> Proxy: Forward to Proxy
-    Proxy ->> External Contract: Execute
+    Owner ->> Account: Account Action
+    Account ->> External Contract: Execute
 ```
 
-### Manager: Enabling IBC on Your Abstract Account
+### Enabling IBC on Your Abstract Account
 
-Enabling the IBC functionality on your Abstract Account is done via the Manager contract with the UpdateSettings message. By doing so the IBC client will be registered to your account, enabling your modules to execute cross-chain commands.
+Enabling the IBC functionality on your Abstract Account is done via the UpdateSettings message. By doing so the IBC client will be registered to your account, enabling your modules to execute cross-chain commands.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
-    participant VC as Version Control
+    participant M as Account
+    participant REG as Registry
 
     U ->> M: UpdateSettings
     Note right of U: ibc_enabled
-    M -->>+ VC: Query IBC Client address
-    VC -->>- M: Return IBC Client address
+    M -->>+ REG: Query IBC Client address
+    REG -->>- M: Return IBC Client address
     M ->> M: Register IBC Client
 ```
 

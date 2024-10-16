@@ -9,10 +9,13 @@ readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract/tree/main/packages/abstract-sdk"
 resolver = "2"
 
+[lints]
+workspace = true
+
 # for quicker tests, cargo test --lib
 [features]
 default = []
-stargate = ["dep:cosmos-sdk-proto", "dep:prost-types"]
+stargate = ["dep:cosmos-sdk-proto", "dep:prost-types", "dep:ibc-proto"]
 
 # Expose MockModule for testing with other Adapters
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
@@ -23,10 +26,11 @@ cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
-cosmos-sdk-proto = { version = "0.20.0", optional = true, default-features = false, features = [
+cosmos-sdk-proto = { version = "0.24", optional = true, default-features = false, features = [
   "cosmwasm",
 ] }
-prost-types = { version = "0.12.1", optional = true }
+ibc-proto = { version = "0.47.0", optional = true, default-features = false }
+prost-types = { version = "0.13.1", optional = true }
 schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
@@ -39,7 +43,6 @@ cw-clearable = { workspace = true }
 # test-utils feature
 abstract-testing = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
-polytone = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
@@ -52,3 +55,5 @@ doc-comment = "0.3.3"
 # Set our own feature when running tests!
 abstract-sdk = { path = ".", features = ["test-utils"] }
 cw-ownable = { workspace = true }
+
+coverage-helper = { workspace = true }

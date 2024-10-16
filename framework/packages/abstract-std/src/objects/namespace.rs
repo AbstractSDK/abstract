@@ -78,6 +78,7 @@ impl Display for Namespace {
 
 impl KeyDeserialize for &Namespace {
     type Output = Namespace;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -107,6 +108,7 @@ impl<'a> Prefixer<'a> for Namespace {
 
 impl KeyDeserialize for Namespace {
     type Output = Namespace;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -121,37 +123,37 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_namespace() {
         let namespace = Namespace::new("test").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_string() {
         let namespace = Namespace::try_from("test".to_string()).unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_str() {
         let namespace = Namespace::try_from("test").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_ref_string() {
         let namespace = Namespace::try_from(&"test".to_string()).unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_to_string() {
         let namespace = Namespace::new("test").unwrap();
         assert_that!(namespace.to_string()).is_equal_to("test".to_string());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn string_key_works() {
         let k = &Namespace::new("test").unwrap();
         let path = k.key();

@@ -70,7 +70,7 @@ fn test_ibc(
         None,
     )?;
 
-    let interchain = DaemonInterchainEnv::from_daemons(
+    let interchain = DaemonInterchain::from_daemons(
         vec![src_daemon.clone(), dst_daemon.clone()],
         &ChannelCreationValidator,
     );
@@ -83,7 +83,7 @@ fn test_ibc(
     account.set_ibc_status(true)?;
 
     let remote_account = account
-        .remote_account_builder(&interchain, &dst_abstract)
+        .remote_account_builder(interchain, &dst_abstract)
         .build()?;
 
     let msgs: Vec<CosmosMsg> = vec![];

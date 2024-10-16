@@ -13,13 +13,16 @@ pub enum AbstractInterfaceError {
 
     #[cfg(feature = "interchain")]
     #[error(transparent)]
-    OrchInterchain(#[from] cw_orch_interchain::InterchainError),
+    OrchInterchain(#[from] cw_orch_interchain::core::InterchainError),
 
     #[error("JSON Conversion Error: {0}")]
     SerdeJson(#[from] ::serde_json::Error),
 
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    Instantiate2(#[from] cosmwasm_std::Instantiate2AddressError),
 
     #[cfg(feature = "daemon")]
     #[error(transparent)]

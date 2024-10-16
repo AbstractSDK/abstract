@@ -110,7 +110,7 @@ A Standalone module is any contract that is not directly integrated with Abstrac
 
 On installation the standalone contract will be instantiated and the Account will be configured as the owner of the contract. The standalone contract will be stored as an installed module on the account. Developers that want to access the on-chain Abstract infrastructure can initialize a [`Standalone`](https://crates.io/crates/abstract-standalone) struct in their contract and use it to access different APIs provided by the SDK.
 
-Standalone contracts, unlike Adapters and Apps, can't execute messages on the account's proxy. They are highly suited for module-to-module IBC applications.
+Standalone contracts, unlike Adapters and Apps, can't execute messages on the account. They are highly suited for module-to-module IBC applications.
 
 You can find an example standalone application [here](https://github.com/AbstractSDK/abstract/tree/main/modules/contracts/standalones/ica-owner).
 

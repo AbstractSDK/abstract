@@ -1,11 +1,14 @@
 [package]
 name = "abstract-adapter"
-version = "0.23.0"
+version = "0.24.1-beta.1"
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 description = "base adapter contract implementation"
 resolver = "2"
+
+[lints]
+workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -29,14 +32,14 @@ abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 # Keep this as a version and update when publishing new versions
-abstract-interface = { path = "../../packages/abstract-interface", version = "0.23.0" }
-abstract-ibc-client = { version = "0.23.0", path = "../../contracts/native/ibc-client", default-features = false }
-abstract-ibc-host = { version = "0.23.0", path = "../../contracts/native/ibc-host", default-features = false }
+abstract-interface = { path = "../../packages/abstract-interface", version = "0.24.1-beta.1" }
+abstract-ibc-client = { version = "0.24.1-beta.1", path = "../../contracts/native/ibc-client", default-features = false }
+abstract-ibc-host = { version = "0.24.1-beta.1", path = "../../contracts/native/ibc-host", default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
-speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
 abstract-adapter = { path = ".", features = ["test-utils"] }
+coverage-helper = { workspace = true }

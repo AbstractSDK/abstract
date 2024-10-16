@@ -1,11 +1,14 @@
 use abstract_std::ans_host::ExecuteMsg;
-use cosmwasm_std::{
-    testing::{mock_env, mock_info},
-    DepsMut,
-};
+use abstract_testing::mock_env_validated;
+use cosmwasm_std::{testing::*, Addr, OwnedDeps, Querier, Storage};
 
 use crate::{contract, contract::AnsHostResult};
 
-pub(crate) fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> AnsHostResult {
-    contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
+pub(crate) fn execute_as(
+    deps: &mut OwnedDeps<impl Storage, MockApi, impl Querier>,
+    sender: &Addr,
+    msg: ExecuteMsg,
+) -> AnsHostResult {
+    let env = mock_env_validated(deps.api);
+    contract::execute(deps.as_mut(), env, message_info(sender, &[]), msg)
 }

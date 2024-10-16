@@ -98,27 +98,36 @@ mod handlers {
         |_, _, _, _| to_json_binary("counter_query").map_err(Into::into);
     pub const sudo: SudoHandlerFn<CounterApp, CounterSudoMsg, CounterError> =
         |_, _, _, _| Ok(Response::new().set_data("counter_sudo".as_bytes()));
-    pub const reply: ReplyHandlerFn<CounterApp, CounterError> =
-        |_, _, _, msg| Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()));
+    pub const reply: ReplyHandlerFn<CounterApp, CounterError> = |_, _, _, msg| {
+        #[allow(deprecated)]
+        Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+    };
     pub const migrate: MigrateHandlerFn<CounterApp, CounterMigrateMsg, CounterError> =
         |_, _, _, _| Ok(Response::new().set_data("counter_migrate".as_bytes()));
     // ANCHOR: execute
     pub fn execute(
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
         module: CounterApp, // <-- Notice how the `CounterApp` is available here
         msg: CounterExecMsg,
     ) -> CounterResult {
         match msg {
-            CounterExecMsg::UpdateConfig {} => update_config(deps, info, module),
+            CounterExecMsg::UpdateConfig {} => update_config(deps, env, info, module),
         }
     }
 
     /// Update the configuration of the app
-    fn update_config(deps: DepsMut, msg_info: MessageInfo, module: CounterApp) -> CounterResult {
+    fn update_config(
+        deps: DepsMut,
+        env: Env,
+        msg_info: MessageInfo,
+        module: CounterApp,
+    ) -> CounterResult {
         // Only the admin should be able to call this
-        module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+        module
+            .admin
+            .assert_admin(deps.as_ref(), &env, &msg_info.sender)?;
 
         Ok(module
             .response("update_config")

@@ -1,31 +1,31 @@
 use abstract_std::ans_host::*;
-use abstract_testing::OWNER;
-use cosmwasm_std::testing::{mock_env, mock_info};
+use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
+use cosmwasm_std::testing::*;
 use cw_asset::AssetInfo;
 
 use crate::{
     contract::execute,
     error::AnsHostError,
-    tests::{instantiate::mock_instantiate, mock_querier::mock_dependencies},
+    tests::{instantiate::mock_init, mock_querier::mock_dependencies},
 };
 
 /**
  * Test disallowed address update
  */
-#[test]
+#[coverage_helper::test]
 fn unauthorized_ans_host_update() {
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+    mock_init(&mut deps);
 
     // Try adding an asset to the ans_host
-    let env = mock_env();
+    let env = mock_env_validated(deps.api);
     let asset_info = AssetInfo::Native("asset_1".to_string());
     let msg = ExecuteMsg::UpdateAssetAddresses {
         to_add: vec![("asset".to_string(), asset_info.into())],
         to_remove: vec![],
     };
 
-    let info = mock_info("some_address", &[]);
+    let info = message_info(&deps.api.addr_make("some_address"), &[]);
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
 
     match res {
@@ -38,7 +38,7 @@ fn unauthorized_ans_host_update() {
     let msg = ExecuteMsg::UpdateContractAddresses {
         to_add: vec![(
             "project:contract".try_into().unwrap(),
-            "contract_address".to_string(),
+            deps.api.addr_make("contract_address").to_string(),
         )],
         to_remove: vec![],
     };
@@ -55,20 +55,21 @@ fn unauthorized_ans_host_update() {
 /**
  * Test allowed ans_host update
  */
-#[test]
+#[coverage_helper::test]
 fn authorized_ans_host_update() {
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+    mock_init(&mut deps);
+    let abstr = AbstractMockAddrs::new(deps.api);
 
     // Try adding an asset to the ans_host
-    let env = mock_env();
+    let env = mock_env_validated(deps.api);
     let asset_info = AssetInfo::Native("asset_1".to_string());
     let msg = ExecuteMsg::UpdateAssetAddresses {
         to_add: vec![("asset".to_string(), asset_info.into())],
         to_remove: vec![],
     };
 
-    let info = mock_info(OWNER, &[]);
+    let info = message_info(&abstr.owner, &[]);
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
 
     match res {
@@ -80,7 +81,7 @@ fn authorized_ans_host_update() {
     let msg = ExecuteMsg::UpdateContractAddresses {
         to_add: vec![(
             "project:contract".try_into().unwrap(),
-            "contract_address".to_string(),
+            deps.api.addr_make("contract_address").to_string(),
         )],
         to_remove: vec![],
     };

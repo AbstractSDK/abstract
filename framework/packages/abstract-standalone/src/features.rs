@@ -1,30 +1,31 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps};
+use abstract_std::registry::Account;
+use cosmwasm_std::{Deps, Env};
 
 use crate::StandaloneContract;
 
 // ANCHOR: ans
 impl AbstractNameService for StandaloneContract {
-    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
         // Retrieve the ANS host address from the base state.
-        Ok(self.base_state.load(deps.storage)?.ans_host)
+        Ok(AnsHost::new(deps.api, env)?)
     }
 }
 // ANCHOR_END: ans
 
 impl AbstractRegistryAccess for StandaloneContract {
-    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-        Ok(self.base_state.load(deps.storage)?.version_control)
+    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+        Ok(RegistryContract::new(deps.api, env)?)
     }
 }
 
 impl AccountIdentification for StandaloneContract {
-    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.base_state.load(deps.storage)?.proxy_address)
+    fn account(&self, deps: Deps) -> AbstractSdkResult<Account> {
+        Ok(self.base_state.load(deps.storage)?.account)
     }
 }
 
@@ -38,69 +39,67 @@ impl Dependencies for StandaloneContract {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
-    use abstract_std::version_control::AccountBase;
-    use abstract_testing::{
-        addresses::TEST_MODULE_ID,
-        mock_querier,
-        prelude::{TEST_ACCOUNT_ID, TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY, TEST_VERSION_CONTROL},
-    };
-    use cosmwasm_std::Addr;
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     use super::*;
     use crate::mock::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_ans_host() -> StandaloneTestResult {
-        let deps = mock_init();
+        let deps = mock_init(true);
+        let env = mock_env_validated(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref())?;
+        let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref(), &env)?;
 
-        assert_that!(ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
+        assert_that!(ans_host.address).is_equal_to(abstr.ans_host);
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_abstract_registry() -> StandaloneTestResult {
-        let deps = mock_init();
+        let deps = mock_init(true);
+        let env = mock_env_validated(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref())?;
+        let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref(), &env)?;
 
-        assert_that!(abstract_registry.address).is_equal_to(Addr::unchecked(TEST_VERSION_CONTROL));
+        assert_that!(abstract_registry.address).is_equal_to(abstr.registry);
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_traits_generated() -> StandaloneTestResult {
-        let mut deps = mock_init();
-        deps.querier = mock_querier();
-        let test_account_base = AccountBase {
-            manager: Addr::unchecked(TEST_MANAGER),
-            proxy: Addr::unchecked(TEST_PROXY),
-        };
+        let mut deps = mock_init(true);
+        let env = mock_env_validated(deps.api);
+        let expected_account = test_account(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&expected_account, TEST_ACCOUNT_ID)
+            .build();
 
         // AbstractNameService
         let host = BASIC_MOCK_STANDALONE
-            .name_service(deps.as_ref())
+            .name_service(deps.as_ref(), &env)
             .host()
             .clone();
-        assert_eq!(host, AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
+        assert_eq!(host, AnsHost::new(&deps.api, &env)?);
 
         // AccountRegistry
-        let account_registry = BASIC_MOCK_STANDALONE
-            .account_registry(deps.as_ref())
-            .unwrap();
-        let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
-        assert_eq!(base, test_account_base);
+        // TODO: Why rust forces binding on static object what
+        let binding = BASIC_MOCK_STANDALONE;
+        let account_registry = binding.account_registry(deps.as_ref(), &env).unwrap();
+        let account = account_registry.account(&TEST_ACCOUNT_ID)?;
+        assert_eq!(account, expected_account);
 
         // TODO: Make some of the module_registry queries raw as well?
-        let _module_registry = BASIC_MOCK_STANDALONE.module_registry(deps.as_ref());
+        let _module_registry = BASIC_MOCK_STANDALONE.module_registry(deps.as_ref(), &env);
         // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_module_id() -> StandaloneTestResult {
         let module_id = BASIC_MOCK_STANDALONE.module_id();
 

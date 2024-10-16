@@ -3,9 +3,7 @@ use cosmwasm_std::{Binary, QueryRequest, StdResult, WasmQuery};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
-    apis::{AbstractApi, ApiIdentification},
-    features::ModuleIdentification,
-    AbstractSdkError, AbstractSdkResult,
+    apis::AbstractApi, features::ModuleIdentification, AbstractSdkError, AbstractSdkResult,
 };
 
 /// Shortcut helper as the construction of QueryRequest::Wasm(WasmQuery::Raw {...}) can be quite verbose in contract code
@@ -19,7 +17,7 @@ pub fn wasm_raw_query<C>(
     }))
 }
 
-pub trait ApiQuery<S: ModuleIdentification>: AbstractApi<S> + ApiIdentification {
+pub trait ApiQuery<S: ModuleIdentification>: AbstractApi<S> {
     fn smart_query<T: DeserializeOwned>(
         &self,
         contract_addr: impl Into<String>,
@@ -43,7 +41,7 @@ pub trait ApiQuery<S: ModuleIdentification>: AbstractApi<S> + ApiIdentification 
 impl<S, T> ApiQuery<S> for T
 where
     S: ModuleIdentification,
-    T: AbstractApi<S> + ApiIdentification,
+    T: AbstractApi<S>,
 {
 }
 
@@ -55,7 +53,7 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_wasm_raw_query() {
         let query = wasm_raw_query::<Empty>("contract", b"key").unwrap();
         match query {
@@ -67,7 +65,7 @@ mod test {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_wasm_raw_map_query() {
         let key: Path<u64> = Path::new(b"map", &[&4u8.to_be_bytes()]);
         println!("p: {}", String::from_utf8(key.to_vec()).unwrap());

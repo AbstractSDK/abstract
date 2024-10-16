@@ -4,11 +4,12 @@ members = [
   "contracts/adapters/*",
   "contracts/standalones/*",
 ]
+exclude = ["contracts/apps/croncat", "contracts/apps/dca"]
 
 resolver = "2"
 
 [workspace.package]
-version = "0.23.0"
+version = "0.24.1-beta.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -24,49 +25,47 @@ keywords = ["cosmos", "cosmwasm", "framework"]
 [workspace.dependencies]
 
 
-cosmwasm-std = { version = "1.5" }
-cosmwasm-schema = { version = "1.2" }
-cw-controllers = { version = "1.0" }
-cw-utils = { version = "1.0" }
-cw-storage-plus = "1.2.0"
-cw2 = { version = "1.0" }
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "3.0.0" }
-cw20-base = { package = "abstract-cw20-base", features = [
-  "library",
-], version = "3.0.0" }
-cw20 = { package = "abstract-cw20", version = "3.0.0" }
-cw-asset = { version = "3.0" }
-cw-ownable = { version = "0.5" }
-cw-address-like = { version = "1.0" }
+cosmwasm-std = { version = "2.0" }
+cosmwasm-schema = { version = "2.0" }
+cw-controllers = { version = "2.0" }
+cw-utils = { version = "2.0" }
+cw-storage-plus = "2.0.0"
+cw2 = { version = "2.0" }
+cw-plus-orch = { version = "0.25.0" }
+cw20-base = { features = ["library"], version = "2.0.0" }
+cw20 = { version = "2.0.0" }
+cw-asset = { version = "4.0" }
+cw-ownable = { version = "2.0" }
+cw-address-like = { version = "2.0" }
 
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.50" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
-
 chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-cw-orch = { version = "0.24.0" }
-cw-orch-interchain = { version = "0.3.0" }
-cw-orch-osmosis-test-tube = { version = "0.2.0" }
+
+cw-orch = { version = "0.26.0" }
+cw-orch-interchain = { version = "0.7.0" }
+# cw-orch-osmosis-test-tube = { version = "0.2.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.23.0" }
-abstract-adapter = { version = "0.23.0" }
-abstract-app = { version = "0.23.0" }
-abstract-standalone = { version = "0.23.0" }
-abstract-testing = { version = "0.23.0" }
-abstract-macros = { version = "0.23.0" }
-abstract-client = { version = "0.23.0" }
+abstract-interface = { version = "0.24.1-beta.1" }
+abstract-adapter = { version = "0.24.1-beta.1" }
+abstract-app = { version = "0.24.1-beta.1" }
+abstract-standalone = { version = "0.24.1-beta.1" }
+abstract-testing = { version = "0.24.1-beta.1" }
+abstract-macros = { version = "0.24.1-beta.1" }
+abstract-client = { version = "0.24.1-beta.1" }
 
-abstract-adapter-utils = { version = "0.23.0" }
-abstract-dex-standard = { version = "0.23.0" }
-abstract-staking-standard = { version = "0.23.0" }
-abstract-money-market-standard = { version = "0.23.0" }
+abstract-adapter-utils = { version = "0.24.1-beta.1" }
+abstract-dex-standard = { version = "0.24.1-beta.1" }
+abstract-staking-standard = { version = "0.24.1-beta.1" }
+abstract-money-market-standard = { version = "0.24.1-beta.1" }
 
 # Integrations
 abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }
@@ -76,7 +75,7 @@ abstract-kujira-adapter = { path = "../integrations/kujira-adapter", default-fea
 abstract-mars-adapter = { path = "../integrations/mars-adapter", default-features = false }
 abstract-astrovault-adapter = { path = "../integrations/astrovault-adapter", default-features = false }
 
-wyndex-bundle = { path = "../integrations/bundles/wyndex" }
+# wyndex-bundle = { path = "../integrations/bundles/wyndex" }
 
 ## Modules
 croncat-app = { path = "./contracts/apps/croncat", default-features = false }
@@ -105,6 +104,12 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
+
+# TODO: remove after polytone release
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

@@ -1,5 +1,5 @@
 use crate::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
-use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
+use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, RegistryExecFns};
 use abstract_adapter::std::{
     adapter,
     objects::{
@@ -53,7 +53,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
     ) -> anyhow::Result<Self> {
         // Re-register cw-staking, to make sure it's latest
         let _ = abstr_deployment
-            .version_control()
+            .registry()
             .remove_module(ModuleInfo::from_id(
                 CW_STAKING_ADAPTER_ID,
                 ModuleVersion::Version(crate::contract::CONTRACT_VERSION.to_owned()),
@@ -81,16 +81,16 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             .account_builder()
             .install_adapter::<CwStakingAdapter<Chain>>()?
             .build()?;
-        let proxy_addr = new_account.proxy()?;
+        let account_addr = new_account.address()?;
 
         let stake_value = 1_000_000_000u128;
 
-        self.provider.mint_lp(&proxy_addr, stake_value)?;
+        self.provider.mint_lp(&account_addr, stake_value)?;
 
         // stake 1_000_000_000
         self.staking_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: StakingExecuteMsg {
                     provider: self.provider.name(),
                     action: StakingAction::Stake {
@@ -99,7 +99,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
         // Ensure staked
         let stake_response: StakeResponse =
@@ -107,7 +107,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                 .query(&crate::msg::QueryMsg::Module(StakingQueryMsg::Staked {
                     provider: self.provider.name(),
                     stakes: vec![ans_stake_token.into()],
-                    staker_address: proxy_addr.to_string(),
+                    staker_address: account_addr.to_string(),
                     unbonding_period: None,
                 }))?;
 
@@ -123,18 +123,18 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             .account_builder()
             .install_adapter::<CwStakingAdapter<Chain>>()?
             .build()?;
-        let proxy_addr = new_account.proxy()?;
+        let account_addr = new_account.address()?;
 
         let stake_value = 1_000_000_000u128;
 
-        self.provider.mint_lp(&proxy_addr, stake_value * 2)?;
+        self.provider.mint_lp(&account_addr, stake_value * 2)?;
 
         // TODO: unbonding period
 
         // stake 1_000_000_000 * 2
         self.staking_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: StakingExecuteMsg {
                     provider: self.provider.name(),
                     action: StakingAction::Stake {
@@ -143,13 +143,13 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
 
         // Unstake half
         self.staking_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: StakingExecuteMsg {
                     provider: self.provider.name(),
                     action: StakingAction::Unstake {
@@ -158,17 +158,17 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
 
         // Ensure user got his lp back
-        let lp_balance = self.query_proxy_balance(&proxy_addr, &lp_asset)?.u128();
+        let lp_balance = self.query_account_balance(&account_addr, &lp_asset)?.u128();
         assert_eq!(lp_balance, stake_value);
 
         // Unstake rest
         self.staking_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: StakingExecuteMsg {
                     provider: self.provider.name(),
                     action: StakingAction::Unstake {
@@ -177,7 +177,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
 
         // Ensure unstaked
@@ -186,14 +186,14 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                 .query(&crate::msg::QueryMsg::Module(StakingQueryMsg::Staked {
                     provider: self.provider.name(),
                     stakes: vec![ans_stake_token.into()],
-                    staker_address: proxy_addr.to_string(),
+                    staker_address: account_addr.to_string(),
                     unbonding_period: None,
                 }))?;
 
         assert_eq!(stake_response.amounts, vec![Uint128::zero()]);
 
         // Ensure user got all of his lp back
-        let lp_balance = self.query_proxy_balance(&proxy_addr, &lp_asset)?.u128();
+        let lp_balance = self.query_account_balance(&account_addr, &lp_asset)?.u128();
         assert_eq!(lp_balance, stake_value * 2);
 
         Ok(())
@@ -207,18 +207,18 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             .account_builder()
             .install_adapter::<CwStakingAdapter<Chain>>()?
             .build()?;
-        let proxy_addr = new_account.proxy()?;
+        let account_addr = new_account.address()?;
 
         let stake_value = 1_000_000_000u128;
         let reward_value = 10_000_000u128;
-        self.provider.mint_lp(&proxy_addr, stake_value)?;
+        self.provider.mint_lp(&account_addr, stake_value)?;
 
         // TODO: unbonding period
 
         // stake 1_000_000_000
         self.staking_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: StakingExecuteMsg {
                     provider: self.provider.name(),
                     action: StakingAction::Stake {
@@ -227,14 +227,15 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
 
-        self.provider.generate_rewards(&proxy_addr, reward_value)?;
+        self.provider
+            .generate_rewards(&account_addr, reward_value)?;
 
         self.staking_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: StakingExecuteMsg {
                     provider: self.provider.name(),
                     action: StakingAction::ClaimRewards {
@@ -242,10 +243,10 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
         let reward = self
-            .query_proxy_balance(&proxy_addr, &self.provider.reward_asset())?
+            .query_account_balance(&account_addr, &self.provider.reward_asset())?
             .u128();
         assert!(reward >= reward_value);
 
@@ -279,14 +280,14 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             .account_builder()
             .install_adapter::<CwStakingAdapter<Chain>>()?
             .build()?;
-        let proxy_addr = new_account.proxy()?;
+        let account_addr = new_account.address()?;
 
         // In case it's mock incentive need to generate and stake it first
         let stake_value = 1_000_000_000u128;
-        self.provider.mint_lp(&proxy_addr, stake_value)?;
+        self.provider.mint_lp(&account_addr, stake_value)?;
         self.staking_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(proxy_addr.to_string()),
+                account_address: Some(account_addr.to_string()),
                 request: StakingExecuteMsg {
                     provider: self.provider.name(),
                     action: StakingAction::Stake {
@@ -295,10 +296,10 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                     },
                 },
             }),
-            None,
+            &[],
         )?;
         self.provider
-            .generate_rewards(&proxy_addr, 10_000_000u128)?;
+            .generate_rewards(&account_addr, 10_000_000u128)?;
 
         let rewards_respone: RewardTokensResponse = self.staking_adapter.query(
             &crate::msg::QueryMsg::Module(StakingQueryMsg::RewardTokens {
@@ -313,9 +314,9 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         Ok(())
     }
 
-    fn query_proxy_balance(
+    fn query_account_balance(
         &self,
-        proxy_addr: &Addr,
+        account_addr: &Addr,
         asset: &AssetInfoUnchecked,
     ) -> anyhow::Result<Uint128> {
         let chain = self.abstr_deployment.environment();
@@ -324,7 +325,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             cw_asset::AssetInfoBase::Native(denom) => {
                 chain
                     .bank_querier()
-                    .balance(proxy_addr, Some(denom.to_owned()))
+                    .balance(account_addr, Some(denom.to_owned()))
                     .unwrap()
                     .pop()
                     .unwrap()
@@ -334,7 +335,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
                 let balance: cw20::BalanceResponse = chain
                     .query(
                         &cw20::Cw20QueryMsg::Balance {
-                            address: proxy_addr.to_string(),
+                            address: account_addr.to_string(),
                         },
                         &Addr::unchecked(addr),
                     )

@@ -1,22 +1,24 @@
-use abstract_std::proxy;
+use abstract_std::account;
 use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
 
 use crate::AbstractSdkResult;
 
 use super::AccountIdentification;
 
-/// Trait for modules that are allowed to execute on the proxy.
+/// Trait for modules that are allowed to execute on the account.
 pub trait AccountExecutor: AccountIdentification {
-    /// Execute proxy method on proxy contract
-    fn execute_on_proxy(
+    /// Execute method on account contract
+    fn execute_on_account(
         &self,
         deps: Deps,
-        msg: &proxy::ExecuteMsg,
+        msg: &account::ExecuteMsg,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<CosmosMsg> {
-        let proxy_address = self.proxy_address(deps)?;
-        wasm_execute(proxy_address, msg, funds)
+        let account_address = self.account(deps)?;
+        wasm_execute(account_address.into_addr(), msg, funds)
             .map(Into::into)
             .map_err(Into::into)
     }
 }
+
+impl<T> AccountExecutor for T where T: AccountIdentification {}

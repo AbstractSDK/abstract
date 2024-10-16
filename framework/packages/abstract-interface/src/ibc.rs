@@ -1,6 +1,8 @@
-use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, VersionControl};
+use crate::{AbstractInterfaceError, IbcClient, IbcHost, Registry};
 use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
+
+#[derive(Clone)]
 pub struct AbstractIbc<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
     pub host: IbcHost<Chain>,
@@ -22,33 +24,20 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         Ok(())
     }
 
-    pub fn instantiate(&self, abstr: &Abstract<Chain>, admin: &Addr) -> Result<(), CwOrchError> {
+    pub fn instantiate(&self, admin: &Addr) -> Result<(), CwOrchError> {
         self.client.instantiate(
-            &abstract_std::ibc_client::InstantiateMsg {
-                ans_host_address: abstr.ans_host.addr_str()?,
-                version_control_address: abstr.version_control.addr_str()?,
-            },
+            &abstract_std::ibc_client::InstantiateMsg {},
             Some(admin),
-            None,
+            &[],
         )?;
 
-        self.host.instantiate(
-            &abstract_std::ibc_host::InstantiateMsg {
-                ans_host_address: abstr.ans_host.addr_str()?,
-                account_factory_address: abstr.account_factory.addr_str()?,
-                version_control_address: abstr.version_control.addr_str()?,
-            },
-            Some(admin),
-            None,
-        )?;
+        self.host
+            .instantiate(&abstract_std::ibc_host::InstantiateMsg {}, Some(admin), &[])?;
         Ok(())
     }
 
-    pub fn register(
-        &self,
-        version_control: &VersionControl<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        version_control.register_natives(vec![
+    pub fn register(&self, registry: &Registry<Chain>) -> Result<(), AbstractInterfaceError> {
+        registry.register_natives(vec![
             (
                 self.client.as_instance(),
                 ibc_client::contract::CONTRACT_VERSION.to_string(),
@@ -59,11 +48,20 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             ),
         ])
     }
+
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            client: self.client.call_as(sender),
+            host: self.host.call_as(sender),
+        }
+    }
 }
 
 #[cfg(feature = "interchain")]
 // Helpers to create connection with another chain
 pub mod connection {
+    use crate::Abstract;
+
     use super::*;
     use abstract_std::ibc_client::{ExecuteMsgFns, QueryMsgFns};
     use abstract_std::ibc_host::ExecuteMsgFns as _;

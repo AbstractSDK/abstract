@@ -15,6 +15,7 @@ required-features = ["schema"]
 
 [[example]]
 name = "deploy"
+required-features = ["daemon"]
 
 [features]
 default = ["export"]

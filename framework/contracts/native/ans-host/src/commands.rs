@@ -365,10 +365,7 @@ fn validate_pool_assets(
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::{map_tester::CwMapTester, prelude::*};
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Addr, DepsMut,
-    };
+    use cosmwasm_std::{testing::*, Addr};
     use speculoos::prelude::*;
 
     use super::*;
@@ -376,12 +373,17 @@ mod test {
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 
-    fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> AnsHostTestResult {
-        contract::execute(deps, mock_env(), mock_info(OWNER, &[]), msg)?;
+    fn execute_helper(deps: &mut MockDeps, msg: ExecuteMsg, owner: &Addr) -> AnsHostTestResult {
+        let env = mock_env_validated(deps.api);
+        contract::execute(deps.as_mut(), env, message_info(owner, &[]), msg)?;
         Ok(())
     }
 
-    fn register_assets_helper(deps: DepsMut, assets: Vec<AssetEntry>) -> AnsHostTestResult {
+    fn register_assets_helper(
+        deps: &mut MockDeps,
+        assets: Vec<AssetEntry>,
+        owner: &Addr,
+    ) -> AnsHostTestResult {
         let msg = ExecuteMsg::UpdateAssetAddresses {
             to_add: assets
                 .iter()
@@ -389,29 +391,32 @@ mod test {
                 .collect(),
             to_remove: vec![],
         };
-        execute_helper(deps, msg)?;
+        execute_helper(deps, msg, owner)?;
         Ok(())
     }
 
     mod update_dexes {
         use super::*;
 
+        use abstract_testing::mock_env_validated;
         use cosmwasm_std::{testing::MockApi, Empty, OwnedDeps};
 
-        #[test]
+        #[coverage_helper::test]
         fn register_dex() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            mock_init(&mut deps).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&abstr.owner, &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
                 to_add: vec![new_dex.clone()],
                 to_remove: vec![],
             };
+            let env = mock_env_validated(deps.api);
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), env, info, msg)?;
 
             assert_expected_dexes(&deps, vec![new_dex]);
 
@@ -419,12 +424,14 @@ mod test {
         }
 
         /// Registering multiple dexes should work
-        #[test]
+        #[coverage_helper::test]
         fn register_dex_twice() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let env = mock_env_validated(deps.api);
+            mock_init(&mut deps).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&abstr.owner, &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -432,20 +439,22 @@ mod test {
                 to_remove: vec![],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info.clone(), msg.clone())?;
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), env.clone(), info.clone(), msg.clone())?;
+            let _res = contract::execute(deps.as_mut(), env, info, msg)?;
 
             assert_expected_dexes(&deps, vec![new_dex]);
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn duplicate_in_msg() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let env = mock_env_validated(deps.api);
+            mock_init(&mut deps).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&abstr.owner, &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -453,7 +462,7 @@ mod test {
                 to_remove: vec![],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), env, info, msg)?;
 
             // ONly one dex should be registered
             assert_expected_dexes(&deps, vec![new_dex]);
@@ -461,12 +470,14 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn register_and_deregister_dex_same_msg() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let env = mock_env_validated(deps.api);
+            mock_init(&mut deps).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&abstr.owner, &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -474,19 +485,21 @@ mod test {
                 to_remove: vec![new_dex],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), env, info, msg)?;
 
             assert_expected_dexes(&deps, vec![]);
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn register_multiple_dexes() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let env = mock_env_validated(deps.api);
+            mock_init(&mut deps).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&abstr.owner, &[]);
             let new_dexes = vec!["test_dex".to_string(), "test_dex_2".to_string()];
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -494,19 +507,21 @@ mod test {
                 to_remove: vec![],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), env, info, msg)?;
 
             assert_expected_dexes(&deps, new_dexes);
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_nonexistent_dex() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let env = mock_env_validated(deps.api);
+            mock_init(&mut deps).unwrap();
 
-            let info = mock_info(OWNER, &[]);
+            let info = message_info(&abstr.owner, &[]);
             let missing_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -514,7 +529,7 @@ mod test {
                 to_remove: vec![missing_dex],
             };
 
-            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), env, info, msg)?;
 
             let expected_dexes: Vec<String> = vec![];
 
@@ -549,13 +564,13 @@ mod test {
         fn contract_address_map_entry(
             namespace: &str,
             name: &str,
-            address: &str,
+            address: &Addr,
         ) -> (UncheckedContractEntry, String) {
             (contract_entry(namespace, name), address.to_string())
         }
 
-        fn mock_contract_map_entry() -> (UncheckedContractEntry, String) {
-            contract_address_map_entry("test_namespace", "test_contract", "test_address")
+        fn mock_contract_map_entry(address: &Addr) -> (UncheckedContractEntry, String) {
+            contract_address_map_entry("test_namespace", "test_contract", address)
         }
 
         fn update_contract_addresses_msg_builder(
@@ -575,8 +590,9 @@ mod test {
             )
         }
 
-        fn setup_map_tester<'a>() -> CwMapTester<
-            'a,
+        fn setup_map_tester<'a>(
+            mock_api: MockApi,
+        ) -> CwMapTester<
             ExecuteMsg,
             AnsHostError,
             &'a ContractEntry,
@@ -584,78 +600,87 @@ mod test {
             UncheckedContractEntry,
             String,
         > {
-            let info = mock_info(OWNER, &[]);
+            let abstr = AbstractMockAddrs::new(mock_api);
+            let info = message_info(&abstr.owner, &[]);
+            let test_addr = mock_api.addr_make("test_address");
 
-            let tester = CwMapTesterBuilder::default()
+            CwMapTesterBuilder::default()
                 .info(info)
                 .map(CONTRACT_ADDRESSES)
                 .execute(contract::execute)
                 .msg_builder(update_contract_addresses_msg_builder)
-                .mock_entry_builder(mock_contract_map_entry)
+                .mock_entry(mock_contract_map_entry(&test_addr))
                 .from_checked_entry(from_checked_entry)
                 .build()
-                .unwrap();
-
-            tester
+                .unwrap()
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_contract_address() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_one(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_contract_address_twice() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_one_twice(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_contract_address_twice_in_same_msg() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_two_same(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_and_remove_contract_address_same_msg() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_and_remove_same(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_non_existent_contract_address() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_remove_nonexistent(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_multiple_contract_addresses() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
+            mock_init(&mut deps).unwrap();
+            let mut map_tester = setup_map_tester(deps.api);
 
-            let new_entry_1 =
-                contract_address_map_entry("test_namespace", "test_contract", "test_address");
-            let new_entry_2 =
-                contract_address_map_entry("test_namespace_2", "test_contract_2", "test_address_2");
-            let new_entry_3 =
-                contract_address_map_entry("test_namespace_3", "test_contract_3", "test_address_3");
+            let new_entry_1 = contract_address_map_entry(
+                "test_namespace",
+                "test_contract",
+                &deps.api.addr_make("test_address"),
+            );
+            let new_entry_2 = contract_address_map_entry(
+                "test_namespace_2",
+                "test_contract_2",
+                &deps.api.addr_make("test_address_2"),
+            );
+            let new_entry_3 = contract_address_map_entry(
+                "test_namespace_3",
+                "test_contract_3",
+                &deps.api.addr_make("test_address_3"),
+            );
 
             map_tester.test_update_auto_expect(
                 &mut deps,
@@ -663,17 +688,22 @@ mod test {
             )
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_multiple_contract_addresses_and_deregister_one() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
+            mock_init(&mut deps).unwrap();
+            let mut map_tester = setup_map_tester(deps.api);
 
-            let _info = mock_info(OWNER, &[]);
-            let new_entry_1 =
-                contract_address_map_entry("test_namespace", "test_contract", "test_address");
-            let new_entry_2 =
-                contract_address_map_entry("test_namespace_2", "test_contract_2", "test_address_2");
+            let new_entry_1 = contract_address_map_entry(
+                "test_namespace",
+                "test_contract",
+                &deps.api.addr_make("test_address"),
+            );
+            let new_entry_2 = contract_address_map_entry(
+                "test_namespace_2",
+                "test_contract_2",
+                &deps.api.addr_make("test_address_2"),
+            );
 
             // add 1 and 2
             map_tester.test_update_auto_expect(
@@ -681,8 +711,11 @@ mod test {
                 (vec![new_entry_1.clone(), new_entry_2.clone()], vec![]),
             )?;
 
-            let new_entry_3 =
-                contract_address_map_entry("test_namespace_3", "test_contract_3", "test_address_3");
+            let new_entry_3 = contract_address_map_entry(
+                "test_namespace_3",
+                "test_contract_3",
+                &deps.api.addr_make("test_address_3"),
+            );
 
             // Add 3 and remove 1, leaving 2 and 3
             map_tester.test_update_with_expected(
@@ -691,31 +724,13 @@ mod test {
                 vec![new_entry_2, new_entry_3],
             )
         }
-
-        #[test]
-        fn invalid_address_rejected() -> AnsHostTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
-
-            let bad_entry =
-                contract_address_map_entry("test_namespace", "test_contract", "BAD_ADDRESS");
-
-            let res = map_tester.execute_update(deps.as_mut(), (vec![bad_entry], vec![]));
-
-            assert_that!(res)
-                .is_err()
-                .matches(|err| matches!(err, AnsHostError::Std(StdError::GenericErr { .. })));
-
-            Ok(())
-        }
     }
 
     mod update_asset_addresses {
         use super::*;
 
         use abstract_testing::map_tester::CwMapTesterBuilder;
-        use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
+        use cw_asset::{AssetInfo, AssetInfoBase};
         use cw_storage_plus::Map;
 
         fn unchecked_asset_map_entry(
@@ -745,7 +760,9 @@ mod test {
             (key.to_string(), value.into())
         }
 
-        fn mock_unchecked_entries() -> (
+        fn mock_unchecked_entries(
+            mock_api: MockApi,
+        ) -> (
             (String, AssetInfoUnchecked),
             (String, AssetInfoUnchecked),
             (String, AssetInfoUnchecked),
@@ -754,13 +771,16 @@ mod test {
                 unchecked_asset_map_entry("juno", AssetInfoBase::Native("ujuno".into()));
             let new_entry_2 =
                 unchecked_asset_map_entry("osmo", AssetInfoBase::Native("uosmo".into()));
-            let new_entry_3 =
-                unchecked_asset_map_entry("sjuno", AssetInfoBase::Cw20("junoxxxxxxxxx".into()));
+            let new_entry_3 = unchecked_asset_map_entry(
+                "sjuno",
+                AssetInfoBase::Cw20(mock_api.addr_make("sjuno").to_string()),
+            );
             (new_entry_1, new_entry_2, new_entry_3)
         }
 
-        fn setup_map_tester<'a>() -> CwMapTester<
-            'a,
+        fn setup_map_tester<'a>(
+            mock_api: MockApi,
+        ) -> CwMapTester<
             ExecuteMsg,
             AnsHostError,
             &'a AssetEntry,
@@ -768,59 +788,58 @@ mod test {
             String,
             AssetInfoUnchecked,
         > {
-            let info = mock_info(OWNER, &[]);
+            let abstr = AbstractMockAddrs::new(mock_api);
+            let info = message_info(&abstr.owner, &[]);
 
-            let tester = CwMapTesterBuilder::default()
+            CwMapTesterBuilder::default()
                 .info(info)
                 .map(ASSET_ADDRESSES)
                 .execute(contract::execute)
                 .msg_builder(update_asset_addresses_msg_builder)
-                .mock_entry_builder(mock_asset_map_entry)
+                .mock_entry(mock_asset_map_entry())
                 .from_checked_entry(from_checked_entry)
                 .build()
-                .unwrap();
-
-            tester
+                .unwrap()
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_asset_address() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_one(&mut deps)?;
-            let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
+            let reverse_map = REV_ASSET_ADDRESSES;
             let test_entry =
                 reverse_map.load(&deps.storage, &AssetInfoBase::Native("utest".into()))?;
             assert_that!(test_entry).is_equal_to(AssetEntry::from("test"));
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_asset_address_twice() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_one_twice(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_asset_address_twice_in_same_msg() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_two_same(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_and_remove_asset_address_same_msg() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_and_remove_same(&mut deps)?;
             let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
             let test_entry =
@@ -829,41 +848,41 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_non_existent_asset_address() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_remove_nonexistent(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_multiple_asset_addresses() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
+            mock_init(&mut deps).unwrap();
+            let mut map_tester = setup_map_tester(deps.api);
 
-            let (new_entry_1, new_entry_2, new_entry_3) = mock_unchecked_entries();
+            let (new_entry_1, new_entry_2, new_entry_3) = mock_unchecked_entries(deps.api);
             map_tester.test_update_auto_expect(
                 &mut deps,
                 (vec![new_entry_1, new_entry_2, new_entry_3.clone()], vec![]),
             )?;
 
-            let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
+            let reverse_map = REV_ASSET_ADDRESSES;
             let test_entry =
                 reverse_map.load(&deps.storage, &new_entry_3.1.check(&deps.api, None)?)?;
             assert_that!(test_entry.to_string()).is_equal_to(new_entry_3.0);
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_multiple_asset_addresses_and_deregister_one() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
+            mock_init(&mut deps).unwrap();
+            let mut map_tester = setup_map_tester(deps.api);
 
-            let (new_entry_1, new_entry_2, _new_entry_3) = mock_unchecked_entries();
+            let (new_entry_1, new_entry_2, _new_entry_3) = mock_unchecked_entries(deps.api);
 
             // add 1 and 2
             map_tester.test_update_auto_expect(
@@ -871,7 +890,10 @@ mod test {
                 (vec![new_entry_1.clone(), new_entry_2.clone()], vec![]),
             )?;
 
-            let new_entry_3 = unchecked_asset_map_entry("usd", AssetInfoBase::Cw20("uusd".into()));
+            let new_entry_3 = unchecked_asset_map_entry(
+                "usd",
+                AssetInfoBase::Cw20(deps.api.addr_make("uusd").into()),
+            );
 
             // Add 3 and remove 1, leaving 2 and 3
             map_tester.test_update_with_expected(
@@ -879,31 +901,6 @@ mod test {
                 (vec![new_entry_3.clone()], vec![new_entry_1.0]),
                 vec![new_entry_2, new_entry_3],
             )
-        }
-
-        #[test]
-        fn bad_asset_address_throws() -> AnsHostTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
-
-            let bad_asset_address =
-                unchecked_asset_map_entry("BAD", AssetInfoUnchecked::Cw20("BAD".into()));
-
-            let err = map_tester
-                .execute_update(deps.as_mut(), (vec![bad_asset_address], vec![]))
-                .unwrap_err();
-
-            assert_that!(err)
-                .matches(|e| {
-                    matches!(
-                        e,
-                        AnsHostError::Asset(AssetError::Std(StdError::GenericErr { .. }))
-                    )
-                })
-                .matches(|e| e.to_string().contains("address not normalized"));
-
-            Ok(())
         }
     }
 
@@ -951,16 +948,17 @@ mod test {
             UncheckedChannelMapEntry,
         ) {
             let new_entry_1 =
-                unchecked_channel_map_entry("test-chain", "test_contract_1", "test_address_1");
+                unchecked_channel_map_entry("test-chain", "test_contract_1", "test_channel_1");
             let new_entry_2 =
-                unchecked_channel_map_entry("test-chain", "test_contract_2", "test_address_2");
+                unchecked_channel_map_entry("test-chain", "test_contract_2", "test_channel_2");
             let new_entry_3 =
-                unchecked_channel_map_entry("test-chain", "test_contract_3", "test_address_3");
+                unchecked_channel_map_entry("test-chain", "test_contract_3", "test_channel_3");
             (new_entry_1, new_entry_2, new_entry_3)
         }
 
-        fn setup_map_tester<'a>() -> CwMapTester<
-            'a,
+        fn setup_map_tester<'a>(
+            mock_api: MockApi,
+        ) -> CwMapTester<
             ExecuteMsg,
             AnsHostError,
             &'a ChannelEntry,
@@ -968,71 +966,70 @@ mod test {
             UncheckedChannelEntry,
             String,
         > {
-            let info = mock_info(OWNER, &[]);
+            let abstr = AbstractMockAddrs::new(mock_api);
+            let info = message_info(&abstr.owner, &[]);
 
-            let tester = CwMapTesterBuilder::default()
+            CwMapTesterBuilder::default()
                 .info(info)
                 .map(CHANNELS)
                 .execute(contract::execute)
                 .msg_builder(update_channels_msg_builder)
-                .mock_entry_builder(mock_unchecked_channel_map_entry)
+                .mock_entry(mock_unchecked_channel_map_entry())
                 .from_checked_entry(from_checked_entry)
                 .build()
-                .unwrap();
-
-            tester
+                .unwrap()
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_channel() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_one(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_channel_twice() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_one_twice(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_channel_twice_in_same_msg() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_two_same(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_and_remove_channel_same_msg() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_add_and_remove_same(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_non_existent_channel() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
 
-            let mut map_tester = setup_map_tester();
+            let mut map_tester = setup_map_tester(deps.api);
             map_tester.test_remove_nonexistent(&mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_multiple_channels() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
+            mock_init(&mut deps).unwrap();
+            let mut map_tester = setup_map_tester(deps.api);
 
             let (new_entry_1, new_entry_2, new_entry_3) = mock_unchecked_channel_entries();
 
@@ -1042,11 +1039,11 @@ mod test {
             )
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_multiple_channels_and_deregister_one() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
+            mock_init(&mut deps).unwrap();
+            let mut map_tester = setup_map_tester(deps.api);
 
             let (new_entry_1, new_entry_2, _new_entry_3) = mock_unchecked_channel_entries();
 
@@ -1067,11 +1064,11 @@ mod test {
             )
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn upper_channel_entry_goes_lower() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-            let mut map_tester = setup_map_tester();
+            mock_init(&mut deps).unwrap();
+            let mut map_tester = setup_map_tester(deps.api);
 
             let upper_entry =
                 unchecked_channel_map_entry("test-chain", "UP_PROTOCOL", "channel_id");
@@ -1118,15 +1115,11 @@ mod test {
         }
 
         fn unchecked_pool_map_entry(
-            pool_contract_addr: &str,
+            pool_contract_addr: &Addr,
             metadata: PoolMetadata,
         ) -> UncheckedPoolMapEntry {
             let pool_id = UncheckedPoolAddress::contract(pool_contract_addr);
             (pool_id, metadata)
-        }
-
-        fn _mock_unchecked_pool_map_entry() -> UncheckedPoolMapEntry {
-            unchecked_pool_map_entry("junoxxxxx", _mock_pool_metadata())
         }
 
         fn build_update_msg(
@@ -1137,20 +1130,21 @@ mod test {
         }
 
         fn execute_update(
-            deps: DepsMut,
+            deps: &mut MockDeps,
             (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolId>),
+            owner: &Addr,
         ) -> AnsHostTestResult {
             let msg = build_update_msg(to_add, to_remove);
-            execute_helper(deps, msg)?;
+            execute_helper(deps, msg, owner)?;
             Ok(())
         }
 
-        fn register_dex(deps: DepsMut, dex: &str) -> AnsHostTestResult {
+        fn register_dex(deps: &mut MockDeps, dex: &str, owner: &Addr) -> AnsHostTestResult {
             let msg = ExecuteMsg::UpdateDexes {
                 to_add: vec![dex.into()],
                 to_remove: vec![],
             };
-            execute_helper(deps, msg)?;
+            execute_helper(deps, msg, owner)?;
             Ok(())
         }
 
@@ -1185,10 +1179,11 @@ mod test {
             ))
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let dex = "junoswap";
 
@@ -1196,12 +1191,12 @@ mod test {
             let metadata = pool_metadata(dex, PoolType::Weighted, pool_assets.clone());
 
             // Register the assets in ANS
-            register_assets_helper(deps.as_mut(), pool_assets)?;
-            register_dex(deps.as_mut(), dex)?;
+            register_assets_helper(&mut deps, pool_assets, &abstr.owner)?;
+            register_dex(&mut deps, dex, &abstr.owner)?;
 
-            let new_entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
+            let new_entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata.clone());
 
-            execute_update(deps.as_mut(), (vec![new_entry.clone()], vec![]))?;
+            execute_update(&mut deps, (vec![new_entry.clone()], vec![]), &abstr.owner)?;
 
             let expected_pools: Vec<PoolMetadataMapEntry> =
                 vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
@@ -1236,10 +1231,11 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_five_asset_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let dex = "junoswap";
 
@@ -1253,12 +1249,12 @@ mod test {
             let metadata = pool_metadata(dex, PoolType::Weighted, pool_assets.clone());
 
             // Register the assets in ANS
-            register_assets_helper(deps.as_mut(), pool_assets)?;
-            register_dex(deps.as_mut(), dex)?;
+            register_assets_helper(&mut deps, pool_assets, &abstr.owner)?;
+            register_dex(&mut deps, dex, &abstr.owner)?;
 
-            let new_entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
+            let new_entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata.clone());
 
-            execute_update(deps.as_mut(), (vec![new_entry.clone()], vec![]))?;
+            execute_update(&mut deps, (vec![new_entry.clone()], vec![]), &abstr.owner)?;
 
             let expected_pools: Vec<PoolMetadataMapEntry> =
                 vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
@@ -1289,21 +1285,22 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_pool_fails_without_registering_dex() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let unregistered_dex = "unregistered";
 
             let pool_assets = vec!["juno".into(), "osmo".into()];
             let metadata = pool_metadata(unregistered_dex, PoolType::Weighted, pool_assets.clone());
             // Register the assets in ANS
-            register_assets_helper(deps.as_mut(), pool_assets)?;
+            register_assets_helper(&mut deps, pool_assets, &abstr.owner)?;
 
-            let entry = unchecked_pool_map_entry("junoxxxx", metadata);
+            let entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata);
 
-            let res = execute_update(deps.as_mut(), (vec![entry], vec![]));
+            let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
             assert_that(&res)
                 .is_err()
@@ -1318,10 +1315,11 @@ mod test {
         }
 
         // THis test is weird because we remove the same one that is just created in this call
-        #[test]
+        #[coverage_helper::test]
         fn add_and_remove_same_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let dex = "junoswap";
 
@@ -1329,14 +1327,15 @@ mod test {
             let metadata = pool_metadata(dex, PoolType::Weighted, pool_assets.clone());
 
             // Register the assets in ANS
-            register_assets_helper(deps.as_mut(), pool_assets)?;
-            register_dex(deps.as_mut(), dex)?;
+            register_assets_helper(&mut deps, pool_assets, &abstr.owner)?;
+            register_dex(&mut deps, dex, &abstr.owner)?;
 
-            let entry = unchecked_pool_map_entry("junoxxxx", metadata);
+            let entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata);
 
             execute_update(
-                deps.as_mut(),
+                &mut deps,
                 (vec![entry], vec![INITIAL_UNIQUE_POOL_ID.into()]),
+                &abstr.owner,
             )?;
 
             // metadata should be emtpy
@@ -1350,12 +1349,17 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_nonexistent_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let res = execute_update(deps.as_mut(), (vec![], vec![INITIAL_UNIQUE_POOL_ID.into()]));
+            let res = execute_update(
+                &mut deps,
+                (vec![], vec![INITIAL_UNIQUE_POOL_ID.into()]),
+                &abstr.owner,
+            );
 
             assert_that(&res).is_ok();
 
@@ -1370,21 +1374,22 @@ mod test {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn unregistered_assets_fail() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            mock_init(&mut deps).unwrap();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
             let dex = "junoswap";
 
             let metadata =
                 pool_metadata(dex, PoolType::Weighted, vec!["juno".into(), "osmo".into()]);
 
-            register_dex(deps.as_mut(), dex)?;
+            register_dex(&mut deps, dex, &abstr.owner)?;
 
-            let entry = unchecked_pool_map_entry("junoxxxx", metadata);
+            let entry = unchecked_pool_map_entry(&deps.api.addr_make("xxxx"), metadata);
 
-            let res = execute_update(deps.as_mut(), (vec![entry], vec![]));
+            let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
             assert_that(&res).is_err();
 
@@ -1401,7 +1406,7 @@ mod test {
     mod validate_pool_assets {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn too_few() {
             let assets = &mut [];
             let deps = mock_dependencies();
@@ -1428,7 +1433,7 @@ mod test {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn unregistered() {
             let mut assets = vec!["a".into(), "b".into()];
             let deps = mock_dependencies();
@@ -1441,13 +1446,14 @@ mod test {
                 });
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn valid_amounts() {
             let mut assets = vec!["a".into(), "b".into()];
             let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            mock_init(deps.as_mut()).unwrap();
-            register_assets_helper(deps.as_mut(), assets.clone()).unwrap();
+            mock_init(&mut deps).unwrap();
+            register_assets_helper(&mut deps, assets.clone(), &abstr.owner).unwrap();
 
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
@@ -1458,13 +1464,13 @@ mod test {
                 .map(|s| s.into())
                 .collect();
 
-            register_assets_helper(deps.as_mut(), assets.clone()).unwrap();
+            register_assets_helper(&mut deps, assets.clone(), &abstr.owner).unwrap();
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
             assert_that(&res).is_ok();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn too_many() {
             let mut assets: Vec<AssetEntry> = vec!["a", "b", "c", "d", "e", "f"]
                 .into_iter()

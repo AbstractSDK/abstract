@@ -3,8 +3,7 @@ use abstract_sdk::{
     std::{
         module_factory::FactoryModuleInstallConfig,
         objects::{
-            module::ModuleInfo, module_reference::ModuleReference,
-            version_control::VersionControlContract,
+            module::ModuleInfo, module_reference::ModuleReference, registry::RegistryContract,
         },
     },
     *,
@@ -30,20 +29,19 @@ pub fn execute_create_modules(
     modules: Vec<FactoryModuleInstallConfig>,
     salt: Binary,
 ) -> ModuleFactoryResult {
-    let config = CONFIG.load(deps.storage)?;
     let block_height = env.block.height;
-    // Verify sender is active Account manager
+    // Verify sender is active Account
     // Construct feature object to access registry functions
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let registry = RegistryContract::new(deps.api, &env)?;
 
-    // assert that sender is manager
-    let account_base = version_control.assert_manager(&info.sender, &deps.querier)?;
+    // assert that sender is account
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
 
-    let modules_responses = version_control.query_modules_configs(infos, &deps.querier)?;
+    let modules_responses = registry.query_modules_configs(infos, &deps.querier)?;
 
     // fees
     let mut fee_msgs = vec![];
@@ -52,7 +50,7 @@ pub fn execute_create_modules(
     // install messages
     let mut module_instantiate_messages = Vec::with_capacity(modules_responses.len());
 
-    // Register modules on manager
+    // Register modules on account
     let mut modules_to_register: Vec<Addr> = vec![];
 
     // Attributes logging
@@ -69,19 +67,19 @@ pub fn execute_create_modules(
         let new_module_init_funds = module_response.config.instantiation_funds;
         module_ids.push(new_module.info.id_with_version());
 
-        // We validate the fee if it was required by the version control to install this module
+        // We validate the fee if it was required by the registry to install this module
         match new_module_monetization {
             module::Monetization::InstallFee(f) => {
                 let fee = f.fee();
                 sum_of_monetization.add(fee.clone())?;
                 // We transfer that fee to the namespace owner if there is
-                let namespace_account = version_control
+                let namespace_account = registry
                     .query_namespace(new_module.info.namespace.clone(), &deps.querier)?
                     // It's safe to assume this namespace is claimed because
                     // modules gets unregistered when namespace is unclaimed
                     .unwrap();
                 fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
-                    to_address: namespace_account.account_base.proxy.to_string(),
+                    to_address: namespace_account.account.addr().to_string(),
                     amount: vec![fee],
                 }));
             }
@@ -100,9 +98,7 @@ pub fn execute_create_modules(
                 let init_msg_as_value: Value = from_json(init_msg)?;
                 // App base message
                 let app_base_msg = abstract_std::app::BaseInstantiateMsg {
-                    ans_host_address: config.ans_host_address.to_string(),
-                    version_control_address: version_control.address.to_string(),
-                    account_base: account_base.clone(),
+                    account: account.clone(),
                 };
 
                 let app_init_msg = abstract_std::app::InstantiateMsg::<Value> {
@@ -116,7 +112,7 @@ pub fn execute_create_modules(
                     *code_id,
                     to_json_binary(&app_init_msg)?,
                     salt.clone(),
-                    Some(account_base.manager.clone()),
+                    Some(account.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -137,7 +133,7 @@ pub fn execute_create_modules(
                     *code_id,
                     owner_init_msg.unwrap(),
                     salt.clone(),
-                    Some(account_base.manager.clone()),
+                    Some(account.addr().clone()),
                     new_module_init_funds,
                     &new_module.info,
                 )?;
@@ -160,7 +156,7 @@ pub fn execute_create_modules(
     // Standalone may need this information for AccountIdentification \
     // Contract Info query does not work during instantiation on self contract, because contract does not exist yet.
     if at_least_one_standalone {
-        CURRENT_BASE.save(deps.storage, &account_base)?;
+        CURRENT_BASE.save(deps.storage, &account)?;
     }
 
     let sum_of_monetization = sum_of_monetization.into_vec();
@@ -201,8 +197,11 @@ fn instantiate2_contract(
 ) -> ModuleFactoryResult<(CanonicalAddr, CosmosMsg)> {
     let wasm_info = deps.querier.query_wasm_code_info(code_id)?;
 
-    let addr =
-        cosmwasm_std::instantiate2_address(&wasm_info.checksum, &creator_addr, salt.as_slice())?;
+    let addr = cosmwasm_std::instantiate2_address(
+        wasm_info.checksum.as_slice(),
+        &creator_addr,
+        salt.as_slice(),
+    )?;
 
     Ok((
         addr,
@@ -228,40 +227,13 @@ pub fn new_module_addrs(modules_to_register: &[Addr]) -> ModuleFactoryResult<Str
     Ok(module_addrs)
 }
 
-// Only owner can execute it
-pub fn execute_update_config(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    ans_host_address: Option<String>,
-    version_control_address: Option<String>,
-) -> ModuleFactoryResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
-
-    let mut config: Config = CONFIG.load(deps.storage)?;
-
-    if let Some(ans_host_address) = ans_host_address {
-        // validate address format
-        config.ans_host_address = deps.api.addr_validate(&ans_host_address)?;
-    }
-
-    if let Some(version_control_address) = version_control_address {
-        // validate address format
-        config.version_control_address = deps.api.addr_validate(&version_control_address)?;
-    }
-
-    CONFIG.save(deps.storage, &config)?;
-
-    Ok(ModuleFactoryResponse::action("update_config"))
-}
-
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
-    use abstract_testing::OWNER;
+    use abstract_testing::{mock_env_validated, MockDeps};
     use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
+        testing::{message_info, mock_dependencies},
         to_json_binary,
     };
     use speculoos::prelude::*;
@@ -271,19 +243,15 @@ mod test {
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
-    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute(deps, mock_env(), mock_info(sender, &[]), msg)
+    fn execute_as(deps: &mut MockDeps, sender: &Addr, msg: ExecuteMsg) -> ModuleFactoryResult {
+        let env = mock_env_validated(deps.api);
+        execute(deps.as_mut(), env, message_info(sender, &[]), msg)
     }
 
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute_as(deps, OWNER, msg)
-    }
-
-    fn test_only_admin(msg: ExecuteMsg) -> ModuleFactoryTestResult {
-        let mut deps = mock_dependencies();
-        mock_init(deps.as_mut())?;
-
-        let res = execute(deps.as_mut(), mock_env(), mock_info("not_admin", &[]), msg);
+    fn test_only_admin(msg: ExecuteMsg, deps: &mut MockDeps) -> ModuleFactoryTestResult {
+        let not_admin = deps.api.addr_make("not_admin");
+        let env = mock_env_validated(deps.api);
+        let res = execute(deps.as_mut(), env, message_info(&not_admin, &[]), msg);
         assert_that!(&res)
             .is_err()
             .is_equal_to(ModuleFactoryError::Ownership(
@@ -294,42 +262,45 @@ mod test {
     }
 
     mod update_ownership {
+        use abstract_testing::prelude::AbstractMockAddrs;
+
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_admin() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
                 new_owner: "new_owner".to_string(),
                 expiry: None,
             });
 
-            test_only_admin(msg)
+            test_only_admin(msg, &mut deps)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn update_owner() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_init(&mut deps)?;
+            let abstr = AbstractMockAddrs::new(deps.api);
 
-            let new_admin = "new_admin";
+            let new_admin = deps.api.addr_make("new_admin");
             // First update to transfer
             let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
                 new_owner: new_admin.to_string(),
                 expiry: None,
             });
 
-            let _transfer_res = execute_as_admin(deps.as_mut(), transfer_msg)?;
+            let _transfer_res = execute_as(&mut deps, &abstr.owner, transfer_msg)?;
 
             // Then update and accept as the new owner
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
-            let _accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
+            let _accept_res = execute_as(&mut deps, &new_admin, accept_msg).unwrap();
 
             assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
                 .is_some()
-                .is_equal_to(cosmwasm_std::Addr::unchecked(new_admin));
+                .is_equal_to(new_admin);
 
             Ok(())
         }
@@ -339,9 +310,9 @@ mod test {
         use super::*;
 
         use abstract_std::objects::{module::ModuleVersion, AccountId};
-        use cosmwasm_std::{coin, Api, CodeInfoResponse, Empty, HexBinary, QuerierResult};
+        use cosmwasm_std::{coin, Api, Checksum, CodeInfoResponse, Empty, QuerierResult};
 
-        #[test]
+        #[coverage_helper::test]
         fn should_create_msg_with_instantiate2_msg() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
             deps.querier.update_wasm(|request| match request {
@@ -349,16 +320,12 @@ mod test {
                     let deps_v2 = mock_dependencies();
                     let new_addr = deps_v2.api.addr_make("aloha");
                     let canonical = deps_v2.api.addr_canonicalize(new_addr.as_str()).unwrap();
-                    let creator = mock_dependencies()
-                        .api
-                        .addr_humanize(&canonical)
-                        .unwrap()
-                        .into_string();
+                    let creator = mock_dependencies().api.addr_humanize(&canonical).unwrap();
                     QuerierResult::Ok(cosmwasm_std::ContractResult::Ok(
                         to_json_binary(&CodeInfoResponse::new(
                             *code_id,
                             creator.clone(),
-                            HexBinary::from_hex(
+                            Checksum::from_hex(
                                 "13a1fc994cc6d1c81b746ee0c0ff6f90043875e0bf1d9be6b7d779fc978dc2a5",
                             )
                             .unwrap(),
@@ -368,7 +335,6 @@ mod test {
                 }
                 _ => panic!("handling only code_info"),
             });
-            let _info = mock_info("anyone", &[]);
 
             let expected_module_init_msg = to_json_binary(&Empty {}).unwrap();
             let expected_code_id = 10u64;
@@ -424,58 +390,6 @@ mod test {
 
             assert_that!(actual_init_msg).matches(|i| matches!(i, CosmosMsg::Wasm { .. }));
             assert_that!(actual_init_msg).is_equal_to(CosmosMsg::from(expected_init_msg));
-
-            Ok(())
-        }
-    }
-
-    mod update_config {
-        use super::*;
-
-        #[test]
-        fn only_admin() -> ModuleFactoryTestResult {
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host_address: None,
-                version_control_address: None,
-            };
-
-            test_only_admin(msg)
-        }
-
-        #[test]
-        fn update_ans_host_address() -> ModuleFactoryTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let new_ans_host = "new_ans_host";
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host_address: Some(new_ans_host.to_string()),
-                version_control_address: None,
-            };
-
-            execute_as_admin(deps.as_mut(), msg)?;
-
-            assert_that!(CONFIG.load(&deps.storage)?.ans_host_address)
-                .is_equal_to(Addr::unchecked(new_ans_host));
-
-            Ok(())
-        }
-
-        #[test]
-        fn update_version_control_address() -> ModuleFactoryTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let new_vc = "new_version_control";
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host_address: None,
-                version_control_address: Some(new_vc.to_string()),
-            };
-
-            execute_as_admin(deps.as_mut(), msg)?;
-
-            assert_that!(CONFIG.load(&deps.storage)?.version_control_address)
-                .is_equal_to(Addr::unchecked(new_vc));
 
             Ok(())
         }

@@ -6,8 +6,6 @@
 //!
 //!
 
-use std::ops::Mul;
-
 use cosmwasm_std::{Addr, Decimal, Env, QuerierWrapper, Storage, Timestamp, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
@@ -18,10 +16,10 @@ use crate::AbstractResult;
 pub const DEFAULT_PRECISION: u8 = 6;
 
 /// Time Weighted Average (TWA) helper
-pub struct TimeWeightedAverage<'a>(Item<'a, TimeWeightedAverageData>);
+pub struct TimeWeightedAverage(Item<TimeWeightedAverageData>);
 
-impl<'a> TimeWeightedAverage<'a> {
-    pub const fn new(key: &'a str) -> Self {
+impl TimeWeightedAverage {
+    pub const fn new(key: &'static str) -> Self {
         Self(Item::new(key))
     }
     pub fn instantiate(
@@ -66,7 +64,7 @@ impl<'a> TimeWeightedAverage<'a> {
         if !current_value.is_zero() {
             twa.cumulative_value = twa
                 .cumulative_value
-                .wrapping_add(time_elapsed.mul(current_value).u128());
+                .wrapping_add(time_elapsed.mul_floor(current_value).u128());
         };
         self.0.save(store, &twa)?;
         Ok(Some(twa.cumulative_value))

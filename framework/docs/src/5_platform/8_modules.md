@@ -4,52 +4,48 @@ Module instantiation and execution is a process that is somewhat hidden from the
 
 ## Installing and Uninstalling Modules
 
-The following are sequence diagrams of the process of installing and uninstalling a module on an Abstract Account. As
-you can see, the process happens via the Manager, and it can be done by the Account owner through
-the [web-app](https://console.abstract.money/).
+The following are sequence diagrams of the process of installing and uninstalling a module on an Abstract Account. As you can see, the process happens via the Account, and it can be done by the Account owner through the [web-app](https://console.abstract.money/).
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
+    participant A as Account
     participant MF as Module Factory
-    participant VC as Version Control
-    participant P as Proxy
-    U ->> M: InstallModule
-    M ->> MF: InstallModule
-    MF -->>+ VC: Query Module Details
+    participant REG as Registry
+    U ->> A: InstallModule
+    A ->> MF: InstallModule
+    MF -->>+ REG: Query Module Details
     alt adapter
-        VC -->>+ MF: Return address
+        REG -->>+ MF: Return address
     else app / standalone
-        VC -->>- MF: Return code_id
+        REG -->>- MF: Return code_id
         MF -> MF: Instantiate module
     end
-    MF ->> M: Register module address
-    M ->> P: Update module allowlist
+    MF ->> A: Register module address
+    A ->> A: Update module allowlist
 ```
 
 <figcaption align = "center"><b>Installing a Module</b></figcaption>
 
 At this point you should be able to understand the message flow depicted above. Just to be sure, we'll briefly outline the process's steps.
 
-Installing a module starts by the Owner of the Account requesting the installation of the module on the Account. This request is sent to the Manager contract of the Account. The request contains the module ID(s) and possible instantiate messages for any App/Standalone modules that should be installed (aka instantiated).
+Installing a module starts by the Owner of the Account requesting the installation of the module. The request contains the module ID(s) and possible instantiate messages for any App/Standalone modules that should be installed (aka instantiated).
 
-The Manager contract verifies the request and forwards it to the Module Factory. The Module Factory then queries the Version Control (the on-chain module registry) for the module details. These module details contain both the version of the module as well as its type-specific data. This type-specific data is depicted by the two alternatives (alt) of the returned query.
+The Account contract verifies the request and forwards it to the Module Factory. The Module Factory then queries the Registry (the on-chain module registry) for the module details. These module details contain both the version of the module as well as its type-specific data. This type-specific data is depicted by the two alternatives (alt) of the returned query.
 
 Either the query returns an Adapter's address (which is already instantiated) or it returns an App/Standalone code-id. This code-id is then used by the Module Factory to instantiate an instance of that module.
 
-After instantiating the modules the Manager registers the modules internally and updates the whitelist on the Account's Proxy contract. This whitelisting provides the modules with the ability to proxy message execution through the Account.
+After instantiating the modules, the Account registers the modules internally and updates its whitelist. This whitelisting provides the modules with the ability to proxy message execution through the Account.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
-    participant P as Proxy
-    U ->> M: UninstallModule
-    M -> M: Deregister module
-    M ->> P: Update Proxy Whitelist
+    participant A as Account
+    U ->> A: UninstallModule
+    A -> A: Deregister module
+    A ->> A: Update Account Whitelist
 ```
 
 <figcaption align = "center"><b>Uninstalling a Module</b></figcaption>
@@ -122,30 +118,30 @@ sequenceDiagram
 
 ### Adapter Execution
 
-In the following example, the `abstract:dex` adapter is installed on an Account, and the Owner requests a swap on a dex. By providing the proxy address of the Account in the call, the adapter can assert that the caller is the Owner of the Account.
+In the following example, the `abstract:dex` adapter is installed on an Account, and the Owner requests a swap on a dex. By providing the address of the Account in the call, the adapter can assert that the caller is the Owner of the Account.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as Owner
     participant D as abstract:dex
-    participant VC as Version Control
+    participant REG as Registry
     participant A as ANS
-    participant P as Proxy
+    participant A as Account
     participant T as Dex Pool
-    Note right of U: Dex::Swap {proxy: "juno1xd..."}
+    Note right of U: Dex::Swap {account: "juno1xd..."}
     U ->> D: Call module
-    D -->+ VC: Load proxy address for Account
-    VC -->- D: Address
+    D -->+ REG: Load address for Account
+    REG -->- D: Address
     D -->>+ A: Resolve asset names
     A -->> D: Asset infos
     D --> A: Resolve dex pool
     A -->>- D: Pool metadata
     D --> D: Build swap msg for target dex
-    D ->> P: Forward execution
-    Note over VC, A: DexMsg
-    P ->> T: Execute
-    Note right of P: DexMsg
+    D ->> A: Forward execution
+    Note over REG, A: DexMsg
+    A ->> T: Execute
+    Note right of A: DexMsg
 ```
 
 ### Dependency Execution
@@ -159,22 +155,21 @@ sequenceDiagram
     autonumber
     actor U as User
     participant B as equilibrium:balancer
-    participant P as Proxy
-    participant M as Manager
+    participant A as Account
     participant D as abstract:dex
     participant T as Target Dex
     U ->> B: Rebalance
-    B -->>+ P: Query Allocations
-    P -->>- B: Allocations
+    B -->>+ A: Query Allocations
+    A -->>- B: Allocations
     B --> B: Calculate rebalancing requirements
-    B -->>+ M: Query abstract:dex address
-    M -->>- B: Address
+    B -->>+ A: Query abstract:dex address
+    A -->>- B: Address
     B ->> D: Call SwapRouter on dex
     D --> D: Build swap msg for target dex
-    D --> D: Load proxy address
-    D ->> P: Forward execution
-    Note over M: DexMsg
-    P ->> T: Execute
-    Note over D, M: DexMsg
+    D --> D: Load account address
+    D ->> A: Forward execution
+    Note over A: DexMsg
+    A ->> T: Execute
+    Note over D, A: DexMsg
 ```
 s

@@ -4,22 +4,22 @@
 //!
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    IbcClient, InstallConfig, ManagerQueryFns as _, RegisteredModule, VCQueryFns as _,
+    Abstract, AccountDetails, AccountI, AccountQueryFns as _, DependencyCreation, IbcClient,
+    InstallConfig, RegisteredModule,
 };
 use abstract_std::{
-    ibc_client::{self, QueryMsgFns as _},
-    ibc_host,
-    manager::{
-        self, state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
+    account::{
+        self, state::AccountInfo, AccountModuleInfo, InfoResponse, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
     },
+    ibc_client::{self, QueryMsgFns as _},
+    ibc_host,
     objects::{
         module::{ModuleId, ModuleInfo, ModuleVersion},
         namespace::Namespace,
         ownership, AccountId, TruncatedChainId,
     },
-    proxy, IBC_CLIENT, PROXY,
+    IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
 use cw_orch::{
@@ -27,19 +27,19 @@ use cw_orch::{
     environment::{Environment as _, MutCwEnv},
     prelude::*,
 };
-use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
+use cw_orch_interchain::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     client::AbstractClientResult, AbstractClient, AbstractClientError, Account, Environment,
-    IbcTxAnalysisV2, RemoteApplication,
+    RemoteApplication,
 };
 
 /// A builder for creating [`RemoteAccounts`](RemoteAccount).
 /// Get the builder from the [`AbstractClient::Account`](crate::Account)
 /// and create the account with the `build` method.
-pub struct RemoteAccountBuilder<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> {
-    pub(crate) ibc_env: &'a IBC,
+pub struct RemoteAccountBuilder<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> {
+    pub(crate) ibc_env: IBC,
     pub(crate) host_chain: Chain,
     namespace: Option<Namespace>,
     owner_account: Account<Chain>,
@@ -48,20 +48,20 @@ pub struct RemoteAccountBuilder<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<C
     // funds: AccountCreationFunds,
 }
 
-impl<'a, Chain: IbcQueryHandler> Account<Chain> {
+impl<Chain: IbcQueryHandler> Account<Chain> {
     /// Builder for creating a new Abstract [`RemoteAccount`].
     pub fn remote_account_builder<IBC: InterchainEnv<Chain>>(
         &self,
-        interchain_env: &'a IBC,
+        interchain_env: IBC,
         host_abstract: &AbstractClient<Chain>,
-    ) -> RemoteAccountBuilder<'a, Chain, IBC> {
+    ) -> RemoteAccountBuilder<Chain, IBC> {
         RemoteAccountBuilder::new(self.clone(), interchain_env, host_abstract.environment())
     }
 
     /// Get [`RemoteAccount`] of this account
     pub fn remote_account<IBC: InterchainEnv<Chain>>(
-        &'a self,
-        interchain_env: &'a IBC,
+        &self,
+        interchain_env: IBC,
         host_chain: Chain,
     ) -> AbstractClientResult<RemoteAccount<Chain, IBC>> {
         // Make sure ibc client installed on account
@@ -72,7 +72,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         // Check it exists first
         let remote_account_response =
             ibc_client.remote_account(account_id.clone(), host_chain_name.clone())?;
-        if remote_account_response.remote_proxy_addr.is_none() {
+        if remote_account_response.remote_account_addr.is_none() {
             return Err(AbstractClientError::RemoteAccountNotFound {
                 account_id,
                 chain: host_chain_name,
@@ -86,7 +86,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name =
-                TruncatedChainId::from_chain_id(&owner_account.manager.environment().chain_id());
+                TruncatedChainId::from_chain_id(&owner_account.environment().chain_id());
             id.push_chain(chain_name);
             id
         };
@@ -100,8 +100,8 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
     }
 }
 
-impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder<'a, Chain, IBC> {
-    pub(crate) fn new(owner_account: Account<Chain>, ibc_env: &'a IBC, host_chain: Chain) -> Self {
+impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder<Chain, IBC> {
+    pub(crate) fn new(owner_account: Account<Chain>, ibc_env: IBC, host_chain: Chain) -> Self {
         Self {
             ibc_env,
             host_chain,
@@ -151,7 +151,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
     /// Builds the [`RemoteAccount`].
     /// Before using it you are supposed to wait Response.
     /// For example: https://orchestrator.abstract.money/interchain/integrations/daemon.html?#analysis-usage
-    pub fn build(self) -> AbstractClientResult<RemoteAccount<'a, Chain, IBC>> {
+    pub fn build(self) -> AbstractClientResult<RemoteAccount<Chain, IBC>> {
         let host_chain = self.host_chain;
         let host_env_info = host_chain.env_info();
 
@@ -183,7 +183,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name = TruncatedChainId::from_chain_id(
-                &owner_account.abstr_account.manager.environment().chain_id(),
+                &owner_account.abstr_account.environment().chain_id(),
             );
             id.push_chain(chain_name);
             id
@@ -205,19 +205,19 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
 ///
 /// Any execution done on remote account done through source chain
 #[derive(Clone)]
-pub struct RemoteAccount<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> {
-    pub(crate) abstr_owner_account: AbstractAccount<Chain>,
+pub struct RemoteAccount<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> {
+    pub(crate) abstr_owner_account: AccountI<Chain>,
     remote_account_id: AccountId,
     host_chain: Chain,
-    ibc_env: &'a IBC,
+    ibc_env: IBC,
 }
 
-impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Chain, IBC> {
+impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC> {
     pub(crate) fn new(
-        abstr_owner_account: AbstractAccount<Chain>,
+        abstr_owner_account: AccountI<Chain>,
         remote_account_id: AccountId,
         host_chain: Chain,
-        ibc_env: &'a IBC,
+        ibc_env: IBC,
     ) -> Self {
         Self {
             abstr_owner_account,
@@ -242,30 +242,17 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     fn origin_chain(&self) -> Chain {
-        self.abstr_owner_account.manager.environment().clone()
+        self.abstr_owner_account.environment().clone()
     }
 
-    /// Address of the proxy
-    pub fn proxy(&self) -> AbstractClientResult<Addr> {
-        let base_response = self
-            .host_abstract()?
-            .version_control
-            .account_base(self.remote_account_id.clone())?;
-        Ok(base_response.account_base.proxy)
-    }
-
-    /// Address of the account (proxy)
+    /// Address of the account
     pub fn address(&self) -> AbstractClientResult<Addr> {
-        self.proxy()
-    }
-
-    /// Get manager address of the account
-    pub fn manager(&self) -> AbstractClientResult<Addr> {
         let base_response = self
             .host_abstract()?
-            .version_control
-            .account_base(self.remote_account_id.clone())?;
-        Ok(base_response.account_base.manager)
+            .registry
+            .account(self.remote_account_id.clone())?;
+
+        Ok(base_response.addr().clone())
     }
 
     /// Query account balance of a given denom
@@ -273,7 +260,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         let coins = self
             .host_chain()
             .bank_querier()
-            .balance(self.proxy()?, Some(denom.into()))
+            .balance(&self.address()?, Some(denom.into()))
             .map_err(Into::into)?;
 
         // There will always be a single element in this case.
@@ -284,7 +271,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.host_chain()
             .bank_querier()
-            .balance(self.proxy()?, None)
+            .balance(&self.address()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
     }
@@ -293,7 +280,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn info(&self) -> AbstractClientResult<AccountInfo> {
         let info_response: InfoResponse = self
             .host_chain()
-            .query(&manager::QueryMsg::Info {}, &self.manager()?)
+            .query(&account::QueryMsg::Info {}, &self.address()?)
             .map_err(Into::into)?;
         Ok(info_response.info)
     }
@@ -354,38 +341,35 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
 
     /// Upgrades the account to the latest version
     ///
-    /// Migrates manager and proxy contracts to their respective new versions.
+    /// Migrates account to its respective new versions.
     /// Note that execution will be done through source chain
-    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        let modules = vec![
-            (
-                ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
-                Some(
-                    to_json_binary(&abstract_std::manager::MigrateMsg {})
-                        .map_err(Into::<CwOrchError>::into)?,
-                ),
+    pub fn upgrade(
+        &self,
+        version: ModuleVersion,
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
+        let modules = vec![(
+            ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
+            Some(
+                to_json_binary(&abstract_std::account::MigrateMsg {})
+                    .map_err(Into::<CwOrchError>::into)?,
             ),
-            (
-                ModuleInfo::from_id(abstract_std::registry::PROXY, version)?,
-                Some(
-                    to_json_binary(&abstract_std::proxy::MigrateMsg {})
-                        .map_err(Into::<CwOrchError>::into)?,
-                ),
-            ),
-        ];
-        self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-            host_chain: self.host_chain_id(),
-            action: ibc_host::HostAction::Dispatch {
-                manager_msgs: vec![manager::ExecuteMsg::Upgrade { modules }],
+        )];
+        self.ibc_client_execute(
+            ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: self.host_chain_id(),
+                action: ibc_host::HostAction::Dispatch {
+                    account_msgs: vec![account::ExecuteMsg::Upgrade { modules }],
+                },
             },
-        })
+            vec![],
+        )
     }
 
     /// Returns owner of the account
     pub fn ownership(&self) -> AbstractClientResult<ownership::Ownership<String>> {
-        let manager = self.manager()?;
+        let account = self.address()?;
         self.host_chain()
-            .query(&manager::QueryMsg::Ownership {}, &manager)
+            .query(&account::QueryMsg::Ownership {}, &account)
             .map_err(Into::into)
             .map_err(Into::into)
     }
@@ -394,34 +378,32 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
         self.abstr_owner_account
-            .manager
             .top_level_owner()
             .map(|tlo| tlo.address)
             .map_err(Into::into)
     }
 
-    /// Executes a [`CosmosMsg`] on the proxy of the account.
+    /// Executes a [`CosmosMsg`] on the account.
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
-        self.execute_on_manager(vec![manager::ExecuteMsg::ExecOnModule {
-            module_id: PROXY.to_owned(),
-            exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
-                .map_err(AbstractInterfaceError::from)?,
-        }])
+        self.execute_on_account(vec![abstract_std::account::ExecuteMsg::Execute { msgs }])
     }
 
-    /// Executes a list of [manager::ExecuteMsg] on the manager of the account.
-    pub fn execute_on_manager(
+    /// Executes a list of [account::ExecuteMsg] on the account.
+    pub fn execute_on_account(
         &self,
-        manager_msgs: Vec<manager::ExecuteMsg>,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-            host_chain: self.host_chain_id(),
-            action: ibc_host::HostAction::Dispatch { manager_msgs },
-        })
+        account_msgs: Vec<account::ExecuteMsg>,
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
+        self.ibc_client_execute(
+            ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: self.host_chain_id(),
+                action: ibc_host::HostAction::Dispatch { account_msgs },
+            },
+            vec![],
+        )
     }
 
     /// Queries a module on the account.
@@ -439,24 +421,26 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         Ok(response)
     }
 
-    /// Deposit funds to the manager of the account with IBC transfer
+    /// Deposit funds to the account of the account with IBC transfer
     pub fn deposit(
         &self,
         funds: Vec<Coin>,
         memo: Option<String>,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        self.ibc_client_execute(ibc_client::ExecuteMsg::SendFunds {
-            host_chain: self.host_chain_id(),
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
+        self.ibc_client_execute(
+            ibc_client::ExecuteMsg::SendFunds {
+                host_chain: self.host_chain_id(),
+                memo,
+            },
             funds,
-            memo,
-        })
+        )
     }
 
     /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
-        let manager = self.manager()?;
+        let account = self.address()?;
 
-        let mut module_infos: Vec<ManagerModuleInfo> = vec![];
+        let mut module_infos: Vec<AccountModuleInfo> = vec![];
         loop {
             let last_module_id: Option<String> = module_infos
                 .last()
@@ -464,11 +448,11 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             let res: ModuleInfosResponse = self
                 .host_chain()
                 .query(
-                    &manager::QueryMsg::ModuleInfos {
+                    &account::QueryMsg::ModuleInfos {
                         start_after: last_module_id,
                         limit: None,
                     },
-                    &manager,
+                    &account,
                 )
                 .map_err(Into::into)?;
             if res.module_infos.is_empty() {
@@ -484,23 +468,23 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         &self,
         ids: Vec<String>,
     ) -> AbstractClientResult<ModuleAddressesResponse> {
-        let manager = self.manager()?;
+        let account = self.address()?;
 
         self.host_chain()
-            .query(&manager::QueryMsg::ModuleAddresses { ids }, &manager)
+            .query(&account::QueryMsg::ModuleAddresses { ids }, &account)
             .map_err(Into::into)
             .map_err(Into::into)
     }
 
     /// Check if module installed on account
     pub fn module_installed(&self, id: ModuleId) -> AbstractClientResult<bool> {
-        let manager = self.manager()?;
+        let account = self.address()?;
 
-        let key = manager::state::ACCOUNT_MODULES.key(id).to_vec();
+        let key = account::state::ACCOUNT_MODULES.key(id).to_vec();
         let maybe_module_addr = self
             .host_chain()
             .wasm_querier()
-            .raw_query(manager, key)
+            .raw_query(&account, key)
             .map_err(Into::into)?;
         Ok(!maybe_module_addr.is_empty())
     }
@@ -518,11 +502,11 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             + QueryableContract
             + ContractInstance<Chain>,
     >(
-        &'a self,
-    ) -> AbstractClientResult<RemoteApplication<'a, Chain, IBC, M>> {
+        &self,
+    ) -> AbstractClientResult<RemoteApplication<Chain, IBC, M>> {
         let module = self.module()?;
 
-        RemoteApplication::new(self, module)
+        RemoteApplication::new(self.clone(), module)
     }
 
     /// Install module on account
@@ -533,18 +517,21 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             + QueryableContract
             + ContractInstance<Chain>,
     >(
-        &'a self,
+        &self,
         modules: Vec<ModuleInstallConfig>,
-    ) -> AbstractClientResult<RemoteApplication<'a, Chain, IBC, M>> {
-        let _ = self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
-            host_chain: self.host_chain_id(),
-            action: ibc_host::HostAction::Dispatch {
-                manager_msgs: vec![manager::ExecuteMsg::InstallModules { modules }],
+    ) -> AbstractClientResult<RemoteApplication<Chain, IBC, M>> {
+        let _ = self.ibc_client_execute(
+            ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: self.host_chain_id(),
+                action: ibc_host::HostAction::Dispatch {
+                    account_msgs: vec![account::ExecuteMsg::InstallModules { modules }],
+                },
             },
-        })?;
+            vec![],
+        )?;
 
         let module = self.module()?;
-        RemoteApplication::new(self, module)
+        RemoteApplication::new(self.clone(), module)
     }
 
     pub(crate) fn host_abstract(&self) -> AbstractClientResult<Abstract<Chain>> {
@@ -553,20 +540,22 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
 
     pub(crate) fn ibc_client_execute(
         &self,
-        exec_msg: ibc_client::ExecuteMsg,
-    ) -> AbstractClientResult<IbcTxAnalysisV2<Chain>> {
-        let msg = proxy::ExecuteMsg::IbcAction { msg: exec_msg };
+        msg: ibc_client::ExecuteMsg,
+        funds: Vec<Coin>,
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
+        let exec_msg = to_json_binary(&msg).unwrap();
+        let msg = account::ExecuteMsg::ExecuteOnModule {
+            module_id: IBC_CLIENT.to_owned(),
+            exec_msg,
+            funds,
+        };
 
-        let tx_response = self
-            .abstr_owner_account
-            .manager
-            .execute_on_module(PROXY, msg)?;
+        let tx_response = self.abstr_owner_account.execute(&msg, &[])?;
         let packets = self
             .ibc_env
             .await_packets(&self.origin_chain().chain_id(), tx_response)
             .map_err(Into::into)?;
-        packets.into_result()?;
-        Ok(IbcTxAnalysisV2(packets))
+        packets.assert().map_err(Into::into)
     }
 
     pub(crate) fn module<T: RegisteredModule + From<Contract<Chain>>>(
@@ -587,36 +576,34 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 }
 
-impl<'a, Chain: MutCwEnv + IbcQueryHandler, IBC: InterchainEnv<Chain>>
-    RemoteAccount<'a, Chain, IBC>
-{
-    /// Set balance for the Proxy
+impl<Chain: MutCwEnv + IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC> {
+    /// Set balance for the Account
     pub fn set_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.host_chain()
-            .set_balance(&self.proxy()?, amount.to_vec())
+            .set_balance(&self.address()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }
 
-    /// Add balance to the Proxy
+    /// Add balance to the Account
     pub fn add_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.host_chain()
-            .add_balance(&self.proxy()?, amount.to_vec())
+            .add_balance(&self.address()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }
 }
 
-impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> std::fmt::Display
-    for RemoteAccount<'a, Chain, IBC>
+impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> std::fmt::Display
+    for RemoteAccount<Chain, IBC>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.remote_account_id)
     }
 }
 
-impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> std::fmt::Debug
-    for RemoteAccount<'a, Chain, IBC>
+impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> std::fmt::Debug
+    for RemoteAccount<Chain, IBC>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.remote_account_id)

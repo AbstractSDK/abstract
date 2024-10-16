@@ -24,7 +24,6 @@ impl Default for AbstractDaemonState {
     }
 }
 
-// TODO: after cw-orch 0.25 replace env_info to chain_id
 impl AbstractDaemonState {
     /// Get address of the abstract contract by contract_id
     pub fn contract_addr(
@@ -32,14 +31,14 @@ impl AbstractDaemonState {
         env_info: &EnvironmentInfo,
         contract_id: &str,
     ) -> Option<cosmwasm_std::Addr> {
-        self.0[&env_info.chain_name][&env_info.chain_id][&env_info.deployment_id][contract_id]
+        self.0[&env_info.chain_id][&env_info.deployment_id][contract_id]
             .as_str()
             .map(cosmwasm_std::Addr::unchecked)
     }
 
     /// Get code id of the abstract contract by contract_id
     pub fn contract_code_id(&self, env_info: &EnvironmentInfo, contract_id: &str) -> Option<u64> {
-        self.0[&env_info.chain_name][&env_info.chain_id]["code_ids"][contract_id].as_u64()
+        self.0[&env_info.chain_id]["code_ids"][contract_id].as_u64()
     }
 
     /// Get raw state of the abstract deployments
@@ -53,7 +52,7 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use std::borrow::Cow;
 
-    use abstract_std::VERSION_CONTROL;
+    use abstract_std::REGISTRY;
 
     use super::*;
 
@@ -69,11 +68,11 @@ mod test {
         let state = AbstractDaemonState::default();
         let vc_juno = state.contract_code_id(
             &EnvironmentInfo {
-                chain_id: "juno-1".to_owned(),
-                chain_name: "juno".to_owned(),
+                chain_id: "pion-1".to_owned(),
+                chain_name: "neutron-testnet".to_owned(),
                 deployment_id: "default".to_owned(),
             },
-            VERSION_CONTROL,
+            REGISTRY,
         );
         assert!(vc_juno.is_some());
     }

@@ -4,186 +4,106 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
-pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-use abstract_std::{version_control::AccountBase, VERSION_CONTROL};
-use cosmwasm_std::{Addr, Deps};
+pub use abstract_std::objects::{ans_host::AnsHost, registry::RegistryContract};
+use abstract_std::{registry::Account, ANS_HOST, REGISTRY};
+use cosmwasm_std::{Deps, Env};
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
-    std::PROXY,
+    std::ACCOUNT,
     AbstractSdkResult,
 };
 
-/// Store a proxy contract address.
-/// Implements [`AccountIdentification`].
-#[derive(Clone)]
-pub struct ProxyContract {
-    /// Address of the proxy contract
-    pub contract_address: Addr,
-}
-
-impl ProxyContract {
-    /// Construct a new proxy contract feature object.
-    pub fn new(address: Addr) -> Self {
-        Self {
-            contract_address: address,
-        }
-    }
-}
-
-impl AccountIdentification for ProxyContract {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.contract_address.clone())
-    }
-}
-
-impl ModuleIdentification for ProxyContract {
-    fn module_id(&self) -> &'static str {
-        PROXY
-    }
-}
-
-impl AccountIdentification for AccountBase {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.proxy.clone())
-    }
-
-    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.manager.clone())
-    }
-
-    fn account_base(&self, _deps: Deps) -> AbstractSdkResult<AccountBase> {
+impl AccountIdentification for Account {
+    fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
         Ok(self.clone())
     }
 }
 
-impl ModuleIdentification for AccountBase {
-    /// Any actions executed by the core will be by the proxy address
+impl ModuleIdentification for Account {
     fn module_id(&self) -> &'static str {
-        PROXY
+        ACCOUNT
     }
 }
 
-impl crate::features::AbstractRegistryAccess for VersionControlContract {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+impl crate::features::AbstractRegistryAccess for RegistryContract {
+    fn abstract_registry(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<RegistryContract> {
         Ok(self.clone())
     }
 }
 
-impl ModuleIdentification for VersionControlContract {
+impl ModuleIdentification for RegistryContract {
     fn module_id(&self) -> abstract_std::objects::module::ModuleId<'static> {
-        VERSION_CONTROL
+        REGISTRY
     }
 }
 
 impl crate::features::AbstractNameService for AnsHost {
-    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<AnsHost> {
         Ok(self.clone())
+    }
+}
+
+impl ModuleIdentification for AnsHost {
+    fn module_id(&self) -> abstract_std::objects::module::ModuleId<'static> {
+        ANS_HOST
     }
 }
 
 #[cfg(test)]
 mod tests {
     use abstract_testing::prelude::*;
-    use speculoos::prelude::*;
+    use cosmwasm_std::testing::mock_dependencies;
 
     use super::*;
 
-    mod version_control {
-        use cosmwasm_std::testing::mock_dependencies;
+    mod registry {
 
         use super::*;
         use crate::features::AbstractRegistryAccess;
 
-        #[test]
+        #[coverage_helper::test]
         fn test_registry() {
-            let address = Addr::unchecked("version");
-            let vc = VersionControlContract::new(address.clone());
-
             let deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
+            let registry = RegistryContract::new(&deps.api, &env).unwrap();
 
-            assert_that!(vc.abstract_registry(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(vc);
+            assert_eq!(
+                registry.abstract_registry(deps.as_ref(), &env).unwrap(),
+                registry
+            );
+            assert_eq!(registry.module_id(), REGISTRY);
         }
     }
 
-    mod proxy {
-        use cosmwasm_std::testing::mock_dependencies;
+    mod ans {
+
+        use abstract_std::ANS_HOST;
 
         use super::*;
+        use crate::features::AbstractNameService;
 
-        #[test]
-        fn test_proxy_address() {
-            let address = Addr::unchecked(TEST_PROXY);
-            let proxy = ProxyContract::new(address.clone());
+        #[coverage_helper::test]
+        fn test_ans() {
             let deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
+            let ans = AnsHost::new(&deps.api, &env).unwrap();
 
-            assert_that!(proxy.proxy_address(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(address);
-        }
-
-        #[test]
-        fn should_identify_self_as_abstract_proxy() {
-            let proxy = ProxyContract::new(Addr::unchecked(TEST_PROXY));
-
-            assert_that!(proxy.module_id()).is_equal_to(PROXY);
+            assert_eq!(ans.ans_host(deps.as_ref(), &env).unwrap(), ans);
+            assert_eq!(ans.module_id(), ANS_HOST);
         }
     }
 
-    mod base {
-        use cosmwasm_std::testing::mock_dependencies;
-
+    mod account {
         use super::*;
 
-        fn test_account_base() -> AccountBase {
-            AccountBase {
-                manager: Addr::unchecked(TEST_MANAGER),
-                proxy: Addr::unchecked(TEST_PROXY),
-            }
-        }
-
-        #[test]
-        fn test_proxy_address() {
-            let address = Addr::unchecked(TEST_PROXY);
-            let account_base = test_account_base();
-
+        #[coverage_helper::test]
+        fn test_account_object() {
             let deps = mock_dependencies();
+            let account = test_account(deps.api);
 
-            assert_that!(account_base.proxy_address(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(address);
-        }
-
-        #[test]
-        fn test_manager_address() {
-            let manager_addrsess = Addr::unchecked(TEST_MANAGER);
-            let account_base = test_account_base();
-
-            let deps = mock_dependencies();
-
-            assert_that!(account_base.manager_address(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(manager_addrsess);
-        }
-
-        #[test]
-        fn test_account() {
-            let account_base = test_account_base();
-
-            let deps = mock_dependencies();
-
-            assert_that!(account_base.account_base(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(account_base);
-        }
-
-        #[test]
-        fn should_identify_self_as_abstract_proxy() {
-            let account_base = test_account_base();
-
-            assert_that!(account_base.module_id()).is_equal_to(PROXY);
+            assert_eq!(account.account(deps.as_ref()).unwrap(), account);
+            assert_eq!(account.module_id(), ACCOUNT);
         }
     }
 }

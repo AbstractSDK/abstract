@@ -10,7 +10,6 @@ and infrastructure for composable smart-contract applications.
 ## Abstract Account
 
 A unique entity within the Abstract framework that can have modules installed onto it, enabling various functionalities.
-It consists of a Manager and a Proxy contract.
 
 ## Account
 
@@ -55,10 +54,6 @@ A JavaScript library designed to facilitate interactions with the on-chain Abstr
 
 A concept where the Abstract Account acts as a layer abstracting the complexities of blockchain interactions, allowing
 for a more user-friendly experience.
-
-## Account Factory
-
-A contract that facilitates the creation and management of Abstract Accounts.
 
 ## Account Ownership
 
@@ -111,12 +106,8 @@ correctly.
 
 ## JSON Schema Linking
 
-Linking a module's JSON schema to the Abstract Version Control to improve user experience for developers using the
+Linking a module's JSON schema to the Abstract Registry to improve user experience for developers using the
 module.
-
-## Manager Contract
-
-A contract within an Abstract Account responsible for managing the account's modules and permissions.
 
 ## Migration Update
 
@@ -129,7 +120,7 @@ A tool provided by the abstract-testing package to mock Smart and Raw queries fo
 
 ## Module Factory
 
-A contract that allows the installation and management of Abstract Modules via the Account Manager.
+A contract that allows the installation and management of Abstract Modules via the Account.
 
 ## Module Installation
 
@@ -159,10 +150,6 @@ agree on actions taken.
 A unique publishing domain for Abstract modules, associated with an Abstract Account. It's used to uniquely identify and
 monetize modules.
 
-## Proxy Contract
-
-A contract within an Abstract Account that handles interactions with external contracts and services.
-
 ## Raw Queries
 
 Simple database key-value lookups without the computational aspect of smart queries.
@@ -178,6 +165,6 @@ smart contract development due to its safety features and efficient performance.
 
 Queries that contain a message in their request and often involve computation on the queried contract.
 
-## Version Control
+## Registry
 
 A contract that acts as a registry for all modules and accounts within the Abstract platform.
