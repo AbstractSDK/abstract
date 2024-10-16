@@ -19,7 +19,7 @@ fn instantiate() -> AResult {
         registry_address: deployment.registry.address()?,
     };
 
-    assert_that!(&factory_config).is_equal_to(&expected);
+    assert_eq!(factory_config, expected);
     Ok(())
 }
 
@@ -41,8 +41,10 @@ fn caller_must_be_account() -> AResult {
             Binary::default(),
         )
         .unwrap_err();
-    assert_that(&res.root().to_string())
-        .contains("ensure that the contract is an Account contract");
+    assert!(res
+        .root()
+        .to_string()
+        .contains("ensure that the contract is an Account contract"));
 
     Ok(())
 }
