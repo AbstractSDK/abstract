@@ -2,7 +2,7 @@ use abstract_std::{
     objects::{module::ModuleInfo, namespace::Namespace, validation::ValidationError, AccountId},
     AbstractError, ACCOUNT,
 };
-use cosmwasm_std::{Addr, Coin, StdError};
+use cosmwasm_std::{Addr, StdError};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

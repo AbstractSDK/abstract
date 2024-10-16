@@ -26,9 +26,6 @@ pub enum AbstractClientError {
     #[error("Module not installed")]
     ModuleNotInstalled {},
 
-    #[error("Account is Renounced and does not have an owner.")]
-    RenouncedAccount {},
-
     #[error("Can't retrieve Account for unclaimed namespace \"{namespace}\".")]
     NamespaceNotClaimed { namespace: String },
 
