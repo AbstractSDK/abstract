@@ -1,4 +1,4 @@
-use abstract_sdk::{std::objects::module::ModuleInfo};
+use abstract_sdk::std::objects::module::ModuleInfo;
 use abstract_std::{
     objects::{registry::RegistryError, validation::ValidationError},
     AbstractError,
