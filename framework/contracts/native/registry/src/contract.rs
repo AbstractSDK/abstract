@@ -191,15 +191,16 @@ mod tests {
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res)
-                    .is_err()
-                    .is_equal_to(RegistryError::Abstract(
+                assert_eq!(
+                    res,
+                    Err(RegistryError::Abstract(
                         AbstractError::CannotDowngradeContract {
                             contract: REGISTRY.to_string(),
                             from: version.to_string().parse().unwrap(),
                             to: version.to_string().parse().unwrap(),
                         },
-                    ));
+                    ))
+                );
 
                 Ok(())
             }
@@ -217,15 +218,16 @@ mod tests {
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res)
-                    .is_err()
-                    .is_equal_to(RegistryError::Abstract(
+                assert_eq!(
+                    res,
+                    Err(RegistryError::Abstract(
                         AbstractError::CannotDowngradeContract {
                             contract: REGISTRY.to_string(),
                             from: big_version.parse().unwrap(),
                             to: version.to_string().parse().unwrap(),
                         },
-                    ));
+                    ))
+                );
 
                 Ok(())
             }
@@ -242,14 +244,15 @@ mod tests {
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res)
-                    .is_err()
-                    .is_equal_to(RegistryError::Abstract(
+                assert_eq!(
+                    res,
+                    Err(RegistryError::Abstract(
                         AbstractError::ContractNameMismatch {
                             from: old_name.to_string(),
                             to: REGISTRY.to_string(),
                         },
-                    ));
+                    ))
+                );
 
                 Ok(())
             }
@@ -270,10 +273,12 @@ mod tests {
                 cw2::set_contract_version(deps.as_mut().storage, REGISTRY, small_version)?;
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
-                assert_that!(res.messages).has_length(0);
+                assert!(res.messages.is_empty());
 
-                assert_that!(cw2::get_contract_version(&deps.storage)?.version)
-                    .is_equal_to(version.to_string());
+                assert_eq!(
+                    cw2::get_contract_version(&deps.storage)?.version,
+                    version.to_string()
+                );
                 Ok(())
             }
         }
@@ -316,7 +321,7 @@ mod tests {
                     &Namespace::try_from(ABSTRACT_NAMESPACE)?,
                 )?;
 
-                assert_that!(account_id).is_equal_to(ABSTRACT_ACCOUNT_ID);
+                assert_eq!(account_id, ABSTRACT_ACCOUNT_ID);
                 assert_eq!(resp, VcResponse::action("instantiate"));
                 assert_eq!(LOCAL_ACCOUNT_SEQUENCE.load(&deps.storage).unwrap(), 0);
 
