@@ -1,0 +1,21 @@
+{
+    "messages": [
+        {
+            "@type": "/abstractaccount.v1.MsgUpdateParams",
+            "sender": "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc",
+            "params": {
+                "allow_all_code_ids": false,
+                "allowed_code_ids": [
+                    21,
+                    793, /** New code Id **/
+                ],
+                "max_gas_before": "5000000",
+                "max_gas_after": "5000000"
+            }
+        }
+    ],
+    "metadata": "https://github.com/AbstractSDK/abstract/tree/update/xion-abstractv0.24.1-beta.1-proposal/interchain/scripts/proposals/add-abstr-account-v0.24.1-beta.1.json",
+    "deposit": "10000000uxion",
+    "title": "add new account code id",
+    "summary": "add new account code id"
+}
