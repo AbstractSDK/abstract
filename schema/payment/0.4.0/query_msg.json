@@ -1,0 +1,208 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "description": "A query to the base.",
+      "type": "object",
+      "required": [
+        "base"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/definitions/BaseQueryMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Custom query",
+      "type": "object",
+      "required": [
+        "module"
+      ],
+      "properties": {
+        "module": {
+          "$ref": "#/definitions/AppQueryMsg"
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "AppQueryMsg": {
+      "oneOf": [
+        {
+          "description": "Returns [`ConfigResponse`]",
+          "type": "object",
+          "required": [
+            "config"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns [`TipperResponse`]",
+          "type": "object",
+          "required": [
+            "tipper"
+          ],
+          "properties": {
+            "tipper": {
+              "type": "object",
+              "required": [
+                "address"
+              ],
+              "properties": {
+                "address": {
+                  "type": "string"
+                },
+                "at_height": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint64",
+                  "minimum": 0.0
+                },
+                "limit": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint32",
+                  "minimum": 0.0
+                },
+                "start_after": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns [`TipCountResponse`]",
+          "type": "object",
+          "required": [
+            "tip_count"
+          ],
+          "properties": {
+            "tip_count": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns [`TippersCountResponse`]",
+          "type": "object",
+          "required": [
+            "list_tippers_count"
+          ],
+          "properties": {
+            "list_tippers_count": {
+              "type": "object",
+              "properties": {
+                "limit": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint32",
+                  "minimum": 0.0
+                },
+                "start_after": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "AssetEntry": {
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+      "type": "string"
+    },
+    "BaseQueryMsg": {
+      "oneOf": [
+        {
+          "description": "Returns [`AppConfigResponse`]",
+          "type": "object",
+          "required": [
+            "base_config"
+          ],
+          "properties": {
+            "base_config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns the admin. Returns [`AdminResponse`]",
+          "type": "object",
+          "required": [
+            "base_admin"
+          ],
+          "properties": {
+            "base_admin": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns module data Returns [`ModuleDataResponse`]",
+          "type": "object",
+          "required": [
+            "module_data"
+          ],
+          "properties": {
+            "module_data": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns top level owner Returns [`TopLevelOwnerResponse`]",
+          "type": "object",
+          "required": [
+            "top_level_owner"
+          ],
+          "properties": {
+            "top_level_owner": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

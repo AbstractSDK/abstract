@@ -44,7 +44,6 @@ pub enum GovernanceDetails<T: AddressLike> {
     /// More details: https://github.com/burnt-labs/abstract-account/blob/2c933a7b2a8dacc0ae5bf4344159a7d4ab080135/README.md
     AbstractAccount {
         /// Address of this abstract account
-        // TODO: Is there any point setting it T instead?
         address: Addr,
     },
     /// Renounced account
@@ -85,7 +84,6 @@ impl GovernanceDetails<String> {
     pub fn verify(
         self,
         deps: Deps,
-        // TODO: remove!
         registry_addr: Addr,
     ) -> Result<GovernanceDetails<Addr>, AbstractError> {
         match self {
