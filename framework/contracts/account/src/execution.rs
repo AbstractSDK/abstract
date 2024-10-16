@@ -123,7 +123,7 @@ pub fn add_auth_method(
 ) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        crate::absacc::auth::execute::add_auth_method(_deps, &_env, &mut _auth)
+        abstract_xion::auth::execute::add_auth_method(_deps, &_env, &mut _auth).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
@@ -134,7 +134,7 @@ pub fn add_auth_method(
 pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        crate::absacc::auth::execute::remove_auth_method(_deps, _env, _id)
+        abstract_xion::auth::execute::remove_auth_method(_deps, _env, _id).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
