@@ -21,7 +21,6 @@ hex = { version = "0.4", default-features = false }
 sha2 = { version = "0.10.8", default-features = false, features = ["oid"] }
 bech32 = { version = "0.9.1" }
 base64 = { version = "0.22.1", default-features = false }
-phf = { version = "0.11.2", default-features = false, features = ["macros"] }
 rsa = { version = "0.9.6", default-features = false, features = ["std"] }
 getrandom = { version = "0.2.15", default-features = false, features = [
     "custom",

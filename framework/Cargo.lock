@@ -689,7 +689,6 @@ dependencies = [
  "getrandom",
  "hex",
  "p256",
- "phf",
  "prost",
  "ripemd",
  "rsa",
@@ -4993,48 +4992,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "phf"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ade2d8b8f33c7333b51bcf0428d37e217e9f32192ae4772156f65063b8ce03dc"
-dependencies = [
- "phf_macros",
- "phf_shared",
-]
-
-[[package]]
-name = "phf_generator"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48e4cc64c2ad9ebe670cb8fd69dd50ae301650392e81c05f9bfcb2d5bdbc24b0"
-dependencies = [
- "phf_shared",
- "rand",
-]
-
-[[package]]
-name = "phf_macros"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3444646e286606587e49f3bcf1679b8cef1dc2c5ecc29ddacaffc305180d464b"
-dependencies = [
- "phf_generator",
- "phf_shared",
- "proc-macro2",
- "quote",
- "syn 2.0.79",
-]
-
-[[package]]
-name = "phf_shared"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90fcb95eef784c2ac79119d1dd819e162b5da872ce6f3c3abe1e8ca1c082f72b"
-dependencies = [
- "siphasher",
-]
-
-[[package]]
 name = "pin-project"
 version = "1.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6205,12 +6162,6 @@ name = "similar"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1de1d4f81173b03af4c0cbed3c898f6bff5b870e4a7f5d6f4057d62a7a4b686e"
-
-[[package]]
-name = "siphasher"
-version = "0.3.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38b58827f4464d87d377d175e90bf58eb00fd8716ff0a62f80356b5e61555d0d"
 
 [[package]]
 name = "slab"
@@ -7675,7 +7626,6 @@ dependencies = [
  "anstream",
  "anyhow",
  "base16ct",
- "base64 0.21.7",
  "bitcoin-internals 0.2.0",
  "bitcoin_hashes 0.13.0",
  "bitflags 2.6.0",
@@ -7720,7 +7670,6 @@ dependencies = [
  "ibc-proto",
  "ibc-relayer-types",
  "ics23",
- "informalsystems-pbjson",
  "k256",
  "lazy_static",
  "libc",
@@ -7759,7 +7708,6 @@ dependencies = [
  "syn 2.0.79",
  "tendermint 0.38.1",
  "tendermint-proto 0.38.1",
- "tendermint-proto 0.39.1",
  "time",
  "tiny-keccak",
  "tokio-stream",
