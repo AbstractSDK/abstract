@@ -1,4 +1,3 @@
-use abstract_sdk::AbstractSdkError;
 use abstract_std::{
     objects::{module::ModuleInfo, namespace::Namespace, validation::ValidationError, AccountId},
     AbstractError, ACCOUNT,
@@ -13,9 +12,6 @@ pub enum RegistryError {
 
     #[error("{0}")]
     Abstract(#[from] AbstractError),
-
-    #[error("{0}")]
-    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
     Validation(#[from] ValidationError),
@@ -44,9 +40,6 @@ pub enum RegistryError {
     #[error("Module {0} does not have a stored module reference")]
     ModuleNotFound(ModuleInfo),
 
-    #[error("Module {0} is in both approve and reject")]
-    InvalidApproveList(ModuleInfo),
-
     #[error("Module {0} cannot be updated")]
     NotUpdateableModule(ModuleInfo),
 
@@ -68,16 +61,6 @@ pub enum RegistryError {
     #[error("Exceeds namespace limit: {}, current: {}", limit, current)]
     ExceedsNamespaceLimit { limit: usize, current: usize },
 
-    #[error(
-        "Decreasing namespace limit is not allowed: {}, current: {}",
-        limit,
-        current
-    )]
-    DecreaseNamespaceLimit { limit: u32, current: u32 },
-
-    #[error("As namespace owner you can only yank a module, not remove it.")]
-    OnlyYankAllowed,
-
     #[error("The admin of an adapter must be None")]
     AdminMustBeNone,
 
@@ -86,9 +69,6 @@ pub enum RegistryError {
 
     #[error("Account {0} already exists")]
     AccountAlreadyExists(AccountId),
-
-    #[error("Invalid fee payment sent. Expected {}, sent {:?}", expected, sent)]
-    InvalidFeePayment { expected: Coin, sent: Vec<Coin> },
 
     #[error("Initialization funds can only be specified for apps and standalone modules")]
     RedundantInitFunds {},
