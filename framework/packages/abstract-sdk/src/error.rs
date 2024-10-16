@@ -1,10 +1,10 @@
 #![allow(missing_docs)]
 use std::fmt::{Display, Formatter};
 
+use crate::std::AbstractError;
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use thiserror::Error;
-use crate::std::{AbstractError};
 
 /// Error type for the abstract module endpoints.
 #[derive(Error, Debug, PartialEq)]
