@@ -9,8 +9,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum IbcClientError {
-    #[error("{0}")]
-    Std(#[from] StdError),
+    // #[error("{0}")]
+    // Std(#[from] StdError),
 
     #[error("{0}")]
     Abstract(#[from] AbstractError),
