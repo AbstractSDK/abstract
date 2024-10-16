@@ -129,7 +129,11 @@ pub fn _install_modules(
 
                 Some(init_msg.unwrap())
             }
-            _ => return Err(AbstractXionError::ModuleNotInstallable(module.info.to_string())),
+            _ => {
+                return Err(AbstractXionError::ModuleNotInstallable(
+                    module.info.to_string(),
+                ))
+            }
         };
         account_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }

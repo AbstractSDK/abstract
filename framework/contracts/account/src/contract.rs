@@ -362,7 +362,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 }
 
                 // ## Other ##
-                // TODO: Update module migrate logic to not use callback!
                 ExecuteMsg::UpdateStatus { is_suspended: _ } => {
                     unreachable!("Update status case is reached above")
                 }
@@ -423,7 +422,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-#[cfg_attr(all(feature = "export", feature = "xion"), cosmwasm_std::entry_point)]
+#[cfg(feature = "xion")]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn sudo(
     deps: DepsMut,
     env: Env,

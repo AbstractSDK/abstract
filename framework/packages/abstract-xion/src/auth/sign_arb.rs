@@ -19,7 +19,7 @@ pub fn verify(
     Ok(verification)
 }
 
-fn wrap_message(msg_bytes: &[u8], signer: Addr) -> Vec<u8> {
+pub fn wrap_message(msg_bytes: &[u8], signer: Addr) -> Vec<u8> {
     let msg_b64 = general_purpose::STANDARD.encode(msg_bytes);
     // format the msg in the style of ADR-036 SignArbitrary
     let envelope = format!("{{\"account_number\":\"0\",\"chain_id\":\"\",\"fee\":{{\"amount\":[],\"gas\":\"0\"}},\"memo\":\"\",\"msgs\":[{{\"type\":\"sign/MsgSignData\",\"value\":{{\"data\":\"{}\",\"signer\":\"{}\"}}}}],\"sequence\":\"0\"}}", msg_b64.as_str(), signer.as_str());

@@ -2,11 +2,11 @@ use crate::AbstractXionResult;
 use cosmwasm_std::{Binary, Deps, Env};
 use secp256r1::verify;
 
-mod eth_crypto;
+pub mod eth_crypto;
 pub mod jwt;
 pub mod passkey;
-mod secp256r1;
-mod sign_arb;
+pub mod secp256r1;
+pub mod sign_arb;
 pub mod util;
 
 /// Authentication id for the signature

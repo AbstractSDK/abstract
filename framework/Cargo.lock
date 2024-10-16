@@ -21,6 +21,7 @@ dependencies = [
  "abstract-testing",
  "abstract-xion",
  "anyhow",
+ "base64 0.22.1",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",

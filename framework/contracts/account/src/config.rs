@@ -569,7 +569,10 @@ mod tests {
                 }),
             )
             .unwrap_err();
-            assert_eq!(module_limit_reached, AbstractXionError::ModuleLimitReached {});
+            assert_eq!(
+                module_limit_reached,
+                AbstractXionError::ModuleLimitReached {}
+            );
 
             Ok(())
         }

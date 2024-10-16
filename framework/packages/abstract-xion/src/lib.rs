@@ -6,6 +6,7 @@ pub mod queries;
 pub mod state;
 pub mod sudo;
 
+// Copied types from https://github.com/burnt-labs/cosmos-rust/tree/d3b51db49b894f1c6b7836bb0a7b14f54f1dfb26/cosmos-sdk-proto/src/prost/xion
 pub mod xion_proto;
 
 pub type AbstractXionResult<R = cosmwasm_std::Response> = Result<R, AbstractXionError>;

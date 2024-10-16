@@ -135,7 +135,9 @@ pub fn assert_dependency_requirements(
     for dep in dependencies {
         let dep_addr = ACCOUNT_MODULES
             .may_load(deps.storage, &dep.id)?
-            .ok_or_else(|| AbstractXionError::DependencyNotMet(dep.id.clone(), dependent.to_string()))?;
+            .ok_or_else(|| {
+                AbstractXionError::DependencyNotMet(dep.id.clone(), dependent.to_string())
+            })?;
 
         let dep_version = cw2::CONTRACT.query(&deps.querier, dep_addr)?;
         let version: Version = dep_version.version.parse().unwrap();

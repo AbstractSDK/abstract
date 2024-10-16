@@ -73,5 +73,7 @@ abstract-macros = { workspace = true }
 abstract-integration-tests = { workspace = true }
 coverage-helper = { workspace = true }
 
+base64 = { version = "0.22.1", default-features = false }
+
 [profile.release]
 overflow-checks = true
