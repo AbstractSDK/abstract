@@ -1,4 +1,4 @@
-use abstract_account::error::AbstractXionError;
+use abstract_account::error::AccountError;
 use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 use abstract_interface::{Abstract, AccountQueryFns, RegistryExecFns};
 use abstract_std::{
@@ -46,10 +46,10 @@ fn cannot_reinstall_module() -> AResult {
             &[],
         )
         .unwrap_err();
-    let account_err: AbstractXionError = err.downcast().unwrap();
+    let account_err: AccountError = err.downcast().unwrap();
     assert_eq!(
         account_err,
-        AbstractXionError::ModuleAlreadyInstalled(adapter_1::MOCK_ADAPTER_ID.to_owned())
+        AccountError::ModuleAlreadyInstalled(adapter_1::MOCK_ADAPTER_ID.to_owned())
     );
     Ok(())
 }
@@ -104,10 +104,10 @@ fn useful_error_module_not_found() -> AResult {
         )
         .unwrap_err();
 
-    let account_error: AbstractXionError = err.downcast().unwrap();
+    let account_error: AccountError = err.downcast().unwrap();
     assert!(matches!(
         account_error,
-        AbstractXionError::QueryModulesFailed { .. }
+        AccountError::QueryModulesFailed { .. }
     ));
     Ok(())
 }
@@ -119,7 +119,7 @@ fn only_admin_can_add_or_remove_module() -> AResult {
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
 
     let not_admin = chain.addr_make("not_admin");
-    let not_admin_error: AbstractXionError = account
+    let not_admin_error: AccountError = account
         .call_as(&not_admin)
         .execute(
             &AccountMsg::InstallModules {
@@ -136,10 +136,10 @@ fn only_admin_can_add_or_remove_module() -> AResult {
 
     assert_eq!(
         not_admin_error,
-        AbstractXionError::Ownership(GovOwnershipError::NotOwner)
+        AccountError::Ownership(GovOwnershipError::NotOwner)
     );
 
-    let not_admin_error: AbstractXionError = account
+    let not_admin_error: AccountError = account
         .call_as(&not_admin)
         .execute(
             &AccountMsg::UninstallModule {
@@ -153,7 +153,7 @@ fn only_admin_can_add_or_remove_module() -> AResult {
 
     assert_eq!(
         not_admin_error,
-        AbstractXionError::Ownership(GovOwnershipError::NotOwner)
+        AccountError::Ownership(GovOwnershipError::NotOwner)
     );
 
     Ok(())
@@ -180,7 +180,7 @@ fn fails_adding_previously_added_module() -> AResult {
         &[],
     )?;
 
-    let already_whitelisted: AbstractXionError = account
+    let already_whitelisted: AccountError = account
         .execute(
             &AccountMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
@@ -195,7 +195,7 @@ fn fails_adding_previously_added_module() -> AResult {
         .unwrap();
     assert_eq!(
         already_whitelisted,
-        AbstractXionError::ModuleAlreadyInstalled(adapter_1::MOCK_ADAPTER_ID.to_string())
+        AccountError::ModuleAlreadyInstalled(adapter_1::MOCK_ADAPTER_ID.to_string())
     );
     Ok(())
 }
@@ -242,7 +242,7 @@ fn fails_removing_non_existing_module() -> AResult {
     let abstr = Abstract::deploy_on_mock(chain.clone())?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
 
-    let err: AbstractXionError = account
+    let err: AccountError = account
         .execute(
             &AccountMsg::UninstallModule {
                 module_id: adapter_1::MOCK_ADAPTER_ID.to_string(),
@@ -255,7 +255,7 @@ fn fails_removing_non_existing_module() -> AResult {
 
     assert_eq!(
         err,
-        AbstractXionError::ModuleNotFound(adapter_1::MOCK_ADAPTER_ID.to_string())
+        AccountError::ModuleNotFound(adapter_1::MOCK_ADAPTER_ID.to_string())
     );
     Ok(())
 }

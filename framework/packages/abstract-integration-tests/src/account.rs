@@ -1,4 +1,4 @@
-use abstract_account::error::AbstractXionError;
+use abstract_account::error::AccountError;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_app::mock::MockInitMsg;
 use abstract_interface::*;
@@ -373,14 +373,12 @@ pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
 
     let res = account.uninstall_module(adapter_1::MOCK_ADAPTER_ID.to_string());
     // fails because app is depends on adapter 1
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        AbstractXionError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string(),
-    );
+    assert_that!(res.unwrap_err().root().to_string())
+        .contains(AccountError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
     // same for adapter 2
     let res = account.uninstall_module(adapter_2::MOCK_ADAPTER_ID.to_string());
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        AbstractXionError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string(),
-    );
+    assert_that!(res.unwrap_err().root().to_string())
+        .contains(AccountError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
 
     // we can only uninstall if the app is uninstalled first
     account.uninstall_module(app_1::MOCK_APP_ID.to_string())?;

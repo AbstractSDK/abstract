@@ -26,7 +26,7 @@ use semver::Version;
 
 use crate::{
     contract::{AccountResponse, AccountResult, REGISTER_MODULES_DEPENDENCIES_REPLY_ID},
-    error::AbstractXionError,
+    error::AccountError,
 };
 
 pub use migration::MIGRATE_CONTEXT;
@@ -82,7 +82,7 @@ pub fn _install_modules(
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
     let modules = registry
         .query_modules_configs(infos, &deps.querier)
-        .map_err(|error| AbstractXionError::QueryModulesFailed { error })?;
+        .map_err(|error| AccountError::QueryModulesFailed { error })?;
 
     let mut install_context = Vec::with_capacity(modules.len());
     let mut add_to_whitelist: Vec<Addr> = Vec::with_capacity(modules.len());
@@ -92,7 +92,7 @@ pub fn _install_modules(
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
         // Check if module is already enabled.
         if ACCOUNT_MODULES.has(deps.storage, &module.info.id()) {
-            return Err(AbstractXionError::ModuleAlreadyInstalled(module.info.id()));
+            return Err(AccountError::ModuleAlreadyInstalled(module.info.id()));
         }
         installed_modules.push(module.info.id_with_version());
 
@@ -119,7 +119,7 @@ pub fn _install_modules(
                     deps.querier
                         .query_wasm_contract_info(module_address.to_string())
                         .is_err(),
-                    AbstractXionError::ProhibitedReinstall {}
+                    AccountError::ProhibitedReinstall {}
                 );
                 if module.should_be_whitelisted() {
                     add_to_whitelist.push(module_address.clone());
@@ -129,11 +129,7 @@ pub fn _install_modules(
 
                 Some(init_msg.unwrap())
             }
-            _ => {
-                return Err(AbstractXionError::ModuleNotInstallable(
-                    module.info.to_string(),
-                ))
-            }
+            _ => return Err(AccountError::ModuleNotInstallable(module.info.to_string())),
         };
         account_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }
@@ -174,7 +170,7 @@ pub fn update_module_addresses(
 ) -> AccountResult {
     for (id, new_address) in to_add.into_iter() {
         if id.is_empty() {
-            return Err(AbstractXionError::InvalidModuleName {});
+            return Err(AccountError::InvalidModuleName {});
         };
         // validate addr
         ACCOUNT_MODULES.save(deps.storage, id.as_str(), &new_address)?;
@@ -201,7 +197,7 @@ pub fn uninstall_module(
     let dependents = DEPENDENTS.may_load(deps.storage, &module_id)?;
     if let Some(dependents) = dependents {
         if !dependents.is_empty() {
-            return Err(AbstractXionError::ModuleHasDependents(Vec::from_iter(
+            return Err(AccountError::ModuleHasDependents(Vec::from_iter(
                 dependents,
             )));
         }
@@ -239,7 +235,7 @@ pub fn uninstall_module(
 pub fn load_module_addr(storage: &dyn Storage, module_id: &str) -> AccountResult<Addr> {
     ACCOUNT_MODULES
         .may_load(storage, module_id)?
-        .ok_or_else(|| AbstractXionError::ModuleNotFound(module_id.to_string()))
+        .ok_or_else(|| AccountError::ModuleNotFound(module_id.to_string()))
 }
 
 /// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
@@ -248,7 +244,7 @@ pub fn query_module(
     env: &Env,
     module_info: ModuleInfo,
     old_contract_version: Option<ContractVersion>,
-) -> Result<ModuleResponse, AbstractXionError> {
+) -> Result<ModuleResponse, AccountError> {
     // Construct feature object to access registry functions
     let registry = RegistryContract::new(deps.api, env)?;
 
@@ -260,7 +256,7 @@ pub fn query_module(
             let old_version = old_contract.version.parse::<Version>().unwrap();
 
             if new_version < old_version {
-                return Err(AbstractXionError::OlderVersion(
+                return Err(AccountError::OlderVersion(
                     new_version.to_string(),
                     old_version.to_string(),
                 ));
@@ -309,15 +305,15 @@ pub(crate) fn _update_whitelisted_modules(
     let new_len = (whitelisted_modules.len() + to_add_module_addresses.len())
         .checked_sub(to_remove_module_addresses.len())
         // If overflowed - tried to remove not whitelisted
-        .ok_or(AbstractXionError::NotWhitelisted {})?;
+        .ok_or(AccountError::NotWhitelisted {})?;
     // This is a limit to prevent potentially running out of gas when doing lookups on the modules list
     if new_len > WHITELIST_SIZE_LIMIT {
-        return Err(AbstractXionError::ModuleLimitReached {});
+        return Err(AccountError::ModuleLimitReached {});
     }
 
     for module_addr in to_add_module_addresses {
         if whitelisted_modules.contains(&module_addr) {
-            return Err(AbstractXionError::AlreadyWhitelisted(module_addr.into()));
+            return Err(AccountError::AlreadyWhitelisted(module_addr.into()));
         }
 
         // Add contract to whitelist.
@@ -331,7 +327,7 @@ pub(crate) fn _update_whitelisted_modules(
 
     // Error won't match if something didn't remove
     if whitelisted_modules.len() != new_len {
-        return Err(AbstractXionError::NotWhitelisted {});
+        return Err(AccountError::NotWhitelisted {});
     }
     WHITELISTED_MODULES.save(storage, &WhitelistedModules(whitelisted_modules))?;
     Ok(())
@@ -427,7 +423,7 @@ mod tests {
             let res = update_module_addresses(deps.as_mut(), to_add, vec![]);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(AbstractXionError::InvalidModuleName {});
+                .is_equal_to(AccountError::InvalidModuleName {});
 
             Ok(())
         }
@@ -483,7 +479,7 @@ mod tests {
             let res = execute_as(&mut deps, &not_account_factory, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(AbstractXionError::Ownership(GovOwnershipError::NotOwner));
+                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
         }
@@ -522,7 +518,7 @@ mod tests {
             let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(AbstractXionError::ModuleHasDependents(Vec::from_iter(
+                .is_equal_to(AccountError::ModuleHasDependents(Vec::from_iter(
                     dependents,
                 )));
 
@@ -557,7 +553,7 @@ mod tests {
             let res = execute_as(&mut deps, &not_owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(AbstractXionError::SenderNotWhitelistedOrOwner {});
+                .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
             Ok(())
         }
 
@@ -579,7 +575,7 @@ mod tests {
             let res = execute_as(&mut deps, &owner, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(AbstractXionError::ModuleNotFound(missing_module));
+                .is_equal_to(AccountError::ModuleNotFound(missing_module));
 
             Ok(())
         }

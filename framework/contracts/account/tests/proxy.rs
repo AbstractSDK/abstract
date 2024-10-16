@@ -1,4 +1,4 @@
-use abstract_account::error::AbstractXionError;
+use abstract_account::error::AccountError;
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_integration_tests::*;
 use abstract_interface::*;
@@ -239,10 +239,10 @@ fn install_standalone_versions_not_met() -> AResult {
         .unwrap_err();
 
     if let AbstractInterfaceError::Orch(err) = err {
-        let err: AbstractXionError = err.downcast()?;
+        let err: AccountError = err.downcast()?;
         assert_eq!(
             err,
-            AbstractXionError::Abstract(abstract_std::AbstractError::UnequalModuleData {
+            AccountError::Abstract(abstract_std::AbstractError::UnequalModuleData {
                 cw2: mock_modules::V1.to_owned(),
                 module: mock_modules::V2.to_owned(),
             })

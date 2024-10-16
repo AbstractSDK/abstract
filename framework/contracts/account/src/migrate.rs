@@ -24,7 +24,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::error::AbstractXionError;
+    use crate::error::AccountError;
     use crate::test_common::mock_init;
 
     use abstract_std::{account::MigrateMsg, AbstractError};
@@ -42,7 +42,7 @@ mod tests {
 
         assert_that!(res)
             .is_err()
-            .is_equal_to(AbstractXionError::Abstract(
+            .is_equal_to(AccountError::Abstract(
                 AbstractError::CannotDowngradeContract {
                     contract: ACCOUNT.to_string(),
                     from: version.clone(),
@@ -68,7 +68,7 @@ mod tests {
 
         assert_that!(res)
             .is_err()
-            .is_equal_to(AbstractXionError::Abstract(
+            .is_equal_to(AccountError::Abstract(
                 AbstractError::CannotDowngradeContract {
                     contract: ACCOUNT.to_string(),
                     from: big_version.parse().unwrap(),
@@ -93,7 +93,7 @@ mod tests {
 
         assert_that!(res)
             .is_err()
-            .is_equal_to(AbstractXionError::Abstract(
+            .is_equal_to(AccountError::Abstract(
                 AbstractError::ContractNameMismatch {
                     from: old_name.parse().unwrap(),
                     to: ACCOUNT.parse().unwrap(),

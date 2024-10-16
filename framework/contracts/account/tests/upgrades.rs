@@ -1,4 +1,4 @@
-use abstract_account::error::AbstractXionError;
+use abstract_account::error::AccountError;
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_integration_tests::{create_default_account, mock_modules::*, AResult, *};
 use abstract_interface::{
@@ -125,7 +125,7 @@ fn upgrade_app() -> AResult {
     );
     // fails because adapter 1 is not version 2
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        AbstractXionError::VersionRequirementNotMet {
+        AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V1.into(),
             comp: "^2.0.0".into(),
@@ -144,7 +144,7 @@ fn upgrade_app() -> AResult {
     );
     // fails because app v1 is not version 2 and depends on adapter 1 being version 1.
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        AbstractXionError::VersionRequirementNotMet {
+        AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V2.into(),
             comp: "^1.0.0".into(),
@@ -177,7 +177,7 @@ fn upgrade_app() -> AResult {
 
     // fails because app v1 is depends on adapter 1 being version 1.
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        AbstractXionError::Abstract(AbstractError::CannotDowngradeContract {
+        AccountError::Abstract(AbstractError::CannotDowngradeContract {
             contract: app_1::MOCK_APP_ID.into(),
             from: V1.parse().unwrap(),
             to: V1.parse().unwrap(),
@@ -196,7 +196,7 @@ fn upgrade_app() -> AResult {
 
     // fails because app v1 is depends on adapter 1 being version 2.
     assert_that!(res.unwrap_err().root().to_string()).contains(
-        AbstractXionError::VersionRequirementNotMet {
+        AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V1.into(),
             comp: "^2.0.0".into(),
@@ -232,7 +232,7 @@ fn upgrade_app() -> AResult {
 
     // fails because adapter v1 already whitelisted
     assert_that!(res.unwrap_err().root().to_string())
-        .contains(AbstractXionError::AlreadyWhitelisted(adapter1).to_string());
+        .contains(AccountError::AlreadyWhitelisted(adapter1).to_string());
 
     // successfully upgrade all the modules
     account.upgrade(vec![
@@ -306,7 +306,7 @@ fn no_duplicate_migrations() -> AResult {
     assert_that!(res).is_err();
 
     assert_that!(res.unwrap_err().root().to_string()).is_equal_to(
-        AbstractXionError::DuplicateModuleMigration {
+        AccountError::DuplicateModuleMigration {
             module_id: adapter_1::MOCK_ADAPTER_ID.to_string(),
         }
         .to_string(),
@@ -829,12 +829,12 @@ fn native_not_migratable() -> AResult {
 
     let latest_ibc_client = ModuleInfo::from_id_latest(IBC_CLIENT).unwrap();
 
-    let err: AbstractXionError = abstr_account
+    let err: AccountError = abstr_account
         .upgrade(vec![(latest_ibc_client.clone(), None)])
         .unwrap_err()
         .downcast()
         .unwrap();
-    assert_eq!(err, AbstractXionError::NotUpgradeable(latest_ibc_client));
+    assert_eq!(err, AccountError::NotUpgradeable(latest_ibc_client));
     Ok(())
 }
 

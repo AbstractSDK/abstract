@@ -1,4 +1,4 @@
-use abstract_account::error::AbstractXionError;
+use abstract_account::error::AccountError;
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_standalone::{
@@ -75,7 +75,7 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     ) else {
         panic!("Expected error");
     };
-    let account_err: AbstractXionError = err.downcast().unwrap();
-    assert_eq!(account_err, AbstractXionError::ProhibitedReinstall {});
+    let account_err: AccountError = err.downcast().unwrap();
+    assert_eq!(account_err, AccountError::ProhibitedReinstall {});
     Ok(())
 }

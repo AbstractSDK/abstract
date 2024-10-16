@@ -17,7 +17,7 @@ use cosmwasm_std::{
 
 use crate::{
     contract::{AccountResponse, AccountResult},
-    error::AbstractXionError,
+    error::AccountError,
 };
 #[allow(clippy::too_many_arguments)]
 /// Creates a sub-account for this account,
@@ -117,7 +117,7 @@ fn unregister_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) 
             vec![("sub_account_removed", id.to_string())],
         ))
     } else {
-        Err(AbstractXionError::SubAccountRemovalFailed {})
+        Err(AccountError::SubAccountRemovalFailed {})
     }
 }
 
@@ -139,7 +139,7 @@ fn register_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) ->
             vec![("sub_account_added", id.to_string())],
         ))
     } else {
-        Err(AbstractXionError::SubAccountRegisterFailed {})
+        Err(AccountError::SubAccountRegisterFailed {})
     }
 }
 
@@ -201,7 +201,7 @@ pub fn remove_account_from_contracts(deps: DepsMut, env: &Env) -> AccountResult<
         .transpose()?;
     ensure!(
         sub_account.is_none(),
-        AbstractXionError::RenounceWithSubAccount {}
+        AccountError::RenounceWithSubAccount {}
     );
 
     let ownership = ownership::get_ownership(deps.storage)?;

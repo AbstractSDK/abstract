@@ -45,7 +45,7 @@ mod test_common {
     use cosmwasm_std::{testing::*, Addr, Empty, OwnedDeps};
     use speculoos::prelude::*;
 
-    use crate::{contract::AccountResult, error::AbstractXionError, msg::ExecuteMsg};
+    use crate::{contract::AccountResult, error::AccountError, msg::ExecuteMsg};
 
     /// Initialize the account with the test owner as the owner
     pub(crate) fn mock_init(
@@ -83,7 +83,7 @@ mod test_common {
         let res = execute_as(&mut deps, &not_owner, msg);
         assert_that!(&res)
             .is_err()
-            .is_equal_to(AbstractXionError::Ownership(
+            .is_equal_to(AccountError::Ownership(
                 ownership::GovOwnershipError::NotOwner,
             ));
 
