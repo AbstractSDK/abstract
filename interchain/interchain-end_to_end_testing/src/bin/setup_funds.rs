@@ -4,10 +4,7 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use abstract_interchain_tests::{
-    interchain_accounts::{create_test_remote_account, set_env},
-    JUNO, STARGAZE,
-};
+use abstract_interchain_tests::{create_test_remote_account, set_env, JUNO, STARGAZE};
 use abstract_interface::{Abstract, AccountI, AccountQueryFns};
 use abstract_std::IBC_CLIENT;
 use abstract_std::{
@@ -120,9 +117,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     log::info!("Got memo: {memo}");
 
     // Verify the funds have been received
-    let remote_account_config = abstr_stargaze
-        .registry
-        .get_account(remote_account_id.clone())?;
+    let remote_account_config = abstr_stargaze.registry.account(remote_account_id.clone())?;
 
     let balance = stargaze
         .bank_querier()

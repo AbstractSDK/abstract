@@ -3,7 +3,7 @@ name = "abstract-ica-client"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
-description = "Abstract IBC Client Contract"
+description = "Abstract ICA Client Contract"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract"
