@@ -1,4 +1,3 @@
-use abstract_sdk::AbstractSdkError;
 use abstract_std::AbstractError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
@@ -13,19 +12,10 @@ pub enum AnsHostError {
     Abstract(#[from] AbstractError),
 
     #[error("{0}")]
-    AbstractSdk(#[from] AbstractSdkError),
-
-    #[error("{0}")]
     Asset(#[from] AssetError),
 
     #[error("{0}")]
     Ownership(#[from] cw_ownable::OwnershipError),
-
-    #[error("You must provide exactly two assets when adding liquidity")]
-    NotTwoAssets {},
-
-    #[error("{} is not part of the provided pool", id)]
-    NotInPool { id: String },
 
     #[error("{} assets is not within range [{}-{}]", provided, min, max)]
     InvalidAssetCount {
@@ -39,7 +29,4 @@ pub enum AnsHostError {
 
     #[error("Asset {} is not registered", asset)]
     UnregisteredAsset { asset: String },
-
-    #[error("Dex {} is already registered", dex)]
-    DexAlreadyRegistered { dex: String },
 }
