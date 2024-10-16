@@ -1,7 +1,5 @@
-use abstract_sdk::AbstractSdkError;
 use abstract_std::{objects::registry::RegistryError, AbstractError};
 use cosmwasm_std::{Instantiate2AddressError, StdError};
-use cw_asset::AssetError;
 use cw_ownable::OwnershipError;
 use thiserror::Error;
 
@@ -14,12 +12,6 @@ pub enum ModuleFactoryError {
     Abstract(#[from] AbstractError),
 
     #[error("{0}")]
-    AbstractSdk(#[from] AbstractSdkError),
-
-    #[error("{0}")]
-    Asset(#[from] AssetError),
-
-    #[error("{0}")]
     Ownership(#[from] OwnershipError),
 
     #[error("{0}")]
@@ -27,12 +19,6 @@ pub enum ModuleFactoryError {
 
     #[error("{0}")]
     RegistryError(#[from] RegistryError),
-
-    #[error("Calling contract is not a registered Account")]
-    UnknownCaller(),
-
-    #[error("Reply ID does not match any known Reply ID")]
-    UnexpectedReply(),
 
     #[error("This module type can not be installed on your Account")]
     ModuleNotInstallable {},
