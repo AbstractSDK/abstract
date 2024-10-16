@@ -150,7 +150,6 @@ mod tests {
             testing::{message_info, mock_dependencies, MockApi},
             OwnedDeps, Response,
         };
-        use speculoos::prelude::*;
 
         use crate::{contract, error::RegistryError};
 

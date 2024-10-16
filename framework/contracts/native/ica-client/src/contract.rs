@@ -91,7 +91,6 @@ mod tests {
     };
     use cw2::CONTRACT;
     use cw_ownable::Ownership;
-    use speculoos::prelude::*;
 
     #[coverage_helper::test]
     fn instantiate_works() -> IcaClientResult<()> {

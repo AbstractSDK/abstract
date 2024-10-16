@@ -366,7 +366,6 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::{map_tester::CwMapTester, prelude::*};
     use cosmwasm_std::{testing::*, Addr};
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::{contract, error::AnsHostError, test_common::*};
@@ -812,7 +811,7 @@ mod test {
             let reverse_map = REV_ASSET_ADDRESSES;
             let test_entry =
                 reverse_map.load(&deps.storage, &AssetInfoBase::Native("utest".into()))?;
-            assert_that!(test_entry).is_equal_to(AssetEntry::from("test"));
+            assert_eq!(test_entry, AssetEntry::from("test"));
             Ok(())
         }
 
@@ -844,7 +843,7 @@ mod test {
             let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
             let test_entry =
                 reverse_map.may_load(&deps.storage, &AssetInfoBase::Native("utest".into()))?;
-            assert_that!(test_entry).is_equal_to(None);
+            assert_eq!(test_entry, None);
             Ok(())
         }
 
@@ -872,7 +871,7 @@ mod test {
             let reverse_map = REV_ASSET_ADDRESSES;
             let test_entry =
                 reverse_map.load(&deps.storage, &new_entry_3.1.check(&deps.api, None)?)?;
-            assert_that!(test_entry.to_string()).is_equal_to(new_entry_3.0);
+            assert_eq!(test_entry.to_string(), new_entry_3.0);
             Ok(())
         }
 
@@ -1203,7 +1202,7 @@ mod test {
             let actual_pools: Result<Vec<PoolMetadataMapEntry>, _> =
                 load_pool_metadata(&deps.storage);
 
-            assert_that(&actual_pools?).is_equal_to(&expected_pools);
+            assert_eq!(actual_pools?, expected_pools);
 
             let _pairing =
                 DexAssetPairing::<AssetEntry>::new("juno".into(), "osmo".into(), "junoswap");
@@ -1226,7 +1225,7 @@ mod test {
             ];
             let actual_pairings: Result<Vec<AssetPairingMapEntry>, _> =
                 load_asset_pairings(&deps.storage);
-            assert_that(&actual_pairings?).is_equal_to(&expected_pairings);
+            assert_eq!(actual_pairings?, expected_pairings);
 
             Ok(())
         }
@@ -1261,7 +1260,7 @@ mod test {
             let actual_pools: Result<Vec<PoolMetadataMapEntry>, _> =
                 load_pool_metadata(&deps.storage);
 
-            assert_that(&actual_pools?).is_equal_to(&expected_pools);
+            assert_eq!(actual_pools?, expected_pools);
 
             let _pairing =
                 DexAssetPairing::<AssetEntry>::new("juno".into(), "osmo".into(), "junoswap");

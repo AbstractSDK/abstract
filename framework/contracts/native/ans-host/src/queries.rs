@@ -314,7 +314,6 @@ mod test {
     use abstract_testing::{addresses::AbstractMockAddrs, mock_env_validated};
     use cosmwasm_std::{from_json, testing::*, Addr, DepsMut, OwnedDeps};
     use cw_asset::AssetInfo;
-    use speculoos::prelude::*;
     use std::str::FromStr;
 
     type AnsHostTestResult = Result<(), AnsHostError>;

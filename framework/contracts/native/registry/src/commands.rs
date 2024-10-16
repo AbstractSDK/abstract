@@ -668,7 +668,6 @@ mod tests {
     use cw_ownable::OwnershipError;
     use cw_storage_plus::Item;
     use ownership::{GovernanceDetails, Ownership};
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::contract;
