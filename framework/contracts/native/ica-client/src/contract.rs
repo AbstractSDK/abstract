@@ -103,7 +103,7 @@ mod tests {
         };
         let info = message_info(&abstr.owner, &[]);
         let res = instantiate(deps.as_mut(), env.clone(), info, msg).unwrap();
-        assert_that!(res.messages).is_empty();
+        assert!(res.messages.is_empty());
 
         let ownership_resp: Ownership<Addr> =
             from_json(query(deps.as_ref(), env, QueryMsg::Ownership {})?)?;
@@ -112,8 +112,8 @@ mod tests {
 
         // CW2
         let cw2_info = CONTRACT.load(&deps.storage).unwrap();
-        assert_that!(cw2_info.version).is_equal_to(CONTRACT_VERSION.to_string());
-        assert_that!(cw2_info.contract).is_equal_to(ICA_CLIENT.to_string());
+        assert_eq!(cw2_info.version, CONTRACT_VERSION.to_string());
+        assert_eq!(cw2_info.contract, ICA_CLIENT.to_string());
 
         Ok(())
     }
@@ -134,15 +134,16 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(IcaClientError::Abstract(
+            assert_eq!(
+                res,
+                Err(IcaClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ICA_CLIENT.to_string(),
                         from: version.to_string().parse().unwrap(),
                         to: version.to_string().parse().unwrap(),
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
@@ -160,15 +161,16 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(IcaClientError::Abstract(
+            assert_eq!(
+                res,
+                Err(IcaClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ICA_CLIENT.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version.to_string().parse().unwrap(),
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
@@ -185,14 +187,15 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(IcaClientError::Abstract(
+            assert_eq!(
+                res,
+                Err(IcaClientError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
                         to: ICA_CLIENT.parse().unwrap(),
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
@@ -213,10 +216,12 @@ mod tests {
             cw2::set_contract_version(deps.as_mut().storage, ICA_CLIENT, small_version)?;
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
-            assert_that!(res.messages).has_length(0);
+            assert!(res.messages.is_empty());
 
-            assert_that!(cw2::get_contract_version(&deps.storage)?.version)
-                .is_equal_to(version.to_string());
+            assert_eq!(
+                cw2::get_contract_version(&deps.storage)?.version,
+                version.to_string()
+            );
             Ok(())
         }
     }
