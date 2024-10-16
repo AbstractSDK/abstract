@@ -409,7 +409,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             #[cfg(feature = "xion")]
             return abstract_xion::queries::authenticator_by_id(deps.storage, id);
             #[cfg(not(feature = "xion"))]
-            unimplemented!("No authenticator")
+            Ok(Binary::default())
         }
         QueryMsg::AuthenticatorIDs {} => {
             #[cfg(feature = "xion")]
