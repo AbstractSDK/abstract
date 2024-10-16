@@ -64,7 +64,8 @@ fn successful_update_ownership() {
     let accept_res = execute_as(&mut deps, &new_admin, accept_msg).unwrap();
     assert_eq!(0, accept_res.messages.len());
 
-    assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
-        .is_some()
-        .is_equal_to(new_admin)
+    assert_eq!(
+        cw_ownable::get_ownership(&deps.storage).unwrap().owner,
+        Some(new_admin)
+    )
 }

@@ -1272,13 +1272,15 @@ mod test {
             let expected_pairing_count = 20;
 
             let actual_pairings = load_asset_pairings(&deps.storage)?;
-            assert_that(&actual_pairings).has_length(expected_pairing_count);
+            assert_eq!(actual_pairings.len(), expected_pairing_count);
 
             for (_pairing, ref_vec) in actual_pairings {
-                assert_that(&ref_vec).has_length(1);
+                assert_eq!(ref_vec.len(), 1);
                 // check the pool id is correct
-                assert_that(&UncheckedPoolAddress::from(&ref_vec[0].pool_address))
-                    .is_equal_to(&unchecked_pool_id);
+                assert_eq!(
+                    UncheckedPoolAddress::from(&ref_vec[0].pool_address),
+                    unchecked_pool_id
+                );
             }
 
             Ok(())
@@ -1301,14 +1303,15 @@ mod test {
 
             let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(AnsHostError::UnregisteredDex {
+            assert_eq!(
+                res,
+                Err(AnsHostError::UnregisteredDex {
                     dex: unregistered_dex.into(),
-                });
+                })
+            );
 
             let actual_pools = load_pool_metadata(&deps.storage)?;
-            assert_that(&actual_pools).is_empty();
+            assert!(actual_pools.is_empty());
 
             Ok(())
         }
@@ -1339,11 +1342,11 @@ mod test {
 
             // metadata should be emtpy
             let actual_pools = load_pool_metadata(&deps.storage)?;
-            assert_that(&actual_pools).is_empty();
+            assert!(actual_pools.is_empty());
 
             // all pairs should be empty
             let actual_pairs = load_asset_pairings(&deps.storage)?;
-            assert_that(&actual_pairs).is_empty();
+            assert!(actual_pairs.is_empty());
 
             Ok(())
         }
@@ -1360,15 +1363,15 @@ mod test {
                 &abstr.owner,
             );
 
-            assert_that(&res).is_ok();
+            assert!(res.is_ok());
 
             // metadata should be empty
             let actual_pools = load_pool_metadata(&deps.storage)?;
-            assert_that(&actual_pools).is_empty();
+            assert!(actual_pools.is_empty());
 
             // all pairs should be empty
             let actual_pairs = load_asset_pairings(&deps.storage)?;
-            assert_that(&actual_pairs).is_empty();
+            assert!(actual_pairs.is_empty());
 
             Ok(())
         }
@@ -1390,13 +1393,12 @@ mod test {
 
             let res = execute_update(&mut deps, (vec![entry], vec![]), &abstr.owner);
 
-            assert_that(&res).is_err();
-
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(AnsHostError::UnregisteredAsset {
+            assert_eq!(
+                res,
+                Err(AnsHostError::UnregisteredAsset {
                     asset: "juno".to_string(),
-                });
+                }),
+            );
 
             Ok(())
         }
@@ -1438,11 +1440,12 @@ mod test {
             let deps = mock_dependencies();
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(AnsHostError::UnregisteredAsset {
+            assert_eq!(
+                res,
+                Err(AnsHostError::UnregisteredAsset {
                     asset: "a".to_string(),
-                });
+                })
+            );
         }
 
         #[coverage_helper::test]
@@ -1456,7 +1459,7 @@ mod test {
 
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
-            assert_that(&res).is_ok();
+            assert!(res.is_ok());
 
             let mut assets: Vec<AssetEntry> = vec!["a", "b", "c", "d", "e"]
                 .into_iter()
@@ -1466,7 +1469,7 @@ mod test {
             register_assets_helper(&mut deps, assets.clone(), &abstr.owner).unwrap();
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
-            assert_that(&res).is_ok();
+            assert!(res.is_ok());
         }
 
         #[coverage_helper::test]
