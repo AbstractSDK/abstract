@@ -1,4 +1,4 @@
-use abstract_sdk::{std::objects::module::ModuleInfo, AbstractSdkError};
+use abstract_sdk::{std::objects::module::ModuleInfo};
 use abstract_std::{
     objects::{registry::RegistryError, validation::ValidationError},
     AbstractError,
@@ -8,25 +8,22 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AccountError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
-    AbstractSdk(#[from] AbstractSdkError),
-
-    #[error("{0}")]
+    #[error(transparent)]
     Validation(#[from] ValidationError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Ownership(#[from] abstract_std::objects::ownership::GovOwnershipError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Instantiate2AddressError(#[from] Instantiate2AddressError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
     #[error("Your account is currently suspended")]
@@ -142,14 +139,6 @@ pub enum AccountError {
     #[error(transparent)]
     Base64Decode(#[from] base64::DecodeError),
 
-    #[cfg(feature = "xion")]
-    #[error(transparent)]
-    Rsa(#[from] rsa::Error),
-
-    #[cfg(feature = "xion")]
-    #[error(transparent)]
-    P256EllipticCurve(#[from] p256::elliptic_curve::Error),
-
     // TODO: no PartialEq implemented for it, see `secp256r1.rs`
     // #[cfg(feature = "xion")]
     // #[error(transparent)]
@@ -187,20 +176,12 @@ pub enum AccountError {
     InvalidToken {},
 
     #[cfg(feature = "xion")]
-    #[error("url parse error: {url}")]
-    URLParse { url: String },
-
-    #[cfg(feature = "xion")]
     #[error("cannot override existing authenticator at index {index}")]
     OverridingIndex { index: u8 },
 
     #[cfg(feature = "xion")]
     #[error("cannot delete the last authenticator")]
     MinimumAuthenticatorCount {},
-
-    #[cfg(feature = "xion")]
-    #[error("Authenticator id should be in range from 0 to 127")]
-    TooBigAuthId {},
 
     #[cfg(feature = "xion")]
     #[error(transparent)]
