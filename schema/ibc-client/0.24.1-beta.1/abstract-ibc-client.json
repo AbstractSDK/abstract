@@ -1,6 +1,6 @@
 {
   "contract_name": "abstract-ibc-client",
-  "contract_version": "0.24.0",
+  "contract_version": "0.24.1-beta.1",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -73,16 +73,9 @@
           "send_funds": {
             "type": "object",
             "required": [
-              "funds",
               "host_chain"
             ],
             "properties": {
-              "funds": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/Coin"
-                }
-              },
               "host_chain": {
                 "description": "host chain to be executed on Example: \"osmosis\"",
                 "allOf": [
@@ -736,11 +729,6 @@
             ]
           }
         },
-        "additionalProperties": false
-      },
-      "CallbackMsg": {
-        "description": "Callback message to set the dependencies after module upgrades.",
-        "type": "object",
         "additionalProperties": false
       },
       "Coin": {
@@ -1560,19 +1548,6 @@
               }
             },
             "additionalProperties": false
-          },
-          {
-            "description": "Callback endpoint",
-            "type": "object",
-            "required": [
-              "callback"
-            ],
-            "properties": {
-              "callback": {
-                "$ref": "#/definitions/CallbackMsg"
-              }
-            },
-            "additionalProperties": false
           }
         ]
       },
@@ -1932,14 +1907,9 @@
         "additionalProperties": false
       },
       "HelperAction": {
-        "oneOf": [
-          {
-            "description": "What do we need here ? TODO",
-            "type": "string",
-            "enum": [
-              "send_all_back"
-            ]
-          }
+        "type": "string",
+        "enum": [
+          "send_all_back"
         ]
       },
       "HostAction": {
@@ -3527,7 +3497,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get the IBC execution proxies Returns [`ListRemoteProxiesResponse`]",
+        "description": "Get the Polytone execution proxies Returns [`ListRemoteProxiesResponse`]",
         "type": "object",
         "required": [
           "list_remote_proxies"
@@ -3541,13 +3511,13 @@
         "additionalProperties": false
       },
       {
-        "description": "Get the IBC execution proxies based on the account id passed Returns [`ListRemoteProxiesResponse`]",
+        "description": "Get the IBC execution proxies based on the account id passed Returns [`ListRemoteAccountsResponse`]",
         "type": "object",
         "required": [
-          "list_remote_proxies_by_account_id"
+          "list_remote_accounts_by_account_id"
         ],
         "properties": {
-          "list_remote_proxies_by_account_id": {
+          "list_remote_accounts_by_account_id": {
             "type": "object",
             "required": [
               "account_id"
@@ -3888,6 +3858,42 @@
         }
       }
     },
+    "list_remote_accounts_by_account_id": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ListRemoteAccountsResponse",
+      "type": "object",
+      "required": [
+        "accounts"
+      ],
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/TruncatedChainId"
+              },
+              {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "TruncatedChainId": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
+        }
+      }
+    },
     "list_remote_hosts": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ListRemoteHostsResponse",
@@ -3923,49 +3929,13 @@
     },
     "list_remote_proxies": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ListRemoteProxiesResponse",
+      "title": "ListRemoteAccountsResponse",
       "type": "object",
       "required": [
-        "proxies"
+        "accounts"
       ],
       "properties": {
-        "proxies": {
-          "type": "array",
-          "items": {
-            "type": "array",
-            "items": [
-              {
-                "$ref": "#/definitions/TruncatedChainId"
-              },
-              {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              }
-            ],
-            "maxItems": 2,
-            "minItems": 2
-          }
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "TruncatedChainId": {
-          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
-          "type": "string"
-        }
-      }
-    },
-    "list_remote_proxies_by_account_id": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ListRemoteProxiesResponse",
-      "type": "object",
-      "required": [
-        "proxies"
-      ],
-      "properties": {
-        "proxies": {
+        "accounts": {
           "type": "array",
           "items": {
             "type": "array",

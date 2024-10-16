@@ -1,6 +1,6 @@
 {
   "contract_name": "abstract-ans-host",
-  "contract_version": "0.24.0",
+  "contract_version": "0.24.1-beta.1",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -1086,7 +1086,7 @@
         "additionalProperties": false
       },
       "DexAssetPairing_for_AssetEntry": {
-        "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
+        "description": "The key for an asset pairing Consists of the two assets and the dex name",
         "type": "array",
         "items": [
           {
@@ -1193,7 +1193,7 @@
   "responses": {
     "asset_info_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AssetInfoListResponse",
+      "title": "AssetInfosResponse",
       "type": "object",
       "required": [
         "infos"
@@ -1327,7 +1327,7 @@
     },
     "asset_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AssetListResponse",
+      "title": "AssetsResponse",
       "description": "Query response",
       "type": "object",
       "required": [
@@ -1818,7 +1818,7 @@
           "type": "string"
         },
         "DexAssetPairing_for_AssetEntry": {
-          "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
+          "description": "The key for an asset pairing Consists of the two assets and the dex name",
           "type": "array",
           "items": [
             {
@@ -2093,7 +2093,7 @@
           "type": "string"
         },
         "DexAssetPairing_for_AssetEntry": {
-          "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
+          "description": "The key for an asset pairing Consists of the two assets and the dex name",
           "type": "array",
           "items": [
             {
