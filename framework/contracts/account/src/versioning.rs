@@ -232,7 +232,7 @@ mod test {
             let dependents = DEPENDENTS.load(&deps.storage, dependency).unwrap();
 
             assert_eq!(dependents.len(), 1);
-            assert!(dependents.contains(&new_module_id.to_string()));
+            assert!(dependents.contains(new_module_id));
         }
     }
 
@@ -260,7 +260,7 @@ mod test {
 
             let actual_dex_dependents = DEPENDENTS.load(&deps.storage, dex_adapter).unwrap();
             assert_eq!(actual_dex_dependents.len(), 1);
-            assert!(actual_dex_dependents.contains(&autocompounder.to_string()));
+            assert!(actual_dex_dependents.contains(autocompounder));
 
             // the autocompounder depends on the dex
             let autocompounder_dependencies = vec![Dependency {
