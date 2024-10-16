@@ -26,7 +26,7 @@ use super::{
 };
 use crate::{
     contract::{AccountResponse, AccountResult, ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID},
-    error::AccountError,
+    error::AbstractXionError,
     queries::query_module_version,
 };
 
@@ -44,7 +44,7 @@ pub fn upgrade_modules(
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> AccountResult {
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    ensure!(!modules.is_empty(), AccountError::NoUpdates {});
+    ensure!(!modules.is_empty(), AbstractXionError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
 
@@ -63,7 +63,7 @@ pub fn upgrade_modules(
 
         // Check for duplicates
         if upgraded_module_ids.contains(&module_id) {
-            return Err(AccountError::DuplicateModuleMigration { module_id });
+            return Err(AbstractXionError::DuplicateModuleMigration { module_id });
         } else {
             upgraded_module_ids.push(module_id.clone());
         }
@@ -109,7 +109,7 @@ pub fn set_migrate_msgs_and_context(
     module_info: ModuleInfo,
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
-) -> Result<(), AccountError> {
+) -> Result<(), AbstractXionError> {
     let registry = RegistryContract::new(deps.api, env)?;
 
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
@@ -145,7 +145,7 @@ pub fn set_migrate_msgs_and_context(
             )]
         }
         // Account migrated separately
-        _ => return Err(AccountError::NotUpgradeable(module_info)),
+        _ => return Err(AbstractXionError::NotUpgradeable(module_info)),
     };
     msgs.extend(migrate_msgs);
     Ok(())
@@ -209,7 +209,7 @@ pub(crate) fn add_module_upgrade_to_context(
     storage: &mut dyn Storage,
     module_id: &str,
     module_deps: Vec<Dependency>,
-) -> Result<(), AccountError> {
+) -> Result<(), AbstractXionError> {
     // Add module upgrade to reply context
     let update_context = |mut upgraded_modules: Vec<(String, Vec<Dependency>)>| -> StdResult<Vec<(String, Vec<Dependency>)>> {
         upgraded_modules.push((module_id.to_string(), module_deps));
@@ -241,7 +241,7 @@ pub fn replace_adapter(
     env: &Env,
     new_adapter_addr: Addr,
     old_adapter_addr: Addr,
-) -> Result<Vec<CosmosMsg>, AccountError> {
+) -> Result<Vec<CosmosMsg>, AbstractXionError> {
     let mut msgs = vec![];
     // Makes sure we already have the adapter installed
     let AuthorizedAddressesResponse {
@@ -297,7 +297,7 @@ pub(crate) fn self_upgrade_msg(
         });
         Ok(migration_msg)
     } else {
-        Err(AccountError::RegistryError(
+        Err(AbstractXionError::RegistryError(
             RegistryError::InvalidReference(module_info),
         ))
     }

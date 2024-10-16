@@ -19,10 +19,8 @@ dependencies = [
  "abstract-standalone",
  "abstract-std",
  "abstract-testing",
+ "abstract-xion",
  "anyhow",
- "base64 0.22.1",
- "bech32 0.9.1",
- "cosmos-sdk-proto 0.24.0-pre",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
@@ -32,22 +30,12 @@ dependencies = [
  "cw-storage-plus",
  "cw2",
  "cw20",
- "getrandom",
- "hex",
- "p256",
- "phf",
- "prost",
- "ripemd",
- "rsa",
  "rstest",
  "schemars",
  "semver",
  "serde",
- "sha2 0.10.8",
  "speculoos",
  "thiserror",
- "tiny-keccak",
- "url",
  "workspace-hack",
 ]
 
@@ -684,6 +672,30 @@ dependencies = [
  "serde_json",
  "speculoos",
  "workspace-hack",
+]
+
+[[package]]
+name = "abstract-xion"
+version = "0.24.1-beta.1"
+dependencies = [
+ "abstract-std",
+ "base64 0.22.1",
+ "bech32 0.9.1",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "coverage-helper",
+ "cw-storage-plus",
+ "getrandom",
+ "hex",
+ "p256",
+ "phf",
+ "prost",
+ "ripemd",
+ "rsa",
+ "sha2 0.10.8",
+ "thiserror",
+ "tiny-keccak",
+ "url",
 ]
 
 [[package]]
@@ -1693,17 +1705,6 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
-
-[[package]]
-name = "cosmos-sdk-proto"
-version = "0.24.0-pre"
-source = "git+https://github.com/burnt-labs/cosmos-rust.git?rev=d3b51db49b894f1c6b7836bb0a7b14f54f1dfb26#d3b51db49b894f1c6b7836bb0a7b14f54f1dfb26"
-dependencies = [
- "informalsystems-pbjson",
- "prost",
- "serde",
- "tendermint-proto 0.39.1",
-]
 
 [[package]]
 name = "cosmos-sdk-proto"

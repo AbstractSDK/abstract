@@ -10,7 +10,7 @@ use semver::{Comparator, Version};
 
 use crate::{
     contract::AccountResult,
-    error::AccountError,
+    error::AbstractXionError,
     modules::{load_module_addr, MIGRATE_CONTEXT},
 };
 
@@ -113,7 +113,7 @@ fn assert_comparators(
         if comp.matches(version) {
             Ok(())
         } else {
-            Err(AccountError::VersionRequirementNotMet {
+            Err(AbstractXionError::VersionRequirementNotMet {
                 module_id: module_id.to_string(),
                 version: version.to_string(),
                 comp: comp.to_string(),
@@ -135,7 +135,7 @@ pub fn assert_dependency_requirements(
     for dep in dependencies {
         let dep_addr = ACCOUNT_MODULES
             .may_load(deps.storage, &dep.id)?
-            .ok_or_else(|| AccountError::DependencyNotMet(dep.id.clone(), dependent.to_string()))?;
+            .ok_or_else(|| AbstractXionError::DependencyNotMet(dep.id.clone(), dependent.to_string()))?;
 
         let dep_version = cw2::CONTRACT.query(&deps.querier, dep_addr)?;
         let version: Version = dep_version.version.parse().unwrap();

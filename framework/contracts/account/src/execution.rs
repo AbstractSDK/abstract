@@ -11,7 +11,7 @@ use cosmwasm_std::{
 
 use crate::{
     contract::{AccountResponse, AccountResult, ADMIN_ACTION_REPLY_ID, FORWARD_RESPONSE_REPLY_ID},
-    error::AccountError,
+    error::AbstractXionError,
     modules::load_module_addr,
 };
 
@@ -33,7 +33,7 @@ pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> 
     {
         Ok(())
     } else {
-        Err(AccountError::SenderNotWhitelistedOrOwner {})
+        Err(AbstractXionError::SenderNotWhitelistedOrOwner {})
     }
 }
 
@@ -123,7 +123,7 @@ pub fn add_auth_method(
 ) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        crate::absacc::auth::execute::add_auth_method(_deps, &_env, &mut _auth)
+        abstract_xion::auth::execute::add_auth_method(_deps, &_env, &mut _auth).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
@@ -134,7 +134,7 @@ pub fn add_auth_method(
 pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        crate::absacc::auth::execute::remove_auth_method(_deps, _env, _id)
+        abstract_xion::auth::execute::remove_auth_method(_deps, _env, _id).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
@@ -174,7 +174,7 @@ pub fn ica_action(mut deps: DepsMut, msg_info: MessageInfo, action_query: Binary
 #[cfg(test)]
 mod test {
     use crate::contract::execute;
-    use crate::error::AccountError;
+    use crate::error::AbstractXionError;
     use crate::test_common::mock_init;
     use abstract_std::account::{state::*, *};
     use abstract_std::{account, IBC_CLIENT};
@@ -202,7 +202,7 @@ mod test {
             let res = execute(deps.as_mut(), env, info, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
+                .is_equal_to(AbstractXionError::SenderNotWhitelistedOrOwner {});
             Ok(())
         }
 

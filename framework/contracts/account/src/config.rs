@@ -1,6 +1,6 @@
 use crate::{
     contract::{AccountResponse, AccountResult},
-    error::AccountError,
+    error::AbstractXionError,
     modules::{_update_whitelisted_modules, update_module_addresses},
 };
 use abstract_sdk::cw_helpers::AbstractAttributes;
@@ -20,13 +20,13 @@ pub fn update_account_status(
     deps: DepsMut,
     info: MessageInfo,
     suspension_status: Option<bool>,
-) -> Result<Response, AccountError> {
+) -> Result<Response, AbstractXionError> {
     let mut response = AccountResponse::action("update_status");
 
     if let Some(suspension_status) = suspension_status {
         response = update_suspension_status(deps, info, suspension_status, response)?;
     } else {
-        return Err(AccountError::NoUpdates {});
+        return Err(AbstractXionError::NoUpdates {});
     }
 
     Ok(response)
@@ -89,7 +89,7 @@ pub fn update_internal_config(
 
             Ok(AccountResponse::action("update_whitelist"))
         }
-        _ => Err(AccountError::InvalidConfigAction {
+        _ => Err(AbstractXionError::InvalidConfigAction {
             error: StdError::generic_err("Unknown config action"),
         }),
     }
@@ -167,7 +167,7 @@ mod tests {
             assert_that!(res).is_err().matches(|err| {
                 matches!(
                     err,
-                    AccountError::Ownership(GovOwnershipError::Abstract(
+                    AbstractXionError::Ownership(GovOwnershipError::Abstract(
                         abstract_std::AbstractError::Std(StdError::GenericErr { .. })
                     ))
                 )
@@ -344,7 +344,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    AccountError::Validation(ValidationError::TitleInvalidShort(_))
+                    AbstractXionError::Validation(ValidationError::TitleInvalidShort(_))
                 )
             });
 
@@ -358,7 +358,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    AccountError::Validation(ValidationError::TitleInvalidLong(_))
+                    AbstractXionError::Validation(ValidationError::TitleInvalidLong(_))
                 )
             });
 
@@ -383,7 +383,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    AccountError::Validation(ValidationError::LinkInvalidShort(_))
+                    AbstractXionError::Validation(ValidationError::LinkInvalidShort(_))
                 )
             });
 
@@ -397,7 +397,7 @@ mod tests {
             assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
-                    AccountError::Validation(ValidationError::LinkInvalidLong(_))
+                    AbstractXionError::Validation(ValidationError::LinkInvalidLong(_))
                 )
             });
 
@@ -446,7 +446,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(AccountError::AccountSuspended {});
+                .is_equal_to(AbstractXionError::AccountSuspended {});
 
             Ok(())
         }
@@ -517,7 +517,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
+                .is_equal_to(AbstractXionError::Ownership(GovOwnershipError::NotOwner));
 
             let vc_res = execute_as(&mut deps, &abstr.registry, msg.clone());
             assert_that!(&vc_res).is_err();
@@ -546,7 +546,7 @@ mod tests {
                     to_remove: vec![],
                 });
             let too_many = execute_as(&mut deps, &owner, too_many_msg).unwrap_err();
-            assert_eq!(too_many, AccountError::ModuleLimitReached {});
+            assert_eq!(too_many, AbstractXionError::ModuleLimitReached {});
 
             // Exact amount
             to_add.pop();
@@ -569,7 +569,7 @@ mod tests {
                 }),
             )
             .unwrap_err();
-            assert_eq!(module_limit_reached, AccountError::ModuleLimitReached {});
+            assert_eq!(module_limit_reached, AbstractXionError::ModuleLimitReached {});
 
             Ok(())
         }
@@ -593,7 +593,7 @@ mod tests {
             let duplicate_err = execute_as(&mut deps, &owner, msg).unwrap_err();
             assert_eq!(
                 duplicate_err,
-                AccountError::AlreadyWhitelisted(to_add[0].clone())
+                AbstractXionError::AlreadyWhitelisted(to_add[0].clone())
             );
 
             // duplicate inside add
@@ -608,7 +608,7 @@ mod tests {
             let duplicate_err = execute_as(&mut deps, &owner, msg).unwrap_err();
             assert_eq!(
                 duplicate_err,
-                AccountError::AlreadyWhitelisted(to_add[0].clone())
+                AbstractXionError::AlreadyWhitelisted(to_add[0].clone())
             );
 
             Ok(())
@@ -638,7 +638,7 @@ mod tests {
                 to_remove,
             });
             let not_whitelisted = execute_as(&mut deps, &owner, msg.clone()).unwrap_err();
-            assert_eq!(not_whitelisted, AccountError::NotWhitelisted {});
+            assert_eq!(not_whitelisted, AbstractXionError::NotWhitelisted {});
 
             // Remove same twice
             let to_add: Vec<String> = vec![deps.api.addr_make("module").to_string()];
@@ -651,7 +651,7 @@ mod tests {
                 to_remove: to_remove.clone(),
             });
             let not_whitelisted = execute_as(&mut deps, &owner, msg.clone()).unwrap_err();
-            assert_eq!(not_whitelisted, AccountError::NotWhitelisted {});
+            assert_eq!(not_whitelisted, AbstractXionError::NotWhitelisted {});
 
             Ok(())
         }

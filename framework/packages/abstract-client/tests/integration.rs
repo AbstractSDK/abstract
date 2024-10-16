@@ -1,5 +1,5 @@
 use ::registry::error::RegistryError;
-use abstract_account::error::AccountError;
+use abstract_account::error::AbstractXionError;
 use abstract_adapter::mock::{
     interface::MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
     MockQueryMsg as AdapterMockQueryMsg, TEST_METADATA,
@@ -935,10 +935,10 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
     else {
         panic!("Expected cw-orch error")
     };
-    let err: AccountError = err.downcast().unwrap();
+    let err: AbstractXionError = err.downcast().unwrap();
     assert!(matches!(
         err,
-        AccountError::SubAccountCreatorNotAccount { .. }
+        AbstractXionError::SubAccountCreatorNotAccount { .. }
     ));
     Ok(())
 }

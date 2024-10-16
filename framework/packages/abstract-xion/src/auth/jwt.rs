@@ -1,15 +1,16 @@
+use crate::xion_proto::jwk::QueryValidateJwtRequest;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
-use cosmos_sdk_proto::traits::MessageExt;
-use cosmos_sdk_proto::xion::v1::jwk::QueryValidateJwtRequest;
 use cosmwasm_schema::cw_serde;
+use cosmwasm_schema::serde::{Deserialize, Serialize};
 use cosmwasm_std::{Binary, Deps};
-use serde::{Deserialize, Serialize};
+use prost::Message;
 use std::str;
 
-use crate::{contract::AccountResult, error::AccountError};
+use crate::{error::AbstractXionError, AbstractXionResult};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "::cosmwasm_schema::serde")]
 struct Claims {
     // aud: Box<[String]>, // Optional. Audience
     // exp: u64, // Required (validate_exp defaults to true in validation). Expiration time (as UTC timestamp)
@@ -37,7 +38,7 @@ pub fn verify(
     sig_bytes: &[u8],
     aud: &str,
     sub: &str,
-) -> AccountResult<bool> {
+) -> AbstractXionResult<bool> {
     let query = QueryValidateJwtRequest {
         aud: aud.to_string(),
         sub: sub.to_string(),
@@ -45,7 +46,7 @@ pub fn verify(
         // tx_hash: challenge,
     };
 
-    let query_bz = query.to_bytes()?;
+    let query_bz = query.encode_to_vec();
     deps.querier.query_grpc(
         String::from("/xion.jwk.v1.Query/ValidateJWT"),
         Binary::new(query_bz),
@@ -54,8 +55,12 @@ pub fn verify(
     // at this point we have validated the JWT. Any custom claims on it's body
     // can follow
     let mut components = sig_bytes.split(|&b| b == b'.');
-    components.next().ok_or(AccountError::InvalidToken {})?; // ignore the header, it is not currently used
-    let payload_bytes = components.next().ok_or(AccountError::InvalidToken {})?;
+    components
+        .next()
+        .ok_or(AbstractXionError::InvalidToken {})?; // ignore the header, it is not currently used
+    let payload_bytes = components
+        .next()
+        .ok_or(AbstractXionError::InvalidToken {})?;
     let payload = URL_SAFE_NO_PAD.decode(payload_bytes)?;
     let claims: Claims = cosmwasm_std::from_json(payload.as_slice())?;
 
@@ -63,7 +68,7 @@ pub fn verify(
     if tx_hash.eq(&claims.transaction_hash) {
         Ok(true)
     } else {
-        Err(AccountError::InvalidSignatureDetail {
+        Err(AbstractXionError::InvalidSignatureDetail {
             expected: URL_SAFE_NO_PAD.encode(tx_hash),
             received: URL_SAFE_NO_PAD.encode(claims.transaction_hash),
         })

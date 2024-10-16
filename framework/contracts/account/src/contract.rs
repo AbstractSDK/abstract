@@ -29,7 +29,7 @@ use cosmwasm_std::{
 pub use crate::migrate::migrate;
 use crate::{
     config::{update_account_status, update_info, update_internal_config},
-    error::AccountError,
+    error::AbstractXionError,
     execution::{
         add_auth_method, admin_execute, admin_execute_on_module, execute_msgs,
         execute_msgs_with_data, execute_on_module, ica_action, remove_auth_method,
@@ -55,7 +55,7 @@ use crate::{
 #[abstract_response(ACCOUNT)]
 pub struct AccountResponse;
 
-pub type AccountResult<R = Response> = Result<R, AccountError>;
+pub type AccountResult<R = Response> = Result<R, AbstractXionError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -129,7 +129,7 @@ pub fn instantiate(
             ensure_eq!(
                 info.sender,
                 account,
-                AccountError::SubAccountCreatorNotAccount {
+                AbstractXionError::SubAccountCreatorNotAccount {
                     caller: info.sender.into(),
                     account: account.into(),
                 }
@@ -148,7 +148,7 @@ pub fn instantiate(
             ensure_eq!(
                 address,
                 env.contract.address,
-                AccountError::AbsAccInvalidAddr {
+                AbstractXionError::AbsAccInvalidAddr {
                     abstract_account: address.to_string(),
                     contract: env.contract.address.to_string()
                 }
@@ -156,9 +156,9 @@ pub fn instantiate(
             #[cfg(feature = "xion")]
             {
                 let Some(mut add_auth) = authenticator else {
-                    return Err(AccountError::AbsAccNoAuth {});
+                    return Err(AbstractXionError::AbsAccNoAuth {});
                 };
-                crate::absacc::auth::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
+                abstract_xion::auth::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
 
                 response = response.add_event(
                     cosmwasm_std::Event::new("create_abstract_account").add_attributes(vec![
@@ -170,7 +170,7 @@ pub fn instantiate(
             }
             // No Auth possible - error
             #[cfg(not(feature = "xion"))]
-            return Err(AccountError::AbsAccNoAuth {});
+            return Err(AbstractXionError::AbsAccNoAuth {});
         }
         _ => (),
     };
@@ -257,57 +257,58 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
     match msg {
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
-        } => update_account_status(deps, info, suspension_status).map_err(AccountError::from),
+        } => update_account_status(deps, info, suspension_status).map_err(AbstractXionError::from),
         msg => {
             // Block actions if account is suspended
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
             if is_suspended {
-                return Err(AccountError::AccountSuspended {});
+                return Err(AbstractXionError::AccountSuspended {});
             }
 
             match msg {
                 // ## Execution ##
                 ExecuteMsg::Execute { msgs } => {
-                    execute_msgs(deps, &info.sender, msgs).map_err(AccountError::from)
+                    execute_msgs(deps, &info.sender, msgs).map_err(AbstractXionError::from)
                 }
                 ExecuteMsg::AdminExecute { addr, msg } => {
                     let addr = deps.api.addr_validate(&addr)?;
                     admin_execute(deps, info, addr, msg)
                 }
                 ExecuteMsg::ExecuteWithData { msg } => {
-                    execute_msgs_with_data(deps, &info.sender, msg).map_err(AccountError::from)
+                    execute_msgs_with_data(deps, &info.sender, msg).map_err(AbstractXionError::from)
                 }
                 ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg,
                     funds,
                 } => execute_on_module(deps, info, module_id, exec_msg, funds)
-                    .map_err(AccountError::from),
+                    .map_err(AbstractXionError::from),
                 ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
                     admin_execute_on_module(deps, info, module_id, msg)
                 }
                 ExecuteMsg::IcaAction { action_query_msg } => {
-                    ica_action(deps, info, action_query_msg).map_err(AccountError::from)
+                    ica_action(deps, info, action_query_msg).map_err(AbstractXionError::from)
                 }
 
                 // ## Configuration ##
                 ExecuteMsg::UpdateInternalConfig(config) => {
-                    update_internal_config(deps, info, config).map_err(AccountError::from)
+                    update_internal_config(deps, info, config).map_err(AbstractXionError::from)
                 }
                 ExecuteMsg::InstallModules { modules } => {
-                    install_modules(deps, &env, info, modules).map_err(AccountError::from)
+                    install_modules(deps, &env, info, modules).map_err(AbstractXionError::from)
                 }
                 ExecuteMsg::UninstallModule { module_id } => {
-                    uninstall_module(deps, &env, info, module_id).map_err(AccountError::from)
+                    uninstall_module(deps, &env, info, module_id).map_err(AbstractXionError::from)
                 }
                 ExecuteMsg::Upgrade { modules } => {
-                    upgrade_modules(deps, env, info, modules).map_err(AccountError::from)
+                    upgrade_modules(deps, env, info, modules).map_err(AbstractXionError::from)
                 }
                 ExecuteMsg::UpdateInfo {
                     name,
                     description,
                     link,
-                } => update_info(deps, info, name, description, link).map_err(AccountError::from),
+                } => update_info(deps, info, name, description, link)
+                    .map_err(AbstractXionError::from),
                 ExecuteMsg::UpdateOwnership(action) => {
                     // If sub-account related it may require some messages to be constructed beforehand
                     let msgs = match &action {
@@ -354,9 +355,10 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     install_modules,
                     account_id,
                 )
-                .map_err(AccountError::from),
+                .map_err(AbstractXionError::from),
                 ExecuteMsg::UpdateSubAccount(action) => {
-                    handle_sub_account_action(deps, &env, info, action).map_err(AccountError::from)
+                    handle_sub_account_action(deps, &env, info, action)
+                        .map_err(AbstractXionError::from)
                 }
 
                 // ## Other ##
@@ -384,7 +386,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
             assert_modules_dependency_requirements(deps)
         }
 
-        _ => Err(AccountError::UnexpectedReply {}),
+        _ => Err(AbstractXionError::UnexpectedReply {}),
     }
 }
 
@@ -408,25 +410,26 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         #[cfg_attr(not(feature = "xion"), allow(unused_variables))]
         QueryMsg::AuthenticatorByID { id } => {
             #[cfg(feature = "xion")]
-            {
-                cosmwasm_std::to_json_binary(&crate::state::AUTHENTICATORS.load(deps.storage, id)?)
-            }
+            return abstract_xion::queries::authenticator_by_id(deps.storage, id);
             #[cfg(not(feature = "xion"))]
-            Ok(Binary::default())
+            unimplemented!("No authenticator")
         }
         QueryMsg::AuthenticatorIDs {} => {
             #[cfg(feature = "xion")]
-            {
-                cosmwasm_std::to_json_binary(
-                    &crate::state::AUTHENTICATORS
-                        .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
-                        .collect::<Result<Vec<_>, _>>()?,
-                )
-            }
+            return abstract_xion::queries::authenticator_ids(deps.storage);
             #[cfg(not(feature = "xion"))]
             Ok(Binary::default())
         }
     }
+}
+
+#[cfg_attr(all(feature = "export", feature = "xion"), cosmwasm_std::entry_point)]
+pub fn sudo(
+    deps: DepsMut,
+    env: Env,
+    msg: abstract_xion::AccountSudoMsg,
+) -> abstract_xion::AbstractXionResult {
+    abstract_xion::sudo::sudo(deps, env, msg)
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*
@@ -435,7 +438,7 @@ fn verify_nft_ownership(
     sender: Addr,
     nft_addr: Addr,
     nft_id: String,
-) -> Result<(), AccountError> {
+) -> Result<(), AbstractXionError> {
     // get owner of token_id from collection
     let owner: ownership::cw721::OwnerOfResponse = deps.querier.query_wasm_smart(
         nft_addr,
@@ -449,7 +452,7 @@ fn verify_nft_ownership(
     ensure_eq!(
         sender,
         owner,
-        AccountError::Ownership(GovOwnershipError::NotOwner)
+        AbstractXionError::Ownership(GovOwnershipError::NotOwner)
     );
 
     Ok(())
@@ -472,7 +475,7 @@ mod tests {
         to_json_binary, wasm_execute, CosmosMsg, SubMsg,
     };
 
-    use crate::error::AccountError;
+    use crate::error::AbstractXionError;
 
     use super::verify_nft_ownership;
 
@@ -551,7 +554,7 @@ mod tests {
         );
         assert_eq!(
             res,
-            Err(AccountError::Ownership(GovOwnershipError::NotOwner))
+            Err(AbstractXionError::Ownership(GovOwnershipError::NotOwner))
         );
     }
 }

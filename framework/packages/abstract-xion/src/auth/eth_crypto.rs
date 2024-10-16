@@ -24,16 +24,16 @@
 use cosmwasm_std::Api;
 use tiny_keccak::{Hasher, Keccak};
 
-use crate::{contract::AccountResult, error::AccountError};
+use crate::{error::AbstractXionError, AbstractXionResult};
 
 pub fn verify(
     api: &dyn Api,
     msg_bytes: &[u8],
     sig_bytes: &[u8],
     addr_bytes: &[u8],
-) -> AccountResult<()> {
+) -> AbstractXionResult<()> {
     if sig_bytes.len() < 65 {
-        return Err(AccountError::ShortSignature {});
+        return Err(AbstractXionError::ShortSignature {});
     }
 
     let msg_hash_bytes = hash_message(msg_bytes);
@@ -49,7 +49,7 @@ pub fn verify(
     if addr_bytes == recovered_addr {
         Ok(())
     } else {
-        Err(AccountError::RecoveredPubkeyMismatch {})
+        Err(AbstractXionError::RecoveredPubkeyMismatch {})
     }
 }
 
@@ -74,12 +74,12 @@ fn keccak256(bytes: &[u8]) -> [u8; 32] {
     output
 }
 
-fn normalize_recovery_id(id: u8) -> AccountResult<u8> {
+fn normalize_recovery_id(id: u8) -> AbstractXionResult<u8> {
     match id {
         0 | 1 => Ok(id),
         27 => Ok(0),
         28 => Ok(1),
-        _ => Err(AccountError::InvalidRecoveryId {}),
+        _ => Err(AbstractXionError::InvalidRecoveryId {}),
     }
 }
 

@@ -1,5 +1,14 @@
+use error::AbstractXionError;
+
 pub mod auth;
+pub mod error;
+pub mod queries;
+pub mod state;
 pub mod sudo;
+
+pub mod xion_proto;
+
+pub type AbstractXionResult<R = cosmwasm_std::Response> = Result<R, AbstractXionError>;
 
 /// Any contract must implement this sudo message (both variants) in order to
 /// qualify as an abstract account.

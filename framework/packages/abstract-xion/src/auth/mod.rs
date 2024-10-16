@@ -1,8 +1,6 @@
-use crate::contract::AccountResult;
+use crate::AbstractXionResult;
 use cosmwasm_std::{Binary, Deps, Env};
-use schemars::JsonSchema;
 use secp256r1::verify;
-use serde::{Deserialize, Serialize};
 
 mod eth_crypto;
 pub mod jwt;
@@ -101,7 +99,7 @@ impl AddAuthenticator {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, JsonSchema, PartialEq, Debug)]
+#[cosmwasm_schema::cw_serde]
 pub enum Authenticator {
     Secp256K1 { pubkey: Binary },
     Ed25519 { pubkey: Binary },
@@ -118,7 +116,7 @@ impl Authenticator {
         env: &Env,
         tx_bytes: &Binary,
         sig_bytes: &Binary,
-    ) -> AccountResult<bool> {
+    ) -> AbstractXionResult<bool> {
         match self {
             Authenticator::Secp256K1 { pubkey } => {
                 let tx_bytes_hash = util::sha256(tx_bytes);
@@ -189,14 +187,14 @@ impl Authenticator {
 pub mod execute {
     use super::*;
 
-    use crate::{contract::AccountResult, error::AccountError, state::AUTHENTICATORS};
+    use crate::{error::AbstractXionError, state::AUTHENTICATORS, AbstractXionResult};
     use cosmwasm_std::{Binary, DepsMut, Env, Event, Order, Response};
 
     pub fn add_auth_method(
         deps: DepsMut,
         env: &Env,
         add_authenticator: &mut AddAuthenticator,
-    ) -> AccountResult {
+    ) -> AbstractXionResult {
         match add_authenticator {
             AddAuthenticator::Secp256K1 {
                 id,
@@ -213,7 +211,7 @@ pub mod execute {
                     &Binary::from(env.contract.address.as_bytes()),
                     signature,
                 )? {
-                    Err(AccountError::InvalidSignature {})
+                    Err(AbstractXionError::InvalidSignature {})
                 } else {
                     save_authenticator(deps, *id, &auth)?;
                     Ok(())
@@ -234,7 +232,7 @@ pub mod execute {
                     &Binary::from(env.contract.address.as_bytes()),
                     signature,
                 )? {
-                    Err(AccountError::InvalidSignature {})
+                    Err(AbstractXionError::InvalidSignature {})
                 } else {
                     save_authenticator(deps, *id, &auth)?;
                     Ok(())
@@ -255,7 +253,7 @@ pub mod execute {
                     &Binary::from(env.contract.address.as_bytes()),
                     signature,
                 )? {
-                    Err(AccountError::InvalidSignature {})
+                    Err(AbstractXionError::InvalidSignature {})
                 } else {
                     save_authenticator(deps, *id, &auth)?;
                     Ok(())
@@ -298,7 +296,7 @@ pub mod execute {
                     &Binary::from(env.contract.address.as_bytes()),
                     signature,
                 )? {
-                    Err(AccountError::InvalidSignature {})
+                    Err(AbstractXionError::InvalidSignature {})
                 } else {
                     AUTHENTICATORS.save(deps.storage, *id, &auth)?;
                     Ok(())
@@ -338,13 +336,13 @@ pub mod execute {
         )
     }
 
-    pub fn remove_auth_method(deps: DepsMut, env: Env, id: u8) -> AccountResult {
+    pub fn remove_auth_method(deps: DepsMut, env: Env, id: u8) -> AbstractXionResult {
         if AUTHENTICATORS
             .keys(deps.storage, None, None, Order::Ascending)
             .count()
             <= 1
         {
-            return Err(AccountError::MinimumAuthenticatorCount {});
+            return Err(AbstractXionError::MinimumAuthenticatorCount {});
         }
 
         AUTHENTICATORS.remove(deps.storage, id);
@@ -360,13 +358,13 @@ pub mod execute {
         deps: DepsMut,
         id: u8,
         authenticator: &Authenticator,
-    ) -> AccountResult<()> {
+    ) -> AbstractXionResult<()> {
         // TODO: recover check after discussion with xion
         // if id > 127 {
-        //     return Err(AccountError::TooBigAuthId {});
+        //     return Err(AbstractXionError::TooBigAuthId {});
         // }
         if AUTHENTICATORS.has(deps.storage, id) {
-            return Err(AccountError::OverridingIndex { index: id });
+            return Err(AbstractXionError::OverridingIndex { index: id });
         }
 
         AUTHENTICATORS.save(deps.storage, id, authenticator)?;

@@ -1,4 +1,4 @@
-use abstract_account::error::AccountError;
+use abstract_account::error::AbstractXionError;
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_std::{
@@ -430,12 +430,12 @@ fn cant_renounce_with_sub_accounts() -> AResult {
         &[],
     )?;
 
-    let err: AccountError = account
+    let err: AbstractXionError = account
         .update_ownership(ownership::GovAction::RenounceOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
-    assert_eq!(err, AccountError::RenounceWithSubAccount {});
+    assert_eq!(err, AbstractXionError::RenounceWithSubAccount {});
     Ok(())
 }
 
