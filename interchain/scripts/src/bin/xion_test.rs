@@ -1,12 +1,12 @@
 use std::{env::set_var, sync::Arc};
 
-use abstract_xion::auth::AddAuthenticator;
 use abstract_client::{AbstractClient, Namespace};
 use abstract_std::{
     account,
     objects::{module::ModuleInfo, salt::generate_instantiate_salt, AccountId},
     ACCOUNT,
 };
+use abstract_xion::auth::AddAuthenticator;
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
 use cosmwasm_std::{coins, to_json_binary, Binary};
 use cosmwasm_std::{to_json_vec, Addr};
