@@ -403,7 +403,7 @@ mod test {
 
         let actual = dex.swap(offer_asset, ask_asset, max_spread, belief_price, pool);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -411,7 +411,7 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -448,7 +448,7 @@ mod test {
 
         let actual = dex.provide_liquidity(assets, max_spread, pool);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -456,7 +456,7 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -491,7 +491,7 @@ mod test {
 
         let actual = dex.withdraw_liquidity(lp_token, pool);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -499,6 +499,6 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 }

@@ -530,7 +530,7 @@ mod test {
 
         let actual = money_market.deposit(asset);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -538,7 +538,7 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -569,7 +569,7 @@ mod test {
 
         let actual = money_market.withdraw(asset);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -577,7 +577,7 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -610,7 +610,7 @@ mod test {
 
         let actual = money_market.provide_collateral(collateral_asset, borrowable_asset);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -618,7 +618,7 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -651,7 +651,7 @@ mod test {
 
         let actual = money_market.withdraw_collateral(collateral_asset, borrowable_asset);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -659,7 +659,7 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -692,7 +692,7 @@ mod test {
 
         let actual = money_market.borrow(collateral_asset, borrow_asset);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -700,7 +700,7 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -733,7 +733,7 @@ mod test {
 
         let actual = money_market.repay(collateral_asset, borrowed_asset);
 
-        assert_that!(actual).is_ok();
+        assert!(actual.is_ok());
 
         let actual = match actual.unwrap() {
             CosmosMsg::Wasm(msg) => msg,
@@ -741,7 +741,7 @@ mod test {
         };
         let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     mod raw {
@@ -780,7 +780,7 @@ mod test {
 
             let actual = money_market.deposit(deps.api.addr_make(TEST_CONTRACT_ADDR), asset);
 
-            assert_that!(actual).is_ok();
+            assert!(actual.is_ok());
 
             let actual = match actual.unwrap() {
                 CosmosMsg::Wasm(msg) => msg,
@@ -788,7 +788,7 @@ mod test {
             };
             let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[test]
@@ -822,7 +822,7 @@ mod test {
 
             let actual = money_market.withdraw(deps.api.addr_make(TEST_CONTRACT_ADDR), asset);
 
-            assert_that!(actual).is_ok();
+            assert!(actual.is_ok());
 
             let actual = match actual.unwrap() {
                 CosmosMsg::Wasm(msg) => msg,
@@ -830,7 +830,7 @@ mod test {
             };
             let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[test]
@@ -870,7 +870,7 @@ mod test {
                 borrowable_asset,
             );
 
-            assert_that!(actual).is_ok();
+            assert!(actual.is_ok());
 
             let actual = match actual.unwrap() {
                 CosmosMsg::Wasm(msg) => msg,
@@ -878,7 +878,7 @@ mod test {
             };
             let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[test]
@@ -918,7 +918,7 @@ mod test {
                 borrowable_asset,
             );
 
-            assert_that!(actual).is_ok();
+            assert!(actual.is_ok());
 
             let actual = match actual.unwrap() {
                 CosmosMsg::Wasm(msg) => msg,
@@ -926,7 +926,7 @@ mod test {
             };
             let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[test]
@@ -966,7 +966,7 @@ mod test {
                 borrow_asset,
             );
 
-            assert_that!(actual).is_ok();
+            assert!(actual.is_ok());
 
             let actual = match actual.unwrap() {
                 CosmosMsg::Wasm(msg) => msg,
@@ -974,7 +974,7 @@ mod test {
             };
             let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[test]
@@ -1014,7 +1014,7 @@ mod test {
                 borrowed_asset,
             );
 
-            assert_that!(actual).is_ok();
+            assert!(actual.is_ok());
 
             let actual = match actual.unwrap() {
                 CosmosMsg::Wasm(msg) => msg,
@@ -1022,7 +1022,7 @@ mod test {
             };
             let expected = wasm_execute(&abstr.module_address, &expected, vec![]).unwrap();
 
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
     }
 }

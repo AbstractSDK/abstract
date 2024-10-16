@@ -74,6 +74,6 @@ fn main() -> anyhow::Result<()> {
         &[],
     )?;
 
-    assert_that!(account.is_module_installed(APP_ID).unwrap()).is_true();
+    assert!(account.is_module_installed(APP_ID).unwrap());
     Ok(())
 }
