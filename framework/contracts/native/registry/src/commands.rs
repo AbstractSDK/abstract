@@ -1696,7 +1696,7 @@ mod tests {
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
             assert_eq!(module, ModuleReference::App(0));
             let pending = PENDING_MODULES.has(&deps.storage, &new_module);
-            assert!(pending);
+            assert!(!pending);
 
             Ok(())
         }
