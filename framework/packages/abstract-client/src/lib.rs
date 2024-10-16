@@ -1,4 +1,4 @@
-// #![doc = include_str!("../README.md")]
+#![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
 #![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 pub(crate) mod account;
