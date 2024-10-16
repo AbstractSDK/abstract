@@ -36,10 +36,4 @@ pub enum AdapterError {
 
     #[error("Maximum authorized addresses ({}) reached", max)]
     TooManyAuthorizedAddresses { max: u32 },
-
-    #[error("This api does not implement any custom queries")]
-    NoCustomQueries,
-
-    #[error("No IBC receive handler function provided")]
-    MissingIbcReceiveHandler,
 }
