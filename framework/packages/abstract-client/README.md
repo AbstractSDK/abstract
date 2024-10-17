@@ -16,24 +16,23 @@ There are two ways to create a client, depending on the environment.
 
 If you want to interact with a public deployment of Abstract (like a testnet or mainnet) then you can use the `Abstract::new` function like below:
 
-```rust ignore
+```rust no_run
 use abstract_client::AbstractClient;
 use cw_orch::prelude::{Daemon, DaemonBuilder, networks};
 
 // Specify a network to connect to (e.g. juno testnet, uni-6) 
-let juno_testnet: Daemon = DaemonBuilder::default()
-            .handle(rt.handle())
-            .chain(networks::UNI_6)
-            .build()?;
+let juno_testnet: Daemon = Daemon::builder(networks::UNI_6).build()?;
 
 // Connect to the deployment
 let client: AbstractClient<Daemon> = AbstractClient::new(juno_testnet)?;
+Ok::<(), anyhow::Error>(())
 ```
 
 ### For a Local Deployment
 
-When working with a local deployment (mock, or local daemon), you will need to deploy Abstract before you can interact with it. To do this you can use the `AbstractClient::builder` function which will deploy the infrastructure when the builder is built and return a client.
+When working with a local integration testing (Mock), you will need to deploy Abstract before you can interact with it. To do this you can use the `AbstractClient::builder` function which will deploy the infrastructure when the builder is built and return a client.
 
+**For Mock:** 
 ```rust
 use cw_orch::prelude::*;
 use abstract_client::AbstractClient;
@@ -44,7 +43,7 @@ let chain = MockBech32::new("mock");
 let client: AbstractClient<MockBech32> = 
             AbstractClient::builder(chain)
             // ... Configure builder 
-            .build()?;
+            .build_mock()?;
 
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
@@ -67,7 +66,7 @@ use abstract_app::mock::{mock_app_dependency::interface::MockAppI as App, MockIn
 let chain = MockBech32::new("mock");
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build_mock()?;
 
 // Build a new account.
 let account: Account<MockBech32> = client.account_builder().build()?;
@@ -99,7 +98,7 @@ use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
 let chain = MockBech32::new("mock");
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build_mock()?;
 
 // Build a Publisher
 let publisher: Publisher<MockBech32> = client.publisher_builder(Namespace::new("tester")?)
@@ -131,7 +130,7 @@ use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
 let chain = MockBech32::new("mock");
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build_mock()?;
 
 let namespace = Namespace::new("some-namespace")?;
 
