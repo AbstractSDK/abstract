@@ -8,6 +8,7 @@ documentation.workspace = true
 repository.workspace = true
 license.workspace = true
 keywords.workspace = true
+description = "Abstract account implementation on xion chain"
 
 [dependencies]
 abstract-std = { workspace = true }
