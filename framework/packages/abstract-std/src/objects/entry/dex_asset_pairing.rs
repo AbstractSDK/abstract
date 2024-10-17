@@ -70,33 +70,14 @@ impl<'a> Prefixer<'a> for &DexAssetPairing {
     }
 }
 
-fn parse_length(value: &[u8]) -> StdResult<usize> {
-    Ok(u16::from_be_bytes(
-        value
-            .try_into()
-            .map_err(|_| StdError::generic_err("Could not read 2 byte length"))?,
-    )
-    .into())
-}
-
 impl KeyDeserialize for &DexAssetPairing {
     type Output = DexAssetPairing;
     const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
-    fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
-        let mut tuv = value.split_off(2);
-        let t_len = parse_length(&value)?;
-        let mut len_uv = tuv.split_off(t_len);
-
-        let mut uv = len_uv.split_off(2);
-        let u_len = parse_length(&len_uv)?;
-        let v = uv.split_off(u_len);
-
-        Ok(DexAssetPairing::new(
-            String::from_vec(tuv)?.into(),
-            String::from_vec(uv)?.into(),
-            &String::from_vec(v)?,
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        Ok(DexAssetPairing(
+            <(&AssetEntry, &AssetEntry, &DexName)>::from_vec(value)?,
         ))
     }
 }

@@ -152,19 +152,15 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
 
     /// Possibly change to ModuleVersion in future by implementing PrimaryKey
     /// version
-    type Suffix = String;
+    type Suffix = ModuleVersion;
 
     // (name, version)
-    type SuperSuffix = (String, String);
+    type SuperSuffix = (String, ModuleVersion);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         let mut keys = self.namespace.key();
         keys.extend(self.name.key());
-        let temp = match &self.version {
-            ModuleVersion::Latest => "latest".key(),
-            ModuleVersion::Version(ver) => ver.key(),
-        };
-        keys.extend(temp);
+        keys.extend(self.version.key());
         keys
     }
 }
@@ -175,16 +171,6 @@ impl<'a> Prefixer<'a> for &ModuleInfo {
         res.extend(self.name.prefix());
         res.extend(self.version.prefix());
         res
-    }
-}
-
-impl<'a> Prefixer<'a> for ModuleVersion {
-    fn prefix(&self) -> Vec<Key> {
-        let self_as_bytes = match &self {
-            ModuleVersion::Latest => "latest".as_bytes(),
-            ModuleVersion::Version(ver) => ver.as_bytes(),
-        };
-        vec![Key::Ref(self_as_bytes)]
     }
 }
 
@@ -218,7 +204,7 @@ impl KeyDeserialize for ModuleVersion {
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        let val = String::from_utf8(value).map_err(StdError::invalid_utf8)?;
+        let val = String::from_vec(value)?;
         if &val == "latest" {
             Ok(Self::Latest)
         } else {
@@ -312,6 +298,33 @@ impl TryInto<Version> for ModuleVersion {
                 Ok(version)
             }
         }
+    }
+}
+
+impl<'a> PrimaryKey<'a> for ModuleVersion {
+    type Prefix = ();
+
+    type SubPrefix = ();
+
+    type Suffix = Self;
+
+    type SuperSuffix = Self;
+
+    fn key(&self) -> Vec<cw_storage_plus::Key> {
+        match &self {
+            ModuleVersion::Latest => "latest".key(),
+            ModuleVersion::Version(ver) => ver.key(),
+        }
+    }
+}
+
+impl<'a> Prefixer<'a> for ModuleVersion {
+    fn prefix(&self) -> Vec<Key> {
+        let self_as_bytes = match &self {
+            ModuleVersion::Latest => "latest".as_bytes(),
+            ModuleVersion::Version(ver) => ver.as_bytes(),
+        };
+        vec![Key::Ref(self_as_bytes)]
     }
 }
 
@@ -658,15 +671,36 @@ mod test {
                 .collect::<Vec<_>>();
 
             assert_eq!(items.len(), 3);
-            assert_eq!(items[0], (("boat".to_string(), "1.9.9".to_string()), 42069));
+            assert_eq!(
+                items[0],
+                (
+                    (
+                        "boat".to_string(),
+                        ModuleVersion::Version("1.9.9".to_string())
+                    ),
+                    42069
+                )
+            );
             assert_eq!(
                 items[1],
-                (("rocket-ship".to_string(), "1.0.0".to_string()), 69420)
+                (
+                    (
+                        "rocket-ship".to_string(),
+                        ModuleVersion::Version("1.0.0".to_string())
+                    ),
+                    69420
+                )
             );
 
             assert_eq!(
                 items[2],
-                (("rocket-ship".to_string(), "2.0.0".to_string()), 999)
+                (
+                    (
+                        "rocket-ship".to_string(),
+                        ModuleVersion::Version("2.0.0".to_string())
+                    ),
+                    999
+                )
             );
 
             let items = map
@@ -678,7 +712,13 @@ mod test {
             assert_eq!(items.len(), 1);
             assert_eq!(
                 items[0],
-                (("liquidity-pool".to_string(), "10.5.7".to_string()), 13)
+                (
+                    (
+                        "liquidity-pool".to_string(),
+                        ModuleVersion::Version("10.5.7".to_string())
+                    ),
+                    13
+                )
             );
         }
 
@@ -706,9 +746,12 @@ mod test {
                 .collect::<Vec<_>>();
 
             assert_eq!(items.len(), 2);
-            assert_eq!(items[0], ("1.0.0".to_string(), 69420));
+            assert_eq!(
+                items[0],
+                (ModuleVersion::Version("1.0.0".to_string()), 69420)
+            );
 
-            assert_eq!(items[1], ("2.0.0".to_string(), 999));
+            assert_eq!(items[1], (ModuleVersion::Version("2.0.0".to_string()), 999));
         }
     }
 
