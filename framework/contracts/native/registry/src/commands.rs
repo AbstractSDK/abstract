@@ -552,7 +552,7 @@ pub fn forgo_namespace(deps: DepsMut, msg_info: MessageInfo, namespaces: Vec<Str
             let module = ModuleInfo {
                 namespace: namespace.clone(),
                 name,
-                version: ModuleVersion::Version(version),
+                version,
             };
             REGISTERED_MODULES.remove(deps.storage, &module);
             YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
