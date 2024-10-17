@@ -34,11 +34,11 @@ impl<
     ) -> Result<Response, Error> {
         match msg {
             ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, self, request),
-            ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
-            ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
+            ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
+            ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
         }
     }
 }
