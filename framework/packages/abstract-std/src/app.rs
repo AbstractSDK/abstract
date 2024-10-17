@@ -55,10 +55,7 @@ pub struct BaseInstantiateMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-pub enum BaseExecuteMsg {
-    /// Updates the base config
-    UpdateConfig {},
-}
+pub enum BaseExecuteMsg {}
 
 impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
     fn from(base: BaseExecuteMsg) -> Self {
