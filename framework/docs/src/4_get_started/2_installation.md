@@ -37,7 +37,7 @@ Now we'll get you set up with the Abstract App template which contains:
   - Integration tests
 - A set of just commands that will help you in your development.
 
-Go to <a href="https://github.com/AbstractSDK/app-template" target="_blank">our App Template on Github</a> and click on the "Use this template" button to create a new repository based on the template. You can name the repository whatever you want, but we recommend using the name of your module.
+Go to <a href="https://github.com/AbstractSDK/templates" target="_blank">our App Template on Github</a> and click on the "Use this template" button to create a new repository based on the template. You can name the repository whatever you want, but we recommend using the name of your module.
 
 ![](../resources/get_started/use-this-template.webp)
 
