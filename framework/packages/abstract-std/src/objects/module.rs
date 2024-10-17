@@ -150,7 +150,6 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
     /// namespace
     type SubPrefix = Namespace;
 
-    /// Possibly change to ModuleVersion in future by implementing PrimaryKey
     /// version
     type Suffix = ModuleVersion;
 
