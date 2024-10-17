@@ -1,6 +1,6 @@
-use std::{array::TryFromSliceError, fmt::Display};
+use std::fmt::Display;
 
-use cosmwasm_std::{StdError, StdResult};
+use cosmwasm_std::StdResult;
 use cw_storage_plus::{IntKey, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
