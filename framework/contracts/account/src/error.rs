@@ -90,7 +90,7 @@ pub enum AccountError {
     #[error("Can't renounce account, with active sub account")]
     RenounceWithSubAccount {},
 
-    // ** Other Errors TODO: sort ? ** //
+    // ** Other Errors ** //
     #[error("No updates were included")]
     NoUpdates {},
 

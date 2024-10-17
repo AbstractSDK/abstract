@@ -29,7 +29,6 @@ impl Time {
 
 impl From<Time> for NaiveTime {
     fn from(value: Time) -> Self {
-        // TODO: handle option
         NaiveTime::from_hms_opt(value.hour, value.minute, 0).unwrap()
     }
 }

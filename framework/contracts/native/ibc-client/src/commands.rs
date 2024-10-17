@@ -126,7 +126,6 @@ fn send_remote_host_action(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
                 &ibc_host::ExecuteMsg::Execute {
-                    // TODO: consider removing this field
                     account_address: account.addr().to_string(),
                     account_id,
                     action,
@@ -421,9 +420,6 @@ fn _ics_20_send_msg(
 ) -> CosmosMsg {
     match memo {
         Some(memo) => {
-            // If we have memo need to send it with stargate
-            // TODO: Remove when possible, cosmwasm-std 2.0.0+ supports memo
-
             let value = crate::anybuf::ibc::MsgTransfer {
                 source_port: "transfer".to_string(), // ics20 default
                 source_channel: ics20_channel_id,

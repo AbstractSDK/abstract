@@ -212,7 +212,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.provide_liquidity(deps, pool_address, offer_assets, max_spread)
     }
 
-    /// @todo
     fn resolve_withdraw_liquidity(
         &self,
         deps: Deps,

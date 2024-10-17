@@ -61,7 +61,6 @@ pub enum InternalAction {
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
 pub enum HelperAction {
-    /// What do we need here ? TODO
     SendAllBack,
 }
 

@@ -33,7 +33,6 @@ impl Resolve for AssetEntry {
     }
 }
 
-/// TODO: this should be moved into a more appropriate package (with the LP token)
 impl Resolve for LpToken {
     type Output = AssetInfo;
 

@@ -12,7 +12,6 @@ use cw_orch::prelude::*;
 
 use crate::{account::Account, AbstractClient};
 
-// TODO: use this trait instead
 use cw_orch::environment::Environment as _;
 
 /// Trait for retrieving the CosmWasm environment that is being used.

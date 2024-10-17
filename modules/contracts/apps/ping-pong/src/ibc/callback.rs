@@ -21,7 +21,6 @@ pub fn ibc_callback(
 ) -> AppResult {
     match from_json(callback.msg)? {
         PingPongCallbackMsg::Pinged { opponent_chain } => {
-            // TODO: use response data here in the future
             let exec_events = result.get_execute_events()?;
 
             let pong = exec_events.into_iter().find(|e| {

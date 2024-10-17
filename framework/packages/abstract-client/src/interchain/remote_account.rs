@@ -44,8 +44,6 @@ pub struct RemoteAccountBuilder<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain
     namespace: Option<Namespace>,
     owner_account: Account<Chain>,
     install_modules: Vec<ModuleInstallConfig>,
-    // TODO: how we want to manage funds ibc-wise?
-    // funds: AccountCreationFunds,
 }
 
 impl<Chain: IbcQueryHandler> Account<Chain> {

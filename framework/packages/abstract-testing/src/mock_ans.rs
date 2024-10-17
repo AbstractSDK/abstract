@@ -19,7 +19,6 @@ use cw_asset::AssetInfo;
 
 use crate::{addresses::*, ans::*, MockQuerierBuilder};
 
-// TODO: update docs
 /// mirror ANS state
 /// ```rust,ignore
 /// pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> = Map::new("assets");
