@@ -33,7 +33,7 @@ quadrantChart
   quadrant-4 "(App as) Service"
 ```
 
-It's noteworthy to mention that most, if not all blockchain applications currently fall under the "Service" category. This is because they are monolithic deployments, maintained by a single entity and not customizable by users. The concept of "Admin" apps also does not exist. Users delegate their funds to the applications they interact to instead of permissioning applications to interact with their funds.
+It's noteworthy to mention that most, if not all blockchain applications currently fall under the "Service" category. This is because they are monolithic deployments, maintained by a single entity and not customizable by users. The concept of "Admin" apps also does not exist. Users delegate their funds to the applications they interact with instead of permissioning applications to interact with their funds.
 
 ## Module IDs
 
