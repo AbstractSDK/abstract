@@ -76,7 +76,6 @@ impl From<Dependency> for DependencyResponse {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -86,8 +85,8 @@ mod test {
 
         let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
-        assert_that!(dep.id).is_equal_to("test");
-        assert_that!(&dep.version_req.to_vec()).is_equal_to(VERSION_CONSTRAINT.to_vec());
+        assert_eq!(dep.id, "test");
+        assert_eq!(dep.version_req.to_vec(), VERSION_CONSTRAINT.to_vec());
     }
 
     #[coverage_helper::test]
@@ -96,7 +95,7 @@ mod test {
 
         let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
-        assert_that!(dep.check()).is_ok();
+        assert!(dep.check().is_ok());
     }
 
     #[coverage_helper::test]
@@ -105,7 +104,7 @@ mod test {
 
         let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
-        assert_that!(dep.check()).is_ok();
+        assert!(dep.check().is_ok());
     }
 
     #[coverage_helper::test]
@@ -114,7 +113,7 @@ mod test {
 
         let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
-        assert_that!(dep.check()).is_err();
+        assert!(dep.check().is_err());
     }
 
     #[coverage_helper::test]
@@ -123,9 +122,9 @@ mod test {
 
         let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
-        assert_that!(dep.matches(&Version::parse("1.0.0").unwrap())).is_true();
-        assert_that!(dep.matches(&Version::parse("1.1.0").unwrap())).is_true();
-        assert_that!(dep.matches(&Version::parse("1.1.1").unwrap())).is_true();
+        assert!(dep.matches(&Version::parse("1.0.0").unwrap()));
+        assert!(dep.matches(&Version::parse("1.1.0").unwrap()));
+        assert!(dep.matches(&Version::parse("1.1.1").unwrap()));
     }
 
     #[coverage_helper::test]
@@ -134,9 +133,9 @@ mod test {
 
         let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
-        assert_that!(dep.matches(&Version::parse("2.0.0").unwrap())).is_false();
-        assert_that!(dep.matches(&Version::parse("0.1.0").unwrap())).is_false();
-        assert_that!(dep.matches(&Version::parse("0.1.1").unwrap())).is_false();
+        assert!(!dep.matches(&Version::parse("2.0.0").unwrap()));
+        assert!(!dep.matches(&Version::parse("0.1.0").unwrap()));
+        assert!(!dep.matches(&Version::parse("0.1.1").unwrap()));
     }
 
     #[coverage_helper::test]
@@ -147,7 +146,7 @@ mod test {
 
         let dep: Dependency = dep.into();
 
-        assert_that!(dep.id).is_equal_to("test".to_string());
-        assert_that!(dep.version_req).is_equal_to(vec![Comparator::parse("^1.0.0").unwrap()]);
+        assert_eq!(dep.id, "test".to_string());
+        assert_eq!(dep.version_req, vec![Comparator::parse("^1.0.0").unwrap()]);
     }
 }
