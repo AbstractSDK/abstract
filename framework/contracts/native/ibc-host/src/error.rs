@@ -8,22 +8,22 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum HostError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     OwnershipError(#[from] OwnershipError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Instantiate2AddressError(#[from] Instantiate2AddressError),
 
     #[error("Semver parsing error: {0}")]

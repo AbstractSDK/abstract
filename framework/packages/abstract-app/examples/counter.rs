@@ -34,19 +34,19 @@ use thiserror::Error;
 // ANCHOR: error
 #[derive(Error, Debug, PartialEq)]
 pub enum CounterError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     DappError(#[from] AppError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] abstract_std::AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Unauthorized(#[from] AdminError),
 }
 // ANCHOR_END: error

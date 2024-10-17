@@ -5,19 +5,19 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ModuleFactoryError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Ownership(#[from] OwnershipError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Instantiate2AddressError(#[from] Instantiate2AddressError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
     #[error("This module type can not be installed on your Account")]

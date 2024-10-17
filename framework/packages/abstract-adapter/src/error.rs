@@ -4,7 +4,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AdapterError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
     #[error(transparent)]

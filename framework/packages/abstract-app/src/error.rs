@@ -3,6 +3,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AppError {
-    #[error("{0}")]
+    #[error(transparent)]
     Admin(#[from] AdminError),
 }

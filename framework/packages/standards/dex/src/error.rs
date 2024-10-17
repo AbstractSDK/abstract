@@ -10,22 +10,22 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum DexError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractOs(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Asset(#[from] AssetError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AdapterError(#[from] AdapterError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
     #[error("DEX {0} is not a known dex on this network.")]

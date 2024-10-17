@@ -15,10 +15,10 @@ pub enum AbstractInterfaceError {
     #[error(transparent)]
     OrchInterchain(#[from] cw_orch_interchain::core::InterchainError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Instantiate2(#[from] cosmwasm_std::Instantiate2AddressError),
 
     #[error("Abstract is not deployed on this chain")]

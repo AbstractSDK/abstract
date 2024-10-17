@@ -8,19 +8,19 @@ use thiserror::Error;
 /// Error type for the abstract client crate.
 #[allow(missing_docs)] // Error type names should be self-explanatory
 pub enum AbstractClientError {
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Interface(#[from] AbstractInterfaceError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     CwOrch(#[from] cw_orch::prelude::CwOrchError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Semver(#[from] semver::Error),
 
-    #[error("{0}")]
+    #[error(transparent)]
     ValidationError(#[from] ValidationError),
 
     #[error("Module not installed")]
@@ -44,7 +44,7 @@ pub enum AbstractClientError {
     },
 
     #[cfg(feature = "interchain")]
-    #[error("{0}")]
+    #[error(transparent)]
     InterchainError(#[from] cw_orch_interchain::core::InterchainError),
 
     #[error("Service API only allows claiming service modules")]

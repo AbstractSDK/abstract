@@ -5,16 +5,16 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AnsHostError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Asset(#[from] AssetError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Ownership(#[from] cw_ownable::OwnershipError),
 
     #[error("{} assets is not within range [{}-{}]", provided, min, max)]

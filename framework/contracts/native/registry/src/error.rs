@@ -7,16 +7,16 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum RegistryError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Validation(#[from] ValidationError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Ownership(#[from] cw_ownable::OwnershipError),
 
     #[error("Semver parsing error: {0}")]

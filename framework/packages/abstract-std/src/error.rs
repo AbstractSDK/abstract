@@ -11,22 +11,22 @@ pub enum AbstractError {
     #[error("Std error encountered while handling account object: {0}")]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Asset(#[from] AssetError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Bech32Encode(#[from] bech32::EncodeError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     HrpError(#[from] bech32::primitives::hrp::Error),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Instantiate2AddressError(#[from] cosmwasm_std::Instantiate2AddressError),
 
     #[error("Semver error encountered while handling account object: {0}")]
