@@ -7,22 +7,22 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum CwStakingError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AdapterError(#[from] AdapterError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractSdkError(#[from] AbstractSdkError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractError(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AssetError(#[from] AssetError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
     //Ibc not supported

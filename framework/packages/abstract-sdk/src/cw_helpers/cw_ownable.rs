@@ -67,9 +67,9 @@ mod tests {
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
-        #[error("{0}")]
+        #[error(transparent)]
         Std(#[from] StdError),
-        #[error("{0}")]
+        #[error(transparent)]
         Ownership(#[from] cw_ownable::OwnershipError),
     }
 

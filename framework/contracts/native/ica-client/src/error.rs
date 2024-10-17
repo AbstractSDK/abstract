@@ -1,4 +1,3 @@
-use abstract_sdk::AbstractSdkError;
 use abstract_std::{
     objects::{ans_host::AnsHostError, registry::RegistryError},
     AbstractError,
@@ -8,22 +7,19 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum IcaClientError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
-    AbstractSdk(#[from] AbstractSdkError),
-
-    #[error("{0}")]
+    #[error(transparent)]
     Ownership(#[from] cw_ownable::OwnershipError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
     #[error("chain {chain} has no associated type (evm/cosmos/...)")]

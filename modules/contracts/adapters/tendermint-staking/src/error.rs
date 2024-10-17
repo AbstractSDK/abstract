@@ -6,15 +6,15 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum TendermintStakeError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AdapterError(#[from] AdapterError),
 }
