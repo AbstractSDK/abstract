@@ -4,6 +4,7 @@
 
 ### Added
 
+- Abstract Account authentication when building account with `xion` feature.
 - `execute_with_funds` to Executor to attach funds to execution.
 - `stargate` feature for abstract-app, abstract-standalone and abstract-adapter packages.
 - New module type: `Service`, behaves the same as Native, but can be registered by any namespace.
@@ -14,11 +15,13 @@
 
 ### Changed
 
+- **Merged `proxy` and `manager` contracts into `account`.
+- Deployments now use pre-determined addresses. These addresses are hardcoded in the contracts.
 - Ibc related renaming to add more consistency in namings
 - Account action on executor takes `impl IntoIter<Item = impl Into<AccountAction>>` instead of `Vec<AccountAction>`
 - Native contracts now have pre-compiled addresses. This removes the need for storing addresses in an on-chain state.
 - Removed `UpdateConfig` endpoints from most native contracts and `App`/`Native` bases.
-- Minified the storage keys and made them available via constants
+- Minified the storage namespaces and made them available via constants
 - Version Control renamed to registry
 - `registry::QueryMsg::Account` was changed to `registry::QueryMsg::Accounts` for simultaneous queries
 - Added `registry::QueryMsg::AccountList` for paginated account queries
@@ -41,7 +44,8 @@
 - Value calculation logic from proxy contract.
 - `cw-semver` dependency removed
 - Manager no longer able to migrate pre `0.19` abstract adapters
-- Account Factory native contract
+- Account Factory contract
+- Unused `DepositManager` and `PagedMap` objects from abstract-std
 
 ### Fixed
 

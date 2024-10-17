@@ -158,7 +158,7 @@ pub fn instantiate(
                 let Some(mut add_auth) = authenticator else {
                     return Err(AccountError::AbsAccNoAuth {});
                 };
-                crate::absacc::auth::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
+                abstract_xion::auth::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
 
                 response = response.add_event(
                     cosmwasm_std::Event::new("create_abstract_account").add_attributes(vec![
@@ -360,7 +360,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 }
 
                 // ## Other ##
-                // TODO: Update module migrate logic to not use callback!
                 ExecuteMsg::UpdateStatus { is_suspended: _ } => {
                     unreachable!("Update status case is reached above")
                 }
@@ -408,25 +407,27 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         #[cfg_attr(not(feature = "xion"), allow(unused_variables))]
         QueryMsg::AuthenticatorByID { id } => {
             #[cfg(feature = "xion")]
-            {
-                cosmwasm_std::to_json_binary(&crate::state::AUTHENTICATORS.load(deps.storage, id)?)
-            }
+            return abstract_xion::queries::authenticator_by_id(deps.storage, id);
             #[cfg(not(feature = "xion"))]
             Ok(Binary::default())
         }
         QueryMsg::AuthenticatorIDs {} => {
             #[cfg(feature = "xion")]
-            {
-                cosmwasm_std::to_json_binary(
-                    &crate::state::AUTHENTICATORS
-                        .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
-                        .collect::<Result<Vec<_>, _>>()?,
-                )
-            }
+            return abstract_xion::queries::authenticator_ids(deps.storage);
             #[cfg(not(feature = "xion"))]
             Ok(Binary::default())
         }
     }
+}
+
+#[cfg(feature = "xion")]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn sudo(
+    deps: DepsMut,
+    env: Env,
+    msg: abstract_xion::AccountSudoMsg,
+) -> abstract_xion::AbstractXionResult {
+    abstract_xion::sudo::sudo(deps, env, msg)
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*

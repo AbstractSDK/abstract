@@ -65,7 +65,6 @@ pub mod state {
         Item::new(storage_namespaces::account::WHITELISTED_MODULES);
 
     /// Suspension status
-    // TODO: Pull it inside Config as `suspended: Option<String>`, with reason of suspension inside a string?
     pub const SUSPENSION_STATUS: Item<SuspensionStatus> =
         Item::new(storage_namespaces::account::SUSPENSION_STATUS);
     /// Info about the Account
@@ -266,7 +265,6 @@ pub enum QueryMsg {
     Ownership {},
 
     /// Query the pubkey associated with this account.
-    // TODO: return type?
     #[returns(Binary)]
     AuthenticatorByID { id: u8 },
     /// Query the pubkey associated with this account.

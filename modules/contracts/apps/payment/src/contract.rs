@@ -17,14 +17,8 @@ pub const APP_ID: &str = "abstract:payment";
 pub type AppResult<T = Response> = Result<T, AppError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type PaymentApp = AppContract<
-    AppError,
-    AppInstantiateMsg,
-    AppExecuteMsg,
-    AppQueryMsg,
-    AppMigrateMsg,
-    cw20::Cw20ReceiveMsg,
->;
+pub type PaymentApp =
+    AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, AppMigrateMsg>;
 
 const DEX_DEPENDENCY: StaticDependency = StaticDependency::new(
     abstract_dex_adapter::DEX_ADAPTER_ID,

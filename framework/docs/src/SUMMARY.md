@@ -11,6 +11,7 @@
 - [Accounts](./3_framework/3_architecture.md)
     - [Account Ownership](./3_framework/4_ownership.md)
     - [Interchain Abstract Accounts](./3_framework/8_ibc.md)
+    <!-- - [Oracle](./5_platform/7_oracle.md) -->
 - [Modules](./3_framework/5_modules.md)
     - [Module Types](./3_framework/6_module_types.md)
     - [Upgradability](./3_framework/7_upgradability.md)
@@ -38,6 +39,7 @@
 - [Introduction](./4_get_started/1_index.md)
 - [Setup](./4_get_started/2_installation.md)
 - [Module Builder](./4_get_started/3_module_builder.md)
+- [Custom Endpoints](./4_get_started/custom_endpoints.md)
 - [Account SDK](./4_get_started/4_sdk.md)
 - [Abstract Client](./4_get_started/5_abstract_client.md)
 - [Testing](./4_get_started/6_module_testing.md)
