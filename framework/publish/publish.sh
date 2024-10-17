@@ -47,7 +47,7 @@ set -o errexit -o nounset -o pipefail
 
 # these are imported by other packages
 BASE_PACKAGES="abstract-macros"
-UTILS_PACKAGES="abstract-std abstract-testing abstract-sdk abstract-ica"
+UTILS_PACKAGES="abstract-std abstract-testing abstract-sdk abstract-ica abstract-xion"
 NATIVE_CONTRACTS="ans-host module-factory registry ibc-host ibc-client ica-client"
 ACCOUNT_CONTRACT="account"
 
