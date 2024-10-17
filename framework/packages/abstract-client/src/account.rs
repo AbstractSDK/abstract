@@ -54,7 +54,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     client::AbstractClientResult, infrastructure::Infrastructure, AbstractClientError, Application,
-    Environment,
+    Environment, Publisher,
 };
 
 /// A builder for creating [`Accounts`](Account).
@@ -424,6 +424,10 @@ impl<Chain: CwEnv> Account<Chain> {
         let abstract_account: AccountI<Chain> = AccountI::load_from(abstr, info.account_id)?;
 
         Ok(Some(Self::new(abstract_account, install_on_sub_account)))
+    }
+
+    pub fn publisher(&self) -> AbstractClientResult<Publisher<Chain>> {
+        Publisher::new(self)
     }
 
     /// Get the [`AccountId`] of the Account
@@ -882,31 +886,6 @@ impl<Chain: CwEnv> Account<Chain> {
         } else {
             Err(AbstractClientError::ModuleNotInstalled {})
         }
-    }
-
-    fn missing_modules(
-        &self,
-        modules_to_maybe_install: &[ModuleInstallConfig],
-    ) -> AbstractClientResult<Vec<ModuleInstallConfig>> {
-        if self.install_on_sub_account {
-            return Ok(vec![]);
-        }
-
-        let mut modules_to_install = vec![];
-        let installed_modules = self.module_infos()?.module_infos;
-        for module in modules_to_maybe_install {
-            match installed_modules
-                .iter()
-                .find(|m| m.id == module.module.id())
-            {
-                Some(_installed_module) => {
-                    // Have this module installed, do we want to try to upgrade module if version is different?
-                }
-                None => modules_to_install.push(module.clone()),
-            }
-        }
-
-        Ok(modules_to_install)
     }
 
     /// Claim a namespace for an existing account

@@ -3,99 +3,16 @@
 //! [`Publisher`] is an Account with helpers for publishing and maintaining Abstract Applications and Adapters
 
 use abstract_interface::{
-    AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule, ServiceDeployer,
-    StandaloneDeployer,
+    AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule, RegistryQueryFns,
+    ServiceDeployer, StandaloneDeployer,
 };
-use abstract_std::objects::{gov_type::GovernanceDetails, namespace::Namespace};
 use cw_orch::{contract::Contract, prelude::*};
 use serde::Serialize;
 
 use crate::{
-    account::{Account, AccountBuilder},
-    client::AbstractClientResult,
-    Environment,
+    account::Account, client::AbstractClientResult, infrastructure::Infrastructure,
+    AbstractClientError, Environment,
 };
-
-/// A builder for creating [`Publishers`](Account).
-/// Get the builder from the [`AbstractClient::publisher_builder`](crate::AbstractClient)
-/// and create the account with the `build` method.
-///
-/// ```
-/// # use abstract_client::{AbstractClientError, Environment};
-/// # use cw_orch::prelude::*;
-/// # let chain = MockBech32::new("mock");
-/// # let abstr_client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
-/// # let chain = abstr_client.environment();
-/// use abstract_client::{AbstractClient, Publisher, Namespace};
-///
-/// let client = AbstractClient::new(chain)?;
-///
-/// let namespace = Namespace::new("alice-namespace")?;
-/// let publisher: Publisher<MockBech32> = client.publisher_builder(namespace)
-///     .name("alice")
-///     // other configurations
-///     .build()?;
-/// # Ok::<(), AbstractClientError>(())
-/// ```
-pub struct PublisherBuilder<'a, Chain: CwEnv> {
-    account_builder: AccountBuilder<'a, Chain>,
-}
-
-impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
-    pub(crate) fn new(
-        mut account_builder: AccountBuilder<'a, Chain>,
-        namespace: Namespace,
-    ) -> Self {
-        account_builder.namespace(namespace);
-        Self { account_builder }
-    }
-
-    /// Username for the account
-    /// Defaults to "Default Abstract Account"
-    pub fn name(&mut self, name: impl Into<String>) -> &mut Self {
-        self.account_builder.name(name);
-        self
-    }
-
-    /// Description for the account
-    pub fn description(&mut self, description: impl Into<String>) -> &mut Self {
-        self.account_builder.description(description);
-        self
-    }
-
-    /// http(s) or ipfs link for the account
-    pub fn link(&mut self, link: impl Into<String>) -> &mut Self {
-        self.account_builder.link(link);
-        self
-    }
-
-    /// Overwrite the configured namespace
-    pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
-        self.account_builder.namespace(namespace);
-        self
-    }
-
-    /// Governance of the account.
-    /// Defaults to the [`GovernanceDetails::Monarchy`] variant, owned by the sender
-    pub fn ownership(&mut self, ownership: GovernanceDetails<String>) -> &mut Self {
-        self.account_builder.ownership(ownership);
-        self
-    }
-
-    /// Install modules on a new sub-account instead of current account.
-    /// Defaults to `true`
-    pub fn install_on_sub_account(&mut self, value: bool) -> &mut Self {
-        self.account_builder.install_on_sub_account(value);
-        self
-    }
-
-    /// Builds the [`Publisher`].
-    /// Creates an account if the namespace is not already owned.
-    pub fn build(&self) -> AbstractClientResult<Publisher<Chain>> {
-        let account = self.account_builder.build()?;
-        Ok(Publisher { account })
-    }
-}
 
 /// A Publisher represents an account that owns a namespace with the goal of publishing modules to the on-chain module-store.
 pub struct Publisher<Chain: CwEnv> {
@@ -103,6 +20,35 @@ pub struct Publisher<Chain: CwEnv> {
 }
 
 impl<Chain: CwEnv> Publisher<Chain> {
+    /// New publisher from account. We check that the account has an associated namespace.
+    /// If you create a publisher from an account without a namespace, use [`Self::new_with_namespace`] to claim it
+    pub fn new(account: &Account<Chain>) -> AbstractClientResult<Self> {
+        let namespace = account
+            .infrastructure()?
+            .registry
+            .namespaces(vec![account.id()?])?;
+
+        if namespace.namespaces.is_empty() {
+            return Err(AbstractClientError::NoNamespace {
+                account: account.id()?,
+            });
+        }
+
+        Ok(Self {
+            account: account.clone(),
+        })
+    }
+
+    /// New publisher from account and namespace
+    /// Claim the namespace from the account
+    pub fn new_with_namespace(
+        account: Account<Chain>,
+        namespace: &str,
+    ) -> AbstractClientResult<Self> {
+        account.claim_namespace(namespace)?;
+        Ok(Self { account })
+    }
+
     /// Publish an Abstract App
     pub fn publish_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + AppDeployer<Chain>,

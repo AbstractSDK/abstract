@@ -46,7 +46,7 @@ use rand::Rng;
 use crate::{
     account::{Account, AccountBuilder},
     source::AccountSource,
-    AbstractClientError, Environment, PublisherBuilder, Service,
+    AbstractClientError, Environment, Publisher, Service,
 };
 
 /// Client to interact with Abstract accounts and modules
@@ -152,10 +152,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Publisher builder for creating new [`Publisher`](crate::Publisher) Abstract Account
-    /// To publish any modules your account requires to have claimed a namespace.
-    pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
-        PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
+    /// Fetches an existing Abstract [`Account`]from chain
+    pub fn fetch_publisher(&self, namespace: Namespace) -> AbstractClientResult<Publisher<Chain>> {
+        let account = self.fetch_account(namespace)?;
+        Publisher::new(&account)
     }
 
     /// Builder for creating a new Abstract [`Account`].

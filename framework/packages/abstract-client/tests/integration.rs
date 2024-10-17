@@ -152,8 +152,10 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     let account_info = publisher.account().info()?;
     assert_eq!(
@@ -186,12 +188,14 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     };
     let namespace = Namespace::new("test-namespace")?;
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(namespace.clone())
+        .account_builder()
+        .namespace(namespace.clone())
         .name(name)
         .link(link)
         .description(description)
         .ownership(governance_details.clone())
-        .build()?;
+        .build()?
+        .publisher()?;
 
     let account_info = publisher.account().info()?;
     assert_eq!(
@@ -219,10 +223,17 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let namespace = Namespace::new("namespace")?;
-    let publisher: Publisher<MockBech32> = client.publisher_builder(namespace.clone()).build()?;
+    let publisher: Publisher<MockBech32> = client
+        .account_builder()
+        .namespace(namespace.clone())
+        .build()?
+        .publisher()?;
 
-    let publisher_from_namespace: Publisher<MockBech32> =
-        client.publisher_builder(namespace).build()?;
+    let publisher_from_namespace: Publisher<MockBech32> = client
+        .account_builder()
+        .namespace(namespace)
+        .build()?
+        .publisher()?;
 
     assert_eq!(
         publisher.account().info()?,
@@ -238,9 +249,11 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
         .install_on_sub_account(true)
-        .build()?;
+        .build()?
+        .publisher()?;
 
     let publisher_account = publisher.account();
     let publisher_account_address = publisher_account.address()?;
@@ -285,9 +298,11 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     // Install app on current account
     let publisher = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
         .install_on_sub_account(false)
-        .build()?;
+        .build()?
+        .publisher()?;
     let my_adapter: Application<_, MockAppI<_>> =
         publisher.account().install_app(&MockInitMsg {}, &[])?;
 
@@ -323,17 +338,18 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
-    let publisher: Publisher<_> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .install_on_sub_account(true)
+    let account = client
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
+    let publisher = Publisher::new(&account)?;
 
-    let publisher_account_address = publisher.account().address()?;
+    let publisher_account_address = account.address()?;
 
     publisher.publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
 
     // Install adapter on sub-account
-    let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
+    let my_adapter: Application<_, MockAdapterI<_>> = account.install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_account_address)
@@ -360,10 +376,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     );
 
     // Install adapter on current account
-    let publisher = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .install_on_sub_account(false)
-        .build()?;
+    let publisher = client.fetch_publisher(Namespace::new(TEST_NAMESPACE)?)?;
     let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
@@ -413,8 +426,10 @@ fn can_fetch_account_from_app() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     app_publisher.publish_app::<MockAppI<MockBech32>>()?;
 
@@ -439,12 +454,16 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     let app_dependency_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     app_dependency_publisher.publish_app::<MockAppI<_>>()?;
     app_publisher.publish_app::<MockAppWithDepI<_>>()?;
@@ -648,12 +667,16 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     let app_dependency_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     app_dependency_publisher.publish_app::<MockAppI<MockBech32>>()?;
     app_publisher.publish_app::<MockAppWithDepI<MockBech32>>()?;
@@ -694,8 +717,10 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     publisher.publish_app::<MockAppI<MockBech32>>()?;
 
@@ -783,8 +808,10 @@ fn doc_example_test() -> anyhow::Result<()> {
     // ## ANCHOR: publisher
     // Create a publisher
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::from_id(TEST_MODULE_ID)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::from_id(TEST_MODULE_ID)?)
+        .build()?
+        .publisher()?;
 
     // Publish an app
     publisher.publish_app::<MockAppI<MockBech32>>()?;
@@ -852,8 +879,10 @@ fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone()).build_mock()?;
     let publisher = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     let adapter = publisher
         .publish_adapter::<AdapterMockInitMsg, MockAdapterI<MockBech32>>(AdapterMockInitMsg {})?;
@@ -949,8 +978,10 @@ fn install_adapter_on_account_builder() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     // Publish adapter
     let adapter: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
@@ -986,8 +1017,10 @@ fn install_application_on_account_builder() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     // Publish app
     publisher.publish_app::<MockAppI<MockBech32>>()?;
@@ -1032,8 +1065,10 @@ fn auto_funds_work() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
     let _: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
     client.registry().update_module_configuration(
@@ -1078,12 +1113,16 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     let app_dependency_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     // Publish apps
     app_dependency_publisher.publish_app::<MockAppI<MockBech32>>()?;
@@ -1154,11 +1193,15 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     // Publish adapter and app
     let adapter =
@@ -1251,8 +1294,10 @@ fn instantiate2_addr() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     publisher.publish_app::<MockAppI<MockBech32>>()?;
 
@@ -1319,8 +1364,10 @@ fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     app_publisher.publish_app::<MockAppI<MockBech32>>()?;
 
@@ -1415,8 +1462,10 @@ fn retrieve_account_builder_install_missing_modules() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     app_publisher.publish_app::<MockAppI<MockBech32>>()?;
 
@@ -1444,8 +1493,10 @@ fn module_status() -> anyhow::Result<()> {
         .update_config(None, Some(false))?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     let module_info = MockAppI::<MockBech32>::module_info().unwrap();
     let module_status = client.module_status(module_info.clone())?;
@@ -1483,12 +1534,16 @@ fn cant_upload_module_with_non_deployed_deps() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     let app_dependency_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     // Matching dep not uploaded - can't upload app
     let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
@@ -1512,8 +1567,10 @@ fn register_service() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let service_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     service_publisher.publish_service::<MockService<MockBech32>>(&MockMsg {})?;
 
@@ -1556,17 +1613,21 @@ fn ans_balance() -> anyhow::Result<()> {
 
 // Tests wether using the Account builder with install_on_subaccount on an existing account installs given apps
 #[test]
-fn account_builder_doesnt_install_module_on_existing_account() -> anyhow::Result<()> {
+fn account_fetcher_shouldnt_install_module_on_existing_account() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
 
     let app_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     let app_dependency_publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
 
     app_dependency_publisher.publish_app::<MockAppI<_>>()?;
     let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
@@ -1579,7 +1640,6 @@ fn account_builder_doesnt_install_module_on_existing_account() -> anyhow::Result
         .account_builder()
         .namespace(NEW_NAMESPACE.try_into()?)
         .build()?;
-    assert!(!account.module_installed(TEST_MODULE_ID)?);
 
     client.fetch_or_build(NEW_NAMESPACE.try_into()?, |builder| {
         builder
@@ -1587,5 +1647,6 @@ fn account_builder_doesnt_install_module_on_existing_account() -> anyhow::Result
             .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
             .unwrap()
     })?;
+    assert!(!account.module_installed(TEST_MODULE_ID)?);
     Ok(())
 }

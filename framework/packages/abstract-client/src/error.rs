@@ -1,7 +1,10 @@
 //! # Represents Abstract Client Errors
 
 use abstract_interface::AbstractInterfaceError;
-use abstract_std::{objects::validation::ValidationError, AbstractError};
+use abstract_std::{
+    objects::{validation::ValidationError, AccountId},
+    AbstractError,
+};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -31,6 +34,9 @@ pub enum AbstractClientError {
 
     #[error("Can't retrieve Account for unclaimed namespace \"{namespace}\".")]
     NamespaceNotClaimed { namespace: String },
+
+    #[error("Account {account} doesn't have an associated namespace")]
+    NoNamespace { account: AccountId },
 
     #[error("Can't add custom funds when using auto_fund.")]
     FundsWithAutoFund {},
