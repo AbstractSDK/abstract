@@ -1,6 +1,6 @@
 //! # Governance structure object
 
-use crate::{account::state::ACCOUNT_ID, registry};
+use crate::{account::state::ACCOUNT_ID, native_addrs, registry};
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw_address_like::AddressLike;
 use cw_utils::Expiration;
@@ -81,11 +81,7 @@ pub enum GovAction {
 
 impl GovernanceDetails<String> {
     /// Verify the governance details and convert to `Self<Addr>`
-    pub fn verify(
-        self,
-        deps: Deps,
-        registry_addr: Addr,
-    ) -> Result<GovernanceDetails<Addr>, AbstractError> {
+    pub fn verify(self, deps: Deps) -> Result<GovernanceDetails<Addr>, AbstractError> {
         match self {
             GovernanceDetails::Monarchy { monarch } => {
                 let addr = deps.api.addr_validate(&monarch)?;
@@ -93,10 +89,15 @@ impl GovernanceDetails<String> {
             }
             GovernanceDetails::SubAccount { account } => {
                 let account_addr = deps.api.addr_validate(&account)?;
+
+                let hrp = native_addrs::hrp_from_address(&account_addr);
+                let registry_address = native_addrs::registry_address(hrp, deps.api)?;
+                let registry_address = deps.api.addr_humanize(&registry_address)?;
+
                 let account_id = ACCOUNT_ID.query(&deps.querier, account_addr.clone())?;
                 let base = registry::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
-                    registry_addr,
+                    registry_address,
                     &account_id,
                 )?;
                 let Some(b) = base else {
@@ -269,27 +270,26 @@ mod test {
         let gov = GovernanceDetails::Monarchy {
             monarch: owner.to_string(),
         };
-        let mock_registry = deps.api.addr_make("mock_registry");
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
+        assert_that!(gov.verify(deps.as_ref())).is_ok();
 
         let gov_addr = deps.api.addr_make("gov_addr");
         let gov = GovernanceDetails::External {
             governance_address: gov_addr.to_string(),
             governance_type: "external-multisig".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
+        assert_that!(gov.verify(deps.as_ref())).is_ok();
 
         let gov = GovernanceDetails::Monarchy {
             monarch: "NOT_OK".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref())).is_err();
 
         let gov = GovernanceDetails::External {
             governance_address: "gov_address".to_string(),
             governance_type: "gov_type".to_string(),
         };
         // '_' not allowed
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref())).is_err();
 
         // too short
         let gov_address = deps.api.addr_make("gov_address");
@@ -297,21 +297,21 @@ mod test {
             governance_address: gov_address.to_string(),
             governance_type: "gov".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref())).is_err();
 
         // too long
         let gov = GovernanceDetails::External {
             governance_address: gov_address.to_string(),
             governance_type: "a".repeat(190),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_err();
+        assert_that!(gov.verify(deps.as_ref())).is_err();
 
         // invalid addr
         let gov = GovernanceDetails::External {
             governance_address: "NOT_OK".to_string(),
             governance_type: "gov_type".to_string(),
         };
-        assert!(gov.verify(deps.as_ref(), mock_registry).is_err());
+        assert!(gov.verify(deps.as_ref()).is_err());
 
         // good nft
         let collection_addr = deps.api.addr_make("collection_addr");
@@ -319,7 +319,6 @@ mod test {
             collection_addr: collection_addr.to_string(),
             token_id: "1".to_string(),
         };
-        let mock_registry = deps.api.addr_make("mock_registry");
-        assert_that!(gov.verify(deps.as_ref(), mock_registry.clone())).is_ok();
+        assert_that!(gov.verify(deps.as_ref())).is_ok();
     }
 }
