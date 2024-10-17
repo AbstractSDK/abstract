@@ -186,7 +186,6 @@ mod test {
     use abstract_std::account::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::{apis::traits::test::abstract_api_test, mock_module::*};
@@ -214,7 +213,7 @@ mod test {
             let messages = vec![];
 
             let actual_res = executor.execute(messages.clone());
-            assert_that!(actual_res).is_ok();
+            assert!(actual_res.is_ok());
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
@@ -224,7 +223,7 @@ mod test {
                 .unwrap(),
                 funds: vec![],
             }));
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
 
         #[coverage_helper::test]
@@ -236,7 +235,7 @@ mod test {
             let messages = vec![mock_bank_send(coins(100, "juno"))];
 
             let actual_res = executor.execute(messages.clone());
-            assert_that!(actual_res).is_ok();
+            assert!(actual_res.is_ok());
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
@@ -247,7 +246,7 @@ mod test {
                 // funds should be empty
                 funds: vec![],
             }));
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
     }
 
@@ -270,7 +269,7 @@ mod test {
                 expected_reply_on.clone(),
                 expected_reply_id,
             );
-            assert_that!(actual_res).is_ok();
+            assert!(actual_res.is_ok());
 
             let expected = SubMsg {
                 id: expected_reply_id,
@@ -286,7 +285,7 @@ mod test {
                 reply_on: expected_reply_on,
                 payload: Binary::default(),
             };
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
 
         #[coverage_helper::test]
@@ -305,7 +304,7 @@ mod test {
                 expected_reply_on.clone(),
                 expected_reply_id,
             );
-            assert_that!(actual_res).is_ok();
+            assert!(actual_res.is_ok());
 
             let expected = SubMsg {
                 id: expected_reply_id,
@@ -322,7 +321,7 @@ mod test {
                 reply_on: expected_reply_on,
                 payload: Binary::default(),
             };
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
     }
 
@@ -357,7 +356,7 @@ mod test {
                 )
                 .add_message(expected_msg);
 
-            assert_that!(actual_res).is_ok().is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
 
         #[coverage_helper::test]

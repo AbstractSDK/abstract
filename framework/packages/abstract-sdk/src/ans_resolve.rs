@@ -135,7 +135,6 @@ mod tests {
         testing::{mock_dependencies, MockApi},
         Binary, Empty,
     };
-    use speculoos::prelude::*;
     use std::fmt::Debug;
 
     fn default_test_querier(ans_host: &AnsHost) -> MockQuerier {
@@ -179,9 +178,7 @@ mod tests {
     {
         let res = test_resolve(ans_host, &default_test_querier(ans_host), nonexistent);
 
-        assert_that!(res)
-            .is_err()
-            .matches(|e| e.to_string().contains("not found"));
+        assert!(res.unwrap_err().to_string().contains("not found"));
     }
 
     mod is_registered {
@@ -246,13 +243,11 @@ mod tests {
                 .build();
 
             let res = test_resolve(&ans_host, &querier, &test_asset_entry);
-            assert_that!(res).is_ok().is_equal_to(expected_value);
+            assert_eq!(res, Ok(expected_value));
 
             let ans_asset_res =
                 test_resolve(&ans_host, &querier, &AnsAsset::new("aoeu", 52256u128));
-            assert_that!(ans_asset_res)
-                .is_ok()
-                .is_equal_to(Asset::cw20(expected_addr, 52256u128));
+            assert_eq!(ans_asset_res, Ok(Asset::cw20(expected_addr, 52256u128)));
         }
 
         #[coverage_helper::test]
@@ -295,7 +290,7 @@ mod tests {
 
             let res = keys.resolve(&wrap_querier(&querier), &ans_host);
 
-            assert_that!(res).is_ok().is_equal_to(values);
+            assert_eq!(res, Ok(values));
         }
     }
 
@@ -322,7 +317,7 @@ mod tests {
                 .build();
 
             let res = test_resolve(&ans_host, &querier, &test_lp_token);
-            assert_that!(res).is_ok().is_equal_to(expected_value);
+            assert_eq!(res, Ok(expected_value));
         }
 
         #[coverage_helper::test]
@@ -376,7 +371,7 @@ mod tests {
             };
 
             let res = test_resolve(&ans_host, &querier, &test_pool_metadata);
-            assert_that!(res).is_ok().is_equal_to(expected_value);
+            assert_eq!(res, Ok(expected_value));
         }
 
         #[coverage_helper::test]
@@ -429,9 +424,7 @@ mod tests {
                 .build();
 
             let unique_pool_id_res = test_resolve(&ans_host, &querier, &unique_pool_id);
-            assert_that!(unique_pool_id_res)
-                .is_ok()
-                .is_equal_to(pool_metadata);
+            assert_eq!(unique_pool_id_res, Ok(pool_metadata));
         }
 
         #[coverage_helper::test]
@@ -470,7 +463,7 @@ mod tests {
 
             let res = test_resolve(&ans_host, &querier, &test_contract_entry);
 
-            assert_that!(res).is_ok().is_equal_to(expected_value);
+            assert_eq!(res, Ok(expected_value));
         }
 
         #[coverage_helper::test]
@@ -523,7 +516,7 @@ mod tests {
 
             let res = keys.resolve(&wrap_querier(&querier), &ans_host);
 
-            assert_that!(res).is_ok().is_equal_to(values);
+            assert_eq!(res, Ok(values));
         }
     }
 
@@ -556,7 +549,7 @@ mod tests {
 
             let res = test_resolve(&ans_host, &querier, &test_channel_entry);
 
-            assert_that!(res).is_ok().is_equal_to(expected_value);
+            assert_eq!(res, Ok(expected_value));
         }
 
         #[coverage_helper::test]
@@ -595,16 +588,14 @@ mod tests {
                 .build();
 
             let res = test_resolve(&ans_host, &querier, &test_asset_info);
-            assert_that!(res).is_ok().is_equal_to(expected_value);
+            assert_eq!(res, Ok(expected_value));
 
             let asset_res = test_resolve(
                 &ans_host,
                 &querier,
                 &Asset::cw20(expected_address, 12345u128),
             );
-            assert_that!(asset_res)
-                .is_ok()
-                .is_equal_to(AnsAsset::new("chinachinachina", 12345u128));
+            assert_eq!(asset_res, Ok(AnsAsset::new("chinachinachina", 12345u128)));
         }
 
         #[coverage_helper::test]
@@ -647,7 +638,7 @@ mod tests {
 
             let res = keys.resolve(&wrap_querier(&querier), &ans_host);
 
-            assert_that!(res).is_ok().is_equal_to(values);
+            assert_eq!(res, Ok(values));
         }
     }
 }

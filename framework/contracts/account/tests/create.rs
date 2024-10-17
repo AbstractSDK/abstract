@@ -9,7 +9,6 @@ use abstract_std::{
 };
 use abstract_testing::prelude::*;
 use cw_orch::prelude::*;
-use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
@@ -27,7 +26,7 @@ fn instantiate() -> AResult {
         namespace_registration_fee: None,
     };
 
-    assert_that!(&vc_config).is_equal_to(&expected);
+    assert_eq!(vc_config, expected);
     Ok(())
 }
 
@@ -67,7 +66,7 @@ fn create_one_account() -> AResult {
         namespace_registration_fee: None,
     };
 
-    assert_that!(&registry_config).is_equal_to(&expected);
+    assert_eq!(registry_config, expected);
 
     let vc_config = registry.config()?;
     let expected = abstract_std::registry::ConfigResponse {
@@ -76,11 +75,11 @@ fn create_one_account() -> AResult {
         namespace_registration_fee: Default::default(),
     };
 
-    assert_that!(&vc_config).is_equal_to(&expected);
+    assert_eq!(vc_config, expected);
 
     let account_list = registry.account(TEST_ACCOUNT_ID)?;
 
-    assert_that!(&account_list.into()).is_equal_to(Account::new(account));
+    assert_eq!(account_list, Account::new(Addr::unchecked(account)));
 
     Ok(())
 }
@@ -144,13 +143,13 @@ fn create_two_accounts() -> AResult {
         local_account_sequence: account_2_id.seq() + 1,
     };
 
-    assert_that!(&registry_config).is_equal_to(&expected);
+    assert_eq!(&registry_config, &expected);
 
     let account_1 = registry.account(account_1_id)?;
-    assert_that!(account_1.into()).is_equal_to(Account::new(account1));
+    assert_eq!(account_1, Account::new(Addr::unchecked(account1)));
 
     let account_2 = registry.account(account_2_id)?;
-    assert_that!(account_2.into()).is_equal_to(Account::new(account2));
+    assert_eq!(account_2, Account::new(Addr::unchecked(account2)));
 
     Ok(())
 }
@@ -185,17 +184,20 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let registered_account = registry.account(TEST_ACCOUNT_ID)?;
 
-    assert_that!(account_addr).is_equal_to(registered_account.addr().to_string());
+    assert_eq!(account_addr, registered_account.addr().to_string());
 
     let account_config = account.config()?;
 
-    assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
-        account_id: TEST_ACCOUNT_ID,
-        registry_address: registry.address()?,
-        module_factory_address: deployment.module_factory.address()?,
-        is_suspended: false,
-        whitelisted_addresses: vec![],
-    });
+    assert_eq!(
+        account_config,
+        abstract_std::account::ConfigResponse {
+            account_id: TEST_ACCOUNT_ID,
+            registry_address: registry.address()?,
+            module_factory_address: deployment.module_factory.address()?,
+            is_suspended: false,
+            whitelisted_addresses: vec![],
+        }
+    );
 
     Ok(())
 }
@@ -231,13 +233,16 @@ fn sender_is_not_admin_external() -> AResult {
 
     let account_config = account.config()?;
 
-    assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
-        account_id: TEST_ACCOUNT_ID,
-        is_suspended: false,
-        registry_address: registry.address()?,
-        module_factory_address: deployment.module_factory.address()?,
-        whitelisted_addresses: vec![],
-    });
+    assert_eq!(
+        account_config,
+        abstract_std::account::ConfigResponse {
+            account_id: TEST_ACCOUNT_ID,
+            is_suspended: false,
+            registry_address: registry.address()?,
+            module_factory_address: deployment.module_factory.address()?,
+            whitelisted_addresses: vec![],
+        }
+    );
 
     Ok(())
 }
@@ -273,22 +278,28 @@ fn create_one_account_with_namespace() -> AResult {
 
     let account_config = account.config()?;
 
-    assert_that!(account_config).is_equal_to(abstract_std::account::ConfigResponse {
-        account_id: TEST_ACCOUNT_ID,
-        is_suspended: false,
-        registry_address: deployment.registry.address()?,
-        module_factory_address: deployment.module_factory.address()?,
-        whitelisted_addresses: vec![],
-    });
+    assert_eq!(
+        account_config,
+        abstract_std::account::ConfigResponse {
+            account_id: TEST_ACCOUNT_ID,
+            is_suspended: false,
+            registry_address: deployment.registry.address()?,
+            module_factory_address: deployment.module_factory.address()?,
+            whitelisted_addresses: vec![],
+        }
+    );
     // We need to check if the namespace is associated with this account
     let namespace = deployment
         .registry
         .namespace(Namespace::new(namespace_to_claim)?)?;
 
-    assert_that!(&namespace).is_equal_to(NamespaceResponse::Claimed(NamespaceInfo {
-        account_id: TEST_ACCOUNT_ID,
-        account: Account::new(Addr::unchecked(account_addr)),
-    }));
+    assert_eq!(
+        namespace,
+        NamespaceResponse::Claimed(NamespaceInfo {
+            account_id: TEST_ACCOUNT_ID,
+            account: Account::new(Addr::unchecked(account_addr)),
+        })
+    );
 
     Ok(())
 }

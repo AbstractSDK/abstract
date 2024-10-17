@@ -117,7 +117,6 @@ impl fmt::Display for PoolMetadata {
 
 #[cfg(test)]
 mod tests {
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -137,8 +136,8 @@ mod tests {
                 pool_type,
                 assets: assets.into_iter().map(|a| a.into()).collect(),
             };
-            assert_that!(actual).is_equal_to(expected);
-            assert_that!(actual.to_string()).is_equal_to("junoswap/uusd,uust:stable".to_string());
+            assert_eq!(actual, expected);
+            assert_eq!(actual.to_string(), "junoswap/uusd,uust:stable".to_string());
         }
 
         #[coverage_helper::test]
@@ -152,7 +151,7 @@ mod tests {
                 pool_type: PoolType::Stable,
                 assets: assets.into_iter().map(|a| a.into()).collect(),
             };
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[coverage_helper::test]
@@ -166,7 +165,7 @@ mod tests {
                 pool_type: PoolType::Weighted,
                 assets: assets.into_iter().map(|a| a.into()).collect(),
             };
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[coverage_helper::test]
@@ -180,7 +179,7 @@ mod tests {
                 pool_type: PoolType::ConstantProduct,
                 assets: assets.into_iter().map(|a| a.into()).collect(),
             };
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[coverage_helper::test]
@@ -194,7 +193,7 @@ mod tests {
                 pool_type: PoolType::LiquidityBootstrap,
                 assets: assets.into_iter().map(|a| a.into()).collect(),
             };
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
     }
 

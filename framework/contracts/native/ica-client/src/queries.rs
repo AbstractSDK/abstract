@@ -93,7 +93,6 @@ mod tests {
 
     use evm::types;
     use polytone_evm::EVM_NOTE_ID;
-    use speculoos::prelude::*;
 
     type IbcClientTestResult = Result<(), IcaClientError>;
 
@@ -235,22 +234,25 @@ mod tests {
             let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
-            assert_that!(res).is_equal_to(IcaActionResponse {
-                msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    env_note_addr(deps.api),
-                    &evm_note::msg::ExecuteMsg::Execute {
-                        callback: None,
-                        msgs: vec![EvmMsg::Call {
-                            to: "to".to_string(),
-                            data: vec![0x01].into(),
-                            value: None,
-                            allow_failure: None,
-                        }],
-                        timeout_seconds: PACKET_LIFETIME.into(),
-                    },
-                    vec![],
-                )?)],
-            });
+            assert_eq!(
+                res,
+                IcaActionResponse {
+                    msgs: vec![CosmosMsg::Wasm(wasm_execute(
+                        env_note_addr(deps.api),
+                        &evm_note::msg::ExecuteMsg::Execute {
+                            callback: None,
+                            msgs: vec![EvmMsg::Call {
+                                to: "to".to_string(),
+                                data: vec![0x01].into(),
+                                value: None,
+                                allow_failure: None,
+                            }],
+                            timeout_seconds: PACKET_LIFETIME.into(),
+                        },
+                        vec![],
+                    )?)],
+                }
+            );
 
             Ok(())
         }
@@ -283,18 +285,21 @@ mod tests {
             let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
-            assert_that!(res).is_equal_to(IcaActionResponse {
-                msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    ucs_forwarder_addr(deps.api),
-                    &Ucs01ForwarderExecuteMsg::Transfer {
-                        channel: "channel-1".into(),
-                        receiver,
-                        memo: "".to_string(),
-                        timeout: PACKET_LIFETIME.into(),
-                    },
-                    coins(1, "test"),
-                )?)],
-            });
+            assert_eq!(
+                res,
+                IcaActionResponse {
+                    msgs: vec![CosmosMsg::Wasm(wasm_execute(
+                        ucs_forwarder_addr(deps.api),
+                        &Ucs01ForwarderExecuteMsg::Transfer {
+                            channel: "channel-1".into(),
+                            receiver,
+                            memo: "".to_string(),
+                            timeout: PACKET_LIFETIME.into(),
+                        },
+                        coins(1, "test"),
+                    )?)],
+                }
+            );
 
             Ok(())
         }
@@ -324,18 +329,21 @@ mod tests {
             let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
-            assert_that!(res).is_equal_to(IcaActionResponse {
-                msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    ucs_forwarder_addr(deps.api),
-                    &Ucs01ForwarderExecuteMsg::Transfer {
-                        channel: "channel-1".into(),
-                        receiver: HexBinary::from_hex("123fff").unwrap(),
-                        memo: "".to_string(),
-                        timeout: PACKET_LIFETIME.into(),
-                    },
-                    coins(1, "test"),
-                )?)],
-            });
+            assert_eq!(
+                res,
+                IcaActionResponse {
+                    msgs: vec![CosmosMsg::Wasm(wasm_execute(
+                        ucs_forwarder_addr(deps.api),
+                        &Ucs01ForwarderExecuteMsg::Transfer {
+                            channel: "channel-1".into(),
+                            receiver: HexBinary::from_hex("123fff").unwrap(),
+                            memo: "".to_string(),
+                            timeout: PACKET_LIFETIME.into(),
+                        },
+                        coins(1, "test"),
+                    )?)],
+                }
+            );
 
             Ok(())
         }

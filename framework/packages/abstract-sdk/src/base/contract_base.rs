@@ -205,7 +205,6 @@ where
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::Empty;
-    use speculoos::{assert_that, option::OptionAssertions};
 
     use super::*;
 
@@ -256,9 +255,9 @@ mod test {
     fn test_info() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default());
         let (name, version, metadata) = contract.info();
-        assert_that!(&name).is_equal_to("test_contract");
-        assert_that!(&version).is_equal_to("0.1.0");
-        assert_that!(metadata).is_equal_to(ModuleMetadata::default());
+        assert_eq!(name, "test_contract");
+        assert_eq!(version, "0.1.0");
+        assert_eq!(metadata, ModuleMetadata::default());
     }
 
     #[coverage_helper::test]
@@ -285,7 +284,7 @@ mod test {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_dependencies(DEPENDENCIES);
 
-        assert_that!(contract.dependencies[0].clone()).is_equal_to(DEPENDENCY);
+        assert_eq!(contract.dependencies[0].clone(), DEPENDENCY);
     }
 
     #[coverage_helper::test]
@@ -338,7 +337,7 @@ mod test {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_replies([&[(REPLY_ID, HANDLER)], &[]]);
 
-        assert_that!(contract.reply_handlers[0][0].0).is_equal_to(REPLY_ID);
+        assert_eq!(contract.reply_handlers[0][0].0, REPLY_ID);
         assert!(contract.reply_handlers[1].is_empty());
     }
 
@@ -349,6 +348,6 @@ mod test {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callback(HANDLER);
 
-        assert_that!(contract.ibc_callback_handler).is_some();
+        assert!(contract.ibc_callback_handler.is_some());
     }
 }

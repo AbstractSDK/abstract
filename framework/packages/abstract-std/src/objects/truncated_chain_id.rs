@@ -134,38 +134,37 @@ impl KeyDeserialize for &TruncatedChainId {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::testing::mock_env;
-    use speculoos::prelude::*;
 
     use super::*;
 
     #[coverage_helper::test]
     fn test_namespace() {
         let namespace = TruncatedChainId::new(&mock_env());
-        assert_that!(namespace.as_str()).is_equal_to("cosmos-testnet");
+        assert_eq!(namespace.as_str(), "cosmos-testnet");
     }
 
     #[coverage_helper::test]
     fn test_from_string() {
         let namespace = TruncatedChainId::from_string("test-me".to_string()).unwrap();
-        assert_that!(namespace.as_str()).is_equal_to("test-me");
+        assert_eq!(namespace.as_str(), "test-me");
     }
 
     #[coverage_helper::test]
     fn test_from_str() {
         let namespace = TruncatedChainId::from_str("test-too").unwrap();
-        assert_that!(namespace.as_str()).is_equal_to("test-too");
+        assert_eq!(namespace.as_str(), "test-too");
     }
 
     #[coverage_helper::test]
     fn test_to_string() {
         let namespace = TruncatedChainId::from_str("test").unwrap();
-        assert_that!(namespace.to_string()).is_equal_to("test".to_string());
+        assert_eq!(namespace.to_string(), "test".to_string());
     }
 
     #[coverage_helper::test]
     fn test_from_str_long() {
         let namespace = TruncatedChainId::from_str("test-a-b-c-d-e-f").unwrap();
-        assert_that!(namespace.as_str()).is_equal_to("test-a-b-c-d-e-f");
+        assert_eq!(namespace.as_str(), "test-a-b-c-d-e-f");
     }
 
     #[coverage_helper::test]

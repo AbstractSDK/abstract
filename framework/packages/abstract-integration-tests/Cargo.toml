@@ -16,7 +16,6 @@ semver = { workspace = true }
 cw-ownable = { workspace = true }
 cw-orch = { workspace = true }
 log = "0.4.14"
-speculoos = { workspace = true }
 abstract-std.workspace = true
 abstract-sdk.workspace = true
 anyhow.workspace = true

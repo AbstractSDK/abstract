@@ -5,7 +5,6 @@ use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
 use derive_builder::Builder;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::json;
-use speculoos::prelude::*;
 
 use crate::MockDeps;
 
@@ -136,7 +135,7 @@ where
         let mut expected = expected;
         sort_expected(&mut expected);
 
-        assert_that!(actual).is_equal_to(expected)
+        assert_eq!(actual, expected)
     }
 
     pub fn test_add_one(&mut self, deps: &mut MockDeps) -> Result<(), TError> {
@@ -270,7 +269,7 @@ mod test {
 
             let expected = vec![("b".to_string(), 2)];
 
-            assert_that!(determine_expected(&to_add, &to_remove)).is_equal_to(expected);
+            assert_eq!(determine_expected(&to_add, &to_remove), expected);
         }
 
         #[test]
@@ -280,7 +279,7 @@ mod test {
 
             let expected: Vec<(String, i32)> = vec![];
 
-            assert_that!(determine_expected(&to_add, &to_remove)).is_equal_to(expected);
+            assert_eq!(determine_expected(&to_add, &to_remove), expected);
         }
 
         #[test]
@@ -290,7 +289,7 @@ mod test {
 
             let expected: Vec<(String, i32)> = vec![];
 
-            assert_that!(determine_expected(&to_add, &to_remove)).is_equal_to(expected);
+            assert_eq!(determine_expected(&to_add, &to_remove), expected);
         }
     }
 

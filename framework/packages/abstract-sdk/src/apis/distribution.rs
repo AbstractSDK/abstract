@@ -145,7 +145,6 @@ impl Distribution {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;
@@ -167,7 +166,7 @@ mod test {
 
             let res = distribution.set_withdraw_address(&delegator, &withdraw);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 
@@ -186,7 +185,7 @@ mod test {
 
             let res = distribution.withdraw_delegator_reward(&validator, &delegator);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 
@@ -204,7 +203,7 @@ mod test {
 
             let res = distribution.withdraw_delegator_commission(&validator);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 
@@ -225,7 +224,7 @@ mod test {
 
             let res = distribution.fund_community_pool(&amount, &depositor);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 }

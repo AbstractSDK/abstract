@@ -344,7 +344,6 @@ mod tests {
     use abstract_testing::prelude::AbstractMockAddrs;
     use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
     use ownership::GovOwnershipError;
-    use speculoos::prelude::*;
 
     fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
         ACCOUNT_MODULES
@@ -364,12 +363,12 @@ mod tests {
             let storage = deps.as_mut().storage;
 
             let result = add_module_upgrade_to_context(storage, TEST_MODULE_ID, vec![]);
-            assert_that!(result).is_ok();
+            assert!(result.is_ok());
 
             let upgraded_modules: Vec<(String, Vec<Dependency>)> =
                 MIGRATE_CONTEXT.load(storage).unwrap();
 
-            assert_that!(upgraded_modules).has_length(1);
+            assert_eq!(upgraded_modules.len(), 1);
             assert_eq!(upgraded_modules[0].0, TEST_MODULE_ID);
 
             Ok(())
@@ -393,19 +392,13 @@ mod tests {
             ];
 
             let res = update_module_addresses(deps.as_mut(), to_add.clone(), vec![]);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
-            speculoos::prelude::VecAssertions::has_length(
-                &mut assert_that!(&actual_modules),
-                to_add.len(),
-            );
+            assert_eq!(actual_modules.len(), to_add.len());
             for (module_id, addr) in to_add {
-                speculoos::iter::ContainingIntoIterAssertions::contains(
-                    &mut assert_that!(&actual_modules),
-                    &(module_id, Addr::unchecked(addr)),
-                );
+                assert!(actual_modules.contains(&(module_id, Addr::unchecked(addr))));
             }
 
             Ok(())
@@ -421,9 +414,7 @@ mod tests {
                 vec![("".to_string(), Addr::unchecked("module1_addr"))];
 
             let res = update_module_addresses(deps.as_mut(), to_add, vec![]);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::InvalidModuleName {});
+            assert_eq!(res, Err(AccountError::InvalidModuleName {}));
 
             Ok(())
         }
@@ -443,11 +434,11 @@ mod tests {
             let to_remove: Vec<String> = vec!["test:module".to_string()];
 
             let res = update_module_addresses(deps.as_mut(), vec![], to_remove);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
-            speculoos::prelude::VecAssertions::has_length(&mut assert_that!(&actual_modules), 0);
+            assert!(actual_modules.is_empty());
 
             Ok(())
         }
@@ -470,16 +461,17 @@ mod tests {
 
             // the registry can not call this
             let res = execute_as(&mut deps, &abstr.registry, msg.clone());
-            assert_that!(&res).is_err();
+            assert!(res.is_err());
 
             // only the owner can
             let res = execute_as(&mut deps, &owner, msg.clone());
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let res = execute_as(&mut deps, &not_account_factory, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
+            assert_eq!(
+                res,
+                Err(AccountError::Ownership(GovOwnershipError::NotOwner))
+            );
 
             Ok(())
         }
@@ -516,11 +508,12 @@ mod tests {
             DEPENDENTS.save(&mut deps.storage, test_module, &dependents)?;
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::ModuleHasDependents(Vec::from_iter(
+            assert_eq!(
+                res,
+                Err(AccountError::ModuleHasDependents(Vec::from_iter(
                     dependents,
-                )));
+                )))
+            );
 
             Ok(())
         }
@@ -551,9 +544,7 @@ mod tests {
             )?;
 
             let res = execute_as(&mut deps, &not_owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
+            assert_eq!(res, Err(AccountError::SenderNotWhitelistedOrOwner {}));
             Ok(())
         }
 
@@ -573,9 +564,7 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::ModuleNotFound(missing_module));
+            assert_eq!(res, Err(AccountError::ModuleNotFound(missing_module)));
 
             Ok(())
         }
@@ -603,15 +592,15 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let msgs = res.unwrap().messages;
-            assert_that!(&msgs).has_length(1);
+            assert_eq!(msgs.len(), 1);
 
             let expected_msg: CosmosMsg = wasm_execute("module_addr", &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
-            assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);
+            assert_eq!(actual_msg.msg, expected_msg);
 
             Ok(())
         }

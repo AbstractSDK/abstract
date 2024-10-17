@@ -19,7 +19,6 @@ use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::AssetInfoBase;
 use cw_orch::prelude::*;
-use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";

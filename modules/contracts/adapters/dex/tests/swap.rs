@@ -13,7 +13,6 @@ use abstract_interface::{Abstract, AbstractAccount};
 use common::create_default_account;
 use cosmwasm_std::{coin, Decimal};
 use cw_orch::prelude::*;
-use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";

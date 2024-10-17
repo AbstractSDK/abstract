@@ -18,7 +18,6 @@ use abstract_std::{
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_orch::prelude::*;
-use speculoos::prelude::*;
 
 // /// Deploys and mints an NFT to *sender*.
 // fn deploy_and_mint_nft(
@@ -82,16 +81,19 @@ fn instantiate() -> AResult {
     let modules = account.module_infos(None, None)?.module_infos;
 
     // assert account module
-    assert_that!(&modules).has_length(0);
+    assert!(modules.is_empty());
 
     // assert account config
-    assert_that!(account.config()?).is_equal_to(abstract_std::account::ConfigResponse {
-        whitelisted_addresses: vec![],
-        registry_address: deployment.registry.address()?,
-        module_factory_address: deployment.module_factory.address()?,
-        account_id: TEST_ACCOUNT_ID,
-        is_suspended: false,
-    });
+    assert_eq!(
+        account.config()?,
+        abstract_std::account::ConfigResponse {
+            whitelisted_addresses: vec![],
+            registry_address: deployment.registry.address()?,
+            module_factory_address: deployment.module_factory.address()?,
+            account_id: TEST_ACCOUNT_ID,
+            is_suspended: false,
+        }
+    );
     take_storage_snapshot!(chain, "instantiate_account");
     Ok(())
 }
@@ -109,7 +111,7 @@ fn exec_on_account() -> AResult {
 
     let account_balance = chain.bank_querier().balance(&account.address()?, None)?;
 
-    assert_that!(account_balance).is_equal_to(vec![Coin::new(100_000u128, TTOKEN)]);
+    assert_eq!(account_balance, vec![Coin::new(100_000u128, TTOKEN)]);
 
     let burn_amount = vec![Coin::new(10_000u128, TTOKEN)];
 
@@ -123,7 +125,10 @@ fn exec_on_account() -> AResult {
 
     // Assert balance has decreased
     let account_balance = chain.bank_querier().balance(&account.address()?, None)?;
-    assert_that!(account_balance).is_equal_to(vec![Coin::new((100_000 - 10_000) as u128, TTOKEN)]);
+    assert_eq!(
+        account_balance,
+        vec![Coin::new((100_000 - 10_000) as u128, TTOKEN)]
+    );
     take_storage_snapshot!(chain, "exec_on_account");
 
     Ok(())
@@ -146,7 +151,7 @@ fn default_without_response_data() -> AResult {
         Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
         vec![],
     )?;
-    assert_that!(resp.data).is_none();
+    assert!(resp.data.is_none());
     take_storage_snapshot!(chain, "default_without_response_data");
 
     Ok(())

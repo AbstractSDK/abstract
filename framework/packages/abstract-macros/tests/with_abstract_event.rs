@@ -2,7 +2,6 @@
 mod tests {
     use abstract_macros::with_abstract_event;
     use cosmwasm_std::Response;
-    use speculoos::prelude::*;
 
     #[test]
     fn test_abstract_response() {
@@ -14,7 +13,7 @@ mod tests {
             cosmwasm_std::Event::new("abstract")
                 .add_attributes(vec![("contract", CONTRACT_NAME), ("action", ACTION)]),
         );
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -31,7 +30,7 @@ mod tests {
                 ("action", "instantiate"),
             ]))
             .add_attributes(new_attributes);
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -49,6 +48,6 @@ mod tests {
                 ("action", "instantiate"),
                 ("custom", "abstract"),
             ]));
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 }
