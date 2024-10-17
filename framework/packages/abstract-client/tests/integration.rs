@@ -1420,6 +1420,7 @@ fn retrieve_account_builder_install_missing_modules() -> anyhow::Result<()> {
 
     app_publisher.publish_app::<MockAppI<MockBech32>>()?;
 
+    assert!(!app_publisher.account().module_installed(TEST_MODULE_ID)?);
     let account = client
         .account_builder()
         .namespace(Namespace::new(TEST_NAMESPACE)?)
@@ -1550,5 +1551,45 @@ fn ans_balance() -> anyhow::Result<()> {
         .name_service()
         .balance(&chain.sender_addr(), &AssetEntry::new("mock"))?;
     assert_eq!(balance, Uint128::new(101));
+    Ok(())
+}
+
+// Tests wether using the Account builder with install_on_subaccount on an existing account installs given apps
+#[test]
+fn account_builder_doesnt_install_module_on_existing_account() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?;
+
+    let app_dependency_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    app_dependency_publisher.publish_app::<MockAppI<_>>()?;
+    let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
+    assert!(res.is_ok());
+
+    const NEW_NAMESPACE: &str = "new-namespace";
+
+    // We create an account
+    let account = client
+        .account_builder()
+        .namespace(NEW_NAMESPACE.try_into()?)
+        .build()?;
+    assert!(!account.module_installed(TEST_MODULE_ID)?);
+
+    // We now re-use the builder to install a module (the usage is usually in a separate script)
+    client
+        .account_builder()
+        .namespace(NEW_NAMESPACE.try_into()?)
+        .install_on_sub_account(true) // Making sure this is enabled,
+        .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+
+    // We assert the app is installed on the account
+    assert!(account.module_installed(TEST_MODULE_ID)?);
     Ok(())
 }
