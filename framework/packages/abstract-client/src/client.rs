@@ -163,6 +163,34 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         AccountBuilder::new(&self.abstr)
     }
 
+    /// Fetches an existing Abstract [`Account`]from chain
+    pub fn fetch_account(&self, namespace: Namespace) -> AbstractClientResult<Account<Chain>> {
+        Account::maybe_from_namespace(&self.abstr, namespace.clone(), false)?.ok_or(
+            AbstractClientError::NamespaceNotClaimed {
+                namespace: namespace.to_string(),
+            },
+        )
+    }
+
+    /// Fetches an existing Abstract [`Account`]from chain
+    /// If the Namespace is not claimed, creates an account with the provided account builder
+    pub fn fetch_or_build(
+        &self,
+        namespace: Namespace,
+        build_fn: for<'a, 'b> fn(
+            &'a mut AccountBuilder<'b, Chain>,
+        ) -> &'a mut AccountBuilder<'b, Chain>,
+    ) -> AbstractClientResult<Account<Chain>> {
+        match Account::maybe_from_namespace(&self.abstr, namespace.clone(), false)? {
+            Some(account) => Ok(account),
+            None => {
+                let mut account_builder = self.account_builder();
+                account_builder.namespace(namespace);
+                build_fn(&mut account_builder).build()
+            }
+        }
+    }
+
     /// Address of the sender
     pub fn sender(&self) -> Addr {
         self.environment().sender_addr()

@@ -294,30 +294,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         let install_modules = self.install_modules();
-        if self.fetch_if_namespace_claimed {
-            // Check if namespace already claimed
-            if let Some(ref namespace) = self.namespace {
-                let account_from_namespace_result: Option<Account<Chain>> =
-                    Account::maybe_from_namespace(
-                        self.abstr,
-                        namespace.clone(),
-                        self.install_on_sub_account,
-                    )?;
-
-                // Only return if the account can be retrieved without errors.
-                if let Some(account_from_namespace) = account_from_namespace_result {
-                    let modules_to_install =
-                        account_from_namespace.missing_modules(&install_modules)?;
-                    if !modules_to_install.is_empty() {
-                        let funds = self.generate_funds(&modules_to_install, false)?;
-                        account_from_namespace
-                            .abstr_account
-                            .install_modules(modules_to_install, &funds)?;
-                    }
-                    return Ok(account_from_namespace);
-                }
-            }
-        }
 
         let chain = self.abstr.registry.environment();
         let sender = chain.sender_addr().to_string();

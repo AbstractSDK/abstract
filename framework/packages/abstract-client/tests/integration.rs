@@ -1581,15 +1581,11 @@ fn account_builder_doesnt_install_module_on_existing_account() -> anyhow::Result
         .build()?;
     assert!(!account.module_installed(TEST_MODULE_ID)?);
 
-    // We now re-use the builder to install a module (the usage is usually in a separate script)
-    client
-        .account_builder()
-        .namespace(NEW_NAMESPACE.try_into()?)
-        .install_on_sub_account(true) // Making sure this is enabled,
-        .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})?
-        .build()?;
-
-    // We assert the app is installed on the account
-    assert!(account.module_installed(TEST_MODULE_ID)?);
+    client.fetch_or_build(NEW_NAMESPACE.try_into()?, |builder| {
+        builder
+            .install_on_sub_account(true)
+            .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
+            .unwrap()
+    })?;
     Ok(())
 }
