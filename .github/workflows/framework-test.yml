@@ -44,11 +44,11 @@ jobs:
         run: |
           df -h
           rm -rf /usr/share/dotnet/
-          sudo apt-get remove -y 'php.*'
-          sudo apt-get remove -y '^dotnet-.*'
+          sudo apt-get remove -y 'php.*' || true
+          sudo apt-get remove -y '^dotnet-.*' || true
           sudo apt-get remove -y azure-cli firefox powershell mono-devel || true
-          sudo apt-get autoremove -y
-          sudo apt-get clean
+          sudo apt-get autoremove -y || true
+          sudo apt-get clean || true
           df -h
         shell: bash
       - uses: Swatinem/rust-cache@v2
