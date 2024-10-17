@@ -57,7 +57,7 @@ cw-orch-interchain = { version = "0.7.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "2.0.0" }
-polytone-note = { package = "abstract-polytone-note", version = "4.0.0" }
+polytone-note = { package = "abstract-polytone-note", version = "4.0.1" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
 
 
