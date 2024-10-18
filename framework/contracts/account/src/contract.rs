@@ -119,9 +119,7 @@ pub fn instantiate(
     }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    let governance = owner
-        .clone()
-        .verify(deps.as_ref(), registry.address.clone())?;
+    let governance = owner.clone().verify(deps.as_ref())?;
     match governance {
         // Check if the caller is the proposed owner account when creating a sub-account.
         // This prevents other users from creating sub-accounts for accounts they don't own.
@@ -176,8 +174,7 @@ pub fn instantiate(
     };
 
     // Set owner
-    let cw_gov_owner =
-        ownership::initialize_owner(deps.branch(), owner.clone(), registry.address.clone())?;
+    let cw_gov_owner = ownership::initialize_owner(deps.branch(), owner.clone())?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
@@ -319,16 +316,10 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             remove_account_from_contracts(deps.branch(), &env)?
                         }
                     };
-                    let registry = RegistryContract::new(deps.api, &env)?;
 
-                    let new_owner_attributes = ownership::update_ownership(
-                        deps,
-                        &env.block,
-                        &info.sender,
-                        registry.address,
-                        action,
-                    )?
-                    .into_attributes();
+                    let new_owner_attributes =
+                        ownership::update_ownership(deps, &env.block, &info.sender, action)?
+                            .into_attributes();
                     Ok(
                         AccountResponse::new("update_ownership", new_owner_attributes)
                             .add_messages(msgs),
