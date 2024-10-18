@@ -71,7 +71,9 @@ fn create_challenge(
     challenge_req: ChallengeRequest,
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     ensure!(
         challenge_req.init_friends.len() < MAX_AMOUNT_OF_FRIENDS as usize,
         AppError::TooManyFriends {}
@@ -81,7 +83,7 @@ fn create_challenge(
         .init_friends
         .iter()
         .cloned()
-        .map(|human| human.check(deps.as_ref(), &module))
+        .map(|human| human.check(deps.as_ref(), &env, &module))
         .collect::<AbstractSdkResult<_>>()?;
 
     let (friend_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
@@ -111,20 +113,21 @@ fn create_challenge(
 
 fn update_challenge(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     module: ChallengeApp,
     challenge_id: u64,
     new_challenge: ChallengeEntryUpdate,
 ) -> AppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     // will return an error if the challenge doesn't exist
     let mut loaded_challenge: ChallengeEntry = CHALLENGES
         .may_load(deps.storage, challenge_id)?
         .ok_or(AppError::ChallengeNotFound {})?;
 
-    // TODO: are we ok to edit name/description during proposals?
     if let Some(name) = new_challenge.name {
         loaded_challenge.name = name;
     }
@@ -148,7 +151,9 @@ fn cancel_challenge(
     module: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let mut challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     // Check if this challenge still active
     if env.block.time >= challenge.end_timestamp {
@@ -179,12 +184,14 @@ fn update_friends_for_challenge(
     friends: Vec<Friend<String>>,
     op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     // Validate friend addr and account ids
     let friends_validated: Vec<(Addr, Friend<Addr>)> = friends
         .iter()
         .cloned()
-        .map(|human| human.check(deps.as_ref(), module))
+        .map(|human| human.check(deps.as_ref(), &env, module))
         .collect::<AbstractSdkResult<_>>()?;
 
     let (voters_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
@@ -213,7 +220,7 @@ fn update_friends_for_challenge(
 
             let mut current_friends_addrs: Vec<Addr> = current_friends
                 .iter()
-                .map(|f| f.addr(deps.as_ref(), module))
+                .map(|f| f.addr(deps.as_ref(), &env, module))
                 .collect::<AbstractSdkResult<_>>()?;
             current_friends_addrs.extend(voters_addrs);
             // Check if addrs unique
@@ -263,7 +270,7 @@ fn get_or_create_active_proposal(
     let friends: Vec<Addr> = CHALLENGE_FRIENDS
         .load(deps.storage, challenge_id)?
         .into_iter()
-        .map(|friend| friend.addr(deps.as_ref(), module))
+        .map(|friend| friend.addr(deps.as_ref(), &env, module))
         .collect::<AbstractSdkResult<_>>()?;
     let proposal_id = SIMPLE_VOTING.new_proposal(
         deps.storage,
@@ -288,10 +295,10 @@ fn cast_vote(
     let proposal_id = get_or_create_active_proposal(&mut deps, &env, challenge_id, module)?;
 
     let voter = match module
-        .account_registry(deps.as_ref())?
-        .assert_proxy(&info.sender)
+        .account_registry(deps.as_ref(), &env)?
+        .assert_is_account(&info.sender)
     {
-        Ok(base) => base.manager,
+        Ok(base) => base.into_addr(),
         Err(_) => info.sender,
     };
     let proposal_info =
@@ -336,7 +343,9 @@ fn veto(
     let proposal_id =
         last_proposal(challenge_id, deps.as_ref())?.ok_or(AppError::ExpectedProposal {})?;
 
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let proposal_info = SIMPLE_VOTING.veto_proposal(deps.storage, &env.block, proposal_id)?;
 
     Ok(module
@@ -346,7 +355,7 @@ fn veto(
 
 fn try_finish_challenge(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     module: &ChallengeApp,
     proposal_info: ProposalInfo,
     proposal_outcome: ProposalOutcome,
@@ -364,7 +373,7 @@ fn try_finish_challenge(
     let res = if !matches!(proposal_outcome, ProposalOutcome::Passed) {
         module.response("finish_vote")
     } else {
-        charge_penalty(deps, module, challenge, friends)?
+        charge_penalty(deps, env, module, challenge, friends)?
     };
     Ok(res
         .add_attribute("proposal_info", format!("{proposal_info:?}"))
@@ -373,6 +382,7 @@ fn try_finish_challenge(
 
 fn charge_penalty(
     deps: DepsMut,
+    env: Env,
     module: &ChallengeApp,
     challenge: ChallengeEntry,
     friends: Vec<Friend<Addr>>,
@@ -394,7 +404,7 @@ fn charge_penalty(
         amount: amount_per_friend,
     };
 
-    let bank = module.bank(deps.as_ref());
+    let bank = module.bank(deps.as_ref(), &env);
     let executor = module.executor(deps.as_ref());
 
     // Create a transfer action for each friend
@@ -403,12 +413,10 @@ fn charge_penalty(
         .map(|friend| {
             let recipent = match friend {
                 Friend::Addr(addr) => addr.address,
-                Friend::AbstractAccount(account_id) => {
-                    module
-                        .account_registry(deps.as_ref())?
-                        .account_base(&account_id)?
-                        .proxy
-                }
+                Friend::AbstractAccount(account_id) => module
+                    .account_registry(deps.as_ref(), &env)?
+                    .account(&account_id)?
+                    .into_addr(),
             };
             bank.transfer(vec![asset_per_friend.clone()], &recipent)
         })

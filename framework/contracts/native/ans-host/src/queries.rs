@@ -1,4 +1,3 @@
-use abstract_sdk::cw_helpers::load_many;
 use abstract_std::{
     ans_host::{
         state::{
@@ -37,13 +36,16 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
 }
 
 pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
-    let keys: Vec<AssetEntry> = keys.into_iter().map(|name| name.as_str().into()).collect();
+    let assets = keys
+        .into_iter()
+        .map(|name| {
+            let key = AssetEntry::new(&name);
+            let value = ASSET_ADDRESSES.load(deps.storage, &key)?;
+            Ok((key, value))
+        })
+        .collect::<StdResult<_>>()?;
 
-    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
-
-    to_json_binary(&AssetsResponse {
-        assets: assets.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
-    })
+    to_json_binary(&AssetsResponse { assets })
 }
 
 pub fn query_asset_list(
@@ -68,19 +70,18 @@ pub fn query_asset_infos(
     _env: Env,
     keys: Vec<AssetInfoUnchecked>,
 ) -> StdResult<Binary> {
-    let keys = keys
+    let infos = keys
         .into_iter()
         .map(|info| {
-            info.check(deps.api, None)
-                .map_err(|e| StdError::generic_err(e.to_string()))
+            let key = info
+                .check(deps.api, None)
+                .map_err(|err| StdError::generic_err(err.to_string()))?;
+            let value = REV_ASSET_ADDRESSES.load(deps.storage, &key)?;
+            Ok((key, value))
         })
-        .collect::<StdResult<Vec<_>>>()?;
+        .collect::<StdResult<_>>()?;
 
-    let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
-
-    to_json_binary(&AssetInfosResponse {
-        infos: infos.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
-    })
+    to_json_binary(&AssetInfosResponse { infos })
 }
 
 pub fn query_asset_info_list(
@@ -105,26 +106,28 @@ pub fn query_asset_info_list(
     to_json_binary(&AssetInfoListResponse { infos: res? })
 }
 
-pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdResult<Binary> {
-    let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
+pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdResult<Binary> {
+    let contracts = keys
+        .into_iter()
+        .map(|key| {
+            let value = CONTRACT_ADDRESSES.load(deps.storage, &key)?;
+            Ok((key, value))
+        })
+        .collect::<StdResult<_>>()?;
 
-    to_json_binary(&ContractsResponse {
-        contracts: contracts
-            .into_iter()
-            .map(|(x, a)| (x.to_owned(), a))
-            .collect(),
-    })
+    to_json_binary(&ContractsResponse { contracts })
 }
 
-pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> StdResult<Binary> {
-    let channels = load_many(CHANNELS, deps.storage, keys)?;
+pub fn query_channels(deps: Deps, _env: Env, keys: Vec<ChannelEntry>) -> StdResult<Binary> {
+    let channels = keys
+        .into_iter()
+        .map(|key| {
+            let value = CHANNELS.load(deps.storage, &key)?;
+            Ok((key, value))
+        })
+        .collect::<StdResult<_>>()?;
 
-    to_json_binary(&ChannelsResponse {
-        channels: channels
-            .into_iter()
-            .map(|(k, v)| (k.to_owned(), v))
-            .collect(),
-    })
+    to_json_binary(&ChannelsResponse { channels })
 }
 
 pub fn query_contract_list(
@@ -178,50 +181,50 @@ pub fn list_pool_entries(
         None => (None, None),
     };
 
-    let full_key_provided = asset_pair_filter.is_some() && dex_filter.is_some();
+    let entry_list = match (asset_pair_filter, dex_filter) {
+        (Some((asset_x, asset_y)), Some(dex_filter)) => {
+            // We have the full key, so load the entry
+            let key = DexAssetPairing::new(asset_x, asset_y, &dex_filter);
+            let entry = load_asset_pairing_entry(deps.storage, key)?;
+            vec![entry]
+        }
+        (Some((asset_x, asset_y)), None) => {
+            let start_bound = start_after.map(|pairing| Bound::exclusive(pairing.dex()));
 
-    let entry_list: Vec<AssetPairingMapEntry> = if full_key_provided {
-        // We have the full key, so load the entry
-        let (asset_x, asset_y) = asset_pair_filter.unwrap();
-        let key = DexAssetPairing::new(asset_x, asset_y, &dex_filter.unwrap());
-        let entry = load_asset_pairing_entry(deps.storage, key)?;
-        // Add the result to a vec
-        vec![entry]
-    } else if let Some((asset_x, asset_y)) = asset_pair_filter {
-        let start_bound = start_after.map(|pairing| Bound::exclusive(pairing.dex()));
+            // We can use the prefix to load all the entries for the asset pair
+            let res: Result<Vec<(DexName, Vec<PoolReference>)>, _> = ASSET_PAIRINGS
+                .prefix((&asset_x, &asset_y))
+                .range(deps.storage, start_bound, None, Order::Ascending)
+                .take(limit)
+                .collect();
 
-        // We can use the prefix to load all the entries for the asset pair
-        let res: Result<Vec<(DexName, Vec<PoolReference>)>, _> = ASSET_PAIRINGS
-            .prefix((&asset_x, &asset_y))
-            .range(deps.storage, start_bound, None, Order::Ascending)
-            .take(limit)
-            .collect();
+            // Re add the key prefix, since only the dex is returned as a key
+            let matched: Vec<AssetPairingMapEntry> = res?
+                .into_iter()
+                .map(|(dex, ids)| {
+                    (
+                        DexAssetPairing::new(asset_x.clone(), asset_y.clone(), &dex),
+                        ids,
+                    )
+                })
+                .collect();
 
-        // Re add the key prefix, since only the dex is returned as a key
-        let matched: Vec<AssetPairingMapEntry> = res?
-            .into_iter()
-            .map(|(dex, ids)| {
-                (
-                    DexAssetPairing::new(asset_x.clone(), asset_y.clone(), &dex),
-                    ids,
-                )
-            })
-            .collect();
+            matched
+        }
+        (None, dex_filter) => {
+            let start_bound: Option<Bound<&DexAssetPairing>> =
+                start_after.as_ref().map(Bound::exclusive);
 
-        matched
-    } else {
-        let start_bound: Option<Bound<&DexAssetPairing>> =
-            start_after.as_ref().map(Bound::exclusive);
-
-        // We have no filter, so load all the entries
-        let res: Result<Vec<AssetPairingMapEntry>, _> = ASSET_PAIRINGS
-            .range(deps.storage, start_bound, None, Order::Ascending)
-            .filter(|e| {
-                let pairing = &e.as_ref().unwrap().0;
-                dex_filter.as_ref().map_or(true, |f| f == pairing.dex())
-            })
-            .collect();
-        res?
+            // We have no filter, so load all the entries
+            ASSET_PAIRINGS
+                .range(deps.storage, start_bound, None, Order::Ascending)
+                .filter(|e| {
+                    dex_filter
+                        .as_ref()
+                        .map_or(true, |f| f == e.as_ref().unwrap().0.dex())
+                })
+                .collect::<StdResult<_>>()?
+        }
     };
 
     to_json_binary(&PoolAddressListResponse { pools: entry_list })
@@ -308,7 +311,7 @@ mod test {
         ans_host::*,
         objects::{pool_id::PoolAddressBase, PoolType, TruncatedChainId},
     };
-    use abstract_testing::addresses::AbstractMockAddrs;
+    use abstract_testing::{addresses::AbstractMockAddrs, mock_env_validated};
     use cosmwasm_std::{from_json, testing::*, Addr, DepsMut, OwnedDeps};
     use cw_asset::AssetInfo;
     use speculoos::prelude::*;
@@ -320,12 +323,18 @@ mod test {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
+        let env = mock_env_validated(deps.api);
 
-        instantiate(deps.as_mut(), mock_env(), info, InstantiateMsg { admin })
+        instantiate(deps.as_mut(), env, info, InstantiateMsg { admin })
     }
 
-    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
-        let res = contract::query(deps, mock_env(), msg)?;
+    fn query_helper(
+        deps: &OwnedDeps<MockStorage, MockApi, MockQuerier>,
+        msg: QueryMsg,
+    ) -> StdResult<Binary> {
+        let env = mock_env_validated(deps.api as MockApi);
+
+        let res = contract::query(deps.as_ref(), env, msg)?;
         Ok(res)
     }
 
@@ -579,7 +588,7 @@ mod test {
         )
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -600,7 +609,7 @@ mod test {
             names: vec!["bar".to_string(), "foo".to_string()],
         };
         // send query message
-        let res: AssetsResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetsResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = create_asset_response(create_test_assets(
@@ -616,7 +625,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_contract() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -630,7 +639,7 @@ mod test {
         let msg = QueryMsg::Contracts {
             entries: create_contract_entry(vec![("foo", "foo")]),
         };
-        let res: ContractsResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: ContractsResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = ContractsResponse {
@@ -650,7 +659,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_channels() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -664,7 +673,7 @@ mod test {
 
         // create and send and deserialise msg
         let msg = create_channel_msg(vec![("foo", "foo")]);
-        let res: ChannelsResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: ChannelsResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = ChannelsResponse {
@@ -677,7 +686,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_asset_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -705,15 +714,15 @@ mod test {
 
         // return all entries
         let msg = query_asset_list_msg("".to_string(), 42);
-        let res: AssetListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // limit response to 1st result - entries are stored alphabetically
         let msg = query_asset_list_msg("".to_string(), 1);
-        let res_first_entry: AssetListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_first_entry: AssetListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // results after specified entry
         let msg = query_asset_list_msg("foo".to_string(), 1);
-        let res_of_foobar: AssetListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_of_foobar: AssetListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = create_asset_list_response(create_test_assets(
@@ -740,7 +749,7 @@ mod test {
 
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_asset_list_above_max() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -771,14 +780,14 @@ mod test {
         update_asset_addresses(deps.as_mut(), test_assets_large)?;
 
         let msg = query_asset_list_msg("".to_string(), 42);
-        let res: AssetListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetListResponse = from_json(query_helper(&deps, msg)?)?;
         assert!(res.assets.len() == 25_usize);
 
         // Assert that despite 30 entries the returned data is capped at the `MAX_LIMIT` of 25 results
         assert!(res.assets.len() == 25_usize);
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_contract_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -805,7 +814,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res: ContractListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: ContractListResponse = from_json(query_helper(&deps, msg)?)?;
 
         let msg = QueryMsg::ContractList {
             start_after: Some(ContractEntry {
@@ -815,7 +824,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_expect_foo: ContractListResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_expect_foo: ContractListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
         let expected = ContractListResponse {
@@ -848,7 +857,7 @@ mod test {
 
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_channel_list() -> AnsHostTestResult {
         // arrange mocks
         let mut deps = mock_dependencies();
@@ -870,7 +879,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_all = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_all = from_json(query_helper(&deps, msg)?)?;
 
         // Filter for entries after `Foo` - Alphabetically
         let msg = QueryMsg::ChannelList {
@@ -881,7 +890,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_foobar = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_foobar = from_json(query_helper(&deps, msg)?)?;
 
         // Return first entry - Alphabetically
         let msg = QueryMsg::ChannelList {
@@ -889,7 +898,7 @@ mod test {
             limit: Some(1_u8),
             filter: None,
         };
-        let res_bar = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res_bar = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
 
@@ -918,7 +927,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_registered_dexes() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -934,7 +943,7 @@ mod test {
         // create msg
         let msg = QueryMsg::RegisteredDexes {};
         // deserialize response
-        let res: RegisteredDexesResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: RegisteredDexesResponse = from_json(query_helper(&deps, msg)?)?;
 
         // comparisons
         let expected = RegisteredDexesResponse {
@@ -948,7 +957,7 @@ mod test {
         assert!(res.dexes[1] == ("bar"));
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_pools() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -961,7 +970,7 @@ mod test {
         let msg = QueryMsg::Pools {
             pairings: vec![create_dex_asset_pairing("btc", "eth", "foo")],
         };
-        let res: PoolsResponse = from_json(query_helper(deps.as_ref(), msg)?)?;
+        let res: PoolsResponse = from_json(query_helper(&deps, msg)?)?;
         //comparisons
         let expected = ASSET_PAIRINGS
             .load(
@@ -978,7 +987,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_pool_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -999,14 +1008,27 @@ mod test {
             None,
             None,
         )?;
-        let res_bar: PoolsResponse = from_json(query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolsResponse = from_json(query_helper(&deps, msg_bar)?)?;
+
+        // Exact filter
+        let msg_full_filter_bar = create_pool_list_msg(
+            Some(create_asset_pairing_filter(
+                "btc",
+                "eth",
+                Some("bar".to_string()),
+            )?),
+            None,
+            None,
+        )?;
+        let res_full_filter_bar: PoolsResponse =
+            from_json(query_helper(&deps, msg_full_filter_bar)?)?;
 
         let msg_foo = create_pool_list_msg(
             Some(create_asset_pairing_filter("juno", "atom", None)?),
             None,
             Some(42),
         )?;
-        let res_foo: PoolsResponse = from_json(query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolsResponse = from_json(query_helper(&deps, msg_foo)?)?;
 
         let msg_foo_using_start_after = create_pool_list_msg(
             Some(AssetPairingFilter {
@@ -1017,7 +1039,7 @@ mod test {
             Some(42),
         )?;
         let res_foo_using_start_after: PoolsResponse =
-            from_json(query_helper(deps.as_ref(), msg_foo_using_start_after)?)?;
+            from_json(query_helper(&deps, msg_foo_using_start_after)?)?;
 
         // create comparisons - bar / foo / all
         let expected_bar =
@@ -1050,17 +1072,18 @@ mod test {
         };
         // comparison all
         let msg_all = create_pool_list_msg(None, None, Some(42))?;
-        let res_all: PoolsResponse = from_json(query_helper(deps.as_ref(), msg_all)?)?;
+        let res_all: PoolsResponse = from_json(query_helper(&deps, msg_all)?)?;
 
         // assert
         assert_eq!(&res_bar, &expected_bar);
+        assert_eq!(&res_full_filter_bar, &expected_bar);
         assert_eq!(&res_foo, &expected_foo);
         assert!(res_foo.pools.len() == 1usize);
         assert_eq!(&res_foo_using_start_after, &expected_foo);
         assert_eq!(&res_all, &expected_all);
         Ok(())
     }
-    #[test]
+    #[coverage_helper::test]
     fn test_query_pool_metadata() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -1079,12 +1102,12 @@ mod test {
         let msg_bar = QueryMsg::PoolMetadatas {
             ids: vec![UniquePoolId::new(42)],
         };
-        let res_bar: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolMetadatasResponse = from_json(query_helper(&deps, msg_bar)?)?;
 
         let msg_foo = QueryMsg::PoolMetadatas {
             ids: vec![UniquePoolId::new(69)],
         };
-        let res_foo: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolMetadatasResponse = from_json(query_helper(&deps, msg_foo)?)?;
 
         // create comparisons
         let expected_bar = PoolMetadatasResponse {
@@ -1114,7 +1137,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_pool_metadata_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(&mut deps).unwrap();
@@ -1131,7 +1154,7 @@ mod test {
             start_after: None,
             limit: None,
         };
-        let res_bar: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolMetadatasResponse = from_json(query_helper(&deps, msg_bar)?)?;
         let expected_bar = PoolMetadatasResponse {
             metadatas: vec![(bar_key, bar_metadata.clone())],
         };
@@ -1149,7 +1172,7 @@ mod test {
             start_after: None,
             limit: Some(42),
         };
-        let res_both: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_both)?)?;
+        let res_both: PoolMetadatasResponse = from_json(query_helper(&deps, msg_both)?)?;
 
         let expected_both = PoolMetadatasResponse {
             metadatas: vec![
@@ -1167,13 +1190,127 @@ mod test {
             start_after: Some(bar_key),
             limit: Some(42),
         };
-        let res_foo: PoolMetadatasResponse = from_json(query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolMetadatasResponse = from_json(query_helper(&deps, msg_foo)?)?;
 
         let expected_foo = PoolMetadatasResponse {
             metadatas: vec![(foo_key, foo_metadata)],
         };
 
         assert_that!(res_foo).is_equal_to(expected_foo);
+        Ok(())
+    }
+
+    #[coverage_helper::test]
+    fn test_query_asset_infos() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(&mut deps).unwrap();
+        let native_1 = AssetInfo::native("foo");
+        let native_2 = AssetInfo::native("bar");
+        let cw20_1 = AssetInfo::cw20(deps.api.addr_make("foo"));
+        let cw20_2 = AssetInfo::cw20(deps.api.addr_make("bar"));
+
+        // create asset entries
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &native_1, &AssetEntry::new("foo_n"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &native_2, &AssetEntry::new("bar_n"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &cw20_1, &AssetEntry::new("foo_ft"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &cw20_2, &AssetEntry::new("bar_ft"))?;
+
+        let msg = QueryMsg::AssetInfos {
+            infos: vec![
+                native_1.clone().into(),
+                native_2.clone().into(),
+                cw20_1.clone().into(),
+                cw20_2.clone().into(),
+            ],
+        };
+        let res: AssetInfosResponse = from_json(query_helper(&deps, msg)?)?;
+        let expected_bar = AssetInfosResponse {
+            infos: vec![
+                (native_1, AssetEntry::new("foo_n")),
+                (native_2, AssetEntry::new("bar_n")),
+                (cw20_1, AssetEntry::new("foo_ft")),
+                (cw20_2, AssetEntry::new("bar_ft")),
+            ],
+        };
+        assert_eq!(res, expected_bar);
+
+        // Query invalid asset
+        let res = query_helper(
+            &deps,
+            QueryMsg::AssetInfos {
+                infos: vec![AssetInfoUnchecked::cw20("invalid_addr".to_string())],
+            },
+        );
+        assert!(res.is_err());
+        // Query not saved asset
+        let res = query_helper(
+            &deps,
+            QueryMsg::AssetInfos {
+                infos: vec![AssetInfoUnchecked::native("not_saved".to_string())],
+            },
+        );
+        assert!(res.is_err());
+        Ok(())
+    }
+
+    #[coverage_helper::test]
+    fn test_query_asset_infos_list() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(&mut deps).unwrap();
+        let native_1 = AssetInfo::native("foo");
+        let native_2 = AssetInfo::native("bar");
+        let cw20_1 = AssetInfo::cw20(deps.api.addr_make("foo"));
+        let cw20_2 = AssetInfo::cw20(deps.api.addr_make("bar"));
+
+        // create asset entries
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &native_1, &AssetEntry::new("foo_n"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &native_2, &AssetEntry::new("bar_n"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &cw20_1, &AssetEntry::new("foo_ft"))?;
+        REV_ASSET_ADDRESSES.save(&mut deps.storage, &cw20_2, &AssetEntry::new("bar_ft"))?;
+
+        let msg = QueryMsg::AssetInfoList {
+            filter: None,
+            start_after: None,
+            limit: None,
+        };
+        let res: AssetInfoListResponse = from_json(query_helper(&deps, msg)?)?;
+        let expected_infos = AssetInfoListResponse {
+            infos: vec![
+                (cw20_1.clone(), AssetEntry::new("foo_ft")),
+                (cw20_2.clone(), AssetEntry::new("bar_ft")),
+                (native_2.clone(), AssetEntry::new("bar_n")),
+                (native_1.clone(), AssetEntry::new("foo_n")),
+            ],
+        };
+        assert_eq!(res, expected_infos);
+
+        // Start after
+        let msg = QueryMsg::AssetInfoList {
+            filter: None,
+            start_after: Some(cw20_2.clone().into()),
+            limit: None,
+        };
+        let res: AssetInfoListResponse = from_json(query_helper(&deps, msg)?)?;
+        let expected_infos = AssetInfoListResponse {
+            infos: vec![
+                (native_2, AssetEntry::new("bar_n")),
+                (native_1, AssetEntry::new("foo_n")),
+            ],
+        };
+        assert_eq!(res, expected_infos);
+
+        // Limit
+        let msg = QueryMsg::AssetInfoList {
+            filter: None,
+            start_after: None,
+            limit: Some(1),
+        };
+        let res: AssetInfoListResponse = from_json(query_helper(&deps, msg)?)?;
+        let expected_infos = AssetInfoListResponse {
+            infos: vec![(cw20_1.clone(), AssetEntry::new("foo_ft"))],
+        };
+        assert_eq!(res, expected_infos);
+
         Ok(())
     }
 }

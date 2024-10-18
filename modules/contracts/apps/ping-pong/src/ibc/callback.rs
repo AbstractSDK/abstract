@@ -21,7 +21,6 @@ pub fn ibc_callback(
 ) -> AppResult {
     match from_json(callback.msg)? {
         PingPongCallbackMsg::Pinged { opponent_chain } => {
-            // TODO: use response data here in the future
             let exec_events = result.get_execute_events()?;
 
             let pong = exec_events.into_iter().find(|e| {
@@ -35,7 +34,7 @@ pub fn ibc_callback(
                 let is_even = env.block.height % 2 == 0;
                 if is_even {
                     // We play ping again
-                    return ping_pong(deps, opponent_chain, module);
+                    return ping_pong(deps, &env, opponent_chain, module);
                 }
                 // we lost
                 LOSSES.update(deps.storage, |l| AppResult::Ok(l + 1))?;
@@ -46,7 +45,7 @@ pub fn ibc_callback(
             }
         }
         PingPongCallbackMsg::QueryBlockHeight { opponent_chain } => {
-            play_if_win(deps, module, result, opponent_chain)
+            play_if_win(deps, &env, module, result, opponent_chain)
         }
     }
 }
@@ -56,6 +55,7 @@ pub fn ibc_callback(
 /// **Note**: The block height of the opponent chain changes all the time so we can't actually predict that we will win! This is just for demo purposes.
 pub fn play_if_win(
     deps: DepsMut,
+    env: &Env,
     module: App,
     result: IbcResult,
     opponent_chain: TruncatedChainId,
@@ -65,7 +65,7 @@ pub fn play_if_win(
 
     // If uneven we play
     if height % 2 == 1 {
-        ping_pong(deps, opponent_chain, module)
+        ping_pong(deps, env, opponent_chain, module)
     } else {
         Ok(module.response("dont_play"))
     }

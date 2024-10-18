@@ -1,10 +1,11 @@
 use std::str::FromStr;
 
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::{
     ibc_client::{
-        state::{Config, ACCOUNTS, CONFIG, IBC_INFRA},
+        state::{ACCOUNTS, IBC_INFRA},
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
-        ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteProxiesResponse,
+        ListIbcInfrastructureResponse, ListRemoteAccountsResponse, ListRemoteHostsResponse,
     },
     objects::{
         account::{AccountSequence, AccountTrace},
@@ -12,7 +13,7 @@ use abstract_std::{
     },
     AbstractError,
 };
-use cosmwasm_std::{Deps, Order, StdError, StdResult};
+use cosmwasm_std::{Deps, Env, Order, StdError, StdResult};
 use cw_storage_plus::Bound;
 
 use crate::contract::IbcClientResult;
@@ -49,7 +50,7 @@ pub fn list_accounts(
 pub fn list_proxies_by_account_id(
     deps: Deps,
     account_id: AccountId,
-) -> IbcClientResult<ListRemoteProxiesResponse> {
+) -> IbcClientResult<ListRemoteAccountsResponse> {
     let proxies: Vec<(abstract_std::objects::TruncatedChainId, Option<String>)> =
         cw_paginate::paginate_map_prefix(
             &ACCOUNTS,
@@ -58,10 +59,10 @@ pub fn list_proxies_by_account_id(
             // Not using pagination as there are not a lot of chains.
             None,
             None,
-            |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+            |chain, account| Ok::<_, StdError>((chain, Some(account))),
         )?;
 
-    Ok(ListRemoteProxiesResponse { proxies })
+    Ok(ListRemoteAccountsResponse { accounts: proxies })
 }
 
 // No need for pagination here, not a lot of chains
@@ -74,12 +75,12 @@ pub fn list_remote_hosts(deps: Deps) -> IbcClientResult<ListRemoteHostsResponse>
 }
 
 // No need for pagination here, not a lot of chains
-pub fn list_remote_proxies(deps: Deps) -> IbcClientResult<ListRemoteProxiesResponse> {
+pub fn list_remote_proxies(deps: Deps) -> IbcClientResult<ListRemoteAccountsResponse> {
     let proxies = IBC_INFRA
         .range(deps.storage, None, None, Order::Ascending)
         .map(|c| c.map(|(chain, counterpart)| (chain, counterpart.remote_proxy)))
         .collect::<StdResult<_>>()?;
-    Ok(ListRemoteProxiesResponse { proxies })
+    Ok(ListRemoteAccountsResponse { accounts: proxies })
 }
 
 // No need for pagination here, not a lot of chains
@@ -90,14 +91,10 @@ pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructur
     Ok(ListIbcInfrastructureResponse { counterparts })
 }
 
-pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
-    let Config {
-        version_control,
-        ans_host,
-    } = CONFIG.load(deps.storage)?;
+pub fn config(deps: Deps, env: &Env) -> IbcClientResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host: ans_host.address.to_string(),
-        version_control_address: version_control.address.into_string(),
+        ans_host: AnsHost::new(deps.api, env)?.address,
+        registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
 
@@ -121,9 +118,11 @@ pub fn account(
 ) -> IbcClientResult<AccountResponse> {
     host_chain.verify()?;
 
-    let remote_proxy_addr = ACCOUNTS.may_load(
+    let remote_account_addr = ACCOUNTS.may_load(
         deps.storage,
         (account_id.trace(), account_id.seq(), &host_chain),
     )?;
-    Ok(AccountResponse { remote_proxy_addr })
+    Ok(AccountResponse {
+        remote_account_addr,
+    })
 }

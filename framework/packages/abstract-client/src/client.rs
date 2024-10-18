@@ -15,9 +15,10 @@
 //! use abstract_app::mock::mock_app_dependency::interface::MockAppI;
 //! use cw_orch::prelude::*;
 //! use abstract_client::{AbstractClient, Publisher, Namespace};
+//! use abstract_testing::prelude::*;
 //!
 //! let chain = MockBech32::new("mock");
-//! let client = AbstractClient::builder(chain).build()?;
+//! let client = AbstractClient::builder(chain.clone()).build_mock()?;
 //!
 //! let namespace = Namespace::new("tester")?;
 //! let publisher: Publisher<MockBech32> = client
@@ -29,8 +30,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AnsHost, IbcClient, ManagerQueryFns, RegisteredModule, VCQueryFns,
-    VersionControl,
+    Abstract, AccountI, AnsHost, IbcClient, ModuleFactory, RegisteredModule, Registry,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleStatus, ModuleVersion},
@@ -50,6 +50,7 @@ use crate::{
 };
 
 /// Client to interact with Abstract accounts and modules
+#[derive(Clone)]
 pub struct AbstractClient<Chain: CwEnv> {
     pub(crate) abstr: Abstract<Chain>,
 }
@@ -66,7 +67,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # use abstract_client::{Environment, AbstractClientError};
     /// # use cw_orch::prelude::*;
     /// # let chain = MockBech32::new("mock");
-    /// # let client = AbstractClient::builder(chain.clone()).build().unwrap(); // Deploy mock abstract
+    /// # let client = AbstractClient::builder(chain.clone()).build_mock().unwrap(); // Deploy mock abstract
     ///
     /// let client = AbstractClient::new(chain)?;
     /// # Ok::<(), AbstractClientError>(())
@@ -82,18 +83,18 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     /// # use abstract_client::AbstractClientError;
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
-    /// # let client = abstract_client::AbstractClient::builder(chain).build().unwrap();
+    /// # let client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
     /// use abstract_std::objects::{module_reference::ModuleReference, module::ModuleInfo};
-    /// // For getting version control address
+    /// // For getting registry address
     /// use cw_orch::prelude::*;
     ///
-    /// let version_control = client.version_control();
-    /// let vc_module = version_control.module(ModuleInfo::from_id_latest("abstract:version-control")?)?;
-    /// assert_eq!(vc_module.reference, ModuleReference::Native(version_control.address()?));
+    /// let registry = client.registry();
+    /// let vc_module = registry.module(ModuleInfo::from_id_latest("abstract:registry")?)?;
+    /// assert_eq!(vc_module.reference, ModuleReference::Native(registry.address()?));
     /// # Ok::<(), AbstractClientError>(())
     /// ```
-    pub fn version_control(&self) -> &VersionControl<Chain> {
-        &self.abstr.version_control
+    pub fn registry(&self) -> &Registry<Chain> {
+        &self.abstr.registry
     }
 
     /// Abstract Name Service contract API
@@ -101,17 +102,19 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Abstract Name Service contract is a database contract that stores all asset-related information.
     /// ```
     /// # use abstract_client::AbstractClientError;
+    /// # use abstract_testing::prelude::*;
     /// use abstract_client::{AbstractClient, ClientResolve};
     /// use cw_asset::AssetInfo;
     /// use abstract_app::objects::AssetEntry;
-    /// // For getting version control address
+    /// // For getting registry address
     /// use cw_orch::prelude::*;
     ///
     /// let denom = "test_denom";
     /// let entry = "denom";
-    /// # let client = AbstractClient::builder(MockBech32::new("mock"))
+    /// # let chain = MockBech32::new("mock");
+    /// # let client = AbstractClient::builder(chain.clone())
     /// #     .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
-    /// #     .build()?;
+    /// #     .build_mock()?;
     ///
     /// let name_service = client.name_service();
     /// let asset_entry = AssetEntry::new(entry);
@@ -121,6 +124,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     pub fn name_service(&self) -> &AnsHost<Chain> {
         &self.abstr.ans_host
+    }
+
+    /// Abstract Module Factory contract API
+    pub fn module_factory(&self) -> &ModuleFactory<Chain> {
+        &self.abstr.module_factory
     }
 
     /// Abstract Ibc Client contract API
@@ -134,7 +142,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn service<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
     ) -> AbstractClientResult<Service<Chain, M>> {
-        Service::new(self.version_control())
+        Service::new(self.registry())
     }
 
     /// Return current block info see [`BlockInfo`].
@@ -173,7 +181,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         source: T,
     ) -> AbstractClientResult<Account<Chain>> {
         let source = source.into();
-        let chain = self.abstr.version_control.environment();
+        let chain = self.abstr.registry.environment();
 
         match source {
             AccountSource::Namespace(namespace) => {
@@ -192,12 +200,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 }
             }
             AccountSource::AccountId(account_id) => {
-                let abstract_account: AbstractAccount<Chain> =
-                    AbstractAccount::new(&self.abstr, account_id.clone());
+                let abstract_account = AccountI::load_from(&self.abstr, account_id.clone())?;
                 Ok(Account::new(abstract_account, true))
             }
             AccountSource::App(app) => {
-                // Query app for manager address and get AccountId from it.
+                // Query app for account address and get AccountId from it.
                 let app_config: abstract_std::app::AppConfigResponse = chain
                     .query(
                         &abstract_std::app::QueryMsg::<Empty>::Base(
@@ -207,15 +214,14 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                     )
                     .map_err(Into::into)?;
 
-                let manager_config: abstract_std::manager::ConfigResponse = chain
+                let account_config: abstract_std::account::ConfigResponse = chain
                     .query(
-                        &abstract_std::manager::QueryMsg::Config {},
-                        &app_config.manager_address,
+                        &abstract_std::account::QueryMsg::Config {},
+                        &app_config.account,
                     )
                     .map_err(Into::into)?;
                 // This function verifies the account-id is valid and returns an error if not.
-                let abstract_account: AbstractAccount<Chain> =
-                    AbstractAccount::new(&self.abstr, manager_config.account_id);
+                let abstract_account = AccountI::load_from(&self.abstr, account_config.account_id)?;
                 Ok(Account::new(abstract_account, true))
             }
         }
@@ -269,47 +275,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(Into::into)
     }
 
-    // Retrieve the last account created by the client.
-    /// Returns `None` if no account has been created yet.
-    /// **Note**: This only returns accounts that were created with the Client. Any accounts created through the web-app will not be returned.
-    pub fn get_last_account(&self) -> AbstractClientResult<Option<Account<Chain>>> {
-        let addresses = self.environment().state().get_all_addresses()?;
-        // Now search for all the keys that start with "abstract:manager-x" and return the one which has the highest x.
-        let mut last_account: Option<(u32, Account<Chain>)> = None;
-        for id in addresses.keys() {
-            let Some(account_id) = is_local_manager(id.as_str())? else {
-                continue;
-            };
-
-            // only take accounts that the current sender owns
-            let account = AbstractAccount::new(&self.abstr, account_id.clone());
-            if account.manager.top_level_owner()?.address != self.environment().sender_addr() {
-                continue;
-            }
-
-            if let Some((last_account_id, _)) = last_account {
-                if account_id.seq() > last_account_id {
-                    last_account = Some((account_id.seq(), Account::new(account, true)));
-                }
-            } else {
-                last_account = Some((account_id.seq(), Account::new(account, true)));
-            }
-        }
-        Ok(last_account.map(|(_, account)| account))
-    }
-
     /// Get random local account id sequence(unclaimed) in 2147483648..u32::MAX range
     pub fn random_account_id(&self) -> AbstractClientResult<u32> {
         let mut rng = rand::thread_rng();
         loop {
             let random_sequence = rng.gen_range(2147483648..u32::MAX);
             let potential_account_id = AccountId::local(random_sequence);
-            if self
-                .abstr
-                .version_control
-                .account_base(potential_account_id)
-                .is_err()
-            {
+            if self.abstr.registry.account(potential_account_id).is_err() {
                 return Ok(random_sequence);
             };
         }
@@ -340,37 +312,42 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<Addr> {
         let salt = generate_instantiate_salt(account_id);
         let wasm_querier = self.environment().wasm_querier();
-        let module = self.version_control().module(module_info)?;
+        let module = self.registry().module(module_info)?;
         let (code_id, creator) = match module.reference {
-            // If AccountBase - account factory is creator
-            ModuleReference::AccountBase(id) => (id, self.abstr.account_factory.addr_str()?),
+            // If Account - signer is creator
+            ModuleReference::Account(id) => (id, self.environment().sender_addr()),
             // Else module factory is creator
             ModuleReference::App(id) | ModuleReference::Standalone(id) => {
-                (id, self.abstr.module_factory.addr_str()?)
+                (id, self.abstr.module_factory.address()?)
             }
             _ => {
                 return Err(AbstractClientError::Abstract(
                     abstract_std::AbstractError::Assert(
-                        "module reference not account base, app or standalone".to_owned(),
+                        "module reference not account, app or standalone".to_owned(),
                     ),
                 ))
             }
         };
 
         let addr = wasm_querier
-            .instantiate2_addr(code_id, &Addr::unchecked(creator), salt)
+            .instantiate2_addr(code_id, &creator, salt)
             .map_err(Into::into)?;
         Ok(Addr::unchecked(addr))
     }
 
     /// Retrieves the status of a specified module.
     ///
-    /// This function checks the status of a module within the version control contract.
+    /// This function checks the status of a module within the registry contract.
     /// and returns appropriate `Some(ModuleStatus)`. If the module is not deployed, it returns `None`.
     pub fn module_status(&self, module: ModuleInfo) -> AbstractClientResult<Option<ModuleStatus>> {
-        self.version_control()
-            .module_status(module)
-            .map_err(Into::into)
+        self.registry().module_status(module).map_err(Into::into)
+    }
+
+    /// Clones the Abstract Client with a different sender.
+    pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
+        Self {
+            abstr: self.abstr.call_as(sender),
+        }
     }
 
     #[cfg(feature = "interchain")]
@@ -380,10 +357,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn connect_to(
         &self,
         remote_abstr: &AbstractClient<Chain>,
-        ibc: &impl cw_orch_interchain::InterchainEnv<Chain>,
+        ibc: &impl cw_orch_interchain::prelude::InterchainEnv<Chain>,
     ) -> AbstractClientResult<()>
     where
-        Chain: cw_orch_interchain::IbcQueryHandler,
+        Chain: cw_orch_interchain::prelude::IbcQueryHandler,
     {
         self.abstr.connect_to(&remote_abstr.abstr, ibc)?;
 
@@ -391,68 +368,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 }
 
-pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
-    if !id.starts_with(abstract_std::MANAGER) {
-        return Ok(None);
-    }
-
-    let (_, account_id_str) = id.split_once('-').unwrap();
-    let account_id = AccountId::try_from(account_id_str)?;
-
-    // Only take local accounts into account.
-    if account_id.is_remote() {
-        return Ok(None);
-    }
-
-    Ok(Some(account_id))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn local_account() {
-        let result = is_local_manager("abstract:manager-local-9");
-        assert!(result.unwrap().is_some());
-    }
-
-    #[test]
-    fn remote_account() {
-        let result = is_local_manager("abstract:manager-eth>btc-9");
-        assert!(result.unwrap().is_none());
-    }
-
-    #[test]
-    fn not_manager() {
-        let result = is_local_manager("abstract:proxy-local-9");
-        assert!(result.unwrap().is_none());
-    }
-
-    #[test]
-    fn last_owned_abstract_account() {
-        let chain = MockBech32::new("mock");
-        let sender = chain.sender_addr();
-        Abstract::deploy_on(chain.clone(), sender.to_string()).unwrap();
-
-        let client = AbstractClient::new(chain.clone()).unwrap();
-        let _acc = client.account_builder().build().unwrap();
-        let acc_2 = client.account_builder().build().unwrap();
-
-        let other_owner = chain.addr_make("other_owner");
-        // create account with sender as sender but other owner
-        client
-            .account_builder()
-            .ownership(
-                abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
-                    monarch: other_owner.to_string(),
-                },
-            )
-            .build()
-            .unwrap();
-
-        let last_account = client.get_last_account().unwrap().unwrap();
-
-        assert_eq!(acc_2.id().unwrap(), last_account.id().unwrap());
+impl<Chain: CwEnv<Sender = Addr>> AbstractClient<Chain> {
+    /// Admin of the abstract deployment
+    pub fn mock_admin(chain: &Chain) -> <Chain as TxHandler>::Sender {
+        Abstract::mock_admin(chain)
     }
 }

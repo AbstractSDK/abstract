@@ -395,7 +395,8 @@
             "name": {
               "$ref": "#/definitions/AssetEntry"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "AssetEntry": {
           "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",

@@ -13,6 +13,5 @@ The following modules are offered by Abstract and can be used in your applicatio
 ## App Modules
 
 - [Subscription](./subscription.md)
-- [ETF](./etf.md)
 
 Also check out [Awesome Abstract](https://github.com/AbstractSDK/awesome-abstract) to see modules that other teams may have built.

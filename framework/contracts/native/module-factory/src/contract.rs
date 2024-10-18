@@ -1,6 +1,6 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
+    feature_objects::{AnsHost, RegistryContract},
     std::{module_factory::*, MODULE_FACTORY},
 };
 use abstract_std::objects::{
@@ -8,12 +8,12 @@ use abstract_std::objects::{
     module_version::assert_contract_upgrade,
 };
 use cosmwasm_std::{
-    to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
 
-use crate::{commands, error::ModuleFactoryError, state::*};
+use crate::{commands, error::ModuleFactoryError};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -29,13 +29,7 @@ pub fn instantiate(
     _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ModuleFactoryResult {
-    let config = Config {
-        version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
-        ans_host_address: deps.api.addr_validate(&msg.ans_host_address)?,
-    };
-
     set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
-    CONFIG.save(deps.storage, &config)?;
 
     // Set up the admin
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.admin))?;
@@ -46,16 +40,6 @@ pub fn instantiate(
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ModuleFactoryResult {
     match msg {
-        ExecuteMsg::UpdateConfig {
-            ans_host_address,
-            version_control_address,
-        } => commands::execute_update_config(
-            deps,
-            env,
-            info,
-            ans_host_address,
-            version_control_address,
-        ),
         ExecuteMsg::InstallModules { modules, salt } => {
             commands::execute_create_modules(deps, env, info, modules, salt)
         }
@@ -66,21 +50,24 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&query_config(deps, &env)?),
         QueryMsg::SimulateInstallModules { modules } => {
-            to_json_binary(&query_simulate_install_modules(deps, modules)?)
+            to_json_binary(&query_simulate_install_modules(deps, &env, modules)?)
         }
         QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
     }
 }
 
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let state: Config = CONFIG.load(deps.storage)?;
+pub fn query_config(deps: Deps, env: &Env) -> StdResult<ConfigResponse> {
     let resp = ConfigResponse {
-        version_control_address: state.version_control_address,
-        ans_host_address: state.ans_host_address,
+        registry_address: RegistryContract::new(deps.api, env)
+            .map_err(|e| StdError::generic_err(e.to_string()))?
+            .address,
+        ans_host_address: AnsHost::new(deps.api, env)
+            .map_err(|e| StdError::generic_err(e.to_string()))?
+            .address,
     };
 
     Ok(resp)
@@ -88,12 +75,13 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 pub fn query_simulate_install_modules(
     deps: Deps,
+    env: &Env,
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
-    let config = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(config.version_control_address);
+    let registry =
+        RegistryContract::new(deps.api, env).map_err(|e| StdError::generic_err(e.to_string()))?;
 
-    let module_responses = version_control
+    let module_responses = registry
         .query_modules_configs(modules, &deps.querier)
         .map_err(|e| cosmwasm_std::StdError::generic_err(e.to_string()))?;
 
@@ -125,19 +113,20 @@ pub fn query_simulate_install_modules(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ModuleFactoryResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> ModuleFactoryResult {
+    match msg {
+        MigrateMsg::Instantiate(instantiate_msg) => {
+            abstract_sdk::cw_helpers::migrate_instantiate(deps, env, instantiate_msg, instantiate)
+        }
+        MigrateMsg::Migrate {} => {
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, MODULE_FACTORY, version)?;
-    set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
+            assert_contract_upgrade(deps.storage, MODULE_FACTORY, version)?;
+            set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
 
-    // Clear unused state map
-    // Removable after 0.23 migration, not critical as it won't do anything if there's no state for this map
-    let module_init_binaries: cw_storage_plus::Map<&ModuleInfo, Binary> =
-        cw_storage_plus::Map::new("module_init_binaries");
-    module_init_binaries.clear(deps.storage);
-
-    Ok(ModuleFactoryResponse::action("migrate"))
+            Ok(ModuleFactoryResponse::action("migrate"))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -150,18 +139,20 @@ mod tests {
 
     mod migrate {
         use abstract_std::AbstractError;
+        use abstract_testing::mock_env_validated;
         use cw2::get_contract_version;
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_same_version() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -176,9 +167,10 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_downgrade() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             let big_version = "999.999.999";
@@ -186,7 +178,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -201,16 +193,17 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_name_change() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
             set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -224,9 +217,10 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> ModuleFactoryResult<()> {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
@@ -238,7 +232,7 @@ mod tests {
             .to_string();
             set_contract_version(deps.as_mut().storage, MODULE_FACTORY, small_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(get_contract_version(&deps.storage)?.version)

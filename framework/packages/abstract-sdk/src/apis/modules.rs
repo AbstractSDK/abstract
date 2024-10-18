@@ -1,11 +1,11 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
-use abstract_std::{manager::state::ACCOUNT_MODULES, objects::module::ModuleId};
+use abstract_std::{account::state::ACCOUNT_MODULES, objects::module::ModuleId};
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult,
@@ -21,8 +21,10 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
@@ -35,17 +37,13 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
 impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies + ModuleIdentification {}
 
 impl<'a, T: ModuleInterface> AbstractApi<T> for Modules<'a, T> {
+    const API_ID: &'static str = "Modules";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: ModuleInterface> ApiIdentification for Modules<'a, T> {
-    fn api_id() -> String {
-        "Modules".to_owned()
     }
 }
 
@@ -57,8 +55,10 @@ impl<'a, T: ModuleInterface> ApiIdentification for Modules<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let modules: Modules<MockModule>  = module.modules(deps.as_ref());
     ```
@@ -74,9 +74,9 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// This should **not** be used to execute messages on an `Api`.
     /// Use `Modules::api_request(..)` instead.
     pub fn module_address(&self, module_id: ModuleId) -> AbstractSdkResult<Addr> {
-        let manager_addr = self.base.manager_address(self.deps)?;
+        let account_addr = self.base.account(self.deps)?;
         let maybe_module_addr =
-            ACCOUNT_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
+            ACCOUNT_MODULES.query(&self.deps.querier, account_addr.into_addr(), module_id)?;
         let Some(module_addr) = maybe_module_addr else {
             return Err(crate::AbstractSdkError::MissingModule {
                 module: module_id.to_string(),
@@ -87,7 +87,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
     /// Retrieve the version of an application in this Account.
     /// Note: this method makes use of the Cw2 query and may not coincide with the version of the
-    /// module listed in VersionControl.
+    /// module listed in Registry.
     pub fn module_version(&self, module_id: ModuleId) -> AbstractSdkResult<ContractVersion> {
         let module_address = self.module_address(module_id)?;
         let req = QueryRequest::Wasm(WasmQuery::Raw {
@@ -123,17 +123,14 @@ mod test {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::mock_module::*;
+    use crate::{apis::traits::test::abstract_api_test, mock_module::*};
 
     mod assert_module_dependency {
-        use cosmwasm_std::testing::*;
-
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_ok_if_dependency() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.modules(deps.as_ref());
 
@@ -141,10 +138,9 @@ mod test {
             assert_that!(res).is_ok();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.modules(deps.as_ref());
 
@@ -156,5 +152,13 @@ mod test {
                     .contains(&format!("{fake_module} is not a dependency"))
             });
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let modules = app.modules(deps.as_ref());
+
+        abstract_api_test(modules);
     }
 }

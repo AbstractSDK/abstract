@@ -30,7 +30,7 @@ pub fn execute_handler(
     // if provider is on an app-chain, execute the action on the app-chain
     let (local_provider_name, is_over_ibc) = is_over_ibc(&env, &provider_name)?;
     if is_over_ibc {
-        handle_ibc_request(&deps, info, &module, local_provider_name, &action)
+        handle_ibc_request(&deps, &env, info, &module, local_provider_name, &action)
     } else {
         // the action can be executed on the local chain
         handle_local_request(deps, env, info, module, action, local_provider_name)
@@ -47,7 +47,7 @@ fn handle_local_request(
     provider_name: String,
 ) -> StakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
-    let target_account = module.account_base(deps.as_ref())?;
+    let target_account = module.account(deps.as_ref())?;
     Ok(module
         .custom_response("handle_local_request", vec![("provider", provider_name)])
         .add_submessage(module.resolve_staking_action(
@@ -60,17 +60,17 @@ fn handle_local_request(
 }
 
 /// Handle a request that needs to be executed on a remote chain
-/// TODO, this doesn't work as is. This should be corrected when working with ibc hooks ?
 fn handle_ibc_request(
     deps: &DepsMut,
+    env: &Env,
     info: MessageInfo,
     module: &CwStakingContract,
     provider_name: ProviderName,
     action: &StakingAction,
 ) -> StakingResult {
-    let host_chain = TruncatedChainId::from_string(provider_name.clone())?; // TODO : Especially this line is faulty
-    let ans = module.name_service(deps.as_ref());
-    let ibc_client = module.ibc_client(deps.as_ref());
+    let host_chain = TruncatedChainId::from_string(provider_name.clone())?;
+    let ans = module.name_service(deps.as_ref(), env);
+    let ibc_client = module.ibc_client(deps.as_ref(), env);
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
@@ -78,16 +78,19 @@ fn handle_ibc_request(
     // construct the action to be called on the host
     // construct the action to be called on the host
     let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
-        manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
-            module_id: CW_STAKING_ADAPTER_ID.to_string(),
-            exec_msg: to_json_binary::<ExecuteMsg>(
-                &StakingExecuteMsg {
-                    provider: provider_name.clone(),
-                    action: action.clone(),
-                }
-                .into(),
-            )?,
-        }],
+        account_msgs: vec![
+            abstract_adapter::std::account::ExecuteMsg::ExecuteOnModule {
+                module_id: CW_STAKING_ADAPTER_ID.to_string(),
+                exec_msg: to_json_binary::<ExecuteMsg>(
+                    &StakingExecuteMsg {
+                        provider: provider_name.clone(),
+                        action: action.clone(),
+                    }
+                    .into(),
+                )?,
+                funds: vec![],
+            },
+        ],
     };
 
     // If the calling entity is a contract, we provide a callback on successful cross-chain-staking
@@ -106,7 +109,7 @@ fn handle_ibc_request(
 
     Ok(module
         .custom_response("handle_ibc_request", vec![("provider", provider_name)])
-        // call both messages on the proxy
+        // call both messages on the account
         .add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
 }
 

@@ -1,3 +1,5 @@
+// Remove deprecated if we move to cosmwasm_2_0 feature
+
 pub mod adapter;
 pub mod app;
 pub mod bank;
@@ -11,7 +13,7 @@ mod traits;
 pub mod verify;
 pub mod version_registry;
 
-pub use traits::{AbstractApi, ApiIdentification};
+pub use traits::AbstractApi;
 
 #[cfg(feature = "stargate")]
 pub mod authz;
@@ -21,3 +23,12 @@ pub mod distribution;
 pub mod feegrant;
 #[cfg(feature = "stargate")]
 pub mod stargate;
+
+#[cfg(feature = "stargate")]
+pub(crate) fn stargate_msg(
+    type_url: String,
+    value: cosmwasm_std::Binary,
+) -> cosmwasm_std::CosmosMsg {
+    #[allow(deprecated)]
+    cosmwasm_std::CosmosMsg::Stargate { type_url, value }
+}

@@ -17,7 +17,7 @@ use cosmos_sdk_proto::{
     },
     traits::{Message, Name},
 };
-use cosmwasm_std::{Addr, AnyMsg, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
 use ibc_proto::ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height};
 
 use super::stargate::{
@@ -34,23 +34,27 @@ use crate::{features::AccountExecutor, AbstractSdkResult};
 pub trait AuthZInterface: AccountExecutor {
     /// API for accessing the Cosmos SDK AuthZ module.
     /// The **granter** is the address of the user **granting** an authorization to perform an action on their behalf.
-    /// By default, it is the proxy address of the Account.
+    /// By default, it is the address of the Account.
 
     /// ```
     /// use abstract_sdk::prelude::*;
     /// # use cosmwasm_std::testing::mock_dependencies;
-    /// # use abstract_sdk::mock_module::MockModule;
-    /// # let module = MockModule::new();
+    /// # use abstract_sdk::{mock_module::MockModule, AuthZInterface, AuthZ, AbstractSdkResult};
+    /// # use abstract_testing::prelude::*;
     /// # let deps = mock_dependencies();
-
+    /// # let account = admin_account(deps.api);
+    /// # let module = MockModule::new(deps.api, account);
+    ///
     /// let authz: AuthZ = module.auth_z(deps.as_ref(), None)?;
+    ///
+    /// # AbstractSdkResult::Ok(())
     /// ```
     fn auth_z<'a>(
         &'a self,
         deps: cosmwasm_std::Deps<'a>,
         granter: Option<Addr>,
     ) -> AbstractSdkResult<AuthZ> {
-        let granter = granter.unwrap_or(self.proxy_address(deps)?);
+        let granter = granter.unwrap_or(self.account(deps)?.addr().clone());
         Ok(AuthZ { granter })
     }
 }
@@ -63,10 +67,15 @@ impl<T> AuthZInterface for T where T: AccountExecutor {}
 /// ```
 /// use abstract_sdk::prelude::*;
 /// # use cosmwasm_std::testing::mock_dependencies;
-/// # use abstract_sdk::mock_module::MockModule;
-/// # let module = MockModule::new();
+/// # use abstract_sdk::{AbstractSdkResult, mock_module::MockModule, AuthZInterface, AuthZ};
+/// # use abstract_testing::prelude::*;
+/// # let deps = mock_dependencies();
+/// # let account = admin_account(deps.api);
+/// # let module = MockModule::new(deps.api, account);
 ///
-/// let authz: Authz  = module.auth_z(deps.as_ref(), None)?;
+/// let authz: AuthZ  = module.auth_z(deps.as_ref(), None)?;
+///
+/// # AbstractSdkResult::Ok(())
 /// ```
 /// */
 #[derive(Clone)]
@@ -76,7 +85,7 @@ pub struct AuthZ {
 
 impl AuthZ {
     /// Retrieve the granter's address.
-    /// By default, this is the proxy address of the Account.
+    /// By default, this is the address of the Account.
     fn granter(&self) -> Addr {
         self.granter.clone()
     }
@@ -95,10 +104,7 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
-            type_url: authz::v1beta1::MsgRevoke::type_url(),
-            value: Binary::new(msg),
-        })
+        super::stargate_msg(authz::v1beta1::MsgRevoke::type_url(), Binary::new(msg))
     }
 
     /// Generate cosmwasm message for the AuthZAuthorization type
@@ -115,10 +121,7 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
-            type_url: authz::v1beta1::MsgGrant::type_url(),
-            value: Binary::new(msg),
-        })
+        super::stargate_msg(authz::v1beta1::MsgGrant::type_url(), Binary::new(msg))
     }
 
     /// Grants generic authorization to a **grantee**.
@@ -279,7 +282,8 @@ impl AuthZ {
                 ),
                 _ => todo!(),
             },
-            CosmosMsg::Any(AnyMsg { type_url, value }) => (type_url.clone(), value.into()),
+            #[allow(deprecated)]
+            CosmosMsg::Stargate { type_url, value } => (type_url.clone(), value.into()),
             CosmosMsg::Bank(bank_msg) => match bank_msg {
                 cosmwasm_std::BankMsg::Send { to_address, amount } => (
                     MsgSend::type_url(),
@@ -449,10 +453,7 @@ impl AuthZ {
         }
         .encode_to_vec();
 
-        CosmosMsg::Any(AnyMsg {
-            type_url: authz::v1beta1::MsgExec::type_url(),
-            value: Binary::new(msg),
-        })
+        super::stargate_msg(authz::v1beta1::MsgExec::type_url(), Binary::new(msg))
     }
 }
 
@@ -461,12 +462,10 @@ mod tests {
     use super::*;
 
     use crate::{apis::stargate::convert_stamp, mock_module::*};
-    use cosmwasm_std::testing::mock_dependencies;
 
-    #[test]
+    #[coverage_helper::test]
     fn generic_authorization() {
-        let deps = mock_dependencies();
-        let app = MockModule::new(deps.api);
+        let (deps, _, app) = mock_module_setup();
 
         let granter = deps.api.addr_make("granter");
         let grantee = deps.api.addr_make("grantee");
@@ -480,9 +479,9 @@ mod tests {
             expiration,
         );
 
-        let expected_msg = CosmosMsg::Any(AnyMsg {
-            type_url: "/cosmos.authz.v1beta1.MsgGrant".to_string(),
-            value: Binary::new(
+        let expected_msg = crate::apis::stargate_msg(
+            "/cosmos.authz.v1beta1.MsgGrant".to_string(),
+            Binary::new(
                 authz::v1beta1::MsgGrant {
                     granter: granter.into_string(),
                     grantee: grantee.into_string(),
@@ -499,15 +498,14 @@ mod tests {
                 }
                 .encode_to_vec(),
             ),
-        });
+        );
 
         assert_eq!(generic_authorization_msg, expected_msg);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn revoke_authorization() {
-        let deps = mock_dependencies();
-        let app = MockModule::new(deps.api);
+        let (deps, _, app) = mock_module_setup();
 
         let granter = deps.api.addr_make("granter");
         let grantee = deps.api.addr_make("grantee");
@@ -517,9 +515,9 @@ mod tests {
         let generic_authorization_msg =
             auth_z.revoke(&grantee, "/cosmos.gov.v1beta1.MsgVote".to_string());
 
-        let expected_msg = CosmosMsg::Any(AnyMsg {
-            type_url: "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
-            value: Binary::new(
+        let expected_msg = crate::apis::stargate_msg(
+            "/cosmos.authz.v1beta1.MsgRevoke".to_string(),
+            Binary::new(
                 authz::v1beta1::MsgRevoke {
                     granter: granter.into_string(),
                     grantee: grantee.into_string(),
@@ -527,7 +525,7 @@ mod tests {
                 }
                 .encode_to_vec(),
             ),
-        });
+        );
 
         assert_eq!(generic_authorization_msg, expected_msg);
     }

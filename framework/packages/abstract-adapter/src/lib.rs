@@ -1,6 +1,7 @@
 //! # Abstract Adapter
 //!
 //! Basis for an interfacing contract to an external service.
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 use cosmwasm_std::{Empty, Response};
 
 pub type AdapterResult<C = Empty> = Result<Response<C>, AdapterError>;
@@ -38,7 +39,7 @@ pub mod state;
 pub mod mock {
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_std::{adapter::*, objects::dependency::StaticDependency};
-    use abstract_testing::{prelude::*, TEST_VERSION};
+    use abstract_testing::{mock_env_validated, prelude::*, TEST_VERSION};
     use cosmwasm_std::{testing::*, OwnedDeps, Response, StdError};
     use cw_storage_plus::Item;
     use thiserror::Error;
@@ -137,14 +138,12 @@ pub mod mock {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let info = message_info(&abstr.owner, &[]);
+        let env = mock_env_validated(deps.api);
         let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
-            },
+            base: BaseInstantiateMsg {},
             module: MockInitMsg {},
         };
-        adapter.instantiate(deps.as_mut(), mock_env(), info, init_msg)
+        adapter.instantiate(deps.as_mut(), env, info, init_msg)
     }
 
     pub fn mock_init_custom(
@@ -154,14 +153,12 @@ pub mod mock {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let info = message_info(&abstr.owner, &[]);
+        let env = mock_env_validated(deps.api);
         let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.to_string(),
-                version_control_address: abstr.version_control.to_string(),
-            },
+            base: BaseInstantiateMsg {},
             module: MockInitMsg {},
         };
-        module.instantiate(deps.as_mut(), mock_env(), info, init_msg)
+        module.instantiate(deps.as_mut(), env, info, init_msg)
     }
 
     /// Generate a cw-orch instance for a mock adapter

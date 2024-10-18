@@ -1,3 +1,5 @@
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
+
 pub mod commands;
 pub mod contract;
 pub mod error;
@@ -10,7 +12,7 @@ mod tests;
 #[cfg(test)]
 mod test_common {
     use abstract_std::ans_host::InstantiateMsg;
-    use abstract_testing::prelude::AbstractMockAddrs;
+    use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
     use cosmwasm_std::{testing::*, OwnedDeps, Response};
 
     use crate::{contract, error::AnsHostError};
@@ -21,7 +23,7 @@ mod test_common {
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
         let admin = info.sender.to_string();
-
-        contract::instantiate(deps.as_mut(), mock_env(), info, InstantiateMsg { admin })
+        let env = mock_env_validated(deps.api);
+        contract::instantiate(deps.as_mut(), env, info, InstantiateMsg { admin })
     }
 }

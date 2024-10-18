@@ -18,11 +18,11 @@ You can leverage modules either from Abstract's extensive library or those craft
 
 ## How Modules Work
 
-As mentioned, a module's functionality can be accessed by installing it on an Abstract Account. The process of installing a module involves calling the Manager contract of an Abstract
+As mentioned, a module's functionality can be accessed by installing it on an Abstract Account. The process of installing a module involves calling the Abstract
 Account to perform its installation. An analogy to installing a module is pressing the "install" button for any app in the iOS/Android app store where the module is the App and the Abstract Account is the phone.
 
 ```admonish info
-As described in a [previous section](3_architecture.md), the Manager keeps track of all installed modules and manages their permissions and interactions.
+As described in a [previous section](3_architecture.md), the Account keeps track of all installed modules and manages their permissions and interactions.
 ```
 
 Through this system users can easily customize individual Abstract Accounts, permitting the installation or removal of modules according to their needs. In doing so, it effectively adapts the Account's functionality.
@@ -36,5 +36,5 @@ Security is a top priority at Abstract. Every module listed on the mainnet marke
 While no system can guarantee absolute security, this rigorous vetting process, coupled with the inherent security
 benefits of Abstract's and CosmWasm's architecture, mitigates potential risks to a considerable extent.
 
-The Abstract platform also maintains a [Version Control](../5_platform/2_version_control.md) for all the modules, allowing
+The Abstract platform also maintains a [Registry](../5_platform/2_registry.md) for all the modules, allowing
 developers to track changes, understand the evolution of a module, and choose versions that have passed security audits.

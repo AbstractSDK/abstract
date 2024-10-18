@@ -1,5 +1,5 @@
 use abstract_std::ans_host::*;
-use abstract_testing::prelude::AbstractMockAddrs;
+use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
 use cosmwasm_std::testing::*;
 use cw_asset::AssetInfo;
 
@@ -12,13 +12,13 @@ use crate::{
 /**
  * Test disallowed address update
  */
-#[test]
+#[coverage_helper::test]
 fn unauthorized_ans_host_update() {
     let mut deps = mock_dependencies(&[]);
     mock_init(&mut deps);
 
     // Try adding an asset to the ans_host
-    let env = mock_env();
+    let env = mock_env_validated(deps.api);
     let asset_info = AssetInfo::Native("asset_1".to_string());
     let msg = ExecuteMsg::UpdateAssetAddresses {
         to_add: vec![("asset".to_string(), asset_info.into())],
@@ -55,14 +55,14 @@ fn unauthorized_ans_host_update() {
 /**
  * Test allowed ans_host update
  */
-#[test]
+#[coverage_helper::test]
 fn authorized_ans_host_update() {
     let mut deps = mock_dependencies(&[]);
     mock_init(&mut deps);
     let abstr = AbstractMockAddrs::new(deps.api);
 
     // Try adding an asset to the ans_host
-    let env = mock_env();
+    let env = mock_env_validated(deps.api);
     let asset_info = AssetInfo::Native("asset_1".to_string());
     let msg = ExecuteMsg::UpdateAssetAddresses {
         to_add: vec![("asset".to_string(), asset_info.into())],

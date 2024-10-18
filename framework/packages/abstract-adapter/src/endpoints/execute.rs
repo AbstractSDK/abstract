@@ -4,8 +4,8 @@ use abstract_sdk::{
     AbstractResponse, AccountVerification,
 };
 use abstract_std::{
+    account::state::ACCOUNT_MODULES,
     adapter::{AdapterBaseMsg, AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
-    manager::state::ACCOUNT_MODULES,
     objects::ownership::nested_admin::query_top_level_owner_addr,
 };
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response, StdResult};
@@ -47,8 +47,8 @@ impl<
     }
 }
 
-fn is_top_level_owner(querier: &QuerierWrapper, manager: Addr, sender: &Addr) -> StdResult<bool> {
-    let owner = query_top_level_owner_addr(querier, manager)?;
+fn is_top_level_owner(querier: &QuerierWrapper, account: Addr, sender: &Addr) -> StdResult<bool> {
+    let owner = query_top_level_owner_addr(querier, account)?;
     Ok(owner == sender)
 }
 
@@ -59,42 +59,44 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     fn base_execute(
         &mut self,
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> AdapterResult {
-        let BaseExecuteMsg { proxy_address, msg } = message;
-        let account_registry = self.account_registry(deps.as_ref())?;
-        let account_base = match proxy_address {
-            // If proxy address provided, check if the sender is a direct or nested owner for this account.
-            Some(requested_proxy) => {
-                let proxy_address = deps.api.addr_validate(&requested_proxy)?;
-                let requested_core = account_registry.assert_proxy(&proxy_address)?;
-                if requested_core.manager == info.sender
-                    || is_top_level_owner(
-                        &deps.querier,
-                        requested_core.manager.clone(),
-                        &info.sender,
-                    )
-                    .unwrap_or(false)
-                {
-                    requested_core
-                } else {
-                    return Err(AdapterError::UnauthorizedAdapterRequest {
-                        adapter: self.module_id().to_string(),
-                        sender: info.sender.to_string(),
-                    });
+        let BaseExecuteMsg {
+            account_address,
+            msg,
+        } = message;
+        let account_registry = self.account_registry(deps.as_ref(), &env)?;
+        let account = account_registry
+            .assert_is_account_admin(&env, &info.sender)
+            .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
+                adapter: self.module_id().to_string(),
+                sender: info.sender.to_string(),
+            })
+            .or_else(|e| {
+                // If the sender is not an account or doesn't have the admin functionality enabled, the sender must be a top-level account owner
+                match account_address {
+                    Some(requested_account) => {
+                        let account_address = deps.api.addr_validate(&requested_account)?;
+                        let account = account_registry.assert_is_account(&account_address)?;
+                        if is_top_level_owner(&deps.querier, account.addr().clone(), &info.sender)
+                            .unwrap_or(false)
+                        {
+                            Ok(account)
+                        } else {
+                            Err(AdapterError::UnauthorizedAdapterRequest {
+                                adapter: self.module_id().to_string(),
+                                sender: info.sender.to_string(),
+                            })
+                        }
+                    }
+                    // If not provided the sender must be the direct owner AND have admin execution rights
+                    None => Err(e),
                 }
-            }
-            // If not provided the sender must be the direct owner
-            None => account_registry.assert_manager(&info.sender).map_err(|_| {
-                AdapterError::UnauthorizedAdapterRequest {
-                    adapter: self.module_id().to_string(),
-                    sender: info.sender.to_string(),
-                }
-            })?,
-        };
-        self.target_account = Some(account_base);
+            })?;
+
+        self.target_account = Some(account);
         match msg {
             AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove } => {
                 self.update_authorized_addresses(deps, info, to_add, to_remove)
@@ -104,8 +106,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 
     /// Handle a custom execution message sent to this api.
     /// Two success scenarios are possible:
-    /// 1. The sender is an authorized address of the given proxy address and has provided the proxy address in the message.
-    /// 2. The sender is a manager of the given proxy address.
+    /// 1. The sender is an authorized address of the given account address and has provided the account address in the message.
+    /// 2. The sender is a account of the given account address.
     fn handle_app_msg(
         mut self,
         deps: DepsMut,
@@ -119,30 +121,30 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             sender: sender.to_string(),
         };
 
-        let account_registry = self.account_registry(deps.as_ref())?;
+        let account_registry = self.account_registry(deps.as_ref(), &env)?;
 
-        let account_base = match request.proxy_address {
-            // The sender must either be an authorized address or manager.
-            Some(requested_proxy) => {
-                let proxy_address = deps.api.addr_validate(&requested_proxy)?;
-                let requested_core = account_registry.assert_proxy(&proxy_address)?;
+        let account = match request.account_address {
+            // The sender must either be an authorized address or account.
+            Some(requested_account) => {
+                let account_address = deps.api.addr_validate(&requested_account)?;
+                let requested_core = account_registry.assert_is_account(&account_address)?;
 
-                if requested_core.manager == sender {
-                    // If the caller is the manager of the indicated proxy_address, it's authorized to do the operation
-                    // This covers the case where the proxy field of the request is indicated where it doesn't need to be
+                if requested_core.addr() == sender {
+                    // If the caller is the account of the indicated account_address, it's authorized to do the operation
+                    // This covers the case where the account field of the request is indicated where it doesn't need to be
                     requested_core
                 } else {
-                    // If not, we load the authorized addresses for the given proxy address.
+                    // If not, we load the authorized addresses for the given account address.
                     let authorized = self
                         .authorized_addresses
-                        .load(deps.storage, proxy_address)
+                        .load(deps.storage, account_address)
                         .unwrap_or_default();
                     if authorized.contains(sender)
-                        || is_top_level_owner(&deps.querier, requested_core.manager.clone(), sender)
+                        || is_top_level_owner(&deps.querier, requested_core.addr().clone(), sender)
                             .unwrap_or(false)
                     {
                         // If the sender is an authorized address,
-                        // or top level account return the account_base.
+                        // or top level account return the account.
                         requested_core
                     } else {
                         // If not, we error, this call is not permitted
@@ -151,10 +153,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
                 }
             }
             None => account_registry
-                .assert_manager(sender)
+                .assert_is_account(sender)
                 .map_err(|_| unauthorized_sender())?,
         };
-        self.target_account = Some(account_base);
+        self.target_account = Some(account);
         self.execute_handler()?(deps, env, info, self, request.request)
     }
 
@@ -166,12 +168,12 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         to_add: Vec<String>,
         to_remove: Vec<String>,
     ) -> AdapterResult {
-        let account_base = self.target_account.as_ref().unwrap();
-        let proxy = account_base.proxy.clone();
+        let account = self.target_account.as_ref().unwrap();
+        let account_addr = account.addr().clone();
 
         let mut authorized_addrs = self
             .authorized_addresses
-            .may_load(deps.storage, proxy.clone())?
+            .may_load(deps.storage, account_addr.clone())?
             .unwrap_or_default();
 
         // Handle the addition of authorized addresses
@@ -215,8 +217,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         }
 
         self.authorized_addresses
-            .save(deps.storage, proxy.clone(), &authorized_addrs)?;
-        Ok(self.custom_response("update_authorized_addresses", vec![("proxy", proxy)]))
+            .save(deps.storage, account_addr.clone(), &authorized_addrs)?;
+        Ok(self.custom_response(
+            "update_authorized_addresses",
+            vec![("account", account_addr.as_str())],
+        ))
     }
 }
 
@@ -224,11 +229,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 /// This is a temporary fix until we change or get rid of the UpdateAuthorizedAddresses API
 fn get_addr_from_module_id_or_addr(
     deps: Deps,
-    manager: Addr,
+    account: Addr,
     addr_or_module_id: String,
 ) -> Result<Addr, AdapterError> {
     // authorized here can either be a contract address or a module id
-    if let Ok(Some(addr)) = ACCOUNT_MODULES.query(&deps.querier, manager, &addr_or_module_id) {
+    if let Ok(Some(addr)) = ACCOUNT_MODULES.query(&deps.querier, account, &addr_or_module_id) {
         // In case we receive a module id
         Ok(addr)
     } else if let Ok(addr) = deps.api.addr_validate(addr_or_module_id.as_str()) {
@@ -244,21 +249,21 @@ mod tests {
     use abstract_std::adapter;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, Storage};
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::mock::{mock_init, AdapterMockResult, MockError, MockExecMsg, MOCK_ADAPTER};
 
     fn execute_as(
-        deps: DepsMut,
+        deps: &mut MockDeps,
         sender: &Addr,
         msg: ExecuteMsg<MockExecMsg>,
     ) -> Result<Response, MockError> {
-        MOCK_ADAPTER.execute(deps, mock_env(), message_info(&sender, &[]), msg)
+        let env = mock_env_validated(deps.api);
+        MOCK_ADAPTER.execute(deps.as_mut(), env, message_info(sender, &[]), msg)
     }
 
     fn base_execute_as(
-        deps: DepsMut,
+        deps: &mut MockDeps,
         sender: &Addr,
         msg: BaseExecuteMsg,
     ) -> Result<Response, MockError> {
@@ -269,21 +274,24 @@ mod tests {
         use super::*;
         use crate::mock::TEST_AUTHORIZED_ADDR;
 
-        fn load_test_proxy_authorized_addresses(
+        fn load_test_account_authorized_addresses(
             storage: &dyn Storage,
-            proxy_addr: &Addr,
+            account_addr: &Addr,
         ) -> Vec<Addr> {
             MOCK_ADAPTER
                 .authorized_addresses
-                .load(storage, proxy_addr.clone())
+                .load(storage, account_addr.clone())
                 .unwrap()
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn authorize_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let base = test_account_base(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
+                .build();
 
             mock_init(&mut deps)?;
 
@@ -292,156 +300,174 @@ mod tests {
                     to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
-                proxy_address: None,
+                account_address: None,
             };
 
-            base_execute_as(deps.as_mut(), &base.manager, msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
 
             let api = MOCK_ADAPTER;
-            assert_that!(api.authorized_addresses.is_empty(&deps.storage)).is_false();
+            assert!(!api.authorized_addresses.is_empty(&deps.storage));
 
-            let test_proxy_authorized_addrs =
-                load_test_proxy_authorized_addresses(&deps.storage, &base.proxy);
+            let test_account_authorized_addrs =
+                load_test_account_authorized_addresses(&deps.storage, account.addr());
 
-            assert_that!(test_proxy_authorized_addrs.len()).is_equal_to(1);
-            assert_that!(test_proxy_authorized_addrs)
-                .contains(deps.api.addr_make(TEST_AUTHORIZED_ADDR));
+            assert_eq!(test_account_authorized_addrs.len(), 1);
+            assert!(
+                test_account_authorized_addrs.contains(&deps.api.addr_make(TEST_AUTHORIZED_ADDR))
+            );
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn revoke_address_authorization() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let base = test_account_base(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
+                .build();
 
             mock_init(&mut deps)?;
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
-                proxy_address: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
             };
 
-            base_execute_as(deps.as_mut(), &base.manager, msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
 
-            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage, &base.proxy);
-            assert_that!(authorized_addrs.len()).is_equal_to(1);
+            let authorized_addrs =
+                load_test_account_authorized_addresses(&deps.storage, account.addr());
+            assert_eq!(authorized_addrs.len(), 1);
 
             let msg = BaseExecuteMsg {
-                proxy_address: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![],
                     to_remove: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                 },
             };
 
-            base_execute_as(deps.as_mut(), &base.manager, msg)?;
-            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage, &base.proxy);
-            assert_that!(authorized_addrs.len()).is_equal_to(0);
+            base_execute_as(&mut deps, account.addr(), msg)?;
+            let authorized_addrs =
+                load_test_account_authorized_addresses(&deps.storage, account.addr());
+            assert!(authorized_addrs.is_empty());
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_existing_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let base = test_account_base(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
+                .build();
 
             mock_init(&mut deps)?;
 
-            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
-                proxy_address: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
             };
 
-            base_execute_as(deps.as_mut(), &base.manager, msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
 
             let msg = BaseExecuteMsg {
-                proxy_address: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string()],
                     to_remove: vec![],
                 },
             };
 
-            let res = base_execute_as(deps.as_mut(), &base.manager, msg);
+            let res = base_execute_as(&mut deps, account.addr(), msg);
 
-            assert_that!(res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    MockError::Adapter(AdapterError::AuthorizedAddressOrModuleIdAlreadyPresent {
+            assert!(matches!(
+                res,
+                Err(MockError::Adapter(
+                    AdapterError::AuthorizedAddressOrModuleIdAlreadyPresent {
                         addr_or_module_id: _test_authorized_address_string
-                    })
-                )
-            });
+                    }
+                ))
+            ));
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn add_module_id_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
+                .build();
             let abstr = AbstractMockAddrs::new(deps.api);
 
             mock_init(&mut deps)?;
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
-                proxy_address: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![TEST_MODULE_ID.into()],
                     to_remove: vec![],
                 },
             };
 
-            base_execute_as(deps.as_mut(), &abstr.account.manager, msg)?;
+            base_execute_as(&mut deps, account.addr(), msg)?;
 
             let authorized_addrs =
-                load_test_proxy_authorized_addresses(&deps.storage, &abstr.account.proxy);
-            assert_that!(authorized_addrs.len()).is_equal_to(1);
-            assert_that!(authorized_addrs[0].to_string())
-                .is_equal_to(abstr.module_address.to_string());
+                load_test_account_authorized_addresses(&deps.storage, account.addr());
+            assert_eq!(authorized_addrs.len(), 1);
+            assert_eq!(
+                authorized_addrs[0].to_string(),
+                abstr.module_address.to_string()
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn remove_authorized_address_dne() -> AdapterMockResult {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let base = test_account_base(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
+                .build();
 
             mock_init(&mut deps)?;
+            let test_authorized_address_string =
+                deps.api.addr_make(TEST_AUTHORIZED_ADDR).to_string();
 
             let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg {
-                proxy_address: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![],
-                    to_remove: vec![deps.api.addr_make(TEST_AUTHORIZED_ADDR).into()],
+                    to_remove: vec![test_authorized_address_string.clone()],
                 },
             };
 
-            let res = base_execute_as(deps.as_mut(), &base.manager, msg);
+            let res = base_execute_as(&mut deps, account.addr(), msg);
 
-            assert_that!(res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    MockError::Adapter(AdapterError::AuthorizedAddressOrModuleIdNotPresent {
-                        addr_or_module_id: _test_authorized_address_string
-                    })
-                )
-            });
-
+            assert_eq!(
+                res,
+                Err(MockError::Adapter(
+                    AdapterError::AuthorizedAddressOrModuleIdNotPresent {
+                        addr_or_module_id: test_authorized_address_string
+                    }
+                ))
+            );
             Ok(())
         }
     }
@@ -452,15 +478,14 @@ mod tests {
         use crate::mock::TEST_AUTHORIZED_ADDR;
         use abstract_std::{
             objects::{account::AccountTrace, AccountId},
-            version_control::AccountBase,
+            registry::Account,
         };
         use cosmwasm_std::OwnedDeps;
 
         /// This sets up the test with the following:
-        /// TEST_PROXY has a single authorized address, test_authorized_address
-        /// TEST_MANAGER and TEST_PROXY are the Account base
+        /// TEST_ACCOUNT has a single authorized address, test_authorized_address
         ///
-        /// Note that the querier needs to mock the Account base, as the proxy will
+        /// Note that the querier needs to mock the Account base, as the account will
         /// query the Account base to get the list of authorized addresses.
         fn setup_with_authorized_addresses(
             deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
@@ -469,7 +494,7 @@ mod tests {
             mock_init(deps).unwrap();
 
             let msg = BaseExecuteMsg {
-                proxy_address: None,
+                account_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: authorized
                         .into_iter()
@@ -479,128 +504,130 @@ mod tests {
                 },
             };
 
-            let base = test_account_base(deps.api);
-            base_execute_as(deps.as_mut(), &base.manager, msg).unwrap();
+            let account = test_account(deps.api);
+            base_execute_as(deps, account.addr(), msg).unwrap();
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn unauthorized_addresses_are_unauthorized() {
             let mut deps = mock_dependencies();
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&test_account(deps.api), TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&test_account(deps.api))
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: None,
+                account_address: None,
                 request: MockExecMsg {},
             });
 
             let unauthorized = deps.api.addr_make("someoone");
-            let res = execute_as(deps.as_mut(), &unauthorized, msg);
+            let res = execute_as(&mut deps, &unauthorized, msg);
 
             assert_unauthorized(res);
         }
 
         fn assert_unauthorized(res: Result<Response, MockError>) {
-            assert_that!(res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    MockError::Adapter(AdapterError::UnauthorizedAddressAdapterRequest {
+            assert!(matches!(
+                res,
+                Err(MockError::Adapter(
+                    AdapterError::UnauthorizedAddressAdapterRequest {
                         sender: _unauthorized,
                         ..
-                    })
-                )
-            });
+                    }
+                ))
+            ));
         }
 
-        #[test]
-        fn executing_as_account_manager_is_allowed() {
+        #[coverage_helper::test]
+        fn executing_as_account_account_is_allowed() {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let account = test_account(deps.api);
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: None,
+                account_address: None,
                 request: MockExecMsg {},
             });
 
-            let res = execute_as(deps.as_mut(), &base.manager, msg);
+            let res = execute_as(&mut deps, account.addr(), msg);
 
-            assert_that!(res).is_ok();
+            assert!(res.is_ok());
         }
 
-        #[test]
-        fn executing_as_authorized_address_not_allowed_without_proxy() {
+        #[coverage_helper::test]
+        fn executing_as_authorized_address_not_allowed_without_account() {
             let mut deps = mock_dependencies();
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&test_account_base(deps.api), TEST_ACCOUNT_ID)
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&test_account(deps.api), TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&test_account(deps.api))
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: None,
+                account_address: None,
                 request: MockExecMsg {},
             });
 
             let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
-            let res = execute_as(deps.as_mut(), &authorized, msg);
+            let res = execute_as(&mut deps, &authorized, msg);
 
             assert_unauthorized(res);
         }
 
-        #[test]
-        fn executing_as_authorized_address_is_allowed_via_proxy() {
+        #[coverage_helper::test]
+        fn executing_as_authorized_address_is_allowed_via_account() {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let account = test_account(deps.api);
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: Some(base.proxy.to_string()),
+                account_address: Some(account.addr().to_string()),
                 request: MockExecMsg {},
             });
 
             let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
-            let res = execute_as(deps.as_mut(), &authorized, msg);
+            let res = execute_as(&mut deps, &authorized, msg);
 
-            assert_that!(res).is_ok();
+            assert!(res.is_ok());
         }
 
-        #[test]
-        fn executing_as_authorized_address_on_diff_proxy_should_err() {
+        #[coverage_helper::test]
+        fn executing_as_authorized_address_on_diff_account_should_err() {
             let mut deps = mock_dependencies();
-            let base = test_account_base(deps.api);
-            let another_base = AccountBase {
-                manager: deps.api.addr_make("some_other_manager"),
-                proxy: deps.api.addr_make("some_other_proxy"),
-            };
-            deps.querier = AbstractMockQuerierBuilder::new(deps.api)
-                .account(&base, TEST_ACCOUNT_ID)
+            let account = test_account(deps.api);
+            let another_account = Account::new(deps.api.addr_make("some_other_account"));
+            deps.querier = MockQuerierBuilder::new(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
                 .account(
-                    &another_base,
+                    &another_account,
                     AccountId::new(69420u32, AccountTrace::Local).unwrap(),
                 )
+                .set_account_admin_call_to(&account)
                 .build();
 
             setup_with_authorized_addresses(&mut deps, vec![TEST_AUTHORIZED_ADDR]);
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
-                proxy_address: Some(another_base.proxy.to_string()),
+                account_address: Some(another_account.addr().to_string()),
                 request: MockExecMsg {},
             });
 
             let authorized = deps.api.addr_make(TEST_AUTHORIZED_ADDR);
-            let res = execute_as(deps.as_mut(), &authorized, msg);
+            let res = execute_as(&mut deps, &authorized, msg);
 
             assert_unauthorized(res);
         }

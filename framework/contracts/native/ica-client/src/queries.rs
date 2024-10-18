@@ -1,5 +1,5 @@
-use crate::state::{Config, CONFIG};
 use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
+use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::objects::TruncatedChainId;
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
@@ -8,21 +8,17 @@ use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
 /// Timeout in seconds
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
-pub fn config(deps: Deps) -> IcaClientResult<ConfigResponse> {
-    let Config {
-        version_control,
-        ans_host,
-    } = CONFIG.load(deps.storage)?;
+pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host: ans_host.address.into_string(),
-        version_control_address: version_control.address.into_string(),
+        ans_host: AnsHost::new(deps.api, env)?.address,
+        registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
 
 pub(crate) fn ica_action(
     deps: Deps,
     env: Env,
-    _proxy_address: String,
+    _account_address: String,
     chain: TruncatedChainId,
     actions: Vec<IcaAction>,
 ) -> IcaClientResult<IcaActionResponse> {
@@ -31,8 +27,6 @@ pub(crate) fn ica_action(
     let chain_type = chain.chain_type().ok_or(IcaClientError::NoChainType {
         chain: chain.to_string(),
     })?;
-
-    let cfg = CONFIG.load(deps.storage)?;
 
     let process_action = |action: IcaAction| -> IcaClientResult<Vec<CosmosMsg>> {
         match action {
@@ -46,8 +40,9 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
+                    let registry = RegistryContract::new(deps.api, &env)?;
 
-                    let msg = evm::execute(&deps.querier, &cfg.version_control, msgs, callback)?;
+                    let msg = evm::execute(&deps.querier, &registry, msgs, callback)?;
 
                     Ok(vec![msg.into()])
                 }
@@ -59,7 +54,7 @@ pub(crate) fn ica_action(
                 memo,
             } => match chain_type {
                 ChainType::Evm => Ok(vec![evm::send_funds(
-                    deps, &env, &chain, &cfg, funds, receiver, memo,
+                    deps, &env, &chain, funds, receiver, memo,
                 )?]),
                 _ => unimplemented!(),
             },
@@ -67,7 +62,6 @@ pub(crate) fn ica_action(
         }
     };
 
-    // TODO: can we use `flat_map` here?
     let maybe_msgs: Result<Vec<Vec<CosmosMsg>>, _> =
         actions.into_iter().map(process_action).collect();
     let msgs = maybe_msgs?.into_iter().flatten().collect();
@@ -88,12 +82,12 @@ mod tests {
             module_reference::ModuleReference,
             ChannelEntry, ContractEntry,
         },
-        version_control::{self as vc, ModuleConfiguration},
+        registry::{self as vc, ModuleConfiguration},
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         from_json,
-        testing::{mock_dependencies, mock_env, MockApi},
+        testing::{mock_dependencies, MockApi},
         Addr, HexBinary,
     };
 
@@ -119,7 +113,7 @@ mod tests {
         let chain_name = TruncatedChainId::from_str(EVM_CHAIN).unwrap();
         let abstr = AbstractMockAddrs::new(api);
 
-        AbstractMockQuerierBuilder::new(api)
+        MockQuerierBuilder::new(api)
             .account(&abstr.account, TEST_ACCOUNT_ID)
             .contracts(vec![(
                 &ContractEntry {
@@ -135,7 +129,6 @@ mod tests {
                 },
                 "channel-1".into(),
             )])
-            .builder()
             .with_smart_handler(&env_note_addr(api), |bin| {
                 let msg = from_json::<evm_note::msg::QueryMsg>(bin).unwrap();
                 match msg {
@@ -145,7 +138,7 @@ mod tests {
                     _ => panic!("should only query for RemoteAddress"),
                 }
             })
-            .with_smart_handler(&abstr.version_control, move |bin| {
+            .with_smart_handler(&abstr.registry, move |bin| {
                 let msg = from_json::<vc::QueryMsg>(bin).unwrap();
                 match msg {
                     vc::QueryMsg::Modules { infos } => {
@@ -186,35 +179,38 @@ mod tests {
         use abstract_ica::msg::QueryMsg;
         use abstract_std::objects::TruncatedChainId;
 
+        use abstract_testing::mock_env_validated;
         use cosmwasm_std::{coins, wasm_execute};
         use evm::types;
         use evm_note::msg::EvmMsg;
 
         use types::Ucs01ForwarderExecuteMsg;
 
-        #[test]
+        #[coverage_helper::test]
         fn config() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = state_setup(deps.api).build();
 
             mock_init(&mut deps)?;
-            let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {})?;
+            let res = query(deps.as_ref(), env, QueryMsg::Config {})?;
             let res: ConfigResponse = from_json(&res).unwrap();
             assert_eq!(
                 res,
                 ConfigResponse {
-                    ans_host: abstr.ans_host.to_string(),
-                    version_control_address: abstr.version_control.to_string()
+                    ans_host: abstr.ans_host,
+                    registry_address: abstr.registry
                 }
             );
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn evm_exec_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
@@ -223,7 +219,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: abstr.account.proxy.to_string(),
+                account_address: abstr.account.addr().to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
                     msgs: vec![EvmMsg::Call {
@@ -236,7 +232,7 @@ mod tests {
                 })],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -259,11 +255,12 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn evm_fund_no_callback() -> IbcClientTestResult {
             use super::*;
 
             let mut deps = mock_dependencies();
+            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let chain_name = TruncatedChainId::from_str(EVM_CHAIN)?;
 
@@ -274,7 +271,7 @@ mod tests {
             let receiver = HexBinary::from_hex("123fff").unwrap();
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: abstr.account.proxy.to_string(),
+                account_address: abstr.account.addr().to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Fund {
                     funds: coins(1, "test"),
@@ -283,7 +280,7 @@ mod tests {
                 }],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -302,7 +299,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn evm_fund_no_receiver() -> IbcClientTestResult {
             use super::*;
 
@@ -315,7 +312,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: abstr.account.proxy.to_string(),
+                account_address: abstr.account.addr().to_string(),
                 chain: chain_name,
                 actions: vec![IcaAction::Fund {
                     funds: coins(1, "test"),
@@ -324,7 +321,7 @@ mod tests {
                 }],
             };
 
-            let res = query(deps.as_ref(), mock_env(), msg)?;
+            let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
             assert_that!(res).is_equal_to(IcaActionResponse {
@@ -343,7 +340,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn evm_exec_non_evm_chaintype() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -354,7 +351,7 @@ mod tests {
             mock_init(&mut deps)?;
 
             let msg = QueryMsg::IcaAction {
-                proxy_address: abstr.account.proxy.to_string(),
+                account_address: abstr.account.addr().to_string(),
                 chain: chain_name.clone(),
                 actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
                     msgs: vec![EvmMsg::Call {
@@ -367,7 +364,7 @@ mod tests {
                 })],
             };
 
-            let err = query(deps.as_ref(), mock_env(), msg).unwrap_err();
+            let err = query(deps.as_ref(), mock_env_validated(deps.api), msg).unwrap_err();
             assert_eq!(
                 err,
                 IcaClientError::WrongChainType {

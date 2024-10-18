@@ -1,49 +1,38 @@
-use abstract_std::{
-    objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
-    VERSION_CONTROL,
-};
+use abstract_std::{objects::AccountId, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY};
 use cw_orch::{environment::Environment, prelude::*};
 
 use crate::{
-    AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
+    AbstractInterfaceError, AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, Registry,
 };
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: CwEnv>(
     chain: Chain,
-) -> (
-    AnsHost<Chain>,
-    AccountFactory<Chain>,
-    VersionControl<Chain>,
-    ModuleFactory<Chain>,
-)
+) -> (AnsHost<Chain>, Registry<Chain>, ModuleFactory<Chain>)
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
-    let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+    let registry = Registry::new(REGISTRY, chain.clone());
     let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-    (ans_host, account_factory, version_control, module_factory)
+    (ans_host, registry, module_factory)
 }
 
-pub fn get_account_contracts<Chain: CwEnv>(
-    version_control: &VersionControl<Chain>,
+pub fn get_account_contract<Chain: CwEnv>(
+    registry: &Registry<Chain>,
     account_id: AccountId,
-) -> (Manager<Chain>, Proxy<Chain>)
+) -> Result<AccountI<Chain>, AbstractInterfaceError>
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
-    let chain = version_control.environment().clone();
+    let chain = registry.environment().clone();
 
-    let manager = Manager::new_from_id(&account_id, chain.clone());
-    let proxy = Proxy::new_from_id(&account_id, chain);
+    let account_interface = AccountI::new_from_id(&account_id, chain.clone());
 
-    let account_base = version_control.get_account(account_id.clone()).unwrap();
-    manager.set_address(&account_base.manager);
-    proxy.set_address(&account_base.proxy);
+    let account = registry.account(account_id.clone())?;
+    account_interface.set_address(account.addr());
 
-    (manager, proxy)
+    Ok(account_interface)
 }
 
 pub fn get_ibc_contracts<Chain: CwEnv>(chain: Chain) -> (IbcClient<Chain>, IbcHost<Chain>)

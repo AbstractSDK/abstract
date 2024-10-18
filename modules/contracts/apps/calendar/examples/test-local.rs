@@ -7,8 +7,8 @@
 //! `cargo run --example test-local`
 
 use abstract_app::std::objects::{gov_type::GovernanceDetails, AssetEntry};
-use abstract_interface::VCExecFns;
 use abstract_interface::{Abstract, AppDeployer, DeployStrategy};
+use abstract_interface::{AccountI, RegistryExecFns};
 use calendar_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{CalendarInstantiateMsg, Time},
@@ -23,6 +23,7 @@ use cw_orch::{
 use semver::Version;
 use speculoos::{assert_that, prelude::BooleanAssertions};
 
+// From https://github.com/CosmosContracts/juno/blob/32568dba828ff7783aea8cb5bb4b8b5832888255/docker/test-user.env#L2
 const LOCAL_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
 
 fn main() -> anyhow::Result<()> {
@@ -38,13 +39,13 @@ fn main() -> anyhow::Result<()> {
         .build()
         .unwrap();
     // Deploy abstract locally
-    let abstract_deployment =
-        Abstract::deploy_on(daemon.clone(), daemon.sender_addr().to_string())?;
+    let abstract_deployment = Abstract::deploy_on(daemon.clone(), daemon.sender().clone())?;
 
     let app = CalendarAppInterface::new(APP_ID, daemon.clone());
 
     // Create account
-    let account = abstract_deployment.account_factory.create_default_account(
+    let account = AccountI::create_default_account(
+        &abstract_deployment,
         GovernanceDetails::Monarchy {
             monarch: daemon.sender_addr().into_string(),
         },
@@ -52,7 +53,7 @@ fn main() -> anyhow::Result<()> {
 
     // Claim namespace
     abstract_deployment
-        .version_control
+        .registry
         .claim_namespace(account.id()?, "my-namespace".to_owned())?;
 
     // Deploy

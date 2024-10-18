@@ -138,37 +138,37 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_namespace() {
         let namespace = TruncatedChainId::new(&mock_env());
         assert_that!(namespace.as_str()).is_equal_to("cosmos-testnet");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_string() {
         let namespace = TruncatedChainId::from_string("test-me".to_string()).unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test-me");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_str() {
         let namespace = TruncatedChainId::from_str("test-too").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test-too");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_to_string() {
         let namespace = TruncatedChainId::from_str("test").unwrap();
         assert_that!(namespace.to_string()).is_equal_to("test".to_string());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_str_long() {
         let namespace = TruncatedChainId::from_str("test-a-b-c-d-e-f").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test-a-b-c-d-e-f");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn string_key_works() {
         let k = &TruncatedChainId::from_str("test-abc").unwrap();
         let path = k.key();
@@ -181,32 +181,32 @@ mod test {
 
     // Failures
 
-    #[test]
+    #[coverage_helper::test]
     fn local_empty_fails() {
         TruncatedChainId::from_str("").unwrap_err();
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn local_too_short_fails() {
         TruncatedChainId::from_str("a").unwrap_err();
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn local_too_long_fails() {
         TruncatedChainId::from_str(&"a".repeat(MAX_CHAIN_NAME_LENGTH + 1)).unwrap_err();
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn local_uppercase_fails() {
         TruncatedChainId::from_str("AAAAA").unwrap_err();
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn local_non_alphanumeric_fails() {
         TruncatedChainId::from_str("a_aoeuoau").unwrap_err();
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn from_chain_id() {
         let normal_chain_name = TruncatedChainId::from_chain_id("juno-1");
         assert_eq!(normal_chain_name, TruncatedChainId::_from_str("juno"));

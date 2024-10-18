@@ -5,7 +5,7 @@ use abstract_sdk::{
         ModuleIbcHandlerFn, QueryHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
     namespaces::BASE_STATE,
-    std::version_control::AccountBase,
+    std::registry::Account,
     AbstractSdkError,
 };
 use abstract_std::{
@@ -50,10 +50,10 @@ pub struct AdapterContract<
 {
     pub(crate) contract: AbstractContract<Self, Error>,
     pub(crate) base_state: Item<AdapterState>,
-    /// Map ProxyAddr -> AuthorizedAddrs
+    /// Map AccountAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
-    pub target_account: Option<AccountBase>,
+    pub target_account: Option<Account>,
 }
 
 /// Constructor
@@ -85,14 +85,14 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         self.base_state.load(store)
     }
 
-    /// Return the address of the proxy for the Account associated with this Adapter.
+    /// Return the address of the account for the Account associated with this Adapter.
     /// Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, AdapterError> {
-        Ok(&self
+        Ok(self
             .target_account
             .as_ref()
             .ok_or_else(|| StdError::generic_err("No target Account specified to execute on."))?
-            .proxy)
+            .addr())
     }
     /// add dependencies to the contract
     pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
@@ -162,19 +162,16 @@ mod tests {
     use super::*;
     use crate::mock::{AdapterMockResult, MOCK_ADAPTER, TEST_METADATA};
 
-    #[test]
+    #[coverage_helper::test]
     fn set_and_get_target() -> AdapterMockResult {
         let mut mock = MOCK_ADAPTER;
         let target = Addr::unchecked("target");
-        mock.target_account = Some(AccountBase {
-            proxy: target.clone(),
-            manager: Addr::unchecked("manager"),
-        });
+        mock.target_account = Some(Account::new(target.clone()));
         assert_eq!(mock.target()?, &target);
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn builder_functions() {
         crate::mock::MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))

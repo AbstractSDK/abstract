@@ -33,7 +33,7 @@ The above example can equally be written as:
 let coins: Vec<Coin> = coins(100u128, "denom");
 // Create CosmosMsg
 let bank_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
-    to_address: "<proxy_address>".to_string(),
+    to_address: "<account_address>".to_string(),
     amount: coins,
 });
 // Add to Response

@@ -6,7 +6,7 @@ use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     ans_resolve::Resolve,
     cw_helpers::ApiQuery,
@@ -26,14 +26,20 @@ pub trait TransferInterface:
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let bank: Bank<MockModule>  = module.bank(deps.as_ref());
         ```
     */
-    fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
-        Bank { base: self, deps }
+    fn bank<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> Bank<Self> {
+        Bank {
+            base: self,
+            deps,
+            env,
+        }
     }
 }
 
@@ -43,17 +49,13 @@ impl<T> TransferInterface for T where
 }
 
 impl<'a, T: TransferInterface> AbstractApi<T> for Bank<'a, T> {
+    const API_ID: &'static str = "Bank";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
-    fn api_id() -> String {
-        "Bank".to_owned()
     }
 }
 
@@ -65,8 +67,10 @@ impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let bank: Bank<MockModule>  = module.bank(deps.as_ref());
     ```
@@ -75,6 +79,7 @@ impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
 pub struct Bank<'a, T: TransferInterface> {
     base: &'a T,
     deps: Deps<'a>,
+    env: &'a Env,
 }
 
 impl<'a, T: TransferInterface> Bank<'a, T> {
@@ -88,19 +93,24 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// Get the balance of the provided asset.
     pub fn balance(&self, asset: &AssetEntry) -> AbstractSdkResult<Asset> {
         let resolved_info = asset
-            .resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)
+            .resolve(
+                &self.deps.querier,
+                &self.base.ans_host(self.deps, self.env)?,
+            )
             .map_err(|error| self.wrap_query_error(error))?;
-        let balance =
-            resolved_info.query_balance(&self.deps.querier, self.base.proxy_address(self.deps)?)?;
+        let balance = resolved_info.query_balance(
+            &self.deps.querier,
+            self.base.account(self.deps)?.into_addr(),
+        )?;
         Ok(Asset::new(resolved_info, balance))
     }
 
     /// Move funds from the contract into the Account.
     pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
-        let recipient = self.base.proxy_address(self.deps)?;
+        let recipient = self.base.account(self.deps)?.into_addr();
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .map(|asset| asset.transferable_asset(self.base, self.deps, self.env))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         transferable_funds
             .iter()
@@ -114,6 +124,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// Transfer the provided funds from the Account to the recipient.
     /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
+    /// # use abstract_std::registry::Account;
     /// # use abstract_std::objects::AnsAsset;
     /// # use abstract_std::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
@@ -122,7 +133,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// # };
     /// # struct MockModule;
     /// # impl AccountIdentification for MockModule {
-    /// #    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+    /// #    fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
     /// #       unimplemented!("Not needed for this example")
     /// #   }
     /// # }
@@ -158,7 +169,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .map(|asset| asset.transferable_asset(self.base, self.deps, self.env))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         let msgs = transferable_funds
             .iter()
@@ -189,7 +200,7 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
         recipient: &Addr,
         message: &M,
     ) -> AbstractSdkResult<AccountAction> {
-        let transferable_funds = funds.transferable_asset(self.base, self.deps)?;
+        let transferable_funds = funds.transferable_asset(self.base, self.deps, self.env)?;
 
         let msgs = transferable_funds.send_msg(recipient, to_json_binary(message)?)?;
 
@@ -204,6 +215,7 @@ pub trait Transferable {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset>;
 }
 
@@ -224,8 +236,9 @@ impl Transferable for &AnsAsset {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset> {
-        self.resolve(&deps.querier, &base.ans_host(deps)?)
+        self.resolve(&deps.querier, &base.ans_host(deps, env)?)
             .map_err(|error| transferable_api_error(base, error))
     }
 }
@@ -235,8 +248,9 @@ impl Transferable for AnsAsset {
         self,
         base: &T,
         deps: Deps,
+        env: &Env,
     ) -> AbstractSdkResult<Asset> {
-        self.resolve(&deps.querier, &base.ans_host(deps)?)
+        self.resolve(&deps.querier, &base.ans_host(deps, env)?)
             .map_err(|error| transferable_api_error(base, error))
     }
 }
@@ -246,6 +260,7 @@ impl Transferable for Asset {
         self,
         _base: &T,
         _deps: Deps,
+        _env: &Env,
     ) -> AbstractSdkResult<Asset> {
         Ok(self)
     }
@@ -256,6 +271,7 @@ impl Transferable for Coin {
         self,
         _base: &T,
         _deps: Deps,
+        _env: &Env,
     ) -> AbstractSdkResult<Asset> {
         Ok(Asset::from(self))
     }
@@ -264,27 +280,77 @@ impl Transferable for Coin {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
+    use abstract_testing::mock_env_validated;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, *};
+    use cosmwasm_std::*;
     use speculoos::prelude::*;
 
     use super::*;
+    use crate::apis::traits::test::abstract_api_test;
     use crate::mock_module::*;
 
+    mod balance {
+        use super::*;
+
+        #[coverage_helper::test]
+        fn balance() {
+            let (mut deps, account, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
+
+            // API Query Error
+            {
+                let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
+                let res = bank
+                    .balances(&[AssetEntry::new("asset_entry")])
+                    .unwrap_err();
+                let AbstractSdkError::ApiQuery {
+                    api,
+                    module_id,
+                    error: _,
+                } = res
+                else {
+                    panic!("expected api error");
+                };
+                assert_eq!(api, "Bank");
+                assert_eq!(module_id, app.module_id());
+            }
+
+            let abstr = abstract_testing::prelude::AbstractMockAddrs::new(deps.api);
+            // update querier and balances
+            deps.querier = abstract_testing::abstract_mock_querier_builder(deps.api)
+                .with_contract_map_entry(
+                    &abstr.ans_host,
+                    abstract_std::ans_host::state::ASSET_ADDRESSES,
+                    (
+                        &AssetEntry::new("asset_entry"),
+                        cw_asset::AssetInfo::native("asset"),
+                    ),
+                )
+                .build();
+            let recipient: Addr = account.into_addr();
+            let coins: Vec<Coin> = coins(100u128, "asset");
+            deps.querier.bank.update_balance(recipient, coins.clone());
+
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
+            let res = bank.balances(&[AssetEntry::new("asset_entry")]).unwrap();
+            assert_eq!(res, vec![Asset::native("asset", 100u128)]);
+        }
+    }
+
     mod transfer_coins {
-        use abstract_std::proxy::ExecuteMsg;
+        use abstract_std::account::ExecuteMsg;
 
         use super::*;
         use crate::{Execution, Executor, ExecutorMsg};
 
-        #[test]
+        #[coverage_helper::test]
         fn transfer_asset_to_sender() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, account, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
             let coins: Vec<Coin> = coins(100u128, "asset");
             let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
 
@@ -298,11 +364,10 @@ mod test {
                 amount: coins,
             });
 
-            let base = test_account_base(deps.api);
             assert_that!(response.messages[0].msg).is_equal_to(
                 &wasm_execute(
-                    base.proxy,
-                    &ExecuteMsg::ModuleAction {
+                    account.addr(),
+                    &ExecuteMsg::<Empty>::Execute {
                         msgs: vec![expected_msg],
                     },
                     vec![],
@@ -316,17 +381,18 @@ mod test {
     // transfer must be tested via integration test
 
     mod deposit {
+
         use super::*;
         use crate::apis::respond::AbstractResponse;
 
-        #[test]
+        #[coverage_helper::test]
         fn deposit() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, account, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
 
             // ANCHOR: deposit
             // Get bank API struct from the app
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref(), &env);
             // Define coins to send
             let coins: Vec<Coin> = coins(100u128, "denom");
             // Construct messages for deposit (transfer from this contract to the account)
@@ -335,9 +401,8 @@ mod test {
             let response: Response = app.response("deposit").add_messages(deposit_msgs);
             // ANCHOR_END: deposit
 
-            let base = test_account_base(deps.api);
             let bank_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
-                to_address: base.proxy.to_string(),
+                to_address: account.addr().to_string(),
                 amount: coins,
             });
 
@@ -348,14 +413,14 @@ mod test {
     mod withdraw_coins {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn withdraw_coins() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
-            let expected_amount = 100u128;
-            let env = mock_env();
+            let (deps, _, app) = mock_module_setup();
 
-            let bank = app.bank(deps.as_ref());
+            let expected_amount = 100u128;
+            let env = mock_env_validated(deps.api);
+
+            let bank = app.bank(deps.as_ref(), &env);
             let coins = coins(expected_amount, "asset");
             let actual_res = bank.withdraw(&env, coins.clone());
 
@@ -374,14 +439,15 @@ mod test {
         use cw20::Cw20ExecuteMsg;
         use cw_asset::AssetError;
 
-        #[test]
+        #[coverage_helper::test]
         fn send_cw20() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
+
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 
-            let bank = app.bank(deps.as_ref());
+            let bank = app.bank(deps.as_ref(), &env);
             let hook_msg = Empty {};
             let asset = deps.api.addr_make("asset");
             let coin = Asset::cw20(asset.clone(), expected_amount);
@@ -401,14 +467,15 @@ mod test {
             assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn send_coins() {
-            let deps = mock_dependencies();
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
+            let env = mock_env_validated(deps.api);
+
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
 
-            let bank = app.bank(deps.as_ref());
+            let bank = app.bank(deps.as_ref(), &env);
             let coin = coin(expected_amount, "asset");
             let hook_msg = Empty {};
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
@@ -419,5 +486,14 @@ mod test {
                 }),
             );
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let env = mock_env_validated(deps.api);
+        let bank = app.bank(deps.as_ref(), &env);
+
+        abstract_api_test(bank);
     }
 }

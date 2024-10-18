@@ -482,19 +482,22 @@ mod test {
     use super::*;
 
     use crate::msg::ExecuteMsg;
-    use abstract_adapter::abstract_testing::prelude::AbstractMockAddrs;
-    use abstract_adapter::abstract_testing::{mock_querier, module::TEST_MODULE_ID};
+    use abstract_adapter::abstract_testing::abstract_mock_querier_builder;
+    use abstract_adapter::abstract_testing::module::TEST_MODULE_ID;
+    use abstract_adapter::abstract_testing::prelude::{
+        test_account, AbstractMockAddrs, AbstractMockQuerier, TEST_ACCOUNT_ID,
+    };
     use abstract_adapter::sdk::mock_module::MockModule;
     use abstract_adapter::std::adapter::AdapterRequestMsg;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
 
-    fn expected_request_with_test_proxy(
+    fn expected_request_with_test_account(
         request: MoneyMarketExecuteMsg,
-        proxy_addr: &Addr,
+        account_addr: &Addr,
     ) -> ExecuteMsg {
         AdapterRequestMsg {
-            proxy_address: Some(proxy_addr.to_string()),
+            account_address: Some(account_addr.to_string()),
             request,
         }
         .into()
@@ -503,8 +506,11 @@ mod test {
     #[test]
     fn deposit_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(TEST_MODULE_ID);
@@ -513,14 +519,14 @@ mod test {
         let money_market_name = "mars".to_string();
         let asset = AnsAsset::new("juno", 1000u128);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             MoneyMarketExecuteMsg::AnsAction {
                 money_market: money_market_name,
                 action: MoneyMarketAnsAction::Deposit {
                     lending_asset: asset.clone(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = money_market.deposit(asset);
@@ -539,8 +545,11 @@ mod test {
     #[test]
     fn withdraw_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(TEST_MODULE_ID);
@@ -549,14 +558,14 @@ mod test {
         let money_market_name = "mars".to_string();
         let asset = AnsAsset::new("juno", 1000u128);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             MoneyMarketExecuteMsg::AnsAction {
                 money_market: money_market_name,
                 action: MoneyMarketAnsAction::Withdraw {
                     lent_asset: asset.clone(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = money_market.withdraw(asset);
@@ -575,8 +584,11 @@ mod test {
     #[test]
     fn provide_collateral_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(TEST_MODULE_ID);
@@ -586,7 +598,7 @@ mod test {
         let borrowable_asset = AssetEntry::new("usdc");
         let collateral_asset = AnsAsset::new("juno", 1000u128);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             MoneyMarketExecuteMsg::AnsAction {
                 money_market: money_market_name,
                 action: MoneyMarketAnsAction::ProvideCollateral {
@@ -594,7 +606,7 @@ mod test {
                     collateral_asset: collateral_asset.clone(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = money_market.provide_collateral(collateral_asset, borrowable_asset);
@@ -613,8 +625,11 @@ mod test {
     #[test]
     fn withdraw_collateral_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(TEST_MODULE_ID);
@@ -624,7 +639,7 @@ mod test {
         let borrowable_asset = AssetEntry::new("usdc");
         let collateral_asset = AnsAsset::new("juno", 1000u128);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             MoneyMarketExecuteMsg::AnsAction {
                 money_market: money_market_name,
                 action: MoneyMarketAnsAction::WithdrawCollateral {
@@ -632,7 +647,7 @@ mod test {
                     collateral_asset: collateral_asset.clone(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = money_market.withdraw_collateral(collateral_asset, borrowable_asset);
@@ -651,8 +666,11 @@ mod test {
     #[test]
     fn borrow_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(TEST_MODULE_ID);
@@ -662,7 +680,7 @@ mod test {
         let collateral_asset = AssetEntry::new("juno");
         let borrow_asset = AnsAsset::new("usdc", 1000u128);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             MoneyMarketExecuteMsg::AnsAction {
                 money_market: money_market_name,
                 action: MoneyMarketAnsAction::Borrow {
@@ -670,7 +688,7 @@ mod test {
                     collateral_asset: collateral_asset.clone(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = money_market.borrow(collateral_asset, borrow_asset);
@@ -689,8 +707,11 @@ mod test {
     #[test]
     fn repay_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = mock_querier(deps.api);
-        let stub = MockModule::new(deps.api);
+        let account = test_account(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&account, TEST_ACCOUNT_ID)
+            .build();
+        let stub = MockModule::new(deps.api, account.clone());
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(TEST_MODULE_ID);
@@ -700,7 +721,7 @@ mod test {
         let collateral_asset = AssetEntry::new("juno");
         let borrowed_asset = AnsAsset::new("usdc", 1000u128);
 
-        let expected = expected_request_with_test_proxy(
+        let expected = expected_request_with_test_account(
             MoneyMarketExecuteMsg::AnsAction {
                 money_market: money_market_name,
                 action: MoneyMarketAnsAction::Repay {
@@ -708,7 +729,7 @@ mod test {
                     collateral_asset: collateral_asset.clone(),
                 },
             },
-            &abstr.account.proxy,
+            account.addr(),
         );
 
         let actual = money_market.repay(collateral_asset, borrowed_asset);
@@ -732,8 +753,11 @@ mod test {
         #[test]
         fn deposit_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let stub = MockModule::new(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
+            let stub = MockModule::new(deps.api, account.clone());
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(TEST_MODULE_ID);
@@ -742,7 +766,7 @@ mod test {
             let money_market_name = "mars".to_string();
             let asset = Asset::native("juno", 1000u128);
 
-            let expected = expected_request_with_test_proxy(
+            let expected = expected_request_with_test_account(
                 MoneyMarketExecuteMsg::RawAction {
                     money_market: money_market_name,
                     action: MoneyMarketRawAction {
@@ -752,7 +776,7 @@ mod test {
                         },
                     },
                 },
-                &abstr.account.proxy,
+                account.addr(),
             );
 
             let actual = money_market.deposit(deps.api.addr_make(TEST_CONTRACT_ADDR), asset);
@@ -771,8 +795,11 @@ mod test {
         #[test]
         fn withdraw_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let stub = MockModule::new(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
+            let stub = MockModule::new(deps.api, account.clone());
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(TEST_MODULE_ID);
@@ -781,7 +808,7 @@ mod test {
             let money_market_name = "mars".to_string();
             let asset = Asset::native("juno", 1000u128);
 
-            let expected = expected_request_with_test_proxy(
+            let expected = expected_request_with_test_account(
                 MoneyMarketExecuteMsg::RawAction {
                     money_market: money_market_name,
                     action: MoneyMarketRawAction {
@@ -791,7 +818,7 @@ mod test {
                         },
                     },
                 },
-                &abstr.account.proxy,
+                account.addr(),
             );
 
             let actual = money_market.withdraw(deps.api.addr_make(TEST_CONTRACT_ADDR), asset);
@@ -810,8 +837,11 @@ mod test {
         #[test]
         fn provide_collateral_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let stub = MockModule::new(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
+            let stub = MockModule::new(deps.api, account.clone());
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(TEST_MODULE_ID);
@@ -821,7 +851,7 @@ mod test {
             let borrowable_asset = AssetInfo::native("usdc");
             let collateral_asset = Asset::native("juno", 1000u128);
 
-            let expected = expected_request_with_test_proxy(
+            let expected = expected_request_with_test_account(
                 MoneyMarketExecuteMsg::RawAction {
                     money_market: money_market_name,
                     action: MoneyMarketRawAction {
@@ -832,7 +862,7 @@ mod test {
                         },
                     },
                 },
-                &abstr.account.proxy,
+                account.addr(),
             );
 
             let actual = money_market.provide_collateral(
@@ -855,8 +885,11 @@ mod test {
         #[test]
         fn withdraw_collateral_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let stub = MockModule::new(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
+            let stub = MockModule::new(deps.api, account.clone());
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(TEST_MODULE_ID);
@@ -866,7 +899,7 @@ mod test {
             let borrowable_asset = AssetInfo::native("usdc");
             let collateral_asset = Asset::native("juno", 1000u128);
 
-            let expected = expected_request_with_test_proxy(
+            let expected = expected_request_with_test_account(
                 MoneyMarketExecuteMsg::RawAction {
                     money_market: money_market_name,
                     action: MoneyMarketRawAction {
@@ -877,7 +910,7 @@ mod test {
                         },
                     },
                 },
-                &abstr.account.proxy,
+                account.addr(),
             );
 
             let actual = money_market.withdraw_collateral(
@@ -900,8 +933,11 @@ mod test {
         #[test]
         fn borrow_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let stub = MockModule::new(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
+            let stub = MockModule::new(deps.api, account.clone());
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(TEST_MODULE_ID);
@@ -911,7 +947,7 @@ mod test {
             let collateral_asset = AssetInfo::native("juno");
             let borrow_asset = Asset::native("usdc", 1000u128);
 
-            let expected = expected_request_with_test_proxy(
+            let expected = expected_request_with_test_account(
                 MoneyMarketExecuteMsg::RawAction {
                     money_market: money_market_name,
                     action: MoneyMarketRawAction {
@@ -922,7 +958,7 @@ mod test {
                         },
                     },
                 },
-                &abstr.account.proxy,
+                account.addr(),
             );
 
             let actual = money_market.borrow(
@@ -945,8 +981,11 @@ mod test {
         #[test]
         fn repay_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier(deps.api);
-            let stub = MockModule::new(deps.api);
+            let account = test_account(deps.api);
+            deps.querier = abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
+            let stub = MockModule::new(deps.api, account.clone());
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(TEST_MODULE_ID);
@@ -956,7 +995,7 @@ mod test {
             let collateral_asset = AssetInfo::native("juno");
             let borrowed_asset = Asset::native("usdc", 1000u128);
 
-            let expected = expected_request_with_test_proxy(
+            let expected = expected_request_with_test_account(
                 MoneyMarketExecuteMsg::RawAction {
                     money_market: money_market_name,
                     action: MoneyMarketRawAction {
@@ -967,7 +1006,7 @@ mod test {
                         },
                     },
                 },
-                &abstr.account.proxy,
+                account.addr(),
             );
 
             let actual = money_market.repay(

@@ -10,10 +10,10 @@ pub enum AdapterError {
     #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("Sender: {sender} of request to {adapter} is not a Manager or top-level owner")]
+    #[error("Sender: {sender} of request to {adapter} is not an Account or top-level owner")]
     UnauthorizedAdapterRequest { adapter: String, sender: String },
 
-    #[error("Sender: {sender} of request to {adapter} is not a Manager or Authorized Address")]
+    #[error("Sender: {sender} of request to {adapter} is not an Account or Authorized Address")]
     UnauthorizedAddressAdapterRequest { adapter: String, sender: String },
 
     #[error(

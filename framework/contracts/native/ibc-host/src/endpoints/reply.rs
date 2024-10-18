@@ -17,12 +17,11 @@ pub fn reply_execute_action(deps: DepsMut, env: Env, _reply: Reply) -> Result<Re
     let action_cache = TEMP_ACTION_AFTER_CREATION.load(deps.storage)?;
     TEMP_ACTION_AFTER_CREATION.remove(deps.storage);
 
-    // TODO make sure we are passing the data as well
     handle_host_action(
         deps,
         env,
         action_cache.chain_name,
-        action_cache.client_proxy_address,
+        action_cache.client_account_address,
         action_cache.account_id,
         action_cache.action,
     )

@@ -4,7 +4,7 @@ use abstract_std::{adapter::AdapterRequestMsg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps};
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     cw_helpers::ApiQuery, features::ModuleIdentification, AbstractSdkResult, ModuleInterface,
 };
@@ -19,8 +19,10 @@ pub trait AdapterInterface: ModuleInterface + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let adapters: Adapters<MockModule>  = module.adapters(deps.as_ref());
         ```
@@ -33,17 +35,13 @@ pub trait AdapterInterface: ModuleInterface + ModuleIdentification {
 impl<T> AdapterInterface for T where T: ModuleInterface + ModuleIdentification {}
 
 impl<'a, T: AdapterInterface> AbstractApi<T> for Adapters<'a, T> {
+    const API_ID: &'static str = "Adapters";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: AdapterInterface> ApiIdentification for Adapters<'a, T> {
-    fn api_id() -> String {
-        "Adapters".to_owned()
     }
 }
 
@@ -55,8 +53,10 @@ impl<'a, T: AdapterInterface> ApiIdentification for Adapters<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let adapters: Adapters<MockModule>  = module.adapters(deps.as_ref());
     ```
@@ -78,7 +78,7 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(adapter_id)?;
         let adapter_msg = abstract_std::adapter::ExecuteMsg::<_>::Module(AdapterRequestMsg::new(
-            Some(self.base.proxy_address(self.deps)?.into_string()),
+            Some(self.base.account(self.deps)?.into_addr().into_string()),
             message,
         ));
         let adapter_address = modules.module_address(adapter_id)?;
@@ -102,19 +102,17 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
 mod tests {
 
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, *};
+    use cosmwasm_std::*;
     use speculoos::{assert_that, result::ResultAssertions};
 
     use super::*;
-    use crate::mock_module::*;
+    use crate::{apis::traits::test::abstract_api_test, mock_module::*};
 
     pub fn fail_when_not_dependency_test<T: std::fmt::Debug>(
         modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,
         fake_module: ModuleId,
     ) {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier(deps.api);
-        let app = MockModule::new(deps.api);
+        let (deps, _, app) = mock_module_setup();
 
         let _mods = app.adapters(deps.as_ref());
 
@@ -129,7 +127,7 @@ mod tests {
 
         use crate::std::adapter;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
@@ -140,11 +138,9 @@ mod tests {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn expected_adapter_request() {
-            let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier(deps.api);
-            let app = MockModule::new(deps.api);
+            let (deps, account, app) = mock_module_setup();
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let mods = app.adapters(deps.as_ref());
@@ -153,7 +149,7 @@ mod tests {
 
             let expected_msg: adapter::ExecuteMsg<_> =
                 adapter::ExecuteMsg::Module(AdapterRequestMsg {
-                    proxy_address: Some(abstr.account.proxy.to_string()),
+                    account_address: Some(account.addr().to_string()),
                     request: MockModuleExecuteMsg {},
                 });
 
@@ -170,7 +166,7 @@ mod tests {
     mod query_api {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
@@ -181,11 +177,9 @@ mod tests {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn expected_adapter_query() {
-            let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier(deps.api);
-            let app = MockModule::new(deps.api);
+            let (deps, _, app) = mock_module_setup();
 
             let mods = app.adapters(deps.as_ref());
 
@@ -197,5 +191,13 @@ mod tests {
                 .is_ok()
                 .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let adapters = app.adapters(deps.as_ref());
+
+        abstract_api_test(adapters);
     }
 }

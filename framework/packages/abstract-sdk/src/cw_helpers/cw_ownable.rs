@@ -41,10 +41,11 @@ macro_rules! query_ownership {
 #[cfg(test)]
 mod tests {
     use abstract_macros::abstract_response;
+    use abstract_testing::mock_env_validated;
     use cosmwasm_schema::{cw_serde, QueryResponses};
     use cosmwasm_std::{
         from_json,
-        testing::{message_info, mock_dependencies, mock_env},
+        testing::{message_info, mock_dependencies},
         Addr, Binary, StdError, StdResult,
     };
     use cw_ownable::{cw_ownable_execute, cw_ownable_query, Action, OwnershipError};
@@ -75,11 +76,11 @@ mod tests {
     const NEW_OWNER: &str = "new_owner";
     const OLD_OWNER: &str = "old_owner";
 
-    #[test]
+    #[coverage_helper::test]
     fn test_update_ownership_macro() -> Result<(), MockError> {
         let mut deps = mock_dependencies();
 
-        let env = mock_env();
+        let env = mock_env_validated(deps.api);
         let old_owner = deps.api.addr_make(OLD_OWNER);
         let new_owner = deps.api.addr_make(NEW_OWNER);
         let info = message_info(&old_owner, &[]);
@@ -116,10 +117,10 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_query_ownership_macro() -> Result<(), MockError> {
         let mut deps = mock_dependencies();
-        let _env = mock_env();
+        let _env = mock_env_validated(deps.api);
 
         let old_owner = deps.api.addr_make("owner1");
 

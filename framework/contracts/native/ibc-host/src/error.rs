@@ -1,9 +1,9 @@
 use abstract_sdk::AbstractSdkError;
 use abstract_std::{
-    objects::{ans_host::AnsHostError, version_control::VersionControlError, AccountId},
+    objects::{ans_host::AnsHostError, registry::RegistryError, AccountId},
     AbstractError,
 };
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_ownable::OwnershipError;
 use cw_utils::ParseReplyError;
 use thiserror::Error;
@@ -29,10 +29,13 @@ pub enum HostError {
     ParseReply(#[from] ParseReplyError),
 
     #[error("{0}")]
-    VersionControlError(#[from] VersionControlError),
+    RegistryError(#[from] RegistryError),
 
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),
+
+    #[error("{0}")]
+    Instantiate2AddressError(#[from] Instantiate2AddressError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
@@ -40,7 +43,7 @@ pub enum HostError {
     #[error("Expected port {0} got {1} instead.")]
     ClientMismatch(String, String),
 
-    #[error("Chain or proxy address already registered.")]
+    #[error("Chain or account address already registered.")]
     ProxyAddressExists {},
 
     #[error("Can't send a module-to-module packet to {0}, wrong module type")]

@@ -10,7 +10,7 @@ For now just know that we provide you with a builder pattern that allows you to 
 The builder pattern employed in building an Abstract module is a slight variation of the actual "builder" design pattern. Instead of creating a new builder at runtime, our module builder lets you set custom attributes on your module at compile time, meaning you end up with a `const` value can be heavily optimized by the compiler. This system ensures that the overhead of using Abstract has little effect on both the code's runtime and WASM binary size.
 
 ```admonish info
-The code-snippets in this example can be found in the <a href="https://github.com/AbstractSDK/app-template" target="_blank">app template</a>.
+The code-snippets in this example can be found in the <a href="https://github.com/AbstractSDK/templates" target="_blank">app template</a>.
 ```
 
 In this tutorial we will be working on an [`App` module](../3_framework/6_module_types.md#apps).
@@ -133,7 +133,6 @@ This appendix contains all the available handlers, what type of handler `Fn` the
 - `with_migrate`: Called when the App's `MigrateMsg` is called on the migrate entry point.
 - `with_replies`: Called when the App's reply entry point is called. Matches the function's associated reply-id.
 - `with_sudo`: Called when the App's `SudoMsg` is called on the sudo entry point.
-- `with_receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
 - `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches the callback's callback ID to its associated function.
 - `with_module_ibc`: Called when a Module wants to call another module over IBC.
 
@@ -301,35 +300,6 @@ Expected function signature for the custom sudo handler:
 #### Message
 
 There is no base message for this entry point. Your message will be the message that the endpoint accepts.
-
-</details>
-
-### Receive
-
-The receive handler is a mutable entry point of the contract. It is similar to the `execute` handler but is specifically
-geared towards handling messages that expect a `Receive` variant in the `ExecuteMsg`. Examples of this include but are
-not limited to:
-
-- Cw20 send messages
-- Nois Network random number feed
-
-<details>
-
-#### Function Signature
-
-Expected function signature for the custom receive handler:
-
-```rust,ignore
-{{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:rec}}
-```
-
-#### Message
-
-Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
-
-```rust,ignore
-{{#include ../../../packages/abstract-std/src/base.rs:exec}}
-```
 
 </details>
 

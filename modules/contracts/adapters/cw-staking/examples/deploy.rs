@@ -1,10 +1,10 @@
 use abstract_adapter::abstract_interface::{
-    AdapterDeployer, AnsHost, DeployStrategy, VCExecFns, VersionControl,
+    AdapterDeployer, AnsHost, DeployStrategy, Registry, RegistryExecFns,
 };
 use abstract_adapter::std::{
     adapter,
     objects::module::{Module, ModuleInfo, ModuleVersion},
-    ANS_HOST, VERSION_CONTROL,
+    ANS_HOST, REGISTRY,
 };
 use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
 use cosmwasm_std::{Addr, Empty};
@@ -20,15 +20,14 @@ fn deploy_cw_staking(
     let rt = tokio::runtime::Runtime::new().unwrap();
     let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
 
-    let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
-    version_control.set_address(&Addr::unchecked(
-        std::env::var("VERSION_CONTROL").expect("VERSION_CONTROL not set"),
+    let registry = Registry::new(REGISTRY, chain.clone());
+    // TODO: it's known address
+    registry.set_address(&Addr::unchecked(
+        std::env::var("REGISTRY").expect("REGISTRY not set"),
     ));
 
-    let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-
     if let Some(prev_version) = prev_version {
-        let Module { info, reference } = version_control.module(ModuleInfo::from_id(
+        let Module { info, reference } = registry.module(ModuleInfo::from_id(
             CW_STAKING_ADAPTER_ID,
             ModuleVersion::from(prev_version),
         )?)?;
@@ -37,22 +36,19 @@ fn deploy_cw_staking(
             version: ModuleVersion::from(CONTRACT_VERSION),
             ..info
         };
-        version_control.propose_modules(vec![(new_info, reference)])?;
+        registry.propose_modules(vec![(new_info, reference)])?;
     } else if let Some(code_id) = code_id {
         let mut cw_staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain);
         cw_staking.set_code_id(code_id);
         let init_msg = adapter::InstantiateMsg {
             module: Empty {},
-            base: adapter::BaseInstantiateMsg {
-                ans_host_address: ans_host.address()?.into(),
-                version_control_address: version_control.address()?.into(),
-            },
+            base: adapter::BaseInstantiateMsg {},
         };
         cw_staking
             .as_instance_mut()
             .instantiate(&init_msg, None, &[])?;
 
-        version_control.register_adapters(vec![(
+        registry.register_adapters(vec![(
             cw_staking.as_instance_mut(),
             CONTRACT_VERSION.to_string(),
         )])?;

@@ -2,6 +2,7 @@
 #![doc = include_str ! ("../README.md")]
 // #![doc(test(attr(warn(unused), deny(warnings), allow(unused_extern_crates, unused),)))]
 #![warn(missing_docs)]
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 
 /// Result returned by the Abstract SDK APIs and features.
 pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
@@ -44,10 +45,10 @@ pub use ans_resolve::Resolve;
 
 /// Common state-store namespaces.
 pub mod namespaces {
-    pub use abstract_std::objects::common_namespace::*;
+    pub use abstract_std::objects::storage_namespaces::*;
 }
 
-/// Abstract reserved version control entries.
+/// Abstract reserved registry entries.
 pub mod register {
     pub use abstract_std::registry::*;
 }

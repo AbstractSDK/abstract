@@ -1,9 +1,10 @@
+use abstract_sdk::feature_objects::RegistryContract;
 use abstract_std::{
     base::ExecuteMsg as MiddlewareExecMsg,
     ibc::{ModuleIbcInfo, ModuleIbcMsg},
     ibc_client::InstalledModuleIdentification,
     ibc_host::{
-        state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
+        state::{ActionAfterCreationCache, TEMP_ACTION_AFTER_CREATION},
         HelperAction, HostAction, InternalAction,
     },
     objects::{
@@ -29,7 +30,7 @@ pub fn handle_host_action(
     deps: DepsMut,
     env: Env,
     src_chain: TruncatedChainId,
-    proxy_address: String,
+    account_address: String,
     received_account_id: AccountId,
     host_action: HostAction,
 ) -> HostResult {
@@ -62,14 +63,14 @@ pub fn handle_host_action(
 
         action => {
             // If this account already exists, we can propagate the action
-            if let Ok(account) = account_commands::get_account(deps.as_ref(), &account_id) {
+            if let Ok(account) = account_commands::get_account(deps.as_ref(), &env, &account_id) {
                 match action {
-                    HostAction::Dispatch { manager_msgs } => {
-                        receive_dispatch(deps, account, manager_msgs)
+                    HostAction::Dispatch { account_msgs } => {
+                        receive_dispatch(deps, account, account_msgs)
                     }
                     HostAction::Helpers(helper_action) => match helper_action {
                         HelperAction::SendAllBack => {
-                            receive_send_all_back(deps, env, account, proxy_address, src_chain)
+                            receive_send_all_back(deps, env, account, account_address, src_chain)
                         }
                         _ => unimplemented!(""),
                     },
@@ -93,12 +94,22 @@ pub fn handle_host_action(
                     deps.storage,
                     &ActionAfterCreationCache {
                         action,
-                        client_proxy_address: proxy_address,
+                        client_account_address: account_address,
                         account_id: received_account_id,
                         chain_name: src_chain,
                     },
                 )?;
-                receive_register(deps, env, account_id, name, None, None, None, vec![], true)
+                receive_register(
+                    deps,
+                    env,
+                    account_id,
+                    Some(name),
+                    None,
+                    None,
+                    None,
+                    vec![],
+                    true,
+                )
             }
         }
     }
@@ -115,7 +126,7 @@ pub fn handle_module_execute(
     msg: Binary,
 ) -> HostResult {
     // We resolve the target module
-    let vc = CONFIG.load(deps.storage)?.version_control;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
@@ -126,12 +137,10 @@ pub fn handle_module_execute(
             .map(|a| client_to_host_module_account_id(&env, src_chain.clone(), a)),
     };
 
-    let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
+    let target_module_resolved = target_module.addr(deps.as_ref(), registry)?;
 
     match target_module_resolved.reference {
-        ModuleReference::AccountBase(_)
-        | ModuleReference::Native(_)
-        | ModuleReference::Service(_) => {
+        ModuleReference::Account(_) | ModuleReference::Native(_) | ModuleReference::Service(_) => {
             return Err(HostError::WrongModuleAction(
                 "Can't send module-to-module message to an account, service or a native module"
                     .to_string(),
@@ -160,13 +169,14 @@ pub fn handle_module_execute(
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
 pub fn handle_host_module_query(
     deps: Deps,
+    env: Env,
     target_module: InstalledModuleIdentification,
     msg: Binary,
 ) -> HostResult<Binary> {
     // We resolve the target module
-    let vc = CONFIG.load(deps.storage)?.version_control;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
-    let target_module_resolved = target_module.addr(deps, vc)?;
+    let target_module_resolved = target_module.addr(deps, registry)?;
 
     let query = QueryRequest::<Empty>::from(WasmQuery::Smart {
         contract_addr: target_module_resolved.address.into_string(),
