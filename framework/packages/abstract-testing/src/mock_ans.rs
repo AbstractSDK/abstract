@@ -21,15 +21,10 @@ use crate::{addresses::*, ans::*, MockQuerierBuilder};
 
 /// mirror ANS state
 /// ```rust,ignore
-/// pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> = Map::new("assets");
-/// pub const REV_ASSET_ADDRESSES: Map<&AssetInfo, AssetEntry> = Map::new("rev_assets");
-/// pub const CONTRACT_ADDRESSES: Map<&ContractEntry, Addr> = Map::new("contracts");
-/// pub const CHANNELS: Map<&ChannelEntry, String> = Map::new("channels");
-/// pub const REGISTERED_DEXES: Item<Vec<DexName>> = Item::new("registered_dexes");
-/// // Stores the asset pairing entries to their pool ids
-/// // (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
-/// pub const ASSET_PAIRINGS: Map<&DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
-/// pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
+/// use abstract_std::ans_host::state::{
+///     ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
+///     REGISTERED_DEXES,
+/// };
 /// ```
 pub struct MockAnsHost {
     pub contracts: Vec<(ContractEntry, Addr)>,
