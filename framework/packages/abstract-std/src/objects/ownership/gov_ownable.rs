@@ -1,4 +1,4 @@
-// #![doc = include_str!("README.md")]
+#![doc = include_str!("README.md")]
 
 pub use crate::objects::gov_type::{GovAction, GovernanceDetails};
 use crate::{objects::storage_namespaces::OWNERSHIP_STORAGE_KEY, AbstractError};
