@@ -49,9 +49,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
-        ExecuteMsg::SendFunds { host_chain, memo } => {
-            commands::execute_send_funds(deps, env, info, host_chain, memo).map_err(Into::into)
-        }
+        ExecuteMsg::SendFunds {
+            host_chain,
+            receiver,
+            memo,
+        } => commands::execute_send_funds(deps, env, info, host_chain, memo, receiver)
+            .map_err(Into::into),
         ExecuteMsg::Register {
             host_chain,
             namespace,
@@ -638,6 +641,7 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
+                receiver: None,
                 memo: None,
             };
 
@@ -679,6 +683,7 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name.clone(),
+                receiver: None,
                 memo: None,
             };
 
@@ -712,6 +717,7 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
+                receiver: None,
                 memo: memo.clone(),
             };
 
