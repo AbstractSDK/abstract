@@ -59,6 +59,10 @@ impl<
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
+    use abstract_std::objects::{
+        namespace::{Namespace, ABSTRACT_NAMESPACE},
+        ABSTRACT_ACCOUNT_ID,
+    };
     use abstract_testing::prelude::*;
 
     use super::*;
@@ -93,8 +97,17 @@ mod test {
         let mut deps = mock_init();
         let env = mock_env_validated(deps.api);
         let test_account = test_account(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
             .account(&test_account, TEST_ACCOUNT_ID)
+            .with_contract_map_entry(
+                &abstr.registry,
+                abstract_std::registry::state::NAMESPACES,
+                (
+                    &Namespace::unchecked(ABSTRACT_NAMESPACE),
+                    ABSTRACT_ACCOUNT_ID,
+                ),
+            )
             .build();
         // Account identification
         let base = MOCK_APP_WITH_DEP.account(deps.as_ref())?;
@@ -113,8 +126,10 @@ mod test {
         let base = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account);
 
-        let _module_registry = MOCK_APP_WITH_DEP.module_registry(deps.as_ref(), &env);
-        // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
+        let module_registry = binding.module_registry(deps.as_ref(), &env)?;
+        let abstract_namespace =
+            module_registry.query_namespace_raw(Namespace::unchecked(ABSTRACT_NAMESPACE))?;
+        assert_eq!(abstract_namespace, Some(ABSTRACT_ACCOUNT_ID));
 
         Ok(())
     }
