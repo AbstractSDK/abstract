@@ -1,3 +1,5 @@
+use ::module_factory::error::ModuleFactoryError;
+use ::registry::error::RegistryError;
 use abstract_adapter::{
     mock::{self, MockError, MockExecMsg, MockInitMsg},
     AdapterError,
@@ -82,9 +84,30 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
         Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
         None,
     )?;
-    assert!(install_adapter(&account, TEST_MODULE_ID).is_err());
 
-    assert!(install_adapter_with_funds(&account, TEST_MODULE_ID, &coins(12, "ujunox")).is_err());
+    let without_funds = install_adapter(&account, TEST_MODULE_ID)
+        .unwrap_err()
+        .downcast::<AbstractInterfaceError>()
+        .unwrap()
+        .downcast::<ModuleFactoryError>()
+        .unwrap();
+
+    assert!(matches!(
+        without_funds,
+        ModuleFactoryError::Abstract(AbstractError::Fee(_))
+    ));
+
+    let with_low_funds = install_adapter_with_funds(&account, TEST_MODULE_ID, &coins(12, "ujunox"))
+        .unwrap_err()
+        .downcast::<AbstractInterfaceError>()
+        .unwrap()
+        .downcast::<ModuleFactoryError>()
+        .unwrap();
+
+    assert!(matches!(
+        with_low_funds,
+        ModuleFactoryError::Abstract(AbstractError::Fee(_))
+    ));
 
     Ok(())
 }
@@ -109,7 +132,11 @@ fn install_non_existent_adapterid_should_fail() -> AResult {
 
     let res = install_adapter(&account, "lol:no_chance");
 
-    assert!(res.is_err());
+    assert!(res.unwrap_err().root_cause().to_string().contains(
+        &RegistryError::ModuleNotFound(ModuleInfo::from_id_latest("lol:no_chance").unwrap())
+            .to_string(),
+    ));
+
     Ok(())
 }
 
@@ -128,8 +155,13 @@ fn install_non_existent_version_should_fail() -> AResult {
         &[],
     );
 
-    // TODO: check error
-    assert!(res.is_err());
+    assert!(res.unwrap_err().root().to_string().contains(
+        &RegistryError::ModuleNotFound(
+            ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version("1.2.3".to_string()))
+                .unwrap(),
+        )
+        .to_string(),
+    ));
 
     Ok(())
 }

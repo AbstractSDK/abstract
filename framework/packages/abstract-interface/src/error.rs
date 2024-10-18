@@ -51,4 +51,14 @@ impl AbstractInterfaceError {
             _ => panic!("Unexpected error type"),
         }
     }
+
+    pub fn downcast<E>(self) -> cw_orch::anyhow::Result<E>
+    where
+        E: std::fmt::Display + std::fmt::Debug + Send + Sync + 'static,
+    {
+        match self {
+            AbstractInterfaceError::Orch(e) => e.downcast(),
+            _ => panic!("Unexpected error type"),
+        }
+    }
 }
