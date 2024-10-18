@@ -90,7 +90,6 @@ pub enum ExecuteMsg {
         /// Address of the token receiver on host chain
         /// Defaults to proxy address of remote account
         receiver: Option<String>,
-        funds: Vec<Coin>,
         memo: Option<String>,
     },
     /// Only callable by Account

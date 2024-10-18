@@ -52,9 +52,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::SendFunds {
             host_chain,
             receiver,
-            funds,
             memo,
-        } => commands::execute_send_funds(deps, env, info, host_chain, funds, memo, receiver)
+        } => commands::execute_send_funds(deps, env, info, host_chain, memo, receiver)
             .map_err(Into::into),
         ExecuteMsg::Register {
             host_chain,
@@ -643,7 +642,6 @@ mod tests {
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
                 receiver: None,
-                funds: coins(1, "denom"),
                 memo: None,
             };
 
@@ -686,7 +684,6 @@ mod tests {
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name.clone(),
                 receiver: None,
-                funds: funds.clone(),
                 memo: None,
             };
 
@@ -721,7 +718,6 @@ mod tests {
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
                 receiver: None,
-                funds: funds.clone(),
                 memo: memo.clone(),
             };
 

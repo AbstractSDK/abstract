@@ -262,19 +262,14 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         memo: Option<String>,
         receiver: Option<String>,
     ) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::IbcAction {
-                msg: IbcClientMsg::SendFunds {
-                    host_chain,
-                    receiver,
-                    funds,
-                    memo,
-                },
+        self.execute(
+            &IbcClientMsg::SendFunds {
+                host_chain,
+                memo,
+                receiver,
             },
-            vec![],
-        )?
-        .into())
+            funds,
+        )
     }
 
     /// A simple helper to install an app on an account
@@ -433,7 +428,9 @@ mod test {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     memo: None,
                     receiver: None,
-                },
+                })
+                .unwrap(),
+                funds: expected_funds,
             })
             .unwrap(),
             // ensure empty

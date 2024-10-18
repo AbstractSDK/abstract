@@ -429,11 +429,10 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
             ibc_client::ExecuteMsg::SendFunds {
                 host_chain: self.host_chain_id(),
                 memo,
+                receiver: None,
             },
             funds,
-            memo,
-            receiver: None,
-        })
+        )
     }
 
     /// Module infos of installed modules on account

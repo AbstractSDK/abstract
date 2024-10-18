@@ -57,3 +57,5 @@ doc-comment = "0.3.3"
 abstract-sdk = { path = ".", features = ["test-utils"] }
 cw-ownable = { workspace = true }
 serde_json = "1.0.79"
+
+coverage-helper = { workspace = true }

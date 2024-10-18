@@ -385,7 +385,7 @@ pub fn execute_send_funds(
         Some(addr) => addr,
         None => {
             // get account_id of Account
-            let account_id = account_base.account_id(deps.as_ref())?;
+            let account_id = account.account_id(deps.as_ref())?;
             // load remote account
             ACCOUNTS.load(
                 deps.storage,

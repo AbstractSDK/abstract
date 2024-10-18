@@ -50,10 +50,7 @@ impl PfmMemoBuilder {
     /// Build the memo json string
     /// Receiver is an address of the packet receiver on remote chain
     pub fn build(self, receiver: impl Into<String>) -> cosmwasm_std::StdResult<String> {
-        let PfmMemoBuilder {
-            port,
-            hops,
-        } = self;
+        let PfmMemoBuilder { port, hops } = self;
         let receiver = receiver.into();
         let port = port.unwrap_or("transfer".to_owned());
 

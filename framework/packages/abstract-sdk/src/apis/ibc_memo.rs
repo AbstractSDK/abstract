@@ -12,9 +12,7 @@ mod test {
 
     #[test]
     fn memo_middleware() {
-        let minimal = PfmMemoBuilder::new("channel-1")
-            .build("foo")
-            .unwrap();
+        let minimal = PfmMemoBuilder::new("channel-1").build("foo").unwrap();
         let value: serde_json::Value = serde_json::from_str(&minimal).unwrap();
         let expected_value = json!({
             "forward": {

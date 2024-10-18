@@ -724,7 +724,9 @@ mod test {
                     host_chain: TruncatedChainId::from_chain_id(STARGAZE),
                     memo: None,
                     receiver: None,
-                },
+                })
+                .unwrap(),
+                funds: coins(10, origin_denom),
             },
             &[],
         )?;
