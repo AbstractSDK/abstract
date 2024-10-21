@@ -229,11 +229,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
         .build()?
         .publisher()?;
 
-    let publisher_from_namespace: Publisher<MockBech32> = client
-        .account_builder()
-        .namespace(namespace)
-        .build()?
-        .publisher()?;
+    let publisher_from_namespace: Publisher<MockBech32> = client.fetch_publisher(namespace)?;
 
     assert_eq!(
         publisher.account().info()?,
@@ -251,7 +247,6 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let publisher: Publisher<MockBech32> = client
         .account_builder()
         .namespace(Namespace::new(TEST_NAMESPACE)?)
-        .install_on_sub_account(true)
         .build()?
         .publisher()?;
 
@@ -261,8 +256,9 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     publisher.publish_app::<MockAppI<MockBech32>>()?;
 
     // Install app on sub-account
+    let sub_account = publisher.account().sub_account_builder()?.build()?;
     let my_app: Application<_, MockAppI<_>> =
-        publisher_account.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
+        sub_account.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
 
     my_app.call_as(&publisher_account_address).do_something()?;
 
@@ -297,12 +293,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     assert_eq!(sub_accounts[0].id()?, my_app.account().id()?);
 
     // Install app on current account
-    let publisher = client
-        .account_builder()
-        .namespace(Namespace::new(TEST_NAMESPACE)?)
-        .install_on_sub_account(false)
-        .build()?
-        .publisher()?;
+    let publisher = client.fetch_publisher(Namespace::new(TEST_NAMESPACE)?)?;
     let my_adapter: Application<_, MockAppI<_>> =
         publisher.account().install_app(&MockInitMsg {}, &[])?;
 
@@ -347,9 +338,10 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let publisher_account_address = account.address()?;
 
     publisher.publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
+    let sub_account = account.sub_account_builder()?.build()?;
 
     // Install adapter on sub-account
-    let my_adapter: Application<_, MockAdapterI<_>> = account.install_adapter(&[])?;
+    let my_adapter: Application<_, MockAdapterI<_>> = sub_account.install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_account_address)
@@ -433,11 +425,7 @@ fn can_fetch_account_from_app() -> anyhow::Result<()> {
 
     app_publisher.publish_app::<MockAppI<MockBech32>>()?;
 
-    let account1 = client
-        .account_builder()
-        // Install apps in this account
-        .install_on_sub_account(false)
-        .build()?;
+    let account1 = client.account_builder().build()?;
 
     let app = account1.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
 
@@ -1457,32 +1445,6 @@ fn module_version_installed() -> anyhow::Result<()> {
 }
 
 #[test]
-fn retrieve_account_builder_install_missing_modules() -> anyhow::Result<()> {
-    let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain.clone()).build_mock()?;
-
-    let app_publisher: Publisher<MockBech32> = client
-        .account_builder()
-        .namespace(Namespace::new(TEST_NAMESPACE)?)
-        .build()?
-        .publisher()?;
-
-    app_publisher.publish_app::<MockAppI<MockBech32>>()?;
-
-    assert!(!app_publisher.account().module_installed(TEST_MODULE_ID)?);
-    let account = client
-        .account_builder()
-        .namespace(Namespace::new(TEST_NAMESPACE)?)
-        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
-        .build()?;
-    // Same account
-    assert_eq!(app_publisher.account().id()?, account.id()?);
-    // Installed from builder after account was created
-    assert!(account.module_installed(TEST_MODULE_ID)?);
-    Ok(())
-}
-
-#[test]
 fn module_status() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
@@ -1580,11 +1542,8 @@ fn register_service() -> anyhow::Result<()> {
     assert_eq!(res, "test");
 
     // Or from an account with Application if installed
-    let account = client
-        .account_builder()
-        .namespace(Namespace::new(TEST_NAMESPACE)?)
-        .install_service::<MockService<MockBech32>>(&MockMsg {})?
-        .build()?;
+    let account = client.fetch_account(Namespace::new(TEST_NAMESPACE)?)?;
+    account.install_service::<MockService<MockBech32>>(&MockMsg {}, &[])?;
 
     let service = account.application::<MockService<MockBech32>>()?;
     let res: String = service.query(&MockMsg {})?;
@@ -1643,52 +1602,9 @@ fn account_fetcher_shouldnt_install_module_on_existing_account() -> anyhow::Resu
 
     client.fetch_or_build(NEW_NAMESPACE.try_into()?, |builder| {
         builder
-            .install_on_sub_account(true)
             .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
             .unwrap()
     })?;
     assert!(!account.module_installed(TEST_MODULE_ID)?);
-    Ok(())
-}
-
-// Tests wether using the Account builder with install_on_subaccount on an existing account installs given apps
-#[test]
-fn account_builder_should_install_on_subaccount() -> anyhow::Result<()> {
-    let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain.clone()).build_mock()?;
-
-    let app_publisher: Publisher<MockBech32> = client
-        .account_builder()
-        .namespace(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
-        .build()?
-        .publisher()?;
-
-    let app_dependency_publisher: Publisher<MockBech32> = client
-        .account_builder()
-        .namespace(Namespace::new(TEST_NAMESPACE)?)
-        .build()?
-        .publisher()?;
-
-    app_dependency_publisher.publish_app::<MockAppI<_>>()?;
-    let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
-    assert!(res.is_ok());
-
-    const NEW_NAMESPACE: &str = "new-namespace";
-
-    // We create an account
-    let account = client
-        .account_builder()
-        .install_on_sub_account(true)
-        .install_service::<IbcClient<MockBech32>>(&Empty {})?
-        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
-        .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})?
-        .namespace(NEW_NAMESPACE.try_into()?)
-        .build()?;
-
-    assert!(!account.module_installed(TEST_MODULE_ID)?);
-
-    // Fetch the subaccount
-    let subaccounts = account.sub_accounts()?;
-    assert_eq!(subaccounts.len(), 1);
     Ok(())
 }
