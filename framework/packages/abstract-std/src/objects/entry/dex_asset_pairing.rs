@@ -54,19 +54,13 @@ impl<'a> PrimaryKey<'a> for &DexAssetPairing {
     type SuperSuffix = (&'a AssetEntry, DexName);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut key = self.0 .0 .0.key();
-        key.extend(self.0 .1 .0.key());
-        key.extend(self.0 .2.key());
-        key
+        <(AssetEntry, AssetEntry, DexName)>::key(&self.0)
     }
 }
 
 impl<'a> Prefixer<'a> for &DexAssetPairing {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
-        let mut res = self.0 .0 .0.prefix();
-        res.extend(self.0 .1 .0.prefix());
-        res.extend(self.0 .2.prefix());
-        res
+        <(AssetEntry, AssetEntry, DexName)>::prefix(&self.0)
     }
 }
 
