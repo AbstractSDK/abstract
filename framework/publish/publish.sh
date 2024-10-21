@@ -47,7 +47,7 @@ set -o errexit -o nounset -o pipefail
 
 # these are imported by other packages
 BASE_PACKAGES="abstract-macros"
-UTILS_PACKAGES="abstract-std abstract-testing abstract-sdk abstract-ica"
+UTILS_PACKAGES="abstract-std abstract-testing abstract-sdk abstract-ica abstract-xion"
 NATIVE_CONTRACTS="ans-host module-factory registry ibc-host ibc-client ica-client"
 ACCOUNT_CONTRACT="account"
 
@@ -107,5 +107,5 @@ for pack in $STANDARDS; do
 done
 
 VERSION=$(grep -A1 "\[workspace.package\]" framework/Cargo.toml | awk -F'"' '/version/ {print $2}');
-echo $VERSION
+echo "Published v$VERSION"
 # sh ./framework/publish/tag-release.sh "v$VERSION"

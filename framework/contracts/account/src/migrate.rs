@@ -21,7 +21,6 @@ mod tests {
     use abstract_testing::mock_env_validated;
     use cosmwasm_std::testing::*;
     use semver::Version;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::error::AccountError;
@@ -40,15 +39,16 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res)
-            .is_err()
-            .is_equal_to(AccountError::Abstract(
+        assert_eq!(
+            res,
+            Err(AccountError::Abstract(
                 AbstractError::CannotDowngradeContract {
                     contract: ACCOUNT.to_string(),
                     from: version.clone(),
                     to: version,
                 },
-            ));
+            ))
+        );
 
         Ok(())
     }
@@ -66,15 +66,16 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res)
-            .is_err()
-            .is_equal_to(AccountError::Abstract(
+        assert_eq!(
+            res,
+            Err(AccountError::Abstract(
                 AbstractError::CannotDowngradeContract {
                     contract: ACCOUNT.to_string(),
                     from: big_version.parse().unwrap(),
                     to: version,
                 },
-            ));
+            ))
+        );
 
         Ok(())
     }
@@ -91,14 +92,15 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res)
-            .is_err()
-            .is_equal_to(AccountError::Abstract(
+        assert_eq!(
+            res,
+            Err(AccountError::Abstract(
                 AbstractError::ContractNameMismatch {
                     from: old_name.parse().unwrap(),
                     to: ACCOUNT.parse().unwrap(),
                 },
-            ));
+            ))
+        );
 
         Ok(())
     }
@@ -120,9 +122,12 @@ mod tests {
         set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {})?;
-        assert_that!(res.messages).has_length(0);
+        assert!(res.messages.is_empty());
 
-        assert_that!(get_contract_version(&deps.storage)?.version).is_equal_to(version.to_string());
+        assert_eq!(
+            get_contract_version(&deps.storage)?.version,
+            version.to_string()
+        );
         Ok(())
     }
 }

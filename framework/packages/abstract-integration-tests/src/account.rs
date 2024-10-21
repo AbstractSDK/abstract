@@ -21,7 +21,6 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
 use cw2::ContractVersion;
 use cw_orch::{environment::MutCwEnv, prelude::*};
-use speculoos::prelude::*;
 
 use crate::{
     add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,
@@ -50,7 +49,7 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
     MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
     let app_addr = account.install_app(&app, &MockInitMsg {}, &[])?;
     let module_addr = account.module_info(APP_ID)?.unwrap().address;
-    assert_that!(app_addr).is_equal_to(module_addr);
+    assert_eq!(app_addr, module_addr);
     Ok(())
 }
 
@@ -343,17 +342,17 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
 
     let adapter_v2 = account.module_addresses(vec![adapter_1::MOCK_ADAPTER_ID.into()])?;
     // assert that the address actually changed
-    assert_that!(adapter_v2.modules[0].1).is_not_equal_to(Addr::unchecked(adapter1.clone()));
+    assert_ne!(adapter_v2.modules[0].1, Addr::unchecked(adapter1.clone()));
 
     let adapter = adapter_1::MockAdapterI1V2::new_test(chain);
     use abstract_std::adapter::BaseQueryMsgFns as _;
     let authorized = adapter.authorized_addresses(account.addr_str()?)?;
-    assert_that!(authorized.addresses).contains(authorizee);
+    assert!(authorized.addresses.contains(&authorizee));
 
     // assert that authorized address was removed from old Adapter
     adapter.set_address(&Addr::unchecked(adapter1));
     let authorized = adapter.authorized_addresses(account.addr_str()?)?;
-    assert_that!(authorized.addresses).is_empty();
+    assert!(authorized.addresses.is_empty());
     Ok(())
 }
 
@@ -373,12 +372,18 @@ pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
 
     let res = account.uninstall_module(adapter_1::MOCK_ADAPTER_ID.to_string());
     // fails because app is depends on adapter 1
-    assert_that!(res.unwrap_err().root().to_string())
-        .contains(AccountError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
+    assert!(res
+        .unwrap_err()
+        .root()
+        .to_string()
+        .contains(&AccountError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string()));
     // same for adapter 2
     let res = account.uninstall_module(adapter_2::MOCK_ADAPTER_ID.to_string());
-    assert_that!(res.unwrap_err().root().to_string())
-        .contains(AccountError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
+    assert!(res
+        .unwrap_err()
+        .root()
+        .to_string()
+        .contains(&AccountError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string()));
 
     // we can only uninstall if the app is uninstalled first
     account.uninstall_module(app_1::MOCK_APP_ID.to_string())?;
@@ -403,12 +408,7 @@ pub fn installing_one_adapter_with_fee_should_succeed<T: MutCwEnv>(mut chain: T)
         None,
     )?;
 
-    assert_that!(install_adapter_with_funds(
-        &account,
-        TEST_MODULE_ID,
-        &coins(45, "ujunox")
-    ))
-    .is_ok();
+    assert!(install_adapter_with_funds(&account, TEST_MODULE_ID, &coins(45, "ujunox")).is_ok());
 
     Ok(())
 }
@@ -456,7 +456,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
     )?;
 
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
-    assert_that!(response_data_attr_present).is_equal_to("true".to_string());
+    assert_eq!(response_data_attr_present, "true".to_string());
     Ok(())
 }
 
