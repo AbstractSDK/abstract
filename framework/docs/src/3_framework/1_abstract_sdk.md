@@ -91,9 +91,14 @@ Think of each of these bases as a foundation for building your application using
 
 - <a href="https://crates.io/crates/abstract-app" target="_blank">App</a>
 - <a href="https://crates.io/crates/abstract-adapter" target="_blank">Adapter</a>
+- <a href="https://crates.io/crates/abstract-standalone" target="_blank">Standalone</a>
 
 We will go into the technical details of these bases and their differences in the [Build With Abstract](../4_get_started/1_index.md)
 section.
+
+```admonish info
+Need a reminder on what the differences are between these bases? Check out the [module types](./6_module_types.md) page.
+```
 
 ## Example: Autocompounder
 

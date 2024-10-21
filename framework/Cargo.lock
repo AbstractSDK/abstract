@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "abstract-account"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-ans-host",
@@ -42,7 +42,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-adapter"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-ibc-client",
@@ -66,7 +66,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-adapter-utils"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "cosmwasm-std",
  "cw-asset",
@@ -76,7 +76,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ans-host"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -101,7 +101,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-app"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-app",
  "abstract-ibc-host",
@@ -127,7 +127,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-client"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-account",
  "abstract-adapter",
@@ -199,7 +199,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-dex-standard"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -228,7 +228,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ibc-client"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -254,7 +254,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ibc-host"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-interface",
@@ -282,7 +282,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ica"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-sdk",
  "abstract-testing",
@@ -308,7 +308,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ica-client"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-ica",
  "abstract-macros",
@@ -332,7 +332,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-integration-tests"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-account",
  "abstract-adapter",
@@ -356,7 +356,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-interface"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-account",
  "abstract-ans-host",
@@ -397,7 +397,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-macros"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "cosmwasm-std",
  "coverage-helper",
@@ -409,7 +409,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-module-factory"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-integration-tests",
  "abstract-interface",
@@ -436,7 +436,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-money-market-standard"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -514,7 +514,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-registry"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-interface",
  "abstract-macros",
@@ -538,7 +538,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-sdk"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -568,7 +568,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-staking-standard"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -597,7 +597,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-standalone"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-integration-tests",
  "abstract-interface",
@@ -623,7 +623,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-std"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-testing",
  "anyhow",
@@ -657,7 +657,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-testing"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-sdk",
  "abstract-std",
@@ -677,7 +677,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-xion"
-version = "0.24.1-beta.1"
+version = "0.24.1-beta.2"
 dependencies = [
  "abstract-std",
  "base64 0.22.1",
