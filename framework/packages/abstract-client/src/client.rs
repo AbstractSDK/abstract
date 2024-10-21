@@ -152,7 +152,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Fetches an existing Abstract [`Account`]from chain
+    /// Fetches an existing Abstract [`Publisher`] from chain
     pub fn fetch_publisher(&self, namespace: Namespace) -> AbstractClientResult<Publisher<Chain>> {
         let account = self.fetch_account(namespace)?;
         Publisher::new(&account)
@@ -174,7 +174,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(builder)
     }
 
-    /// Fetches an existing Abstract [`Account`]from chain
+    /// Fetches an existing Abstract [`Account`] from chain
     pub fn fetch_account(&self, namespace: Namespace) -> AbstractClientResult<Account<Chain>> {
         Account::maybe_from_namespace(&self.abstr, namespace.clone())?.ok_or(
             AbstractClientError::NamespaceNotClaimed {
@@ -183,7 +183,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         )
     }
 
-    /// Fetches an existing Abstract [`Account`]from chain
+    /// Fetches an existing Abstract [`Account`] from chain
     /// If the Namespace is not claimed, creates an account with the provided account builder
     pub fn fetch_or_build(
         &self,
