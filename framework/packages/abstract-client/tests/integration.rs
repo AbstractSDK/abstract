@@ -333,11 +333,12 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
         .account_builder()
         .namespace(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
-    let publisher = Publisher::new(&account)?;
 
     let publisher_account_address = account.address()?;
 
-    publisher.publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
+    account
+        .publisher()?
+        .publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
     let sub_account = account.sub_account_builder()?.build()?;
 
     // Install adapter on sub-account

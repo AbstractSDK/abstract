@@ -155,7 +155,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Fetches an existing Abstract [`Publisher`] from chain
     pub fn fetch_publisher(&self, namespace: Namespace) -> AbstractClientResult<Publisher<Chain>> {
         let account = self.fetch_account(namespace)?;
-        Publisher::new(&account)
+        account.publisher()
     }
 
     /// Builder for creating a new Abstract [`Account`].
