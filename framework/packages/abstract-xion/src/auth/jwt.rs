@@ -4,7 +4,6 @@ use base64::Engine as _;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_schema::serde::{Deserialize, Serialize};
 use cosmwasm_std::{Binary, Deps};
-use prost::Message;
 use std::str;
 
 use crate::{error::AbstractXionError, AbstractXionResult};
@@ -46,7 +45,7 @@ pub fn verify(
         // tx_hash: challenge,
     };
 
-    let query_bz = query.encode_to_vec();
+    let query_bz = query.to_anybuf().into_vec();
     deps.querier.query_grpc(
         String::from("/xion.jwk.v1.Query/ValidateJWT"),
         Binary::new(query_bz),

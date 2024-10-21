@@ -29,7 +29,7 @@ getrandom = { version = "0.2.15", default-features = false, features = [
 p256 = { version = "0.13.2", features = ["ecdsa-core", "arithmetic", "serde"] }
 url = { version = "2.5.2", default-features = false }
 ripemd = { version = "0.1.3", default-features = false }
-prost = { version = "0.13.2" }
+anybuf = { version = "0.5.0" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
@@ -39,3 +39,9 @@ workspace = true
 
 [dev-dependencies]
 coverage-helper = { workspace = true }
+cosmos-sdk-proto = { git = "https://github.com/burnt-labs/cosmos-rust.git", rev = "ed9c8e87e3cb27781ad2695ef2d3ef70af085823", default-features = false, features = [
+    "std",
+    "cosmwasm",
+    "xion",
+    "serde",
+] }

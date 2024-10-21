@@ -6,9 +6,6 @@ pub enum AbstractXionError {
     Std(#[from] cosmwasm_std::StdError),
 
     #[error(transparent)]
-    DecodeError(#[from] prost::DecodeError),
-
-    #[error(transparent)]
     Verification(#[from] cosmwasm_std::VerificationError),
 
     #[error(transparent)]
