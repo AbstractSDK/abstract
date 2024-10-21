@@ -20,6 +20,7 @@ impl Display for EndpointError {
         write!(f, "Error in {} - {}", self.module_id, self.source)
     }
 }
+
 /// Error type for the abstract sdk crate.
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
@@ -66,9 +67,9 @@ pub enum AbstractSdkError {
     #[error("Called an IBC module action on {0}, when no endpoint was registered.")]
     NoModuleIbcHandler(String),
 
-    // admin of proxy is not set
-    #[error("Admin of proxy {proxy_addr} is not set.")]
-    AdminNotSet { proxy_addr: Addr },
+    // admin of account is not set
+    #[error("Admin of account {account_addr} is not set.")]
+    AdminNotSet { account_addr: Addr },
 
     // Query from api object failed
     #[error("API query for {api} failed in {module_id}: {error}")]
@@ -91,6 +92,12 @@ pub enum AbstractSdkError {
         module: String,
         err: String,
     },
+
+    // This call needs to be an admin call
+    #[error(
+        "Only the admin can execute this action. An admin is either the owner of an account of an account called by its owner"
+    )]
+    OnlyAdmin {},
 }
 
 impl AbstractSdkError {

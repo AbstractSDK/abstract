@@ -21,23 +21,27 @@ use crate::{
 pub trait GrantInterface: AccountExecutor {
     /// API for accessing the Cosmos SDK FeeGrant module.
     /// The **granter** is the address of the user granting an allowance of their funds.
-    /// By default, it is the proxy address of the Account.
+    /// By default, it is the account address.
 
     /// ```
     /// use abstract_sdk::prelude::*;
     /// # use cosmwasm_std::testing::mock_dependencies;
-    /// # use abstract_sdk::mock_module::MockModule;
-    /// # let module = MockModule::new();
+    /// # use abstract_sdk::{mock_module::MockModule, FeeGranter, GrantInterface, AbstractSdkResult};
+    /// # use abstract_testing::prelude::*;
     /// # let deps = mock_dependencies();
-
+    /// # let account = admin_account(deps.api);
+    /// # let module = MockModule::new(deps.api, account);
+    ///
     /// let grant: FeeGranter = module.fee_granter(deps.as_ref(), None)?;
+    ///
+    /// # AbstractSdkResult::Ok(())
     /// ```
     fn fee_granter<'a>(
         &'a self,
         deps: cosmwasm_std::Deps<'a>,
         granter: Option<Addr>,
     ) -> AbstractSdkResult<FeeGranter> {
-        let granter = granter.unwrap_or(self.proxy_address(deps)?);
+        let granter = granter.unwrap_or(self.account(deps)?.addr().clone());
         Ok(FeeGranter { granter })
     }
 }
@@ -50,10 +54,14 @@ impl<T> GrantInterface for T where T: AccountExecutor {}
 /// ```
 /// use abstract_sdk::prelude::*;
 /// # use cosmwasm_std::testing::mock_dependencies;
-/// # use abstract_sdk::mock_module::MockModule;
-/// # let module = MockModule::new();
+/// # use abstract_sdk::{mock_module::MockModule, FeeGranter, GrantInterface, AbstractSdkResult};
+/// # use abstract_testing::prelude::*;
+/// # let deps = mock_dependencies();
+/// # let account = admin_account(deps.api);
+/// # let module = MockModule::new(deps.api, account);
 ///
 /// let grant: FeeGranter  = module.fee_granter(deps.as_ref(), None)?;
+/// # AbstractSdkResult::Ok(())
 /// ```
 /// */
 #[derive(Clone)]
@@ -63,7 +71,7 @@ pub struct FeeGranter {
 
 impl FeeGranter {
     /// Retrieve the granter's address.
-    /// By default, this is the proxy address of the Account.
+    /// By default, this is the account address.
     fn granter(&self) -> Addr {
         self.granter.clone()
     }
@@ -80,10 +88,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
-            type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
-            value: Binary(msg),
-        }
+        super::stargate_msg(
+            feegrant::v1beta1::MsgRevokeAllowance::type_url(),
+            Binary::new(msg),
+        )
     }
 
     /// Grants an allowance to a **grantee**.
@@ -100,10 +108,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        CosmosMsg::Stargate {
-            type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
-            value: Binary(msg),
-        }
+        super::stargate_msg(
+            feegrant::v1beta1::MsgGrantAllowance::type_url(),
+            Binary::new(msg),
+        )
     }
 
     /// Grants a basic allowance.
@@ -172,7 +180,7 @@ impl FeeGranter {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use cosmwasm_std::{coins, testing::mock_dependencies};
+    use cosmwasm_std::coins;
 
     use super::*;
     use crate::{apis::stargate::StargateMessage, mock_module::*};
@@ -182,9 +190,9 @@ mod test {
         grantee: Addr,
         allowance: impl StargateMessage,
     ) -> CosmosMsg {
-        CosmosMsg::Stargate {
-            type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
-            value: Binary(
+        crate::apis::stargate_msg(
+            feegrant::v1beta1::MsgGrantAllowance::type_url(),
+            Binary::new(
                 feegrant::v1beta1::MsgGrantAllowance {
                     granter: granter.to_string(),
                     grantee: grantee.to_string(),
@@ -192,20 +200,19 @@ mod test {
                 }
                 .encode_to_vec(),
             ),
-        }
+        )
     }
 
     mod basic_allowance {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn basic_allowance() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
+            let (deps, _, app) = mock_module_setup();
 
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
+            let granter = deps.api.addr_make("granter");
+            let grantee = deps.api.addr_make("grantee");
 
             let fee_granter = app
                 .fee_granter(deps.as_ref(), Some(granter.clone()))
@@ -232,13 +239,12 @@ mod test {
     mod periodic_allowance {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn periodic_allowance() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
+            let (deps, _, app) = mock_module_setup();
 
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
+            let granter = deps.api.addr_make("granter");
+            let grantee = deps.api.addr_make("grantee");
             let fee_granter = app
                 .fee_granter(deps.as_ref(), Some(granter.clone()))
                 .unwrap();
@@ -276,29 +282,28 @@ mod test {
     mod revoke_all {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn revoke_all() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
+            let (deps, _, app) = mock_module_setup();
 
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
+            let granter = deps.api.addr_make("granter");
+            let grantee = deps.api.addr_make("grantee");
             let fee_granter = app
                 .fee_granter(deps.as_ref(), Some(granter.clone()))
                 .unwrap();
 
             let revoke_msg = fee_granter.revoke_allowance(&grantee);
 
-            let expected_msg = CosmosMsg::Stargate {
-                type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
-                value: Binary(
+            let expected_msg = crate::apis::stargate_msg(
+                feegrant::v1beta1::MsgRevokeAllowance::type_url(),
+                Binary::new(
                     feegrant::v1beta1::MsgRevokeAllowance {
                         granter: granter.to_string(),
                         grantee: grantee.to_string(),
                     }
                     .encode_to_vec(),
                 ),
-            };
+            );
             assert_eq!(revoke_msg, expected_msg);
         }
     }

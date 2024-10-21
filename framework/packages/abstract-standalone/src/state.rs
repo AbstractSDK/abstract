@@ -15,8 +15,8 @@ use cw_storage_plus::Item;
 
 /// The state variables for our StandaloneContract.
 pub struct StandaloneContract {
-    pub admin: NestedAdmin<'static>,
-    pub(crate) base_state: Item<'static, StandaloneState>,
+    pub admin: NestedAdmin,
+    pub(crate) base_state: Item<StandaloneState>,
     /// Static info about the contract, used for migration
     pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
     /// Modules that this contract depends on.
@@ -44,11 +44,11 @@ impl StandaloneContract {
         }
     }
 
-    pub fn module_id(&self) -> &str {
+    pub fn module_id(&self) -> &'static str {
         self.info.0
     }
 
-    pub fn version(&self) -> &str {
+    pub fn version(&self) -> &'static str {
         self.info.1
     }
 
@@ -69,14 +69,61 @@ impl StandaloneContract {
 
 #[cfg(test)]
 mod tests {
+    use abstract_sdk::features::Dependencies;
+    use abstract_std::{
+        objects::{dependency::StaticDependency, module::ModuleInfo},
+        standalone::StandaloneState,
+        ACCOUNT,
+    };
     use abstract_testing::prelude::*;
 
-    use crate::mock::MockStandaloneContract;
+    use crate::mock::{mock_init, MockStandaloneContract, BASIC_MOCK_STANDALONE};
 
-    #[test]
+    #[coverage_helper::test]
     fn builder() {
-        let app = MockStandaloneContract::new(TEST_MODULE_ID, TEST_VERSION, None);
-        assert_eq!(app.module_id(), TEST_MODULE_ID);
-        assert_eq!(app.version(), TEST_VERSION);
+        let standalone = MockStandaloneContract::new(TEST_MODULE_ID, TEST_VERSION, None)
+            .with_dependencies(&[StaticDependency {
+                id: ACCOUNT,
+                version_req: &[TEST_VERSION],
+            }]);
+        assert_eq!(standalone.module_id(), TEST_MODULE_ID);
+        assert_eq!(standalone.version(), TEST_VERSION);
+        assert_eq!(
+            standalone.module_info(),
+            Ok(ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.parse().unwrap()).unwrap())
+        );
+        assert_eq!(
+            standalone.dependencies(),
+            &[StaticDependency {
+                id: ACCOUNT,
+                version_req: &[TEST_VERSION],
+            }]
+        );
+    }
+
+    #[coverage_helper::test]
+    fn load_state() {
+        let deps = mock_init(true);
+        let account = test_account(deps.api);
+        let state = BASIC_MOCK_STANDALONE.load_state(&deps.storage).unwrap();
+
+        assert_eq!(
+            state,
+            StandaloneState {
+                account: account.clone(),
+                is_migratable: true
+            }
+        );
+
+        let deps = mock_init(false);
+        let state = BASIC_MOCK_STANDALONE.load_state(&deps.storage).unwrap();
+
+        assert_eq!(
+            state,
+            StandaloneState {
+                account: account.clone(),
+                is_migratable: false
+            }
+        );
     }
 }

@@ -124,8 +124,8 @@ pub fn try_pay(
         .response("pay")
         .add_attribute("received_funds", asset.to_string())
         .add_message(
-            // Send the received asset to the proxy
-            asset.transfer_msg(base_state.proxy_address)?,
+            // Send the received asset to the account
+            asset.transfer_msg(base_state.account.into_addr())?,
         ))
 }
 
@@ -238,12 +238,12 @@ pub fn claim_emissions_msg(
         }
         crate::state::EmissionType::SecondShared(shared_emissions, token) => {
             // active_sub can't be 0 as we already loaded one from storage
-            let amount = (shared_emissions * Uint128::from(seconds_passed))
-                / (Uint128::from(subscription_state.active_subs));
+            let amount = Uint128::from(seconds_passed).mul_floor(shared_emissions)
+                / Uint128::from(subscription_state.active_subs);
             Asset::new(token, amount)
         }
         crate::state::EmissionType::SecondPerUser(per_user_emissions, token) => {
-            let amount = per_user_emissions * Uint128::from(seconds_passed);
+            let amount = Uint128::from(seconds_passed).mul_floor(per_user_emissions);
             Asset::new(token, amount)
         }
     };
@@ -252,7 +252,9 @@ pub fn claim_emissions_msg(
         // Update only if there was claim
         subscriber.last_emission_claim_timestamp = env.block.time;
 
-        let send_msg = module.bank(deps).transfer(vec![asset], subscriber_addr)?;
+        let send_msg = module
+            .bank(deps, env)
+            .transfer(vec![asset], subscriber_addr)?;
         Ok(Some(send_msg))
     } else {
         Ok(None)
@@ -293,7 +295,7 @@ pub fn claim_subscriber_emissions(
 #[allow(clippy::too_many_arguments)]
 pub fn update_subscription_config(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     module: SubscriptionApp,
     payment_asset: Option<AssetInfoUnchecked>,
@@ -301,7 +303,9 @@ pub fn update_subscription_config(
     subscription_per_second_emissions: Option<EmissionType<String>>,
     unsubscribe_hook_addr: Option<Clearable<String>>,
 ) -> SubscriptionResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 

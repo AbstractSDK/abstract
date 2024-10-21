@@ -85,18 +85,18 @@ pub type ProposalId = u64;
 
 /// Simple voting helper
 pub struct SimpleVoting<'a> {
-    next_proposal_id: Item<'a, ProposalId>,
-    proposals: Map<'a, (ProposalId, &'a Addr), Option<Vote>>,
-    proposals_info: Map<'a, ProposalId, ProposalInfo>,
-    vote_config: Item<'a, VoteConfig>,
+    next_proposal_id: Item<ProposalId>,
+    proposals: Map<(ProposalId, &'a Addr), Option<Vote>>,
+    proposals_info: Map<ProposalId, ProposalInfo>,
+    vote_config: Item<VoteConfig>,
 }
 
 impl<'a> SimpleVoting<'a> {
     pub const fn new(
-        proposals_key: &'a str,
-        id_key: &'a str,
-        proposals_info_key: &'a str,
-        vote_config_key: &'a str,
+        proposals_key: &'static str,
+        id_key: &'static str,
+        proposals_info_key: &'static str,
+        vote_config_key: &'static str,
     ) -> Self {
         Self {
             next_proposal_id: Item::new(id_key),
@@ -221,7 +221,9 @@ impl<'a> SimpleVoting<'a> {
         let threshold = match vote_config.threshold {
             // 50% + 1 voter
             Threshold::Majority {} => Uint128::from(proposal_info.total_voters / 2 + 1),
-            Threshold::Percentage(decimal) => decimal * Uint128::from(proposal_info.total_voters),
+            Threshold::Percentage(decimal) => {
+                Uint128::from(proposal_info.total_voters).mul_floor(decimal)
+            }
         };
 
         let proposal_outcome = if Uint128::from(proposal_info.votes_for) >= threshold {
@@ -260,67 +262,6 @@ impl<'a> SimpleVoting<'a> {
 
         Ok(proposal_info)
     }
-
-    // TODO: It's currently not used, and most likely not desirable to edit voters during active voting
-    // In case it will get some use: keep in mind that it's untested
-
-    // /// Add new addresses that's allowed to vote
-    // pub fn add_voters(
-    //     &self,
-    //     store: &mut dyn Storage,
-    //     proposal_id: ProposalId,
-    //     block: &BlockInfo,
-    //     new_voters: &[Addr],
-    // ) -> VoteResult<ProposalInfo> {
-    //     // Need to check it's existing proposal
-    //     let mut proposal_info = self.load_proposal(store, block, proposal_id)?;
-    //     proposal_info.assert_active_proposal()?;
-
-    //     for voter in new_voters {
-    //         // Don't override already existing vote
-    //         self.proposals
-    //             .update(store, (proposal_id, voter), |v| match v {
-    //                 Some(_) => Err(VoteError::DuplicateAddrs {}),
-    //                 None => {
-    //                     proposal_info.total_voters += 1;
-    //                     Ok(None)
-    //                 }
-    //             })?;
-    //     }
-    //     self.proposals_info
-    //         .save(store, proposal_id, &proposal_info)?;
-
-    //     Ok(proposal_info)
-    // }
-
-    // /// Remove addresses that's allowed to vote
-    // /// Will re-count votes
-    // pub fn remove_voters(
-    //     &self,
-    //     store: &mut dyn Storage,
-    //     proposal_id: ProposalId,
-    //     block: &BlockInfo,
-    //     removed_voters: &[Addr],
-    // ) -> VoteResult<ProposalInfo> {
-    //     let mut proposal_info = self.load_proposal(store, block, proposal_id)?;
-    //     proposal_info.assert_active_proposal()?;
-
-    //     for voter in removed_voters {
-    //         if let Some(vote) = self.proposals.may_load(store, (proposal_id, voter))? {
-    //             if let Some(previous_vote) = vote {
-    //                 match previous_vote.vote {
-    //                     true => proposal_info.votes_for -= 1,
-    //                     false => proposal_info.votes_against -= 1,
-    //                 }
-    //             }
-    //             proposal_info.total_voters -= 1;
-    //             self.proposals.remove(store, (proposal_id, voter));
-    //         }
-    //     }
-    //     self.proposals_info
-    //         .save(store, proposal_id, &proposal_info)?;
-    //     Ok(proposal_info)
-    // }
 
     /// Load vote by address
     pub fn load_vote(
@@ -580,7 +521,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn threshold_validation() {
         assert!(Threshold::Majority {}.validate_percentage().is_ok());
         assert!(Threshold::Percentage(Decimal::one())
@@ -602,7 +543,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn assert_active_proposal() {
         let end_timestamp = Timestamp::from_seconds(100);
 
@@ -630,7 +571,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn create_proposal() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -695,7 +636,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn create_proposal_duplicate_friends() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -714,7 +655,7 @@ mod tests {
         assert_eq!(err, VoteError::DuplicateAddrs {});
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn cancel_vote() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -766,7 +707,7 @@ mod tests {
     }
 
     // Check it updates status when required
-    #[test]
+    #[coverage_helper::test]
     fn load_proposal() {
         let mut deps = mock_dependencies();
         let mut env = mock_env();
@@ -836,7 +777,7 @@ mod tests {
         assert_eq!(proposal.status, ProposalStatus::WaitingForCount,);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn cast_vote() {
         let mut deps = mock_dependencies();
         let env = mock_env();
@@ -1005,7 +946,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn invalid_cast_votes() {
         let mut deps = mock_dependencies();
         let mut env = mock_env();
@@ -1107,7 +1048,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn count_votes() {
         let mut deps = mock_dependencies();
         let mut env = mock_env();

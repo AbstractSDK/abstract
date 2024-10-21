@@ -1,18 +1,21 @@
 use crate::IcaAction;
 use abstract_sdk::std::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::CosmosMsg;
+use cosmwasm_std::{Addr, CosmosMsg};
 use cw_ownable::{cw_ownable_execute, cw_ownable_query};
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub ans_host_address: String,
-    pub version_control_address: String,
+    pub registry_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    Instantiate(InstantiateMsg),
+    Migrate {},
+}
 
 #[cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
@@ -30,8 +33,8 @@ pub enum QueryMsg {
 
     #[returns(IcaActionResult)]
     IcaAction {
-        // Proxy address used to query polytone implementations or proxy itself.
-        proxy_address: String,
+        // Account address used to query polytone implementations or account itself.
+        account_address: String,
         // Chain to send to
         chain: TruncatedChainId,
         // Queries go first
@@ -41,8 +44,8 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub ans_host: String,
-    pub version_control_address: String,
+    pub ans_host: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

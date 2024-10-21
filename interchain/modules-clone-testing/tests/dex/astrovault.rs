@@ -22,9 +22,6 @@ use abstract_dex_adapter::dex_tester::{DexTester, MockDex};
 // const RATIO_POOL_FACTORY: &str =
 //     "archway1zlc00gjw4ecan3tkk5g0lfd78gyfldh4hvkv2g8z5qnwlkz9vqmsdfvs7q";
 
-// mainnet addr of abstract
-const SENDER: &str = "archway1kjzpqv393k4g064xh04j4hwy5d0s03wf0exd9k";
-
 pub struct AstrovaultDex {
     // factory_owner: Addr,
     pool_addr: Addr,
@@ -140,8 +137,7 @@ mod standard_pool_tests {
 
     fn setup_standard_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
-        let sender = Addr::unchecked(SENDER);
-        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let abstr_deployment = load_abstr(chain_info)?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -198,13 +194,13 @@ mod standard_pool_tests {
     #[test]
     fn test_provide_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_standard_pool()?;
-        let provide_value_a = cosmwasm_std::Uint128::new(40_000);
+        let provide_value_a = 40_000_u128;
         let simulate_response: astrovault::standard_pool::query_msg::SimulationResponse =
             dex_tester.dex.chain.query(
                 &astrovault::standard_pool::query_msg::QueryMsg::Simulation {
                     offer_asset: astrovault::assets::asset::Asset {
                         info: cw_asset_info_to_astrovault(&dex_tester.dex.asset_a.1),
-                        amount: provide_value_a,
+                        amount: provide_value_a.into(),
                     },
                 },
                 &dex_tester.dex.pool_addr,
@@ -213,7 +209,7 @@ mod standard_pool_tests {
         let provide_value_b = simulate_response.return_amount + simulate_response.spread_amount;
 
         dex_tester.test_provide_liquidity_two_sided(
-            Some(provide_value_a.u128()),
+            Some(provide_value_a),
             Some(provide_value_b.u128()),
         )?;
         dex_tester.test_provide_liquidity_one_sided()?;
@@ -231,13 +227,13 @@ mod standard_pool_tests {
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_standard_pool()?;
 
-        let provide_value_a = cosmwasm_std::Uint128::new(40_000);
+        let provide_value_a = 40_000_u128;
         let simulate_response: astrovault::standard_pool::query_msg::SimulationResponse =
             dex_tester.dex.chain.query(
                 &astrovault::standard_pool::query_msg::QueryMsg::Simulation {
                     offer_asset: astrovault::assets::asset::Asset {
                         info: cw_asset_info_to_astrovault(&dex_tester.dex.asset_a.1),
-                        amount: provide_value_a,
+                        amount: provide_value_a.into(),
                     },
                 },
                 &dex_tester.dex.pool_addr,
@@ -246,7 +242,7 @@ mod standard_pool_tests {
         let provide_value_b = simulate_response.return_amount + simulate_response.spread_amount;
 
         dex_tester.test_withdraw_liquidity(
-            Some(provide_value_a.u128()),
+            Some(provide_value_a),
             Some(provide_value_b.u128()),
             None,
         )?;
@@ -297,8 +293,7 @@ mod xasset_stable_pool_tests {
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
-        let sender = Addr::unchecked(SENDER);
-        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let abstr_deployment = load_abstr(chain_info)?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -402,8 +397,7 @@ mod stable_pool_tests {
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
-        let sender = Addr::unchecked(SENDER);
-        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let abstr_deployment = load_abstr(chain_info)?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -431,7 +425,7 @@ mod stable_pool_tests {
                     chain.add_balance(&chain.sender, funds.clone())?;
                     chain.execute(
                         &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
-                            assets_amount: vec![amount, cosmwasm_std::Uint128::zero()],
+                            assets_amount: vec![amount, 0u128.into()],
                             receiver: None,
                             direct_staking: None,
                         },
@@ -445,7 +439,7 @@ mod stable_pool_tests {
                     chain.add_balance(&chain.sender, funds.clone())?;
                     chain.execute(
                         &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
-                            assets_amount: vec![cosmwasm_std::Uint128::zero(), amount],
+                            assets_amount: vec![0u128.into(), amount],
                             receiver: None,
                             direct_staking: None,
                         },
@@ -596,8 +590,7 @@ mod ratio_pool_tests {
 
     fn setup_ratio_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
-        let sender = Addr::unchecked(SENDER);
-        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let abstr_deployment = load_abstr(chain_info)?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -622,12 +615,13 @@ mod ratio_pool_tests {
             Uint128::new(normalize_amount(&pool.assets[1].amount, &8).unwrap()) * ratio / PRECISION;
         match pool0_value.cmp(&pool1_value) {
             std::cmp::Ordering::Less => {
-                let amount = denormalize_amount(&(pool1_value - pool0_value), &6).unwrap();
+                let amount =
+                    denormalize_amount(&(pool1_value - pool0_value).u128().into(), &6).unwrap();
                 let funds = coins(amount, ASSET_A_DENOM);
                 chain.add_balance(&chain.sender, funds.clone())?;
                 chain.execute(
                     &astrovault::ratio_pool::handle_msg::ExecuteMsg::Deposit {
-                        assets_amount: [amount.into(), Uint128::zero()],
+                        assets_amount: [amount.into(), 0u128.into()],
                         receiver: None,
                         direct_staking: None,
                         expected_return: None,
@@ -637,14 +631,18 @@ mod ratio_pool_tests {
                 )?;
             }
             std::cmp::Ordering::Greater => {
-                let amount =
-                    denormalize_amount(&((pool0_value - pool1_value) / ratio * PRECISION), &8)
-                        .unwrap();
+                let amount = denormalize_amount(
+                    &((pool0_value - pool1_value) / ratio * PRECISION)
+                        .u128()
+                        .into(),
+                    &8,
+                )
+                .unwrap();
                 let funds = coins(amount, ASSET_B_DENOM);
                 chain.add_balance(&chain.sender, funds.clone())?;
                 chain.execute(
                     &astrovault::ratio_pool::handle_msg::ExecuteMsg::Deposit {
-                        assets_amount: [Uint128::zero(), amount.into()],
+                        assets_amount: [0_u128.into(), amount.into()],
                         receiver: None,
                         direct_staking: None,
                         expected_return: None,
@@ -682,7 +680,7 @@ mod ratio_pool_tests {
     fn test_provide_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_ratio_pool()?;
 
-        let deposit_amount = 10_000_000;
+        let deposit_amount = 1_000_000;
 
         // Pool is normalized right now so should be fine to provide "non-equal" amounts
 
@@ -696,7 +694,7 @@ mod ratio_pool_tests {
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_ratio_pool()?;
 
-        let deposit_amount = 10_000_000;
+        let deposit_amount = 1_000_000;
 
         dex_tester.test_withdraw_liquidity(
             Some(deposit_amount),

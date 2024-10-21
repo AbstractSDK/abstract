@@ -12,14 +12,13 @@ pub struct MoneyMarketQueryResolveWrapper(pub PlatformResolver, pub MoneyMarketQ
 pub fn err(e: MoneyMarketError) -> AnsHostError {
     AnsHostError::QueryFailed {
         method_name: "resolve money market".to_string(),
-        error: cosmwasm_std::StdError::GenericErr { msg: e.to_string() },
+        error: cosmwasm_std::StdError::generic_err(e.to_string()),
     }
 }
 
 impl Resolve for MoneyMarketQueryResolveWrapper {
     type Output = MoneyMarketQueryMsg;
 
-    /// TODO: this only works for protocols where there is only one address for depositing
     fn resolve(
         &self,
         querier: &cosmwasm_std::QuerierWrapper,

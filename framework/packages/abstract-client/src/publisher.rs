@@ -24,7 +24,7 @@ use crate::{
 /// # use abstract_client::{AbstractClientError, Environment};
 /// # use cw_orch::prelude::*;
 /// # let chain = MockBech32::new("mock");
-/// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
+/// # let abstr_client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::{AbstractClient, Publisher, Namespace};
 ///
@@ -153,11 +153,12 @@ impl<Chain: CwEnv> Publisher<Chain> {
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + ServiceDeployer<Chain>,
     >(
         &self,
+        init_msg: &<M as InstantiableContract>::InstantiateMsg,
     ) -> AbstractClientResult<()> {
         let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
         let service: M = contract.into();
         service
-            .deploy(M::module_version().parse()?, DeployStrategy::Try)
+            .deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)
             .map_err(Into::into)
     }
 

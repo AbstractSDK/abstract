@@ -96,7 +96,7 @@ fn connect(
         Some(src_daemon.state()),
     )?;
 
-    let interchain = DaemonInterchainEnv::from_daemons(
+    let interchain = DaemonInterchain::from_daemons(
         vec![src_daemon.clone(), dst_daemon.clone()],
         &ChannelCreationValidator,
     );
@@ -116,7 +116,7 @@ fn connect(
 
     // We create remote account
     let _ = account
-        .remote_account_builder(&interchain, &remote_client)
+        .remote_account_builder(interchain, &remote_client)
         .build()?;
     Ok(())
 }

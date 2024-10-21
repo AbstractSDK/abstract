@@ -4,13 +4,13 @@ permissions:
 on:
   push:
     branches: [main]
-    paths: 
+    paths:
       - framework/**
   pull_request:
-    paths: 
+    paths:
       - framework/**
 
-env: 
+env:
   CODECOV_TOKEN: 34d23f19-66bf-40e6-a2c9-f222c9e9f614
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
@@ -40,8 +40,19 @@ jobs:
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./framework
         run: cargo generate-lockfile
+      - name: Free up disk space on runner
+        run: |
+          df -h
+          rm -rf /usr/share/dotnet/
+          sudo apt-get remove -y 'php.*' || true
+          sudo apt-get remove -y '^dotnet-.*' || true
+          sudo apt-get remove -y azure-cli firefox powershell mono-devel || true
+          sudo apt-get autoremove -y || true
+          sudo apt-get clean || true
+          df -h
+        shell: bash
       - uses: Swatinem/rust-cache@v2
-        with: 
+        with:
           workspaces: "framework -> target"
       - name: cargo test --locked
         working-directory: ./framework

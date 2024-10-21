@@ -46,7 +46,7 @@ mod tests {
 
     // test that we can charge fees on assets
 
-    #[test]
+    #[coverage_helper::test]
     fn test_charge_fee() {
         let info = AssetInfo::native("uusd");
         let mut asset = Asset::new(info, 1000u128);
@@ -56,7 +56,7 @@ mod tests {
         assert_eq!(charged.u128(), 100);
     }
     // test transfer fee
-    #[test]
+    #[coverage_helper::test]
     fn test_charge_transfer_fee() {
         let info = AssetInfo::native("uusd");
         let mut asset: Asset = Asset::new(info.clone(), 1000u128);

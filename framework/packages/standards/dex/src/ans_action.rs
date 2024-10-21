@@ -87,7 +87,6 @@ impl Resolve for WholeDexAction {
                 .dex_asset_pairing()?;
 
                 let mut pool_ids = lp_pairing.resolve(querier, ans_host)?;
-                // TODO: when resolving if there are more than one, get the metadata and choose the one matching the assets
                 if pool_ids.len() != 1 {
                     return Err(AnsHostError::QueryFailed {
                         method_name: "lp_pairing.resolve".to_string(),
@@ -163,7 +162,6 @@ pub fn pool_address(
     Ok(found.pool_address)
 }
 
-// TODO: not sure if we put it here or in abstract_interface
 #[cfg(not(target_arch = "wasm32"))]
 mod ans_resolve_interface {
     use abstract_adapter_utils::identity::decompose_platform_name;
@@ -218,7 +216,6 @@ mod ans_resolve_interface {
                     .map_err(cw_orch::anyhow::Error::from)?;
 
                     let mut pool_ids = lp_pairing.resolve(ans_host)?;
-                    // TODO: when resolving if there are more than one, get the metadata and choose the one matching the assets
                     if pool_ids.len() != 1 {
                         return Err(cw_orch::anyhow::anyhow!(format!(
                             "There are {} pairings for the given LP token",
@@ -284,7 +281,6 @@ mod ans_resolve_interface {
             &local_dex_name,
         )])?;
         let (_, mut references) = pools_response.pools.pop().unwrap();
-        // TODO: determine best pool?
         Ok(references.swap_remove(0).pool_address)
     }
 }

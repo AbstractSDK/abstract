@@ -1,12 +1,11 @@
 use abstract_sdk::AbstractSdkError;
 use abstract_std::{
-    objects::{ans_host::AnsHostError, version_control::VersionControlError},
+    objects::{ans_host::AnsHostError, registry::RegistryError},
     AbstractError,
 };
 use cosmwasm_std::StdError;
 use thiserror::Error;
 
-// TODO: Remove unused errs
 #[derive(Error, Debug, PartialEq)]
 pub enum IcaClientError {
     #[error("{0}")]
@@ -22,7 +21,7 @@ pub enum IcaClientError {
     Ownership(#[from] cw_ownable::OwnershipError),
 
     #[error("{0}")]
-    VersionControlError(#[from] VersionControlError),
+    RegistryError(#[from] RegistryError),
 
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),

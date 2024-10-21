@@ -128,28 +128,37 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     }
 
     /// Deploy abstract with current configuration
-    pub fn build(&self) -> AbstractClientResult<AbstractClient<Chain>> {
-        let abstr =
-            Abstract::deploy_on(self.chain.clone(), self.chain.sender_addr().into_string())?;
-        self.update_ans(&abstr)?;
+    pub fn build(
+        &self,
+        abstract_admin: Chain::Sender,
+    ) -> AbstractClientResult<AbstractClient<Chain>> {
+        let abstr = Abstract::deploy_on(self.chain.clone(), abstract_admin.clone())?;
+        self.update_ans(&abstr, abstract_admin)?;
 
         AbstractClient::new(self.chain.clone())
     }
 
-    fn update_ans(&self, abstr: &Abstract<Chain>) -> AbstractClientResult<()> {
-        abstr.ans_host.update_dexes(self.dexes.clone(), vec![])?;
-        abstr
-            .ans_host
-            .update_contract_addresses(self.contracts.clone(), vec![])?;
-        abstr
-            .ans_host
-            .update_asset_addresses(self.assets.clone(), vec![])?;
-        abstr
-            .ans_host
-            .update_channels(self.channels.clone(), vec![])?;
-        abstr.ans_host.update_pools(self.pools.clone(), vec![])?;
+    fn update_ans(
+        &self,
+        abstr: &Abstract<Chain>,
+        abstract_admin: Chain::Sender,
+    ) -> AbstractClientResult<()> {
+        let mut ans_host = abstr.ans_host.clone();
+        ans_host.set_sender(&abstract_admin);
+        ans_host.update_dexes(self.dexes.clone(), vec![])?;
+        ans_host.update_contract_addresses(self.contracts.clone(), vec![])?;
+        ans_host.update_asset_addresses(self.assets.clone(), vec![])?;
+        ans_host.update_channels(self.channels.clone(), vec![])?;
+        ans_host.update_pools(self.pools.clone(), vec![])?;
 
         Ok(())
+    }
+}
+
+impl<Chain: CwEnv<Sender = Addr>> AbstractClientBuilder<Chain> {
+    /// Deploy mock abstract with current configuration
+    pub fn build_mock(&self) -> AbstractClientResult<AbstractClient<Chain>> {
+        self.build(Abstract::mock_admin(&self.chain))
     }
 }
 
@@ -158,14 +167,12 @@ pub mod cw20_builder {
 
     // Re-exports to limit dependencies for consumer.
     use cosmwasm_std::Addr;
-    pub use cw20::{msg::Cw20ExecuteMsgFns, *};
-    pub use cw20_base::msg::{InstantiateMarketingInfo, QueryMsgFns as Cw20QueryMsgFns};
-    use cw_orch::{
-        environment::CwEnv,
-        prelude::{CwOrchInstantiate, CwOrchUpload},
+    pub use cw20::*;
+    pub use cw20_base::msg::InstantiateMarketingInfo;
+    use cw_orch::{environment::CwEnv, prelude::*};
+    pub use cw_plus_interface::cw20_base::{
+        Cw20Base, ExecuteMsgInterfaceFns, InstantiateMsg, QueryMsgInterfaceFns,
     };
-    pub use cw_plus_interface::cw20_base::Cw20Base;
-    use cw_plus_interface::cw20_base::InstantiateMsg;
 
     use crate::client::AbstractClientResult;
 
@@ -227,13 +234,8 @@ pub mod cw20_builder {
         }
 
         /// Instantiate with provided module id
-        // TODO: we can rename it to `build()` as other methods and take {module-id}-{symbol} as id instead
         pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Chain>> {
             let cw20 = Cw20Base::new(id, self.chain.clone());
-
-            // TODO: Consider adding error if the code-id is already uploaded. This would
-            // imply that the user is trying to instantiate twice using the same id which would
-            // overwrite the state.
             cw20.upload()?;
             cw20.instantiate(
                 &InstantiateMsg {
@@ -245,7 +247,7 @@ pub mod cw20_builder {
                     marketing: self.marketing.clone(),
                 },
                 self.admin.as_ref(),
-                None,
+                &[],
             )?;
             Ok(cw20)
         }

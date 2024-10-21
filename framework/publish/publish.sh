@@ -47,9 +47,9 @@ set -o errexit -o nounset -o pipefail
 
 # these are imported by other packages
 BASE_PACKAGES="abstract-macros"
-UTILS_PACKAGES="abstract-std abstract-testing abstract-sdk"
-CORE_CONTRACTS="manager proxy"
-NATIVE_CONTRACTS="ans-host account-factory module-factory version-control ibc-host ibc-client"
+UTILS_PACKAGES="abstract-std abstract-testing abstract-sdk abstract-ica abstract-xion"
+NATIVE_CONTRACTS="ans-host module-factory registry ibc-host ibc-client ica-client"
+ACCOUNT_CONTRACT="account"
 
  for pack in $BASE_PACKAGES; do
    (
@@ -67,18 +67,18 @@ for pack in $UTILS_PACKAGES; do
   )
 done
 
-for con in $CORE_CONTRACTS; do
-  (
-    cd "framework/contracts/account/$con"
-    echo "Publishing account base $con"
-    publish_crate
-  )
-done
-
 for con in $NATIVE_CONTRACTS; do
   (
     cd "framework/contracts/native/$con"
     echo "Publishing native $con"
+    publish_crate
+  )
+done
+
+for con in $ACCOUNT_CONTRACT; do
+  (
+    cd "framework/contracts/$con"
+    echo "Publishing account base $con"
     publish_crate
   )
 done
@@ -107,4 +107,5 @@ for pack in $STANDARDS; do
 done
 
 VERSION=$(grep -A1 "\[workspace.package\]" framework/Cargo.toml | awk -F'"' '/version/ {print $2}');
-sh ./framework/publish/tag-release.sh "v$VERSION"
+echo "Published v$VERSION"
+# sh ./framework/publish/tag-release.sh "v$VERSION"

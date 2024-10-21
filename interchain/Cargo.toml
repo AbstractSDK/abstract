@@ -1,7 +1,7 @@
 [workspace]
 members = [
   "scripts",
-  "interchain-tests",
+  "interchain-end_to_end_testing",
   "framework-clone-testing",
   "modules-clone-testing",
 ]
@@ -17,7 +17,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.23.0"
+version = "0.24.1-beta.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -31,20 +31,18 @@ license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
-cosmwasm-std = { version = "1.2" }
-cosmwasm-schema = { version = "1.2" }
-cw-controllers = { version = "1.0" }
-cw-utils = { version = "1.0" }
-cw-storage-plus = "1.2.0"
-cw2 = { package = "abstract-cw2", version = "1.2.2" }
-cw20 = { package = "abstract-cw20", version = "3.0.0" }
-cw20-base = { package = "abstract-cw20-base", version = "3.0.0", features = [
-  "library",
-] }
+cosmwasm-std = { version = "2.0" }
+cosmwasm-schema = { version = "2.0" }
+cw-controllers = { version = "2.0" }
+cw-utils = { version = "2.0" }
+cw-storage-plus = "2.0.0"
+cw2 = { version = "2.0.0" }
+cw20 = { version = "2.0.0" }
+cw20-base = { version = "2.0.0", features = ["library"] }
 
-cw-asset = { version = "3.0" }
-cw-ownable = { version = "0.5" }
-cw-address-like = { version = "1.0" }
+cw-asset = { version = "4.0" }
+cw-ownable = { version = "2.0" }
+cw-address-like = { version = "2.0" }
 
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
@@ -55,28 +53,30 @@ clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 tokio = { version = "1.33.0", features = ["full"] }
 
-polytone = { package = "abstract-polytone", version = "1.0.5" }
-polytone-note = { package = "abstract-polytone-note", version = "3.0.0" }
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "4.0.0" }
+polytone = { package = "abstract-polytone", version = "2.0.0" }
+polytone-note = { package = "abstract-polytone-note", version = "4.0.0" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
 
-cw-orch = { version = "0.24.0" }
-cw-orch-interchain = { version = "0.3.0" }
-cw-orch-clone-testing = { version = "0.6.4" }
-cw-orch-proto = { version = "0.4.0" }
+cw-orch = { version = "0.26.0" }
+cw-orch-daemon = { version = "0.27.0" }
+cw-orch-interchain = { version = "0.7.0" }
+cw-orch-clone-testing = { version = "0.8.0" }
+cw-orch-proto = { version = "0.8.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { version = "0.23.0", path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.23.0", path = "../framework/packages/abstract-sdk" }
-abstract-std = { version = "0.23.0", path = "../framework/packages/abstract-std" }
-abstract-app = { version = "0.23.0", path = "../framework/packages/abstract-app" }
-abstract-adapter = { version = "0.23.0", path = "../framework/packages/abstract-adapter" }
-abstract-testing = { version = "0.23.0", path = "../framework/packages/abstract-testing" }
-abstract-client = { version = "0.23.0", path = "../framework/packages/abstract-client" }
+abstract-interface = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-interface" }
+abstract-sdk = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-sdk" }
+abstract-std = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-std" }
+abstract-app = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-app" }
+abstract-adapter = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-adapter" }
+abstract-testing = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-testing" }
+abstract-client = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-client" }
 # Modules
-croncat-app = { path = "../modules/contracts/apps/croncat" }
+abstract-account = { version = "0.24.1-beta.2", path = "../framework/contracts/account" }
+# croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }
-dca-app = { path = "../modules/contracts/apps/dca" }
+# dca-app = { path = "../modules/contracts/apps/dca" }
 abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking" }
 abstract-dex-adapter = { path = "../modules/contracts/adapters/dex" }
 abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market" }
@@ -101,6 +101,10 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
+# TODO: remove after polytone release
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false

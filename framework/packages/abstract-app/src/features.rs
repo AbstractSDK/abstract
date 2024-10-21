@@ -1,11 +1,10 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
-    features::{
-        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
-    },
+    feature_objects::{AnsHost, RegistryContract},
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps};
+use abstract_std::registry::Account;
+use cosmwasm_std::{Deps, Env};
 
 use crate::{state::ContractError, AppContract};
 
@@ -20,9 +19,8 @@ impl<
     > AbstractNameService
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
-        // Retrieve the ANS host address from the base state.
-        Ok(self.base_state.load(deps.storage)?.ans_host)
+    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
+        AnsHost::new(deps.api, env).map_err(Into::into)
     }
 }
 // ANCHOR_END: ans
@@ -37,21 +35,9 @@ impl<
     > AccountIdentification
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.base_state.load(deps.storage)?.proxy_address)
+    fn account(&self, deps: Deps) -> AbstractSdkResult<Account> {
+        Ok(self.base_state.load(deps.storage)?.account)
     }
-}
-
-impl<
-        Error: ContractError,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        SudoMsg,
-    > AccountExecutor
-    for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
-{
 }
 
 impl<
@@ -64,8 +50,8 @@ impl<
     > AbstractRegistryAccess
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-        Ok(self.base_state.load(deps.storage)?.version_control)
+    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
+        RegistryContract::new(deps.api, env).map_err(Into::into)
     }
 }
 
@@ -73,82 +59,83 @@ impl<
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
-    use abstract_std::version_control::AccountBase;
-    use abstract_testing::{
-        addresses::TEST_WITH_DEP_MODULE_ID,
-        mock_querier,
-        prelude::{TEST_ACCOUNT_ID, TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY, TEST_VERSION_CONTROL},
-    };
-    use speculoos::prelude::*;
+    use abstract_testing::prelude::*;
 
     use super::*;
     use crate::mock::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_ans_host() -> AppTestResult {
         let deps = mock_init();
+        let env = mock_env_validated(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref())?;
+        let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref(), &env)?;
 
-        assert_that!(ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
+        assert_eq!(ans_host.address, abstr.ans_host);
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_abstract_registry() -> AppTestResult {
         let deps = mock_init();
+        let env = mock_env_validated(deps.api);
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref())?;
+        let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref(), &env)?;
 
-        assert_that!(abstract_registry.address).is_equal_to(Addr::unchecked(TEST_VERSION_CONTROL));
+        assert_eq!(abstract_registry.address, abstr.registry);
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_traits_generated() -> AppTestResult {
         let mut deps = mock_init();
-        deps.querier = mock_querier();
-        let test_account_base = AccountBase {
-            manager: Addr::unchecked(TEST_MANAGER),
-            proxy: Addr::unchecked(TEST_PROXY),
-        };
+        let env = mock_env_validated(deps.api);
+        let test_account = test_account(deps.api);
+        deps.querier = abstract_mock_querier_builder(deps.api)
+            .account(&test_account, TEST_ACCOUNT_ID)
+            .build();
         // Account identification
-        let base = MOCK_APP_WITH_DEP.account_base(deps.as_ref())?;
-        assert_eq!(base, test_account_base.clone());
+        let base = MOCK_APP_WITH_DEP.account(deps.as_ref())?;
+        assert_eq!(base, test_account.clone());
 
         // AbstractNameService
-        let host = MOCK_APP_WITH_DEP.name_service(deps.as_ref()).host().clone();
-        assert_eq!(host, AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
+        let host = MOCK_APP_WITH_DEP
+            .name_service(deps.as_ref(), &env)
+            .host()
+            .clone();
+        assert_eq!(host, AnsHost::new(&deps.api, &env)?);
 
         // AccountRegistry
-        let account_registry = MOCK_APP_WITH_DEP.account_registry(deps.as_ref()).unwrap();
-        let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
-        assert_eq!(base, test_account_base);
+        let binding = MOCK_APP_WITH_DEP;
+        let account_registry = binding.account_registry(deps.as_ref(), &env)?;
+        let base = account_registry.account(&TEST_ACCOUNT_ID)?;
+        assert_eq!(base, test_account);
 
-        // TODO: Make some of the module_registry queries raw as well?
-        let _module_registry = MOCK_APP_WITH_DEP.module_registry(deps.as_ref());
+        let _module_registry = MOCK_APP_WITH_DEP.module_registry(deps.as_ref(), &env);
         // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 
         Ok(())
     }
 
-    #[test]
-    fn test_proxy_address() -> AppTestResult {
+    #[coverage_helper::test]
+    fn test_account_address() -> AppTestResult {
         let deps = mock_init();
+        let expected_account = test_account(deps.api);
 
-        let proxy_address = MOCK_APP_WITH_DEP.proxy_address(deps.as_ref())?;
+        let account = MOCK_APP_WITH_DEP.account(deps.as_ref())?;
 
-        assert_that!(proxy_address).is_equal_to(Addr::unchecked(TEST_PROXY));
+        assert_eq!(account, expected_account);
 
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_module_id() -> AppTestResult {
         let module_id = MOCK_APP_WITH_DEP.module_id();
 
-        assert_that!(module_id).is_equal_to(TEST_WITH_DEP_MODULE_ID);
-
+        assert_eq!(module_id, TEST_WITH_DEP_MODULE_ID);
         Ok(())
     }
 }

@@ -14,7 +14,6 @@ type DexName = String;
 
 /// The key for an asset pairing
 /// Consists of the two assets and the dex name
-/// TODO: what if we made keys equal based on the two assets either way?
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
 pub struct DexAssetPairing<Asset = AssetEntry>((Asset, Asset, DexName));
 
@@ -80,9 +79,9 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
     .into())
 }
 
-/// @todo: use existing method for triple tuple
 impl KeyDeserialize for &DexAssetPairing {
     type Output = DexAssetPairing;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -130,7 +129,7 @@ mod test {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
@@ -149,7 +148,7 @@ mod test {
         assert_eq!(items[0], (key, 42069));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
@@ -183,7 +182,7 @@ mod test {
         assert_eq!(items[1], (Addr::unchecked("terraswap"), vec![ref_2]));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn partial_key_works() {
         let mut deps = mock_dependencies();
         let (key1, key2, key3) = mock_keys();
@@ -206,7 +205,7 @@ mod test {
         assert_eq!(items[1], ("osmosis".to_string(), 69420));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn try_from_lp_token() {
         let lp = LpToken::new("junoswap", vec!["juno".to_string(), "osmo".to_string()]);
 
@@ -218,7 +217,7 @@ mod test {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn display() {
         let key = DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap");
         assert_eq!(key.to_string(), "junoswap/juno,osmo");

@@ -91,9 +91,14 @@ Think of each of these bases as a foundation for building your application using
 
 - <a href="https://crates.io/crates/abstract-app" target="_blank">App</a>
 - <a href="https://crates.io/crates/abstract-adapter" target="_blank">Adapter</a>
+- <a href="https://crates.io/crates/abstract-standalone" target="_blank">Standalone</a>
 
 We will go into the technical details of these bases and their differences in the [Build With Abstract](../4_get_started/1_index.md)
 section.
+
+```admonish info
+Need a reminder on what the differences are between these bases? Check out the [module types](./6_module_types.md) page.
+```
 
 ## Example: Autocompounder
 
@@ -114,7 +119,7 @@ flowchart LR
 ```
 
 ```admonish reminder
-The `Account` is a set of smart-contracts that function as smart-contract wallet infrastructure. It holds the application's funds. We covered the `Account` architecture in detail [here](3_architecture.md).
+The `Account` is a smart-contract that function as smart-contract wallet infrastructure. It holds the application's funds. We covered the `Account` architecture in detail [here](3_architecture.md).
 ```
 
 Each solid arrow represents permissions to perform actions on behalf of the account. These permissions allow the contracts to move funds, interact with other contracts through the account, and perform other actions. It does this by sending messages to the account, which then executes them on behalf of the module. This is the basic idea behind account abstraction and is further elaborated in on the [account abstraction](./2_account_abstraction.md) page. Now, let's focus on the dotted arrows.

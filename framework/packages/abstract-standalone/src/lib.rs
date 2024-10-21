@@ -1,3 +1,5 @@
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
+
 mod endpoints;
 pub mod features;
 pub mod state;
@@ -20,11 +22,12 @@ pub use abstract_testing;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    use abstract_std::standalone;
+    use abstract_std::standalone::{self, StandaloneInstantiateMsg};
     use cosmwasm_schema::QueryResponses;
-    pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    pub use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi};
     use cosmwasm_std::{
-        to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+        testing::message_info, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
+        StdError, StdResult,
     };
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
@@ -35,7 +38,7 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockInitMsg {
         pub base: standalone::StandaloneInstantiateMsg,
-        pub random_field: String,
+        pub migratable: bool,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -71,14 +74,8 @@ pub mod mock {
     #[cw_orch::interface(MockInitMsg, MockExecMsg, MockQueryMsg, MockMigrateMsg)]
     pub struct MockStandaloneWithDepI;
 
-    use abstract_sdk::{
-        feature_objects::{AnsHost, VersionControlContract},
-        AbstractResponse, AbstractSdkError,
-    };
-    use abstract_testing::{
-        addresses::{TEST_ANS_HOST, TEST_PROXY, TEST_VERSION_CONTROL},
-        prelude::*,
-    };
+    use abstract_sdk::{AbstractResponse, AbstractSdkError};
+    use abstract_testing::{addresses::*, prelude::*};
     use thiserror::Error;
 
     use crate::StandaloneContract;
@@ -105,9 +102,16 @@ pub mod mock {
 
     // Easy way to see if an ibc-callback was actually received.
     pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
-    pub fn standalone_base_mock_querier() -> MockQuerierBuilder {
+    pub fn standalone_base_mock_querier(mock_api: MockApi) -> MockQuerierBuilder {
+        let abstr = AbstractMockAddrs::new(mock_api);
+        let test_account = test_account(mock_api);
         MockQuerierBuilder::default()
-            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected message"))
+            .with_contract_item(
+                &abstr.module_factory,
+                abstract_std::module_factory::state::CURRENT_BASE,
+                &test_account,
+            )
+            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected message"))
     }
 
     #[cosmwasm_std::entry_point]
@@ -117,7 +121,7 @@ pub mod mock {
         info: MessageInfo,
         msg: MockInitMsg,
     ) -> Result<Response, MockError> {
-        BASIC_MOCK_STANDALONE.instantiate(deps, info, msg.base, true)?;
+        BASIC_MOCK_STANDALONE.instantiate(deps, info, msg.base, msg.migratable)?;
         Ok(BASIC_MOCK_STANDALONE.response("instantiate"))
     }
 
@@ -141,33 +145,31 @@ pub mod mock {
     }
 
     #[cosmwasm_std::entry_point]
-    pub fn migrate(deps: DepsMut, _env: Env, _msg: MockMigrateMsg) -> Result<Response, MockError> {
-        BASIC_MOCK_STANDALONE.migrate(deps)?;
-        Ok(BASIC_MOCK_STANDALONE.response("migrate"))
+    pub fn migrate(_deps: DepsMut, _env: Env, _msg: MockMigrateMsg) -> Result<Response, MockError> {
+        let mut v: semver::Version = TEST_VERSION.parse().unwrap();
+        v.minor += 1;
+        let version = v.to_string();
+
+        let contract = MockStandaloneContract::new(TEST_MODULE_ID, version.leak(), None);
+
+        Ok(contract.response("migrate"))
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
-    /// This will set the [`abstract_testing::addresses::TEST_MANAGER`] as the admin.
-    pub fn mock_init() -> MockDeps {
+    /// This will set the [`abstract_testing::addresses::TEST_`] as the admin.
+    pub fn mock_init(migratable: bool) -> MockDeps {
         let mut deps = mock_dependencies();
-        let _info = mock_info(TEST_MODULE_FACTORY, &[]);
+        deps.querier = standalone_base_mock_querier(deps.api).build();
+        let abstr = AbstractMockAddrs::new(deps.api);
 
-        deps.querier = standalone_base_mock_querier().build();
+        let env = mock_env_validated(deps.api);
+        let info = message_info(&abstr.module_factory, &[]);
+        let msg = MockInitMsg {
+            base: StandaloneInstantiateMsg {},
+            migratable,
+        };
 
-        BASIC_MOCK_STANDALONE
-            .base_state
-            .save(
-                &mut deps.storage,
-                &standalone::StandaloneState {
-                    proxy_address: Addr::unchecked(TEST_PROXY),
-                    ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
-                    version_control: VersionControlContract::new(Addr::unchecked(
-                        TEST_VERSION_CONTROL,
-                    )),
-                    is_migratable: true,
-                },
-            )
-            .unwrap();
+        instantiate(deps.as_mut(), env, info, msg).unwrap();
 
         deps
     }

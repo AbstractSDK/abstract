@@ -38,7 +38,15 @@ pub fn execute_handler(
             desired_asset,
             denom_asset,
             exchanges,
-        } => update_config(deps, info, module, desired_asset, denom_asset, exchanges),
+        } => update_config(
+            deps,
+            env,
+            info,
+            module,
+            desired_asset,
+            denom_asset,
+            exchanges,
+        ),
         AppExecuteMsg::Tip {} => tip(deps, env, info, module, None),
     }
 }
@@ -57,9 +65,9 @@ pub fn tip(
         deposited_assets.add(cw20_deposit)?;
     }
 
-    // forward payment to the proxy contract
+    // forward payment to the account contract
     let forward_payment_msgs = module
-        .bank(deps.as_ref())
+        .bank(deps.as_ref(), &env)
         .deposit(deposited_assets.to_vec())?;
 
     // resp
@@ -71,7 +79,7 @@ pub fn tip(
     let config = CONFIG.load(deps.storage)?;
 
     // Reverse query the deposited assets
-    let ans = module.name_service(deps.as_ref());
+    let ans = module.name_service(deps.as_ref(), &env);
     let asset_entries = ans.query(&deposited_assets.to_vec())?;
 
     // If there is no desired asset specified, just forward the payment.
@@ -112,7 +120,7 @@ pub fn tip(
             .into_iter()
             .find(|(pair, refs)| !refs.is_empty() && exchange_strs.contains(&pair.dex()))
         {
-            let dex = module.ans_dex(deps.as_ref(), pair.dex().to_owned());
+            let dex = module.ans_dex(deps.as_ref(), &env, pair.dex().to_owned());
             let trigger_swap_msg = dex.swap(
                 pay_asset.clone(),
                 desired_asset.clone(),
@@ -176,6 +184,7 @@ fn update_tipper_history(
 /// Update the configuration of the app
 fn update_config(
     deps: DepsMut,
+    env: Env,
     msg_info: MessageInfo,
     module: PaymentApp,
     desired_asset: Option<Clearable<AssetEntry>>,
@@ -183,8 +192,10 @@ fn update_config(
     exchanges: Option<Vec<DexName>>,
 ) -> AppResult {
     // Only the admin should be able to call this
-    module.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let name_service = module.name_service(deps.as_ref());
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &msg_info.sender)?;
+    let name_service = module.name_service(deps.as_ref(), &env);
 
     let mut config = CONFIG.load(deps.storage)?;
     if let Some(desired_asset) = desired_asset {

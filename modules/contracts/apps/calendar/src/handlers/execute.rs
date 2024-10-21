@@ -75,7 +75,7 @@ pub fn execute_handler(
         CalendarExecuteMsg::UpdateConfig {
             price_per_minute,
             denom,
-        } => update_config(deps, info, module, price_per_minute, denom),
+        } => update_config(deps, env, info, module, price_per_minute, denom),
     }
 }
 
@@ -165,7 +165,9 @@ fn handle_stake(
     meeting_index: u32,
     stake_action: StakeAction,
 ) -> CalendarAppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -190,19 +192,19 @@ fn handle_stake(
     }
 
     meeting.amount_staked = Uint128::zero();
-    let bank = module.bank(deps.as_ref());
+    let bank = module.bank(deps.as_ref(), &env);
 
     let response = match stake_action {
         StakeAction::Return => module.response("return_stake").add_message(BankMsg::Send {
             to_address: requester,
-            amount: vec![Coin::new(amount_staked.into(), config.denom)],
+            amount: vec![Coin::new(amount_staked, config.denom)],
         }),
         StakeAction::FullSlash => {
-            let proxy_deposit_msgs: Vec<CosmosMsg> =
-                bank.deposit(vec![Coin::new(amount_staked.into(), config.denom)])?;
+            let account_deposit_msgs: Vec<CosmosMsg> =
+                bank.deposit(vec![Coin::new(amount_staked, config.denom)])?;
             module
                 .response("full_slash")
-                .add_messages(proxy_deposit_msgs)
+                .add_messages(account_deposit_msgs)
         }
         StakeAction::PartialSlash { minutes_late } => {
             // Cast should be safe given we cannot have a meeting longer than 24 hours.
@@ -214,21 +216,16 @@ fn handle_stake(
             let amount_to_slash =
                 amount_staked.multiply_ratio(minutes_late, meeting_duration_in_minutes as u128);
 
-            let proxy_deposit_msgs: Vec<CosmosMsg> = bank.deposit(vec![Coin::new(
-                amount_to_slash.into(),
-                config.denom.clone(),
-            )])?;
+            let account_deposit_msgs: Vec<CosmosMsg> =
+                bank.deposit(vec![Coin::new(amount_to_slash, config.denom.clone())])?;
 
             module
                 .response("partial_slash")
                 .add_message(BankMsg::Send {
                     to_address: requester,
-                    amount: vec![Coin::new(
-                        (amount_staked - amount_to_slash).into(),
-                        config.denom,
-                    )],
+                    amount: vec![Coin::new(amount_staked - amount_to_slash, config.denom)],
                 })
-                .add_messages(proxy_deposit_msgs)
+                .add_messages(account_deposit_msgs)
         }
     };
 
@@ -239,12 +236,15 @@ fn handle_stake(
 
 fn update_config(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     module: CalendarApp,
     price_per_minute: Option<Uint128>,
     denom: Option<AssetEntry>,
 ) -> CalendarAppResult {
-    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    module
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut attrs = vec![];
     if let Some(price_per_minute) = price_per_minute {
@@ -252,7 +252,7 @@ fn update_config(
         attrs.push(("price_per_minute", price_per_minute.to_string()));
     }
     if let Some(unresolved) = denom {
-        let denom = resolve_native_ans_denom(deps.as_ref(), &module, unresolved.clone())?;
+        let denom = resolve_native_ans_denom(deps.as_ref(), &env, &module, unresolved.clone())?;
         config.denom = denom;
         attrs.push(("denom", unresolved.to_string()));
     }
@@ -262,10 +262,11 @@ fn update_config(
 
 pub fn resolve_native_ans_denom(
     deps: Deps,
+    env: &Env,
     module: &CalendarApp,
     denom: AssetEntry,
 ) -> CalendarAppResult<String> {
-    let name_service = module.name_service(deps);
+    let name_service = module.name_service(deps, env);
     let resolved_denom = name_service.query(&denom)?;
     let denom = match resolved_denom {
         AssetInfoBase::Native(denom) => Ok(denom),

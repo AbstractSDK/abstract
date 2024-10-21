@@ -25,7 +25,7 @@ pub use msg::StakingQueryMsgFns;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use abstract_adapter::abstract_interface::{
-        AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
+        AbstractInterfaceError, AccountI, AdapterDeployer, RegisteredModule,
     };
     use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::sdk::features::ModuleIdentification as _;
@@ -96,14 +96,14 @@ pub mod interface {
             &self,
             provider: String,
             action: StakingAction,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
         ) -> Result<<Chain as TxHandler>::Response, AbstractInterfaceError> {
             let account = account.as_ref();
             let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(account.proxy.addr_str()?),
+                account_address: Some(account.addr_str()?),
                 request: StakingExecuteMsg { provider, action },
             });
-            self.execute(&swap_msg, None).map_err(Into::into)
+            self.execute(&swap_msg, &[]).map_err(Into::into)
         }
 
         /// Stake using Abstract Account (registered in daemon_state).
@@ -112,7 +112,7 @@ pub mod interface {
             stake_asset: AnsAsset,
             provider: String,
             duration: Option<cw_utils::Duration>,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
         ) -> Result<(), AbstractInterfaceError> {
             let action = StakingAction::Stake {
                 assets: vec![stake_asset],
@@ -127,7 +127,7 @@ pub mod interface {
             stake_asset: AnsAsset,
             provider: String,
             duration: Option<cw_utils::Duration>,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
         ) -> Result<(), AbstractInterfaceError> {
             let action = StakingAction::Unstake {
                 assets: vec![stake_asset],
@@ -141,7 +141,7 @@ pub mod interface {
             &self,
             stake_asset: AssetEntry,
             provider: String,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
         ) -> Result<(), AbstractInterfaceError> {
             let action = StakingAction::Claim {
                 assets: vec![stake_asset],
@@ -154,7 +154,7 @@ pub mod interface {
             &self,
             stake_asset: AssetEntry,
             provider: String,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
         ) -> Result<(), AbstractInterfaceError> {
             let action = StakingAction::ClaimRewards {
                 assets: vec![stake_asset],

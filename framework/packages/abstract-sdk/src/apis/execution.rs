@@ -3,10 +3,10 @@
 //!
 
 use abstract_macros::with_abstract_event;
-use abstract_std::proxy::ExecuteMsg;
-use cosmwasm_std::{Coin, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use abstract_std::account::ExecuteMsg;
+use cosmwasm_std::{Binary, Coin, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     features::{AccountExecutor, ModuleIdentification},
     AbstractSdkResult, AccountAction,
@@ -25,8 +25,10 @@ pub trait Execution: AccountExecutor + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
+        # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let executor: Executor<MockModule>  = module.executor(deps.as_ref());
         ```
@@ -39,17 +41,13 @@ pub trait Execution: AccountExecutor + ModuleIdentification {
 impl<T> Execution for T where T: AccountExecutor + ModuleIdentification {}
 
 impl<'a, T: Execution> AbstractApi<T> for Executor<'a, T> {
+    const API_ID: &'static str = "Executor";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: Execution> ApiIdentification for Executor<'a, T> {
-    fn api_id() -> String {
-        "Executor".to_owned()
     }
 }
 
@@ -64,8 +62,10 @@ impl<'a, T: Execution> ApiIdentification for Executor<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
+    # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let executor: Executor<MockModule>  = module.executor(deps.as_ref());
     ```
@@ -79,16 +79,16 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
-        let msg = self.base.execute_on_proxy(
+        let msg = self.base.execute_on_account(
             self.deps,
-            &ExecuteMsg::ModuleActionWithData { msg },
+            &ExecuteMsg::ExecuteWithData { msg },
             vec![],
         )?;
         Ok(ExecutorMsg(msg))
     }
 
     /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
+    /// These messages will be executed on the account contract and the sending module must be whitelisted.
     pub fn execute(
         &self,
         actions: impl IntoIterator<Item = impl Into<AccountAction>>,
@@ -97,8 +97,8 @@ impl<'a, T: Execution> Executor<'a, T> {
     }
 
     /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    /// Funds attached from sending module to proxy
+    /// These messages will be executed on the account contract and the sending module must be whitelisted.
+    /// Funds attached from sending module to account
     pub fn execute_with_funds(
         &self,
         actions: impl IntoIterator<Item = impl Into<AccountAction>>,
@@ -108,14 +108,14 @@ impl<'a, T: Execution> Executor<'a, T> {
             .into_iter()
             .flat_map(|a| a.into().messages())
             .collect();
-        let msg =
-            self.base
-                .execute_on_proxy(self.deps, &ExecuteMsg::ModuleAction { msgs }, funds)?;
+        let msg = self
+            .base
+            .execute_on_account(self.deps, &ExecuteMsg::Execute { msgs }, funds)?;
         Ok(ExecutorMsg(msg))
     }
 
     /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
+    /// These messages will be executed on the account contract and the sending module must be whitelisted.
     /// The execution will be executed in a submessage and the reply will be sent to the provided `reply_on`.
     pub fn execute_with_reply(
         &self,
@@ -129,12 +129,13 @@ impl<'a, T: Execution> Executor<'a, T> {
             msg: msg.into(),
             gas_limit: None,
             reply_on,
+            payload: Binary::default(),
         };
         Ok(sub_msg)
     }
 
     /// Execute a single msg on the Account.
-    /// This message will be executed on the proxy contract. Any data returned from the execution will be forwarded to the proxy's response through a reply.
+    /// This message will be executed on the account contract. Any data returned from the execution will be forwarded to the account's response through a reply.
     /// The resulting data should be available in the reply of the specified ID.
     pub fn execute_with_reply_and_data(
         &self,
@@ -148,12 +149,13 @@ impl<'a, T: Execution> Executor<'a, T> {
             msg: msg.into(),
             gas_limit: None,
             reply_on,
+            payload: Binary::default(),
         };
         Ok(sub_msg)
     }
 
     /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
+    /// These messages will be executed on the account contract and the sending module must be whitelisted.
     /// Return a "standard" response for the executed messages. (with the provided action).
     pub fn execute_with_response(
         &self,
@@ -181,13 +183,13 @@ impl From<ExecutorMsg> for CosmosMsg {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_std::proxy::ExecuteMsg;
+    use abstract_std::account::ExecuteMsg;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, *};
+    use cosmwasm_std::*;
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::mock_module::*;
+    use crate::{apis::traits::test::abstract_api_test, mock_module::*};
 
     fn mock_bank_send(amount: Vec<Coin>) -> AccountAction {
         AccountAction::from(CosmosMsg::Bank(BankMsg::Send {
@@ -204,10 +206,9 @@ mod test {
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
-        #[test]
+        #[coverage_helper::test]
         fn empty_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             let messages = vec![];
@@ -216,8 +217,8 @@ mod test {
             assert_that!(actual_res).is_ok();
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                contract_addr: account.addr().to_string(),
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(messages),
                 })
                 .unwrap(),
@@ -226,10 +227,9 @@ mod test {
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn with_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -239,8 +239,8 @@ mod test {
             assert_that!(actual_res).is_ok();
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                contract_addr: account.addr().to_string(),
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(messages),
                 })
                 .unwrap(),
@@ -252,13 +252,13 @@ mod test {
     }
 
     mod execute_with_reply {
+
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
-        #[test]
+        #[coverage_helper::test]
         fn empty_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
@@ -275,8 +275,8 @@ mod test {
             let expected = SubMsg {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: TEST_PROXY.to_string(),
-                    msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                    contract_addr: account.addr().to_string(),
+                    msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                         msgs: flatten_actions(empty_actions),
                     })
                     .unwrap(),
@@ -284,14 +284,14 @@ mod test {
                 }),
                 gas_limit: None,
                 reply_on: expected_reply_on,
+                payload: Binary::default(),
             };
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn with_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -310,8 +310,8 @@ mod test {
             let expected = SubMsg {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: TEST_PROXY.to_string(),
-                    msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                    contract_addr: account.addr().to_string(),
+                    msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                         msgs: flatten_actions(action),
                     })
                     .unwrap(),
@@ -320,6 +320,7 @@ mod test {
                 }),
                 gas_limit: None,
                 reply_on: expected_reply_on,
+                payload: Binary::default(),
             };
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }
@@ -329,10 +330,9 @@ mod test {
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
-        #[test]
+        #[coverage_helper::test]
         fn empty_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
@@ -341,8 +341,8 @@ mod test {
             let actual_res = executor.execute_with_response(empty_actions.clone(), expected_action);
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                contract_addr: account.addr().to_string(),
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(empty_actions),
                 })
                 .unwrap(),
@@ -360,10 +360,10 @@ mod test {
             assert_that!(actual_res).is_ok().is_equal_to(expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn with_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new();
+            let (deps, account, stub) = mock_module_setup();
+
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -373,8 +373,8 @@ mod test {
             let actual_res = executor.execute_with_response(action.clone(), expected_action);
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
+                contract_addr: account.addr().to_string(),
+                msg: to_json_binary(&ExecuteMsg::<Empty>::Execute {
                     msgs: flatten_actions(action),
                 })
                 .unwrap(),
@@ -388,7 +388,15 @@ mod test {
                         .add_attribute("action", expected_action),
                 )
                 .add_message(expected_msg);
-            assert_that!(actual_res).is_ok().is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let executor = app.executor(deps.as_ref());
+
+        abstract_api_test(executor);
     }
 }

@@ -1,32 +1,30 @@
 use abstract_sdk::{
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::{AnsHost, RegistryContract},
     features::AccountIdentification,
     namespaces::BASE_STATE,
     ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
+    account::{self, ModuleInstallConfig},
     app::AppState,
-    ibc::{Callback, ModuleQuery},
+    ibc::{polytone_callbacks::CallbackRequest, Callback, ModuleQuery},
     ibc_client::{
-        state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
-        IbcClientCallback, InstalledModuleIdentification,
+        state::{IbcInfrastructure, ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
+        IbcClientCallback, InstalledModuleIdentification, PolytoneNoteExecuteMsg,
     },
     ibc_host::{self, HostAction, InternalAction},
-    manager::{self, ModuleInstallConfig},
     objects::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
     },
-    version_control::AccountBase,
+    registry::Account,
     IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
     ensure, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
-    IbcMsg, MessageInfo, QueryRequest, Storage, WasmQuery,
+    IbcMsg, MessageInfo, QueryRequest, WasmQuery,
 };
 use cw_storage_plus::Item;
-use polytone::callbacks::CallbackRequest;
-use prost::Name;
 
 use crate::{
     contract::{IbcClientResponse, IbcClientResult},
@@ -35,33 +33,6 @@ use crate::{
 
 /// Packet lifetime in seconds
 pub const PACKET_LIFETIME: u64 = 60 * 60;
-
-pub fn execute_update_config(
-    deps: DepsMut,
-    info: MessageInfo,
-    new_ans_host: Option<String>,
-    new_version_control: Option<String>,
-) -> IbcClientResult {
-    // auth check
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
-    let mut cfg = CONFIG.load(deps.storage)?;
-
-    if let Some(ans_host) = new_ans_host {
-        cfg.ans_host = AnsHost {
-            address: deps.api.addr_validate(&ans_host)?,
-        };
-    }
-    if let Some(version_control) = new_version_control {
-        cfg.version_control =
-            VersionControlContract::new(deps.api.addr_validate(&version_control)?);
-        // New version control address implies new accounts.
-        clear_accounts(deps.storage);
-    }
-
-    CONFIG.save(deps.storage, &cfg)?;
-
-    Ok(IbcClientResponse::action("update_config"))
-}
 
 /// Registers a chain to the client.
 /// This registration includes the counterparty information (note and proxy address)
@@ -100,7 +71,7 @@ pub fn execute_register_infrastructure(
 
     let note_proxy_msg = wasm_execute(
         note,
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![],
             callback: Some(CallbackRequest {
                 receiver: env.contract.address.to_string(),
@@ -137,7 +108,7 @@ pub fn execute_remove_host(
 fn send_remote_host_action(
     deps: Deps,
     account_id: AccountId,
-    account: AccountBase,
+    account: Account,
     host_chain: TruncatedChainId,
     action: HostAction,
     callback_request: Option<CallbackRequest>,
@@ -150,13 +121,12 @@ fn send_remote_host_action(
     // message that will be called on the local note contract
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![wasm_execute(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
                 &ibc_host::ExecuteMsg::Execute {
-                    // TODO: consider removing this field
-                    proxy_address: account.proxy.to_string(),
+                    account_address: account.addr().to_string(),
                     account_id,
                     action,
                 },
@@ -176,35 +146,25 @@ fn send_remote_host_action(
 /// This is the top-level function to do IBC related actions.
 pub fn execute_send_packet(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     host_chain: TruncatedChainId,
     action: HostAction,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let cfg = CONFIG.load(deps.storage)?;
-
+    let registry = RegistryContract::new(deps.api, &env)?;
     // The packet we need to send depends on the action we want to execute
 
     let note_message = match &action {
         HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
-            // Verify that the sender is a proxy contract
-            let account_base = cfg
-                .version_control
-                .assert_proxy(&info.sender, &deps.querier)?;
+            // Verify that the sender is a account contract
+            let account = registry.assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
-            let account_id = account_base.account_id(deps.as_ref())?;
+            let account_id = account.account_id(deps.as_ref())?;
 
-            send_remote_host_action(
-                deps.as_ref(),
-                account_id,
-                account_base,
-                host_chain,
-                action,
-                None,
-            )?
+            send_remote_host_action(deps.as_ref(), account_id, account, host_chain, action, None)?
         }
         HostAction::Internal(_) => {
             // Can only call non-internal actions
@@ -229,17 +189,16 @@ pub fn execute_send_module_to_module_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let cfg = CONFIG.load(deps.storage)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
     // Query the sender module information
-    let module_info = cfg
-        .version_control
-        .module_registry(deps.as_ref())?
+    let module_info = registry
+        .module_registry(deps.as_ref(), &env)?
         .module_info(info.sender.clone())?;
 
     // We need additional information depending on the module type
     let source_module = match module_info.reference {
-        ModuleReference::AccountBase(_)
+        ModuleReference::Account(_)
         | ModuleReference::Native(_)
         | ModuleReference::Standalone(_)
         | ModuleReference::Service(_) => return Err(IbcClientError::Unauthorized {}),
@@ -249,16 +208,14 @@ pub fn execute_send_module_to_module_packet(
         },
         ModuleReference::App(_) => {
             // We verify the associated account id
-            let proxy_addr = Item::<AppState>::new(BASE_STATE)
+            let account = Item::<AppState>::new(BASE_STATE)
                 .query(&deps.querier, info.sender.clone())?
-                .proxy_address;
-            let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
-            let account_base = cfg
-                .version_control
-                .account_base(&account_id, &deps.querier)?;
-            let ibc_client = manager::state::ACCOUNT_MODULES.query(
+                .account;
+            let account_id = registry.account_id(account.addr(), &deps.querier)?;
+            let account = registry.account(&account_id, &deps.querier)?;
+            let ibc_client = account::state::ACCOUNT_MODULES.query(
                 &deps.querier,
-                account_base.manager,
+                account.into_addr(),
                 IBC_CLIENT,
             )?;
             // Check that ibc_client is installed on account
@@ -298,7 +255,7 @@ pub fn execute_send_module_to_module_packet(
     // message that will be called on the local note contract
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Execute {
+        &PolytoneNoteExecuteMsg::Execute {
             msgs: vec![wasm_execute(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
@@ -352,7 +309,7 @@ pub fn execute_send_query(
     let note_contract = ibc_infra.polytone_note;
     let note_message = wasm_execute(
         note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Query {
+        &PolytoneNoteExecuteMsg::Query {
             msgs: queries,
             callback: callback_request,
             timeout_seconds: PACKET_LIFETIME.into(),
@@ -373,26 +330,24 @@ pub fn execute_register_account(
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
     host_chain.verify()?;
-    let cfg = CONFIG.load(deps.storage)?;
+    let registry = RegistryContract::new(deps.api, &env)?;
 
-    // Verify that the sender is a proxy contract
-    let account_base = cfg
-        .version_control
-        .assert_proxy(&info.sender, &deps.querier)?;
+    // Verify that the sender is a account contract
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = account.account_id(deps.as_ref())?;
     // get auxiliary information
 
-    let account_info: manager::InfoResponse = deps
+    let account_info: account::InfoResponse = deps
         .querier
-        .query_wasm_smart(account_base.manager.clone(), &manager::QueryMsg::Info {})?;
+        .query_wasm_smart(account.addr(), &account::QueryMsg::Info {})?;
     let account_info = account_info.info;
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
         account_id.clone(),
-        account_base,
+        account,
         host_chain,
         HostAction::Internal(InternalAction::Register {
             description: account_info.description,
@@ -415,21 +370,18 @@ pub fn execute_send_funds(
     env: Env,
     info: MessageInfo,
     host_chain: TruncatedChainId,
-    funds: Vec<Coin>,
     memo: Option<String>,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let cfg = CONFIG.load(deps.storage)?;
-    let ans = cfg.ans_host;
-    // Verify that the sender is a proxy contract
+    let registry = RegistryContract::new(deps.api, &env)?;
+    let ans = AnsHost::new(deps.api, &env)?;
+    // Verify that the sender is a account contract
 
-    let account_base = cfg
-        .version_control
-        .assert_proxy(&info.sender, &deps.querier)?;
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id of Account
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = account.account_id(deps.as_ref())?;
     // load remote account
     let remote_addr = ACCOUNTS.load(
         deps.storage,
@@ -443,7 +395,7 @@ pub fn execute_send_funds(
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;
 
     let mut transfers: Vec<CosmosMsg> = vec![];
-    for coin in funds {
+    for coin in info.funds {
         // construct a packet to send
 
         let ics_20_send = _ics_20_send_msg(
@@ -456,9 +408,7 @@ pub fn execute_send_funds(
         transfers.push(ics_20_send);
     }
 
-    Ok(IbcClientResponse::action("handle_send_funds")
-        //.add_message(proxy_msg)
-        .add_messages(transfers))
+    Ok(IbcClientResponse::action("handle_send_funds").add_messages(transfers))
 }
 
 fn _ics_20_send_msg(
@@ -470,20 +420,10 @@ fn _ics_20_send_msg(
 ) -> CosmosMsg {
     match memo {
         Some(memo) => {
-            // If we have memo need to send it with stargate
-            // TODO: Remove when possible, cosmwasm-std 2.0.0+ supports memo
-            use ibc_proto::{
-                cosmos::base::v1beta1::Coin, ibc::applications::transfer::v1::MsgTransfer,
-            };
-            use prost::Message;
-
-            let value = MsgTransfer {
+            let value = crate::anybuf::ibc::MsgTransfer {
                 source_port: "transfer".to_string(), // ics20 default
                 source_channel: ics20_channel_id,
-                token: Some(Coin {
-                    denom: coin.denom,
-                    amount: coin.amount.to_string(),
-                }),
+                token: Some(coin.into()),
                 sender: env.contract.address.to_string(),
                 receiver,
                 timeout_height: None,
@@ -491,10 +431,11 @@ fn _ics_20_send_msg(
                 memo,
             };
 
-            let value = value.encode_to_vec();
+            let value = value.to_anybuf().into_vec();
             let value = Binary::from(value);
+            #[allow(deprecated)]
             CosmosMsg::Stargate {
-                type_url: MsgTransfer::type_url(),
+                type_url: crate::anybuf::ibc::MsgTransfer::type_url(),
                 value,
             }
         }
@@ -503,14 +444,12 @@ fn _ics_20_send_msg(
             to_address: receiver,
             amount: coin,
             timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+            memo,
         }
         .into(),
     }
 }
 
-fn clear_accounts(store: &mut dyn Storage) {
-    ACCOUNTS.clear(store);
-}
 // Map a ModuleQuery to a regular query.
 fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<Empty> {
     match query {
@@ -523,6 +462,7 @@ fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<E
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),
         QueryRequest::Staking(query) => QueryRequest::Staking(query),
+        #[allow(deprecated)]
         QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
         QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
         QueryRequest::Wasm(query) => QueryRequest::Wasm(query),

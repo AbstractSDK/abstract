@@ -2,7 +2,6 @@
 
 [Introduction](./0_introduction.md)
 
-
 # Platform
 ---
 
@@ -18,9 +17,9 @@
     - [Upgradability](./3_framework/7_upgradability.md)
     - [Monetization](./5_platform/6_monetization.md)
 - [Infrastructure](./5_platform/index.md)
+    - [Account Creation](./5_platform/3_account_creation.md)
     - [Abstract Name Service](./5_platform/1_ans.md)
-    - [Version Control](./5_platform/2_version_control.md)
-    - [Account Factory](./5_platform/3_account_factory.md)
+    - [Registry](./5_platform/2_registry.md)
     - [Module Factory](./5_platform/5_module_factory.md)
     - [Module Flows](./5_platform/8_modules.md)
 
@@ -56,7 +55,6 @@
         - [Lending Market](./modules/lending-market.md)
         - [CW Staking](./modules/cw-staking.md)
     - [Subscription](./modules/subscription.md)
-    - [ETF](./modules/etf.md)
 
 # Case Studies
 ---

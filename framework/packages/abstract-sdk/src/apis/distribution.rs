@@ -4,9 +4,10 @@
 
 use cosmos_sdk_proto::{
     cosmos::{base, distribution},
+    prost::Name,
     traits::Message,
 };
-use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg};
+use cosmwasm_std::{to_json_binary, Addr, Coin};
 
 use crate::{features::AccountExecutor, AbstractSdkResult, AccountAction};
 
@@ -21,7 +22,10 @@ pub trait DistributionInterface: AccountExecutor {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
+        # use abstract_testing::prelude::*;
+        # let deps = mock_dependencies();
+        # let account = admin_account(deps.api);
+        # let module = MockModule::new(deps.api, account);
 
         let distr: Distribution  = module.distribution();
         ```
@@ -41,7 +45,10 @@ impl<T> DistributionInterface for T where T: AccountExecutor {}
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
+    # use abstract_testing::prelude::*;
+    # let deps = mock_dependencies();
+    # let account = admin_account(deps.api);
+    # let module = MockModule::new(deps.api, account);
 
     let distr: Distribution  = module.distribution();
     ```
@@ -62,10 +69,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress".to_string(),
-            value: to_json_binary(&msg)?,
-        };
+        let msg = super::stargate_msg(
+            distribution::v1beta1::MsgSetWithdrawAddress::type_url(),
+            to_json_binary(&msg)?,
+        );
 
         Ok(msg.into())
     }
@@ -82,10 +89,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward".to_string(),
-            value: to_json_binary(&msg)?,
-        };
+        let msg = super::stargate_msg(
+            distribution::v1beta1::MsgWithdrawDelegatorReward::type_url(),
+            to_json_binary(&msg)?,
+        );
 
         Ok(msg.into())
     }
@@ -100,10 +107,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission".to_string(),
-            value: to_json_binary(&msg)?,
-        };
+        let msg = super::stargate_msg(
+            distribution::v1beta1::MsgWithdrawValidatorCommission::type_url(),
+            to_json_binary(&msg)?,
+        );
 
         Ok(msg.into())
     }
@@ -126,10 +133,10 @@ impl Distribution {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.distribution.v1beta1.MsgFundCommunityPool".to_string(),
-            value: to_json_binary(&msg)?,
-        };
+        let msg = super::stargate_msg(
+            distribution::v1beta1::MsgFundCommunityPool::type_url(),
+            to_json_binary(&msg)?,
+        );
 
         Ok(msg.into())
     }
@@ -142,18 +149,21 @@ mod test {
 
     use super::*;
     use crate::mock_module::*;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::testing::MockApi;
 
     mod set_withdraw_address {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn set_withdraw_address() {
-            let app = MockModule::new();
+            let mock_api = MockApi::default();
+            let app = MockModule::new(mock_api, test_account(mock_api));
 
             let distribution = app.distribution();
 
-            let delegator = Addr::unchecked("delegator");
-            let withdraw = Addr::unchecked("withdraw");
+            let delegator = mock_api.addr_make("delegator");
+            let withdraw = mock_api.addr_make("withdraw");
 
             let res = distribution.set_withdraw_address(&delegator, &withdraw);
 
@@ -164,14 +174,15 @@ mod test {
     mod withdraw_delegator_reward {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn withdraw_delegator_reward() {
-            let app = MockModule::new();
+            let mock_api = MockApi::default();
+            let app = MockModule::new(mock_api, test_account(mock_api));
 
             let distribution = app.distribution();
 
-            let validator = Addr::unchecked("validator");
-            let delegator = Addr::unchecked("delegator");
+            let validator = mock_api.addr_make("validator");
+            let delegator = mock_api.addr_make("delegator");
 
             let res = distribution.withdraw_delegator_reward(&validator, &delegator);
 
@@ -182,13 +193,14 @@ mod test {
     mod withdraw_delegator_comission {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn withdraw_delegator_comission() {
-            let app = MockModule::new();
+            let mock_api = MockApi::default();
+            let app = MockModule::new(mock_api, test_account(mock_api));
 
             let distribution = app.distribution();
 
-            let validator = Addr::unchecked("validator");
+            let validator = mock_api.addr_make("validator");
 
             let res = distribution.withdraw_delegator_commission(&validator);
 
@@ -201,13 +213,14 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn fund_community_pool() {
-            let app = MockModule::new();
+            let mock_api = MockApi::default();
+            let app = MockModule::new(mock_api, test_account(mock_api));
 
             let distribution = app.distribution();
 
-            let depositor = Addr::unchecked("depositor");
+            let depositor = mock_api.addr_make("depositor");
             let amount = coins(1000, "coin");
 
             let res = distribution.fund_community_pool(&amount, &depositor);

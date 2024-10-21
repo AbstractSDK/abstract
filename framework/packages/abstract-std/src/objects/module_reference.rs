@@ -5,8 +5,8 @@ use crate::{error::AbstractError, AbstractResult};
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
 pub enum ModuleReference {
-    /// Core Abstract Contracts
-    AccountBase(u64),
+    /// Account Contract
+    Account(u64),
     /// Native Abstract Contracts
     Native(Addr),
     /// Installable adapters
@@ -35,7 +35,7 @@ impl ModuleReference {
 
     pub fn unwrap_account(&self) -> AbstractResult<u64> {
         match self {
-            ModuleReference::AccountBase(v) => Ok(*v),
+            ModuleReference::Account(v) => Ok(*v),
             _ => Err(AbstractError::Assert(
                 "module reference not an account module.".to_string(),
             )),
@@ -104,11 +104,11 @@ impl ModuleReference {
     // Throws an error if the module reference is not an code id
     pub fn unwrap_code_id(&self) -> AbstractResult<u64> {
         match self {
-            ModuleReference::AccountBase(code_id)
+            ModuleReference::Account(code_id)
             | ModuleReference::App(code_id)
             | ModuleReference::Standalone(code_id) => Ok(*code_id),
             _ => Err(AbstractError::Assert(
-                "module reference not account base, app or standalone".to_owned(),
+                "module reference not account, app or standalone".to_owned(),
             )),
         }
     }
@@ -122,18 +122,18 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn core() {
-        let account_base = ModuleReference::AccountBase(1);
-        assert_eq!(account_base.unwrap_account().unwrap(), 1);
-        assert!(account_base.unwrap_native().is_err());
-        assert!(account_base.unwrap_adapter().is_err());
-        assert!(account_base.unwrap_app().is_err());
-        assert!(account_base.unwrap_standalone().is_err());
-        assert!(account_base.unwrap_service().is_err());
+        let account = ModuleReference::Account(1);
+        assert_eq!(account.unwrap_account().unwrap(), 1);
+        assert!(account.unwrap_native().is_err());
+        assert!(account.unwrap_adapter().is_err());
+        assert!(account.unwrap_app().is_err());
+        assert!(account.unwrap_standalone().is_err());
+        assert!(account.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn native() {
         let native = ModuleReference::Native(Addr::unchecked("addr"));
         assert!(native.unwrap_account().is_err());
@@ -144,7 +144,7 @@ mod test {
         assert!(native.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn service() {
         let service = ModuleReference::Service(Addr::unchecked("addr"));
         assert!(service.unwrap_account().is_err());
@@ -155,7 +155,7 @@ mod test {
         assert_eq!(service.unwrap_service().unwrap(), Addr::unchecked("addr"));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn adapter() {
         let adapter = ModuleReference::Adapter(Addr::unchecked("addr"));
         assert!(adapter.unwrap_account().is_err());
@@ -166,7 +166,7 @@ mod test {
         assert!(adapter.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn app() {
         let app = ModuleReference::App(1);
         assert!(app.unwrap_account().is_err());
@@ -177,7 +177,7 @@ mod test {
         assert!(app.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn standalone() {
         let standalone = ModuleReference::Standalone(1);
         assert!(standalone.unwrap_account().is_err());
@@ -188,7 +188,7 @@ mod test {
         assert!(standalone.unwrap_service().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn unwrap_addr() {
         let native = ModuleReference::Native(Addr::unchecked("addr"));
         assert_eq!(native.unwrap_addr().unwrap(), Addr::unchecked("addr"));
@@ -197,25 +197,25 @@ mod test {
         let service = ModuleReference::Service(Addr::unchecked("addr"));
         assert_eq!(service.unwrap_addr().unwrap(), Addr::unchecked("addr"));
 
-        let account_base = ModuleReference::AccountBase(1);
-        assert!(account_base.unwrap_addr().is_err());
+        let account = ModuleReference::Account(1);
+        assert!(account.unwrap_addr().is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_validate_happy_path() {
         let deps = mock_dependencies();
 
-        let native = ModuleReference::Native(Addr::unchecked("addr"));
+        let native = ModuleReference::Native(deps.api.addr_make("addr"));
         assert_that!(native.validate(deps.as_ref())).is_ok();
 
-        let api = ModuleReference::Adapter(Addr::unchecked("addr"));
+        let api = ModuleReference::Adapter(deps.api.addr_make("addr"));
         assert_that!(api.validate(deps.as_ref())).is_ok();
 
-        let service = ModuleReference::Service(Addr::unchecked("addr"));
+        let service = ModuleReference::Service(deps.api.addr_make("addr"));
         assert_that!(service.validate(deps.as_ref())).is_ok();
 
-        let account_base = ModuleReference::AccountBase(1);
-        assert_that!(account_base.validate(deps.as_ref())).is_ok();
+        let account = ModuleReference::Account(1);
+        assert_that!(account.validate(deps.as_ref())).is_ok();
 
         let app = ModuleReference::App(1);
         assert_that!(app.validate(deps.as_ref())).is_ok();
@@ -224,17 +224,17 @@ mod test {
         assert_that!(standalone.validate(deps.as_ref())).is_ok();
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_validate_bad_address() {
         let deps = mock_dependencies();
 
         let native = ModuleReference::Native(Addr::unchecked(""));
         assert_that!(native.validate(deps.as_ref())).is_err();
 
-        let api = ModuleReference::Adapter(Addr::unchecked(""));
+        let api = ModuleReference::Adapter(Addr::unchecked("abcde"));
         assert_that!(api.validate(deps.as_ref())).is_err();
 
-        let service = ModuleReference::Service(Addr::unchecked(""));
+        let service = ModuleReference::Service(Addr::unchecked("non_bech"));
         assert_that!(service.validate(deps.as_ref())).is_err();
     }
 }

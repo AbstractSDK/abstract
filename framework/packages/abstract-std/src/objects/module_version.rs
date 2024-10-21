@@ -28,11 +28,14 @@ use cw_storage_plus::Item;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-use super::dependency::{Dependency, DependencyResponse, StaticDependency};
+use super::{
+    dependency::{Dependency, DependencyResponse, StaticDependency},
+    storage_namespaces::MODULE_STORAGE_KEY,
+};
 use crate::AbstractError;
 
 // ANCHOR: metadata
-pub const MODULE: Item<ModuleData> = Item::new("module_data");
+pub const MODULE: Item<ModuleData> = Item::new(MODULE_STORAGE_KEY);
 
 /// Represents metadata for abstract modules and abstract native contracts.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -203,7 +206,7 @@ mod tests {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn set_works() {
         let mut store = MockStorage::new();
 
@@ -236,10 +239,10 @@ mod tests {
         assert_eq!(expected, loaded);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn module_upgrade() {
         let mut store = MockStorage::new();
-        let contract_name = "abstract:manager";
+        let contract_name = "abstract:account";
         let contract_version = "0.19.2";
         cw2::CONTRACT
             .save(
@@ -272,10 +275,10 @@ mod tests {
         assert!(res.is_ok());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn module_upgrade_err() {
         let mut store = MockStorage::new();
-        let contract_name = "abstract:manager";
+        let contract_name = "abstract:account";
         let contract_version = "0.19.2";
         cw2::CONTRACT
             .save(

@@ -35,7 +35,7 @@ abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 cw-orch = { workspace = true }
-abstract-adapter = { version = "0.23.0", path = "../../abstract-adapter" }
+abstract-adapter = { version = "0.24.1-beta.2", path = "../../abstract-adapter" }
 
 abstract-interface = { workspace = true }
 

@@ -60,29 +60,25 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::AssetList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_asset_list(deps, start_after, limit),
         QueryMsg::AssetInfos { infos } => queries::query_asset_infos(deps, env, infos),
         QueryMsg::AssetInfoList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_asset_info_list(deps, start_after, limit),
-        QueryMsg::Contracts { entries } => {
-            queries::query_contract(deps, env, entries.iter().collect())
-        }
+        QueryMsg::Contracts { entries } => queries::query_contract(deps, env, entries),
         QueryMsg::ContractList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_contract_list(deps, start_after, limit),
-        QueryMsg::Channels { entries: names } => {
-            queries::query_channels(deps, env, names.iter().collect())
-        }
+        QueryMsg::Channels { entries: names } => queries::query_channels(deps, env, names),
         QueryMsg::ChannelList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_channel_list(deps, start_after, limit),
         QueryMsg::RegisteredDexes {} => queries::query_registered_dexes(deps, env),
         QueryMsg::PoolList {
@@ -103,13 +99,20 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AnsHostResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> AnsHostResult {
+    match msg {
+        MigrateMsg::Instantiate(instantiate_msg) => {
+            abstract_sdk::cw_helpers::migrate_instantiate(deps, env, instantiate_msg, instantiate)
+        }
+        MigrateMsg::Migrate {} => {
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, ANS_HOST, version)?;
-    set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
+            assert_contract_upgrade(deps.storage, ANS_HOST, version)?;
+            set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
 
-    Ok(AnsHostResponse::action("migrate"))
+            Ok(AnsHostResponse::action("migrate"))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -122,19 +125,21 @@ mod tests {
 
     mod migrate {
         use abstract_std::AbstractError;
+        use abstract_testing::mock_env_validated;
         use cw2::get_contract_version;
 
         use super::*;
         use crate::contract;
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_same_version() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let env = mock_env_validated(deps.api);
+            mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -149,17 +154,18 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_downgrade() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let env = mock_env_validated(deps.api);
+            mock_init(&mut deps)?;
 
             let big_version = "999.999.999";
             set_contract_version(deps.as_mut().storage, ANS_HOST, big_version)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -174,16 +180,17 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_name_change() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let env = mock_env_validated(deps.api);
+            mock_init(&mut deps)?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
             set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
             assert_that!(res)
                 .is_err()
@@ -197,10 +204,12 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            let env = mock_env_validated(deps.api);
+
+            mock_init(&mut deps)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -211,7 +220,7 @@ mod tests {
             .to_string();
             set_contract_version(deps.as_mut().storage, ANS_HOST, small_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(get_contract_version(&deps.storage)?.version)

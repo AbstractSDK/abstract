@@ -1,3 +1,5 @@
+#![cfg(feature = "TODO: replace wyndex_bundle")]
+
 use abstract_app::sdk::cw_helpers::Clearable;
 use abstract_app::std::{
     ans_host::ExecuteMsgFns,
@@ -5,7 +7,7 @@ use abstract_app::std::{
 };
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
-    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
+    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, RegistryExecFns,
 };
 use cosmwasm_std::{coin, coins, to_json_binary, Decimal, Uint128};
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
@@ -13,7 +15,7 @@ use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
 use cw_orch::environment::Environment;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
-use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
+use cw_plus_orch::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{
@@ -59,7 +61,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
 
     // claim the namespace so app can be deployed
     abstr_deployment
-        .version_control
+        .registry
         .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
 
     app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
@@ -79,7 +81,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
         None,
     )?;
 
-    account.manager.update_adapter_authorized_addresses(
+    account.account.update_adapter_authorized_addresses(
         abstract_dex_adapter::DEX_ADAPTER_ID,
         vec![app.address()?.to_string()],
         vec![],
@@ -125,7 +127,7 @@ fn test_update_config() -> anyhow::Result<()> {
         .ans_host
         .update_dexes(vec![dex_name.clone()], vec![])?;
 
-    app.call_as(&account.manager.address()?).update_config(
+    app.call_as(&account.address()?).update_config(
         Some("Ye-uh-roah".to_owned()),
         Clearable::new_opt(AssetEntry::new(&new_target_currency)),
         Some(vec![dex_name.clone()]),
@@ -163,7 +165,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
 
     app.call_as(&tipper).tip(&tip_coins)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    let balance = mock.query_balance(&account.address()?, &tip_currency)?;
     assert_eq!(balance, Uint128::from(tip_amount));
 
     // Query tip count
@@ -244,9 +246,9 @@ fn test_tip_swap() -> anyhow::Result<()> {
 
     app.call_as(&tipper).tip(&tip_coins)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, &target_currency)?;
+    let balance = mock.query_balance(&account.address()?, &target_currency)?;
     assert!(!balance.is_zero());
-    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    let balance = mock.query_balance(&account.address()?, &tip_currency)?;
     assert!(balance.is_zero());
 
     // Query tip count
@@ -313,13 +315,13 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
 
     app.call_as(&tipper).tip(&tip_coins)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    let balance = mock.query_balance(&account.address()?, &tip_currency)?;
     assert!(balance.is_zero());
 
-    let balance = mock.query_balance(&account.proxy.address()?, &target_currency)?;
+    let balance = mock.query_balance(&account.address()?, &target_currency)?;
     assert!(!balance.is_zero());
 
-    let balance = mock.query_balance(&account.proxy.address()?, tip_currency1)?;
+    let balance = mock.query_balance(&account.address()?, tip_currency1)?;
     assert_eq!(balance, Uint128::from(tip_amount1));
 
     Ok(())
@@ -378,10 +380,8 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     let tipper_balance = cw20_token.balance(tipper.to_string())?.balance;
     assert_eq!(starting_balance - tip_amount, tipper_balance.u128());
 
-    let proxy_balance = cw20_token
-        .balance(account.proxy.address()?.to_string())?
-        .balance;
-    assert_eq!(tip_amount, proxy_balance.u128());
+    let account_balance = cw20_token.balance(account.address()?.to_string())?.balance;
+    assert_eq!(tip_amount, account_balance.u128());
 
     // Query tip count
     let tip_count_response: TipCountResponse = app.tip_count()?;
@@ -431,7 +431,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
 
     app.call_as(&tipper2).tip(&tip_coins)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    let balance = mock.query_balance(&account.address()?, &tip_currency)?;
     assert_eq!(balance, Uint128::from(tip_amount1 + tip_amount2));
 
     // Query tip count

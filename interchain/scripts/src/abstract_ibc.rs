@@ -58,7 +58,7 @@ pub fn verify_abstract_ibc(
             "Remote connection still not established. Connection creation has still not returned"
         )
     }
-    if host.remote_host != dst_abstract.ibc.host.address()? {
+    if host.remote_host != dst_abstract.ibc.host.address()?.as_str() {
         anyhow::bail!("Wrong host address on the src chain")
     }
 
@@ -67,7 +67,7 @@ pub fn verify_abstract_ibc(
         .host
         .client_proxy(TruncatedChainId::from_chain_id(src_chain.chain_id).into_string())?;
 
-    if host.remote_polytone_proxy.unwrap() != proxy.proxy {
+    if host.remote_polytone_proxy.unwrap() != proxy.proxy.as_str() {
         anyhow::bail!("Wrong proxy address registered on the dst chain")
     }
 

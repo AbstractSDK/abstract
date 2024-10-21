@@ -1,3 +1,5 @@
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
+
 mod endpoints;
 pub mod error;
 pub mod features;
@@ -32,12 +34,12 @@ pub mod mock {
     use abstract_interface::{AppDeployer, DependencyCreation, RegisteredModule};
     pub use abstract_std::app;
     use abstract_std::{
-        manager::ModuleInstallConfig,
+        account::ModuleInstallConfig,
         objects::{dependency::StaticDependency, module::ModuleInfo},
         IBC_CLIENT,
     };
     use cosmwasm_schema::QueryResponses;
-    pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    pub(crate) use cosmwasm_std::testing::{message_info, mock_dependencies};
     use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
@@ -82,13 +84,7 @@ pub mod mock {
     pub struct MockSudoMsg;
 
     use abstract_sdk::{base::InstantiateEndpoint, features::Dependencies, AbstractSdkError};
-    use abstract_testing::{
-        addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
-        prelude::{
-            MockDeps, MockQuerierBuilder, TEST_MODULE_FACTORY, TEST_MODULE_ID, TEST_VERSION,
-            TEST_WITH_DEP_MODULE_ID,
-        },
-    };
+    use abstract_testing::{mock_env_validated, prelude::*};
     use thiserror::Error;
 
     use self::interface::MockAppWithDepI;
@@ -154,9 +150,10 @@ pub mod mock {
             })
             .with_dependencies(&[
                 StaticDependency::new(TEST_MODULE_ID, &[TEST_VERSION]),
-                StaticDependency::new(IBC_CLIENT, &[abstract_std::registry::ABSTRACT_VERSION]),
+                StaticDependency::new(IBC_CLIENT, &[abstract_std::constants::ABSTRACT_VERSION]),
             ])
             .with_replies(&[(1u64, |_, _, _, msg| {
+                #[allow(deprecated)]
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })])
             .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
@@ -191,7 +188,7 @@ pub mod mock {
                 Some(to_json_binary(&MockInitMsg {})?),
             );
             let ibc_client = ModuleInstallConfig::new(
-                ModuleInfo::from_id(IBC_CLIENT, abstract_std::registry::ABSTRACT_VERSION.into())?,
+                ModuleInfo::from_id(IBC_CLIENT, abstract_std::constants::ABSTRACT_VERSION.into())?,
                 None,
             );
             Ok(vec![test_module, ibc_client])
@@ -200,30 +197,30 @@ pub mod mock {
 
     crate::export_endpoints!(MOCK_APP_WITH_DEP, MockAppContract);
 
-    pub fn app_base_mock_querier() -> MockQuerierBuilder {
+    pub fn app_base_mock_querier(mock_api: cosmwasm_std::testing::MockApi) -> MockQuerierBuilder {
+        let abstr = AbstractMockAddrs::new(mock_api);
         MockQuerierBuilder::default()
-            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected message"))
+            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected message"))
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
-    /// This will set the [`abstract_testing::addresses::TEST_MANAGER`] as the admin.
+    /// This will set the [`abstract_testing::addresses::TEST_ACCOUNT`] as the admin.
     pub fn mock_init() -> MockDeps {
         let mut deps = mock_dependencies();
-        let info = mock_info(TEST_MODULE_FACTORY, &[]);
+        let abstr = AbstractMockAddrs::new(deps.api);
+        let info = message_info(&abstr.module_factory, &[]);
+        let env = mock_env_validated(deps.api);
+        let account = test_account(deps.api);
 
-        deps.querier = app_base_mock_querier().build();
+        deps.querier = app_base_mock_querier(deps.api).build();
 
         let msg = app::InstantiateMsg {
-            base: app::BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
-                account_base: test_account_base(),
-            },
+            base: app::BaseInstantiateMsg { account },
             module: MockInitMsg {},
         };
 
         BASIC_MOCK_APP
-            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .instantiate(deps.as_mut(), env, info, msg)
             .unwrap();
 
         deps
@@ -281,36 +278,36 @@ pub mod mock {
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
         const MOCK_APP_WITH_DEP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
         .with_dependencies($deps)
-        .with_execute(|deps, _env, info, module, msg| {
+        .with_execute(|deps, env, info, module, msg| {
             match msg {
                 MockExecMsg::DoSomethingAdmin{} => {
-                    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+                    module.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
                 },
                 _ => {},
             }
             Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
         })
-        .with_instantiate(|deps, _env, info, module, msg| {
+        .with_instantiate(|deps, env, info, module, msg| {
             let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
             // See test `create_sub_account_with_installed_module` where this will be triggered.
             if module.info().0 == "tester:mock-app1" {
                 println!("checking address of adapter1");
-                let manager = module.admin.get(deps.as_ref())?.unwrap();
+                let account = module.admin.get(deps.as_ref())?.unwrap();
                 // Check if the adapter has access to its dependency during instantiation.
-                let adapter1_addr = $crate::std::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
+                let adapter1_addr = $crate::std::account::state::ACCOUNT_MODULES.query(&deps.querier,account, "tester:mock-adapter1")?;
                 // We have address!
                 ::cosmwasm_std::ensure!(
                     adapter1_addr.is_some(),
                     ::cosmwasm_std::StdError::generic_err("no address")
                 );
                 println!("adapter_addr: {adapter1_addr:?}");
-                // See test `install_app_with_proxy_action` where this transfer will happen.
-                let proxy_addr = module.proxy_address(deps.as_ref())?;
-                let balance = deps.querier.query_balance(proxy_addr, "TEST")?;
+                // See test `install_app_with_account_action` where this transfer will happen.
+                let account_addr = module.account(deps.as_ref())?;
+                let balance = deps.querier.query_balance(account_addr.addr(), "TEST")?;
                 if !balance.amount.is_zero() {
-                println!("sending amount from proxy: {balance:?}");
+                println!("sending amount from account: {balance:?}");
                     let action = module
-                        .bank(deps.as_ref())
+                        .bank(deps.as_ref(), &env)
                         .transfer::<::cosmwasm_std::Coin>(
                             vec![balance.into()],
                             &adapter1_addr.unwrap(),

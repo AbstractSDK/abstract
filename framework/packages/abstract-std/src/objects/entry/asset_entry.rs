@@ -88,7 +88,6 @@ impl<'a> PrimaryKey<'a> for &AssetEntry {
 
     type SuperSuffix = Self;
 
-    // TODO: make this key implementation use src_chain as prefix
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         self.0.key()
     }
@@ -102,6 +101,7 @@ impl<'a> Prefixer<'a> for &AssetEntry {
 
 impl KeyDeserialize for &AssetEntry {
     type Output = AssetEntry;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -117,7 +117,7 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_asset_entry() {
         let mut entry = AssetEntry::new("CRAB");
         assert_that!(entry.as_str()).is_equal_to("crab");
@@ -125,7 +125,7 @@ mod test {
         assert_that!(entry.as_str()).is_equal_to("crab");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_src_chain() -> AbstractResult<()> {
         // technically invalid, but we don't care here
         let entry = AssetEntry::new("CRAB");
@@ -163,31 +163,31 @@ mod test {
             });
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_string() {
         let entry = AssetEntry::from("CRAB".to_string());
         assert_that!(entry.as_str()).is_equal_to("crab");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_str() {
         let entry = AssetEntry::from("CRAB");
         assert_that!(entry.as_str()).is_equal_to("crab");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_ref_string() {
         let entry = AssetEntry::from(&"CRAB".to_string());
         assert_that!(entry.as_str()).is_equal_to("crab");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_to_string() {
         let entry = AssetEntry::new("CRAB");
         assert_that!(entry.to_string()).is_equal_to("crab".to_string());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn string_key_works() {
         let k = &AssetEntry::new("CRAB");
         let path = k.key();

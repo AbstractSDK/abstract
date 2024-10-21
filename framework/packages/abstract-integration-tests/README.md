@@ -1,11 +1,10 @@
 # Integration Tests Outline
 
-### Account Factory
+## Account Creation
 
 - Create account with namespace fee
-- TODO: Create interchain account
 
-### Manager
+## Account
 
 - Install an App
 - Sub account with adapters and apps

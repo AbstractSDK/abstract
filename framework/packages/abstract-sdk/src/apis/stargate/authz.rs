@@ -148,6 +148,7 @@ impl StargateMessage for SendAuthorization {
     fn to_proto(&self) -> Self::ProtoType {
         bank::v1beta1::SendAuthorization {
             spend_limit: convert_coins(self.spend_limit.clone()),
+            allow_list: vec![],
         }
     }
 }

@@ -3,10 +3,13 @@ name = "abstract-ica-client"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
-description = "Abstract IBC Client Contract"
+description = "Abstract ICA Client Contract"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract"
+
+[lints]
+workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -16,7 +19,7 @@ default = ["export"]
 export = []
 
 [dependencies]
-cosmwasm-std = { workspace = true, features = ["ibc3", "staking"] }
+cosmwasm-std = { workspace = true, features = ["stargate", "staking"] }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw-ownable = { workspace = true }
@@ -26,12 +29,11 @@ thiserror = { workspace = true }
 abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 semver = { workspace = true }
-polytone = { workspace = true }
 abstract-ica = { workspace = true }
-abstract-macros ={ workspace = true }
+abstract-macros = { workspace = true }
 
-evm-note = { version = "0.0.2", features = ["library"]}
-polytone-evm = "0.0.2"
+evm-note = { version = "0.1.0", features = ["library"] }
+polytone-evm = "0.1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
@@ -40,14 +42,7 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true }
 speculoos = { workspace = true }
+coverage-helper = { workspace = true }
 
 [profile.release]
-rpath = false
-lto = true
 overflow-checks = true
-opt-level = 3
-debug = false
-debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false

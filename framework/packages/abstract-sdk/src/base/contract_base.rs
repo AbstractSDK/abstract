@@ -1,7 +1,6 @@
 use abstract_std::ibc::{Callback, IbcResult, ModuleIbcInfo};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
-use cw_storage_plus::Item;
 
 use super::handler::Handler;
 use crate::{std::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
@@ -69,8 +68,6 @@ const MAX_REPLY_COUNT: usize = 2;
 pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> {
     /// Static info about the contract, used for migration
     pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
-    /// On-chain storage of the same info.
-    pub(crate) version: Item<'static, ContractVersion>,
     /// Modules that this contract depends on.
     pub(crate) dependencies: &'static [StaticDependency],
     /// Handler of instantiate messages.
@@ -103,7 +100,6 @@ where
     pub const fn new(name: ModuleId, version: VersionString, metadata: ModuleMetadata) -> Self {
         Self {
             info: (name, version, metadata),
-            version: CONTRACT,
             ibc_callback_handler: None,
             reply_handlers: [&[], &[]],
             dependencies: &[],
@@ -117,7 +113,7 @@ where
     }
     /// Gets the cw2 version of the contract.
     pub fn version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
-        self.version.load(store).map_err(Into::into)
+        CONTRACT.load(store).map_err(Into::into)
     }
     /// Gets the static info of the contract.
     pub fn info(&self) -> (ModuleId, VersionString, ModuleMetadata) {
@@ -256,7 +252,7 @@ mod test {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_info() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default());
         let (name, version, metadata) = contract.info();
@@ -265,7 +261,7 @@ mod test {
         assert_that!(metadata).is_equal_to(ModuleMetadata::default());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_empty() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_dependencies(&[]);
@@ -280,7 +276,7 @@ mod test {
         assert!(contract.migrate_handler.is_none());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_dependencies() {
         const VERSION: &str = "0.1.0";
         const DEPENDENCY: StaticDependency = StaticDependency::new("test", &[VERSION]);
@@ -292,7 +288,7 @@ mod test {
         assert_that!(contract.dependencies[0].clone()).is_equal_to(DEPENDENCY);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_instantiate() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_instantiate(|_, _, _, _, _| {
@@ -302,7 +298,7 @@ mod test {
         assert!(contract.instantiate_handler.is_some());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_sudo() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_sudo(|_, _, _, _| Ok(Response::default().add_attribute("test", "sudo")));
@@ -310,7 +306,7 @@ mod test {
         assert!(contract.sudo_handler.is_some());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_execute() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_execute(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "execute")));
@@ -318,7 +314,7 @@ mod test {
         assert!(contract.execute_handler.is_some());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_query() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_query(|_, _, _, _| Ok(cosmwasm_std::to_json_binary(&Empty {}).unwrap()));
@@ -326,7 +322,7 @@ mod test {
         assert!(contract.query_handler.is_some());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_migrate() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_migrate(|_, _, _, _| Ok(Response::default().add_attribute("test", "migrate")));
@@ -334,7 +330,7 @@ mod test {
         assert!(contract.migrate_handler.is_some());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_reply_handlers() {
         const REPLY_ID: u64 = 50u64;
         const HANDLER: ReplyHandlerFn<MockModule, MockError> =
@@ -346,7 +342,7 @@ mod test {
         assert!(contract.reply_handlers[1].is_empty());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_with_ibc_callback_handlers() {
         const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
             |_, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));

@@ -24,7 +24,7 @@ pub mod dex_tester;
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
     use abstract_adapter::abstract_interface::ClientResolve;
-    use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError, AnsHost};
+    use abstract_adapter::abstract_interface::{AbstractInterfaceError, AccountI, AnsHost};
     use abstract_adapter::abstract_interface::{AdapterDeployer, RegisteredModule};
     use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::sdk::features::ModuleIdentification;
@@ -71,16 +71,16 @@ pub mod interface {
             &self,
             dex: String,
             action: DexAnsAction,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
             ans_host: &AnsHost<Chain>,
         ) -> Result<<Chain as TxHandler>::Response, AbstractInterfaceError> {
             let account = account.as_ref();
             let request = WholeDexAction(dex, action).resolve(ans_host)?;
             let msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(account.proxy.addr_str()?),
+                account_address: Some(account.addr_str()?),
                 request,
             });
-            self.execute(&msg, None).map_err(Into::into)
+            self.execute(&msg, &[]).map_err(Into::into)
         }
 
         /// Raw action
@@ -88,14 +88,14 @@ pub mod interface {
             &self,
             dex: String,
             action: DexAction,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
         ) -> Result<<Chain as TxHandler>::Response, AbstractInterfaceError> {
             let account = account.as_ref();
             let msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: Some(account.proxy.addr_str()?),
+                account_address: Some(account.addr_str()?),
                 request: DexExecuteMsg::Action { dex, action },
             });
-            self.execute(&msg, None).map_err(Into::into)
+            self.execute(&msg, &[]).map_err(Into::into)
         }
 
         /// Swap using ans resolved assets
@@ -104,7 +104,7 @@ pub mod interface {
             offer_asset: (&str, u128),
             ask_asset: &str,
             dex: String,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
             ans_host: &AnsHost<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let asset = AssetEntry::new(offer_asset.0);
@@ -126,7 +126,7 @@ pub mod interface {
             offer_asset: (&str, u128),
             ask_asset: &str,
             dex: String,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
             pool: PoolAddressBase<String>,
         ) -> Result<(), AbstractInterfaceError> {
             let action = DexAction::Swap {
@@ -145,7 +145,7 @@ pub mod interface {
             &self,
             assets: Vec<(&str, u128)>,
             dex: String,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
             ans_host: &AnsHost<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
             let assets = assets.iter().map(|a| AnsAsset::new(a.0, a.1)).collect();
@@ -163,7 +163,7 @@ pub mod interface {
             &self,
             assets: Vec<(&str, u128)>,
             dex: String,
-            account: impl AsRef<AbstractAccount<Chain>>,
+            account: impl AsRef<AccountI<Chain>>,
             pool: PoolAddressBase<String>,
         ) -> Result<(), AbstractInterfaceError> {
             let assets = assets.iter().map(|a| AssetBase::native(a.0, a.1)).collect();
@@ -208,7 +208,7 @@ pub mod interface {
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<
-            Vec<abstract_adapter::std::manager::ModuleInstallConfig>,
+            Vec<abstract_adapter::std::account::ModuleInstallConfig>,
             abstract_adapter::abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])

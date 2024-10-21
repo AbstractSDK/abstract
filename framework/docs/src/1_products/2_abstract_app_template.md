@@ -9,7 +9,7 @@ The primary focus of the Abstract App Template is to provide a template for buil
 
 ## Getting Started
 
-To get started, please go to the <a href="https://github.com/AbstractSDK/app-template" target="_blank">Abstract App
+To get started, please go to the <a href="https://github.com/AbstractSDK/templates" target="_blank">Abstract App
 Template Github Repo</a> and follow the instructions in the README.
 
 In there you can find instructions on how to generate a new Abstract App, how to test it, deploy it, and generate

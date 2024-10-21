@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
@@ -110,10 +110,10 @@ impl AccountId {
     }
 }
 
-impl TryFrom<&str> for AccountId {
-    type Error = AbstractError;
+impl FromStr for AccountId {
+    type Err = AbstractError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         let (trace_str, seq_str) = value
             .split_once('-')
             .ok_or(AbstractError::FormattingError {
@@ -160,6 +160,7 @@ impl<'a> Prefixer<'a> for AccountId {
 
 impl KeyDeserialize for &AccountId {
     type Output = AccountId;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -176,6 +177,7 @@ impl KeyDeserialize for &AccountId {
 
 impl KeyDeserialize for AccountId {
     type Output = AccountId;
+    const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -247,7 +249,7 @@ mod test {
             )
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -266,7 +268,7 @@ mod test {
             assert_eq!(items[0], (key, 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -297,7 +299,7 @@ mod test {
             assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn partial_key_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3) = mock_keys();
@@ -323,7 +325,7 @@ mod test {
             assert_eq!(items[1], (2, 999));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works_as_storage_key_with_multiple_chains_in_trace() {
             let mut deps = mock_dependencies();
             let key = AccountId {
@@ -342,20 +344,20 @@ mod test {
         }
     }
 
-    mod try_from {
+    mod from_str {
         // test that the try_from implementation works
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn works_with_local() {
-            let account_id = AccountId::try_from("local-1").unwrap();
+            let account_id: AccountId = "local-1".parse().unwrap();
             assert_eq!(account_id.seq, 1);
             assert_eq!(account_id.trace, AccountTrace::Local);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works_with_remote() {
-            let account_id = AccountId::try_from("ethereum>bitcoin-1").unwrap();
+            let account_id: AccountId = "ethereum>bitcoin-1".parse().unwrap();
             assert_eq!(account_id.seq, 1);
             assert_eq!(
                 account_id.trace,
@@ -366,9 +368,9 @@ mod test {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works_with_remote_with_multiple_chains() {
-            let account_id = AccountId::try_from("ethereum>bitcoin>cosmos-1").unwrap();
+            let account_id: AccountId = "ethereum>bitcoin>cosmos-1".parse().unwrap();
             assert_eq!(account_id.seq, 1);
             assert_eq!(
                 account_id.trace,

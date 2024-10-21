@@ -2,7 +2,7 @@
 //!
 //! [`Application`] represents a module installed on a (sub-)account
 
-use abstract_interface::{ManagerExecFns, RegisteredModule};
+use abstract_interface::{AccountExecFns, RegisteredModule};
 use abstract_std::objects::module::ModuleInfo;
 use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};
@@ -83,7 +83,7 @@ impl<Chain: CwEnv, M: RegisteredModule + MigratableContract> Application<Chain, 
     pub fn upgrade(&self, migrate_msg: Option<&M::MigrateMsg>) -> AbstractClientResult<()> {
         let module = ModuleInfo::from_id(M::module_id(), M::module_version().into())?;
         if !self.account.module_version_installed(module.clone())? {
-            self.account.abstr_account.manager.upgrade(vec![(
+            self.account.abstr_account.upgrade(vec![(
                 module,
                 migrate_msg.map(|msg| to_json_binary(msg).unwrap()),
             )])?;
@@ -98,7 +98,6 @@ impl<Chain: CwEnv, M: ContractInstance<Chain>> Application<Chain, M> {
         for module_id in adapter_ids {
             self.account
                 .abstr_account
-                .manager
                 .update_adapter_authorized_addresses(module_id, vec![self.addr_str()?], vec![])?;
         }
         Ok(())
