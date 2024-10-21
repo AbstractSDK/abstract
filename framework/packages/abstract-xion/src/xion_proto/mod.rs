@@ -1,36 +1,55 @@
 pub mod jwk;
 
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryWebAuthNVerifyAuthenticateRequest {
-    #[prost(string, tag = "1")]
-    pub addr: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub challenge: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub rp: ::prost::alloc::string::String,
-    #[prost(bytes = "vec", tag = "4")]
-    pub credential: ::prost::alloc::vec::Vec<u8>,
-    #[prost(bytes = "vec", tag = "5")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
+use anybuf::{Anybuf, Bufany, BufanyError};
+
+pub struct QueryWebAuthNVerifyAuthenticateRequest<'a> {
+    pub addr: String,         // 1
+    pub challenge: String,    // 2
+    pub rp: String,           // 3
+    pub credential: &'a [u8], // 4
+    pub data: &'a [u8],       // 5
 }
 
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryWebAuthNVerifyRegisterRequest {
-    #[prost(string, tag = "1")]
-    pub addr: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub challenge: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub rp: ::prost::alloc::string::String,
-    #[prost(bytes = "vec", tag = "4")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
+impl QueryWebAuthNVerifyAuthenticateRequest<'_> {
+    pub fn to_anybuf(&self) -> Anybuf {
+        Anybuf::new()
+            .append_string(1, &self.addr)
+            .append_string(2, &self.challenge)
+            .append_string(3, &self.rp)
+            .append_bytes(4, self.credential)
+            .append_bytes(5, self.data)
+    }
 }
 
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryWebAuthNVerifyRegisterRequest<'a> {
+    pub addr: String,      // 1
+    pub challenge: String, // 2
+    pub rp: String,        // 3
+    pub data: &'a [u8],    // 4
+}
+
+impl QueryWebAuthNVerifyRegisterRequest<'_> {
+    pub fn to_anybuf(&self) -> Anybuf {
+        Anybuf::new()
+            .append_string(1, &self.addr)
+            .append_string(2, &self.challenge)
+            .append_string(3, &self.rp)
+            .append_bytes(4, self.data)
+    }
+}
+
 pub struct QueryWebAuthNVerifyRegisterResponse {
-    #[prost(bytes = "vec", tag = "1")]
-    pub credential: ::prost::alloc::vec::Vec<u8>,
+    pub credential: Vec<u8>, // 1
+}
+
+impl QueryWebAuthNVerifyRegisterResponse {
+    pub fn from_bufany(bufany: &Bufany) -> Self {
+        let credential = bufany.bytes(1).unwrap_or_default();
+        Self { credential }
+    }
+
+    pub fn from_slice(slice: &[u8]) -> Result<Self, BufanyError> {
+        let bufany = Bufany::deserialize(slice)?;
+        Ok(Self::from_bufany(&bufany))
+    }
 }

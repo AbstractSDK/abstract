@@ -680,8 +680,10 @@ name = "abstract-xion"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-std",
+ "anybuf",
  "base64 0.22.1",
  "bech32 0.9.1",
+ "cosmos-sdk-proto 0.24.0-pre",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
@@ -689,7 +691,6 @@ dependencies = [
  "getrandom",
  "hex",
  "p256",
- "prost",
  "ripemd",
  "rsa",
  "sha2 0.10.8",
@@ -1706,6 +1707,17 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
+
+[[package]]
+name = "cosmos-sdk-proto"
+version = "0.24.0-pre"
+source = "git+https://github.com/burnt-labs/cosmos-rust.git?rev=ed9c8e87e3cb27781ad2695ef2d3ef70af085823#ed9c8e87e3cb27781ad2695ef2d3ef70af085823"
+dependencies = [
+ "informalsystems-pbjson",
+ "prost",
+ "serde",
+ "tendermint-proto 0.39.1",
+]
 
 [[package]]
 name = "cosmos-sdk-proto"

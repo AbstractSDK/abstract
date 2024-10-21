@@ -6,7 +6,6 @@ use base64::engine::general_purpose::{self};
 use base64::Engine;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Binary, Deps};
-use prost::Message;
 
 use crate::AbstractXionResult;
 
@@ -31,15 +30,16 @@ pub fn register(deps: Deps, addr: Addr, rp: String, data: Binary) -> AbstractXio
         addr: addr.clone().into(),
         challenge: Binary::from(addr.as_bytes()).to_base64(),
         rp,
-        data: data.to_vec(),
+        data: data.as_slice(),
     };
 
-    let query_bz = query.encode_to_vec();
+    let query_bz = query.to_anybuf().into_vec();
     let query_response = deps.querier.query_grpc(
         String::from("/xion.v1.Query/WebAuthNVerifyRegister"),
         Binary::new(query_bz),
     )?;
-    let query_response = QueryWebAuthNVerifyRegisterResponse::decode(query_response.as_slice())?;
+    let query_response =
+        QueryWebAuthNVerifyRegisterResponse::from_slice(query_response.as_slice()).unwrap();
     Ok(Binary::new(query_response.credential))
 }
 
@@ -67,11 +67,11 @@ pub fn verify(
         addr: addr.into(),
         challenge,
         rp,
-        credential: credential.clone().into(),
-        data: signature.clone().into(),
+        credential: credential.as_slice(),
+        data: signature.as_slice(),
     };
 
-    let query_bz = query.encode_to_vec();
+    let query_bz = query.to_anybuf().into_vec();
     deps.querier.query_grpc(
         String::from("/xion.v1.Query/WebAuthNVerifyAuthenticate"),
         Binary::new(query_bz),
