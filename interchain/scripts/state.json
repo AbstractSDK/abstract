@@ -16,7 +16,9 @@
       "abstract:ibc-client": "osmo1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqarcqmv",
       "abstract:ibc-host": "osmo1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqsw6nr2j",
       "abstract:module-factory": "osmo1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqcxdtus",
-      "abstract:registry": "osmo1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqtpxd7m"
+      "abstract:registry": "osmo1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqtpxd7m",
+      "polytone:note": "osmo1354ydt9y6rradvfzcjex7er8hh3vd6vaux7lzsfam9sc8wjyulgqz9dvra",
+      "polytone:voice": "osmo1kkg2p53nhpx4e8uqk42uktqewgw9mtyu4z7s67c35gqv4k0v8ucszgsnlv"
     }
   },
   "pion-1": {
@@ -36,7 +38,9 @@
       "abstract:ibc-client": "neutron1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqf33ujf",
       "abstract:ibc-host": "neutron1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqs6g6lrh",
       "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
-      "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7"
+      "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7",
+      "polytone:note": "neutron1r8ly8q5tw9esmh7fyv50ue6n83fym7c97rndju58eglkzwed45rse6dx9k",
+      "polytone:voice": "neutron1l5el0ftj4dj4fewvdx62n72ljg9lpd9tunt8pmgx3dm8aawerprsstktd9"
     }
   }
 }
