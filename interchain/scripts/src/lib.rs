@@ -3,14 +3,22 @@ pub mod abstract_ibc;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::environment::{ChainKind, NetworkInfo};
 use cw_orch::prelude::{
-    networks::{HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
+    networks::{COSMOS_HUB_TESTNET, HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
     *,
 };
 use serde::{Deserialize, Serialize};
 
 const GAS_TO_DEPLOY: u64 = 60_000_000;
 pub const SUPPORTED_CHAINS: &[ChainInfo] = &[
-    UNI_6, OSMO_5, PISCO_1, PHOENIX_1, JUNO_1, PION_1, NEUTRON_1, HARPOON_4,
+    UNI_6,
+    OSMO_5,
+    PISCO_1,
+    PHOENIX_1,
+    JUNO_1,
+    PION_1,
+    NEUTRON_1,
+    HARPOON_4,
+    COSMOS_HUB_TESTNET,
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
