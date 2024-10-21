@@ -1,12 +1,12 @@
 {
   "pion-1": {
     "code_ids": {
-      "abstract:account": 7403,
-      "abstract:ans-host": 7400,
-      "abstract:ibc-client": 7404,
-      "abstract:ibc-host": 7405,
-      "abstract:module-factory": 7402,
-      "abstract:registry": 7401,
+      "abstract:account": 7569,
+      "abstract:ans-host": 7568,
+      "abstract:ibc-client": 7570,
+      "abstract:ibc-host": 7571,
+      "abstract:module-factory": 7566,
+      "abstract:registry": 7567,
       "cw:blob": 7399
     },
     "default": {
