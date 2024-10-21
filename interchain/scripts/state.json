@@ -39,8 +39,33 @@
       "abstract:ibc-host": "neutron1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqs6g6lrh",
       "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
       "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7",
-      "polytone:note": "neutron1r8ly8q5tw9esmh7fyv50ue6n83fym7c97rndju58eglkzwed45rse6dx9k",
-      "polytone:voice": "neutron1l5el0ftj4dj4fewvdx62n72ljg9lpd9tunt8pmgx3dm8aawerprsstktd9"
+      "polytone:note": "neutron144qdp072puq5qfg5dhcu55fu2eemz3nan8kqkmqs0t0vaz8qdwqs4ssjs3",
+      "polytone:voice": "neutron15y7uc96e92tcm6lamdlj38kyy5fkg5f6qxp8g3yyqdewlhffgces3y0495"
+    }
+  },
+  "provider": {
+    "code_ids": {
+      "abstract:account": 39,
+      "abstract:ans-host": 36,
+      "abstract:ibc-client": 40,
+      "abstract:ibc-host": 41,
+      "abstract:module-factory": 38,
+      "abstract:registry": 37,
+      "cw:blob": 35,
+      "polytone:note": 42,
+      "polytone:proxy": 44,
+      "polytone:voice": 43
+    },
+    "default": {
+      "abstract:account-local-0": "cosmos1hafge5xucuc03ar5lkwac0n9yctnxq6xrgygftdl9xl3tzncgghszwuw5z",
+      "abstract:account-local-1": "cosmos1v9dl0fw5s3jujn6emmlgch7w4ynt02nykj75pnzk8mdw7nmu3p4q0fnq48",
+      "abstract:ans-host": "cosmos1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsvutp48",
+      "abstract:ibc-client": "cosmos1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqg7qcv2",
+      "abstract:ibc-host": "cosmos1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqsm8tma5",
+      "abstract:module-factory": "cosmos1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqdm4ntk",
+      "abstract:registry": "cosmos1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq7u74fa",
+      "polytone:note": "cosmos186vjdsly44hp2mymy5vaptu8pxxx0zxryzr47rr4vy2r2j9s07tslpejgs",
+      "polytone:voice": "cosmos1kqvwxelt0vuutr4td3c6pwvs8azl2g6pfycj6vflh4yg0c02qc0qs70wtl"
     }
   }
 }
