@@ -55,7 +55,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
             REGISTERED_MODULES.load(deps.storage, &module)
         } else {
             // get latest
-            let versions: StdResult<Vec<(String, ModuleReference)>> = REGISTERED_MODULES
+            let versions: StdResult<Vec<(ModuleVersion, ModuleReference)>> = REGISTERED_MODULES
                 .prefix((module.namespace.clone(), module.name.clone()))
                 .range(deps.storage, None, None, Order::Descending)
                 .take(1)
@@ -66,7 +66,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                     StdError::generic_err(RegistryError::ModuleNotFound(module.clone()).to_string())
                 })?
                 .clone();
-            module.version = ModuleVersion::Version(latest_version);
+            module.version = latest_version;
             Ok(id)
         };
 
@@ -236,8 +236,8 @@ fn filter_modules_by_namespace(
 
     // Filter by name using full prefix
     if let Some(name) = name {
-        let start_bound: Option<Bound<String>> =
-            start_after.map(|info| Bound::exclusive(info.version.to_string()));
+        let start_bound: Option<Bound<ModuleVersion>> =
+            start_after.map(|info| Bound::exclusive(info.version));
 
         modules.extend(
             mod_lib
@@ -251,7 +251,7 @@ fn filter_modules_by_namespace(
                         ModuleInfo {
                             namespace: namespace.clone(),
                             name: name.clone(),
-                            version: ModuleVersion::Version(version),
+                            version,
                         },
                         reference,
                     )
@@ -259,8 +259,8 @@ fn filter_modules_by_namespace(
         )
     } else {
         // Filter by just namespace using sub prefix
-        let start_bound: Option<Bound<(String, String)>> =
-            start_after.map(|token| Bound::exclusive((token.name, token.version.to_string())));
+        let start_bound: Option<Bound<(String, ModuleVersion)>> =
+            start_after.map(|token| Bound::exclusive((token.name, token.version)));
 
         modules.extend(
             mod_lib
@@ -274,7 +274,7 @@ fn filter_modules_by_namespace(
                         ModuleInfo {
                             namespace: namespace.clone(),
                             name,
-                            version: ModuleVersion::Version(version),
+                            version,
                         },
                         reference,
                     )

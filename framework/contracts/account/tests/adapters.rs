@@ -136,7 +136,6 @@ fn install_non_existent_adapterid_should_fail() -> AResult {
         &RegistryError::ModuleNotFound(ModuleInfo::from_id_latest("lol:no_chance").unwrap())
             .to_string(),
     ));
-
     Ok(())
 }
 
@@ -162,7 +161,6 @@ fn install_non_existent_version_should_fail() -> AResult {
         )
         .to_string(),
     ));
-
     Ok(())
 }
 
