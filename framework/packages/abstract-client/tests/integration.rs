@@ -1,4 +1,3 @@
-use ::registry::error::RegistryError;
 use abstract_account::error::AccountError;
 use abstract_adapter::mock::{
     interface::MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
@@ -38,6 +37,7 @@ use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;
 use mock_service::{MockMsg, MockService};
+use registry::error::RegistryError;
 
 mod mock_service;
 
@@ -1648,5 +1648,47 @@ fn account_fetcher_shouldnt_install_module_on_existing_account() -> anyhow::Resu
             .unwrap()
     })?;
     assert!(!account.module_installed(TEST_MODULE_ID)?);
+    Ok(())
+}
+
+// Tests wether using the Account builder with install_on_subaccount on an existing account installs given apps
+#[test]
+fn account_builder_should_install_on_subaccount() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone()).build_mock()?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .account_builder()
+        .namespace(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?
+        .publisher()?;
+
+    let app_dependency_publisher: Publisher<MockBech32> = client
+        .account_builder()
+        .namespace(Namespace::new(TEST_NAMESPACE)?)
+        .build()?
+        .publisher()?;
+
+    app_dependency_publisher.publish_app::<MockAppI<_>>()?;
+    let res = app_publisher.publish_app::<MockAppWithDepI<_>>();
+    assert!(res.is_ok());
+
+    const NEW_NAMESPACE: &str = "new-namespace";
+
+    // We create an account
+    let account = client
+        .account_builder()
+        .install_on_sub_account(true)
+        .install_service::<IbcClient<MockBech32>>(&Empty {})?
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})?
+        .namespace(NEW_NAMESPACE.try_into()?)
+        .build()?;
+
+    assert!(!account.module_installed(TEST_MODULE_ID)?);
+
+    // Fetch the subaccount
+    let subaccounts = account.sub_accounts()?;
+    assert_eq!(subaccounts.len(), 1);
     Ok(())
 }
