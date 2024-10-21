@@ -43,7 +43,6 @@ mod test_common {
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, Empty, OwnedDeps};
-    use speculoos::prelude::*;
 
     use crate::{contract::AccountResult, error::AccountError, msg::ExecuteMsg};
 
@@ -81,11 +80,12 @@ mod test_common {
         mock_init(&mut deps)?;
 
         let res = execute_as(&mut deps, &not_owner, msg);
-        assert_that!(&res)
-            .is_err()
-            .is_equal_to(AccountError::Ownership(
+        assert_eq!(
+            res,
+            Err(AccountError::Ownership(
                 ownership::GovOwnershipError::NotOwner,
-            ));
+            ))
+        );
 
         Ok(())
     }

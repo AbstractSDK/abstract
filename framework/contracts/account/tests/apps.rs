@@ -17,7 +17,6 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
 use cw_orch::prelude::*;
-use speculoos::prelude::*;
 
 const APP_ID: &str = "tester:app";
 const APP_VERSION: &str = "1.0.0";
@@ -41,7 +40,7 @@ fn execute_on_account() -> AResult {
         .borrow()
         .wrap()
         .query_all_balances(account.address()?)?;
-    assert_that!(account_balance).is_equal_to(vec![Coin::new(100_000u128, TTOKEN)]);
+    assert_eq!(account_balance, vec![Coin::new(100_000u128, TTOKEN)]);
 
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000u128, TTOKEN)];
     let forwarded_coin: Coin = coin(100, "other_coin");
@@ -60,10 +59,13 @@ fn execute_on_account() -> AResult {
         .borrow()
         .wrap()
         .query_all_balances(account.address()?)?;
-    assert_that!(account_balance).is_equal_to(vec![
-        forwarded_coin,
-        Coin::new((100_000 - 10_000) as u128, TTOKEN),
-    ]);
+    assert_eq!(
+        account_balance,
+        vec![
+            forwarded_coin,
+            Coin::new((100_000 - 10_000) as u128, TTOKEN),
+        ]
+    );
 
     take_storage_snapshot!(chain, "execute_on_account");
 

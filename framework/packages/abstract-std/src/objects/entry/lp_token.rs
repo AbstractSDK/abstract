@@ -52,7 +52,6 @@ impl Display for LpToken {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -69,7 +68,7 @@ mod test {
                 dex: dex_name.to_string(),
                 assets,
             };
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
         #[coverage_helper::test]
@@ -79,7 +78,7 @@ mod test {
             let lp_token = LpToken::new(dex_name, assets);
             let expected = vec![AssetEntry::from("crab"), AssetEntry::from("junox")];
 
-            assert_that!(lp_token.assets).is_equal_to(expected);
+            assert_eq!(lp_token.assets, expected);
         }
     }
 
@@ -91,23 +90,25 @@ mod test {
         fn test_from_asset_entry() {
             let asset = AssetEntry::new("junoswap/crab,junox");
             let lp_token = AnsEntryConvertor::new(asset).lp_token().unwrap();
-            assert_that!(lp_token.dex).is_equal_to("junoswap".to_string());
-            assert_that!(lp_token.assets)
-                .is_equal_to(vec![AssetEntry::from("crab"), AssetEntry::from("junox")]);
+            assert_eq!(lp_token.dex, "junoswap".to_string());
+            assert_eq!(
+                lp_token.assets,
+                vec![AssetEntry::from("crab"), AssetEntry::from("junox")]
+            );
         }
 
         #[coverage_helper::test]
         fn test_from_invalid_asset_entry() {
             let asset = AssetEntry::new("junoswap/");
             let lp_token = AnsEntryConvertor::new(asset).lp_token();
-            assert_that!(&lp_token).is_err();
+            assert!(lp_token.is_err());
         }
 
         #[coverage_helper::test]
         fn test_fewer_than_two_assets() {
             let asset = AssetEntry::new("junoswap/crab");
             let lp_token = AnsEntryConvertor::new(asset).lp_token();
-            assert_that!(&lp_token).is_err();
+            assert!(lp_token.is_err());
         }
     }
 
@@ -120,7 +121,7 @@ mod test {
             let lp_token = LpToken::new("junoswap", vec!["crab".to_string(), "junox".to_string()]);
             let expected = AssetEntry::new("junoswap/crab,junox");
 
-            assert_that!(AnsEntryConvertor::new(lp_token).asset_entry()).is_equal_to(expected);
+            assert_eq!(AnsEntryConvertor::new(lp_token).asset_entry(), expected);
         }
     }
 
@@ -140,8 +141,8 @@ mod test {
             };
 
             let lp_token = AnsEntryConvertor::new(pool).lp_token();
-            assert_that!(lp_token.dex).is_equal_to(dex);
-            assert_that!(lp_token.assets).is_equal_to(assets);
+            assert_eq!(lp_token.dex, dex);
+            assert_eq!(lp_token.assets, assets);
         }
     }
 }

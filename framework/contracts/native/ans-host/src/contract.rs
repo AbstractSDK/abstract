@@ -118,7 +118,6 @@ pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> AnsHostResult {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::testing::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::test_common::*;
@@ -141,15 +140,16 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AnsHostError::Abstract(
+            assert_eq!(
+                res,
+                Err(AnsHostError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ANS_HOST.to_string(),
                         from: version.clone(),
                         to: version,
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
@@ -167,15 +167,16 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AnsHostError::Abstract(
+            assert_eq!(
+                res,
+                Err(AnsHostError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ANS_HOST.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version,
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
@@ -192,14 +193,15 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AnsHostError::Abstract(
+            assert_eq!(
+                res,
+                Err(AnsHostError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
                         to: ANS_HOST.parse().unwrap(),
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
@@ -221,10 +223,12 @@ mod tests {
             set_contract_version(deps.as_mut().storage, ANS_HOST, small_version)?;
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
-            assert_that!(res.messages).has_length(0);
+            assert_eq!(res.messages.len(), 0);
 
-            assert_that!(get_contract_version(&deps.storage)?.version)
-                .is_equal_to(version.to_string());
+            assert_eq!(
+                get_contract_version(&deps.storage)?.version,
+                version.to_string()
+            );
             Ok(())
         }
     }

@@ -314,7 +314,6 @@ mod test {
     use abstract_testing::{addresses::AbstractMockAddrs, mock_env_validated};
     use cosmwasm_std::{from_json, testing::*, Addr, DepsMut, OwnedDeps};
     use cw_asset::AssetInfo;
-    use speculoos::prelude::*;
     use std::str::FromStr;
 
     type AnsHostTestResult = Result<(), AnsHostError>;
@@ -620,7 +619,7 @@ mod test {
             api,
         ));
         // Assert
-        assert_that!(&res).is_equal_to(&expected);
+        assert_eq!(res, expected);
 
         Ok(())
     }
@@ -654,7 +653,7 @@ mod test {
         };
 
         // Assert
-        assert_that!(&res).is_equal_to(&expected);
+        assert_eq!(&res, &expected);
 
         Ok(())
     }
@@ -680,7 +679,7 @@ mod test {
             channels: create_channel_entry_and_string(vec![("foo", "foo", "foo")]),
         };
         // Assert
-        assert_that!(&res).is_equal_to(&expected);
+        assert_eq!(res, expected);
         // Assert no duplication
         assert!(res.channels.len() == 1_usize);
         Ok(())
@@ -743,9 +742,9 @@ mod test {
             api,
         ));
 
-        assert_that!(res).is_equal_to(&expected);
-        assert_that!(res_first_entry).is_equal_to(&expected_bar);
-        assert_that!(&res_of_foobar).is_equal_to(&expected_foobar);
+        assert_eq!(res, expected);
+        assert_eq!(res_first_entry, expected_bar);
+        assert_eq!(res_of_foobar, expected_foobar);
 
         Ok(())
     }
@@ -850,9 +849,9 @@ mod test {
 
         // Assert
         // Assert only returns unqiue data entries looping
-        assert_that!(&res).is_equal_to(&expected);
+        assert_eq!(res, expected);
         // Assert - sanity check for duplication
-        assert_that!(&res_expect_foo).is_equal_to(&expected_foo);
+        assert_eq!(res_expect_foo, expected_foo);
         assert_eq!(res.contracts.len(), 2_usize);
 
         Ok(())
@@ -879,7 +878,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_all = from_json(query_helper(&deps, msg)?)?;
+        let res_all: ChannelListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Filter for entries after `Foo` - Alphabetically
         let msg = QueryMsg::ChannelList {
@@ -890,7 +889,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_foobar = from_json(query_helper(&deps, msg)?)?;
+        let res_foobar: ChannelListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Return first entry - Alphabetically
         let msg = QueryMsg::ChannelList {
@@ -898,7 +897,7 @@ mod test {
             limit: Some(1_u8),
             filter: None,
         };
-        let res_bar = from_json(query_helper(&deps, msg)?)?;
+        let res_bar: ChannelListResponse = from_json(query_helper(&deps, msg)?)?;
 
         // Stage data for equality test
 
@@ -919,9 +918,9 @@ mod test {
             channels: create_channel_entry_and_string(vec![("bar", "bar1", "bar2")]),
         };
         // Assert
-        assert_that!(&res_all).is_equal_to(expected_all);
-        assert_that!(&res_foobar).is_equal_to(expected_foobar);
-        assert_that!(&res_bar).is_equal_to(expected_bar);
+        assert_eq!(res_all, expected_all);
+        assert_eq!(res_foobar, expected_foobar);
+        assert_eq!(res_bar, expected_bar);
         assert_eq!(res_all.channels.len(), 3_usize);
 
         Ok(())
@@ -950,7 +949,7 @@ mod test {
             dexes: vec!["foo".to_string(), "bar".to_string()],
         };
         // tests
-        assert_that!(&res).is_equal_to(expected);
+        assert_eq!(res, expected);
         // assert no duplication
         assert!(res.dexes.len() == 2_usize);
         assert!(res.dexes[0] == ("foo"));
@@ -1158,7 +1157,7 @@ mod test {
         let expected_bar = PoolMetadatasResponse {
             metadatas: vec![(bar_key, bar_metadata.clone())],
         };
-        assert_that!(res_bar).is_equal_to(expected_bar);
+        assert_eq!(res_bar, expected_bar);
 
         let foo_key = UniquePoolId::new(69);
         let foo_metadata = create_pool_metadata("foo", "juno", "atom");
@@ -1181,7 +1180,7 @@ mod test {
             ],
         };
         println!("{res_both:?} {expected_both:?}");
-        assert_that!(res_both).is_equal_to(expected_both);
+        assert_eq!(res_both, expected_both);
 
         let msg_foo = QueryMsg::PoolMetadataList {
             filter: Some(PoolMetadataFilter {
@@ -1196,7 +1195,7 @@ mod test {
             metadatas: vec![(foo_key, foo_metadata)],
         };
 
-        assert_that!(res_foo).is_equal_to(expected_foo);
+        assert_eq!(res_foo, expected_foo);
         Ok(())
     }
 

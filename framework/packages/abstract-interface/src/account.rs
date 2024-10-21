@@ -33,7 +33,6 @@ use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, interface, prelude::*};
 use semver::{Version, VersionReq};
 use serde::Serialize;
-use speculoos::prelude::*;
 use std::{collections::HashSet, fmt::Debug};
 
 /// A helper struct that contains fields from [`abstract_std::account::state::AccountInfo`]
@@ -219,7 +218,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .collect::<HashSet<_>>();
 
         // assert that these modules are installed
-        assert_that!(expected_module_addrs).is_equal_to(actual_module_addrs);
+        assert_eq!(expected_module_addrs, actual_module_addrs);
 
         Ok(account_modules)
     }
