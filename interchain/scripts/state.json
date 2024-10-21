@@ -1,4 +1,24 @@
 {
+  "osmo-test-5": {
+    "code_ids": {
+      "abstract:account": 11293,
+      "abstract:ans-host": 11290,
+      "abstract:ibc-client": 11294,
+      "abstract:ibc-host": 11295,
+      "abstract:module-factory": 11292,
+      "abstract:registry": 11291,
+      "cw:blob": 11289
+    },
+    "default": {
+      "abstract:account-local-0": "osmo1hafge5xucuc03ar5lkwac0n9yctnxq6xrgygftdl9xl3tzncgghshnykry",
+      "abstract:account-local-1": "osmo1v9dl0fw5s3jujn6emmlgch7w4ynt02nykj75pnzk8mdw7nmu3p4q65tczp",
+      "abstract:ans-host": "osmo1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsepnezp",
+      "abstract:ibc-client": "osmo1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqarcqmv",
+      "abstract:ibc-host": "osmo1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqsw6nr2j",
+      "abstract:module-factory": "osmo1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqcxdtus",
+      "abstract:registry": "osmo1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqtpxd7m"
+    }
+  },
   "pion-1": {
     "code_ids": {
       "abstract:account": 7569,
