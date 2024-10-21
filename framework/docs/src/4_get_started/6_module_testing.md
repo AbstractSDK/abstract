@@ -47,7 +47,7 @@ This provides you with a streamlined approach to test and validate smart contrac
 
 ## Local Daemon Testing
 
-Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [local_daemon](https://github.com/AbstractSDK/app-template/blob/main/examples/local_daemon.rs) example, which uses a locally running juno daemon to
+Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [local_daemon](https://github.com/AbstractSDK/templates/blob/main/examples/local_daemon.rs) example, which uses a locally running juno daemon to
 deploy to. At this point you can also test your front-end with the contracts.
 
 ```admonish info
