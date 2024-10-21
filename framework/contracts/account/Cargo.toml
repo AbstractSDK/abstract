@@ -47,7 +47,7 @@ abstract-macros = { workspace = true }
 
 abstract-ica = { workspace = true }
 
-abstract-xion = { version = "0.24.1-beta.2", path = "../../packages/abstract-xion", default-features = false, optional = true }
+abstract-xion = { workspace = true, default-features = false, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
