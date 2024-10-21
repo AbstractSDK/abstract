@@ -72,6 +72,7 @@ abstract-app = { version = "0.24.1-beta.2", path = "../framework/packages/abstra
 abstract-adapter = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-testing" }
 abstract-client = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-client" }
+abstract-xion = { path = "../framework/packages/abstract-xion" }
 # Modules
 abstract-account = { version = "0.24.1-beta.2", path = "../framework/contracts/account" }
 # croncat-app = { path = "../modules/contracts/apps/croncat" }

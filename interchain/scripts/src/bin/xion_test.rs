@@ -1,12 +1,13 @@
 use std::{env::set_var, sync::Arc};
 
-use abstract_account::absacc::auth::AddAuthenticator;
 use abstract_client::{AbstractClient, Namespace};
 use abstract_std::{
     account,
     objects::{module::ModuleInfo, salt::generate_instantiate_salt, AccountId},
     ACCOUNT,
 };
+use abstract_xion::auth::AddAuthenticator;
+use abstract_xion::auth::AuthId;
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
 use cosmwasm_std::{coins, to_json_binary, Binary};
 use cosmwasm_std::{to_json_vec, Addr};
@@ -382,7 +383,7 @@ mod xion_sender {
                 .unwrap();
             let signature = self.cosmos_private_key().sign(&sign_doc_bytes)?;
 
-            let AUTHID = abstract_account::absacc::auth::AuthId::new(1u8, true).unwrap();
+            let AUTHID = AuthId::new(1u8, true).unwrap();
             let smart_contract_sig = AUTHID.signature(signature.to_vec());
 
             Ok(xion_sdk_proto::cosmos::tx::v1beta1::TxRaw {

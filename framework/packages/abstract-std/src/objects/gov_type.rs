@@ -302,7 +302,7 @@ mod test {
             governance_address: gov_address.to_string(),
             governance_type: "a".repeat(190),
         };
-        assert!(gov.verify(deps.as_ref(), mock_registry).is_err());
+        assert!(gov.verify(deps.as_ref()).is_err());
 
         // invalid addr
         let gov = GovernanceDetails::External {
