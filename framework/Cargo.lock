@@ -35,7 +35,6 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -94,7 +93,6 @@ dependencies = [
  "rstest",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -221,7 +219,6 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -247,7 +244,6 @@ dependencies = [
  "prost",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -301,7 +297,6 @@ dependencies = [
  "rstest",
  "schemars",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -325,7 +320,6 @@ dependencies = [
  "polytone-evm",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -350,7 +344,6 @@ dependencies = [
  "cw2",
  "log",
  "semver",
- "speculoos",
  "workspace-hack",
 ]
 
@@ -390,7 +383,6 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -403,7 +395,6 @@ dependencies = [
  "coverage-helper",
  "proc-macro2",
  "quote",
- "speculoos",
  "syn 1.0.109",
 ]
 
@@ -429,7 +420,6 @@ dependencies = [
  "cw2",
  "semver",
  "serde-cw-value",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -531,7 +521,6 @@ dependencies = [
  "cw2",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -561,7 +550,6 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -590,7 +578,6 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -616,7 +603,6 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -650,7 +636,6 @@ dependencies = [
  "semver",
  "serde",
  "sha2 0.10.8",
- "speculoos",
  "thiserror",
  "workspace-hack",
 ]
@@ -671,7 +656,6 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "speculoos",
  "workspace-hack",
 ]
 

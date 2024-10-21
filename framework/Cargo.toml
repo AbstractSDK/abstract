@@ -97,7 +97,6 @@ abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 
 ## Testing
 rstest = "0.17.0"
-speculoos = "0.11.0"
 anyhow = "1"
 coverage-helper = { version = "0.2.2" }
 

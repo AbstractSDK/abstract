@@ -55,7 +55,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
             REGISTERED_MODULES.load(deps.storage, &module)
         } else {
             // get latest
-            let versions: StdResult<Vec<(String, ModuleReference)>> = REGISTERED_MODULES
+            let versions: StdResult<Vec<(ModuleVersion, ModuleReference)>> = REGISTERED_MODULES
                 .prefix((module.namespace.clone(), module.name.clone()))
                 .range(deps.storage, None, None, Order::Descending)
                 .take(1)
@@ -66,7 +66,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                     StdError::generic_err(RegistryError::ModuleNotFound(module.clone()).to_string())
                 })?
                 .clone();
-            module.version = ModuleVersion::Version(latest_version);
+            module.version = latest_version;
             Ok(id)
         };
 
@@ -236,8 +236,8 @@ fn filter_modules_by_namespace(
 
     // Filter by name using full prefix
     if let Some(name) = name {
-        let start_bound: Option<Bound<String>> =
-            start_after.map(|info| Bound::exclusive(info.version.to_string()));
+        let start_bound: Option<Bound<ModuleVersion>> =
+            start_after.map(|info| Bound::exclusive(info.version));
 
         modules.extend(
             mod_lib
@@ -251,7 +251,7 @@ fn filter_modules_by_namespace(
                         ModuleInfo {
                             namespace: namespace.clone(),
                             name: name.clone(),
-                            version: ModuleVersion::Version(version),
+                            version,
                         },
                         reference,
                     )
@@ -259,8 +259,8 @@ fn filter_modules_by_namespace(
         )
     } else {
         // Filter by just namespace using sub prefix
-        let start_bound: Option<Bound<(String, String)>> =
-            start_after.map(|token| Bound::exclusive((token.name, token.version.to_string())));
+        let start_bound: Option<Bound<(String, ModuleVersion)>> =
+            start_after.map(|token| Bound::exclusive((token.name, token.version)));
 
         modules.extend(
             mod_lib
@@ -274,7 +274,7 @@ fn filter_modules_by_namespace(
                         ModuleInfo {
                             namespace: namespace.clone(),
                             name,
-                            version: ModuleVersion::Version(version),
+                            version,
                         },
                         reference,
                     )
@@ -296,7 +296,6 @@ mod test {
         testing::{message_info, mock_dependencies, MockApi},
         Addr, Binary, StdError,
     };
-    use speculoos::prelude::*;
 
     type RegistryTestResult = Result<(), RegistryError>;
 
@@ -448,7 +447,7 @@ mod test {
             };
 
             let res = execute_as(deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
 
         fn add_module(deps: &mut MockDeps, new_module_info: ModuleInfo) {
@@ -459,7 +458,7 @@ mod test {
             };
 
             let res = execute_as(deps, &abstr.owner, add_msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
 
         #[coverage_helper::test]
@@ -486,7 +485,7 @@ mod test {
             };
 
             let ModulesResponse { mut modules } = from_json(query_helper(&deps, query_msg)?)?;
-            assert_that!(modules.swap_remove(0).module.info).is_equal_to(&new_module_info);
+            assert_eq!(modules.swap_remove(0).module.info, new_module_info);
             Ok(())
         }
 
@@ -514,9 +513,10 @@ mod test {
             };
 
             let res = query_helper(&deps, query_msg);
-            assert_that!(res)
-                .is_err()
-                .matches(|e| matches!(e, RegistryError::Std(StdError::GenericErr { .. })));
+            assert!(matches!(
+                res,
+                Err(RegistryError::Std(StdError::GenericErr { .. }))
+            ));
             Ok(())
         }
 
@@ -550,7 +550,7 @@ mod test {
             };
 
             let ModulesResponse { mut modules } = from_json(query_helper(&deps, query_msg)?)?;
-            assert_that!(modules.swap_remove(0).module.info).is_equal_to(&newest_version);
+            assert_eq!(modules.swap_remove(0).module.info, newest_version);
             Ok(())
         }
     }
@@ -570,7 +570,7 @@ mod test {
             };
 
             let res = execute_as(deps, sender, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 
@@ -582,7 +582,7 @@ mod test {
             .collect();
         let add_msg = ExecuteMsg::ProposeModules { modules };
         let res = execute_as(deps, sender, add_msg);
-        assert_that!(&res).is_ok();
+        assert!(res.is_ok());
     }
 
     /// Yank the provided module in the registry
@@ -592,7 +592,7 @@ mod test {
             module: module_info,
         };
         let res = execute_as(deps, &abstr.owner, yank_msg);
-        assert_that!(&res).is_ok();
+        assert!(res.is_ok());
     }
 
     /// Init verison control with some test modules.
@@ -651,11 +651,13 @@ mod test {
             };
 
             let ModulesResponse { modules } = from_json(query_helper(&deps, query_msg)?)?;
-            assert_that!(modules).has_length(3);
+            assert_eq!(modules.len(), 3);
             for module in modules {
-                assert_that!(module.module.info.namespace).is_equal_to(namespace.clone());
-                assert_that!(module.module.info.version)
-                    .is_equal_to(&ModuleVersion::Version("0.1.2".into()));
+                assert_eq!(module.module.info.namespace, namespace.clone());
+                assert_eq!(
+                    module.module.info.version,
+                    ModuleVersion::Version("0.1.2".into())
+                );
             }
             Ok(())
         }
@@ -675,9 +677,10 @@ mod test {
             };
 
             let res = query_helper(&deps, query_msg);
-            assert_that!(res)
-                .is_err()
-                .matches(|e| matches!(e, RegistryError::Std(StdError::GenericErr { .. })));
+            assert!(matches!(
+                res,
+                Err(RegistryError::Std(StdError::GenericErr { .. }))
+            ));
             Ok(())
         }
     }
@@ -708,17 +711,14 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(3);
-
-                for entry in modules {
-                    assert_that!(entry.module.info.namespace)
-                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                }
-
-                res
-            });
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 3);
+            for entry in modules {
+                assert_eq!(
+                    entry.module.info.namespace,
+                    Namespace::unchecked(filtered_namespace.clone())
+                );
+            }
         }
 
         #[coverage_helper::test]
@@ -754,21 +754,16 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(7);
-
-                let yanked_module_names = ["module4".to_string(), "module5".to_string()];
-                for entry in modules {
-                    if entry.module.info.namespace == Namespace::unchecked("cw-plus") {
-                        assert!(!yanked_module_names
-                            .iter()
-                            .any(|e| e == &entry.module.info.name));
-                    }
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 7);
+            let yanked_module_names = ["module4".to_string(), "module5".to_string()];
+            for entry in modules {
+                if entry.module.info.namespace == Namespace::unchecked("cw-plus") {
+                    assert!(!yanked_module_names
+                        .iter()
+                        .any(|e| e == &entry.module.info.name));
                 }
-
-                res
-            });
+            }
         }
 
         #[coverage_helper::test]
@@ -810,18 +805,15 @@ mod test {
             };
 
             let res = query_helper(&deps, list_msg);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 2);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(2);
-
-                for entry in modules {
-                    assert_that!(entry.module.info.namespace)
-                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                }
-
-                res
-            });
+            for entry in modules {
+                assert_eq!(
+                    entry.module.info.namespace,
+                    Namespace::unchecked(filtered_namespace.clone())
+                );
+            }
         }
 
         #[coverage_helper::test]
@@ -849,12 +841,8 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(1);
-
-                res
-            });
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 1);
         }
 
         #[coverage_helper::test]
@@ -876,16 +864,15 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(1);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 1);
 
-                let module = modules[0].clone();
-                assert_that!(module.module.info.namespace)
-                    .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
-                res
-            });
+            let module = modules[0].clone();
+            assert_eq!(
+                module.module.info.namespace,
+                Namespace::unchecked(filtered_namespace.clone())
+            );
+            assert_eq!(module.module.info.name, filtered_name.clone());
         }
 
         #[coverage_helper::test]
@@ -918,17 +905,16 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(2);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 2);
 
-                for module in modules {
-                    assert_that!(module.module.info.namespace)
-                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                    assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
-                }
-                res
-            });
+            for module in modules {
+                assert_eq!(
+                    module.module.info.namespace,
+                    Namespace::unchecked(filtered_namespace.clone())
+                );
+                assert_eq!(module.module.info.name, filtered_name.clone());
+            }
         }
 
         #[coverage_helper::test]
@@ -948,16 +934,15 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(6);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 6);
 
-                for module in modules {
-                    assert_that!(module.module.info.version.to_string())
-                        .is_equal_to(filtered_version.clone());
-                }
-                res
-            });
+            for module in modules {
+                assert_eq!(
+                    module.module.info.version.to_string(),
+                    filtered_version.clone()
+                );
+            }
         }
 
         #[coverage_helper::test]
@@ -977,12 +962,8 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).is_empty();
-
-                res
-            });
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert!(modules.is_empty());
         }
 
         #[coverage_helper::test]
@@ -1004,18 +985,17 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                // We expect two because both cw-plus and snth have a module2 with version 0.1.2
-                assert_that!(modules).has_length(2);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            // We expect two because both cw-plus and snth have a module2 with version 0.1.2
+            assert_eq!(modules.len(), 2);
 
-                for module in modules {
-                    assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
-                    assert_that!(module.module.info.version.to_string())
-                        .is_equal_to(filtered_version.clone());
-                }
-                res
-            });
+            for module in modules {
+                assert_eq!(module.module.info.name, filtered_name.clone());
+                assert_eq!(
+                    module.module.info.version.to_string(),
+                    filtered_version.clone()
+                );
+            }
         }
 
         #[coverage_helper::test]
@@ -1037,19 +1017,19 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(3);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 3);
 
-                for module in modules {
-                    assert_that!(module.module.info.namespace)
-                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                    assert_that!(module.module.info.version.to_string())
-                        .is_equal_to(filtered_version.clone());
-                }
-
-                res
-            });
+            for module in modules {
+                assert_eq!(
+                    module.module.info.namespace,
+                    Namespace::unchecked(filtered_namespace.clone())
+                );
+                assert_eq!(
+                    module.module.info.version.to_string(),
+                    filtered_version.clone()
+                );
+            }
         }
     }
 
@@ -1069,11 +1049,8 @@ mod test {
                     accounts: vec![TEST_OTHER_ACCOUNT_ID],
                 },
             );
-            assert_that!(res).is_ok().map(|res| {
-                let NamespacesResponse { namespaces } = from_json(res).unwrap();
-                assert_that!(namespaces[0].0.to_string()).is_equal_to("4t2".to_string());
-                res
-            });
+            let NamespacesResponse { namespaces } = from_json(res.unwrap()).unwrap();
+            assert_eq!(namespaces[0].0.to_string(), "4t2".to_string());
         }
     }
 
@@ -1093,11 +1070,12 @@ mod test {
                 },
             );
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(RegistryError::Std(StdError::generic_err(
+            assert_eq!(
+                res,
+                Err(RegistryError::Std(StdError::generic_err(
                     RegistryError::UnknownAccountId { id: not_registered }.to_string(),
-                )));
+                )))
+            );
 
             Ok(())
         }
@@ -1115,11 +1093,8 @@ mod test {
                 },
             );
 
-            assert_that!(res).is_ok().map(|res| {
-                let AccountsResponse { accounts } = from_json(res).unwrap();
-                assert_that!(accounts).is_equal_to(vec![test_account(deps.api)]);
-                res
-            });
+            let AccountsResponse { accounts } = from_json(res.unwrap()).unwrap();
+            assert_eq!(accounts, vec![test_account(deps.api)]);
 
             Ok(())
         }

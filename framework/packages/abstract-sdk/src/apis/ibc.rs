@@ -348,7 +348,6 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
     use cosmwasm_std::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::{apis::traits::test::abstract_api_test, mock_module::*};
@@ -369,7 +368,7 @@ mod test {
                 }],
             },
         );
-        assert_that!(msg).is_ok();
+        assert!(msg.is_ok());
 
         let base = test_account(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -390,7 +389,7 @@ mod test {
             .unwrap(),
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
+        assert_eq!(msg, Ok(expected));
     }
 
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
@@ -408,7 +407,7 @@ mod test {
             expected_funds.clone(),
             None,
         );
-        assert_that!(msg).is_ok();
+        assert!(msg.is_ok());
 
         let base = test_account(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -426,7 +425,7 @@ mod test {
             // ensure empty
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
+        assert_eq!(msg, Ok(expected));
     }
 
     #[coverage_helper::test]

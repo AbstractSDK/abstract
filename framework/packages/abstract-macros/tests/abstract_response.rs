@@ -2,7 +2,6 @@
 mod tests {
     use abstract_macros::abstract_response;
     use cosmwasm_std::Response;
-    use speculoos::prelude::*;
 
     const TEST_CONTRACT: &str = "test:contract";
 
@@ -17,7 +16,7 @@ mod tests {
                 .add_attributes(vec![("contract", TEST_CONTRACT), ("action", "instantiate")]),
         );
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -31,6 +30,6 @@ mod tests {
                 ("custom", "abstract"),
             ]));
 
-        assert_that!(actual).is_equal_to(expected);
+        assert_eq!(actual, expected);
     }
 }
