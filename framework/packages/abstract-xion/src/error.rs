@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractXionError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] cosmwasm_std::StdError),
 
     #[error(transparent)]

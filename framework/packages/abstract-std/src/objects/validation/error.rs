@@ -1,13 +1,9 @@
-use cosmwasm_std::StdError;
 use thiserror::Error;
 
 use super::verifiers::DANGEROUS_CHARS;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ValidationError {
-    #[error("{0}")]
-    Std(#[from] StdError),
-
     #[error("description too short, must be at least {0} characters")]
     DescriptionInvalidShort(usize),
 

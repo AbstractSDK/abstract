@@ -9,22 +9,22 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AppError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Asset(#[from] AssetError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Admin(#[from] AdminError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     DappError(#[from] AbstractAppError),
 
     #[error("Caller module is not a ping pong: {source_module}")]

@@ -230,7 +230,7 @@ mod test {
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
-        #[error("{0}")]
+        #[error(transparent)]
         Sdk(#[from] AbstractSdkError),
     }
 

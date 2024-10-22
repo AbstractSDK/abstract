@@ -1,4 +1,4 @@
-use abstract_sdk::{std::objects::module::ModuleInfo, AbstractSdkError};
+use abstract_sdk::std::objects::module::ModuleInfo;
 use abstract_std::{
     objects::{registry::RegistryError, validation::ValidationError},
     AbstractError,
@@ -8,25 +8,22 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AccountError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
-    AbstractSdk(#[from] AbstractSdkError),
-
-    #[error("{0}")]
+    #[error(transparent)]
     Validation(#[from] ValidationError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Ownership(#[from] abstract_std::objects::ownership::GovOwnershipError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Instantiate2AddressError(#[from] Instantiate2AddressError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
     #[error("Your account is currently suspended")]

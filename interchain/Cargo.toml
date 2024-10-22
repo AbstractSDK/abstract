@@ -68,11 +68,11 @@ cw-orch-proto = { version = "0.8.0" }
 abstract-interface = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-sdk" }
 abstract-std = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-std" }
+abstract-xion = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-xion" }
 abstract-app = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-testing" }
 abstract-client = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-client" }
-abstract-xion = { path = "../framework/packages/abstract-xion" }
 # Modules
 abstract-account = { version = "0.24.1-beta.2", path = "../framework/contracts/account" }
 # croncat-app = { path = "../modules/contracts/apps/croncat" }
@@ -95,6 +95,7 @@ abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-std = { path = "../framework/packages/abstract-std" }
+abstract-xion = { path = "../framework/packages/abstract-xion" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
