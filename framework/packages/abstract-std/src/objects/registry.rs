@@ -11,7 +11,10 @@ use crate::{
     account::state::ACCOUNT_ID,
     native_addrs,
     registry::{
-        state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, SERVICE_INFOS, STANDALONE_INFOS},
+        state::{
+            ACCOUNT_ADDRESSES, CONFIG, NAMESPACES, REGISTERED_MODULES, SERVICE_INFOS,
+            STANDALONE_INFOS,
+        },
         Account, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
         NamespacesResponse, QueryMsg,
     },
@@ -152,6 +155,22 @@ impl RegistryContract {
     ) -> RegistryResult<NamespaceResponse> {
         let namespace_response: NamespaceResponse = querier
             .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespace { namespace })
+            .map_err(|error| RegistryError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
+        Ok(namespace_response)
+    }
+
+    /// Queries the account id that owns the namespace
+    #[function_name::named]
+    pub fn query_namespace_raw(
+        &self,
+        namespace: Namespace,
+        querier: &QuerierWrapper,
+    ) -> RegistryResult<Option<AccountId>> {
+        let namespace_response = NAMESPACES
+            .query(querier, self.address.clone(), &namespace)
             .map_err(|error| RegistryError::QueryFailed {
                 method_name: function_name!().to_owned(),
                 error,

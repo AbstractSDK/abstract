@@ -82,16 +82,16 @@ pub mod mock {
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
-        #[error("{0}")]
+        #[error(transparent)]
         Std(#[from] StdError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         Abstract(#[from] abstract_std::AbstractError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         AbstractSdk(#[from] AbstractSdkError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         Admin(#[from] AdminError),
     }
 
@@ -111,7 +111,7 @@ pub mod mock {
                 abstract_std::module_factory::state::CURRENT_BASE,
                 &test_account,
             )
-            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected messsage"))
+            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected message"))
     }
 
     #[cosmwasm_std::entry_point]

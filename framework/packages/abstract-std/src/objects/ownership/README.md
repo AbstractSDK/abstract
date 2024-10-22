@@ -12,7 +12,11 @@ Initialize the owner during instantiation using the `initialize_owner` method pr
 
 ```rust
 use cosmwasm_std::{entry_point, DepsMut, Env, MessageInfo, Response, Empty};
-use abstract_std::objects::ownership::OwnershipError;
+use abstract_std::objects::ownership::{initialize_owner, GovOwnershipError, GovernanceDetails};
+
+pub struct InstantiateMsg {
+    pub owner: GovernanceDetails<String>
+};
 
 #[entry_point]
 pub fn instantiate(
@@ -20,8 +24,8 @@ pub fn instantiate(
     env: Env,
     _info: MessageInfo,
     msg: InstantiateMsg,
-) -> Result<Response<Empty>, OwnershipError> {
-    cw_gov_ownable::initialize_owner(deps.storage, deps.api, msg.owner.as_deref())?;
+) -> Result<Response<Empty>, GovOwnershipError> {
+    initialize_owner(deps, msg.owner)?;
     Ok(Response::new())
 }
 ```
@@ -29,15 +33,17 @@ pub fn instantiate(
 Insert a new variant, `UpdateOwnership` to the ExecuteMsg enum:
 
 ```rust
-#[cw_serde]
+use abstract_std::objects::ownership::GovAction;
+
+#[cosmwasm_schema::cw_serde]
 enum ExecuteMsg {
-    UpdateOwnership(cw_gov_ownable::Action),
+    UpdateOwnership(GovAction),
     Foo {},
     Bar {},
 }
 ```
 
-Where `Action` can be one of three:
+Where `GovAction` can be one of three:
 
 - Propose to transfer the contract's ownership to another account
 - Accept the proposed ownership transfer
@@ -47,7 +53,14 @@ Handle the messages using the `update_ownership` function provided by this crate
 
 ```rust
 use cosmwasm_std::{entry_point, DepsMut, Env, MessageInfo, Response};
-use abstract_std::objects::ownership::{update_ownership, OwnershipError};
+use abstract_std::objects::ownership::{update_ownership, GovOwnershipError, GovAction};
+
+#[cosmwasm_schema::cw_serde]
+enum ExecuteMsg {
+    UpdateOwnership(GovAction),
+    Foo {},
+    Bar {},
+}
 
 #[entry_point]
 pub fn execute(
@@ -55,12 +68,12 @@ pub fn execute(
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> Result<Response, OwnershipError> {
+) -> Result<Response, GovOwnershipError> {
     match msg {
         ExecuteMsg::UpdateOwnership(action) => {
             update_ownership(deps, &env.block, &info.sender, action)?;
         }
-        _ => unimplemneted!(),
+        _ => unimplemented!(),
     }
     Ok(Response::new())
 }
@@ -68,9 +81,11 @@ pub fn execute(
 
 Insert a new variant to the QueryMsg, `Ownership`:
 
-```rust
-#[cw_serde]
-#[derive(QueryResponses)]
+```rust ignore
+use abstract_std::objects::ownership::Ownership;
+
+#[cosmwasm_schema::cw_serde]
+#[derive(cosmwasm_schema::QueryResponses)]
 enum QueryMsg {
     #[returns(Ownership<String>)]
     Ownership {},
@@ -84,13 +99,21 @@ enum QueryMsg {
 Handle the message using the `get_ownership` function provided by this module:
 
 ```rust
-use cosmwasm_std::{entry_point, Deps, Env, Binary};
+use cosmwasm_std::{entry_point, to_json_binary, Deps, Env, Binary, StdResult};
 use abstract_std::objects::ownership::get_ownership;
+use abstract_std::objects::ownership::Ownership;
+
+#[cosmwasm_schema::cw_serde]
+#[derive(cosmwasm_schema::QueryResponses)]
+enum QueryMsg {
+    #[returns(Ownership<String>)]
+    Ownership {},
+}
 
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Ownership {} => to_binary(&get_ownership(deps.storage)?),
+        QueryMsg::Ownership {} => to_json_binary(&get_ownership(deps.storage)?),
         _ => unimplemented!(),
     }
 }
@@ -130,7 +153,7 @@ The `NestedAdmin::assert_admin` function will only return an `Result::Ok` if any
 
 So inside `Abstract Apps` for instance, one should write the following lines to shield admin actions:
 
-```rust
+```rust ignore
 app.admin.assert_admin(deps.as_ref(), &env, info.sender)?;
 ```
 

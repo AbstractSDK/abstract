@@ -50,7 +50,6 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 
 [dev-dependencies]
-speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
 doc-comment = "0.3.3"
 # Set our own feature when running tests!

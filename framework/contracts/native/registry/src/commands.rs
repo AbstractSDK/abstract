@@ -552,7 +552,7 @@ pub fn forgo_namespace(deps: DepsMut, msg_info: MessageInfo, namespaces: Vec<Str
             let module = ModuleInfo {
                 namespace: namespace.clone(),
                 name,
-                version: ModuleVersion::Version(version),
+                version,
             };
             REGISTERED_MODULES.remove(deps.storage, &module);
             YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
@@ -668,7 +668,6 @@ mod tests {
     use cw_ownable::OwnershipError;
     use cw_storage_plus::Item;
     use ownership::{GovernanceDetails, Ownership};
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::contract;
@@ -868,9 +867,10 @@ mod tests {
 
         let not_owner = deps.api.addr_make("not_owner");
         let res = execute_as(deps, &not_owner, msg);
-        assert_that(&res)
-            .is_err()
-            .is_equal_to(RegistryError::Ownership(OwnershipError::NotOwner {}));
+        assert_eq!(
+            res,
+            Err(RegistryError::Ownership(OwnershipError::NotOwner {}))
+        );
 
         Ok(())
     }
@@ -911,9 +911,10 @@ mod tests {
             let accept_res = execute_as(&mut deps, &new_admin, accept_msg).unwrap();
             assert_eq!(0, accept_res.messages.len());
 
-            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
-                .is_some()
-                .is_equal_to(new_admin);
+            assert_eq!(
+                cw_ownable::get_ownership(&deps.storage).unwrap().owner,
+                Some(new_admin)
+            );
 
             Ok(())
         }
@@ -937,7 +938,7 @@ mod tests {
                 namespace: new_namespace1.to_string(),
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             create_second_account(&mut deps);
 
@@ -947,12 +948,12 @@ mod tests {
                 namespace: new_namespace2.to_string(),
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let account_id = NAMESPACES.load(&deps.storage, &new_namespace1)?;
-            assert_that!(account_id).is_equal_to(FIRST_TEST_ACCOUNT_ID);
+            assert_eq!(account_id, FIRST_TEST_ACCOUNT_ID);
             let account_id = NAMESPACES.load(&deps.storage, &new_namespace2)?;
-            assert_that!(account_id).is_equal_to(SECOND_TEST_ACCOUNT_ID);
+            assert_eq!(account_id, SECOND_TEST_ACCOUNT_ID);
             Ok(())
         }
 
@@ -969,10 +970,10 @@ mod tests {
             };
             // OWNER is also admin of the contract so this succeeds
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let account_id = NAMESPACES.load(&deps.storage, &new_namespace1)?;
-            assert_that!(account_id).is_equal_to(FIRST_TEST_ACCOUNT_ID);
+            assert_eq!(account_id, FIRST_TEST_ACCOUNT_ID);
 
             create_second_account(&mut deps);
 
@@ -986,9 +987,7 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, account.addr(), msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(RegistryError::Ownership(OwnershipError::NotOwner));
+            assert_eq!(res, Err(RegistryError::Ownership(OwnershipError::NotOwner)));
 
             Ok(())
         }
@@ -1024,41 +1023,43 @@ mod tests {
 
             // Fail, no fee at all
             let res = execute_as(&mut deps, &abstr.owner, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(RegistryError::Abstract(AbstractError::Fee(format!(
+            assert_eq!(
+                res,
+                Err(RegistryError::Abstract(AbstractError::Fee(format!(
                     "Invalid fee payment sent. Expected {}, sent {:?}",
                     Coin {
                         denom: one_namespace_fee.denom.clone(),
                         amount: one_namespace_fee.amount,
                     },
                     Vec::<Coin>::new()
-                ))));
+                ))))
+            );
 
             // Fail, not enough fee
             let sent_coins = coins(5, "ujunox");
             let res = execute_as_with_funds(&mut deps, &abstr.owner, msg.clone(), &sent_coins);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(RegistryError::Abstract(AbstractError::Fee(format!(
+            assert_eq!(
+                res,
+                Err(RegistryError::Abstract(AbstractError::Fee(format!(
                     "Invalid fee payment sent. Expected {}, sent {:?}",
                     Coin {
                         denom: one_namespace_fee.denom.clone(),
                         amount: one_namespace_fee.amount,
                     },
                     sent_coins
-                ))));
+                ))))
+            );
 
             // Success
             let sent_coins = coins(6, "ujunox");
             let res = execute_as_with_funds(&mut deps, &abstr.owner, msg, &sent_coins);
-            assert_that!(&res)
-                .is_ok()
-                .map(|res| &res.messages)
-                .is_equal_to(vec![SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
+            assert_eq!(
+                res.map(|res| res.messages),
+                Ok(vec![SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
                     to_address: abstr.account.addr().to_string(),
                     amount: sent_coins,
-                }))]);
+                }))])
+            );
 
             Ok(())
         }
@@ -1077,12 +1078,13 @@ mod tests {
 
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::AccountOwnerMismatch {
+            assert_eq!(
+                res,
+                Err(RegistryError::AccountOwnerMismatch {
                     sender: other,
                     owner: abstr.owner,
-                });
+                })
+            );
             Ok(())
         }
 
@@ -1107,12 +1109,13 @@ mod tests {
                 namespace: new_namespace1.to_string(),
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::NamespaceOccupied {
+            assert_eq!(
+                res,
+                Err(RegistryError::NamespaceOccupied {
                     namespace: new_namespace1.to_string(),
                     id: FIRST_TEST_ACCOUNT_ID,
-                });
+                })
+            );
             Ok(())
         }
 
@@ -1132,12 +1135,13 @@ mod tests {
                 namespace: ABSTRACT_NAMESPACE.to_string(),
             };
             let res = execute_as(&mut deps, &abstr.owner, claim_abstract_msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(RegistryError::NamespaceOccupied {
+            assert_eq!(
+                res,
+                Err(RegistryError::NamespaceOccupied {
                     namespace: Namespace::try_from("abstract")?.to_string(),
                     id: ABSTRACT_ACCOUNT_ID,
-                });
+                })
+            );
             Ok(())
         }
     }
@@ -1157,9 +1161,7 @@ mod tests {
 
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner));
+            assert_eq!(res, Err(RegistryError::Ownership(OwnershipError::NotOwner)));
 
             Ok(())
         }
@@ -1176,10 +1178,9 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
-            assert_that!(CONFIG.load(&deps.storage).unwrap().security_disabled).is_equal_to(false);
-            assert_that!(CONFIG.load(&deps.storage).unwrap().security_disabled).is_equal_to(false);
+            assert!(!CONFIG.load(&deps.storage).unwrap().security_disabled);
 
             Ok(())
         }
@@ -1205,9 +1206,7 @@ mod tests {
 
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner));
+            assert_eq!(res, Err(RegistryError::Ownership(OwnershipError::NotOwner)));
 
             Ok(())
         }
@@ -1229,15 +1228,15 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
-            assert_that!(
+            assert_eq!(
                 CONFIG
                     .load(&deps.storage)
                     .unwrap()
-                    .namespace_registration_fee
-            )
-            .is_equal_to(Some(new_fee));
+                    .namespace_registration_fee,
+                Some(new_fee)
+            );
 
             Ok(())
         }
@@ -1274,9 +1273,9 @@ mod tests {
                 namespaces: vec![new_namespace1.to_string()],
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let exists = NAMESPACES.has(&deps.storage, &new_namespace1);
-            assert_that!(exists).is_equal_to(false);
+            assert!(!exists);
 
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id: FIRST_TEST_ACCOUNT_ID,
@@ -1289,9 +1288,9 @@ mod tests {
                 namespaces: vec![new_namespace2.to_string()],
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let exists = NAMESPACES.has(&deps.storage, &new_namespace2);
-            assert_that!(exists).is_equal_to(false);
+            assert!(!exists);
             assert_eq!(
                 res.unwrap().events[0].attributes[2],
                 attr(
@@ -1324,12 +1323,13 @@ mod tests {
             };
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::AccountOwnerMismatch {
+            assert_eq!(
+                res,
+                Err(RegistryError::AccountOwnerMismatch {
                     sender: other,
                     owner: abstr.owner,
-                });
+                })
+            );
             Ok(())
         }
 
@@ -1346,19 +1346,21 @@ mod tests {
                 namespaces: vec![new_namespace1.to_string()],
             };
             let res = execute_as(&mut deps, &abstr.owner, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::UnknownNamespace {
+            assert_eq!(
+                res,
+                Err(RegistryError::UnknownNamespace {
                     namespace: new_namespace1.clone(),
-                });
+                })
+            );
 
             // remove as admin
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::UnknownNamespace {
+            assert_eq!(
+                res,
+                Err(RegistryError::UnknownNamespace {
                     namespace: new_namespace1,
-                });
+                })
+            );
 
             Ok(())
         }
@@ -1393,9 +1395,9 @@ mod tests {
             execute_as(&mut deps, &abstr.owner, msg)?;
 
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module);
-            assert_that!(&module).is_err();
+            assert!(module.is_err());
             let module = YANKED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
             Ok(())
         }
     }
@@ -1426,9 +1428,9 @@ mod tests {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
             Ok(())
         }
 
@@ -1446,11 +1448,12 @@ mod tests {
 
             // try while no namespace
             let res = execute_as(&mut deps, &abstr.owner, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::UnknownNamespace {
+            assert_eq!(
+                res,
+                Err(RegistryError::UnknownNamespace {
                     namespace: new_module.namespace.clone(),
-                });
+                })
+            );
 
             // add namespaces
             execute_as(
@@ -1464,9 +1467,9 @@ mod tests {
 
             // add modules
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
             Ok(())
         }
 
@@ -1494,9 +1497,9 @@ mod tests {
 
             // add modules
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
 
             // update module code-id without changing version
 
@@ -1505,9 +1508,9 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(1));
+            assert_eq!(module, ModuleReference::App(1));
             Ok(())
         }
 
@@ -1535,7 +1538,7 @@ mod tests {
 
             // add modules
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             // approve
             let msg = ExecuteMsg::ApproveOrRejectModules {
                 approves: vec![new_module.clone()],
@@ -1544,10 +1547,10 @@ mod tests {
 
             // approve by admin
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
 
             // try update module code-id without changing version
 
@@ -1556,10 +1559,10 @@ mod tests {
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
             // should error as module is already approved and registered.
-            assert_that!(&res).is_err();
+            assert!(res.is_err());
 
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
             Ok(())
         }
 
@@ -1585,11 +1588,12 @@ mod tests {
 
             // try while no namespace
             let res = execute_as(&mut deps, &abstr.owner, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::UnknownNamespace {
+            assert_eq!(
+                res,
+                Err(RegistryError::UnknownNamespace {
                     namespace: new_module.namespace.clone(),
-                });
+                })
+            );
 
             // add namespaces
             execute_as(
@@ -1603,9 +1607,7 @@ mod tests {
 
             // assert we got admin must be none error
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::AdminMustBeNone);
+            assert_eq!(res, Err(RegistryError::AdminMustBeNone));
 
             Ok(())
         }
@@ -1624,11 +1626,12 @@ mod tests {
 
             // try while no namespace
             let res = execute_as(&mut deps, &abstr.owner, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::UnknownNamespace {
+            assert_eq!(
+                res,
+                Err(RegistryError::UnknownNamespace {
                     namespace: new_module.namespace.clone(),
-                });
+                })
+            );
 
             // add namespaces
             execute_as(
@@ -1642,9 +1645,9 @@ mod tests {
 
             // add modules
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let module = PENDING_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
             Ok(())
         }
 
@@ -1682,17 +1685,18 @@ mod tests {
             // approve by not owner
             let not_owner = deps.api.addr_make("not_owner");
             let res = execute_as(&mut deps, &not_owner, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
+            assert_eq!(
+                res,
+                Err(RegistryError::Ownership(OwnershipError::NotOwner {}))
+            );
 
             // approve by admin
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
             let pending = PENDING_MODULES.has(&deps.storage, &new_module);
-            assert_that!(pending).is_equal_to(false);
+            assert!(!pending);
 
             Ok(())
         }
@@ -1731,17 +1735,18 @@ mod tests {
             // reject by not owner
             let not_owner = deps.api.addr_make("not_owner");
             let res = execute_as(&mut deps, &not_owner, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
+            assert_eq!(
+                res,
+                Err(RegistryError::Ownership(OwnershipError::NotOwner {}))
+            );
 
             // reject by admin
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let exists = REGISTERED_MODULES.has(&deps.storage, &new_module);
-            assert_that!(exists).is_equal_to(false);
+            assert!(!exists);
             let pending = PENDING_MODULES.has(&deps.storage, &new_module);
-            assert_that!(pending).is_equal_to(false);
+            assert!(!pending);
 
             Ok(())
         }
@@ -1767,7 +1772,7 @@ mod tests {
             };
             execute_as(&mut deps, &abstr.owner, msg)?;
             let module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
 
             // then remove
             let msg = ExecuteMsg::RemoveModule {
@@ -1776,15 +1781,16 @@ mod tests {
             // as other, should fail
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
+            assert_eq!(
+                res,
+                Err(RegistryError::Ownership(OwnershipError::NotOwner {}))
+            );
 
             // only admin can remove modules.
             execute_as(&mut deps, &abstr.owner, msg)?;
 
             let module = REGISTERED_MODULES.load(&deps.storage, &rm_module);
-            assert_that!(&module).is_err();
+            assert!(module.is_err());
             Ok(())
         }
 
@@ -1809,19 +1815,20 @@ mod tests {
             };
             execute_as(&mut deps, &abstr.owner, add_modules_msg)?;
             let added_module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
-            assert_that!(&added_module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(added_module, ModuleReference::App(0));
 
             // then yank the module as the other
             let msg = ExecuteMsg::YankModule { module: rm_module };
             // as other
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::AccountOwnerMismatch {
+            assert_eq!(
+                res,
+                Err(RegistryError::AccountOwnerMismatch {
                     sender: other,
                     owner: abstr.owner,
-                });
+                })
+            );
 
             Ok(())
         }
@@ -1847,7 +1854,7 @@ mod tests {
             };
             execute_as(&mut deps, &abstr.owner, add_modules_msg)?;
             let added_module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
-            assert_that!(&added_module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(added_module, ModuleReference::App(0));
 
             // then yank as owner
             let msg = ExecuteMsg::YankModule {
@@ -1857,9 +1864,9 @@ mod tests {
 
             // check that the yanked module is in the yanked modules and no longer in the library
             let module = REGISTERED_MODULES.load(&deps.storage, &rm_module);
-            assert_that!(&module).is_err();
+            assert!(module.is_err());
             let yanked_module = YANKED_MODULES.load(&deps.storage, &rm_module)?;
-            assert_that!(&yanked_module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(yanked_module, ModuleReference::App(0));
             Ok(())
         }
 
@@ -1886,20 +1893,19 @@ mod tests {
             };
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg);
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| e.to_string().contains("Invalid version"));
+            assert!(res.unwrap_err().to_string().contains("Invalid version"));
 
             let latest_version_module = ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Latest)?;
             let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(latest_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(&mut deps, &other, msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::Abstract(AbstractError::Assert(
+            assert_eq!(
+                res,
+                Err(RegistryError::Abstract(AbstractError::Assert(
                     "Module version must be set to a specific version".into(),
-                )));
+                )))
+            );
             Ok(())
         }
 
@@ -1920,13 +1926,14 @@ mod tests {
             // execute as other
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
+            assert_eq!(
+                res,
+                Err(RegistryError::Ownership(OwnershipError::NotOwner {}))
+            );
 
             execute_as(&mut deps, &abstr.owner, msg)?;
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_eq!(module, ModuleReference::App(0));
             Ok(())
         }
 
@@ -1964,14 +1971,14 @@ mod tests {
                 };
                 let other = deps.api.addr_make(TEST_OTHER);
                 let res = execute_as(&mut deps, &other, msg);
-                assert_that!(&res)
-                    .named(&format!("ModuleInfo validation failed for {bad_module}"))
-                    .is_err()
-                    .is_equal_to(&RegistryError::Abstract(AbstractError::FormattingError {
+                assert_eq!(
+                    res,
+                    Err(RegistryError::Abstract(AbstractError::FormattingError {
                         object: "module name".into(),
                         expected: "with content".into(),
                         actual: "empty".into(),
-                    }));
+                    }))
+                );
             }
 
             Ok(())
@@ -1989,7 +1996,7 @@ mod tests {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
 
             let monetization = Monetization::InstallFee(FixedFee::new(&coin(45, "ujuno")));
@@ -2012,7 +2019,7 @@ mod tests {
             };
             let res = query(deps.as_ref(), mock_env_validated(deps.api), query_msg)?;
             let ser_res = from_json::<ModulesResponse>(&res)?;
-            assert_that!(ser_res.modules).has_length(1);
+            assert_eq!(ser_res.modules.len(), 1);
             assert_eq!(
                 ser_res.modules[0],
                 ModuleResponse {
@@ -2039,7 +2046,7 @@ mod tests {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
 
             let instantiation_funds = vec![coin(42, "ujuno"), coin(123, "ujunox")];
@@ -2062,7 +2069,7 @@ mod tests {
             };
             let res = query(deps.as_ref(), mock_env_validated(deps.api), query_msg)?;
             let ser_res = from_json::<ModulesResponse>(&res)?;
-            assert_that!(ser_res.modules).has_length(1);
+            assert_eq!(ser_res.modules.len(), 1);
             assert_eq!(
                 ser_res.modules[0],
                 ModuleResponse {
@@ -2093,7 +2100,7 @@ mod tests {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
 
             let monetization = Monetization::None;
@@ -2116,7 +2123,7 @@ mod tests {
             };
             let res = query(deps.as_ref(), mock_env_validated(deps.api), query_msg)?;
             let ser_res = from_json::<ModulesResponse>(&res)?;
-            assert_that!(ser_res.modules).has_length(1);
+            assert_eq!(ser_res.modules.len(), 1);
             assert_eq!(
                 ser_res.modules[0],
                 ModuleResponse {
@@ -2161,16 +2168,17 @@ mod tests {
             execute_as(&mut deps, &abstr.owner, msg)?;
 
             // Load the module from the library to check its presence
-            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_true();
+            assert!(REGISTERED_MODULES.has(&deps.storage, &new_module));
 
             // now, remove the module as the admin
             let msg = ExecuteMsg::RemoveModule { module: new_module };
             let other = deps.api.addr_make(TEST_OTHER);
             let res = execute_as(&mut deps, &other, msg);
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
+            assert_eq!(
+                res,
+                Err(RegistryError::Ownership(OwnershipError::NotOwner {}))
+            );
             Ok(())
         }
 
@@ -2190,7 +2198,7 @@ mod tests {
             execute_as(&mut deps, &abstr.owner, msg)?;
 
             // Load the module from the library to check its presence
-            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_true();
+            assert!(REGISTERED_MODULES.has(&deps.storage, &new_module));
 
             // now, remove the module as the admin
             let msg = ExecuteMsg::RemoveModule {
@@ -2198,7 +2206,7 @@ mod tests {
             };
             execute_as(&mut deps, &abstr.owner, msg)?;
 
-            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_false();
+            assert!(!REGISTERED_MODULES.has(&deps.storage, &new_module));
             Ok(())
         }
 
@@ -2220,9 +2228,7 @@ mod tests {
             };
             let res = execute_as(&mut deps, &abstr.owner, msg);
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(&RegistryError::ModuleNotFound(new_module));
+            assert_eq!(res, Err(RegistryError::ModuleNotFound(new_module)));
             Ok(())
         }
 
@@ -2239,8 +2245,8 @@ mod tests {
             YANKED_MODULES.save(deps.as_mut().storage, &new_module, &ModuleReference::App(0))?;
 
             // should be removed from library and added to yanked
-            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_false();
-            assert_that!(YANKED_MODULES.has(&deps.storage, &new_module)).is_true();
+            assert!(!REGISTERED_MODULES.has(&deps.storage, &new_module));
+            assert!(YANKED_MODULES.has(&deps.storage, &new_module));
 
             // now, remove the module as the admin
             let msg = ExecuteMsg::RemoveModule {
@@ -2248,8 +2254,8 @@ mod tests {
             };
             execute_as(&mut deps, &abstr.owner, msg)?;
 
-            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_false();
-            assert_that!(YANKED_MODULES.has(&deps.storage, &new_module)).is_false();
+            assert!(!REGISTERED_MODULES.has(&deps.storage, &new_module));
+            assert!(!YANKED_MODULES.has(&deps.storage, &new_module));
             Ok(())
         }
     }
@@ -2279,21 +2285,22 @@ mod tests {
 
             // as non-account
             let res = execute_as(&mut deps, &other, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&RegistryError::NotAccountInfo {
+            assert_eq!(
+                res,
+                Err(RegistryError::NotAccountInfo {
                     caller_info: ModuleInfo::from_id(
                         "some:contract",
                         ModuleVersion::Version(String::from("0.0.0")),
                     )
                     .unwrap(),
-                });
+                })
+            );
 
             // as account
             execute_as(&mut deps, &first_acc_addr, msg)?;
 
             let account = ACCOUNT_ADDRESSES.load(&deps.storage, &FIRST_TEST_ACCOUNT_ID)?;
-            assert_that!(&account).is_equal_to(&first_acc);
+            assert_eq!(account, first_acc);
             Ok(())
         }
     }
@@ -2315,9 +2322,10 @@ mod tests {
 
             // as other
             let transfer_res = execute_as(&mut deps, &other, transfer_msg.clone());
-            assert_that!(&transfer_res)
-                .is_err()
-                .is_equal_to(&RegistryError::Ownership(OwnershipError::NotOwner {}));
+            assert_eq!(
+                transfer_res,
+                Err(RegistryError::Ownership(OwnershipError::NotOwner {}))
+            );
 
             execute_as(&mut deps, &abstr.owner, transfer_msg)?;
 
@@ -2326,9 +2334,10 @@ mod tests {
             let accept_res = execute_as(&mut deps, &other, accept_msg).unwrap();
             assert_eq!(0, accept_res.messages.len());
 
-            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
-                .is_some()
-                .is_equal_to(other);
+            assert_eq!(
+                cw_ownable::get_ownership(&deps.storage).unwrap().owner,
+                Some(other)
+            );
             Ok(())
         }
     }
@@ -2350,7 +2359,7 @@ mod tests {
                 &ABSTRACT_ACCOUNT_ID,
             )?;
 
-            assert_that!(account_owner).is_equal_to(abstr.owner);
+            assert_eq!(account_owner, abstr.owner);
             Ok(())
         }
 
@@ -2378,9 +2387,7 @@ mod tests {
                 abstr.account.addr().clone(),
                 &account_id,
             );
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(&RegistryError::NoAccountOwner { account_id });
+            assert_eq!(res, Err(RegistryError::NoAccountOwner { account_id }));
             Ok(())
         }
     }

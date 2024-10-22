@@ -53,16 +53,16 @@ pub mod mock {
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
-        #[error("{0}")]
+        #[error(transparent)]
         Std(#[from] StdError),
 
         #[error(transparent)]
         Adapter(#[from] AdapterError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         Abstract(#[from] abstract_std::AbstractError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         AbstractSdk(#[from] AbstractSdkError),
     }
 

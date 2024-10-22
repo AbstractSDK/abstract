@@ -92,19 +92,19 @@ pub mod mock {
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
-        #[error("{0}")]
+        #[error(transparent)]
         Std(#[from] StdError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         DappError(#[from] AppError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         Abstract(#[from] abstract_std::AbstractError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         AbstractSdk(#[from] AbstractSdkError),
 
-        #[error("{0}")]
+        #[error(transparent)]
         Admin(#[from] AdminError),
     }
 
@@ -200,7 +200,7 @@ pub mod mock {
     pub fn app_base_mock_querier(mock_api: cosmwasm_std::testing::MockApi) -> MockQuerierBuilder {
         let abstr = AbstractMockAddrs::new(mock_api);
         MockQuerierBuilder::default()
-            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected messsage"))
+            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected message"))
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].

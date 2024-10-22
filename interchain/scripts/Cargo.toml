@@ -20,6 +20,7 @@ cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw-orch-clone-testing = { workspace = true }
 cw-orch-polytone = { workspace = true }
 abstract-std = { workspace = true }
+abstract-xion = { workspace = true }
 abstract-interface = { workspace = true, features = ["daemon"] }
 tokio = { workspace = true, features = ["full"] }
 log = "0.4.14"
