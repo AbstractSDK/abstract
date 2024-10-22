@@ -64,7 +64,7 @@ fn main() -> cw_orch::anyhow::Result<()> {
             )?;
         }
     }
-    
+
     let evm_config = union_connector::networks::get_remote_evm_config(CHAIN_NAME).unwrap();
     let evm_note = EvmNote::new(chain.clone());
 
