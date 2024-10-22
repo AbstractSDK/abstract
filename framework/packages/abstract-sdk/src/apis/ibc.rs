@@ -37,10 +37,11 @@ pub trait IbcInterface:
         # use abstract_sdk::mock_module::MockModule;
         # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
 
-        let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
+        let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref(), &env);
         ```
     */
     fn ibc_client<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> IbcClient<Self> {
@@ -79,10 +80,11 @@ impl<'a, T: IbcInterface> AbstractApi<T> for IbcClient<'a, T> {
     # use abstract_sdk::mock_module::MockModule;
     # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
 
-    let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
+    let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref(), &env);
     ```
 */
 pub struct IbcClient<'a, T: IbcInterface> {

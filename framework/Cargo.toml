@@ -130,6 +130,7 @@ panic = 'abort'
 incremental = false
 
 [patch.crates-io]
+
 # TODO: remove after polytone release
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }

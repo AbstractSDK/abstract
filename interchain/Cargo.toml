@@ -105,9 +105,9 @@ abstract-money-market-standard = { path = "../framework/packages/standards/money
 abstract-ica-client = { path = "../framework/contracts/native/ica-client" }
 
 # TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
-abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 # TODO: remove after union-connector released
 evm-note = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
@@ -118,7 +118,6 @@ polytone-evm = { git = "https://github.com/abstractsdk/evm-ibc", branch = "devel
 # union-connector = { path = "../../evm-ibc/cw/packages/union-connector" }
 # polytone-evm = { path = "../../evm-ibc/cw/packages/polytone-evm" }
 # evm-note = { path = "../../evm-ibc/cw/contracts/evm-note" }
-
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

@@ -168,23 +168,15 @@ pub mod connection {
             };
         };
         let abstract_state = crate::AbstractDaemonState::default();
-        let deployment_id = "default".to_owned();
 
         let mut counterparts = vec![];
         for connected_polytone in polytone.connected_polytones() {
-            // TODO: remove parse network after migrating to cw-orch 0.25 (we only need chain id now)
-            let Ok(chain_info) = networks::parse_network(&connected_polytone.chain_id) else {
-                continue;
-            };
-            let chain_name = chain_info.network_info.chain_name.to_owned();
-            let env_info = EnvironmentInfo {
-                chain_id: connected_polytone.chain_id.clone(),
-                chain_name,
-                deployment_id: deployment_id.clone(),
-            };
-            if let Some(remote_abstract_host) = abstract_state.contract_addr(&env_info, IBC_HOST) {
-                let truncated_chain_id =
-                    abstract_std::objects::TruncatedChainId::from_chain_id(&env_info.chain_id);
+            if let Some(remote_abstract_host) =
+                abstract_state.contract_addr(&connected_polytone.chain_id, IBC_HOST)
+            {
+                let truncated_chain_id = abstract_std::objects::TruncatedChainId::from_chain_id(
+                    &connected_polytone.chain_id,
+                );
                 counterparts.push((
                     truncated_chain_id,
                     abstract_std::ibc_client::state::IbcInfrastructure {

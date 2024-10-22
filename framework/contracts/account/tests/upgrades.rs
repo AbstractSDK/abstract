@@ -955,3 +955,303 @@ mod upgrade_account {
         Ok(())
     }
 }
+
+mod module_with_deps {
+    use super::*;
+    use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy};
+    use abstract_std::objects::dependency::StaticDependency;
+
+    pub const DEPENDENCY_MODULE_ID: &str = "tester:dependency";
+
+    pub mod app_mock {
+        use super::*;
+        pub use v1::MockAppV1;
+        pub use v2::MockAppV2;
+
+        mod v1 {
+            use super::*;
+            abstract_app::gen_app_mock!(
+                MockAppV1,
+                TEST_MODULE_ID,
+                V1,
+                &[StaticDependency::new(DEPENDENCY_MODULE_ID, &[V1])]
+            );
+        }
+        mod v2 {
+            use super::*;
+            abstract_app::gen_app_mock!(
+                MockAppV2,
+                TEST_MODULE_ID,
+                V2,
+                &[StaticDependency::new(DEPENDENCY_MODULE_ID, &[V2])]
+            );
+        }
+    }
+
+    pub mod app_dependency_mock {
+        use super::*;
+
+        pub use v1::MockAppDependencyV1;
+        pub use v2::MockAppDependencyV2;
+
+        mod v1 {
+            use super::*;
+            abstract_app::gen_app_mock!(MockAppDependencyV1, DEPENDENCY_MODULE_ID, V1, &[]);
+        }
+        mod v2 {
+            use super::*;
+            abstract_app::gen_app_mock!(MockAppDependencyV2, DEPENDENCY_MODULE_ID, V2, &[]);
+        }
+    }
+
+    pub mod adapter_mock {
+        use super::*;
+
+        pub use v1::MockAdapterV1;
+        pub use v2::MockAdapterV2;
+
+        mod v1 {
+            use super::*;
+            abstract_adapter::gen_adapter_mock!(
+                MockAdapterV1,
+                TEST_MODULE_ID,
+                V1,
+                &[StaticDependency::new(DEPENDENCY_MODULE_ID, &[V1])]
+            );
+        }
+        mod v2 {
+            use super::*;
+            abstract_adapter::gen_adapter_mock!(
+                MockAdapterV2,
+                TEST_MODULE_ID,
+                V2,
+                &[StaticDependency::new(DEPENDENCY_MODULE_ID, &[V2])]
+            );
+        }
+    }
+
+    pub mod adapter_dependency_mock {
+        use super::*;
+        pub use v1::MockAdapterDependencyV1;
+        pub use v2::MockAdapterDependencyV2;
+        mod v1 {
+            use super::*;
+            abstract_adapter::gen_adapter_mock!(
+                MockAdapterDependencyV1,
+                DEPENDENCY_MODULE_ID,
+                V1,
+                &[]
+            );
+        }
+
+        mod v2 {
+            use super::*;
+            abstract_adapter::gen_adapter_mock!(
+                MockAdapterDependencyV2,
+                DEPENDENCY_MODULE_ID,
+                V2,
+                &[]
+            );
+        }
+    }
+
+    use self::{adapter_dependency_mock::*, adapter_mock::*, app_dependency_mock::*, app_mock::*};
+
+    fn test_upgrade(account: AccountI<MockBech32>) -> AResult {
+        // If app - gets migrated
+        // If adapter - ignored
+        let migrate_msg = Some(to_json_binary(&app::MigrateMsg {
+            base: app::BaseMigrateMsg {},
+            module: MockMigrateMsg,
+        })?);
+        // install module dependency
+        let dependency = install_module_version(&account, DEPENDENCY_MODULE_ID, V1)?;
+
+        // successfully install module
+        let module = install_module_version(&account, TEST_MODULE_ID, V1)?;
+        account.expect_modules(vec![dependency.clone(), module])?;
+
+        // attempt upgrade module to version 2
+        let res = account.upgrade(vec![(
+            ModuleInfo::from_id_latest(TEST_MODULE_ID)?,
+            migrate_msg.clone(),
+        )]);
+        // fails because dependency is not version 2
+        assert!(res.unwrap_err().root().to_string().contains(
+            &AccountError::VersionRequirementNotMet {
+                module_id: DEPENDENCY_MODULE_ID.into(),
+                version: V1.into(),
+                comp: "^2.0.0".into(),
+                post_migration: true,
+            }
+            .to_string(),
+        ));
+
+        // successfully upgrade all the modules
+        account.upgrade(vec![
+            (
+                ModuleInfo::from_id_latest(TEST_MODULE_ID)?,
+                migrate_msg.clone(),
+            ),
+            (
+                ModuleInfo::from_id_latest(DEPENDENCY_MODULE_ID)?,
+                migrate_msg,
+            ),
+        ])?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn upgrade_app_with_app_dependency() -> AResult {
+        let chain = MockBech32::new("mock");
+        let sender = chain.sender();
+        let abstr = Abstract::deploy_on_mock(chain.clone())?;
+
+        // Create account and claim namespace
+        let account = create_default_account(sender, &abstr)?;
+        abstr
+            .registry
+            .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+
+        // Deploy everything
+        MockAppDependencyV1::new_test(chain.clone())
+            .deploy(V1.parse().unwrap(), DeployStrategy::Error)
+            .unwrap();
+        MockAppV1::new_test(chain.clone())
+            .deploy(V1.parse().unwrap(), DeployStrategy::Error)
+            .unwrap();
+        MockAppDependencyV2::new_test(chain.clone())
+            .deploy(V2.parse().unwrap(), DeployStrategy::Error)
+            .unwrap();
+        MockAppV2::new_test(chain.clone())
+            .deploy(V2.parse().unwrap(), DeployStrategy::Error)
+            .unwrap();
+        test_upgrade(account)
+    }
+
+    #[test]
+    fn upgrade_app_with_adapter_dependency() -> AResult {
+        let chain = MockBech32::new("mock");
+        let sender = chain.sender();
+        let abstr = Abstract::deploy_on_mock(chain.clone())?;
+
+        // Create account and claim namespace
+        let account = create_default_account(sender, &abstr)?;
+        abstr
+            .registry
+            .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+
+        // Deploy everything
+        MockAdapterDependencyV1::new_test(chain.clone())
+            .deploy(
+                V1.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        MockAppV1::new_test(chain.clone())
+            .deploy(V1.parse().unwrap(), DeployStrategy::Error)
+            .unwrap();
+        MockAdapterDependencyV2::new_test(chain.clone())
+            .deploy(
+                V2.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        MockAppV2::new_test(chain.clone())
+            .deploy(V2.parse().unwrap(), DeployStrategy::Error)
+            .unwrap();
+        test_upgrade(account)
+    }
+
+    #[test]
+    fn upgrade_adapter_with_adapter_dependency() -> AResult {
+        let chain = MockBech32::new("mock");
+        let sender = chain.sender();
+        let abstr = Abstract::deploy_on_mock(chain.clone())?;
+
+        // Create account and claim namespace
+        let account = create_default_account(sender, &abstr)?;
+        abstr
+            .registry
+            .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+
+        // Deploy everything
+        MockAdapterDependencyV1::new_test(chain.clone())
+            .deploy(
+                V1.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        MockAdapterV1::new_test(chain.clone())
+            .deploy(
+                V1.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        MockAdapterDependencyV2::new_test(chain.clone())
+            .deploy(
+                V2.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        MockAdapterV2::new_test(chain.clone())
+            .deploy(
+                V2.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        test_upgrade(account)
+    }
+
+    #[test]
+    fn upgrade_adapter_with_app_dependency() -> AResult {
+        let chain = MockBech32::new("mock");
+        let sender = chain.sender();
+        let abstr = Abstract::deploy_on_mock(chain.clone())?;
+
+        // Create account and claim namespace
+        let account = create_default_account(sender, &abstr)?;
+        abstr
+            .registry
+            .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+
+        // Deploy everything
+        MockAdapterDependencyV1::new_test(chain.clone())
+            .deploy(
+                V1.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        MockAdapterV1::new_test(chain.clone())
+            .deploy(
+                V1.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        MockAdapterDependencyV2::new_test(chain.clone())
+            .deploy(
+                V2.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+        MockAdapterV2::new_test(chain.clone())
+            .deploy(
+                V2.parse().unwrap(),
+                abstract_adapter::mock::MockInitMsg {},
+                DeployStrategy::Error,
+            )
+            .unwrap();
+
+        test_upgrade(account)
+    }
+}
