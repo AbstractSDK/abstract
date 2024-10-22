@@ -3,10 +3,7 @@ use abstract_ica_client::chain_types::evm::types::{UCS01_FORWARDER_CONTRACT, UCS
 use abstract_interface::{ExecuteMsgFns, IcaClient};
 use abstract_std::{
     ica_client::{IcaAction, IcaActionResult, IcaExecute, InstantiateMsg, QueryMsg, QueryMsgFns},
-    objects::{
-        namespace::ABSTRACT_NAMESPACE, ContractEntry, UncheckedChannelEntry, UncheckedContractEntry,
-    },
-    IBC_CLIENT, ICA_CLIENT,
+    objects::{UncheckedChannelEntry, UncheckedContractEntry},
 };
 use alloy::{
     primitives::{Address, Uint},
@@ -39,8 +36,8 @@ pub const CHAIN_NAME: &str = "bartio";
 fn main() -> cw_orch::anyhow::Result<()> {
     dotenv::dotenv()?;
     pretty_env_logger::init();
-    // This is an integration test with Abstract And polytone EVM already deployed on Union
 
+    // This is an integration test with Abstract And polytone EVM already deployed on Union
     let chain_info = UNION_TESTNET_8;
     let chain = Daemon::builder(chain_info.clone()).build()?;
 
@@ -60,53 +57,52 @@ fn main() -> cw_orch::anyhow::Result<()> {
         let account_balance = account.query_balance(chain_info.gas_denom)?;
         if account_balance < account_coins.amount {
             log::warn!("Sending some funds from wallet to account.");
-            // @feedback make it easier to send funds from wallet?
-            //  - maybe     .deposit() method
-            chain.rt_handle.block_on(chain.sender().bank_send(
-                // @feedback: test_acc.address() to get the address of the proxy?
-                &account.address()?,
-                vec![account_coins.clone()],
-            ))?;
+            chain.rt_handle.block_on(
+                chain
+                    .sender()
+                    .bank_send(&account.address()?, vec![account_coins.clone()]),
+            )?;
         }
     }
+    
+    let evm_config = union_connector::networks::get_remote_evm_config(CHAIN_NAME).unwrap();
+    let evm_note = EvmNote::new(chain.clone());
 
     // We need to register the EVM note here (already existent in state.json)
-    // abs.registry().register_natives(vec![(
-    //     evm_note.as_instance(),
-    //     evm_note::contract::CONTRACT_VERSION.to_string(),
-    // )])?;
+    abs.registry().register_natives(vec![(
+        evm_note.as_instance(),
+        evm_note::contract::CONTRACT_VERSION.to_string(),
+    )])?;
 
     // We need to register the IBC channels
 
-    // abs.name_service().update_channels(
-    //     vec![
-    //         (
-    //             UncheckedChannelEntry::new(evm_config.chain_name, UCS01_PROTOCOL),
-    //             evm_config.ics20_dst_channel.to_string(),
-    //         ),
-    //         (
-    //             UncheckedChannelEntry::new(
-    //                 evm_config.chain_name,
-    //                 format!("{}/counterparty", UCS01_PROTOCOL).as_str(),
-    //             ),
-    //             evm_config.ics20_src_channel.to_string(),
-    //         ),
-    //     ],
-    //     vec![],
-    // )?;
-    // abs.name_service().update_contract_addresses(
-    //     vec![(
-    //         UncheckedContractEntry {
-    //             contract: UCS01_FORWARDER_CONTRACT.to_string(),
-    //             protocol: UCS01_PROTOCOL.to_string(),
-    //         },
-    //         evm_config.ucs01_forwarder.to_string(),
-    //     )],
-    //     vec![],
-    // )?;
+    abs.name_service().update_channels(
+        vec![
+            (
+                UncheckedChannelEntry::new(evm_config.chain_name, UCS01_PROTOCOL),
+                evm_config.ics20_dst_channel.to_string(),
+            ),
+            (
+                UncheckedChannelEntry::new(
+                    evm_config.chain_name,
+                    format!("{}/counterparty", UCS01_PROTOCOL).as_str(),
+                ),
+                evm_config.ics20_src_channel.to_string(),
+            ),
+        ],
+        vec![],
+    )?;
+    abs.name_service().update_contract_addresses(
+        vec![(
+            UncheckedContractEntry {
+                contract: UCS01_FORWARDER_CONTRACT.to_string(),
+                protocol: UCS01_PROTOCOL.to_string(),
+            },
+            evm_config.ucs01_forwarder.to_string(),
+        )],
+        vec![],
+    )?;
 
-    let evm_config = union_connector::networks::get_remote_evm_config(CHAIN_NAME).unwrap();
-    let evm_note = EvmNote::new(chain.clone());
     let interchain = UnionInterchainEnv::new(chain.clone(), &evm_config);
 
     let remote_address = UnionInterchainEnv::get_remote_address(
@@ -170,6 +166,7 @@ fn main() -> cw_orch::anyhow::Result<()> {
             CHAIN_NAME.parse()?,
         )?;
 
+        // In case we want to execute the transaction
         let tx_response = account.execute(ica_action.msgs, &[])?;
         interchain.await_and_check_packets(&chain.chain_id(), tx_response.into())?;
         let funds_final = get_balance(&interchain, &evm_config, &remote_address)?;

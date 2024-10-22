@@ -1,6 +1,6 @@
 use crate::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::CosmosMsg;
+use cosmwasm_std::{Addr, CosmosMsg};
 use cw_ownable::{cw_ownable_execute, cw_ownable_query};
 
 pub use action::{IcaAction, IcaActionResponse, IcaExecute};
@@ -46,8 +46,8 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub ans_host_address: String,
-    pub registry_address: String,
+    pub ans_host_address: Addr,
+    pub registry_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -123,8 +123,6 @@ mod action {
     pub enum IcaAction {
         // Execute on the ICA
         Execute(IcaExecute),
-        // Query on the ICA
-        // Query(IcaQuery),
         // Send funds to the ICA
         Fund {
             funds: Vec<Coin>,
@@ -135,7 +133,6 @@ mod action {
             receiver: Option<Binary>,
             memo: Option<String>,
         },
-        // ... other actions?
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -145,22 +142,7 @@ mod action {
             msgs: Vec<polytone_evm::evm::EvmMsg<String>>,
             callback: Option<polytone_evm::callbacks::CallbackRequest>,
         },
-        // Cosmos {
-        //     msgs: Vec<CosmosMsg>,
-        //     callback: Option<CallbackRequest>,
-        // },
     }
-
-    // pub enum IcaQuery {
-    // 	Evm {
-    // 		// encoded data
-    // 		// ...
-    // 	},
-    // 	Cosmos {
-    // 	    // Encoded data
-    // 		// ...
-    // 	}
-    // }
 
     #[cosmwasm_schema::cw_serde]
     pub struct IcaActionResponse {
