@@ -26,10 +26,11 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         # use abstract_sdk::mock_module::MockModule;
         # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
 
-        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
+        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref(), &env).unwrap();
         ```
     */
     fn account_registry<'a>(
@@ -69,10 +70,11 @@ impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
     # use abstract_sdk::mock_module::MockModule;
     # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
 
-    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
+    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref(), &env).unwrap();
     ```
 */
 #[derive(Clone)]
