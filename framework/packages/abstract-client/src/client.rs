@@ -185,7 +185,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Fetches an existing Abstract [`Account`] from chain
     /// If the Namespace is not claimed, creates an account with the provided account builder
-    pub fn fetch_or_build(
+    pub fn fetch_or_build_account(
         &self,
         namespace: Namespace,
         build_fn: for<'a, 'b> fn(

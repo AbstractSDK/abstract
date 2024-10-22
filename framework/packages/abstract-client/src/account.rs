@@ -154,38 +154,34 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Install an adapter on current account.
-    pub fn install_adapter<M: InstallConfig<InitMsg = Empty>>(
-        &mut self,
-    ) -> AbstractClientResult<&mut Self> {
-        self.install_modules.push(M::install_config(&Empty {})?);
-        Ok(self)
+    pub fn install_adapter<M: InstallConfig<InitMsg = Empty>>(&mut self) -> &mut Self {
+        self.install_modules
+            .push(M::install_config(&Empty {}).unwrap());
+        self
     }
 
     /// Install an application on current account.
-    pub fn install_app<M: InstallConfig>(
-        &mut self,
-        configuration: &M::InitMsg,
-    ) -> AbstractClientResult<&mut Self> {
-        self.install_modules.push(M::install_config(configuration)?);
-        Ok(self)
+    pub fn install_app<M: InstallConfig>(&mut self, configuration: &M::InitMsg) -> &mut Self {
+        self.install_modules
+            .push(M::install_config(configuration).unwrap());
+        self
     }
 
     /// Install an standalone on current account.
     pub fn install_standalone<M: InstallConfig>(
         &mut self,
         configuration: &M::InitMsg,
-    ) -> AbstractClientResult<&mut Self> {
-        self.install_modules.push(M::install_config(configuration)?);
-        Ok(self)
+    ) -> &mut Self {
+        self.install_modules
+            .push(M::install_config(configuration).unwrap());
+        self
     }
 
     /// Install an service on current account.
-    pub fn install_service<M: InstallConfig>(
-        &mut self,
-        configuration: &M::InitMsg,
-    ) -> AbstractClientResult<&mut Self> {
-        self.install_modules.push(M::install_config(configuration)?);
-        Ok(self)
+    pub fn install_service<M: InstallConfig>(&mut self, configuration: &M::InitMsg) -> &mut Self {
+        self.install_modules
+            .push(M::install_config(configuration).unwrap());
+        self
     }
 
     /// Install an application with dependencies on current account.
@@ -193,12 +189,12 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         &mut self,
         module_configuration: &M::InitMsg,
         dependencies_config: M::DependenciesConfig,
-    ) -> AbstractClientResult<&mut Self> {
-        let deps_install_config = M::dependency_install_configs(dependencies_config)?;
+    ) -> &mut Self {
+        let deps_install_config = M::dependency_install_configs(dependencies_config).unwrap();
         self.install_modules.extend(deps_install_config);
         self.install_modules
-            .push(M::install_config(module_configuration)?);
-        Ok(self)
+            .push(M::install_config(module_configuration).unwrap());
+        self
     }
 
     /// Install an standalone with dependencies on current account.
@@ -206,12 +202,12 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         &mut self,
         module_configuration: &M::InitMsg,
         dependencies_config: M::DependenciesConfig,
-    ) -> AbstractClientResult<&mut Self> {
-        let deps_install_config = M::dependency_install_configs(dependencies_config)?;
+    ) -> &mut Self {
+        let deps_install_config = M::dependency_install_configs(dependencies_config).unwrap();
         self.install_modules.extend(deps_install_config);
         self.install_modules
-            .push(M::install_config(module_configuration)?);
-        Ok(self)
+            .push(M::install_config(module_configuration).unwrap());
+        self
     }
 
     /// Install unchecked modules on current account.

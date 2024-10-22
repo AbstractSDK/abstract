@@ -102,11 +102,8 @@ fn connect(
     );
     let client = AbstractClient::new(src_daemon)?;
     let remote_client = AbstractClient::new(dst_daemon)?;
-    let account = client
-        .account_builder()
-        .namespace(Namespace::new("abstract")?)
-        .fetch_if_namespace_claimed(true)
-        .build()?;
+
+    let account = client.fetch_or_build_account(Namespace::new("abstract")?, |builder| builder)?;
 
     // We upgrade the local account. If it fails, it's ok (for instance if we're already updated)
     let _ = account.upgrade(ModuleVersion::Latest);

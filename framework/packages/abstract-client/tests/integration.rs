@@ -977,7 +977,7 @@ fn install_adapter_on_account_builder() -> anyhow::Result<()> {
 
     let account = client
         .account_builder()
-        .install_adapter::<MockAdapterI<MockBech32>>()?
+        .install_adapter::<MockAdapterI<MockBech32>>()
         .build()?;
     let modules = account.module_infos()?.module_infos;
     let adapter_info = modules
@@ -1016,7 +1016,7 @@ fn install_application_on_account_builder() -> anyhow::Result<()> {
 
     let account = client
         .account_builder()
-        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})
         .build()?;
 
     let my_app = account.application::<MockAppI<_>>()?;
@@ -1080,7 +1080,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // User can guard his funds
     account_builder
         .name("bob")
-        .install_adapter::<MockAdapterI<MockBech32>>()?
+        .install_adapter::<MockAdapterI<MockBech32>>()
         .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
     let e = account_builder.build().unwrap_err();
     assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));
@@ -1119,7 +1119,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 
     let account = client
         .account_builder()
-        .install_app_with_dependencies::<MockAppWithDepI<MockBech32>>(&MockInitMsg {}, Empty {})?
+        .install_app_with_dependencies::<MockAppWithDepI<MockBech32>>(&MockInitMsg {}, Empty {})
         .build()?;
 
     let modules = account.module_infos()?.module_infos;
@@ -1199,7 +1199,7 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
 
     let account = client
         .account_builder()
-        .install_app_with_dependencies::<MockAppWithDepI<MockBech32>>(&MockInitMsg {}, Empty {})?
+        .install_app_with_dependencies::<MockAppWithDepI<MockBech32>>(&MockInitMsg {}, Empty {})
         .build()?;
 
     // Authorize app on adapter
@@ -1297,7 +1297,7 @@ fn instantiate2_addr() -> anyhow::Result<()> {
         .account_builder()
         .sub_account(publisher.account())
         .expected_account_id(account_id.seq())
-        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})
         .build()?;
     let application = sub_account.application::<MockAppI<_>>()?;
 
@@ -1362,18 +1362,18 @@ fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
 
     let account1 = client
         .account_builder()
-        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})
         .build()?;
 
     let account2 = client
         .account_builder()
-        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})
         .build()?;
 
     let account3 = client
         .account_builder()
         .sub_account(&account1)
-        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})
         .build()?;
 
     let mock_app1 = account1.application::<MockAppI<MockBech32>>()?;
@@ -1394,7 +1394,7 @@ fn install_ibc_client_on_creation() -> anyhow::Result<()> {
 
     let account = client
         .account_builder()
-        .install_adapter::<IbcClient<MockBech32>>()?
+        .install_adapter::<IbcClient<MockBech32>>()
         .build()?;
     let ibc_module_addr = account.module_addresses(vec![IBC_CLIENT.to_owned()])?;
     assert_eq!(ibc_module_addr.modules[0].0, IBC_CLIENT);
@@ -1408,7 +1408,7 @@ fn module_installed() -> anyhow::Result<()> {
 
     let account = client
         .account_builder()
-        .install_adapter::<IbcClient<MockBech32>>()?
+        .install_adapter::<IbcClient<MockBech32>>()
         .build()?;
     let installed = account.module_installed(IBC_CLIENT)?;
     assert!(installed);
@@ -1424,7 +1424,7 @@ fn module_version_installed() -> anyhow::Result<()> {
 
     let account = client
         .account_builder()
-        .install_adapter::<IbcClient<MockBech32>>()?
+        .install_adapter::<IbcClient<MockBech32>>()
         .build()?;
 
     let installed = account.module_version_installed(ModuleInfo::from_id_latest(IBC_CLIENT)?)?;
@@ -1601,10 +1601,8 @@ fn account_fetcher_shouldnt_install_module_on_existing_account() -> anyhow::Resu
         .namespace(NEW_NAMESPACE.try_into()?)
         .build()?;
 
-    client.fetch_or_build(NEW_NAMESPACE.try_into()?, |builder| {
-        builder
-            .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
-            .unwrap()
+    client.fetch_or_build_account(NEW_NAMESPACE.try_into()?, |builder| {
+        builder.install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
     })?;
     assert!(!account.module_installed(TEST_MODULE_ID)?);
     Ok(())
