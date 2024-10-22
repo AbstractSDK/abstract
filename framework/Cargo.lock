@@ -185,7 +185,7 @@ dependencies = [
 [[package]]
 name = "abstract-cw-orch-polytone"
 version = "5.0.0"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#f6ba0e6ce368efebb97e25ef8d7a658f27f27d56"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#95442e05d6ff3993d64c70a10a228821a46b6681"
 dependencies = [
  "abstract-polytone-note",
  "abstract-polytone-proxy",
@@ -447,7 +447,7 @@ dependencies = [
 [[package]]
 name = "abstract-polytone"
 version = "2.0.0"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#f6ba0e6ce368efebb97e25ef8d7a658f27f27d56"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#95442e05d6ff3993d64c70a10a228821a46b6681"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -458,7 +458,7 @@ dependencies = [
 [[package]]
 name = "abstract-polytone-note"
 version = "4.0.1"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#f6ba0e6ce368efebb97e25ef8d7a658f27f27d56"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#95442e05d6ff3993d64c70a10a228821a46b6681"
 dependencies = [
  "abstract-polytone",
  "cosmwasm-schema",
@@ -473,7 +473,7 @@ dependencies = [
 [[package]]
 name = "abstract-polytone-proxy"
 version = "4.0.1"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#f6ba0e6ce368efebb97e25ef8d7a658f27f27d56"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#95442e05d6ff3993d64c70a10a228821a46b6681"
 dependencies = [
  "abstract-polytone",
  "cosmwasm-schema",
@@ -488,7 +488,7 @@ dependencies = [
 [[package]]
 name = "abstract-polytone-voice"
 version = "4.0.1"
-source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#f6ba0e6ce368efebb97e25ef8d7a658f27f27d56"
+source = "git+https://github.com/AbstractSDK/polytone.git?branch=bump/cw2#95442e05d6ff3993d64c70a10a228821a46b6681"
 dependencies = [
  "abstract-polytone",
  "abstract-polytone-proxy",
@@ -2087,9 +2087,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-core"
-version = "2.1.2"
+version = "2.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "018f81a54a4b7b75f9b558642f48346a60cb04cb1f22e6ea0b21a6efe9f5fee8"
+checksum = "09c75b59e43cf3ec05bc9fc86748cdd4998bfb53a81e3fa99dda14cf4ded3d4d"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
@@ -2107,9 +2107,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-daemon"
-version = "0.27.2"
+version = "0.27.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7ec87916cda33ff8bfa14c8798173c359c3e12f60502bab04dcb5a6622ffeda"
+checksum = "fd6041021911d5d49bf30f4e85c5c79531c47e4e5dd56ad83f57e4c4f2a5214b"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -6732,9 +6732,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.40.0"
+version = "1.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2b070231665d27ad9ec9b8df639893f46727666c6767db40317fbe920a5d998"
+checksum = "145f3413504347a2be84393cc8a7d2fb4d863b375909ea59f2158261aa258bbb"
 dependencies = [
  "backtrace",
  "bytes",
