@@ -290,14 +290,12 @@ name = "abstract-ica-client"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-macros",
- "abstract-polytone",
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
- "cw-orch 0.26.0",
  "cw-ownable",
  "cw-storage-plus",
  "cw2",

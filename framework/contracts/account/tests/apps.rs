@@ -133,7 +133,7 @@ fn account_app_ownership() -> AResult {
 }
 
 #[test]
-fn sub_account_app_ownership() -> AResult {
+fn subaccount_app_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on_mock(chain.clone())?;
