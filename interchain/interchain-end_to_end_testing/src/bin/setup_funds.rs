@@ -108,6 +108,7 @@ pub fn test_send_funds() -> AnyResult<()> {
         abstract_std::ibc_client::ExecuteMsg::SendFunds {
             host_chain: TruncatedChainId::from_chain_id(STARGAZE),
             memo: Some("sent_some_tokens".to_owned()),
+            receiver: None,
         },
         funds,
     )?;
