@@ -126,11 +126,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
         };
         Self::create(abstract_deployment, details, governance_details, &[])
     }
-
-    pub fn code_id(&self) -> Result<u64, AbstractInterfaceError> {
-        ContractInstance::code_id(&AccountI::new(ACCOUNT, self.environment().clone()))
-            .map_err(Into::into)
-    }
 }
 
 // Module related operations

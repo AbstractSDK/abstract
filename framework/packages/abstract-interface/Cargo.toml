@@ -59,7 +59,7 @@ account = { version = "0.24.1-beta.2", package = "abstract-account", path = "../
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 # Predictable abstract addresses
-cw-blob = { workspace = true, features = ["library"] }
+cw-blob = { workspace = true }
 cosmrs = { version = "0.19.0" }
 
 [build-dependencies]

@@ -115,7 +115,7 @@ abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git
 rpath = false
 lto = true
 overflow-checks = true
-opt-level = "s"
+opt-level = 3
 debug = false
 debug-assertions = false
 codegen-units = 1

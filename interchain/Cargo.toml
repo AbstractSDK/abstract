@@ -125,7 +125,7 @@ polytone-evm = { git = "https://github.com/abstractsdk/evm-ibc", branch = "devel
 rpath = false
 lto = true
 overflow-checks = true
-opt-level = "z"
+opt-level = 3
 debug = false
 debug-assertions = false
 codegen-units = 1
