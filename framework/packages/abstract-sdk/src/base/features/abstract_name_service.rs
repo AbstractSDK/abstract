@@ -8,7 +8,7 @@ use abstract_std::{
 use cosmwasm_std::{Deps, Env};
 
 use super::ModuleIdentification;
-use crate::apis::{AbstractApi, ApiIdentification};
+use crate::apis::AbstractApi;
 use crate::{ans_resolve::Resolve, cw_helpers::ApiQuery, AbstractSdkResult};
 
 /// ANCHOR: ans
@@ -39,19 +39,13 @@ pub struct AbstractNameServiceClient<'a, T: AbstractNameService> {
 impl<'a, T: ModuleIdentification + AbstractNameService> AbstractApi<T>
     for AbstractNameServiceClient<'a, T>
 {
+    const API_ID: &'static str = "AbstractNameServiceClient";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: ModuleIdentification + AbstractNameService> ApiIdentification
-    for AbstractNameServiceClient<'a, T>
-{
-    fn api_id() -> String {
-        "AbstractNameServiceClient".to_owned()
     }
 }
 

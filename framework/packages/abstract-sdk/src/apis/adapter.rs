@@ -4,7 +4,7 @@ use abstract_std::{adapter::AdapterRequestMsg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps};
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     cw_helpers::ApiQuery, features::ModuleIdentification, AbstractSdkResult, ModuleInterface,
 };
@@ -35,17 +35,13 @@ pub trait AdapterInterface: ModuleInterface + ModuleIdentification {
 impl<T> AdapterInterface for T where T: ModuleInterface + ModuleIdentification {}
 
 impl<'a, T: AdapterInterface> AbstractApi<T> for Adapters<'a, T> {
+    const API_ID: &'static str = "Adapters";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: AdapterInterface> ApiIdentification for Adapters<'a, T> {
-    fn api_id() -> String {
-        "Adapters".to_owned()
     }
 }
 
@@ -107,10 +103,9 @@ mod tests {
 
     use abstract_testing::prelude::*;
     use cosmwasm_std::*;
-    use speculoos::{assert_that, result::ResultAssertions};
 
     use super::*;
-    use crate::mock_module::*;
+    use crate::{apis::traits::test::abstract_api_test, mock_module::*};
 
     pub fn fail_when_not_dependency_test<T: std::fmt::Debug>(
         modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,
@@ -122,16 +117,17 @@ mod tests {
 
         let res = modules_fn(&app, deps.as_ref());
 
-        assert_that!(res)
-            .is_err()
-            .matches(|e| e.to_string().contains(&fake_module.to_string()));
+        assert!(res
+            .unwrap_err()
+            .to_string()
+            .contains(&fake_module.to_string()));
     }
     mod adapter_request {
         use super::*;
 
         use crate::std::adapter;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
@@ -142,7 +138,7 @@ mod tests {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn expected_adapter_request() {
             let (deps, account, app) = mock_module_setup();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -157,20 +153,21 @@ mod tests {
                     request: MockModuleExecuteMsg {},
                 });
 
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+            assert_eq!(
+                res,
+                Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: abstr.module_address.to_string(),
                     msg: to_json_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                }));
+                }))
+            );
         }
     }
 
     mod query_api {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
@@ -181,7 +178,7 @@ mod tests {
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn expected_adapter_query() {
             let (deps, _, app) = mock_module_setup();
 
@@ -191,9 +188,15 @@ mod tests {
 
             let res = mods.query::<_, String>(TEST_MODULE_ID, inner_msg);
 
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
+            assert_eq!(res, Ok(TEST_MODULE_RESPONSE.to_string()));
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let adapters = app.adapters(deps.as_ref());
+
+        abstract_api_test(adapters);
     }
 }

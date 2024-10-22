@@ -150,21 +150,16 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
     /// namespace
     type SubPrefix = Namespace;
 
-    /// Possibly change to ModuleVersion in future by implementing PrimaryKey
     /// version
-    type Suffix = String;
+    type Suffix = ModuleVersion;
 
     // (name, version)
-    type SuperSuffix = (String, String);
+    type SuperSuffix = (String, ModuleVersion);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         let mut keys = self.namespace.key();
         keys.extend(self.name.key());
-        let temp = match &self.version {
-            ModuleVersion::Latest => "latest".key(),
-            ModuleVersion::Version(ver) => ver.key(),
-        };
-        keys.extend(temp);
+        keys.extend(self.version.key());
         keys
     }
 }
@@ -175,16 +170,6 @@ impl<'a> Prefixer<'a> for &ModuleInfo {
         res.extend(self.name.prefix());
         res.extend(self.version.prefix());
         res
-    }
-}
-
-impl<'a> Prefixer<'a> for ModuleVersion {
-    fn prefix(&self) -> Vec<Key> {
-        let self_as_bytes = match &self {
-            ModuleVersion::Latest => "latest".as_bytes(),
-            ModuleVersion::Version(ver) => ver.as_bytes(),
-        };
-        vec![Key::Ref(self_as_bytes)]
     }
 }
 
@@ -218,7 +203,7 @@ impl KeyDeserialize for ModuleVersion {
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        let val = String::from_utf8(value).map_err(StdError::invalid_utf8)?;
+        let val = String::from_vec(value)?;
         if &val == "latest" {
             Ok(Self::Latest)
         } else {
@@ -312,6 +297,33 @@ impl TryInto<Version> for ModuleVersion {
                 Ok(version)
             }
         }
+    }
+}
+
+impl<'a> PrimaryKey<'a> for ModuleVersion {
+    type Prefix = ();
+
+    type SubPrefix = ();
+
+    type Suffix = Self;
+
+    type SuperSuffix = Self;
+
+    fn key(&self) -> Vec<cw_storage_plus::Key> {
+        match &self {
+            ModuleVersion::Latest => "latest".key(),
+            ModuleVersion::Version(ver) => ver.key(),
+        }
+    }
+}
+
+impl<'a> Prefixer<'a> for ModuleVersion {
+    fn prefix(&self) -> Vec<Key> {
+        let self_as_bytes = match &self {
+            ModuleVersion::Latest => "latest".as_bytes(),
+            ModuleVersion::Version(ver) => ver.as_bytes(),
+        };
+        vec![Key::Ref(self_as_bytes)]
     }
 }
 
@@ -517,7 +529,6 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -557,7 +568,7 @@ mod test {
             )
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -576,7 +587,7 @@ mod test {
             assert_eq!(items[0], (key, 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn storage_key_with_overlapping_name_namespace() {
             let mut deps = mock_dependencies();
             let info1 = ModuleInfo {
@@ -600,13 +611,15 @@ mod test {
             map.save(deps.as_mut().storage, &info1, &42069).unwrap();
             map.save(deps.as_mut().storage, &info2, &69420).unwrap();
 
-            assert_that!(map
-                .keys_raw(&deps.storage, None, None, Order::Ascending)
-                .collect::<Vec<_>>())
-            .has_length(2);
+            assert_eq!(
+                map.keys_raw(&deps.storage, None, None, Order::Ascending)
+                    .collect::<Vec<_>>()
+                    .len(),
+                2
+            );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
@@ -637,7 +650,7 @@ mod test {
             assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn partial_key_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3, key4) = mock_keys();
@@ -658,15 +671,36 @@ mod test {
                 .collect::<Vec<_>>();
 
             assert_eq!(items.len(), 3);
-            assert_eq!(items[0], (("boat".to_string(), "1.9.9".to_string()), 42069));
+            assert_eq!(
+                items[0],
+                (
+                    (
+                        "boat".to_string(),
+                        ModuleVersion::Version("1.9.9".to_string())
+                    ),
+                    42069
+                )
+            );
             assert_eq!(
                 items[1],
-                (("rocket-ship".to_string(), "1.0.0".to_string()), 69420)
+                (
+                    (
+                        "rocket-ship".to_string(),
+                        ModuleVersion::Version("1.0.0".to_string())
+                    ),
+                    69420
+                )
             );
 
             assert_eq!(
                 items[2],
-                (("rocket-ship".to_string(), "2.0.0".to_string()), 999)
+                (
+                    (
+                        "rocket-ship".to_string(),
+                        ModuleVersion::Version("2.0.0".to_string())
+                    ),
+                    999
+                )
             );
 
             let items = map
@@ -678,11 +712,17 @@ mod test {
             assert_eq!(items.len(), 1);
             assert_eq!(
                 items[0],
-                (("liquidity-pool".to_string(), "10.5.7".to_string()), 13)
+                (
+                    (
+                        "liquidity-pool".to_string(),
+                        ModuleVersion::Version("10.5.7".to_string())
+                    ),
+                    13
+                )
             );
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn partial_key_versions_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3, key4) = mock_keys();
@@ -706,16 +746,19 @@ mod test {
                 .collect::<Vec<_>>();
 
             assert_eq!(items.len(), 2);
-            assert_eq!(items[0], ("1.0.0".to_string(), 69420));
+            assert_eq!(
+                items[0],
+                (ModuleVersion::Version("1.0.0".to_string()), 69420)
+            );
 
-            assert_eq!(items[1], ("2.0.0".to_string(), 999));
+            assert_eq!(items[1], (ModuleVersion::Version("2.0.0".to_string()), 999));
         }
     }
 
     mod module_info {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn validate_with_empty_name() {
             let info = ModuleInfo {
                 namespace: Namespace::try_from("abstract").unwrap(),
@@ -723,12 +766,10 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            assert_that!(info.validate())
-                .is_err()
-                .matches(|e| e.to_string().contains("empty"));
+            assert!(info.validate().unwrap_err().to_string().contains("empty"));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn validate_with_empty_namespace() {
             let info = ModuleInfo {
                 namespace: Namespace::unchecked(""),
@@ -736,9 +777,7 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            assert_that!(info.validate())
-                .is_err()
-                .matches(|e| e.to_string().contains("empty"));
+            assert!(info.validate().unwrap_err().to_string().contains("empty"));
         }
 
         use rstest::rstest;
@@ -754,9 +793,11 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            assert_that!(info.validate())
-                .is_err()
-                .matches(|e| e.to_string().contains("alphanumeric"));
+            assert!(info
+                .validate()
+                .unwrap_err()
+                .to_string()
+                .contains("alphanumeric"));
         }
 
         #[rstest]
@@ -769,12 +810,14 @@ mod test {
                 version: ModuleVersion::Version(version.into()),
             };
 
-            assert_that!(info.validate())
-                .is_err()
-                .matches(|e| e.to_string().contains("Invalid version"));
+            assert!(info
+                .validate()
+                .unwrap_err()
+                .to_string()
+                .contains("Invalid version"));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn id() {
             let info = ModuleInfo {
                 name: "name".to_string(),
@@ -784,10 +827,10 @@ mod test {
 
             let expected = "namespace:name".to_string();
 
-            assert_that!(info.id()).is_equal_to(expected);
+            assert_eq!(info.id(), expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn id_with_version() {
             let info = ModuleInfo {
                 name: "name".to_string(),
@@ -797,14 +840,14 @@ mod test {
 
             let expected = "namespace:name:1.0.0".to_string();
 
-            assert_that!(info.id_with_version()).is_equal_to(expected);
+            assert_eq!(info.id_with_version(), expected);
         }
     }
 
     mod module_version {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn try_into_version_happy_path() {
             let version = ModuleVersion::Version("1.0.0".into());
 
@@ -812,16 +855,16 @@ mod test {
 
             let actual: Version = version.try_into().unwrap();
 
-            assert_that!(actual).is_equal_to(expected);
+            assert_eq!(actual, expected);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn try_into_version_with_latest() {
             let version = ModuleVersion::Latest;
 
             let actual: Result<Version, _> = version.try_into();
 
-            assert_that!(actual).is_err();
+            assert!(actual.is_err());
         }
     }
 
@@ -830,7 +873,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn no_cw2_contract() {
             let deps = mock_dependencies();
             let res = assert_module_data_validity(

@@ -7,15 +7,15 @@ use abstract_sdk::std::{
     },
     registry::{
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
-        AccountResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
-        NamespaceListResponse,
+        ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse, NamespaceListResponse,
     },
 };
 use abstract_std::{
     objects::module::ModuleStatus,
     registry::{
-        state::{NAMESPACES_INFO, PENDING_MODULES},
-        ModuleConfiguration, NamespaceInfo, NamespaceResponse,
+        state::{NAMESPACES, PENDING_MODULES, REV_NAMESPACES},
+        AccountListResponse, AccountsResponse, ModuleConfiguration, NamespaceInfo,
+        NamespaceResponse,
     },
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
@@ -26,17 +26,26 @@ use crate::{contract::VCResult, error::RegistryError};
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
-pub fn handle_account_address_query(
+pub fn handle_accounts_address_query(
     deps: Deps,
-    account_id: AccountId,
-) -> StdResult<AccountResponse> {
-    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, &account_id);
-    match account_address {
-        Err(_) => Err(StdError::generic_err(
-            RegistryError::UnknownAccountId { id: account_id }.to_string(),
-        )),
-        Ok(base) => Ok(AccountResponse { account: base }),
-    }
+    account_ids: Vec<AccountId>,
+) -> StdResult<AccountsResponse> {
+    let account_address = account_ids
+        .into_iter()
+        .map(|account_id| {
+            ACCOUNT_ADDRESSES
+                .load(deps.storage, &account_id)
+                .map_err(|_| {
+                    StdError::generic_err(
+                        RegistryError::UnknownAccountId { id: account_id }.to_string(),
+                    )
+                })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(AccountsResponse {
+        accounts: account_address,
+    })
 }
 
 pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<ModulesResponse> {
@@ -46,7 +55,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
             REGISTERED_MODULES.load(deps.storage, &module)
         } else {
             // get latest
-            let versions: StdResult<Vec<(String, ModuleReference)>> = REGISTERED_MODULES
+            let versions: StdResult<Vec<(ModuleVersion, ModuleReference)>> = REGISTERED_MODULES
                 .prefix((module.namespace.clone(), module.name.clone()))
                 .range(deps.storage, None, None, Order::Descending)
                 .take(1)
@@ -57,7 +66,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                     StdError::generic_err(RegistryError::ModuleNotFound(module.clone()).to_string())
                 })?
                 .clone();
-            module.version = ModuleVersion::Version(latest_version);
+            module.version = latest_version;
             Ok(id)
         };
 
@@ -79,6 +88,24 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
     }
 
     Ok(modules_response)
+}
+
+pub fn handle_account_list_query(
+    deps: Deps,
+    start_after: Option<AccountId>,
+    limit: Option<u8>,
+) -> VCResult<AccountListResponse> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+
+    let start_bound = start_after.as_ref().map(Bound::exclusive);
+
+    // Load all accounts
+    let accounts = ACCOUNT_ADDRESSES
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect::<StdResult<Vec<_>>>()?;
+
+    Ok(AccountListResponse { accounts })
 }
 
 pub fn handle_module_list_query(
@@ -155,23 +182,20 @@ pub fn handle_namespaces_query(
     deps: Deps,
     accounts: Vec<AccountId>,
 ) -> StdResult<NamespaceListResponse> {
-    let mut namespaces_response = NamespaceListResponse { namespaces: vec![] };
-    for account_id in accounts {
-        namespaces_response.namespaces.extend(
-            NAMESPACES_INFO
-                .idx
-                .account_id
-                .prefix(account_id)
-                .range(deps.storage, None, None, Order::Ascending)
-                .collect::<StdResult<Vec<_>>>()?,
-        );
-    }
-
-    Ok(namespaces_response)
+    let namespaces = accounts
+        .into_iter()
+        .filter_map(|account_id| {
+            REV_NAMESPACES
+                .may_load(deps.storage, &account_id)
+                .transpose()
+                .map(|namespace_res| namespace_res.map(|namespace| (namespace, account_id)))
+        })
+        .collect::<StdResult<Vec<_>>>()?;
+    Ok(NamespaceListResponse { namespaces })
 }
 
 pub fn handle_namespace_query(deps: Deps, namespace: Namespace) -> StdResult<NamespaceResponse> {
-    let account_id = NAMESPACES_INFO.may_load(deps.storage, &namespace)?;
+    let account_id = NAMESPACES.may_load(deps.storage, &namespace)?;
     let Some(account_id) = account_id else {
         return Ok(NamespaceResponse::Unclaimed {});
     };
@@ -191,7 +215,7 @@ pub fn handle_namespace_list_query(
     let start_bound = start_after.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
-    let namespaces = NAMESPACES_INFO
+    let namespaces = NAMESPACES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect::<StdResult<Vec<_>>>()?;
@@ -212,8 +236,8 @@ fn filter_modules_by_namespace(
 
     // Filter by name using full prefix
     if let Some(name) = name {
-        let start_bound: Option<Bound<String>> =
-            start_after.map(|info| Bound::exclusive(info.version.to_string()));
+        let start_bound: Option<Bound<ModuleVersion>> =
+            start_after.map(|info| Bound::exclusive(info.version));
 
         modules.extend(
             mod_lib
@@ -227,7 +251,7 @@ fn filter_modules_by_namespace(
                         ModuleInfo {
                             namespace: namespace.clone(),
                             name: name.clone(),
-                            version: ModuleVersion::Version(version),
+                            version,
                         },
                         reference,
                     )
@@ -235,8 +259,8 @@ fn filter_modules_by_namespace(
         )
     } else {
         // Filter by just namespace using sub prefix
-        let start_bound: Option<Bound<(String, String)>> =
-            start_after.map(|token| Bound::exclusive((token.name, token.version.to_string())));
+        let start_bound: Option<Bound<(String, ModuleVersion)>> =
+            start_after.map(|token| Bound::exclusive((token.name, token.version)));
 
         modules.extend(
             mod_lib
@@ -250,7 +274,7 @@ fn filter_modules_by_namespace(
                         ModuleInfo {
                             namespace: namespace.clone(),
                             name,
-                            version: ModuleVersion::Version(version),
+                            version,
                         },
                         reference,
                     )
@@ -272,7 +296,6 @@ mod test {
         testing::{message_info, mock_dependencies, MockApi},
         Addr, Binary, StdError,
     };
-    use speculoos::prelude::*;
 
     type RegistryTestResult = Result<(), RegistryError>;
 
@@ -424,7 +447,7 @@ mod test {
             };
 
             let res = execute_as(deps, &abstr.owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
 
         fn add_module(deps: &mut MockDeps, new_module_info: ModuleInfo) {
@@ -435,10 +458,10 @@ mod test {
             };
 
             let res = execute_as(deps, &abstr.owner, add_msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn get_module() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -462,11 +485,11 @@ mod test {
             };
 
             let ModulesResponse { mut modules } = from_json(query_helper(&deps, query_msg)?)?;
-            assert_that!(modules.swap_remove(0).module.info).is_equal_to(&new_module_info);
+            assert_eq!(modules.swap_remove(0).module.info, new_module_info);
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn none_when_no_matching_version() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -490,13 +513,14 @@ mod test {
             };
 
             let res = query_helper(&deps, query_msg);
-            assert_that!(res)
-                .is_err()
-                .matches(|e| matches!(e, RegistryError::Std(StdError::GenericErr { .. })));
+            assert!(matches!(
+                res,
+                Err(RegistryError::Std(StdError::GenericErr { .. }))
+            ));
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn get_latest_when_multiple_registered() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -526,7 +550,7 @@ mod test {
             };
 
             let ModulesResponse { mut modules } = from_json(query_helper(&deps, query_msg)?)?;
-            assert_that!(modules.swap_remove(0).module.info).is_equal_to(&newest_version);
+            assert_eq!(modules.swap_remove(0).module.info, newest_version);
             Ok(())
         }
     }
@@ -546,7 +570,7 @@ mod test {
             };
 
             let res = execute_as(deps, sender, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 
@@ -558,7 +582,7 @@ mod test {
             .collect();
         let add_msg = ExecuteMsg::ProposeModules { modules };
         let res = execute_as(deps, sender, add_msg);
-        assert_that!(&res).is_ok();
+        assert!(res.is_ok());
     }
 
     /// Yank the provided module in the registry
@@ -568,7 +592,7 @@ mod test {
             module: module_info,
         };
         let res = execute_as(deps, &abstr.owner, yank_msg);
-        assert_that!(&res).is_ok();
+        assert!(res.is_ok());
     }
 
     /// Init verison control with some test modules.
@@ -598,7 +622,7 @@ mod test {
     mod modules {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn get_cw_plus_modules() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -627,16 +651,18 @@ mod test {
             };
 
             let ModulesResponse { modules } = from_json(query_helper(&deps, query_msg)?)?;
-            assert_that!(modules).has_length(3);
+            assert_eq!(modules.len(), 3);
             for module in modules {
-                assert_that!(module.module.info.namespace).is_equal_to(namespace.clone());
-                assert_that!(module.module.info.version)
-                    .is_equal_to(&ModuleVersion::Version("0.1.2".into()));
+                assert_eq!(module.module.info.namespace, namespace.clone());
+                assert_eq!(
+                    module.module.info.version,
+                    ModuleVersion::Version("0.1.2".into())
+                );
             }
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn get_modules_not_found() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -651,9 +677,10 @@ mod test {
             };
 
             let res = query_helper(&deps, query_msg);
-            assert_that!(res)
-                .is_err()
-                .matches(|e| matches!(e, RegistryError::Std(StdError::GenericErr { .. })));
+            assert!(matches!(
+                res,
+                Err(RegistryError::Std(StdError::GenericErr { .. }))
+            ));
             Ok(())
         }
     }
@@ -669,7 +696,7 @@ mod test {
             }
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -684,20 +711,17 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(3);
-
-                for entry in modules {
-                    assert_that!(entry.module.info.namespace)
-                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                }
-
-                res
-            });
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 3);
+            for entry in modules {
+                assert_eq!(
+                    entry.module.info.namespace,
+                    Namespace::unchecked(filtered_namespace.clone())
+                );
+            }
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_default_returns_only_non_yanked() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -730,24 +754,19 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(7);
-
-                let yanked_module_names = ["module4".to_string(), "module5".to_string()];
-                for entry in modules {
-                    if entry.module.info.namespace == Namespace::unchecked("cw-plus") {
-                        assert!(!yanked_module_names
-                            .iter()
-                            .any(|e| e == &entry.module.info.name));
-                    }
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 7);
+            let yanked_module_names = ["module4".to_string(), "module5".to_string()];
+            for entry in modules {
+                if entry.module.info.namespace == Namespace::unchecked("cw-plus") {
+                    assert!(!yanked_module_names
+                        .iter()
+                        .any(|e| e == &entry.module.info.name));
                 }
-
-                res
-            });
+            }
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_yanked_by_namespace_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -786,21 +805,18 @@ mod test {
             };
 
             let res = query_helper(&deps, list_msg);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 2);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(2);
-
-                for entry in modules {
-                    assert_that!(entry.module.info.namespace)
-                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                }
-
-                res
-            });
+            for entry in modules {
+                assert_eq!(
+                    entry.module.info.namespace,
+                    Namespace::unchecked(filtered_namespace.clone())
+                );
+            }
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_non_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -825,15 +841,11 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(1);
-
-                res
-            });
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 1);
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_and_name() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -852,19 +864,18 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(1);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 1);
 
-                let module = modules[0].clone();
-                assert_that!(module.module.info.namespace)
-                    .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
-                res
-            });
+            let module = modules[0].clone();
+            assert_eq!(
+                module.module.info.namespace,
+                Namespace::unchecked(filtered_namespace.clone())
+            );
+            assert_eq!(module.module.info.name, filtered_name.clone());
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_and_name_with_multiple_versions() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -894,20 +905,19 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(2);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 2);
 
-                for module in modules {
-                    assert_that!(module.module.info.namespace)
-                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                    assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
-                }
-                res
-            });
+            for module in modules {
+                assert_eq!(
+                    module.module.info.namespace,
+                    Namespace::unchecked(filtered_namespace.clone())
+                );
+                assert_eq!(module.module.info.name, filtered_name.clone());
+            }
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_only_version_many() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -924,19 +934,18 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(6);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 6);
 
-                for module in modules {
-                    assert_that!(module.module.info.version.to_string())
-                        .is_equal_to(filtered_version.clone());
-                }
-                res
-            });
+            for module in modules {
+                assert_eq!(
+                    module.module.info.version.to_string(),
+                    filtered_version.clone()
+                );
+            }
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_only_version_none() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -953,15 +962,11 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).is_empty();
-
-                res
-            });
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert!(modules.is_empty());
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_name_and_version() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -980,21 +985,20 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                // We expect two because both cw-plus and snth have a module2 with version 0.1.2
-                assert_that!(modules).has_length(2);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            // We expect two because both cw-plus and snth have a module2 with version 0.1.2
+            assert_eq!(modules.len(), 2);
 
-                for module in modules {
-                    assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
-                    assert_that!(module.module.info.version.to_string())
-                        .is_equal_to(filtered_version.clone());
-                }
-                res
-            });
+            for module in modules {
+                assert_eq!(module.module.info.name, filtered_name.clone());
+                assert_eq!(
+                    module.module.info.version.to_string(),
+                    filtered_version.clone()
+                );
+            }
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn filter_by_namespace_and_version() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -1013,26 +1017,26 @@ mod test {
 
             let res = query_helper(&deps, list_msg);
 
-            assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_json(res).unwrap();
-                assert_that!(modules).has_length(3);
+            let ModulesListResponse { modules } = from_json(res.unwrap()).unwrap();
+            assert_eq!(modules.len(), 3);
 
-                for module in modules {
-                    assert_that!(module.module.info.namespace)
-                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                    assert_that!(module.module.info.version.to_string())
-                        .is_equal_to(filtered_version.clone());
-                }
-
-                res
-            });
+            for module in modules {
+                assert_eq!(
+                    module.module.info.namespace,
+                    Namespace::unchecked(filtered_namespace.clone())
+                );
+                assert_eq!(
+                    module.module.info.version.to_string(),
+                    filtered_version.clone()
+                );
+            }
         }
     }
 
     mod query_namespaces {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn namespaces() {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -1045,18 +1049,15 @@ mod test {
                     accounts: vec![TEST_OTHER_ACCOUNT_ID],
                 },
             );
-            assert_that!(res).is_ok().map(|res| {
-                let NamespacesResponse { namespaces } = from_json(res).unwrap();
-                assert_that!(namespaces[0].0.to_string()).is_equal_to("4t2".to_string());
-                res
-            });
+            let NamespacesResponse { namespaces } = from_json(res.unwrap()).unwrap();
+            assert_eq!(namespaces[0].0.to_string(), "4t2".to_string());
         }
     }
 
     mod handle_account_address_query {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn not_registered_should_be_unknown() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -1064,21 +1065,22 @@ mod test {
             let not_registered = AccountId::new(15, AccountTrace::Local)?;
             let res = query_helper(
                 &deps,
-                QueryMsg::Account {
-                    account_id: not_registered.clone(),
+                QueryMsg::Accounts {
+                    account_ids: vec![not_registered.clone()],
                 },
             );
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(RegistryError::Std(StdError::generic_err(
+            assert_eq!(
+                res,
+                Err(RegistryError::Std(StdError::generic_err(
                     RegistryError::UnknownAccountId { id: not_registered }.to_string(),
-                )));
+                )))
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn registered_should_return_account() -> RegistryTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_account_querier(deps.api).build();
@@ -1086,16 +1088,13 @@ mod test {
 
             let res = query_helper(
                 &deps,
-                QueryMsg::Account {
-                    account_id: TEST_ACCOUNT_ID,
+                QueryMsg::Accounts {
+                    account_ids: vec![TEST_ACCOUNT_ID],
                 },
             );
 
-            assert_that!(res).is_ok().map(|res| {
-                let AccountResponse { account } = from_json(res).unwrap();
-                assert_that!(account).is_equal_to(test_account(deps.api));
-                res
-            });
+            let AccountsResponse { accounts } = from_json(res.unwrap()).unwrap();
+            assert_eq!(accounts, vec![test_account(deps.api)]);
 
             Ok(())
         }

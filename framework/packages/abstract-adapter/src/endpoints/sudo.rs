@@ -14,7 +14,7 @@ mod tests {
 
     use crate::mock::{sudo, AdapterMockResult};
 
-    #[test]
+    #[coverage_helper::test]
     fn endpoint() -> AdapterMockResult {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);

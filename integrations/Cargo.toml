@@ -12,7 +12,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.23.0"
+version = "0.24.1-beta.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -38,7 +38,7 @@ cw-controllers = "2.0"
 cw-ownable = { version = "2.0" }
 cw-address-like = { version = "2.0" }
 cw-asset = { version = "4.0" }
-cw-orch = { version = "0.25.0" }
+cw-orch = { version = "0.26.0" }
 
 anyhow = "1.0"
 
@@ -52,15 +52,15 @@ semver = "1.0"
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.24.0" }
-abstract-adapter = { version = "0.24.0" }
-abstract-sdk = { version = "0.24.0" }
-abstract-std = { version = "0.24.0" }
+abstract-interface = { version = "0.24.1-beta.2" }
+abstract-adapter = { version = "0.24.1-beta.2" }
+abstract-sdk = { version = "0.24.1-beta.2" }
+abstract-std = { version = "0.24.1-beta.2" }
 
-abstract-adapter-utils = { version = "0.24.0" }
-abstract-dex-standard = { version = "0.24.0" }
-abstract-money-market-standard = { version = "0.24.0" }
-abstract-staking-standard = { version = "0.24.0" }
+abstract-adapter-utils = { version = "0.24.1-beta.2" }
+abstract-dex-standard = { version = "0.24.1-beta.2" }
+abstract-money-market-standard = { version = "0.24.1-beta.2" }
+abstract-staking-standard = { version = "0.24.1-beta.2" }
 
 # TODO: REMOVE As soon as new dex-standard published
 [patch.crates-io]
@@ -75,9 +75,9 @@ abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
 # TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
-abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

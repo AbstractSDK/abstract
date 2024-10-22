@@ -82,7 +82,6 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     description: Option<String>,
     link: Option<String>,
     namespace: Option<Namespace>,
-    // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
     install_modules: Vec<ModuleInstallConfig>,
@@ -836,22 +835,12 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
-        let instantiate_msg = account::InstantiateMsg::<Empty> {
-            account_id: None,
-            owner: GovernanceDetails::SubAccount {
-                account: self.address()?.to_string(),
-            },
-            namespace: None,
-            install_modules: modules,
-            name: Some("Sub Account".to_owned()),
-            description: None,
-            link: None,
-            authenticator: None,
-        };
-
         let sub_account_response = self.abstr_account.create_sub_account(
-            self.abstr_account.code_id()?,
-            to_json_binary(&instantiate_msg).map_err(Into::<CwOrchError>::into)?,
+            modules,
+            None,
+            None,
+            None,
+            Some("Sub Account".to_owned()),
             None,
             funds,
         )?;
@@ -934,7 +923,6 @@ impl<Chain: CwEnv> Account<Chain> {
         &self,
         modules_to_maybe_install: &[ModuleInstallConfig],
     ) -> AbstractClientResult<Vec<ModuleInstallConfig>> {
-        // TODO: Is it something supposed to work? Do we just create new sub account with those modules or what?
         if self.install_on_sub_account {
             return Ok(vec![]);
         }
@@ -991,9 +979,9 @@ impl<Chain: CwEnv> Display for Account<Chain> {
 
 impl<Chain: CwEnv> Debug for Account<Chain> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        <Self as Display>::fmt(self, f)
-        // TODO:
-        // write!(f, "{:?}", self.abstr_account)
+        f.debug_struct("Account")
+            .field("abstr_account", &self.abstr_account)
+            .finish()
     }
 }
 
@@ -1005,7 +993,7 @@ pub mod test {
 
     use crate::AbstractClient;
 
-    #[test]
+    #[coverage_helper::test]
     fn namespace_after_creation() -> cw_orch::anyhow::Result<()> {
         let mock = MockBech32::new("mock");
         let abstr = AbstractClient::builder(mock.clone()).build_mock()?;

@@ -1,10 +1,13 @@
 [package]
 name = "abstract-app"
-version = "0.24.0"
+version = "0.24.1-beta.2"
 edition = { workspace = true }
 license = { workspace = true }
 description = "base app contract implementation"
 resolver = "2"
+
+[lints]
+workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -31,8 +34,8 @@ abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 
-abstract-interface = { version = "0.24.0", path = "../../packages/abstract-interface" }
-abstract-ibc-host = { version = "0.24.0", path = "../../contracts/native/ibc-host", default-features = false }
+abstract-interface = { version = "0.24.1-beta.2", path = "../../packages/abstract-interface" }
+abstract-ibc-host = { version = "0.24.1-beta.2", path = "../../contracts/native/ibc-host", default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
@@ -41,3 +44,4 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 cosmwasm-schema = { workspace = true }
 abstract-app = { path = ".", features = ["test-utils"] }
 abstract-integration-tests = { workspace = true }
+coverage-helper = { workspace = true }

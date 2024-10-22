@@ -4,7 +4,7 @@ pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_std::{
     objects::namespace::Namespace,
     registry::{
-        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES_INFO},
+        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES},
         Config,
     },
 };
@@ -46,7 +46,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(&admin))?;
 
     // Save the abstract namespace to the Abstract admin account
-    NAMESPACES_INFO.save(
+    NAMESPACES.save(
         deps.storage,
         &Namespace::new(ABSTRACT_NAMESPACE)?,
         &ABSTRACT_ACCOUNT_ID,
@@ -92,8 +92,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
     match msg {
-        QueryMsg::Account { account_id } => {
-            to_json_binary(&queries::handle_account_address_query(deps, account_id)?)
+        QueryMsg::Accounts { account_ids } => {
+            to_json_binary(&queries::handle_accounts_address_query(deps, account_ids)?)
         }
         QueryMsg::Modules { infos } => to_json_binary(&queries::handle_modules_query(deps, infos)?),
         QueryMsg::Namespaces { accounts } => {
@@ -111,6 +111,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
                 local_account_sequence,
             })
         }
+        QueryMsg::AccountList { start_after, limit } => to_json_binary(
+            &queries::handle_account_list_query(deps, start_after, limit)?,
+        ),
+
         QueryMsg::ModuleList {
             filter,
             start_after,
@@ -146,7 +150,6 @@ mod tests {
             testing::{message_info, mock_dependencies, MockApi},
             OwnedDeps, Response,
         };
-        use speculoos::prelude::*;
 
         use crate::{contract, error::RegistryError};
 
@@ -178,7 +181,7 @@ mod tests {
 
             use super::*;
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_same_version() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -188,20 +191,21 @@ mod tests {
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res)
-                    .is_err()
-                    .is_equal_to(RegistryError::Abstract(
+                assert_eq!(
+                    res,
+                    Err(RegistryError::Abstract(
                         AbstractError::CannotDowngradeContract {
                             contract: REGISTRY.to_string(),
                             from: version.to_string().parse().unwrap(),
                             to: version.to_string().parse().unwrap(),
                         },
-                    ));
+                    ))
+                );
 
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_downgrade() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -214,20 +218,21 @@ mod tests {
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res)
-                    .is_err()
-                    .is_equal_to(RegistryError::Abstract(
+                assert_eq!(
+                    res,
+                    Err(RegistryError::Abstract(
                         AbstractError::CannotDowngradeContract {
                             contract: REGISTRY.to_string(),
                             from: big_version.parse().unwrap(),
                             to: version.to_string().parse().unwrap(),
                         },
-                    ));
+                    ))
+                );
 
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn disallow_name_change() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -239,19 +244,20 @@ mod tests {
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-                assert_that!(res)
-                    .is_err()
-                    .is_equal_to(RegistryError::Abstract(
+                assert_eq!(
+                    res,
+                    Err(RegistryError::Abstract(
                         AbstractError::ContractNameMismatch {
                             from: old_name.to_string(),
                             to: REGISTRY.to_string(),
                         },
-                    ));
+                    ))
+                );
 
                 Ok(())
             }
 
-            #[test]
+            #[coverage_helper::test]
             fn works() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let env = mock_env_validated(deps.api);
@@ -267,10 +273,12 @@ mod tests {
                 cw2::set_contract_version(deps.as_mut().storage, REGISTRY, small_version)?;
 
                 let res = crate::migrate::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
-                assert_that!(res.messages).has_length(0);
+                assert!(res.messages.is_empty());
 
-                assert_that!(cw2::get_contract_version(&deps.storage)?.version)
-                    .is_equal_to(version.to_string());
+                assert_eq!(
+                    cw2::get_contract_version(&deps.storage)?.version,
+                    version.to_string()
+                );
                 Ok(())
             }
         }
@@ -285,11 +293,11 @@ mod tests {
             };
             use abstract_testing::prelude::AbstractMockAddrs;
             use contract::{VCResult, VcResponse};
-            use registry::state::NAMESPACES_INFO;
+            use registry::state::NAMESPACES;
 
             use super::*;
 
-            #[test]
+            #[coverage_helper::test]
             fn sets_abstract_namespace() -> VCResult<()> {
                 let mut deps = mock_dependencies();
                 let abstr = AbstractMockAddrs::new(deps.api);
@@ -308,12 +316,12 @@ mod tests {
                     },
                 )?;
 
-                let account_id = NAMESPACES_INFO.load(
+                let account_id = NAMESPACES.load(
                     deps.as_ref().storage,
                     &Namespace::try_from(ABSTRACT_NAMESPACE)?,
                 )?;
 
-                assert_that!(account_id).is_equal_to(ABSTRACT_ACCOUNT_ID);
+                assert_eq!(account_id, ABSTRACT_ACCOUNT_ID);
                 assert_eq!(resp, VcResponse::action("instantiate"));
                 assert_eq!(LOCAL_ACCOUNT_SEQUENCE.load(&deps.storage).unwrap(), 0);
 

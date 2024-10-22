@@ -65,7 +65,6 @@ pub mod state {
         Item::new(storage_namespaces::account::WHITELISTED_MODULES);
 
     /// Suspension status
-    // TODO: Pull it inside Config as `suspended: Option<String>`, with reason of suspension inside a string?
     pub const SUSPENSION_STATUS: Item<SuspensionStatus> =
         Item::new(storage_namespaces::account::SUSPENSION_STATUS);
     /// Info about the Account
@@ -184,10 +183,16 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     /// Creates a sub-account on the account
     #[cw_orch(payable)]
     CreateSubAccount {
-        /// Code id of abstract account
-        code_id: u64,
-        /// Instantiate message of the account
-        msg: Binary,
+        // Name of the sub-account
+        name: Option<String>,
+        // Description of the account
+        description: Option<String>,
+        // URL linked to the account
+        link: Option<String>,
+        // optionally specify a namespace for the sub-account
+        namespace: Option<String>,
+        // Provide list of module to install after sub-account creation
+        install_modules: Vec<ModuleInstallConfig>,
         /// If `None`, will create a new local account without asserting account-id.
         ///
         /// When provided sequence in 0..2147483648 range: The tx will error
@@ -260,7 +265,6 @@ pub enum QueryMsg {
     Ownership {},
 
     /// Query the pubkey associated with this account.
-    // TODO: return type?
     #[returns(Binary)]
     AuthenticatorByID { id: u8 },
     /// Query the pubkey associated with this account.
@@ -361,7 +365,7 @@ mod test {
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn minimal_deser_instantiate_test() {
         let init_msg_binary: InstantiateMsg =
             cosmwasm_std::from_json(br#"{"owner": {"renounced": {}}}"#).unwrap();

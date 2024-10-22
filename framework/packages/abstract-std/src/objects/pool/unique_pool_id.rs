@@ -1,6 +1,6 @@
-use std::{array::TryFromSliceError, fmt::Display};
+use std::fmt::Display;
 
-use cosmwasm_std::{StdError, StdResult};
+use cosmwasm_std::StdResult;
 use cw_storage_plus::{IntKey, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -59,9 +59,7 @@ impl KeyDeserialize for UniquePoolId {
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(Self::from_cw_bytes(value.as_slice().try_into().map_err(
-            |err: TryFromSliceError| StdError::generic_err(err.to_string()),
-        )?))
+        Ok(Self(u64::from_vec(value)?))
     }
 }
 
@@ -99,7 +97,7 @@ mod test {
         )
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
@@ -118,7 +116,7 @@ mod test {
         assert_eq!(items[0], (key, 42069));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
@@ -149,7 +147,7 @@ mod test {
         assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn naked_64key_works() {
         let k: UniquePoolId = 4242u64.into();
         let path = k.key();

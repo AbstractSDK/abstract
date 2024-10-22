@@ -65,14 +65,8 @@ impl<
     }
 
     fn update_config(&self, deps: DepsMut, env: Env, info: MessageInfo) -> AppResult {
-        // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
         self.admin.assert_admin(deps.as_ref(), &env, &info.sender)?;
-
-        // TODO: do anything here?
-        // let state = self.base_state.load(deps.storage)?;
-
-        // self.base_state.save(deps.storage, &state)?;
 
         Ok(self.response("update_config"))
     }
@@ -104,7 +98,7 @@ mod test {
     mod base {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_account() -> AppTestResult {
             let mut deps = mock_init();
 

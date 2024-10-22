@@ -21,7 +21,6 @@ mod tests {
     use abstract_testing::mock_env_validated;
     use cosmwasm_std::testing::*;
     use semver::Version;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::error::AccountError;
@@ -30,7 +29,7 @@ mod tests {
     use abstract_std::{account::MigrateMsg, AbstractError};
     use cw2::get_contract_version;
 
-    #[test]
+    #[coverage_helper::test]
     fn disallow_same_version() -> AccountResult<()> {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
@@ -40,20 +39,21 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res)
-            .is_err()
-            .is_equal_to(AccountError::Abstract(
+        assert_eq!(
+            res,
+            Err(AccountError::Abstract(
                 AbstractError::CannotDowngradeContract {
                     contract: ACCOUNT.to_string(),
                     from: version.clone(),
                     to: version,
                 },
-            ));
+            ))
+        );
 
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn disallow_downgrade() -> AccountResult<()> {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
@@ -66,20 +66,21 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res)
-            .is_err()
-            .is_equal_to(AccountError::Abstract(
+        assert_eq!(
+            res,
+            Err(AccountError::Abstract(
                 AbstractError::CannotDowngradeContract {
                     contract: ACCOUNT.to_string(),
                     from: big_version.parse().unwrap(),
                     to: version,
                 },
-            ));
+            ))
+        );
 
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn disallow_name_change() -> AccountResult<()> {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
@@ -91,19 +92,20 @@ mod tests {
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {});
 
-        assert_that!(res)
-            .is_err()
-            .is_equal_to(AccountError::Abstract(
+        assert_eq!(
+            res,
+            Err(AccountError::Abstract(
                 AbstractError::ContractNameMismatch {
                     from: old_name.parse().unwrap(),
                     to: ACCOUNT.parse().unwrap(),
                 },
-            ));
+            ))
+        );
 
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn works() -> AccountResult<()> {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
@@ -120,9 +122,12 @@ mod tests {
         set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
 
         let res = super::migrate(deps.as_mut(), env, MigrateMsg {})?;
-        assert_that!(res.messages).has_length(0);
+        assert!(res.messages.is_empty());
 
-        assert_that!(get_contract_version(&deps.storage)?.version).is_equal_to(version.to_string());
+        assert_eq!(
+            get_contract_version(&deps.storage)?.version,
+            version.to_string()
+        );
         Ok(())
     }
 }

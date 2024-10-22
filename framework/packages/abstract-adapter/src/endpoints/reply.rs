@@ -16,7 +16,7 @@ mod test {
 
     use crate::mock::{reply, AdapterMockResult};
 
-    #[test]
+    #[coverage_helper::test]
     fn endpoint() -> AdapterMockResult {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
@@ -39,7 +39,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn no_matching_id() -> AdapterMockResult {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);

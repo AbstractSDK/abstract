@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use cosmwasm_std::{StdError, StdResult};
+use cosmwasm_std::StdResult;
 use cw_storage_plus::{KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,6 @@ type DexName = String;
 
 /// The key for an asset pairing
 /// Consists of the two assets and the dex name
-/// TODO: what if we made keys equal based on the two assets either way?
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
 pub struct DexAssetPairing<Asset = AssetEntry>((Asset, Asset, DexName));
 
@@ -55,50 +54,24 @@ impl<'a> PrimaryKey<'a> for &DexAssetPairing {
     type SuperSuffix = (&'a AssetEntry, DexName);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut key = self.0 .0 .0.key();
-        key.extend(self.0 .1 .0.key());
-        key.extend(self.0 .2.key());
-        key
+        <(AssetEntry, AssetEntry, DexName)>::key(&self.0)
     }
 }
 
 impl<'a> Prefixer<'a> for &DexAssetPairing {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
-        let mut res = self.0 .0 .0.prefix();
-        res.extend(self.0 .1 .0.prefix());
-        res.extend(self.0 .2.prefix());
-        res
+        <(AssetEntry, AssetEntry, DexName)>::prefix(&self.0)
     }
 }
 
-fn parse_length(value: &[u8]) -> StdResult<usize> {
-    Ok(u16::from_be_bytes(
-        value
-            .try_into()
-            .map_err(|_| StdError::generic_err("Could not read 2 byte length"))?,
-    )
-    .into())
-}
-
-/// @todo: use existing method for triple tuple
 impl KeyDeserialize for &DexAssetPairing {
     type Output = DexAssetPairing;
     const KEY_ELEMS: u16 = 1;
 
     #[inline(always)]
-    fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
-        let mut tuv = value.split_off(2);
-        let t_len = parse_length(&value)?;
-        let mut len_uv = tuv.split_off(t_len);
-
-        let mut uv = len_uv.split_off(2);
-        let u_len = parse_length(&len_uv)?;
-        let v = uv.split_off(u_len);
-
-        Ok(DexAssetPairing::new(
-            String::from_vec(tuv)?.into(),
-            String::from_vec(uv)?.into(),
-            &String::from_vec(v)?,
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        Ok(DexAssetPairing(
+            <(&AssetEntry, &AssetEntry, &DexName)>::from_vec(value)?,
         ))
     }
 }
@@ -131,7 +104,7 @@ mod test {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
@@ -150,7 +123,7 @@ mod test {
         assert_eq!(items[0], (key, 42069));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
@@ -184,7 +157,7 @@ mod test {
         assert_eq!(items[1], (Addr::unchecked("terraswap"), vec![ref_2]));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn partial_key_works() {
         let mut deps = mock_dependencies();
         let (key1, key2, key3) = mock_keys();
@@ -207,7 +180,7 @@ mod test {
         assert_eq!(items[1], ("osmosis".to_string(), 69420));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn try_from_lp_token() {
         let lp = LpToken::new("junoswap", vec!["juno".to_string(), "osmo".to_string()]);
 
@@ -219,7 +192,7 @@ mod test {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn display() {
         let key = DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap");
         assert_eq!(key.to_string(), "junoswap/juno,osmo");

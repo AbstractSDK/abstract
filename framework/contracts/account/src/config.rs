@@ -1,7 +1,7 @@
 use crate::{
     contract::{AccountResponse, AccountResult},
     error::AccountError,
-    modules::{_remove_whitelist_modules, _whitelist_modules, update_module_addresses},
+    modules::{_update_whitelisted_modules, update_module_addresses},
 };
 use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
@@ -49,7 +49,7 @@ pub fn update_suspension_status(
 /// Allows the owner to manually update the internal configuration of the account.
 /// This can be used to unblock the account and its modules in case of a bug/lock on the account.
 pub fn update_internal_config(
-    mut deps: DepsMut,
+    deps: DepsMut,
     info: MessageInfo,
     action: InternalConfigAction,
 ) -> AccountResult {
@@ -71,19 +71,21 @@ pub fn update_internal_config(
 
             update_module_addresses(deps, add, to_remove)
         }
-        // TODO: Add tests for this action
         InternalConfigAction::UpdateWhitelist { to_add, to_remove } => {
-            let module_addresses_to_add: Result<Vec<Addr>, _> = to_add
+            let module_addresses_to_add = to_add
                 .into_iter()
                 .map(|str_addr| deps.api.addr_validate(&str_addr))
-                .collect();
-            let module_addresses_to_remove: Result<Vec<Addr>, _> = to_remove
+                .collect::<Result<Vec<Addr>, _>>()?;
+            let module_addresses_to_remove = to_remove
                 .into_iter()
                 .map(|str_addr| deps.api.addr_validate(&str_addr))
-                .collect();
+                .collect::<Result<Vec<Addr>, _>>()?;
 
-            _whitelist_modules(deps.branch(), module_addresses_to_add?)?;
-            _remove_whitelist_modules(deps, module_addresses_to_remove?)?;
+            _update_whitelisted_modules(
+                deps.storage,
+                module_addresses_to_add,
+                module_addresses_to_remove,
+            )?;
 
             Ok(AccountResponse::action("update_whitelist"))
         }
@@ -126,13 +128,12 @@ mod tests {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, StdError};
     use ownership::{GovAction, GovOwnershipError, GovernanceDetails};
-    use speculoos::prelude::*;
 
     mod set_owner_and_gov_type {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_owner() -> anyhow::Result<()> {
             let deps = mock_dependencies();
             let test_owner = deps.api.addr_make("test_owner");
@@ -147,7 +148,7 @@ mod tests {
             test_only_owner(msg)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn validates_new_owner_address() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -162,18 +163,17 @@ mod tests {
             });
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(res).is_err().matches(|err| {
-                matches!(
-                    err,
-                    AccountError::Ownership(GovOwnershipError::Abstract(
-                        abstract_std::AbstractError::Std(StdError::GenericErr { .. })
-                    ))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Ownership(GovOwnershipError::Abstract(
+                    abstract_std::AbstractError::Std(StdError::GenericErr { .. })
+                )))
+            ));
+
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn updates_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -189,21 +189,24 @@ mod tests {
             });
 
             let res = execute_as(&mut deps, &owner, set_owner_msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let accept_msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
             execute_as(&mut deps, &new_owner, accept_msg)?;
 
             let actual_owner = ownership::get_ownership(&deps.storage)?.owner;
 
-            assert_that!(&actual_owner).is_equal_to(GovernanceDetails::Monarchy {
-                monarch: Addr::unchecked(new_owner),
-            });
+            assert_eq!(
+                actual_owner,
+                GovernanceDetails::Monarchy {
+                    monarch: Addr::unchecked(new_owner),
+                }
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn updates_governance_type() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -222,23 +225,27 @@ mod tests {
             execute_as(&mut deps, &owner, msg)?;
 
             let ownership = ownership::get_ownership(deps.as_ref().storage)?;
-            assert_that!(ownership
-                .owner
-                .owner_address(&deps.as_ref().querier)
-                .unwrap()
-                .to_string())
-            .is_equal_to(owner.to_string());
+            assert_eq!(
+                ownership
+                    .owner
+                    .owner_address(&deps.as_ref().querier)
+                    .unwrap()
+                    .to_string(),
+                owner.to_string()
+            );
 
             let accept_msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
             execute_as(&mut deps, &new_gov, accept_msg)?;
 
             let ownership = ownership::get_ownership(deps.as_ref().storage)?;
-            assert_that!(ownership
-                .owner
-                .owner_address(&deps.as_ref().querier)
-                .unwrap()
-                .to_string())
-            .is_equal_to(new_gov.to_string());
+            assert_eq!(
+                ownership
+                    .owner
+                    .owner_address(&deps.as_ref().querier)
+                    .unwrap()
+                    .to_string(),
+                new_gov.to_string()
+            );
 
             Ok(())
         }
@@ -249,7 +256,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_owner() -> anyhow::Result<()> {
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
@@ -261,7 +268,7 @@ mod tests {
         }
         // integration tests
 
-        #[test]
+        #[coverage_helper::test]
         fn updates() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -279,18 +286,18 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let info = INFO.load(deps.as_ref().storage)?;
 
-            assert_that!(&info.name.unwrap()).is_equal_to(name.to_string());
-            assert_that!(&info.description.unwrap()).is_equal_to(description.to_string());
-            assert_that!(&info.link.unwrap()).is_equal_to(link.to_string());
+            assert_eq!(info.name.unwrap(), name.to_string());
+            assert_eq!(info.description.unwrap(), description.to_string());
+            assert_eq!(info.link.unwrap(), link.to_string());
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn removals() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -314,18 +321,18 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let info = INFO.load(deps.as_ref().storage)?;
 
-            assert_that!(&info.name.unwrap()).is_equal_to(&prev_name);
-            assert_that!(&info.description).is_none();
-            assert_that!(&info.link).is_none();
+            assert_eq!(info.name.unwrap(), prev_name);
+            assert!(info.description.is_none());
+            assert!(info.link.is_none());
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn validates_name() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -339,12 +346,12 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    AccountError::Validation(ValidationError::TitleInvalidShort(_))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Validation(
+                    ValidationError::TitleInvalidShort(_)
+                ))
+            ));
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: Some("a".repeat(65)),
@@ -353,17 +360,17 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    AccountError::Validation(ValidationError::TitleInvalidLong(_))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Validation(ValidationError::TitleInvalidLong(
+                    _
+                )))
+            ));
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn validates_link() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -378,12 +385,12 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    AccountError::Validation(ValidationError::LinkInvalidShort(_))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Validation(ValidationError::LinkInvalidShort(
+                    _
+                )))
+            ));
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
@@ -392,12 +399,12 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    AccountError::Validation(ValidationError::LinkInvalidLong(_))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Validation(ValidationError::LinkInvalidLong(
+                    _
+                )))
+            ));
 
             Ok(())
         }
@@ -406,7 +413,7 @@ mod tests {
     mod update_suspension_status {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -418,7 +425,7 @@ mod tests {
             test_only_owner(msg)
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn exec_fails_when_suspended() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -430,9 +437,9 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(res).is_ok();
+            assert!(res.is_ok());
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that!(&actual_is_suspended).is_true();
+            assert!(actual_is_suspended);
 
             let update_info_msg = ExecuteMsg::UpdateInfo {
                 name: Some("asonetuh".to_string()),
@@ -442,14 +449,12 @@ mod tests {
 
             let res = execute_as(&mut deps, &owner, update_info_msg);
 
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::AccountSuspended {});
+            assert_eq!(res, Err(AccountError::AccountSuspended {}));
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn suspend_account() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -462,13 +467,13 @@ mod tests {
 
             let res = execute_as(&mut deps, &owner, msg);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that!(&actual_is_suspended).is_true();
+            assert!(actual_is_suspended);
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn unsuspend_account() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -481,20 +486,22 @@ mod tests {
 
             let res = execute_as(&mut deps, &owner, msg);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that!(&actual_status).is_false();
+            assert!(!actual_status);
             Ok(())
         }
     }
 
     mod update_internal_config {
-        use abstract_std::account::InternalConfigAction::UpdateModuleAddresses;
+        use abstract_std::account::InternalConfigAction;
         use ownership::GovOwnershipError;
+
+        use crate::modules::WHITELIST_SIZE_LIMIT;
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_account_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -502,23 +509,153 @@ mod tests {
 
             mock_init(&mut deps)?;
 
-            let msg = ExecuteMsg::UpdateInternalConfig(UpdateModuleAddresses {
-                to_add: vec![],
-                to_remove: vec![],
-            });
+            let msg =
+                ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateModuleAddresses {
+                    to_add: vec![],
+                    to_remove: vec![],
+                });
 
             let bad_sender = deps.api.addr_make("not_account_owner");
             let res = execute_as(&mut deps, &bad_sender, msg.clone());
 
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
+            assert_eq!(
+                res,
+                Err(AccountError::Ownership(GovOwnershipError::NotOwner))
+            );
 
             let vc_res = execute_as(&mut deps, &abstr.registry, msg.clone());
-            assert_that!(&vc_res).is_err();
+            assert!(vc_res.is_err());
 
             let owner_res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&owner_res).is_ok();
+            assert!(owner_res.is_ok());
+
+            Ok(())
+        }
+
+        #[coverage_helper::test]
+        fn whitelist_size_limit() -> anyhow::Result<()> {
+            let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
+
+            mock_init(&mut deps)?;
+
+            // One too many
+            let mut to_add: Vec<String> = (0..WHITELIST_SIZE_LIMIT + 1)
+                .map(|i| deps.api.addr_make(&format!("white_list_{i}")).to_string())
+                .collect();
+            let too_many_msg =
+                ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                    to_add: to_add.clone(),
+                    to_remove: vec![],
+                });
+            let too_many = execute_as(&mut deps, &owner, too_many_msg).unwrap_err();
+            assert_eq!(too_many, AccountError::ModuleLimitReached {});
+
+            // Exact amount
+            to_add.pop();
+            let exactly_limit_msg =
+                ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                    to_add: to_add.clone(),
+                    to_remove: vec![],
+                });
+            let white_list_add = execute_as(&mut deps, &owner, exactly_limit_msg);
+            assert!(white_list_add.is_ok());
+
+            // Can't add after hitting limit
+            let to_add = vec![deps.api.addr_make("over_limit").to_string()];
+            let module_limit_reached = execute_as(
+                &mut deps,
+                &owner,
+                ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                    to_add,
+                    to_remove: vec![],
+                }),
+            )
+            .unwrap_err();
+            assert_eq!(module_limit_reached, AccountError::ModuleLimitReached {});
+
+            Ok(())
+        }
+
+        #[coverage_helper::test]
+        fn whitelist_duplicates() -> anyhow::Result<()> {
+            let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
+
+            mock_init(&mut deps)?;
+
+            // duplicate after add
+            let to_add: Vec<String> = vec![deps.api.addr_make("module").to_string()];
+            let msg = ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                to_add: to_add.clone(),
+                to_remove: vec![],
+            });
+            execute_as(&mut deps, &owner, msg.clone()).unwrap();
+
+            let duplicate_err = execute_as(&mut deps, &owner, msg).unwrap_err();
+            assert_eq!(
+                duplicate_err,
+                AccountError::AlreadyWhitelisted(to_add[0].clone())
+            );
+
+            // duplicate inside add
+            let to_add: Vec<String> = vec![
+                deps.api.addr_make("module2").to_string(),
+                deps.api.addr_make("module2").to_string(),
+            ];
+            let msg = ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                to_add: to_add.clone(),
+                to_remove: vec![],
+            });
+            let duplicate_err = execute_as(&mut deps, &owner, msg).unwrap_err();
+            assert_eq!(
+                duplicate_err,
+                AccountError::AlreadyWhitelisted(to_add[0].clone())
+            );
+
+            Ok(())
+        }
+
+        #[coverage_helper::test]
+        fn whitelist_remove() -> anyhow::Result<()> {
+            let mut deps = mock_dependencies();
+            let abstr = AbstractMockAddrs::new(deps.api);
+            let owner = abstr.owner;
+
+            mock_init(&mut deps)?;
+
+            // Add and remove same
+            let to_add: Vec<String> = vec![deps.api.addr_make("module").to_string()];
+            let msg = ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                to_add: to_add.clone(),
+                to_remove: to_add.clone(),
+            });
+            let no_changes = execute_as(&mut deps, &owner, msg.clone());
+            assert!(no_changes.is_ok());
+
+            // Remove not whitelisted
+            let to_remove: Vec<String> = vec![deps.api.addr_make("module").to_string()];
+            let msg = ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                to_add: vec![],
+                to_remove,
+            });
+            let not_whitelisted = execute_as(&mut deps, &owner, msg.clone()).unwrap_err();
+            assert_eq!(not_whitelisted, AccountError::NotWhitelisted {});
+
+            // Remove same twice
+            let to_add: Vec<String> = vec![deps.api.addr_make("module").to_string()];
+            let to_remove: Vec<String> = vec![
+                deps.api.addr_make("module").to_string(),
+                deps.api.addr_make("module").to_string(),
+            ];
+            let msg = ExecuteMsg::UpdateInternalConfig(InternalConfigAction::UpdateWhitelist {
+                to_add: to_add.clone(),
+                to_remove: to_remove.clone(),
+            });
+            let not_whitelisted = execute_as(&mut deps, &owner, msg.clone()).unwrap_err();
+            assert_eq!(not_whitelisted, AccountError::NotWhitelisted {});
 
             Ok(())
         }
@@ -530,7 +667,7 @@ mod tests {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn allows_ownership_acceptance() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);

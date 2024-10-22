@@ -57,7 +57,6 @@ pub trait DexCommand: Identify {
     /// Execute a swap on the given DEX using the swap in question custom logic
     #[allow(clippy::too_many_arguments)]
     #[allow(unused)]
-    // TODO: do we need normal swap or should every integration be swap_route?
     fn swap_route(
         &self,
         deps: Deps,
@@ -69,7 +68,7 @@ pub trait DexCommand: Identify {
         unimplemented!();
     }
 
-    /// Provides liquidity on the the DEX
+    /// Provides liquidity on the DEX
     fn provide_liquidity(
         &self,
         deps: Deps,

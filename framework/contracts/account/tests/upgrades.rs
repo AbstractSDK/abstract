@@ -24,7 +24,6 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::coin;
 use cw2::ContractVersion;
 use cw_orch::prelude::*;
-use speculoos::prelude::*;
 
 #[test]
 fn install_app_successful() -> AResult {
@@ -40,21 +39,21 @@ fn install_app_successful() -> AResult {
 
     // dependency for mock_adapter1 not met
     let res = install_module_version(&account, app_1::MOCK_APP_ID, V1);
-    assert_that!(&res).is_err();
-    assert_that!(res.unwrap_err().root_cause().to_string()).contains(
+    assert!(res.is_err());
+    assert!(res.unwrap_err().root_cause().to_string().contains(
         // Error from macro
         "no address",
-    );
+    ));
 
     // install adapter 1
     let adapter1 = install_module_version(&account, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // second dependency still not met
     let res = install_module_version(&account, app_1::MOCK_APP_ID, V1);
-    assert_that!(&res).is_err();
-    assert_that!(res.unwrap_err().root_cause().to_string()).contains(
+    assert!(res.is_err());
+    assert!(res.unwrap_err().root_cause().to_string().contains(
         "module tester:mock-adapter2 is a dependency of tester:mock-app1 and is not installed.",
-    );
+    ));
 
     // install adapter 2
     let adapter2 = install_module_version(&account, adapter_2::MOCK_ADAPTER_ID, V1)?;
@@ -87,9 +86,10 @@ fn install_app_versions_not_met() -> AResult {
     // attempt to install app with version 2
 
     let res = install_module_version(&account, app_1::MOCK_APP_ID, V2);
-    assert_that!(&res).is_err();
-    assert_that!(res.unwrap_err().root_cause().to_string())
-        .contains("Module tester:mock-adapter1 with version 1.0.0 does not fit requirement ^2.0.0");
+    assert!(res.is_err());
+    assert!(res.unwrap_err().root_cause().to_string().contains(
+        "Module tester:mock-adapter1 with version 1.0.0 does not fit requirement ^2.0.0"
+    ));
     Ok(())
 }
 
@@ -113,7 +113,7 @@ fn upgrade_app() -> AResult {
 
     // successfully install app 1
     let app1 = install_module_version(&account, app_1::MOCK_APP_ID, V1)?;
-    account.expect_modules(vec![adapter1, adapter2, app1])?;
+    account.expect_modules(vec![adapter1.clone(), adapter2, app1])?;
 
     // attempt upgrade app 1 to version 2
     let res = account.upgrade_module(
@@ -124,15 +124,15 @@ fn upgrade_app() -> AResult {
         },
     );
     // fails because adapter 1 is not version 2
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        AccountError::VersionRequirementNotMet {
+    assert!(res.unwrap_err().root().to_string().contains(
+        &AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V1.into(),
             comp: "^2.0.0".into(),
             post_migration: true,
         }
         .to_string(),
-    );
+    ));
 
     // upgrade adapter 1 to version 2
     let res = account.upgrade_module(
@@ -143,15 +143,15 @@ fn upgrade_app() -> AResult {
         },
     );
     // fails because app v1 is not version 2 and depends on adapter 1 being version 1.
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        AccountError::VersionRequirementNotMet {
+    assert!(res.unwrap_err().root().to_string().contains(
+        &AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V2.into(),
             comp: "^1.0.0".into(),
             post_migration: false,
         }
         .to_string(),
-    );
+    ));
 
     // solution: upgrade multiple modules in the same tx
     // Important: the order of the modules is important. The hightest-level dependents must be migrated first.
@@ -176,14 +176,14 @@ fn upgrade_app() -> AResult {
     ]);
 
     // fails because app v1 is depends on adapter 1 being version 1.
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        AccountError::Abstract(AbstractError::CannotDowngradeContract {
+    assert!(res.unwrap_err().root().to_string().contains(
+        &AccountError::Abstract(AbstractError::CannotDowngradeContract {
             contract: app_1::MOCK_APP_ID.into(),
             from: V1.parse().unwrap(),
             to: V1.parse().unwrap(),
         })
         .to_string(),
-    );
+    ));
 
     // attempt to upgrade app 1 to version 2 while not updating other modules
     let res = account.upgrade(vec![(
@@ -195,17 +195,17 @@ fn upgrade_app() -> AResult {
     )]);
 
     // fails because app v1 is depends on adapter 1 being version 2.
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        AccountError::VersionRequirementNotMet {
+    assert!(res.unwrap_err().root().to_string().contains(
+        &AccountError::VersionRequirementNotMet {
             module_id: adapter_1::MOCK_ADAPTER_ID.into(),
             version: V1.into(),
             comp: "^2.0.0".into(),
             post_migration: true,
         }
         .to_string(),
-    );
+    ));
 
-    // attempt to upgrade app 1 to identical version while updating other modules
+    // attempt to upgrade adapters to the same version(same address)
     let res = account.upgrade(vec![
         (
             ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V2.to_string()))?,
@@ -230,16 +230,12 @@ fn upgrade_app() -> AResult {
         ),
     ]);
 
-    // fails because app v1 is depends on adapter 1 being version 2.
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        AccountError::VersionRequirementNotMet {
-            module_id: adapter_1::MOCK_ADAPTER_ID.into(),
-            version: V1.into(),
-            comp: "^2.0.0".into(),
-            post_migration: true,
-        }
-        .to_string(),
-    );
+    // fails because adapter v1 already whitelisted
+    assert!(res
+        .unwrap_err()
+        .root()
+        .to_string()
+        .contains(&AccountError::AlreadyWhitelisted(adapter1).to_string()));
 
     // successfully upgrade all the modules
     account.upgrade(vec![
@@ -280,67 +276,6 @@ fn update_adapter_with_authorized_addrs() -> AResult {
     )
 }
 
-/*#[test]
-fn upgrade_account_last() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), mock_bech32_sender(&chain))?;
-    let account = create_default_account(&sender,&abstr)?;
-    let AccountI { account, account: _ } = &account;
-
-    abstr
-        .registry
-        .claim_namespace(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
-    deploy_modules(&chain);
-
-    // install adapter 1
-    let adapter1 = install_module_version(&account, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
-
-    // install adapter 2
-    let adapter2 = install_module_version(&account, &abstr, adapter_2::MOCK_ADAPTER_ID, V1)?;
-
-    // successfully install app 1
-    let app1 = install_module_version(&account, &abstr, app_1::MOCK_APP_ID, V1)?;
-    account.expect_modules(vec![adapter1, adapter2, app1])?;
-
-    // Upgrade all modules, including the account module, but ensure the account is upgraded last
-    let res = account.upgrade(vec![
-        (
-            ModuleInfo::from_id_latest(app_1::MOCK_APP_ID)?,
-            Some(to_json_binary(&app::MigrateMsg {
-                base: app::BaseMigrateMsg {},
-                module: MockMigrateMsg,
-            })?),
-        ),
-        (
-            ModuleInfo::from_id_latest("abstract:account")?,
-            Some(to_json_binary(&account::MigrateMsg {})?),
-        ),
-        (ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID)?, None),
-        (ModuleInfo::from_id_latest(adapter_2::MOCK_ADAPTER_ID)?, None),
-    ])?;
-
-    // get the events
-    let mut events: Vec<Event> = res.events;
-    events.pop();
-    let migrate_event = events.pop().unwrap();
-
-    // the 2nd last event will be the account execution
-    assert_that!(migrate_event.attributes).has_length(3);
-    let mut attributes = migrate_event.attributes;
-    // check that the action was migrate
-    assert_that!(attributes.pop())
-        .is_some()
-        .is_equal_to(Attribute::from(("action", "migrate")));
-
-    // and that it was the account
-    assert_that!(attributes.pop())
-        .is_some()
-        .is_equal_to(Attribute::from(("contract", "abstract:account")));
-
-    Ok(())
-}*/
-
 #[test]
 fn no_duplicate_migrations() -> AResult {
     let chain = MockBech32::new("mock");
@@ -371,9 +306,10 @@ fn no_duplicate_migrations() -> AResult {
         ),
     ]);
 
-    assert_that!(res).is_err();
+    assert!(res.is_err());
 
-    assert_that!(res.unwrap_err().root().to_string()).is_equal_to(
+    assert_eq!(
+        res.unwrap_err().root().to_string(),
         AccountError::DuplicateModuleMigration {
             module_id: adapter_1::MOCK_ADAPTER_ID.to_string(),
         }
@@ -906,7 +842,116 @@ fn native_not_migratable() -> AResult {
     Ok(())
 }
 
-// TODO:
-// - adapter-adapter dependencies
-// - app-adapter dependencies
-// - app-app dependencies
+mod upgrade_account {
+    use cosmwasm_std::{Attribute, DepsMut, Env};
+
+    use super::*;
+
+    fn new_version() -> String {
+        let mut new_account_version: semver::Version = abstract_account::contract::CONTRACT_VERSION
+            .parse()
+            .unwrap();
+        new_account_version.patch += 1;
+        new_account_version.to_string()
+    }
+
+    fn fake_migrate(
+        deps: DepsMut,
+        _env: Env,
+        _msg: abstract_std::account::MigrateMsg,
+    ) -> abstract_account::contract::AccountResult {
+        cw2::set_contract_version(deps.storage, abstract_std::ACCOUNT, new_version())?;
+
+        Ok(abstract_account::contract::AccountResponse::action(
+            "migrate",
+        ))
+    }
+
+    #[test]
+    fn upgrade_account_last() -> AResult {
+        let chain = MockBech32::new("mock");
+        let abstr = Abstract::deploy_on_mock(chain.clone())?;
+        let account = create_default_account(&chain.sender_addr(), &abstr)?;
+
+        let account_custom = chain.upload_custom(
+            "account-2",
+            Box::new(
+                ContractWrapper::new_with_empty(
+                    abstract_account::contract::execute,
+                    abstract_account::contract::instantiate,
+                    abstract_account::contract::query,
+                )
+                .with_migrate(fake_migrate)
+                .with_reply(abstract_account::contract::reply),
+            ),
+        )?;
+        let account_custom_code_id = account_custom.uploaded_code_id().unwrap();
+        abstr
+            .registry
+            .call_as(&Abstract::mock_admin(&chain))
+            .propose_modules(vec![(
+                ModuleInfo::from_id(abstract_std::ACCOUNT, ModuleVersion::Version(new_version()))?,
+                ModuleReference::Account(account_custom_code_id),
+            )])?;
+
+        abstr
+            .registry
+            .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+        deploy_modules(&chain);
+
+        // install adapter 1
+        let adapter1 = install_module_version(&account, adapter_1::MOCK_ADAPTER_ID, V1)?;
+
+        // install adapter 2
+        let adapter2 = install_module_version(&account, adapter_2::MOCK_ADAPTER_ID, V1)?;
+
+        // successfully install app 1
+        let app1 = install_module_version(&account, app_1::MOCK_APP_ID, V1)?;
+        account.expect_modules(vec![adapter1, adapter2, app1])?;
+
+        // Upgrade all modules, including the account module, but ensure the account is upgraded last
+        let res = account.upgrade(vec![
+            (
+                ModuleInfo::from_id_latest(app_1::MOCK_APP_ID)?,
+                Some(to_json_binary(&app::MigrateMsg {
+                    base: app::BaseMigrateMsg {},
+                    module: MockMigrateMsg,
+                })?),
+            ),
+            (
+                ModuleInfo::from_id_latest("abstract:account")?,
+                Some(to_json_binary(&abstract_std::account::MigrateMsg {})?),
+            ),
+            (
+                ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID)?,
+                None,
+            ),
+            (
+                ModuleInfo::from_id_latest(adapter_2::MOCK_ADAPTER_ID)?,
+                None,
+            ),
+        ])?;
+
+        // get the events
+        let mut events: Vec<cosmwasm_std::Event> = res.events;
+        events.pop();
+        let migrate_event = events.pop().unwrap();
+
+        // the 2nd last event will be the account execution
+        assert_eq!(migrate_event.attributes.len(), 3);
+        let mut attributes = migrate_event.attributes;
+        // check that the action was migrate
+        assert_eq!(
+            attributes.pop(),
+            Some(Attribute::from(("action", "migrate")))
+        );
+
+        // and that it was the account
+        assert_eq!(
+            attributes.pop(),
+            Some(Attribute::from(("contract", "abstract:account")))
+        );
+
+        Ok(())
+    }
+}

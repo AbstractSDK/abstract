@@ -24,7 +24,6 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::MockApi;
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -44,7 +43,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn test_account_address() {
             let deps = mock_dependencies();
             let binding = MockBinding { mock_api: deps.api };
@@ -52,10 +51,10 @@ mod test {
             let account = test_account(deps.api);
 
             let res = binding.account(deps.as_ref());
-            assert_that!(res).is_ok().is_equal_to(account);
+            assert_eq!(res, Ok(account));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn account_id() {
             let mut deps = mock_dependencies();
             let account = test_account(deps.api);
@@ -65,9 +64,7 @@ mod test {
                 .build();
 
             let binding = MockBinding { mock_api: deps.api };
-            assert_that!(binding.account_id(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(TEST_ACCOUNT_ID);
+            assert_eq!(binding.account_id(deps.as_ref()), Ok(TEST_ACCOUNT_ID));
         }
     }
 }

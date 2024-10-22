@@ -60,29 +60,25 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::AssetList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_asset_list(deps, start_after, limit),
         QueryMsg::AssetInfos { infos } => queries::query_asset_infos(deps, env, infos),
         QueryMsg::AssetInfoList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_asset_info_list(deps, start_after, limit),
-        QueryMsg::Contracts { entries } => {
-            queries::query_contract(deps, env, entries.iter().collect())
-        }
+        QueryMsg::Contracts { entries } => queries::query_contract(deps, env, entries),
         QueryMsg::ContractList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_contract_list(deps, start_after, limit),
-        QueryMsg::Channels { entries: names } => {
-            queries::query_channels(deps, env, names.iter().collect())
-        }
+        QueryMsg::Channels { entries: names } => queries::query_channels(deps, env, names),
         QueryMsg::ChannelList {
             start_after,
             limit,
-            filter: _filter, // TODO: Implement filtering
+            filter: _filter,
         } => queries::query_channel_list(deps, start_after, limit),
         QueryMsg::RegisteredDexes {} => queries::query_registered_dexes(deps, env),
         QueryMsg::PoolList {
@@ -122,7 +118,6 @@ pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> AnsHostResult {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::testing::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::test_common::*;
@@ -135,7 +130,7 @@ mod tests {
         use super::*;
         use crate::contract;
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_same_version() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -145,20 +140,21 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AnsHostError::Abstract(
+            assert_eq!(
+                res,
+                Err(AnsHostError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ANS_HOST.to_string(),
                         from: version.clone(),
                         to: version,
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_downgrade() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -171,20 +167,21 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AnsHostError::Abstract(
+            assert_eq!(
+                res,
+                Err(AnsHostError::Abstract(
                     AbstractError::CannotDowngradeContract {
                         contract: ANS_HOST.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version,
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn disallow_name_change() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -196,19 +193,20 @@ mod tests {
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
 
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(AnsHostError::Abstract(
+            assert_eq!(
+                res,
+                Err(AnsHostError::Abstract(
                     AbstractError::ContractNameMismatch {
                         from: old_name.parse().unwrap(),
                         to: ANS_HOST.parse().unwrap(),
                     },
-                ));
+                ))
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn works() -> AnsHostResult<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -225,10 +223,12 @@ mod tests {
             set_contract_version(deps.as_mut().storage, ANS_HOST, small_version)?;
 
             let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
-            assert_that!(res.messages).has_length(0);
+            assert_eq!(res.messages.len(), 0);
 
-            assert_that!(get_contract_version(&deps.storage)?.version)
-                .is_equal_to(version.to_string());
+            assert_eq!(
+                get_contract_version(&deps.storage)?.version,
+                version.to_string()
+            );
             Ok(())
         }
     }

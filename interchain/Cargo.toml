@@ -1,7 +1,7 @@
 [workspace]
 members = [
   "scripts",
-  "interchain-tests",
+  "interchain-end_to_end_testing",
   "framework-clone-testing",
   "modules-clone-testing",
 ]
@@ -17,7 +17,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.23.0"
+version = "0.24.1-beta.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -65,16 +65,18 @@ cw-orch-proto = { version = "0.8.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { version = "0.24.0", path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.24.0", path = "../framework/packages/abstract-sdk" }
-abstract-std = { version = "0.24.0", path = "../framework/packages/abstract-std" }
-abstract-app = { version = "0.24.0", path = "../framework/packages/abstract-app" }
-abstract-adapter = { version = "0.24.0", path = "../framework/packages/abstract-adapter" }
-abstract-testing = { version = "0.24.0", path = "../framework/packages/abstract-testing" }
-abstract-client = { version = "0.24.0", path = "../framework/packages/abstract-client" }
-abstract-ica-client = { version = "0.24.0", path = "../framework/contracts/native/ica-client" }
+abstract-interface = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-interface" }
+abstract-sdk = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-sdk" }
+abstract-std = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-std" }
+abstract-app = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-app" }
+abstract-adapter = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-adapter" }
+abstract-testing = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-testing" }
+abstract-client = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-client" }
+abstract-ica-client = { version = "0.24.1-beta.2", path = "../framework/contracts/native/ica-client" }
+# Xion
+abstract-xion = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-xion" }
 # Modules
-abstract-account = { version = "0.24.0", path = "../framework/contracts/account" }
+abstract-account = { version = "0.24.1-beta.2", path = "../framework/contracts/account" }
 # croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }
 # dca-app = { path = "../modules/contracts/apps/dca" }
@@ -84,7 +86,6 @@ abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-ma
 
 ## Testing
 rstest = "0.17.0"
-speculoos = "0.11.0"
 anyhow = "1"
 
 # Do not remove, none of interchain packages are deployed
@@ -108,6 +109,9 @@ abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branc
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
 
+# TODO: remove after union-connector released
+evm-note = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+polytone-evm = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
 
 # Only for local testing and union-connector tweaking
 # [patch."https://github.com/abstractsdk/evm-ibc"]

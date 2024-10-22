@@ -145,7 +145,6 @@ impl Distribution {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::mock_module::*;
@@ -155,7 +154,7 @@ mod test {
     mod set_withdraw_address {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn set_withdraw_address() {
             let mock_api = MockApi::default();
             let app = MockModule::new(mock_api, test_account(mock_api));
@@ -167,14 +166,14 @@ mod test {
 
             let res = distribution.set_withdraw_address(&delegator, &withdraw);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 
     mod withdraw_delegator_reward {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn withdraw_delegator_reward() {
             let mock_api = MockApi::default();
             let app = MockModule::new(mock_api, test_account(mock_api));
@@ -186,14 +185,14 @@ mod test {
 
             let res = distribution.withdraw_delegator_reward(&validator, &delegator);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 
     mod withdraw_delegator_comission {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn withdraw_delegator_comission() {
             let mock_api = MockApi::default();
             let app = MockModule::new(mock_api, test_account(mock_api));
@@ -204,7 +203,7 @@ mod test {
 
             let res = distribution.withdraw_delegator_commission(&validator);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 
@@ -213,7 +212,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn fund_community_pool() {
             let mock_api = MockApi::default();
             let app = MockModule::new(mock_api, test_account(mock_api));
@@ -225,7 +224,7 @@ mod test {
 
             let res = distribution.fund_community_pool(&amount, &depositor);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
         }
     }
 }

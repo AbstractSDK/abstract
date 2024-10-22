@@ -62,7 +62,6 @@ pub(crate) fn ica_action(
         }
     };
 
-    // TODO: can we use `flat_map` here?
     let maybe_msgs: Result<Vec<Vec<CosmosMsg>>, _> =
         actions.into_iter().map(process_action).collect();
     let msgs = maybe_msgs?.into_iter().flatten().collect();
@@ -94,7 +93,6 @@ mod tests {
 
     use evm::types;
     use polytone_evm::EVM_NOTE_ID;
-    use speculoos::prelude::*;
 
     type IbcClientTestResult = Result<(), IcaClientError>;
 
@@ -191,7 +189,7 @@ mod tests {
 
         use types::Ucs01ForwarderExecuteMsg;
 
-        #[test]
+        #[coverage_helper::test]
         fn config() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -212,7 +210,7 @@ mod tests {
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn evm_exec_no_callback() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -242,27 +240,30 @@ mod tests {
             let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
-            assert_that!(res).is_equal_to(IcaActionResponse {
-                msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    env_note_addr(deps.api),
-                    &evm_note::msg::ExecuteMsg::Execute {
-                        callback: None,
-                        msgs: vec![EvmMsg::Call {
-                            to: "to".to_string(),
-                            data: vec![0x01].into(),
-                            allow_failure: None,
-                            value: None,
-                        }],
-                        timeout_seconds: PACKET_LIFETIME.into(),
-                    },
-                    vec![],
-                )?)],
-            });
+            assert_eq!(
+                res,
+                IcaActionResponse {
+                    msgs: vec![CosmosMsg::Wasm(wasm_execute(
+                        env_note_addr(deps.api),
+                        &evm_note::msg::ExecuteMsg::Execute {
+                            callback: None,
+                            msgs: vec![EvmMsg::Call {
+                                to: "to".to_string(),
+                                data: vec![0x01].into(),
+                                allow_failure: None,
+                                value: None,
+                            }],
+                            timeout_seconds: PACKET_LIFETIME.into(),
+                        },
+                        vec![],
+                    )?)],
+                }
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn evm_fund_no_callback() -> IbcClientTestResult {
             use super::*;
 
@@ -290,23 +291,26 @@ mod tests {
             let res = query(deps.as_ref(), env, msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
-            assert_that!(res).is_equal_to(IcaActionResponse {
-                msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    ucs_forwarder_addr(deps.api),
-                    &Ucs01ForwarderExecuteMsg::Transfer {
-                        channel: "channel-1".into(),
-                        receiver,
-                        memo: "".to_string(),
-                        timeout: PACKET_LIFETIME.into(),
-                    },
-                    coins(1, "test"),
-                )?)],
-            });
+            assert_eq!(
+                res,
+                IcaActionResponse {
+                    msgs: vec![CosmosMsg::Wasm(wasm_execute(
+                        ucs_forwarder_addr(deps.api),
+                        &Ucs01ForwarderExecuteMsg::Transfer {
+                            channel: "channel-1".into(),
+                            receiver,
+                            memo: "".to_string(),
+                            timeout: PACKET_LIFETIME.into(),
+                        },
+                        coins(1, "test"),
+                    )?)],
+                }
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn evm_fund_no_receiver() -> IbcClientTestResult {
             use super::*;
 
@@ -331,23 +335,26 @@ mod tests {
             let res = query(deps.as_ref(), mock_env_validated(deps.api), msg)?;
             let res: IcaActionResponse = from_json(&res).unwrap();
 
-            assert_that!(res).is_equal_to(IcaActionResponse {
-                msgs: vec![CosmosMsg::Wasm(wasm_execute(
-                    ucs_forwarder_addr(deps.api),
-                    &Ucs01ForwarderExecuteMsg::Transfer {
-                        channel: "channel-1".into(),
-                        receiver: HexBinary::from_hex("123fff").unwrap(),
-                        memo: "".to_string(),
-                        timeout: PACKET_LIFETIME.into(),
-                    },
-                    coins(1, "test"),
-                )?)],
-            });
+            assert_eq!(
+                res,
+                IcaActionResponse {
+                    msgs: vec![CosmosMsg::Wasm(wasm_execute(
+                        ucs_forwarder_addr(deps.api),
+                        &Ucs01ForwarderExecuteMsg::Transfer {
+                            channel: "channel-1".into(),
+                            receiver: HexBinary::from_hex("123fff").unwrap(),
+                            memo: "".to_string(),
+                            timeout: PACKET_LIFETIME.into(),
+                        },
+                        coins(1, "test"),
+                    )?)],
+                }
+            );
 
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn evm_exec_non_evm_chaintype() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             let abstr = AbstractMockAddrs::new(deps.api);

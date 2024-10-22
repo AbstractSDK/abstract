@@ -165,7 +165,7 @@ mod tests {
 
     use crate::mock::MockAppContract;
 
-    #[test]
+    #[coverage_helper::test]
     fn builder() {
         let app = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))

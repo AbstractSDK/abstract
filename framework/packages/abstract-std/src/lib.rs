@@ -38,6 +38,7 @@
 //! ```
 //! ## Errors
 //! An `AbstractError` wraps error throws by `StdError` or `AssetError`. It is also use in the objects to throw errors.
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 
 /// Result type for Abstract objects
 pub type AbstractResult<T> = Result<T, error::AbstractError>;

@@ -211,12 +211,13 @@ impl<Chain: CwEnv> Registry<Chain> {
         Ok(())
     }
 
-    /// Register account modules
-    pub fn register_account_mods(
+    /// Register account module
+    pub fn register_account(
         &self,
-        apps: Vec<(&Contract<Chain>, VersionString)>,
+        account: &Contract<Chain>,
+        version: VersionString,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let to_register = self.contracts_into_module_entries(apps, |c| {
+        let to_register = self.contracts_into_module_entries(vec![(account, version)], |c| {
             ModuleReference::Account(c.code_id().unwrap())
         })?;
         self.propose_modules(to_register)?;
@@ -343,12 +344,10 @@ impl<Chain: CwEnv> Registry<Chain> {
         modules_to_register
     }
 
-    pub fn get_account(
-        &self,
-        account_id: AccountId,
-    ) -> Result<Account, crate::AbstractInterfaceError> {
-        let resp: AccountResponse = self.query(&QueryMsg::Account { account_id })?;
-        Ok(resp.account)
+    pub fn account(&self, account_id: AccountId) -> Result<Account, crate::AbstractInterfaceError> {
+        let resp: AccountsResponse = self.accounts(vec![account_id.clone()])?;
+        // If the account id is not registered, an err is returned, so we can safely get index 0 in the vec
+        Ok(resp.accounts[0].clone())
     }
 
     /// Retrieves an Adapter's address from registry given the module **id** and **version**.

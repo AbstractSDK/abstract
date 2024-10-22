@@ -30,22 +30,21 @@ impl fmt::Display for AnsAsset {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use speculoos::prelude::*;
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_new() {
         let AnsAsset { name, amount } = AnsAsset::new("crab", 100u128);
 
-        assert_that!(name).is_equal_to(AssetEntry::new("crab"));
-        assert_that!(amount).is_equal_to(Uint128::new(100));
+        assert_eq!(name, AssetEntry::new("crab"));
+        assert_eq!(amount, Uint128::new(100));
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_to_string() {
         let asset = AnsAsset::new("crab", 100u128);
 
-        assert_that!(asset.to_string()).is_equal_to("crab:100".to_string());
+        assert_eq!(asset.to_string(), "crab:100".to_string());
     }
 }

@@ -6,7 +6,7 @@ use abstract_macros::with_abstract_event;
 use abstract_std::account::ExecuteMsg;
 use cosmwasm_std::{Binary, Coin, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     features::{AccountExecutor, ModuleIdentification},
     AbstractSdkResult, AccountAction,
@@ -41,17 +41,13 @@ pub trait Execution: AccountExecutor + ModuleIdentification {
 impl<T> Execution for T where T: AccountExecutor + ModuleIdentification {}
 
 impl<'a, T: Execution> AbstractApi<T> for Executor<'a, T> {
+    const API_ID: &'static str = "Executor";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: Execution> ApiIdentification for Executor<'a, T> {
-    fn api_id() -> String {
-        "Executor".to_owned()
     }
 }
 
@@ -190,10 +186,9 @@ mod test {
     use abstract_std::account::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::*;
-    use speculoos::prelude::*;
 
     use super::*;
-    use crate::mock_module::*;
+    use crate::{apis::traits::test::abstract_api_test, mock_module::*};
 
     fn mock_bank_send(amount: Vec<Coin>) -> AccountAction {
         AccountAction::from(CosmosMsg::Bank(BankMsg::Send {
@@ -210,7 +205,7 @@ mod test {
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
-        #[test]
+        #[coverage_helper::test]
         fn empty_actions() {
             let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
@@ -218,7 +213,7 @@ mod test {
             let messages = vec![];
 
             let actual_res = executor.execute(messages.clone());
-            assert_that!(actual_res).is_ok();
+            assert!(actual_res.is_ok());
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
@@ -228,10 +223,10 @@ mod test {
                 .unwrap(),
                 funds: vec![],
             }));
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn with_actions() {
             let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
@@ -240,7 +235,7 @@ mod test {
             let messages = vec![mock_bank_send(coins(100, "juno"))];
 
             let actual_res = executor.execute(messages.clone());
-            assert_that!(actual_res).is_ok();
+            assert!(actual_res.is_ok());
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: account.addr().to_string(),
@@ -251,7 +246,7 @@ mod test {
                 // funds should be empty
                 funds: vec![],
             }));
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
     }
 
@@ -260,7 +255,7 @@ mod test {
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
-        #[test]
+        #[coverage_helper::test]
         fn empty_actions() {
             let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
@@ -274,7 +269,7 @@ mod test {
                 expected_reply_on.clone(),
                 expected_reply_id,
             );
-            assert_that!(actual_res).is_ok();
+            assert!(actual_res.is_ok());
 
             let expected = SubMsg {
                 id: expected_reply_id,
@@ -290,10 +285,10 @@ mod test {
                 reply_on: expected_reply_on,
                 payload: Binary::default(),
             };
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn with_actions() {
             let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
@@ -309,7 +304,7 @@ mod test {
                 expected_reply_on.clone(),
                 expected_reply_id,
             );
-            assert_that!(actual_res).is_ok();
+            assert!(actual_res.is_ok());
 
             let expected = SubMsg {
                 id: expected_reply_id,
@@ -326,7 +321,7 @@ mod test {
                 reply_on: expected_reply_on,
                 payload: Binary::default(),
             };
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
     }
 
@@ -334,7 +329,7 @@ mod test {
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
-        #[test]
+        #[coverage_helper::test]
         fn empty_actions() {
             let (deps, account, stub) = mock_module_setup();
             let executor = stub.executor(deps.as_ref());
@@ -361,10 +356,10 @@ mod test {
                 )
                 .add_message(expected_msg);
 
-            assert_that!(actual_res).is_ok().is_equal_to(expected);
+            assert_eq!(actual_res, Ok(expected));
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn with_actions() {
             let (deps, account, stub) = mock_module_setup();
 
@@ -394,5 +389,13 @@ mod test {
                 .add_message(expected_msg);
             assert_eq!(actual_res, Ok(expected));
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let executor = app.executor(deps.as_ref());
+
+        abstract_api_test(executor);
     }
 }

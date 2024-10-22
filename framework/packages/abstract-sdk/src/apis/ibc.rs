@@ -17,7 +17,7 @@ use cosmwasm_std::{
 };
 use serde::Serialize;
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     features::{AccountExecutor, AccountIdentification, ModuleIdentification},
     AbstractSdkResult, ModuleInterface, ModuleRegistryInterface,
@@ -58,17 +58,13 @@ impl<T> IbcInterface for T where
 }
 
 impl<'a, T: IbcInterface> AbstractApi<T> for IbcClient<'a, T> {
+    const API_ID: &'static str = "IbcClient";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: IbcInterface> ApiIdentification for IbcClient<'a, T> {
-    fn api_id() -> String {
-        "IbcClient".to_owned()
     }
 }
 
@@ -352,14 +348,13 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
     use cosmwasm_std::*;
-    use speculoos::prelude::*;
 
     use super::*;
-    use crate::mock_module::*;
+    use crate::{apis::traits::test::abstract_api_test, mock_module::*};
     const TEST_HOST_CHAIN: &str = "hostchain";
 
     /// Tests that a host_action can be built with no callback
-    #[test]
+    #[coverage_helper::test]
     fn test_host_action_no_callback() {
         let (deps, _, stub) = mock_module_setup();
         let env = mock_env_validated(deps.api);
@@ -373,7 +368,7 @@ mod test {
                 }],
             },
         );
-        assert_that!(msg).is_ok();
+        assert!(msg.is_ok());
 
         let base = test_account(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -394,11 +389,11 @@ mod test {
             .unwrap(),
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
+        assert_eq!(msg, Ok(expected));
     }
 
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
-    #[test]
+    #[coverage_helper::test]
     fn test_ics20_transfer() {
         let (deps, _, stub) = mock_module_setup();
         let env = mock_env_validated(deps.api);
@@ -412,7 +407,7 @@ mod test {
             expected_funds.clone(),
             None,
         );
-        assert_that!(msg).is_ok();
+        assert!(msg.is_ok());
 
         let base = test_account(deps.api);
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -430,6 +425,15 @@ mod test {
             // ensure empty
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
+        assert_eq!(msg, Ok(expected));
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let env = mock_env_validated(deps.api);
+        let client = app.ibc_client(deps.as_ref(), &env);
+
+        abstract_api_test(client);
     }
 }

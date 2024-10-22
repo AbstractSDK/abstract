@@ -1,3 +1,5 @@
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
+
 mod endpoints;
 pub mod error;
 pub mod features;
@@ -198,7 +200,7 @@ pub mod mock {
     pub fn app_base_mock_querier(mock_api: cosmwasm_std::testing::MockApi) -> MockQuerierBuilder {
         let abstr = AbstractMockAddrs::new(mock_api);
         MockQuerierBuilder::default()
-            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected messsage"))
+            .with_smart_handler(&abstr.module_factory, |_msg| panic!("unexpected message"))
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].

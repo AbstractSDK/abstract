@@ -1,4 +1,3 @@
-// TODO: update for doctests to pass
 // #![doc = include_str!("README.md")]
 
 pub use crate::objects::gov_type::{GovAction, GovernanceDetails};
@@ -409,7 +408,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn initializing_ownership() {
         let mut deps = mock_dependencies();
         let [larry, _, _] = mock_govs(deps.api);
@@ -430,7 +429,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn initialize_ownership_no_owner() {
         let mut deps = mock_dependencies();
         let registry = vc_addr(deps.api);
@@ -447,7 +446,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn asserting_ownership() {
         let mut deps = mock_dependencies();
         let [larry, jake, _] = mock_govs(deps.api);
@@ -485,7 +484,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn transferring_ownership() {
         let mut deps = mock_dependencies();
         let [larry, jake, pumpkin] = mock_govs(deps.api);
@@ -540,7 +539,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn accepting_ownership() {
         let mut deps = mock_dependencies();
         let [larry, jake, pumpkin] = mock_govs(deps.api);
@@ -623,7 +622,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn renouncing_ownership() {
         let mut deps = mock_dependencies();
         let [larry, jake, pumpkin] = mock_govs(deps.api);
@@ -689,7 +688,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn into_attributes_works() {
         use cw_utils::Expiration;
         assert_eq!(

@@ -5,7 +5,7 @@ use abstract_std::{account::state::ACCOUNT_MODULES, objects::module::ModuleId};
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
-use super::{AbstractApi, ApiIdentification};
+use super::AbstractApi;
 use crate::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult,
@@ -37,17 +37,13 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
 impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies + ModuleIdentification {}
 
 impl<'a, T: ModuleInterface> AbstractApi<T> for Modules<'a, T> {
+    const API_ID: &'static str = "Modules";
+
     fn base(&self) -> &T {
         self.base
     }
     fn deps(&self) -> Deps {
         self.deps
-    }
-}
-
-impl<'a, T: ModuleInterface> ApiIdentification for Modules<'a, T> {
-    fn api_id() -> String {
-        "Modules".to_owned()
     }
 }
 
@@ -124,25 +120,24 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
-    use speculoos::prelude::*;
 
     use super::*;
-    use crate::mock_module::*;
+    use crate::{apis::traits::test::abstract_api_test, mock_module::*};
 
     mod assert_module_dependency {
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_ok_if_dependency() {
             let (deps, _, app) = mock_module_setup();
 
             let mods = app.modules(deps.as_ref());
 
             let res = mods.assert_module_dependency(TEST_MODULE_ID);
-            assert_that!(res).is_ok();
+            assert!(res.is_ok());
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn should_return_err_if_not_dependency() {
             let (deps, _, app) = mock_module_setup();
 
@@ -151,10 +146,18 @@ mod test {
             let fake_module = "lol_no_chance";
             let res = mods.assert_module_dependency(fake_module);
 
-            assert_that!(res).is_err().matches(|e| {
-                e.to_string()
-                    .contains(&format!("{fake_module} is not a dependency"))
-            });
+            assert!(res
+                .unwrap_err()
+                .to_string()
+                .contains(&format!("{fake_module} is not a dependency")));
         }
+    }
+
+    #[coverage_helper::test]
+    fn abstract_api() {
+        let (deps, _, app) = mock_module_setup();
+        let modules = app.modules(deps.as_ref());
+
+        abstract_api_test(modules);
     }
 }

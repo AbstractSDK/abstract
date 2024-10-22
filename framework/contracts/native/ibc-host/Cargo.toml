@@ -7,9 +7,11 @@ description = "Abstract IBC Host Contract"
 repository = "https://github.com/AbstractSDK/abstract"
 readme = "README.md"
 
+[lints]
+workspace = true
+
 [lib]
 crate-type = ["cdylib", "rlib"]
-
 
 [features]
 
@@ -47,3 +49,4 @@ abstract-std = { workspace = true }
 anyhow.workspace = true
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
+coverage-helper = { workspace = true }

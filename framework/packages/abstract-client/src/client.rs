@@ -31,7 +31,6 @@
 
 use abstract_interface::{
     Abstract, AccountI, AnsHost, IbcClient, IcaClient, ModuleFactory, RegisteredModule, Registry,
-    RegistryQueryFns,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleStatus, ModuleVersion},

@@ -25,13 +25,7 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 schema = ["abstract-adapter/schema"]
-# TODO: do we need all these deps here?
-testing = [
-  "dep:abstract-client",
-  "dep:cw20",
-  "dep:serde_json",
-  "abstract-adapter/test-utils",
-]
+testing = ["dep:abstract-client", "dep:cw20", "dep:serde_json"]
 
 # Supported Dexes
 # wynd = ["abstract-wyndex-adapter/full_integration"]
@@ -112,7 +106,6 @@ abstract-interface = { workspace = true, features = ["daemon"] }
 tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
-speculoos = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.11.3"
 clap = { workspace = true }

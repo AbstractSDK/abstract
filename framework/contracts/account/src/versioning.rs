@@ -8,7 +8,11 @@ use abstract_std::{
 use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
 use semver::{Comparator, Version};
 
-use crate::{contract::AccountResult, error::AccountError, modules::MIGRATE_CONTEXT};
+use crate::{
+    contract::AccountResult,
+    error::AccountError,
+    modules::{load_module_addr, MIGRATE_CONTEXT},
+};
 
 /// Assert the dependencies that this app or adapter relies on are installed.
 pub fn assert_install_requirements(deps: Deps, module_id: &str) -> AccountResult<Vec<Dependency>> {
@@ -143,7 +147,7 @@ pub fn assert_dependency_requirements(
 
 pub fn load_module_data(deps: Deps, module_id: &str) -> AccountResult<ModuleData> {
     let querier = &deps.querier;
-    let module_addr = ACCOUNT_MODULES.load(deps.storage, module_id)?;
+    let module_addr = load_module_addr(deps.storage, module_id)?;
     let module_data = MODULE.query(querier, module_addr)?;
     Ok(module_data)
 }
@@ -204,7 +208,6 @@ mod test {
     use std::collections::HashSet;
 
     use cosmwasm_std::testing::mock_dependencies;
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -212,7 +215,7 @@ mod test {
         use super::*;
 
         // This should add dependency -> [module] to the map
-        #[test]
+        #[coverage_helper::test]
         fn add() {
             let mut deps = mock_dependencies();
             let new_module_id = "module";
@@ -228,8 +231,8 @@ mod test {
 
             let dependents = DEPENDENTS.load(&deps.storage, dependency).unwrap();
 
-            assert_that(&dependents).has_length(1);
-            assert_that(&dependents).contains(new_module_id.to_string());
+            assert_eq!(dependents.len(), 1);
+            assert!(dependents.contains(new_module_id));
         }
     }
 
@@ -245,7 +248,7 @@ mod test {
         // autocompounder depends on dex
         // dex -> autocompounder
         // to uninstall autocompounder, remove dex
-        #[test]
+        #[coverage_helper::test]
         fn remove() {
             let mut deps = mock_dependencies();
 
@@ -256,8 +259,8 @@ mod test {
             initialize_dependents(deps.as_mut(), dex_adapter, vec![autocompounder.to_string()]);
 
             let actual_dex_dependents = DEPENDENTS.load(&deps.storage, dex_adapter).unwrap();
-            assert_that(&actual_dex_dependents).has_length(1);
-            assert_that(&actual_dex_dependents).contains(autocompounder.to_string());
+            assert_eq!(actual_dex_dependents.len(), 1);
+            assert!(actual_dex_dependents.contains(autocompounder));
 
             // the autocompounder depends on the dex
             let autocompounder_dependencies = vec![Dependency {
@@ -272,10 +275,10 @@ mod test {
                 autocompounder_dependencies,
             );
 
-            assert_that(&res).is_ok();
+            assert!(res.is_ok());
 
             let remaining_dex_dependents = DEPENDENTS.load(&deps.storage, dex_adapter).unwrap();
-            assert_that(&remaining_dex_dependents).is_empty();
+            assert!(remaining_dex_dependents.is_empty());
         }
     }
 }

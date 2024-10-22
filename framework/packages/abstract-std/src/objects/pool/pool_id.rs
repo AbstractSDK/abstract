@@ -178,51 +178,50 @@ impl fmt::Display for PoolAddress {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use cosmwasm_std::testing::MockApi;
-    use speculoos::prelude::*;
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_pool_id_from_str() {
         let api = MockApi::default();
         let contract_addr = api.addr_make("foo");
         let pool_id_str = format!("contract:{contract_addr}");
         let pool_id = UncheckedPoolAddress::from_str(&pool_id_str).unwrap();
         let pool_id = pool_id.check(&api).unwrap();
-        assert_that!(pool_id.to_string()).is_equal_to(pool_id_str.to_string());
+        assert_eq!(pool_id.to_string(), pool_id_str.to_string());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_expect_contract_happy() {
         let api = MockApi::default();
         let contract_addr = api.addr_make("foo");
         let pool_id = PoolAddress::Contract(contract_addr.clone());
         let res = pool_id.expect_contract();
-        assert_that!(res).is_ok();
-        assert_that!(res.unwrap()).is_equal_to(contract_addr);
+        assert!(res.is_ok());
+        assert_eq!(res.unwrap(), contract_addr);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_expect_contract_sad() {
         let pool_id = PoolAddress::Id(1);
         let res = pool_id.expect_contract();
-        assert_that!(res).is_err();
+        assert!(res.is_err());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_expect_id_happy() {
         let pool_id = PoolAddress::Id(1);
         let res = pool_id.expect_id();
-        assert_that!(res).is_ok();
-        assert_that!(res.unwrap()).is_equal_to(1);
+        assert!(res.is_ok());
+        assert_eq!(res.unwrap(), 1);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_expect_id_sad() {
         let api = MockApi::default();
         let contract_addr = api.addr_make("foo");
         let pool_id = PoolAddress::Contract(contract_addr);
         let res = pool_id.expect_id();
-        assert_that!(res).is_err();
+        assert!(res.is_err());
     }
 }

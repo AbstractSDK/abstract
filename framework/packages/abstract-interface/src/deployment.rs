@@ -11,25 +11,7 @@ use crate::{
 };
 use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
 
-use rust_embed::RustEmbed;
-
 const CW_BLOB: &str = "cw:blob";
-
-#[derive(RustEmbed)]
-// Can't use symlinks in debug mode
-// https://github.com/pyrossh/rust-embed/pull/234
-#[folder = "./"]
-#[include = "state.json"]
-struct State;
-
-impl State {
-    #[allow(unused)]
-    pub fn load_state() -> serde_json::Value {
-        let state_file =
-            State::get("state.json").expect("Unable to read abstract-interface state.json");
-        serde_json::from_slice(&state_file.data).unwrap()
-    }
-}
 
 #[derive(Clone)]
 pub struct Abstract<Chain: CwEnv> {
@@ -206,7 +188,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         #[cfg(feature = "daemon")]
         {
             // We register all the contracts default state
-            let state = State::load_state();
+            let state = crate::AbstractDaemonState::default().state();
 
             abstr.set_contracts_state(Some(state));
         }
@@ -361,28 +343,13 @@ impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use std::borrow::Cow;
 
     use cosmwasm_std::Api;
     use cw_orch::anyhow;
 
     use super::*;
 
-    #[test]
-    fn only_state_json_included() {
-        let files = State::iter().collect::<Vec<_>>();
-        assert_eq!(files, vec![Cow::Borrowed("state.json")])
-    }
-
-    #[test]
-    fn have_some_state() {
-        State::get("state.json").unwrap();
-        let state = State::load_state();
-        let ans_neutron_testnet = &state["pion-1"]["code_ids"].get(ANS_HOST);
-        assert!(ans_neutron_testnet.is_some());
-    }
-
-    #[test]
+    #[coverage_helper::test]
     fn deploy2() -> anyhow::Result<()> {
         let prefix = "mock";
         let mut chain = MockBech32::new(prefix);

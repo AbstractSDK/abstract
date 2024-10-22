@@ -33,7 +33,6 @@ use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, interface, prelude::*};
 use semver::{Version, VersionReq};
 use serde::Serialize;
-use speculoos::prelude::*;
 use std::{collections::HashSet, fmt::Debug};
 
 /// A helper struct that contains fields from [`abstract_std::account::state::AccountInfo`]
@@ -224,7 +223,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .collect::<HashSet<_>>();
 
         // assert that these modules are installed
-        assert_that!(expected_module_addrs).is_equal_to(actual_module_addrs);
+        assert_eq!(expected_module_addrs, actual_module_addrs);
 
         Ok(account_modules)
     }
@@ -519,24 +518,13 @@ impl<Chain: CwEnv> AccountI<Chain> {
             account_id,
         } = account_details;
 
-        let code_id = self.code_id()?;
-        let instantiate_msg = InstantiateMsg::<Empty> {
-            account_id: account_id.map(AccountId::local),
-            owner: GovernanceDetails::SubAccount {
-                account: self.addr_str()?,
-            },
-            namespace,
+        let result = self.create_sub_account(
             install_modules,
-            name: Some(name),
+            account_id,
             description,
             link,
-            authenticator: None,
-        };
-
-        let result = self.create_sub_account(
-            code_id,
-            to_json_binary(&instantiate_msg)?,
-            account_id,
+            Some(name),
+            namespace,
             funds,
         )?;
 
@@ -565,17 +553,11 @@ impl<Chain: CwEnv> AccountI<Chain> {
         &self,
         registry: &Registry<Chain>,
     ) -> Result<bool, AbstractInterfaceError> {
-        let mut modules_to_register = Vec::with_capacity(2);
-
-        if self.upload_if_needed()?.is_some() {
-            modules_to_register.push((
+        let migrated = if self.upload_if_needed()?.is_some() {
+            registry.register_account(
                 self.as_instance(),
                 ::account::contract::CONTRACT_VERSION.to_string(),
-            ));
-        };
-
-        let migrated = if !modules_to_register.is_empty() {
-            registry.register_account_mods(modules_to_register)?;
+            )?;
             true
         } else {
             false

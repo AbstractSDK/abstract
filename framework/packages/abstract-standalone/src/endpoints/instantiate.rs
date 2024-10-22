@@ -35,3 +35,28 @@ impl StandaloneContract {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::mock::*;
+    use abstract_std::standalone::StandaloneInstantiateMsg;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::testing::message_info;
+
+    #[coverage_helper::test]
+    fn test_instantiate() {
+        let mut deps = mock_dependencies();
+        let abstr = AbstractMockAddrs::new(deps.api);
+        deps.querier = standalone_base_mock_querier(deps.api).build();
+
+        let env = mock_env_validated(deps.api);
+        let info = message_info(&abstr.module_factory, &[]);
+        let msg = MockInitMsg {
+            base: StandaloneInstantiateMsg {},
+            migratable: true,
+        };
+
+        let res = instantiate(deps.as_mut(), env, info, msg).unwrap();
+        assert!(res.messages.is_empty());
+    }
+}

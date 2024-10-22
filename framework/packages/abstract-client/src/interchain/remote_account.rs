@@ -5,7 +5,7 @@
 
 use abstract_interface::{
     Abstract, AccountDetails, AccountI, AccountQueryFns as _, DependencyCreation, IbcClient,
-    InstallConfig, RegisteredModule, RegistryQueryFns as _,
+    InstallConfig, RegisteredModule,
 };
 use abstract_std::{
     account::{
@@ -44,8 +44,6 @@ pub struct RemoteAccountBuilder<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain
     namespace: Option<Namespace>,
     owner_account: Account<Chain>,
     install_modules: Vec<ModuleInstallConfig>,
-    // TODO: how we want to manage funds ibc-wise?
-    // funds: AccountCreationFunds,
 }
 
 impl<Chain: IbcQueryHandler> Account<Chain> {
@@ -252,7 +250,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
             .registry
             .account(self.remote_account_id.clone())?;
 
-        Ok(base_response.account.addr().clone())
+        Ok(base_response.addr().clone())
     }
 
     /// Query account balance of a given denom

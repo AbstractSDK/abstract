@@ -463,7 +463,7 @@ mod tests {
 
     use crate::{apis::stargate::convert_stamp, mock_module::*};
 
-    #[test]
+    #[coverage_helper::test]
     fn generic_authorization() {
         let (deps, _, app) = mock_module_setup();
 
@@ -503,7 +503,7 @@ mod tests {
         assert_eq!(generic_authorization_msg, expected_msg);
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn revoke_authorization() {
         let (deps, _, app) = mock_module_setup();
 

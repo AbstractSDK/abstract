@@ -40,38 +40,37 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
     use abstract_testing::prelude::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::mock::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_ans_host() -> StandaloneTestResult {
-        let deps = mock_init();
+        let deps = mock_init(true);
         let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref(), &env)?;
 
-        assert_that!(ans_host.address).is_equal_to(abstr.ans_host);
+        assert_eq!(ans_host.address, abstr.ans_host);
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_abstract_registry() -> StandaloneTestResult {
-        let deps = mock_init();
+        let deps = mock_init(true);
         let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref(), &env)?;
 
-        assert_that!(abstract_registry.address).is_equal_to(abstr.registry);
+        assert_eq!(abstract_registry.address, abstr.registry);
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_traits_generated() -> StandaloneTestResult {
-        let mut deps = mock_init();
+        let mut deps = mock_init(true);
         let env = mock_env_validated(deps.api);
         let expected_account = test_account(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
@@ -86,24 +85,22 @@ mod test {
         assert_eq!(host, AnsHost::new(&deps.api, &env)?);
 
         // AccountRegistry
-        // TODO: Why rust forces binding on static object what
         let binding = BASIC_MOCK_STANDALONE;
         let account_registry = binding.account_registry(deps.as_ref(), &env).unwrap();
         let account = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(account, expected_account);
 
-        // TODO: Make some of the module_registry queries raw as well?
         let _module_registry = BASIC_MOCK_STANDALONE.module_registry(deps.as_ref(), &env);
         // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 
         Ok(())
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_module_id() -> StandaloneTestResult {
         let module_id = BASIC_MOCK_STANDALONE.module_id();
 
-        assert_that!(module_id).is_equal_to(TEST_MODULE_ID);
+        assert_eq!(module_id, TEST_MODULE_ID);
 
         Ok(())
     }

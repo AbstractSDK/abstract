@@ -1,12 +1,12 @@
 use std::{env::set_var, sync::Arc};
 
-use abstract_account::absacc::auth::AddAuthenticator;
 use abstract_client::{AbstractClient, Namespace};
 use abstract_std::{
     account,
     objects::{module::ModuleInfo, salt::generate_instantiate_salt, AccountId},
     ACCOUNT,
 };
+use abstract_xion::auth::AddAuthenticator;
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
 use cosmwasm_std::{coins, to_json_binary, Binary};
 use cosmwasm_std::{to_json_vec, Addr};
@@ -382,9 +382,7 @@ mod xion_sender {
                 .unwrap();
             let signature = self.cosmos_private_key().sign(&sign_doc_bytes)?;
 
-            // TODO: make it better, for now just always admin and one id
-            // Raising warning on purpose here, it's very bad to always set admin to true
-            let AUTHID = abstract_account::absacc::auth::AuthId::new(1u8, true).unwrap();
+            let AUTHID = abstract_xion::auth::AuthId::new(1u8, true).unwrap();
             let smart_contract_sig = AUTHID.signature(signature.to_vec());
 
             Ok(xion_sdk_proto::cosmos::tx::v1beta1::TxRaw {
@@ -456,7 +454,6 @@ mod xion_sender {
             let account_number = account.account_number;
 
             let any_pub_key = xionrs::Any {
-                // TODO: Does it make sense to have empty type url here?
                 type_url: "/abstractaccount.v1.NilPubKey".to_string(),
                 value: NilPubKey {
                     address_bytes: account_id.to_bytes(),

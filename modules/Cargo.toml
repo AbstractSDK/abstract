@@ -9,7 +9,7 @@ exclude = ["contracts/apps/croncat", "contracts/apps/dca"]
 resolver = "2"
 
 [workspace.package]
-version = "0.23.0"
+version = "0.24.1-beta.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -54,18 +54,18 @@ tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.24.0" }
-abstract-adapter = { version = "0.24.0" }
-abstract-app = { version = "0.24.0" }
-abstract-standalone = { version = "0.24.0" }
-abstract-testing = { version = "0.24.0" }
-abstract-macros = { version = "0.24.0" }
-abstract-client = { version = "0.24.0" }
+abstract-interface = { version = "0.24.1-beta.2" }
+abstract-adapter = { version = "0.24.1-beta.2" }
+abstract-app = { version = "0.24.1-beta.2" }
+abstract-standalone = { version = "0.24.1-beta.2" }
+abstract-testing = { version = "0.24.1-beta.2" }
+abstract-macros = { version = "0.24.1-beta.2" }
+abstract-client = { version = "0.24.1-beta.2" }
 
-abstract-adapter-utils = { version = "0.24.0" }
-abstract-dex-standard = { version = "0.24.0" }
-abstract-staking-standard = { version = "0.24.0" }
-abstract-money-market-standard = { version = "0.24.0" }
+abstract-adapter-utils = { version = "0.24.1-beta.2" }
+abstract-dex-standard = { version = "0.24.1-beta.2" }
+abstract-staking-standard = { version = "0.24.1-beta.2" }
+abstract-money-market-standard = { version = "0.24.1-beta.2" }
 
 # Integrations
 abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }
@@ -86,7 +86,6 @@ abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = f
 
 ## Testing
 rstest = "0.17.0"
-speculoos = "0.11.0"
 anyhow = "1"
 
 # this ensures local compatability when compiling locally
@@ -106,9 +105,9 @@ abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 
 # TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
-abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 
 # Backup release profile, will result in warnings during optimization

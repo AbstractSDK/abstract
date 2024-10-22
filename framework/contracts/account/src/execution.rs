@@ -123,7 +123,7 @@ pub fn add_auth_method(
 ) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        crate::absacc::auth::execute::add_auth_method(_deps, &_env, &mut _auth)
+        abstract_xion::auth::execute::add_auth_method(_deps, &_env, &mut _auth).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
@@ -134,7 +134,7 @@ pub fn add_auth_method(
 pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        crate::absacc::auth::execute::remove_auth_method(_deps, _env, _id)
+        abstract_xion::auth::execute::remove_auth_method(_deps, _env, _id).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
@@ -181,7 +181,6 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
     use cosmwasm_std::{coins, CosmosMsg, SubMsg};
-    use speculoos::prelude::*;
 
     mod execute_action {
 
@@ -189,7 +188,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn only_whitelisted_can_execute() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             mock_init(&mut deps)?;
@@ -200,13 +199,11 @@ mod test {
             let env = mock_env_validated(deps.api);
 
             let res = execute(deps.as_mut(), env, info, msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(AccountError::SenderNotWhitelistedOrOwner {});
+            assert_eq!(res, Err(AccountError::SenderNotWhitelistedOrOwner {}));
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -235,13 +232,13 @@ mod test {
 
             // execute it AS the module
             let res = execute(deps.as_mut(), env, message_info(&module_addr, &[]), msg);
-            assert_that(&res).is_ok();
+            assert!(res.is_ok());
 
             let msgs = res?.messages;
-            assert_that(&msgs).has_length(1);
+            assert_eq!(msgs.len(), 1);
 
             let msg = &msgs[0];
-            assert_that(&msg.msg).is_equal_to(&action);
+            assert_eq!(msg.msg, action);
 
             Ok(())
         }
@@ -252,7 +249,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn add_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -309,9 +306,10 @@ mod test {
             )?;
 
             let res = execute(deps.as_mut(), env, account_info, msg)?;
-            assert_that(&res.messages).has_length(1);
-            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
-                cosmwasm_std::WasmMsg::Execute {
+            assert_eq!(res.messages.len(), 1);
+            assert_eq!(
+                res.messages[0],
+                SubMsg::new(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
                     contract_addr: ibc_client_addr.to_string(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".parse()?,
@@ -319,12 +317,12 @@ mod test {
                         install_modules: vec![],
                     })?,
                     funds: vec![],
-                },
-            )));
+                },))
+            );
             Ok(())
         }
 
-        #[test]
+        #[coverage_helper::test]
         fn send_funds() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -380,17 +378,18 @@ mod test {
             )?;
 
             let res = execute(deps.as_mut(), env, account_info, msg)?;
-            assert_that(&res.messages).has_length(1);
-            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
-                cosmwasm_std::WasmMsg::Execute {
+            assert_eq!(res.messages.len(), 1);
+            assert_eq!(
+                res.messages[0],
+                SubMsg::new(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
                     contract_addr: ibc_client_addr.into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                         host_chain: "juno".parse()?,
                         memo: None,
                     })?,
                     funds,
-                },
-            )));
+                },))
+            );
             Ok(())
         }
     }
@@ -404,7 +403,7 @@ mod test {
 
         use super::*;
 
-        #[test]
+        #[coverage_helper::test]
         fn ica_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
             let env = mock_env_validated(deps.api);
@@ -461,8 +460,8 @@ mod test {
                 .build();
 
             let res = execute(deps.as_mut(), env, account_info, msg)?;
-            assert_that(&res.messages).has_length(1);
-            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Custom(Empty {})));
+            assert_eq!(res.messages.len(), 1);
+            assert_eq!(res.messages[0], SubMsg::new(CosmosMsg::Custom(Empty {})));
             Ok(())
         }
     }

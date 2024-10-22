@@ -35,7 +35,7 @@ abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 cw-orch = { workspace = true }
-abstract-adapter = { version = "0.24.0", path = "../../abstract-adapter" }
+abstract-adapter = { version = "0.24.1-beta.2", path = "../../abstract-adapter" }
 
 abstract-interface = { workspace = true }
 
@@ -46,7 +46,6 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 abstract-interface = { workspace = true, features = ["daemon"] }
 semver = { workspace = true }
 anyhow = { workspace = true }
-speculoos = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.11.3"
 clap = { workspace = true }

@@ -359,14 +359,13 @@ pub struct AccountResponse {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
-    use speculoos::prelude::*;
 
     use crate::app::ExecuteMsg;
     use crate::ibc::{Callback, IbcResponseMsg, IbcResult};
 
     // ... (other test functions)
 
-    #[test]
+    #[coverage_helper::test]
     fn test_response_msg_to_callback_msg() {
         let receiver = "receiver".to_string();
 
@@ -382,11 +381,14 @@ mod tests {
             .into_cosmos_msg(receiver.clone())
             .unwrap();
 
-        assert_that!(actual).is_equal_to(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
-            contract_addr: receiver,
-            // we can't test the message because the fields in it are private
-            msg: to_json_binary(&ExecuteMsg::<Empty>::IbcCallback(response_msg)).unwrap(),
-            funds: vec![],
-        }))
+        assert_eq!(
+            actual,
+            CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+                contract_addr: receiver,
+                // we can't test the message because the fields in it are private
+                msg: to_json_binary(&ExecuteMsg::<Empty>::IbcCallback(response_msg)).unwrap(),
+                funds: vec![],
+            })
+        )
     }
 }

@@ -79,7 +79,7 @@ impl Display for AssetEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &AssetEntry {
+impl<'a> PrimaryKey<'a> for AssetEntry {
     type Prefix = ();
 
     type SubPrefix = ();
@@ -88,15 +88,24 @@ impl<'a> PrimaryKey<'a> for &AssetEntry {
 
     type SuperSuffix = Self;
 
-    // TODO: make this key implementation use src_chain as prefix
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         self.0.key()
     }
 }
 
-impl<'a> Prefixer<'a> for &AssetEntry {
+impl<'a> Prefixer<'a> for AssetEntry {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
+    }
+}
+
+impl KeyDeserialize for AssetEntry {
+    type Output = AssetEntry;
+    const KEY_ELEMS: u16 = 1;
+
+    #[inline(always)]
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        Ok(AssetEntry(String::from_vec(value)?))
     }
 }
 
@@ -114,36 +123,32 @@ impl KeyDeserialize for &AssetEntry {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use rstest::rstest;
-    use speculoos::prelude::*;
 
     use super::*;
 
-    #[test]
+    #[coverage_helper::test]
     fn test_asset_entry() {
         let mut entry = AssetEntry::new("CRAB");
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
         entry.format();
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_src_chain() -> AbstractResult<()> {
         // technically invalid, but we don't care here
         let entry = AssetEntry::new("CRAB");
-        assert_that!(entry.src_chain())
-            .is_err()
-            .is_equal_to(AbstractError::EntryFormattingError {
+        assert_eq!(
+            entry.src_chain(),
+            Err(AbstractError::EntryFormattingError {
                 actual: "crab".to_string(),
                 expected: "src_chain>asset_name".to_string(),
-            });
+            })
+        );
         let entry = AssetEntry::new("osmosis>crab");
-        assert_that!(entry.src_chain())
-            .is_ok()
-            .is_equal_to("osmosis".to_string());
+        assert_eq!(entry.src_chain(), Ok("osmosis".to_string()));
         let entry = AssetEntry::new("osmosis>juno>crab");
-        assert_that!(entry.src_chain())
-            .is_ok()
-            .is_equal_to("osmosis".to_string());
+        assert_eq!(entry.src_chain(), Ok("osmosis".to_string()));
 
         Ok(())
     }
@@ -156,39 +161,40 @@ mod test {
     fn test_src_chain_error(#[case] input: &str) {
         let entry = AssetEntry::new(input);
 
-        assert_that!(entry.src_chain())
-            .is_err()
-            .is_equal_to(AbstractError::EntryFormattingError {
+        assert_eq!(
+            entry.src_chain(),
+            Err(AbstractError::EntryFormattingError {
                 actual: input.to_ascii_lowercase(),
                 expected: "src_chain>asset_name".to_string(),
-            });
+            })
+        );
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_string() {
         let entry = AssetEntry::from("CRAB".to_string());
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_str() {
         let entry = AssetEntry::from("CRAB");
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_from_ref_string() {
         let entry = AssetEntry::from(&"CRAB".to_string());
-        assert_that!(entry.as_str()).is_equal_to("crab");
+        assert_eq!(entry.as_str(), "crab");
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn test_to_string() {
         let entry = AssetEntry::new("CRAB");
-        assert_that!(entry.to_string()).is_equal_to("crab".to_string());
+        assert_eq!(entry.to_string(), "crab".to_string());
     }
 
-    #[test]
+    #[coverage_helper::test]
     fn string_key_works() {
         let k = &AssetEntry::new("CRAB");
         let path = k.key();
