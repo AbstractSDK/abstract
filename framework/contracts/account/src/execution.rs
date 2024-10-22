@@ -160,7 +160,7 @@ pub fn ica_action(mut deps: DepsMut, msg_info: MessageInfo, action_query: Binary
             ))
         })?;
 
-    let res: abstract_ica::msg::IcaActionResult = deps.querier.query(
+    let res: abstract_std::ica_client::IcaActionResult = deps.querier.query(
         &WasmQuery::Smart {
             contract_addr: ica_client_address.into(),
             msg: action_query,
@@ -395,7 +395,7 @@ mod test {
     }
 
     mod ica_action {
-        use abstract_ica::msg::IcaActionResult;
+        use abstract_std::ica_client::IcaActionResult;
         use abstract_std::ICA_CLIENT;
         use cosmwasm_std::{Binary, Empty};
 

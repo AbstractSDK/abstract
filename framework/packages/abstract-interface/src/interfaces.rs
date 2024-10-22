@@ -1,9 +1,7 @@
-use abstract_std::{objects::AccountId, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY};
+use abstract_std::{objects::AccountId, ANS_HOST, MODULE_FACTORY, REGISTRY};
 use cw_orch::{environment::Environment, prelude::*};
 
-use crate::{
-    AbstractInterfaceError, AccountI, AnsHost, IbcClient, IbcHost, ModuleFactory, Registry,
-};
+use crate::{AbstractInterfaceError, AccountI, AnsHost, ModuleFactory, Registry};
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: CwEnv>(
@@ -33,14 +31,4 @@ where
     account_interface.set_address(account.addr());
 
     Ok(account_interface)
-}
-
-pub fn get_ibc_contracts<Chain: CwEnv>(chain: Chain) -> (IbcClient<Chain>, IbcHost<Chain>)
-where
-    <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
-{
-    let ibc_client = IbcClient::new(IBC_CLIENT, chain.clone());
-    let ibc_host = IbcHost::new(IBC_HOST, chain);
-
-    (ibc_client, ibc_host)
 }

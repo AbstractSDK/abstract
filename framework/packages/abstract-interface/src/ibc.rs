@@ -1,26 +1,30 @@
-use crate::{AbstractInterfaceError, IbcClient, IbcHost, Registry};
-use abstract_std::{IBC_CLIENT, IBC_HOST};
+use crate::{AbstractInterfaceError, IbcClient, IbcHost, IcaClient, Registry};
+use abstract_std::{IBC_CLIENT, IBC_HOST, ICA_CLIENT};
 use cw_orch::prelude::*;
 
 #[derive(Clone)]
 pub struct AbstractIbc<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
     pub host: IbcHost<Chain>,
+    pub ica_client: IcaClient<Chain>,
 }
 
 impl<Chain: CwEnv> AbstractIbc<Chain> {
     pub fn new(chain: &Chain) -> Self {
         let ibc_client = IbcClient::new(IBC_CLIENT, chain.clone());
         let ibc_host = IbcHost::new(IBC_HOST, chain.clone());
+        let ica_client: IcaClient<Chain> = IcaClient::new(ICA_CLIENT, chain.clone());
         Self {
             client: ibc_client,
             host: ibc_host,
+            ica_client,
         }
     }
 
     pub fn upload(&self) -> Result<(), crate::AbstractInterfaceError> {
         self.client.upload()?;
         self.host.upload()?;
+        self.ica_client.upload()?;
         Ok(())
     }
 
@@ -33,6 +37,12 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 
         self.host
             .instantiate(&abstract_std::ibc_host::InstantiateMsg {}, Some(admin), &[])?;
+
+        self.ica_client.instantiate(
+            &abstract_std::ica_client::InstantiateMsg {},
+            Some(admin),
+            &[],
+        )?;
         Ok(())
     }
 
@@ -46,6 +56,10 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 self.host.as_instance(),
                 ibc_host::contract::CONTRACT_VERSION.to_string(),
             ),
+            (
+                self.ica_client.as_instance(),
+                ica_client::contract::CONTRACT_VERSION.to_string(),
+            ),
         ])
     }
 
@@ -53,6 +67,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         Self {
             client: self.client.call_as(sender),
             host: self.host.call_as(sender),
+            ica_client: self.ica_client.call_as(sender),
         }
     }
 }

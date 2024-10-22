@@ -60,6 +60,10 @@ polytone = { package = "abstract-polytone", version = "2.0.0" }
 polytone-note = { package = "abstract-polytone-note", version = "4.0.1" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
 
+## evm
+evm-note = { version = "0.3.0", features = ["library"] }
+polytone-evm = { version = "0.3.0" }
+
 
 ## crates in order of publishing ## see docs/Publishing.md
 
@@ -69,7 +73,7 @@ abstract-standalone = { path = "packages/abstract-standalone" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { version = "0.24.1-beta.1", path = "packages/abstract-interface" }
+
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 registry = { package = "abstract-registry", path = "contracts/native/registry" }
@@ -80,10 +84,12 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 
 abstract-account = { path = "contracts/account", default-features = false }
 
-abstract-ica = { version = "0.24.1-beta.2", path = "packages/abstract-ica" }
 abstract-sdk = { version = "0.24.1-beta.2", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.24.1-beta.2", path = "packages/abstract-testing" }
 abstract-std = { version = "0.24.1-beta.2", path = "packages/abstract-std" }
+
+abstract-client = { version = "0.24.1-beta.2", path = "packages/abstract-client" }
+abstract-interface = { version = "0.24.1-beta.2", path = "packages/abstract-interface" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
 abstract-macros = { version = "0.24.1-beta.2", path = "packages/abstract-macros" }
@@ -109,6 +115,7 @@ opt-level = 3
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
+
 rpath = false
 lto = true
 overflow-checks = true
