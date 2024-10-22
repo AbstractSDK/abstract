@@ -23,7 +23,7 @@ fn create_remote_account() -> anyhow::Result<()> {
 
     let juno_account = juno_abstr
         .account_builder()
-        .install_adapter::<IbcClient<MockBase>>()?
+        .install_adapter::<IbcClient<MockBase>>()
         .build()?;
     let remote_osmo_account = juno_account
         .remote_account_builder(mock_interchain.clone(), &osmo_abstr)

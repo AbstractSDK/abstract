@@ -98,7 +98,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<MoneyMarketAdapter<Chain>>()?
+            .install_adapter::<MoneyMarketAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -185,7 +185,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<MoneyMarketAdapter<Chain>>()?
+            .install_adapter::<MoneyMarketAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -363,7 +363,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<MoneyMarketAdapter<Chain>>()?
+            .install_adapter::<MoneyMarketAdapter<Chain>>()
             .build()?;
 
         let _max_ltv = self.moneymarket_adapter.ans_max_ltv(

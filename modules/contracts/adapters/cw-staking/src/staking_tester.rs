@@ -77,7 +77,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<CwStakingAdapter<Chain>>()?
+            .install_adapter::<CwStakingAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -119,7 +119,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<CwStakingAdapter<Chain>>()?
+            .install_adapter::<CwStakingAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -203,7 +203,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<CwStakingAdapter<Chain>>()?
+            .install_adapter::<CwStakingAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -276,7 +276,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<CwStakingAdapter<Chain>>()?
+            .install_adapter::<CwStakingAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
