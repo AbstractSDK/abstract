@@ -133,6 +133,16 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
             .map_err(|error| self.wrap_query_error(error))
     }
 
+    /// Queries the account_id that owns the namespace
+    pub fn query_namespace_raw(
+        &self,
+        namespace: Namespace,
+    ) -> AbstractSdkResult<Option<AccountId>> {
+        self.registry
+            .query_namespace_raw(namespace, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
+    }
+
     /// Queries the namespaces owned by accounts
     pub fn query_namespaces(
         &self,
