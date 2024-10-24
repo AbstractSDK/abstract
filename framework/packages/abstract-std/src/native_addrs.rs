@@ -9,10 +9,21 @@ pub use cw_blob::CHECKSUM as BLOB_CHECKSUM;
 
 // TODO: fill bytes with Public address of creator
 // Default local-juno used right now(for testing)
+#[cfg(not(feature = "mock-deployment"))]
 const TEST_ABSTRACT_CREATOR: [u8; 33] = [
     2, 146, 187, 207, 156, 96, 230, 188, 163, 167, 152, 64, 234, 101, 130, 38, 50, 89, 139, 233,
     56, 192, 110, 242, 251, 222, 103, 198, 68, 80, 201, 159, 3,
 ];
+//
+// From https://github.com/CosmosContracts/juno/blob/32568dba828ff7783aea8cb5bb4b8b5832888255/docker/test-user.env#L2
+#[cfg(feature = "mock-deployment")]
+pub const MOCK_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
+#[cfg(feature = "mock-deployment")]
+const TEST_ABSTRACT_CREATOR: [u8; 33] = [
+    3, 208, 185, 115, 73, 181, 13, 228, 227, 43, 34, 172, 109, 175, 102, 189, 121, 191, 67, 6, 0,
+    8, 47, 154, 46, 207, 188, 171, 180, 64, 237, 128, 170,
+];
+//
 
 // Salts for deployments
 pub const ANS_HOST_SALT: &[u8] = b"ans";

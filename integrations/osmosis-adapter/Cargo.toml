@@ -1,6 +1,6 @@
 [package]
 name = "abstract-osmosis-adapter"
-version = "0.17.0"
+version = "0.26.0"
 authors = ["Abstract Money <contact@abstract.money>"]
 edition = "2021"
 description = "Abstract DexCommand implementation for Osmosis"
@@ -16,7 +16,7 @@ full_integration = [
 ]
 
 [dependencies]
-osmosis-std = { version = "0.24.1-beta.2", optional = true }
+osmosis-std = { version = "0.26.0", optional = true }
 
 cosmwasm-std = { workspace = true, features = ["stargate"] }
 abstract-staking-standard = { workspace = true }

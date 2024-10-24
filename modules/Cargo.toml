@@ -49,7 +49,7 @@ semver = "1.0"
 
 cw-orch = { version = "0.26.0" }
 cw-orch-interchain = { version = "0.7.0" }
-# cw-orch-osmosis-test-tube = { version = "0.2.0" }
+cw-orch-osmosis-test-tube = { version = "0.4.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -108,6 +108,13 @@ abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+
+# TODO: release test-tube
+cw-orch-osmosis-test-tube = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/revive-osmosis-test-tube" }
+cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/revive-osmosis-test-tube" }
+
+# cw-orch-osmosis-test-tube = { path = "../../cw-orchestrator/packages/cw-orch-osmosis-test-tube" }
+# cw-orch-core = { path = "../../cw-orchestrator/packages/cw-orch-core" }
 
 
 # Backup release profile, will result in warnings during optimization

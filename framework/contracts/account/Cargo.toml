@@ -24,10 +24,18 @@ crate-type = ["cdylib", "rlib"]
 default = ["export"]
 export = []
 xion = ["abstract-xion"]
+mock-deployment = ["abstract-std/mock-deployment"]
 
 [package.metadata.optimizer]
 standard-build = true
-builds = [{ name = "xion", features = ["xion"] }]
+builds = [
+    { name = "xion", features = [
+        "xion",
+    ] },
+    { name = "mock", features = [
+        "mock-deployment",
+    ] },
+]
 
 [dependencies]
 cosmwasm-std = { workspace = true }

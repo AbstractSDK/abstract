@@ -5,10 +5,11 @@ mod common;
 
 mod osmosis_test {
     use std::path::PathBuf;
+    use std::rc::Rc;
 
     use abstract_adapter::abstract_interface::{
-        Abstract, AbstractAccount, AbstractInterfaceError, Account, AdapterDeployer,
-        DeployStrategy, RegisteredModule,
+        Abstract, AbstractInterfaceError, AccountI, AdapterDeployer, DeployStrategy,
+        RegisteredModule,
     };
     use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::std::{
@@ -19,6 +20,8 @@ mod osmosis_test {
         },
     };
     use abstract_adapter::traits::{Dependencies, ModuleIdentification};
+    use abstract_client::GovernanceDetails;
+    use abstract_cw_staking::interface::CwStakingAdapter;
     use abstract_cw_staking::{
         contract::CONTRACT_VERSION,
         msg::{
@@ -32,6 +35,7 @@ mod osmosis_test {
     };
     use cosmwasm_std::{coin, coins, from_json, to_json_binary, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;
+    use cw_orch_osmosis_test_tube::osmosis_test_tube::Account;
     use cw_orch_osmosis_test_tube::osmosis_test_tube::{
         osmosis_std::{
             shim::{Duration, Timestamp},
@@ -60,166 +64,134 @@ mod osmosis_test {
 
     use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 
-    use crate::common::create_default_account;
-
     fn get_pool_token(id: u64) -> String {
         format!("gamm/pool/{}", id)
     }
 
-    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
-    pub struct OsmosisStakingAdapter<Chain>;
-
-    impl<Chain: CwEnv> AdapterDeployer<Chain, Empty> for OsmosisStakingAdapter<Chain> {}
-
-    impl<Chain: CwEnv> RegisteredModule for OsmosisStakingAdapter<Chain> {
-        type InitMsg = InstantiateMsg;
-
-        fn module_id<'a>() -> &'a str {
-            abstract_cw_staking::contract::CW_STAKING_ADAPTER.module_id()
-        }
-
-        fn module_version<'a>() -> &'a str {
-            abstract_cw_staking::contract::CW_STAKING_ADAPTER.version()
-        }
-
-        fn dependencies<'a>() -> &'a [StaticDependency] {
-            abstract_cw_staking::contract::CW_STAKING_ADAPTER.dependencies()
-        }
+    /// Stake using Abstract's OS (registered in daemon_state).
+    pub fn stake<Chain: CwEnv>(
+        stake_assets: Vec<AnsAsset>,
+        provider: String,
+        duration: Option<cw_utils::Duration>,
+        account: &AccountI<Chain>,
+    ) -> Result<(), AbstractInterfaceError> {
+        let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
+            account_address: None,
+            request: StakingExecuteMsg {
+                provider,
+                action: StakingAction::Stake {
+                    assets: stake_assets,
+                    unbonding_period: duration,
+                },
+            },
+        });
+        account.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg, vec![])?;
+        Ok(())
     }
 
-    impl<Chain: CwEnv> Uploadable for OsmosisStakingAdapter<Chain> {
-        fn wrapper() -> <Mock as TxHandler>::ContractSource {
-            Box::new(ContractWrapper::new_with_empty(
-                abstract_cw_staking::contract::execute,
-                abstract_cw_staking::contract::instantiate,
-                abstract_cw_staking::contract::query,
-            ))
-        }
-        fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
-            let mut artifacts_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-            artifacts_path.push("../../../artifacts");
-
-            ArtifactsDir::new(artifacts_path)
-                .find_wasm_path("abstract_cw_staking-osmosis")
-                .unwrap()
-        }
+    pub fn unstake<Chain: CwEnv>(
+        stake_assets: Vec<AnsAsset>,
+        provider: String,
+        duration: Option<cw_utils::Duration>,
+        account: &AccountI<Chain>,
+    ) -> Result<(), AbstractInterfaceError> {
+        let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
+            account_address: None,
+            request: StakingExecuteMsg {
+                provider,
+                action: StakingAction::Unstake {
+                    assets: stake_assets,
+                    unbonding_period: duration,
+                },
+            },
+        });
+        account.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg, vec![])?;
+        Ok(())
     }
 
-    impl<Chain: CwEnv> OsmosisStakingAdapter<Chain> {
-        /// Stake using Abstract's OS (registered in daemon_state).
-        pub fn stake(
-            &self,
-            stake_assets: Vec<AnsAsset>,
-            provider: String,
-            duration: Option<cw_utils::Duration>,
-            account: &AbstractAccount<Chain>,
-        ) -> Result<(), AbstractInterfaceError> {
-            let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                account_address: None,
-                request: StakingExecuteMsg {
-                    provider,
-                    action: StakingAction::Stake {
-                        assets: stake_assets,
-                        unbonding_period: duration,
-                    },
+    pub fn claim<Chain: CwEnv>(
+        stake_assets: Vec<AssetEntry>,
+        provider: String,
+        account: &AccountI<Chain>,
+    ) -> Result<(), AbstractInterfaceError> {
+        let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
+            account_address: None,
+            request: StakingExecuteMsg {
+                provider,
+                action: StakingAction::Claim {
+                    assets: stake_assets,
                 },
-            });
-            account
-                .account
-                .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
-            Ok(())
-        }
+            },
+        });
+        account.execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg, vec![])?;
+        Ok(())
+    }
 
-        pub fn unstake(
-            &self,
-            stake_assets: Vec<AnsAsset>,
-            provider: String,
-            duration: Option<cw_utils::Duration>,
-            account: &AbstractAccount<Chain>,
-        ) -> Result<(), AbstractInterfaceError> {
-            let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                account_address: None,
-                request: StakingExecuteMsg {
-                    provider,
-                    action: StakingAction::Unstake {
-                        assets: stake_assets,
-                        unbonding_period: duration,
-                    },
+    pub fn claim_rewards<Chain: CwEnv>(
+        stake_assets: Vec<AssetEntry>,
+        provider: String,
+        account: &AccountI<Chain>,
+    ) -> Result<(), AbstractInterfaceError> {
+        let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
+            account_address: None,
+            request: StakingExecuteMsg {
+                provider,
+                action: StakingAction::ClaimRewards {
+                    assets: stake_assets,
                 },
-            });
-            account
-                .account
-                .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
-            Ok(())
-        }
-
-        pub fn claim(
-            &self,
-            stake_assets: Vec<AssetEntry>,
-            provider: String,
-            account: &AbstractAccount<Chain>,
-        ) -> Result<(), AbstractInterfaceError> {
-            let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                account_address: None,
-                request: StakingExecuteMsg {
-                    provider,
-                    action: StakingAction::Claim {
-                        assets: stake_assets,
-                    },
-                },
-            });
-            account
-                .account
-                .execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
-            Ok(())
-        }
-
-        pub fn claim_rewards(
-            &self,
-            stake_assets: Vec<AssetEntry>,
-            provider: String,
-            account: &AbstractAccount<Chain>,
-        ) -> Result<(), AbstractInterfaceError> {
-            let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                account_address: None,
-                request: StakingExecuteMsg {
-                    provider,
-                    action: StakingAction::ClaimRewards {
-                        assets: stake_assets,
-                    },
-                },
-            });
-            account
-                .account
-                .execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
-            Ok(())
-        }
+            },
+        });
+        account.execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg, vec![])?;
+        Ok(())
     }
 
     fn setup_osmosis() -> anyhow::Result<(
         OsmosisTestTube,
         u64,
-        OsmosisStakingAdapter<OsmosisTestTube>,
-        AbstractAccount<OsmosisTestTube>,
+        CwStakingAdapter<OsmosisTestTube>,
+        AccountI<OsmosisTestTube>,
     )> {
-        let tube = OsmosisTestTube::new(vec![
-            coin(1_000_000_000_000, ASSET_1),
-            coin(1_000_000_000_000, ASSET_2),
-        ]);
+        let mut tube = OsmosisTestTube::new(vec![]);
 
-        let deployment = Abstract::deploy_on(tube.clone(), tube.sender_addr().to_string())?;
+        let seed = Abstract::<OsmosisTestTube>::mock_mnemonic().to_seed("");
+        let derive_path = Abstract::<OsmosisTestTube>::mock_derive_path(None);
+        let signing_key = cw_orch_osmosis_test_tube::osmosis_test_tube::cosmrs::crypto::secp256k1::SigningKey::derive_from_path(seed, &derive_path.parse().unwrap()).unwrap();
+        let signing_account = cw_orch_osmosis_test_tube::osmosis_test_tube::SigningAccount::new(
+            tube.sender.prefix().to_string(),
+            signing_key,
+            tube.sender.fee_setting().clone(),
+        );
+        tube.set_sender(Rc::new(signing_account));
 
-        let _root_os = create_default_account(&deployment.account_factory)?;
-        let staking: OsmosisStakingAdapter<OsmosisTestTube> =
-            OsmosisStakingAdapter::new(CW_STAKING_ADAPTER_ID, tube.clone());
+        tube.add_balance(
+            &tube.sender_addr(),
+            vec![
+                coin(1_000_000_000_000, ASSET_2),
+                coin(1_000_000_000_000, ASSET_1),
+            ],
+        )?;
+
+        let deployment = Abstract::deploy_on(tube.clone(), tube.sender().clone())?;
+
+        let _root_os = AccountI::create_default_account(
+            &deployment,
+            GovernanceDetails::Monarchy {
+                monarch: tube.sender_addr().to_string(),
+            },
+        )?;
+        let staking: CwStakingAdapter<OsmosisTestTube> =
+            CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, tube.clone());
 
         staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Error)?;
 
-        let os = create_default_account(&deployment.account_factory)?;
-        // let account_addr = os.account.address()?;
-        let _account_addr = os.account.address()?;
+        let os = AccountI::create_default_account(
+            &deployment,
+            GovernanceDetails::Monarchy {
+                monarch: tube.sender_addr().to_string(),
+            },
+        )?;
 
-        // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
+        // transfer some LP tokens to the AccountI, as if it provided liquidity
         let pool_id = tube.create_pool(vec![coin(1_000, ASSET_1), coin(1_000, ASSET_2)])?;
 
         deployment
@@ -256,13 +228,10 @@ mod osmosis_test {
             )
             .unwrap();
 
-        // install exchange on AbstractAccount
-        os.install_adapter(&staking, None)?;
+        // install exchange on AccountI
+        os.install_adapter(&staking, &[])?;
 
-        tube.bank_send(
-            os.account.addr_str()?,
-            coins(1_000u128, get_pool_token(pool_id)),
-        )?;
+        tube.bank_send(os.addr_str()?, coins(1_000u128, get_pool_token(pool_id)))?;
 
         Ok((tube, pool_id, staking, os))
     }
@@ -274,14 +243,17 @@ mod osmosis_test {
         // query staking info
         let staking_info = staking.info(OSMOSIS.into(), vec![AssetEntry::new(LP)])?;
         let staking_coin = AssetInfoBase::native(get_pool_token(pool_id));
-        assert_that!(staking_info).is_equal_to(StakingInfoResponse {
-            infos: vec![StakingInfo {
-                staking_target: pool_id.into(),
-                staking_token: staking_coin.clone(),
-                unbonding_periods: Some(vec![]),
-                max_claims: None,
-            }],
-        });
+        assert_eq!(
+            staking_info,
+            StakingInfoResponse {
+                infos: vec![StakingInfo {
+                    staking_target: pool_id.into(),
+                    staking_token: staking_coin.clone(),
+                    unbonding_periods: Some(vec![]),
+                    max_claims: None,
+                }],
+            }
+        );
 
         Ok(())
     }
@@ -289,12 +261,12 @@ mod osmosis_test {
     #[test]
     fn stake_lp() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let account_addr = os.account.address()?;
+        let account_addr = os.address()?;
 
         let dur = Some(cw_utils::Duration::Time(2));
 
         // stake 100 stake-coins
-        staking.stake(vec![AnsAsset::new(LP, 100u128)], OSMOSIS.into(), dur, &os)?;
+        staking.stake(AnsAsset::new(LP, 100u128), OSMOSIS.into(), dur, &os)?;
 
         tube.wait_seconds(10000)?;
         // query stake
@@ -316,7 +288,7 @@ mod osmosis_test {
                 owner: account_addr.to_string(),
             },
         )?;
-        assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
+        assert_eq!(staked_balance.coins[0].amount, 100u128.to_string());
 
         Ok(())
     }
@@ -324,12 +296,12 @@ mod osmosis_test {
     #[test]
     fn unstake_lp() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let account_addr = os.account.address()?;
+        let account_addr = os.address()?;
 
         let dur = Some(cw_utils::Duration::Time(2));
 
         // stake 100 EUR
-        staking.stake(vec![AnsAsset::new(LP, 100u128)], OSMOSIS.into(), dur, &os)?;
+        staking.stake(AnsAsset::new(LP, 100u128), OSMOSIS.into(), dur, &os)?;
 
         // query stake
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
@@ -338,17 +310,17 @@ mod osmosis_test {
                 owner: account_addr.to_string(),
             },
         )?;
-        assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
+        assert_eq!(staked_balance.coins[0].amount, 100u128.to_string());
 
         // now unbond 50
-        staking.unstake(vec![AnsAsset::new(LP, 50u128)], OSMOSIS.into(), dur, &os)?;
+        staking.unstake(AnsAsset::new(LP, 50u128), OSMOSIS.into(), dur, &os)?;
         // query unbond
         let unbonding = staking.unbonding(
             OSMOSIS.into(),
             account_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
-        assert_that!(unbonding.claims[0][0].amount).is_equal_to(Uint128::new(50));
+        assert_eq!(unbonding.claims[0][0].amount, Uint128::new(50));
 
         // Wait, and check unbonding status
         tube.wait_seconds(2)?;
@@ -357,7 +329,7 @@ mod osmosis_test {
             account_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
-        assert_that!(unbonding.claims[0]).is_empty();
+        assert!(unbonding.claims[0].is_empty());
 
         // query stake
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
@@ -366,19 +338,19 @@ mod osmosis_test {
                 owner: account_addr.to_string(),
             },
         )?;
-        assert_that!(staked_balance.coins[0].amount).is_equal_to(50u128.to_string());
+        assert_eq!(staked_balance.coins[0].amount, 50u128.to_string());
         Ok(())
     }
 
     #[test]
     fn claim_all() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let account_addr = os.account.address()?;
+        let account_addr = os.address()?;
 
         let dur = Some(cw_utils::Duration::Time(2));
 
         // stake 100 EUR
-        staking.stake(vec![AnsAsset::new(LP, 100u128)], OSMOSIS.into(), dur, &os)?;
+        staking.stake(AnsAsset::new(LP, 100u128), OSMOSIS.into(), dur, &os)?;
 
         // query stake
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
@@ -387,17 +359,17 @@ mod osmosis_test {
                 owner: account_addr.to_string(),
             },
         )?;
-        assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
+        assert_eq!(staked_balance.coins[0].amount, 100u128.to_string());
 
         // now unbond all
-        staking.claim(vec![AssetEntry::new(LP)], OSMOSIS.into(), &os)?;
+        staking.claim(AssetEntry::new(LP), OSMOSIS.into(), &os)?;
         // query unbond
         let unbonding = staking.unbonding(
             OSMOSIS.into(),
             account_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
-        assert_that!(unbonding.claims[0][0].amount).is_equal_to(Uint128::new(100));
+        assert_eq!(unbonding.claims[0][0].amount, Uint128::new(100));
 
         // Wait, and check unbonding status
         tube.wait_seconds(2)?;
@@ -406,7 +378,7 @@ mod osmosis_test {
             account_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
-        assert_that!(unbonding.claims[0]).is_empty();
+        assert!(unbonding.claims[0].is_empty());
 
         // query stake
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
@@ -415,7 +387,7 @@ mod osmosis_test {
                 owner: account_addr.to_string(),
             },
         )?;
-        assert_that!(staked_balance.coins.len()).is_equal_to(0);
+        assert!(staked_balance.coins.is_empty());
         Ok(())
     }
 
@@ -423,10 +395,10 @@ mod osmosis_test {
     #[test]
     fn concentrated_liquidity() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let account_addr = os.account.address()?;
+        let account_addr = os.address()?;
 
         let lp = "osmosis/osmo2,atom2";
-        // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
+        // transfer some LP tokens to the AccountI, as if it provided liquidity
         let pool_id = tube.create_pool(vec![coin(1_000, ASSET_1), coin(1_000, ASSET_2)])?;
 
         let deployment = Abstract::load_from(tube.clone())?;
@@ -467,13 +439,14 @@ mod osmosis_test {
 
         // stake 100 EUR
         let err = staking
-            .stake(vec![AnsAsset::new(lp, 100u128)], OSMOSIS.into(), dur, &os)
+            .stake(AnsAsset::new(lp, 100u128), OSMOSIS.into(), dur, &os)
             .unwrap_err();
         if let AbstractInterfaceError::Orch(CwOrchError::StdErr(e)) = err {
             let expected_err = CwStakingError::NotSupportedPoolType(
                 PoolType::ConcentratedLiquidity.to_string(),
                 "osmosis".to_owned(),
             );
+            // dbg!(e);
             assert!(e.contains(&expected_err.to_string()));
         } else {
             panic!("Expected stderror");
@@ -485,8 +458,8 @@ mod osmosis_test {
     fn reward_tokens_add_to_gauge() -> anyhow::Result<()> {
         let (mut chain, pool_id, staking, os) = setup_osmosis()?;
         // For gauge
-        chain.add_balance(chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
-        let account_addr = os.account.address()?;
+        chain.add_balance(&chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
+        let account_addr = os.address()?;
 
         let test_tube = chain.app.borrow();
         let incentives = super::incentives::Incentives::new(&*test_tube);
@@ -527,8 +500,8 @@ mod osmosis_test {
     fn reward_tokens_create_gauge() -> anyhow::Result<()> {
         let (mut chain, pool_id, staking, os) = setup_osmosis()?;
         // For gauge
-        chain.add_balance(chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
-        let account_addr = os.account.address()?;
+        chain.add_balance(&chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
+        let account_addr = os.address()?;
 
         let test_tube = chain.app.borrow();
         let incentives = super::incentives::Incentives::new(&*test_tube);

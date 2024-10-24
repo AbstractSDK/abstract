@@ -362,6 +362,7 @@ dependencies = [
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
+ "bip32",
  "cosmrs 0.19.0",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -1314,6 +1315,8 @@ dependencies = [
  "bs58",
  "hmac",
  "k256",
+ "once_cell",
+ "pbkdf2 0.12.2",
  "rand_core",
  "ripemd",
  "sha2 0.10.8",
@@ -4880,6 +4883,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pbkdf2"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8ed6a7761f76e3b9f92dfb0a60a6a6477c61024b775147ff0973a02653abaf2"
+dependencies = [
+ "digest 0.10.7",
+ "hmac",
+]
+
+[[package]]
 name = "peg"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6696,7 +6709,7 @@ dependencies = [
  "anyhow",
  "hmac",
  "once_cell",
- "pbkdf2",
+ "pbkdf2 0.11.0",
  "rand",
  "rustc-hash",
  "sha2 0.10.8",
