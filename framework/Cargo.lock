@@ -7624,6 +7624,7 @@ dependencies = [
  "anstream",
  "anyhow",
  "base16ct",
+ "bip32",
  "bitcoin-internals 0.2.0",
  "bitcoin_hashes 0.13.0",
  "bitflags 2.6.0",

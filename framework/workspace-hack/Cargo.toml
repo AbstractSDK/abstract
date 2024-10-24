@@ -69,6 +69,7 @@ zeroize = { version = "1" }
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32 = { version = "0.5" }
 bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bitflags = { version = "2", default-features = false, features = ["std"] }
@@ -148,6 +149,7 @@ uuid = { version = "1", features = ["v4"] }
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32 = { version = "0.5" }
 bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bitflags = { version = "2", default-features = false, features = ["std"] }
@@ -229,6 +231,7 @@ uuid = { version = "1", features = ["v4"] }
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32 = { version = "0.5" }
 bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bs58 = { version = "0.5", features = ["check"] }
@@ -307,6 +310,7 @@ uuid = { version = "1", features = ["v4"] }
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32 = { version = "0.5" }
 bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bs58 = { version = "0.5", features = ["check"] }
