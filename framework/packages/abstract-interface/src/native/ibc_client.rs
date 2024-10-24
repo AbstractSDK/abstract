@@ -25,8 +25,18 @@ impl<Chain: CwEnv> Uploadable for IbcClient<Chain> {
         )
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
+        let build_postfix = {
+            #[cfg(feature = "mock-deployment")]
+            {
+                cw_orch::build::BuildPostfix::Custom("mock".to_string())
+            }
+            #[cfg(not(feature = "mock-deployment"))]
+            {
+                cw_orch::build::BuildPostfix::None
+            }
+        };
         artifacts_dir_from_workspace!()
-            .find_wasm_path("ibc_client")
+            .find_wasm_path_with_build_postfix("ibc_client", build_postfix)
             .unwrap()
     }
 }

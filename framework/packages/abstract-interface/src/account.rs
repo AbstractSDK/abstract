@@ -49,6 +49,12 @@ pub struct AccountDetails {
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountI<Chain>;
 
+impl<Chain> AsRef<AccountI<Chain>> for AccountI<Chain> {
+    fn as_ref(&self) -> &AccountI<Chain> {
+        self
+    }
+}
+
 impl<Chain: CwEnv> AccountI<Chain> {
     pub fn load_from(
         abstract_deployment: &Abstract<Chain>,
@@ -733,12 +739,20 @@ impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
             .with_reply(::account::contract::reply),
         )
     }
-    fn wasm(chain: &ChainInfoOwned) -> WasmPath {
+
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
+        let build_postfix = {
+            #[cfg(feature = "mock-deployment")]
+            {
+                cw_orch::build::BuildPostfix::Custom("mock".to_string())
+            }
+            #[cfg(not(feature = "mock-deployment"))]
+            {
+                cw_orch::build::BuildPostfix::ChainName(_chain)
+            }
+        };
         artifacts_dir_from_workspace!()
-            .find_wasm_path_with_build_postfix(
-                "account",
-                cw_orch::build::BuildPostfix::ChainName(chain),
-            )
+            .find_wasm_path_with_build_postfix("account", build_postfix)
             .unwrap()
     }
 }

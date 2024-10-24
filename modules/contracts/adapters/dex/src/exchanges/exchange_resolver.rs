@@ -12,15 +12,15 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         // abstract_wyndex_adapter::WYNDEX => {
         //     Ok(Box::<abstract_wyndex_adapter::dex::WynDex>::default())
         // }
-        // abstract_osmosis_adapter::OSMOSIS => {
-        //     Ok(Box::<abstract_osmosis_adapter::dex::Osmosis>::default())
-        // }
         // abstract_astroport_adapter::ASTROPORT => {
         //     Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         // }
         // abstract_kujira_adapter::dex::FIN => {
         //     Ok(Box::<abstract_kujira_adapter::dex::Fin>::default())
         // }
+        abstract_osmosis_adapter::OSMOSIS => {
+            Ok(Box::<abstract_osmosis_adapter::dex::Osmosis>::default())
+        }
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::dex::Astrovault>::default())
         }

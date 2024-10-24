@@ -30,15 +30,17 @@ crate-type = ["cdylib", "rlib"]
 export = []
 default = ["export"]
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw20"]
-# osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
+testing = ["dep:abstract-client", "dep:cw20", "mock-deployment"]
+osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
 # Supported Dexes
 # wynd = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
-# osmosis = ["abstract-osmosis-adapter/full_integration"]
+osmosis = ["abstract-osmosis-adapter/full_integration"]
 # astroport = ["abstract-astroport-adapter/full_integration"]
 # bow = ["abstract-kujira-adapter/full_integration"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
+
+mock-deployment = ["abstract-adapter/mock-deployment"]
 
 # Builds
 [package.metadata.optimizer]
@@ -52,9 +54,8 @@ builds = [
   # { name = "neutron", features = [
   #   "astroport",
   # ] },
-  # { name = "osmosis", features = [
-  #   "osmosis",
-  # ] },
+  { name = "osmosis", features = ["osmosis"] },
+  { name = "osmosis-mock", features = ["osmosis", "mock-deployment"] },
   # { name = "kujira", features = [
   #   "bow",
   # ] },
@@ -79,7 +80,7 @@ serde = { workspace = true }
 
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true }
-# cw-orch-osmosis-test-tube = { workspace = true, optional = true }
+cw-orch-osmosis-test-tube = { workspace = true, optional = true }
 
 # Local
 abstract-staking-standard = { workspace = true }
@@ -89,7 +90,7 @@ abstract-adapter-utils = { workspace = true }
 # abstract-wyndex-adapter = { workspace = true }
 
 # # Osmosis #
-# abstract-osmosis-adapter = { workspace = true }
+abstract-osmosis-adapter = { workspace = true }
 
 # # Terra #
 # abstract-astroport-adapter = { workspace = true }
@@ -115,11 +116,13 @@ cw-orch = { workspace = true, features = ["daemon"] }
 clap = { workspace = true }
 cw-staking = { path = ".", package = "abstract-cw-staking", features = [
   # "wynd",
-  # "osmosis",
+  "osmosis",
+  "testing",
 ] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 # wyndex-bundle = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
+bip32 = { version = "0.5.2" }
 
 serde-cw-value = "0.7.0"

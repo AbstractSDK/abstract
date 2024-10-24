@@ -338,6 +338,18 @@ impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
     }
 }
 
+#[cfg(feature = "mock-deployment")]
+impl<Chain: CwEnv> Abstract<Chain> {
+    pub fn mock_mnemonic() -> bip32::Mnemonic {
+        bip32::Mnemonic::new(native_addrs::MOCK_MNEMONIC, bip32::Language::English).unwrap()
+    }
+
+    pub fn mock_derive_path(coin_type: Option<u32>) -> String {
+        let coin_type = coin_type.unwrap_or(118);
+        format!("m/44'/{coin_type}'/0'/0/0")
+    }
+}
+
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]

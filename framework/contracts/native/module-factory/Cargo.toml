@@ -20,7 +20,11 @@ crate-type = ["cdylib", "rlib"]
 default = ["export"]
 export = []
 # for quicker tests, cargo test --lib
+mock-deployment = ["abstract-std/mock-deployment"]
 
+[package.metadata.optimizer]
+standard-build = true
+builds = [{ name = "mock", features = ["mock-deployment"] }]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
