@@ -4,7 +4,6 @@ use std::{format, rc::Rc};
 
 use abstract_adapter::std::{
     ans_host::ExecuteMsgFns,
-    native_addrs,
     objects::{
         gov_type::GovernanceDetails, pool_id::PoolAddressBase, AnsAsset, AssetEntry, PoolMetadata,
     },
