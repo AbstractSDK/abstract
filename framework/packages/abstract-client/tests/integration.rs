@@ -1571,7 +1571,7 @@ fn ans_balance() -> anyhow::Result<()> {
     Ok(())
 }
 
-// Tests wether using the Account builder with install_on_subaccount on an existing account installs given apps
+/// Tests that the account fetcher should not install a module on an existing account   
 #[test]
 fn account_fetcher_shouldnt_install_module_on_existing_account() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
