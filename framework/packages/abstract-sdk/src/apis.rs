@@ -5,6 +5,7 @@ pub mod app;
 pub mod bank;
 pub mod execution;
 pub mod ibc;
+pub mod ibc_memo;
 pub mod modules;
 pub mod respond;
 mod splitter;

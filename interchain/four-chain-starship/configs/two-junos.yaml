@@ -1,33 +1,31 @@
 chains:
-  - id: osmosis-1
-    name: osmosis
+  - id: juno-1
+    name: juno
     numValidators: 1
     ports:
       rest: 1313
       rpc: 26653
       grpc: 30658
       faucet: 8000
-  - id: juno-1
-    name: juno
+  - id: junotwo-1
+    name: osmosis
     numValidators: 1
     ports:
       rest: 1317
-      rpc: 26657
-      grpc: 30657
-      faucet: 8001
+      rpc: 26659
+      grpc: 30660
+      faucet: 8004
 
 relayers:
-  - name: osmo-juno
+  - name: juno-juno2
     type: hermes
     replicas: 1
     chains:
-      - osmosis-1
       - juno-1
+      - junotwo-1
     config:
       event_source:
         mode: "pull" # default is "push"
-    ports:
-      rest: 3001
 
 registry:
   enabled: true
