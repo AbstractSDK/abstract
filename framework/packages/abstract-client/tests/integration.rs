@@ -256,7 +256,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     publisher.publish_app::<MockAppI<MockBech32>>()?;
 
     // Install app on sub-account
-    let sub_account = publisher.account().sub_account_builder()?.build()?;
+    let sub_account = publisher.account().sub_account_builder().build()?;
     let my_app: Application<_, MockAppI<_>> =
         sub_account.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
 
@@ -339,7 +339,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     account
         .publisher()?
         .publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
-    let sub_account = account.sub_account_builder()?.build()?;
+    let sub_account = account.sub_account_builder().build()?;
 
     // Install adapter on sub-account
     let my_adapter: Application<_, MockAdapterI<_>> = sub_account.install_adapter(&[])?;

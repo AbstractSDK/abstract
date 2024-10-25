@@ -674,11 +674,11 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Builder to create a subaccount from this account
-    pub fn sub_account_builder(&self) -> AbstractClientResult<AccountBuilder<Chain>> {
-        let mut builder = AccountBuilder::new(&self.infrastructure()?);
+    pub fn sub_account_builder(&self) -> AccountBuilder<Chain>{
+        let mut builder = AccountBuilder::new(&self.infrastructure().unwrap());
         builder.sub_account(self);
         builder.name("Sub Account");
-        Ok(builder)
+        builder
     }
 
     /// Get Sub Accounts of this account

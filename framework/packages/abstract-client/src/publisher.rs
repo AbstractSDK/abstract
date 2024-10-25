@@ -13,6 +13,7 @@ use crate::{
     account::Account, client::AbstractClientResult, infrastructure::Infrastructure,
     AbstractClientError, Environment,
 };
+use abstract_std::registry::NamespaceResponse;
 
 /// A Publisher represents an account that owns a namespace with the goal of publishing modules to the on-chain module-store.
 pub struct Publisher<Chain: CwEnv> {
@@ -45,7 +46,19 @@ impl<Chain: CwEnv> Publisher<Chain> {
         account: Account<Chain>,
         namespace: &str,
     ) -> AbstractClientResult<Self> {
-        account.claim_namespace(namespace)?;
+        let namespace_response = account.infrastructure()?.registry.namespace(namespace.try_into()?)?;
+
+        if let NamespaceResponse::Claimed(namespace_info) = namespace_response{
+            if namespace_info.account_id != account.id()?{
+                return Err(AbstractClientError::NamespaceClaimed{
+                    namespace: namespace.to_string(),
+                    account_id: namespace_info.account_id
+                })
+            }
+        }else{
+            account.claim_namespace(namespace)?;
+        }
+        
         Ok(Self { account })
     }
 
