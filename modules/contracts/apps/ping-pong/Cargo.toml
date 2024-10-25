@@ -26,7 +26,7 @@ abstract-ibc-client = { version = "0.24.1-beta.2", default-features = false, pat
 
 [dev-dependencies]
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "6.0.0" }
 cw-orch = { workspace = true, features = ["daemon"] }
 abstract-client = { workspace = true, features = ["interchain"] }
 env_logger = "0.11"
