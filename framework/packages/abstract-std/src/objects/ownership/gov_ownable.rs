@@ -15,10 +15,10 @@ use super::nested_admin::query_top_level_owner;
 /// Errors associated with the contract's ownership
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum GovOwnershipError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
     #[error("Contract ownership has been renounced")]

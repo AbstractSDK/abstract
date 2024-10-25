@@ -3597,9 +3597,9 @@ dependencies = [
 
 [[package]]
 name = "evm-note"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a081f2ae5914121f904f015c742f7c444fb9e593d2ec34dbd715fa8504548017"
+checksum = "f2a0ebe6fa972f336da5deee219e4dad5f74f7ccf6161e95dba014c61fdd2ace"
 dependencies = [
  "alloy-sol-types",
  "cosmwasm-schema",

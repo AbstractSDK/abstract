@@ -103,11 +103,11 @@ fn main() -> cw_orch::anyhow::Result<()> {
         vec![],
     )?;
 
-    let interchain = UnionInterchainEnv::new(chain.clone(), &evm_config);
+    let interchain = UnionInterchainEnv::new(vec![chain.clone()], &evm_config);
 
     let remote_address = UnionInterchainEnv::get_remote_address(
-        &evm_note,
         &interchain,
+        &evm_note,
         evm_config.chain_id,
         account.address()?.as_str(),
     )?;
