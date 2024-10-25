@@ -22,7 +22,7 @@ Experience chain abstraction yourself by minting an NFT on Neutron directly from
 
 ### For Chains
 
-Chains using Abstract can offer users access to apps, accounts, and yield opportunities on any chain connected via IBC. To deliver maximum value to your users, your chain must support the [CosmWasm VM](https://cosmwasm.com) to used as an Abstract controller chain If your chain is already IBC-enabled, it is Abstract-enabled and available to Abstract controller chains.
+Chains using Abstract can offer users access to apps, accounts, and yield opportunities on any chain connected via IBC. To deliver maximum value to your users, your chain must support the [CosmWasm VM](https://cosmwasm.com) to be used as an Abstract controller chain If your chain is already IBC-enabled, it is Abstract-enabled and available to Abstract controller chains.
 
 #### Benefits
 

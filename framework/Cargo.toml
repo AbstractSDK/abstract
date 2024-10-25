@@ -84,6 +84,7 @@ abstract-ica = { version = "0.24.1-beta.2", path = "packages/abstract-ica" }
 abstract-sdk = { version = "0.24.1-beta.2", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.24.1-beta.2", path = "packages/abstract-testing" }
 abstract-std = { version = "0.24.1-beta.2", path = "packages/abstract-std" }
+abstract-xion = { version = "0.24.1-beta.2", path = "packages/abstract-xion" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
 abstract-macros = { version = "0.24.1-beta.2", path = "packages/abstract-macros" }
@@ -96,7 +97,6 @@ abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 
 ## Testing
 rstest = "0.17.0"
-speculoos = "0.11.0"
 anyhow = "1"
 coverage-helper = { version = "0.2.2" }
 
@@ -121,6 +121,7 @@ panic = 'abort'
 incremental = false
 
 [patch.crates-io]
+
 # TODO: remove after polytone release
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }

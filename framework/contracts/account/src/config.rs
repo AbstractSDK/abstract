@@ -128,7 +128,6 @@ mod tests {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, StdError};
     use ownership::{GovAction, GovOwnershipError, GovernanceDetails};
-    use speculoos::prelude::*;
 
     mod set_owner_and_gov_type {
 
@@ -164,14 +163,13 @@ mod tests {
             });
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(res).is_err().matches(|err| {
-                matches!(
-                    err,
-                    AccountError::Ownership(GovOwnershipError::Abstract(
-                        abstract_std::AbstractError::Std(StdError::GenericErr { .. })
-                    ))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Ownership(GovOwnershipError::Abstract(
+                    abstract_std::AbstractError::Std(StdError::GenericErr { .. })
+                )))
+            ));
+
             Ok(())
         }
 
@@ -191,16 +189,19 @@ mod tests {
             });
 
             let res = execute_as(&mut deps, &owner, set_owner_msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let accept_msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
             execute_as(&mut deps, &new_owner, accept_msg)?;
 
             let actual_owner = ownership::get_ownership(&deps.storage)?.owner;
 
-            assert_that!(&actual_owner).is_equal_to(GovernanceDetails::Monarchy {
-                monarch: Addr::unchecked(new_owner),
-            });
+            assert_eq!(
+                actual_owner,
+                GovernanceDetails::Monarchy {
+                    monarch: Addr::unchecked(new_owner),
+                }
+            );
 
             Ok(())
         }
@@ -224,23 +225,27 @@ mod tests {
             execute_as(&mut deps, &owner, msg)?;
 
             let ownership = ownership::get_ownership(deps.as_ref().storage)?;
-            assert_that!(ownership
-                .owner
-                .owner_address(&deps.as_ref().querier)
-                .unwrap()
-                .to_string())
-            .is_equal_to(owner.to_string());
+            assert_eq!(
+                ownership
+                    .owner
+                    .owner_address(&deps.as_ref().querier)
+                    .unwrap()
+                    .to_string(),
+                owner.to_string()
+            );
 
             let accept_msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
             execute_as(&mut deps, &new_gov, accept_msg)?;
 
             let ownership = ownership::get_ownership(deps.as_ref().storage)?;
-            assert_that!(ownership
-                .owner
-                .owner_address(&deps.as_ref().querier)
-                .unwrap()
-                .to_string())
-            .is_equal_to(new_gov.to_string());
+            assert_eq!(
+                ownership
+                    .owner
+                    .owner_address(&deps.as_ref().querier)
+                    .unwrap()
+                    .to_string(),
+                new_gov.to_string()
+            );
 
             Ok(())
         }
@@ -281,13 +286,13 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let info = INFO.load(deps.as_ref().storage)?;
 
-            assert_that!(&info.name.unwrap()).is_equal_to(name.to_string());
-            assert_that!(&info.description.unwrap()).is_equal_to(description.to_string());
-            assert_that!(&info.link.unwrap()).is_equal_to(link.to_string());
+            assert_eq!(info.name.unwrap(), name.to_string());
+            assert_eq!(info.description.unwrap(), description.to_string());
+            assert_eq!(info.link.unwrap(), link.to_string());
 
             Ok(())
         }
@@ -316,13 +321,13 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
 
             let info = INFO.load(deps.as_ref().storage)?;
 
-            assert_that!(&info.name.unwrap()).is_equal_to(&prev_name);
-            assert_that!(&info.description).is_none();
-            assert_that!(&info.link).is_none();
+            assert_eq!(info.name.unwrap(), prev_name);
+            assert!(info.description.is_none());
+            assert!(info.link.is_none());
 
             Ok(())
         }
@@ -341,12 +346,12 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    AccountError::Validation(ValidationError::TitleInvalidShort(_))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Validation(
+                    ValidationError::TitleInvalidShort(_)
+                ))
+            ));
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: Some("a".repeat(65)),
@@ -355,12 +360,12 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    AccountError::Validation(ValidationError::TitleInvalidLong(_))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Validation(ValidationError::TitleInvalidLong(
+                    _
+                )))
+            ));
 
             Ok(())
         }
@@ -380,12 +385,12 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    AccountError::Validation(ValidationError::LinkInvalidShort(_))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Validation(ValidationError::LinkInvalidShort(
+                    _
+                )))
+            ));
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
@@ -394,12 +399,12 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&res).is_err().matches(|e| {
-                matches!(
-                    e,
-                    AccountError::Validation(ValidationError::LinkInvalidLong(_))
-                )
-            });
+            assert!(matches!(
+                res,
+                Err(AccountError::Validation(ValidationError::LinkInvalidLong(
+                    _
+                )))
+            ));
 
             Ok(())
         }
@@ -432,9 +437,9 @@ mod tests {
             };
 
             let res = execute_as(&mut deps, &owner, msg);
-            assert_that!(res).is_ok();
+            assert!(res.is_ok());
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that!(&actual_is_suspended).is_true();
+            assert!(actual_is_suspended);
 
             let update_info_msg = ExecuteMsg::UpdateInfo {
                 name: Some("asonetuh".to_string()),
@@ -444,9 +449,7 @@ mod tests {
 
             let res = execute_as(&mut deps, &owner, update_info_msg);
 
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::AccountSuspended {});
+            assert_eq!(res, Err(AccountError::AccountSuspended {}));
 
             Ok(())
         }
@@ -464,9 +467,9 @@ mod tests {
 
             let res = execute_as(&mut deps, &owner, msg);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that!(&actual_is_suspended).is_true();
+            assert!(actual_is_suspended);
             Ok(())
         }
 
@@ -483,9 +486,9 @@ mod tests {
 
             let res = execute_as(&mut deps, &owner, msg);
 
-            assert_that!(&res).is_ok();
+            assert!(res.is_ok());
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that!(&actual_status).is_false();
+            assert!(!actual_status);
             Ok(())
         }
     }
@@ -515,15 +518,16 @@ mod tests {
             let bad_sender = deps.api.addr_make("not_account_owner");
             let res = execute_as(&mut deps, &bad_sender, msg.clone());
 
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(AccountError::Ownership(GovOwnershipError::NotOwner));
+            assert_eq!(
+                res,
+                Err(AccountError::Ownership(GovOwnershipError::NotOwner))
+            );
 
             let vc_res = execute_as(&mut deps, &abstr.registry, msg.clone());
-            assert_that!(&vc_res).is_err();
+            assert!(vc_res.is_err());
 
             let owner_res = execute_as(&mut deps, &owner, msg);
-            assert_that!(&owner_res).is_ok();
+            assert!(owner_res.is_ok());
 
             Ok(())
         }

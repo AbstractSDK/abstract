@@ -9,31 +9,31 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum MoneyMarketError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     FromRatio(#[from] CheckedFromRatioError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractOs(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Asset(#[from] AssetError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AdapterError(#[from] AdapterError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     ConversionOverflow(#[from] ConversionOverflowError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     DecimalRangeExceeded(#[from] DecimalRangeExceeded),
 
     #[error("MoneyMarket {0} is not a known money-market on this network.")]

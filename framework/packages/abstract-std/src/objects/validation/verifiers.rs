@@ -64,7 +64,6 @@ pub fn validate_description(maybe_description: Option<&str>) -> Result<(), Valid
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -78,7 +77,7 @@ mod tests {
             case("https://example.net:8080")
         )]
         fn valid(input: &str) {
-            assert_that!(validate_link(Some(input))).is_ok();
+            assert!(validate_link(Some(input)).is_ok());
         }
 
         #[rstest(
@@ -90,7 +89,7 @@ mod tests {
             case("https:/example.com")
         )]
         fn invalid(input: &str) {
-            assert_that!(validate_link(Some(input))).is_err();
+            assert!(validate_link(Some(input)).is_err());
         }
     }
 
@@ -107,7 +106,7 @@ mod tests {
         case("名前"),
         )]
         fn valid_names(input: &str) {
-            assert_that!(validate_name(input)).is_ok();
+            assert!(validate_name(input).is_ok());
         }
 
         #[rstest(input,
@@ -116,7 +115,7 @@ mod tests {
         case("name<>'\""),
         )]
         fn invalid_names(input: &str) {
-            assert_that!(validate_name(input)).is_err();
+            assert!(validate_name(input).is_err());
         }
     }
 
@@ -132,7 +131,7 @@ mod tests {
         case("説明"),
         )]
         fn valid_descriptions(input: &str) {
-            assert_that!(validate_description(Some(input))).is_ok();
+            assert!(validate_description(Some(input)).is_ok());
         }
 
         #[rstest(input,
@@ -141,7 +140,7 @@ mod tests {
         case("description<>'\""),
         )]
         fn invalid_descriptions(input: &str) {
-            assert_that!(validate_description(Some(input))).is_err();
+            assert!(validate_description(Some(input)).is_err());
         }
     }
 }

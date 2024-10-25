@@ -15,27 +15,14 @@ pub enum AbstractInterfaceError {
     #[error(transparent)]
     OrchInterchain(#[from] cw_orch_interchain::core::InterchainError),
 
-    #[error("JSON Conversion Error: {0}")]
-    SerdeJson(#[from] ::serde_json::Error),
-
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
-    Instantiate2(#[from] cosmwasm_std::Instantiate2AddressError),
-
-    #[cfg(feature = "daemon")]
     #[error(transparent)]
-    Daemon(#[from] cw_orch::daemon::DaemonError),
+    Instantiate2(#[from] cosmwasm_std::Instantiate2AddressError),
 
     #[error("Abstract is not deployed on this chain")]
     NotDeployed {},
-
-    #[error("Module Not Found {0}")]
-    ModuleNotFound(String),
-
-    #[error("No need to update {0}")]
-    NotUpdated(String),
 
     #[error(transparent)]
     Semver(#[from] semver::Error),
@@ -48,6 +35,16 @@ impl AbstractInterfaceError {
     pub fn root(&self) -> &dyn std::error::Error {
         match self {
             AbstractInterfaceError::Orch(e) => e.root(),
+            _ => panic!("Unexpected error type"),
+        }
+    }
+
+    pub fn downcast<E>(self) -> cw_orch::anyhow::Result<E>
+    where
+        E: std::fmt::Display + std::fmt::Debug + Send + Sync + 'static,
+    {
+        match self {
+            AbstractInterfaceError::Orch(e) => e.downcast(),
             _ => panic!("Unexpected error type"),
         }
     }

@@ -119,9 +119,7 @@ pub fn instantiate(
     }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    let governance = owner
-        .clone()
-        .verify(deps.as_ref(), registry.address.clone())?;
+    let governance = owner.clone().verify(deps.as_ref())?;
     match governance {
         // Check if the caller is the proposed owner account when creating a sub-account.
         // This prevents other users from creating sub-accounts for accounts they don't own.
@@ -176,8 +174,7 @@ pub fn instantiate(
     };
 
     // Set owner
-    let cw_gov_owner =
-        ownership::initialize_owner(deps.branch(), owner.clone(), registry.address.clone())?;
+    let cw_gov_owner = ownership::initialize_owner(deps.branch(), owner.clone())?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
@@ -257,7 +254,7 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
     match msg {
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
-        } => update_account_status(deps, info, suspension_status).map_err(AccountError::from),
+        } => update_account_status(deps, info, suspension_status),
         msg => {
             // Block actions if account is suspended
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
@@ -267,47 +264,42 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 
             match msg {
                 // ## Execution ##
-                ExecuteMsg::Execute { msgs } => {
-                    execute_msgs(deps, &info.sender, msgs).map_err(AccountError::from)
-                }
+                ExecuteMsg::Execute { msgs } => execute_msgs(deps, &info.sender, msgs),
                 ExecuteMsg::AdminExecute { addr, msg } => {
                     let addr = deps.api.addr_validate(&addr)?;
                     admin_execute(deps, info, addr, msg)
                 }
                 ExecuteMsg::ExecuteWithData { msg } => {
-                    execute_msgs_with_data(deps, &info.sender, msg).map_err(AccountError::from)
+                    execute_msgs_with_data(deps, &info.sender, msg)
                 }
                 ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg,
                     funds,
-                } => execute_on_module(deps, info, module_id, exec_msg, funds)
-                    .map_err(AccountError::from),
+                } => execute_on_module(deps, info, module_id, exec_msg, funds),
                 ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
                     admin_execute_on_module(deps, info, module_id, msg)
                 }
                 ExecuteMsg::IcaAction { action_query_msg } => {
-                    ica_action(deps, info, action_query_msg).map_err(AccountError::from)
+                    ica_action(deps, info, action_query_msg)
                 }
 
                 // ## Configuration ##
                 ExecuteMsg::UpdateInternalConfig(config) => {
-                    update_internal_config(deps, info, config).map_err(AccountError::from)
+                    update_internal_config(deps, info, config)
                 }
                 ExecuteMsg::InstallModules { modules } => {
-                    install_modules(deps, &env, info, modules).map_err(AccountError::from)
+                    install_modules(deps, &env, info, modules)
                 }
                 ExecuteMsg::UninstallModule { module_id } => {
-                    uninstall_module(deps, &env, info, module_id).map_err(AccountError::from)
+                    uninstall_module(deps, &env, info, module_id)
                 }
-                ExecuteMsg::Upgrade { modules } => {
-                    upgrade_modules(deps, env, info, modules).map_err(AccountError::from)
-                }
+                ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
                     name,
                     description,
                     link,
-                } => update_info(deps, info, name, description, link).map_err(AccountError::from),
+                } => update_info(deps, info, name, description, link),
                 ExecuteMsg::UpdateOwnership(action) => {
                     // If sub-account related it may require some messages to be constructed beforehand
                     let msgs = match &action {
@@ -319,16 +311,10 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                             remove_account_from_contracts(deps.branch(), &env)?
                         }
                     };
-                    let registry = RegistryContract::new(deps.api, &env)?;
 
-                    let new_owner_attributes = ownership::update_ownership(
-                        deps,
-                        &env.block,
-                        &info.sender,
-                        registry.address,
-                        action,
-                    )?
-                    .into_attributes();
+                    let new_owner_attributes =
+                        ownership::update_ownership(deps, &env.block, &info.sender, action)?
+                            .into_attributes();
                     Ok(
                         AccountResponse::new("update_ownership", new_owner_attributes)
                             .add_messages(msgs),
@@ -353,10 +339,9 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     namespace,
                     install_modules,
                     account_id,
-                )
-                .map_err(AccountError::from),
+                ),
                 ExecuteMsg::UpdateSubAccount(action) => {
-                    handle_sub_account_action(deps, &env, info, action).map_err(AccountError::from)
+                    handle_sub_account_action(deps, &env, info, action)
                 }
 
                 // ## Other ##

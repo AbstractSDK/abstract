@@ -208,7 +208,6 @@ mod test {
     use std::collections::HashSet;
 
     use cosmwasm_std::testing::mock_dependencies;
-    use speculoos::prelude::*;
 
     use super::*;
 
@@ -232,8 +231,8 @@ mod test {
 
             let dependents = DEPENDENTS.load(&deps.storage, dependency).unwrap();
 
-            assert_that(&dependents).has_length(1);
-            assert_that(&dependents).contains(new_module_id.to_string());
+            assert_eq!(dependents.len(), 1);
+            assert!(dependents.contains(new_module_id));
         }
     }
 
@@ -260,8 +259,8 @@ mod test {
             initialize_dependents(deps.as_mut(), dex_adapter, vec![autocompounder.to_string()]);
 
             let actual_dex_dependents = DEPENDENTS.load(&deps.storage, dex_adapter).unwrap();
-            assert_that(&actual_dex_dependents).has_length(1);
-            assert_that(&actual_dex_dependents).contains(autocompounder.to_string());
+            assert_eq!(actual_dex_dependents.len(), 1);
+            assert!(actual_dex_dependents.contains(autocompounder));
 
             // the autocompounder depends on the dex
             let autocompounder_dependencies = vec![Dependency {
@@ -276,10 +275,10 @@ mod test {
                 autocompounder_dependencies,
             );
 
-            assert_that(&res).is_ok();
+            assert!(res.is_ok());
 
             let remaining_dex_dependents = DEPENDENTS.load(&deps.storage, dex_adapter).unwrap();
-            assert_that(&remaining_dex_dependents).is_empty();
+            assert!(remaining_dex_dependents.is_empty());
         }
     }
 }

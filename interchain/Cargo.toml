@@ -68,6 +68,7 @@ cw-orch-proto = { version = "0.8.0" }
 abstract-interface = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-sdk" }
 abstract-std = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-std" }
+abstract-xion = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-xion" }
 abstract-app = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-testing" }
@@ -83,7 +84,6 @@ abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-ma
 
 ## Testing
 rstest = "0.17.0"
-speculoos = "0.11.0"
 anyhow = "1"
 
 # Do not remove, none of interchain packages are deployed
@@ -95,16 +95,18 @@ abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-std = { path = "../framework/packages/abstract-std" }
+abstract-xion = { path = "../framework/packages/abstract-xion" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
-# TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
-abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2-and-interchain-core" }
+#TODO: remove after polytone release
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false

@@ -236,7 +236,6 @@ mod test {
         testing::{message_info, mock_dependencies},
         to_json_binary,
     };
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::{contract::execute, test_common::*};
@@ -252,11 +251,12 @@ mod test {
         let not_admin = deps.api.addr_make("not_admin");
         let env = mock_env_validated(deps.api);
         let res = execute(deps.as_mut(), env, message_info(&not_admin, &[]), msg);
-        assert_that!(&res)
-            .is_err()
-            .is_equal_to(ModuleFactoryError::Ownership(
+        assert_eq!(
+            res,
+            Err(ModuleFactoryError::Ownership(
                 cw_ownable::OwnershipError::NotOwner {},
-            ));
+            ))
+        );
 
         Ok(())
     }
@@ -298,9 +298,10 @@ mod test {
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
             let _accept_res = execute_as(&mut deps, &new_admin, accept_msg).unwrap();
 
-            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
-                .is_some()
-                .is_equal_to(new_admin);
+            assert_eq!(
+                cw_ownable::get_ownership(&deps.storage).unwrap().owner,
+                Some(new_admin)
+            );
 
             Ok(())
         }
@@ -382,14 +383,14 @@ mod test {
                 salt,
             };
 
-            assert_that!(actual).is_ok();
+            assert!(actual.is_ok());
 
             let (_addr, actual_msg) = actual.unwrap();
 
             let actual_init_msg: CosmosMsg = actual_msg;
 
-            assert_that!(actual_init_msg).matches(|i| matches!(i, CosmosMsg::Wasm { .. }));
-            assert_that!(actual_init_msg).is_equal_to(CosmosMsg::from(expected_init_msg));
+            assert!(matches!(actual_init_msg, CosmosMsg::Wasm { .. }));
+            assert_eq!(actual_init_msg, CosmosMsg::from(expected_init_msg));
 
             Ok(())
         }

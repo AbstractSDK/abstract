@@ -9,41 +9,29 @@ use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum IbcClientError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Ownership(#[from] cw_ownable::OwnershipError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
     #[error("No account for chain {0}")]
     UnregisteredChain(String),
 
-    #[error("remote account changed from {old} to {addr}")]
-    RemoteAccountChanged { addr: String, old: String },
-
     #[error("Calling internal actions externally is not allowed")]
     ForbiddenInternalCall {},
-
-    #[error("A non-module package (native or accounts) cannot execute an ibc module call")]
-    ForbiddenModuleCall {},
-
-    #[error("The host you are trying to connect is already connected")]
-    HostAlreadyExists {},
-
-    #[error("Only authorized ports can connect to the contract on the remote chain")]
-    UnauthorizedConnection {},
 
     #[error("Unauthorized")]
     Unauthorized {},

@@ -47,7 +47,7 @@ abstract-macros = { workspace = true }
 
 abstract-ica = { workspace = true }
 
-abstract-xion = { version = "0.24.1-beta.2", path = "../../packages/abstract-xion", default-features = false, optional = true }
+abstract-xion = { workspace = true, default-features = false, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
@@ -63,7 +63,6 @@ ans-host = { workspace = true }
 registry = { workspace = true }
 module-factory = { workspace = true }
 rstest = { workspace = true }
-speculoos = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-app = { workspace = true, features = ["test-utils"] }

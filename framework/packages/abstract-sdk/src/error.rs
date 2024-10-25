@@ -1,11 +1,10 @@
 #![allow(missing_docs)]
 use std::fmt::{Display, Formatter};
 
+use crate::std::AbstractError;
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use thiserror::Error;
-
-use crate::std::{objects::AssetEntry, AbstractError};
 
 /// Error type for the abstract module endpoints.
 #[derive(Error, Debug, PartialEq)]
@@ -43,10 +42,6 @@ pub enum AbstractSdkError {
     #[error("Module {module} is not a dependency of this contract.")]
     MissingDependency { module: String },
 
-    // missing asset error
-    #[error("Asset {asset} is not registered on your Account. Please register it first.")]
-    MissingAsset { asset: AssetEntry },
-
     // callback not called by IBC client
     #[error("IBC callback called by {caller} instead of IBC client {client_addr}.")]
     CallbackNotCalledByIbcClient {
@@ -66,10 +61,6 @@ pub enum AbstractSdkError {
     // callback not called by IBC host
     #[error("Called an IBC module action on {0}, when no endpoint was registered.")]
     NoModuleIbcHandler(String),
-
-    // admin of account is not set
-    #[error("Admin of account {account_addr} is not set.")]
-    AdminNotSet { account_addr: Addr },
 
     // Query from api object failed
     #[error("API query for {api} failed in {module_id}: {error}")]

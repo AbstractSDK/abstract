@@ -120,7 +120,6 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_testing::prelude::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::{apis::traits::test::abstract_api_test, mock_module::*};
@@ -135,7 +134,7 @@ mod test {
             let mods = app.modules(deps.as_ref());
 
             let res = mods.assert_module_dependency(TEST_MODULE_ID);
-            assert_that!(res).is_ok();
+            assert!(res.is_ok());
         }
 
         #[coverage_helper::test]
@@ -147,10 +146,10 @@ mod test {
             let fake_module = "lol_no_chance";
             let res = mods.assert_module_dependency(fake_module);
 
-            assert_that!(res).is_err().matches(|e| {
-                e.to_string()
-                    .contains(&format!("{fake_module} is not a dependency"))
-            });
+            assert!(res
+                .unwrap_err()
+                .to_string()
+                .contains(&format!("{fake_module} is not a dependency")));
         }
     }
 
