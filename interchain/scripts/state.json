@@ -58,5 +58,25 @@
       "abstract:module-factory": "cosmos1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqdm4ntk",
       "abstract:registry": "cosmos1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq7u74fa"
     }
+  },
+  "xion-testnet-1": {
+    "code_ids": {
+      "abstract:account": 1282,
+      "abstract:ans-host": 1279,
+      "abstract:ibc-client": 1283,
+      "abstract:ibc-host": 1284,
+      "abstract:module-factory": 1281,
+      "abstract:registry": 1280,
+      "cw:blob": 1278
+    },
+    "default": {
+      "abstract:account-local-0": "xion10wvm0t3de2k23x6da6whwy30p3prt4gx3fx3klcjw36hgrjd44wsf86jwl",
+      "abstract:account-local-1": "xion1dnymc7khmeq9ya3hjs45cthwp3gnvpl2gynw0dvw6hyxv7enj6uqj8mf9p",
+      "abstract:ans-host": "xion1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdskfcdvu",
+      "abstract:ibc-client": "xion1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqjtn543",
+      "abstract:ibc-host": "xion1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqspjchy0",
+      "abstract:module-factory": "xion1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqhwxljd",
+      "abstract:registry": "xion1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqyfdesx"
+    }
   }
 }
