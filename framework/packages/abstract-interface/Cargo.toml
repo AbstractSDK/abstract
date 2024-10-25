@@ -41,6 +41,7 @@ abstract-std = { workspace = true }
 cw-orch = { workspace = true }
 cw-orch-interchain = { workspace = true, optional = true }
 cw-orch-polytone = { workspace = true, optional = true }
+cw-plus-orch = "0.25.0"
 
 log = "0.4.14"
 serde_json = "1.0.79"
@@ -59,7 +60,9 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 # Predictable abstract addresses
 cw-blob = { workspace = true }
-cosmrs = { version = "0.19.0" }
+cosmrs = { version = "0.20.0", features = ["cosmwasm"] }
+prost-types = { version = "0.13.3" }
+prost = { version = "0.13.3" }
 
 [build-dependencies]
 serde_json = "1.0.79"

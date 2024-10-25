@@ -28,3 +28,5 @@ pub use error::AbstractInterfaceError;
 pub use crate::{deployers::*, deployment::*};
 
 pub use daemon_state::AbstractDaemonState;
+
+mod multisig;
