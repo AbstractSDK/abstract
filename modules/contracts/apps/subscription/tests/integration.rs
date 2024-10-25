@@ -68,8 +68,10 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
         .instantiate_with_id("abstract:cw20")?;
 
     let publisher: Publisher<_> = client
-        .publisher_builder(Namespace::new("abstract")?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new("abstract")?)
+        .build()?
+        .publisher()?;
     publisher.publish_app::<SubscriptionInterface<_>>()?;
 
     let cw20_addr = cw20.address()?;
@@ -104,8 +106,10 @@ fn setup_native<'a>(
     let client = AbstractClient::builder(chain.clone()).build_mock()?;
     client.set_balances(balances)?;
     let publisher: Publisher<MockBech32> = client
-        .publisher_builder(Namespace::new("abstract")?)
-        .build()?;
+        .account_builder()
+        .namespace(Namespace::new("abstract")?)
+        .build()?
+        .publisher()?;
     publisher.publish_app::<SubscriptionInterface<_>>()?;
 
     let emissions = deploy_emission(&client)?;

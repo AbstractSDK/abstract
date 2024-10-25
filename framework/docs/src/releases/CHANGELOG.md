@@ -27,6 +27,7 @@
 - `registry::QueryMsg::Account` was changed to `registry::QueryMsg::Accounts` for simultaneous queries
 - Added `registry::QueryMsg::AccountList` for paginated account queries
 - Simplified the implementations of KeyDeserialize, PrimaryKey and Prefixer traits for  `AssetEntry`, `DexAssetPairing`, `ModuleInfo`, `ModuleVersion`. Used the base tuple implementation instead
+- Removed `install_on_sub_account` for client, replaced with explicit sub_account creation
 
 #### Abstract Client
 
