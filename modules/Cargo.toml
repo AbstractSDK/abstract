@@ -109,10 +109,6 @@ abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branc
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
-# TODO: release test-tube
-cw-orch-osmosis-test-tube = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/revive-osmosis-test-tube" }
-cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "buckram/revive-osmosis-test-tube" }
-
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
