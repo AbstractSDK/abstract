@@ -44,7 +44,7 @@ fn main() -> cw_orch::anyhow::Result<()> {
         expedited: false,
     };
 
-    let response = chain.commit_any::<MsgSubmitProposalResponse>(
+    let response = chain.commit_any(
         vec![prost_types::Any {
             type_url: MsgSubmitProposal::type_url(),
             value: msg_proposal.to_bytes()?,

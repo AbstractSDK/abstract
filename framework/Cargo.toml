@@ -53,13 +53,13 @@ protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-cw-orch = { version = "0.26.0" }
-cw-orch-interchain = { version = "0.7.0" }
+cw-orch = { version = "0.27.0" }
+cw-orch-interchain = { version = "0.8.1" }
 tokio = { version = "1.4", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "2.0.0" }
-polytone-note = { package = "abstract-polytone-note", version = "4.0.1" }
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
+polytone-note = { package = "abstract-polytone-note", version = "5.0.0" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "6.0.0" }
 
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -123,10 +123,10 @@ incremental = false
 
 [patch.crates-io]
 
-# TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+# In case Polytone not released
+# abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+# abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+# abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep
