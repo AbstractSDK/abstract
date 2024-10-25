@@ -10,7 +10,7 @@ use std::{
 use abstract_interchain_tests::{
     abstract_starship_interfaces, create_test_remote_account, set_starship_env, JUNO,
 };
-use abstract_interface::{connection::connect_one_way_to, Abstract, AccountI, AccountQueryFns};
+use abstract_interface::{AccountI, AccountQueryFns};
 use abstract_sdk::PfmMemoBuilder;
 use abstract_std::{
     ans_host::ExecuteMsgFns,
@@ -20,7 +20,7 @@ use abstract_std::{
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins};
 use cw_orch::{
-    daemon::{networks::ChainKind, senders::CosmosSender, CosmosOptions, TxSender, RUNTIME},
+    daemon::{networks::ChainKind, senders::CosmosSender, CosmosOptions, RUNTIME},
     prelude::*,
 };
 use cw_orch_interchain::prelude::*;

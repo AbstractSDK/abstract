@@ -114,8 +114,8 @@ pub fn abstract_starship_interfaces(
     let abstr_juno = Abstract::deploy_on(juno.clone(), juno_abstract_deployer.clone())?;
     let abstr_juno2 = Abstract::deploy_on(juno2.clone(), juno2_abstract_deployer.clone())?;
     connect_one_way_to(
-        &abstr_juno.call_as(&juno_abstract_deployer),
-        &abstr_juno2.call_as(&juno2_abstract_deployer),
+        &abstr_juno.call_as(juno_abstract_deployer),
+        &abstr_juno2.call_as(juno2_abstract_deployer),
         interchain,
     )?;
 

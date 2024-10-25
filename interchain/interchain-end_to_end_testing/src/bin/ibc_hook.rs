@@ -7,11 +7,10 @@ use std::{
 };
 
 use abstract_interchain_tests::{abstract_starship_interfaces, set_starship_env, JUNO, JUNO2};
-use abstract_interface::{connection::connect_one_way_to, Abstract, AccountI};
+use abstract_interface::AccountI;
 use abstract_sdk::HookMemoBuilder;
 use abstract_std::{
     ans_host::ExecuteMsgFns,
-    ibc_client::QueryMsgFns,
     objects::{TruncatedChainId, UncheckedChannelEntry},
     IBC_CLIENT, ICS20,
 };
@@ -19,7 +18,7 @@ use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins};
 use counter_contract::CounterContract;
 use cw_orch::{
-    daemon::{senders::CosmosSender, CosmosOptions, TxSender, Wallet, RUNTIME},
+    daemon::{senders::CosmosSender, CosmosOptions, RUNTIME},
     prelude::*,
 };
 use cw_orch_interchain::prelude::*;
