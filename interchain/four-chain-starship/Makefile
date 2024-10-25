@@ -1,5 +1,6 @@
 NAME = tutorial
-FILE = ./configs/osmo-juno.yaml
+FILE = ./configs/four-junos.yaml
+TINY_FILE = ./configs/two-junos.yaml
 
 HELM_REPO = starship
 HELM_CHART = devnet
@@ -37,7 +38,7 @@ setup-helm:
 install:
 	starship start --config $(FILE)
 
-install-tiny:
+install-two:
 	$(MAKE) install FILE=$(TINY_FILE)
 
 delete:
@@ -50,6 +51,10 @@ delete:
 .PHONY: port-forward
 port-forward:
 	bash $(CURDIR)/port-forward.sh --config=$(FILE)
+
+.PHONY: port-forward-two
+port-forward-two:
+	bash $(CURDIR)/port-forward.sh --config=$(TINY_FILE)
 
 .PHONY: stop-forward
 stop-forward:

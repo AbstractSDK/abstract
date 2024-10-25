@@ -4,7 +4,8 @@
 
 ### Added
 
-- Abstract Account authentication when building account with `xion` feature.
+- Added `PfmMemoBuilder` API for building middleware forwarding memo
+- Added `HookMemoBuilder` API for building wasm ibc hook memo
 - `execute_with_funds` to Executor to attach funds to execution.
 - `stargate` feature for abstract-app, abstract-standalone and abstract-adapter packages.
 - New module type: `Service`, behaves the same as Native, but can be registered by any namespace.
@@ -26,6 +27,7 @@
 - `registry::QueryMsg::Account` was changed to `registry::QueryMsg::Accounts` for simultaneous queries
 - Added `registry::QueryMsg::AccountList` for paginated account queries
 - Simplified the implementations of KeyDeserialize, PrimaryKey and Prefixer traits for  `AssetEntry`, `DexAssetPairing`, `ModuleInfo`, `ModuleVersion`. Used the base tuple implementation instead
+- Removed `install_on_sub_account` for client, replaced with explicit sub_account creation
 
 #### Abstract Client
 

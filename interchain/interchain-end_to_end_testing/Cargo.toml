@@ -28,6 +28,7 @@ tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }
 env_logger = "0.11.3"
+dotenv = "0.15.0"
 
 ibc-relayer-types = "0.29"
 
@@ -38,3 +39,7 @@ cw-controllers = { workspace = true }
 cw-storage-plus.workspace = true
 thiserror.workspace = true
 base64 = "0.22.1"
+# Testing contract
+counter-contract = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "main" } # Use tag if breaks
+
+ping-pong = { path = "../../modules/contracts/apps/ping-pong" }

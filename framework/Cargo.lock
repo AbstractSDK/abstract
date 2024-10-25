@@ -555,6 +555,8 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
+ "serde-cw-value",
+ "serde_json",
  "thiserror",
  "workspace-hack",
 ]
