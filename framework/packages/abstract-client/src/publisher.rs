@@ -46,19 +46,22 @@ impl<Chain: CwEnv> Publisher<Chain> {
         account: Account<Chain>,
         namespace: &str,
     ) -> AbstractClientResult<Self> {
-        let namespace_response = account.infrastructure()?.registry.namespace(namespace.try_into()?)?;
+        let namespace_response = account
+            .infrastructure()?
+            .registry
+            .namespace(namespace.try_into()?)?;
 
-        if let NamespaceResponse::Claimed(namespace_info) = namespace_response{
-            if namespace_info.account_id != account.id()?{
-                return Err(AbstractClientError::NamespaceClaimed{
+        if let NamespaceResponse::Claimed(namespace_info) = namespace_response {
+            if namespace_info.account_id != account.id()? {
+                return Err(AbstractClientError::NamespaceClaimed {
                     namespace: namespace.to_string(),
-                    account_id: namespace_info.account_id
-                })
+                    account_id: namespace_info.account_id,
+                });
             }
-        }else{
+        } else {
             account.claim_namespace(namespace)?;
         }
-        
+
         Ok(Self { account })
     }
 

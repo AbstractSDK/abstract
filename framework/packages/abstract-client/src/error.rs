@@ -33,7 +33,10 @@ pub enum AbstractClientError {
     NamespaceNotClaimed { namespace: String },
 
     #[error("Namespace \"{namespace}\" already claimed by account {account_id}")]
-    NamespaceClaimed { namespace: String, account_id: AccountId },
+    NamespaceClaimed {
+        namespace: String,
+        account_id: AccountId,
+    },
 
     #[error("Account {account} doesn't have an associated namespace")]
     NoNamespace { account: AccountId },
