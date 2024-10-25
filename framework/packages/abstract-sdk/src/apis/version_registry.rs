@@ -30,10 +30,11 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         # use abstract_sdk::mock_module::MockModule;
         # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
 
-        let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
+        let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref(), &env).unwrap();
         ```
     */
     fn module_registry<'a>(
@@ -74,10 +75,11 @@ impl<'a, T: ModuleRegistryInterface> AbstractApi<T> for ModuleRegistry<'a, T> {
     # use abstract_sdk::mock_module::MockModule;
     # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
 
-    let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
+    let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref(), &env).unwrap();
     ```
 */
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
@@ -128,6 +130,16 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
         self.registry
             .query_namespace(namespace, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
+    }
+
+    /// Queries the account_id that owns the namespace
+    pub fn query_namespace_raw(
+        &self,
+        namespace: Namespace,
+    ) -> AbstractSdkResult<Option<AccountId>> {
+        self.registry
+            .query_namespace_raw(namespace, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 

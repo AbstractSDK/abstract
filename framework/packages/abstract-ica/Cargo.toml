@@ -34,7 +34,6 @@ alloy-sol-types = { version = "0.7.7", default-features = false }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
-speculoos = { workspace = true }
 rstest = { workspace = true }
 anyhow = { workspace = true }
 abstract-testing = { path = "../abstract-testing" }

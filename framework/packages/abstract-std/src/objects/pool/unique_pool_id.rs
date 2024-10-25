@@ -1,6 +1,6 @@
-use std::{array::TryFromSliceError, fmt::Display};
+use std::fmt::Display;
 
-use cosmwasm_std::{StdError, StdResult};
+use cosmwasm_std::StdResult;
 use cw_storage_plus::{IntKey, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -59,9 +59,7 @@ impl KeyDeserialize for UniquePoolId {
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(Self::from_cw_bytes(value.as_slice().try_into().map_err(
-            |err: TryFromSliceError| StdError::generic_err(err.to_string()),
-        )?))
+        Ok(Self(u64::from_vec(value)?))
     }
 }
 

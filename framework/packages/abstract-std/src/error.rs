@@ -1,4 +1,4 @@
-use cosmwasm_std::{OverflowError, StdError};
+use cosmwasm_std::StdError;
 use cw_asset::AssetError;
 use semver::Version;
 use thiserror::Error;
@@ -11,25 +11,22 @@ pub enum AbstractError {
     #[error("Std error encountered while handling account object: {0}")]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Asset(#[from] AssetError),
 
-    #[error("cw math overflow error: {0}")]
-    Overflow(#[from] OverflowError),
-
-    #[error("{0}")]
+    #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Bech32Encode(#[from] bech32::EncodeError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     HrpError(#[from] bech32::primitives::hrp::Error),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Instantiate2AddressError(#[from] cosmwasm_std::Instantiate2AddressError),
 
     #[error("Semver error encountered while handling account object: {0}")]
@@ -55,17 +52,11 @@ pub enum AbstractError {
     #[error("Cannot rename contract from {} to {}", from, to)]
     ContractNameMismatch { from: String, to: String },
 
-    #[error("Adapter {0} not installed on Account")]
-    AdapterNotInstalled(String),
-
     #[error("App {0} not installed on Account")]
     AppNotInstalled(String),
 
     #[error("version for {0} in missing")]
     MissingVersion(String),
-
-    #[error("Abstract storage object {object} errors with {msg}")]
-    Storage { object: String, msg: String },
 
     #[error("assertion: {0}")]
     Assert(String),
@@ -73,10 +64,6 @@ pub enum AbstractError {
     //fee error
     #[error("fee error: {0}")]
     Fee(String),
-
-    // deposit error
-    #[error("deposit error: {0}")]
-    Deposit(String),
 
     #[error("The version or name of this module was not consistent between its stores (cw2: {cw2} and abstract module data: {module}).")]
     UnequalModuleData { cw2: String, module: String },

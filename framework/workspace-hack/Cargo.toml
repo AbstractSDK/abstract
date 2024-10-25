@@ -26,9 +26,6 @@ generic-array = { version = "0.14", default-features = false, features = ["more_
 getrandom = { version = "0.2", default-features = false, features = ["custom", "std"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
-num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-traits = { version = "0.2", default-features = false, features = ["i128", "libm", "std"] }
 ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
 prost = { version = "0.13", features = ["prost-derive"] }
 prost-types = { version = "0.13" }
@@ -54,9 +51,6 @@ generic-array = { version = "0.14", default-features = false, features = ["more_
 getrandom = { version = "0.2", default-features = false, features = ["custom", "std"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
-num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-traits = { version = "0.2", default-features = false, features = ["i128", "libm", "std"] }
 ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
 prost = { version = "0.13", features = ["prost-derive"] }
 prost-types = { version = "0.13" }
@@ -117,8 +111,10 @@ lazy_static = { version = "1", default-features = false, features = ["spin_no_st
 libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["serde"] }
 num-bigint = { version = "0.4", features = ["serde"] }
+num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
-num-traits = { version = "0.2" }
+num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
@@ -195,8 +191,10 @@ lazy_static = { version = "1", default-features = false, features = ["spin_no_st
 libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["serde"] }
 num-bigint = { version = "0.4", features = ["serde"] }
+num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
-num-traits = { version = "0.2" }
+num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
@@ -272,8 +270,10 @@ lazy_static = { version = "1", default-features = false, features = ["spin_no_st
 libc = { version = "0.2", features = ["extra_traits"] }
 log = { version = "0.4", default-features = false, features = ["serde"] }
 num-bigint = { version = "0.4", features = ["serde"] }
+num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
-num-traits = { version = "0.2" }
+num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
@@ -349,8 +349,10 @@ lazy_static = { version = "1", default-features = false, features = ["spin_no_st
 libc = { version = "0.2", features = ["extra_traits"] }
 log = { version = "0.4", default-features = false, features = ["serde"] }
 num-bigint = { version = "0.4", features = ["serde"] }
+num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
-num-traits = { version = "0.2" }
+num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }

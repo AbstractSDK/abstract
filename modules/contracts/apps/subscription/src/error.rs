@@ -12,31 +12,31 @@ use crate::handlers::execute::MAX_UNSUBS;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum SubscriptionError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Asset(#[from] AssetError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AdminError(#[from] AdminError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     DecimalError(#[from] DecimalRangeExceeded),
 
-    #[error("{0}")]
+    #[error(transparent)]
     AppError(#[from] AppError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     Overflow(#[from] OverflowError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     CheckedMultiplyFractionError(#[from] CheckedMultiplyFractionError),
 
     #[error("This contract does not implement the cw20 swap function")]

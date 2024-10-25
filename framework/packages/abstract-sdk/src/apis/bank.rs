@@ -28,10 +28,11 @@ pub trait TransferInterface:
         # use abstract_sdk::mock_module::MockModule;
         # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
+        # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
 
-        let bank: Bank<MockModule>  = module.bank(deps.as_ref());
+        let bank: Bank<MockModule>  = module.bank(deps.as_ref(), &env);
         ```
     */
     fn bank<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> Bank<Self> {
@@ -69,10 +70,11 @@ impl<'a, T: TransferInterface> AbstractApi<T> for Bank<'a, T> {
     # use abstract_sdk::mock_module::MockModule;
     # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
+    # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
 
-    let bank: Bank<MockModule>  = module.bank(deps.as_ref());
+    let bank: Bank<MockModule>  = module.bank(deps.as_ref(), &env);
     ```
 */
 #[derive(Clone)]
@@ -123,7 +125,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
 impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// Transfer the provided funds from the Account to the recipient.
     /// ```
-    /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
+    /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo, Env};
     /// # use abstract_std::registry::Account;
     /// # use abstract_std::objects::AnsAsset;
     /// # use abstract_std::objects::ans_host::AnsHost;
@@ -145,12 +147,12 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// # }
     /// #
     /// # impl AbstractNameService for MockModule {
-    /// #   fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    /// #   fn ans_host(&self, _deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
     /// #     unimplemented!("Not needed for this example")
     /// #  }
     /// # }
-    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
-    ///     let bank = app.bank(deps.as_ref());
+    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, env: &Env, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
+    ///     let bank = app.bank(deps.as_ref(), env);
     ///     let executor = app.executor(deps.as_ref());    
     ///     let transfer_action = bank.transfer(vec![requested_asset.clone()], &info.sender)?;
     ///
@@ -283,7 +285,6 @@ mod test {
     use abstract_testing::mock_env_validated;
     use abstract_testing::prelude::*;
     use cosmwasm_std::*;
-    use speculoos::prelude::*;
 
     use super::*;
     use crate::apis::traits::test::abstract_api_test;
@@ -364,8 +365,9 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(response.messages[0].msg).is_equal_to(
-                &wasm_execute(
+            assert_eq!(
+                response.messages[0].msg,
+                wasm_execute(
                     account.addr(),
                     &ExecuteMsg::<Empty>::Execute {
                         msgs: vec![expected_msg],
@@ -406,7 +408,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(response.messages[0].msg).is_equal_to::<CosmosMsg>(bank_msg);
+            assert_eq!(response.messages[0].msg, bank_msg);
         }
     }
 
@@ -429,7 +431,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_eq!(actual_res.unwrap().messages()[0], expected_msg);
         }
     }
 
@@ -464,7 +466,7 @@ mod test {
                 funds: vec![],
             });
 
-            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_eq!(actual_res.unwrap().messages()[0], expected_msg);
         }
 
         #[coverage_helper::test]
@@ -480,10 +482,13 @@ mod test {
             let hook_msg = Empty {};
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
 
-            assert_that!(actual_res.unwrap_err()).is_equal_to::<AbstractSdkError>(
-                AbstractSdkError::Asset(AssetError::UnavailableMethodForNative {
-                    method: "send".into(),
-                }),
+            assert_eq!(
+                actual_res,
+                Err(AbstractSdkError::Asset(
+                    AssetError::UnavailableMethodForNative {
+                        method: "send".into(),
+                    }
+                )),
             );
         }
     }

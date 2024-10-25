@@ -86,7 +86,6 @@ abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = f
 
 ## Testing
 rstest = "0.17.0"
-speculoos = "0.11.0"
 anyhow = "1"
 
 # this ensures local compatability when compiling locally
