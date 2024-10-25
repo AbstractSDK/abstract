@@ -1,6 +1,6 @@
 {
-  "contract_name": "abstract-ibc-client",
-  "contract_version": "0.24.1-beta.2",
+  "contract_name": "abstract-ica-client",
+  "contract_version": "0.24.1",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -85,6 +85,13 @@
                 ]
               },
               "memo": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "receiver": {
+                "description": "Address of the token receiver on host chain Defaults to address of the remote account",
                 "type": [
                   "string",
                   "null"
