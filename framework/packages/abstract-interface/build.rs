@@ -79,8 +79,8 @@ fn main() {
     for entry in read_dir {
         let entry = entry.unwrap();
         let mut file_content = fs::read(entry.path()).unwrap();
-        // Edit wasms if we have custom abstract creator
         if entry.path().extension().and_then(OsStr::to_str) == Some("wasm") {
+            // Edit wasms if we have custom abstract creator
             if let Some(creator) = creator.as_deref() {
                 if let Some(position) = file_content
                     .windows(DEFAULT_ABSTRACT_CREATOR.len())
