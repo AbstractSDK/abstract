@@ -9,8 +9,15 @@ const DEFAULT_ABSTRACT_CREATOR: [u8; 33] = [
 
 fn main() {
     let creator = if let Ok(creator) = env::var("ABSTRACT_CREATOR") {
-        BASE64_STANDARD
-            .decode(creator)
+        bip32::Mnemonic::new(&creator, Default::default())
+            .map(|phrase| {
+                let seed = phrase.to_seed("");
+                let derive_path: bip32::DerivationPath = "m/44'/118'/0'/0/0".parse().unwrap();
+                let xprv = bip32::XPrv::derive_from_path(seed, &derive_path).unwrap();
+                xprv.public_key().to_bytes().to_vec()
+            })
+            .ok()
+            .or(BASE64_STANDARD.decode(&creator).ok())
             .expect("ABSTRACT_CREATOR public key supposed to be encoded as base64")
     } else {
         DEFAULT_ABSTRACT_CREATOR.to_vec()

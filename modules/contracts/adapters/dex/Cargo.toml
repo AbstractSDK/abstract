@@ -25,12 +25,7 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 schema = ["abstract-adapter/schema"]
-testing = [
-  "dep:abstract-client",
-  "dep:cw20",
-  "dep:serde_json",
-  "mock-deployment",
-]
+testing = ["dep:abstract-client", "dep:cw20", "dep:serde_json"]
 
 # Supported Dexes
 # wynd = ["abstract-wyndex-adapter/full_integration"]
@@ -40,7 +35,6 @@ osmosis = ["abstract-osmosis-adapter/full_integration"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 
 osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
-mock-deployment = ["abstract-adapter/mock-deployment"]
 
 # Builds
 [package.metadata.optimizer]
@@ -55,7 +49,6 @@ builds = [
   #   "astroport",
   # ] },
   { name = "osmosis", features = ["osmosis"] },
-  { name = "osmosis-mock", features = ["osmosis", "mock-deployment"] },
   # { name = "kujira", features = [
   #   "fin",
   # ] },

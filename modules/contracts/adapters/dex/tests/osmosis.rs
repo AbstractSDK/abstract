@@ -1,6 +1,6 @@
 #![cfg(feature = "osmosis-test")]
 
-use std::{format, rc::Rc};
+use std::{format, rc::Rc, todo};
 
 use abstract_adapter::std::{
     ans_host::ExecuteMsgFns,
@@ -76,6 +76,8 @@ fn get_pool_token(id: u64) -> String {
     format!("gamm/pool/{}", id)
 }
 
+const MOCK_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
+
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
     OsmosisTestTube,
@@ -90,8 +92,10 @@ fn setup_mock() -> anyhow::Result<(
 
     let mut chain = OsmosisTestTube::new(vec![]);
 
-    let seed = Abstract::<OsmosisTestTube>::mock_mnemonic().to_seed("");
-    let derive_path = Abstract::<OsmosisTestTube>::mock_derive_path(None);
+    let seed = bip32::Mnemonic::new(MOCK_MNEMONIC, Default::default())
+        .unwrap()
+        .to_seed("");
+    let derive_path = "m/44'/118'/0'/0/0";
     let signing_key = cw_orch_osmosis_test_tube::osmosis_test_tube::cosmrs::crypto::secp256k1::SigningKey::derive_from_path(seed, &derive_path.parse().unwrap()).unwrap();
     let signing_account = cw_orch_osmosis_test_tube::osmosis_test_tube::SigningAccount::new(
         chain.sender.prefix().to_string(),

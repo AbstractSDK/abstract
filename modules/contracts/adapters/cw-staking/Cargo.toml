@@ -30,7 +30,7 @@ crate-type = ["cdylib", "rlib"]
 export = []
 default = ["export"]
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw20", "mock-deployment"]
+testing = ["dep:abstract-client", "dep:cw20"]
 osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
 # Supported Dexes
@@ -39,8 +39,6 @@ osmosis = ["abstract-osmosis-adapter/full_integration"]
 # astroport = ["abstract-astroport-adapter/full_integration"]
 # bow = ["abstract-kujira-adapter/full_integration"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
-
-mock-deployment = ["abstract-adapter/mock-deployment"]
 
 # Builds
 [package.metadata.optimizer]
@@ -55,7 +53,6 @@ builds = [
   #   "astroport",
   # ] },
   { name = "osmosis", features = ["osmosis"] },
-  { name = "osmosis-mock", features = ["osmosis", "mock-deployment"] },
   # { name = "kujira", features = [
   #   "bow",
   # ] },

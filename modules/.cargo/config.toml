@@ -1,3 +1,7 @@
 [alias]
 schema = "run --example schema --features schema"
 wasm = "build --release --target wasm32-unknown-unknown"
+# We set it for tests
+# From https://github.com/CosmosContracts/juno/blob/32568dba828ff7783aea8cb5bb4b8b5832888255/docker/test-user.env#L2
+[env]
+ABSTRACT_CREATOR = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose"

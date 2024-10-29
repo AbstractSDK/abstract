@@ -91,8 +91,7 @@ anyhow = "1"
 # this ensures local compatability when compiling locally
 [patch.crates-io]
 
-
-# In case polytone not releasedabstract-adapter = { path = "../framework/packages/abstract-adapter" }
+abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-standalone = { path = "../framework/packages/abstract-standalone" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
@@ -107,6 +106,7 @@ abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 
 
+# In case polytone not released
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }

@@ -62,16 +62,23 @@ fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
 
     let creator = if let Ok(creator) = env::var("ABSTRACT_CREATOR") {
-        let creator = BASE64_STANDARD
-            .decode(creator)
+        let public_key = bip32::Mnemonic::new(&creator, Default::default())
+            .map(|phrase| {
+                let seed = phrase.to_seed("");
+                let derive_path: bip32::DerivationPath = "m/44'/118'/0'/0/0".parse().unwrap();
+                let xprv = bip32::XPrv::derive_from_path(seed, &derive_path).unwrap();
+                xprv.public_key().to_bytes().to_vec()
+            })
+            .ok()
+            .or(BASE64_STANDARD.decode(&creator).ok())
             .expect("ABSTRACT_CREATOR public key supposed to be encoded as base64");
         // We can't edit len of the creator blob, *unless we somehow find all references to it
         assert!(
-            creator.len() == DEFAULT_ABSTRACT_CREATOR.len(),
-            "Pubkey for abstract creator should be {}",
+            public_key.len() == DEFAULT_ABSTRACT_CREATOR.len(),
+            "Pubkey length for abstract creator should be {}",
             DEFAULT_ABSTRACT_CREATOR.len()
         );
-        Some(creator)
+        Some(public_key)
     } else {
         None
     };

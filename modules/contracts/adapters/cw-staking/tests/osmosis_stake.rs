@@ -145,6 +145,8 @@ mod osmosis_test {
         Ok(())
     }
 
+    const MOCK_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
+
     fn setup_osmosis() -> anyhow::Result<(
         OsmosisTestTube,
         u64,
@@ -152,9 +154,16 @@ mod osmosis_test {
         AccountI<OsmosisTestTube>,
     )> {
         let mut tube = OsmosisTestTube::new(vec![]);
+        let validator = tube
+            .app
+            .borrow_mut()
+            .get_first_validator_signing_account()
+            .unwrap();
 
-        let seed = Abstract::<OsmosisTestTube>::mock_mnemonic().to_seed("");
-        let derive_path = Abstract::<OsmosisTestTube>::mock_derive_path(None);
+        let seed = bip32::Mnemonic::new(MOCK_MNEMONIC, Default::default())
+            .unwrap()
+            .to_seed("");
+        let derive_path = "m/44'/118'/0'/0/0";
         let signing_key = cw_orch_osmosis_test_tube::osmosis_test_tube::cosmrs::crypto::secp256k1::SigningKey::derive_from_path(seed, &derive_path.parse().unwrap()).unwrap();
         let signing_account = cw_orch_osmosis_test_tube::osmosis_test_tube::SigningAccount::new(
             tube.sender.prefix().to_string(),

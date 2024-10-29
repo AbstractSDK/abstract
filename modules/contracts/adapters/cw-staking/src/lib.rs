@@ -56,18 +56,11 @@ pub mod interface {
             ))
         }
         fn wasm(chain: &ChainInfoOwned) -> WasmPath {
-            let build_postfix = {
-                #[cfg(feature = "mock-deployment")]
-                {
-                    BuildPostfix::Custom(format!("{}-mock", chain.network_info.chain_name))
-                }
-                #[cfg(not(feature = "mock-deployment"))]
-                {
-                    BuildPostfix::ChainName(chain)
-                }
-            };
             artifacts_dir_from_workspace!()
-                .find_wasm_path_with_build_postfix("abstract_cw_staking", build_postfix)
+                .find_wasm_path_with_build_postfix(
+                    "abstract_cw_staking",
+                    BuildPostfix::ChainName(chain),
+                )
                 .unwrap()
         }
     }

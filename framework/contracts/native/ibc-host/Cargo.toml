@@ -19,11 +19,6 @@ crate-type = ["cdylib", "rlib"]
 default = ["export"]
 export = []
 schema = []
-mock-deployment = ["abstract-std/mock-deployment"]
-
-[package.metadata.optimizer]
-standard-build = true
-builds = [{ name = "mock", features = ["mock-deployment"] }]
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["stargate"] }

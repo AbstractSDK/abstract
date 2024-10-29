@@ -22,7 +22,6 @@ default = ["integration"]
 daemon = ["cw-orch/daemon"]
 integration = []
 interchain = ["dep:cw-orch-interchain", "dep:cw-orch-polytone"]
-mock-deployment = ["abstract-std/mock-deployment"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 cosmwasm-std = { workspace = true }
@@ -42,7 +41,6 @@ abstract-std = { workspace = true }
 cw-orch = { workspace = true }
 cw-orch-interchain = { workspace = true, optional = true }
 cw-orch-polytone = { workspace = true, optional = true }
-bip32 = { version = "0.5.2" }
 
 log = "0.4.14"
 serde_json = "1.0.79"
@@ -64,8 +62,10 @@ cw-blob = { workspace = true }
 cosmrs = { version = "0.19.0" }
 
 [build-dependencies]
-serde_json = "1.0.79"
+serde_json = { version = "1.0.79" }
 base64 = { version = "0.22.1" }
+bip32 = { version = "0.5.2", features = ["secp256k1"] }
+cosmrs = { version = "0.21.0" }
 
 [dev-dependencies]
 abstract-testing = { workspace = true }
