@@ -49,6 +49,12 @@ pub struct AccountDetails {
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountI<Chain>;
 
+impl<Chain> AsRef<AccountI<Chain>> for AccountI<Chain> {
+    fn as_ref(&self) -> &AccountI<Chain> {
+        self
+    }
+}
+
 impl<Chain: CwEnv> AccountI<Chain> {
     pub fn load_from(
         abstract_deployment: &Abstract<Chain>,

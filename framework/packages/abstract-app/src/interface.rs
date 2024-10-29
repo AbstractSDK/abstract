@@ -219,9 +219,19 @@ macro_rules! __cw_orch_interfaces__ {
             for $interface_name<Chain>
         {
             fn wasm(_chain: &::cw_orch::prelude::ChainInfoOwned) -> ::cw_orch::prelude::WasmPath {
+                let build_postfix = {
+                    #[cfg(feature = "mock-deployment")]
+                    {
+                        cw_orch::build::BuildPostfix::Custom("mock".to_string())
+                    }
+                    #[cfg(not(feature = "mock-deployment"))]
+                    {
+                        cw_orch::build::BuildPostfix::None
+                    }
+                };
                 let wasm_name = env!("CARGO_CRATE_NAME").replace('-', "_");
                 ::cw_orch::prelude::ArtifactsDir::auto(Some(env!("CARGO_MANIFEST_DIR").to_string()))
-                    .find_wasm_path(&wasm_name)
+                    .find_wasm_path_with_build_postfix(&wasm_name, build_postfix)
                     .unwrap()
             }
 

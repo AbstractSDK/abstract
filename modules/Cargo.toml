@@ -49,7 +49,7 @@ semver = "1.0"
 
 cw-orch = { version = "0.27.0" }
 cw-orch-interchain = { version = "0.8.1" }
-# cw-orch-osmosis-test-tube = { version = "0.2.0" }
+cw-orch-osmosis-test-tube = { version = "0.4.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -90,7 +90,9 @@ anyhow = "1"
 
 # this ensures local compatability when compiling locally
 [patch.crates-io]
-abstract-adapter = { path = "../framework/packages/abstract-adapter" }
+
+
+# In case polytone not releasedabstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-standalone = { path = "../framework/packages/abstract-standalone" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
@@ -104,11 +106,10 @@ abstract-money-market-standard = { path = "../framework/packages/standards/money
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 
-# In case polytone not released
-# abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
+abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
