@@ -89,6 +89,13 @@
                   "string",
                   "null"
                 ]
+              },
+              "receiver": {
+                "description": "Address of the token receiver on host chain Defaults to address of the remote account",
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "additionalProperties": false

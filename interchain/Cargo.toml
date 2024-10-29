@@ -57,11 +57,11 @@ polytone = { package = "abstract-polytone", version = "2.0.0" }
 polytone-note = { package = "abstract-polytone-note", version = "4.0.0" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
 
-cw-orch = { version = "0.26.0" }
-cw-orch-daemon = { version = "0.27.0" }
-cw-orch-interchain = { version = "0.7.0" }
-cw-orch-clone-testing = { version = "0.8.0" }
-cw-orch-proto = { version = "0.8.0" }
+cw-orch = { version = "0.27.0" }
+cw-orch-daemon = { version = "0.28.0" }
+cw-orch-interchain = { version = "0.8.0" }
+cw-orch-clone-testing = { version = "0.9.0" }
+cw-orch-proto = { version = "0.9.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
@@ -108,6 +108,11 @@ abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", 
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 # Backup release profile, will result in warnings during optimization
+
+[patch.'https://github.com/AbstractSDK/cw-orchestrator']
+cw-orch = { version = "0.26.0" }
+cw-orch-interchain = { version = "=0.7.2" }
+
 [profile.release]
 rpath = false
 lto = true

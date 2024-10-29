@@ -49,19 +49,24 @@ impl<
         execute: &M::ExecuteMsg,
         funds: Vec<Coin>,
     ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
-        self.remote_account.ibc_client_execute(
-            ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: self.remote_account.host_chain_id(),
-                action: ibc_host::HostAction::Dispatch {
-                    account_msgs: vec![account::ExecuteMsg::ExecuteOnModule {
-                        module_id: M::module_id().to_owned(),
-                        exec_msg: to_json_binary(execute).map_err(AbstractInterfaceError::from)?,
-                        funds,
-                    }],
-                },
-            },
-            vec![],
-        )
+        self.remote_account
+            .execute_on_account(vec![account::ExecuteMsg::ExecuteOnModule {
+                module_id: M::module_id().to_owned(),
+                exec_msg: to_json_binary(execute).map_err(AbstractInterfaceError::from)?,
+                funds,
+            }])
+    }
+
+    /// Execute admin message on application
+    pub fn admin_execute(
+        &self,
+        execute: &M::ExecuteMsg,
+    ) -> AbstractClientResult<SuccessNestedPacketsFlow<Chain, Empty>> {
+        self.remote_account
+            .execute_on_account(vec![account::ExecuteMsg::AdminExecuteOnModule {
+                module_id: M::module_id().to_owned(),
+                msg: to_json_binary(execute).map_err(AbstractInterfaceError::from)?,
+            }])
     }
 
     /// Queries request on  application
