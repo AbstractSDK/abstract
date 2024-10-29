@@ -1,8 +1,7 @@
 use std::{
     env,
     ffi::OsStr,
-    fs::{self, Metadata, OpenOptions},
-    io::{Read, Seek, SeekFrom, Write},
+    fs,
     path::{Path, PathBuf},
 };
 
@@ -33,7 +32,7 @@ fn main() {
     // First we load the daemon json file
     // We verify that the daemon_file is actually present where it should be located
     assert!(
-        std::fs::metadata(state_path.clone()).is_ok(),
+        fs::metadata(state_path.clone()).is_ok(),
         "File should be present at {}",
         state_path
     );
@@ -81,8 +80,8 @@ fn main() {
         let entry = entry.unwrap();
         let mut file_content = fs::read(entry.path()).unwrap();
         // Edit wasms if we have custom abstract creator
-        if let Some(creator) = creator.as_deref() {
-            if entry.path().extension().and_then(OsStr::to_str) == Some("wasm") {
+        if entry.path().extension().and_then(OsStr::to_str) == Some("wasm") {
+            if let Some(creator) = creator.as_deref() {
                 if let Some(position) = file_content
                     .windows(DEFAULT_ABSTRACT_CREATOR.len())
                     .position(|window| window == DEFAULT_ABSTRACT_CREATOR)
@@ -91,12 +90,12 @@ fn main() {
                         .copy_from_slice(&creator);
                 }
             }
+            // write content
+            fs::write(Path::new(&out_dir).join(entry.file_name()), file_content).unwrap();
         }
-        // write content
-        fs::write(Path::new(&out_dir).join(entry.file_name()), file_content).unwrap();
     }
 
-    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo::rerun-if-changed=build.rs");
     println!("cargo::rerun-if-env-changed=ABSTRACT_CREATOR")
     // println!("cargo:rerun-if-changed={}", absolute_state_path.display());
 }

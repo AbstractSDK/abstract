@@ -1,4 +1,4 @@
-use std::{env, path::Path};
+use std::{env, fs, path::Path};
 
 use base64::prelude::*;
 
@@ -8,7 +8,7 @@ const DEFAULT_ABSTRACT_CREATOR: [u8; 33] = [
 ];
 
 fn main() {
-    let creator = if let Ok(creator) = std::env::var("ABSTRACT_CREATOR") {
+    let creator = if let Ok(creator) = env::var("ABSTRACT_CREATOR") {
         BASE64_STANDARD
             .decode(creator)
             .expect("ABSTRACT_CREATOR public key supposed to be encoded as base64")
@@ -18,8 +18,8 @@ fn main() {
 
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("creator");
-    std::fs::write(dest_path, creator).unwrap();
+    fs::write(dest_path, creator).unwrap();
 
-    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo::rerun-if-changed=build.rs");
     println!("cargo::rerun-if-env-changed=ABSTRACT_CREATOR")
 }
