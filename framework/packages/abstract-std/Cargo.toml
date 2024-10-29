@@ -11,6 +11,9 @@ repository = "https://github.com/AbstractSDK/abstract"
 [lints]
 workspace = true
 
+[build-dependencies]
+base64 = { version = "0.22.1" }
+
 [features]
 # for quicker tests, cargo test --lib
 

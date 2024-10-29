@@ -74,91 +74,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             native_addrs::creator_address(hrp)?,
             "Only predetermined abstract admin can deploy abstract contracts, see `native_addrs.rs`"
         );
-
-        let admin = sender_addr.to_string();
-        // upload
-        let mut deployment = Self::store_on(chain.clone())?;
-        let blob_code_id = deployment.blob.code_id()?;
-
-        let creator_account_id: cosmrs::AccountId = admin.as_str().parse().unwrap();
-        let canon_creator = CanonicalAddr::from(creator_account_id.to_bytes());
-
-        let expected_addr = |salt: &[u8]| -> Result<CanonicalAddr, Instantiate2AddressError> {
-            instantiate2_address(&cw_blob::CHECKSUM, &canon_creator, salt)
-        };
-
-        deployment.ans_host.deterministic_instantiate(
-            &abstract_std::ans_host::MigrateMsg::Instantiate(
-                abstract_std::ans_host::InstantiateMsg {
-                    admin: admin.to_string(),
-                },
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::ANS_HOST_SALT)?,
-            Binary::from(native_addrs::ANS_HOST_SALT),
-        )?;
-
-        deployment.registry.deterministic_instantiate(
-            &abstract_std::registry::MigrateMsg::Instantiate(
-                abstract_std::registry::InstantiateMsg {
-                    admin: admin.to_string(),
-                    #[cfg(feature = "integration")]
-                    security_disabled: Some(true),
-                    #[cfg(not(feature = "integration"))]
-                    security_disabled: Some(false),
-                    namespace_registration_fee: None,
-                },
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::REGISTRY_SALT)?,
-            Binary::from(native_addrs::REGISTRY_SALT),
-        )?;
-        deployment.module_factory.deterministic_instantiate(
-            &abstract_std::module_factory::MigrateMsg::Instantiate(
-                abstract_std::module_factory::InstantiateMsg {
-                    admin: admin.to_string(),
-                },
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::MODULE_FACTORY_SALT)?,
-            Binary::from(native_addrs::MODULE_FACTORY_SALT),
-        )?;
-
-        // We also instantiate ibc contracts
-        deployment.ibc.client.deterministic_instantiate(
-            &abstract_std::ibc_client::MigrateMsg::Instantiate(
-                abstract_std::ibc_client::InstantiateMsg {},
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::IBC_CLIENT_SALT)?,
-            Binary::from(native_addrs::IBC_CLIENT_SALT),
-        )?;
-        deployment.ibc.host.deterministic_instantiate(
-            &abstract_std::ibc_host::MigrateMsg::Instantiate(
-                abstract_std::ibc_host::InstantiateMsg {},
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::IBC_HOST_SALT)?,
-            Binary::from(native_addrs::IBC_HOST_SALT),
-        )?;
-        deployment.ibc.register(&deployment.registry)?;
-
-        deployment.registry.register_base(&deployment.account)?;
-        deployment
-            .registry
-            .register_natives(deployment.contracts())?;
-        deployment.registry.approve_any_abstract_modules()?;
-
-        // Create the first abstract account in integration environments
-        #[cfg(feature = "integration")]
-        use abstract_std::objects::gov_type::GovernanceDetails;
-        #[cfg(feature = "integration")]
-        AccountI::create_default_account(
-            &deployment,
-            GovernanceDetails::Monarchy {
-                monarch: chain.sender_addr().to_string(),
-            },
-        )?;
+        let mut deployment = Self::_deploy(&chain)?;
 
         // Return original sender
         deployment.update_sender(&original_sender);
@@ -318,6 +234,95 @@ impl<Chain: CwEnv> Abstract<Chain> {
             account: self.account.call_as(sender),
             blob: self.blob.clone(),
         }
+    }
+
+    fn _deploy(chain: &Chain) -> Result<Self, AbstractInterfaceError> {
+        let sender_addr = chain.sender_addr();
+        let admin = sender_addr.to_string();
+        // upload
+        let deployment = Self::store_on(chain.clone())?;
+        let blob_code_id = deployment.blob.code_id()?;
+
+        let creator_account_id: cosmrs::AccountId = admin.as_str().parse().unwrap();
+        let canon_creator = CanonicalAddr::from(creator_account_id.to_bytes());
+
+        let expected_addr = |salt: &[u8]| -> Result<CanonicalAddr, Instantiate2AddressError> {
+            instantiate2_address(&cw_blob::CHECKSUM, &canon_creator, salt)
+        };
+
+        deployment.ans_host.deterministic_instantiate(
+            &abstract_std::ans_host::MigrateMsg::Instantiate(
+                abstract_std::ans_host::InstantiateMsg {
+                    admin: admin.to_string(),
+                },
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::ANS_HOST_SALT)?,
+            Binary::from(native_addrs::ANS_HOST_SALT),
+        )?;
+
+        deployment.registry.deterministic_instantiate(
+            &abstract_std::registry::MigrateMsg::Instantiate(
+                abstract_std::registry::InstantiateMsg {
+                    admin: admin.to_string(),
+                    #[cfg(feature = "integration")]
+                    security_disabled: Some(true),
+                    #[cfg(not(feature = "integration"))]
+                    security_disabled: Some(false),
+                    namespace_registration_fee: None,
+                },
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::REGISTRY_SALT)?,
+            Binary::from(native_addrs::REGISTRY_SALT),
+        )?;
+        deployment.module_factory.deterministic_instantiate(
+            &abstract_std::module_factory::MigrateMsg::Instantiate(
+                abstract_std::module_factory::InstantiateMsg {
+                    admin: admin.to_string(),
+                },
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::MODULE_FACTORY_SALT)?,
+            Binary::from(native_addrs::MODULE_FACTORY_SALT),
+        )?;
+
+        // We also instantiate ibc contracts
+        deployment.ibc.client.deterministic_instantiate(
+            &abstract_std::ibc_client::MigrateMsg::Instantiate(
+                abstract_std::ibc_client::InstantiateMsg {},
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::IBC_CLIENT_SALT)?,
+            Binary::from(native_addrs::IBC_CLIENT_SALT),
+        )?;
+        deployment.ibc.host.deterministic_instantiate(
+            &abstract_std::ibc_host::MigrateMsg::Instantiate(
+                abstract_std::ibc_host::InstantiateMsg {},
+            ),
+            blob_code_id,
+            expected_addr(native_addrs::IBC_HOST_SALT)?,
+            Binary::from(native_addrs::IBC_HOST_SALT),
+        )?;
+        deployment.ibc.register(&deployment.registry)?;
+
+        deployment.registry.register_base(&deployment.account)?;
+        deployment
+            .registry
+            .register_natives(deployment.contracts())?;
+        deployment.registry.approve_any_abstract_modules()?;
+
+        // Create the first abstract account in integration environments
+        #[cfg(feature = "integration")]
+        use abstract_std::objects::gov_type::GovernanceDetails;
+        #[cfg(feature = "integration")]
+        AccountI::create_default_account(
+            &deployment,
+            GovernanceDetails::Monarchy {
+                monarch: chain.sender_addr().to_string(),
+            },
+        )?;
+        Ok(deployment)
     }
 }
 

@@ -9,10 +9,7 @@ pub use cw_blob::CHECKSUM as BLOB_CHECKSUM;
 
 // TODO: fill bytes with Public address of creator
 // Default local-juno used right now(for testing)
-const TEST_ABSTRACT_CREATOR: [u8; 33] = [
-    2, 146, 187, 207, 156, 96, 230, 188, 163, 167, 152, 64, 234, 101, 130, 38, 50, 89, 139, 233,
-    56, 192, 110, 242, 251, 222, 103, 198, 68, 80, 201, 159, 3,
-];
+const TEST_ABSTRACT_CREATOR: &[u8; 33] = include_bytes!(concat!(env!("OUT_DIR"), "/creator"));
 
 // Salts for deployments
 pub const ANS_HOST_SALT: &[u8] = b"ans";
@@ -54,7 +51,7 @@ pub fn derive_addr_from_pub_key(hrp: &str, pub_key: &[u8]) -> AbstractResult<Str
 
 /// Address of the abstract admin
 pub fn creator_address(hrp: &str) -> AbstractResult<String> {
-    derive_addr_from_pub_key(hrp, &TEST_ABSTRACT_CREATOR)
+    derive_addr_from_pub_key(hrp, TEST_ABSTRACT_CREATOR)
 }
 
 pub fn contract_canon_address(

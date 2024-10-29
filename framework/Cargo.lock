@@ -363,6 +363,7 @@ dependencies = [
  "abstract-sdk",
  "abstract-std",
  "abstract-testing",
+ "base64 0.22.1",
  "cosmrs 0.19.0",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -620,6 +621,7 @@ version = "0.24.1-beta.2"
 dependencies = [
  "abstract-testing",
  "anyhow",
+ "base64 0.22.1",
  "bech32 0.11.0",
  "cosmwasm-schema",
  "cosmwasm-std",
