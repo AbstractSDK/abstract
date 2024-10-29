@@ -734,7 +734,7 @@ impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
         )
     }
     fn wasm(chain: &ChainInfoOwned) -> WasmPath {
-        artifacts_dir_from_workspace!()
+        ArtifactsDir::new(env!("OUT_DIR"))
             .find_wasm_path_with_build_postfix(
                 "account",
                 cw_orch::build::BuildPostfix::ChainName(chain),

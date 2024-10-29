@@ -1,8 +1,9 @@
 use std::{
+    env,
     ffi::OsStr,
-    fs::{Metadata, OpenOptions},
+    fs::{self, Metadata, OpenOptions},
     io::{Read, Seek, SeekFrom, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use base64::prelude::*;
@@ -14,7 +15,7 @@ const DEFAULT_ABSTRACT_CREATOR: [u8; 33] = [
 
 fn main() {
     // We don't need build script for wasm
-    if std::env::var("TARGET").unwrap().contains("wasm") {
+    if env::var("TARGET").unwrap().contains("wasm") {
         return;
     }
 
@@ -56,39 +57,44 @@ fn main() {
     // .unwrap();
 
     // We also verify that the local artifacts dir exists
-    assert!(std::fs::metadata(artifacts_path.clone()).is_ok(), "You should create an artifacts dir in your crate to export the wasm files along with the cw-orch library");
+    let read_dir = fs::read_dir(artifacts_path).expect("You should create an artifacts dir in your crate to export the wasm files along with the cw-orch library");
 
-    if let Ok(creator) = std::env::var("ABSTRACT_CREATOR") {
+    // Path to OUT_DIR
+    let out_dir = env::var("OUT_DIR").unwrap();
+
+    let creator = if let Ok(creator) = env::var("ABSTRACT_CREATOR") {
         let creator = BASE64_STANDARD
             .decode(creator)
             .expect("ABSTRACT_CREATOR public key supposed to be encoded as base64");
+        // We can't edit len of the creator blob, *unless we somehow find all references to it
         assert!(
             creator.len() == DEFAULT_ABSTRACT_CREATOR.len(),
-            "Pubkey for abstract creator should be 33"
+            "Pubkey for abstract creator should be {}",
+            DEFAULT_ABSTRACT_CREATOR.len()
         );
+        Some(creator)
+    } else {
+        None
+    };
 
-        for entry in std::fs::read_dir(artifacts_path).unwrap() {
-            let entry = entry.unwrap();
+    for entry in read_dir {
+        let entry = entry.unwrap();
+        let mut file_content = fs::read(entry.path()).unwrap();
+        // Edit wasms if we have custom abstract creator
+        if let Some(creator) = creator.as_deref() {
             if entry.path().extension().and_then(OsStr::to_str) == Some("wasm") {
-                let mut file = OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .create(false)
-                    .open(entry.path())
-                    .unwrap();
-
-                let mut buf = Vec::new();
-                file.read_to_end(&mut buf).unwrap();
-                if let Some(position) = buf
+                if let Some(position) = file_content
                     .windows(DEFAULT_ABSTRACT_CREATOR.len())
                     .position(|window| window == DEFAULT_ABSTRACT_CREATOR)
                 {
-                    file.seek(SeekFrom::Start(position as u64)).unwrap();
-                    file.write_all(&buf).unwrap();
+                    file_content[position..position + DEFAULT_ABSTRACT_CREATOR.len()]
+                        .copy_from_slice(&creator);
                 }
             }
         }
-    };
+        // write content
+        fs::write(Path::new(&out_dir).join(entry.file_name()), file_content).unwrap();
+    }
 
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo::rerun-if-env-changed=ABSTRACT_CREATOR")
