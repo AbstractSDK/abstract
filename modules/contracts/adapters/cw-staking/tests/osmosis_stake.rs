@@ -182,12 +182,6 @@ mod osmosis_test {
 
         let deployment = Abstract::deploy_on(tube.clone(), tube.sender().clone())?;
 
-        let _root_os = AccountI::create_default_account(
-            &deployment,
-            GovernanceDetails::Monarchy {
-                monarch: tube.sender_addr().to_string(),
-            },
-        )?;
         let staking: CwStakingAdapter<OsmosisTestTube> =
             CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, tube.clone());
 

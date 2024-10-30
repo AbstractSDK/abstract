@@ -115,12 +115,6 @@ fn setup_mock() -> anyhow::Result<(
 
     let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
 
-    let _root_os = AccountI::create_default_account(
-        &deployment,
-        GovernanceDetails::Monarchy {
-            monarch: chain.sender_addr().to_string(),
-        },
-    )?;
     let dex_adapter = DexAdapter::new(DEX_ADAPTER_ID, chain.clone());
 
     dex_adapter.deploy(

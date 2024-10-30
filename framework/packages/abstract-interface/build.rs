@@ -103,6 +103,7 @@ fn main() {
     }
 
     println!("cargo::rerun-if-changed=build.rs");
+    // TODO: rerun if changed any of the wasm files in artifacts/, is it wildcard-able?
     println!("cargo::rerun-if-env-changed=ABSTRACT_CREATOR")
     // println!("cargo:rerun-if-changed={}", absolute_state_path.display());
 }
