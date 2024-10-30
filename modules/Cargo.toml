@@ -3,6 +3,7 @@ members = [
   "contracts/apps/*",
   "contracts/adapters/*",
   "contracts/standalones/*",
+  "tests",
 ]
 exclude = ["contracts/apps/croncat", "contracts/apps/dca"]
 
@@ -49,6 +50,7 @@ semver = "1.0"
 
 cw-orch = { version = "0.27.0" }
 cw-orch-interchain = { version = "0.8.1" }
+cw-orch-clone-testing = { version = "0.9.0" }
 # cw-orch-osmosis-test-tube = { version = "0.2.0" }
 tokio = { version = "1.4", features = ["full"] }
 
@@ -83,6 +85,7 @@ challenge-app = { path = "./contracts/apps/challenge", default-features = false 
 dca-app = { path = "./contracts/apps/dca", default-features = false }
 abstract-cw-staking = { path = "./contracts/adapters/cw-staking", default-features = false }
 abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = false }
+abstract-money-market-adapter = { path = "contracts/adapters/money-market", default-features = false }
 
 ## Testing
 rstest = "0.17.0"
@@ -103,6 +106,7 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
+
 
 # In case polytone not released
 # abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }

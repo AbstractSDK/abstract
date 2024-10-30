@@ -48,6 +48,7 @@ pub mod interface {
     impl<Chain: CwEnv> AdapterDeployer<Chain, Empty> for CwStakingAdapter<Chain> {}
 
     impl<Chain: CwEnv> Uploadable for CwStakingAdapter<Chain> {
+        #[cfg(feature = "export")]
         fn wrapper() -> <Mock as TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 crate::contract::execute,

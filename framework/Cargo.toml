@@ -4,6 +4,7 @@ members = [
   "packages/standards/*",
   "contracts/native/*",
   "contracts/account/",
+  "tests",
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -55,6 +56,9 @@ clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-orch = { version = "0.27.0" }
 cw-orch-interchain = { version = "0.8.1" }
+cw-orch-clone-testing = { version = "0.9.0" }
+cw-orch-proto = { version = "0.9.0" }
+
 tokio = { version = "1.4", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "2.0.0" }
@@ -71,6 +75,7 @@ abstract-standalone = { path = "packages/abstract-standalone" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { version = "0.24.1-beta.1", path = "packages/abstract-interface" }
+abstract-client = { version = "0.24.1-beta.1", path = "packages/abstract-client" }
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 registry = { package = "abstract-registry", path = "contracts/native/registry" }

@@ -2,10 +2,10 @@
 //! Otherwise you will have too many requests
 
 use abstract_app::mock::MockInitMsg;
-use abstract_framework_clone_testing::common;
 use abstract_integration_test_utils::account::mock_app::{MockApp, APP_VERSION};
 use abstract_interface::{Abstract, AccountI, AppDeployer, DeployStrategy, RegistryExecFns};
 use abstract_std::objects::gov_type::GovernanceDetails;
+use abstract_tests::clone_testing::common;
 use abstract_unit_test_utils::prelude::*;
 use anyhow::Ok;
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};

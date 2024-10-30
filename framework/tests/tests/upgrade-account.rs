@@ -1,9 +1,9 @@
 //! Currently you can run only 1 test at a time: `cargo ct`
 //! Otherwise you will have too many requests
 
-use abstract_framework_clone_testing::common;
 use abstract_interface::{Abstract, AccountDetails, AccountI, AccountQueryFns, RegistryQueryFns};
 use abstract_std::objects::AccountId;
+use abstract_tests::clone_testing::common;
 use abstract_unit_test_utils::TEST_VERSION;
 use anyhow::{bail, Ok};
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};

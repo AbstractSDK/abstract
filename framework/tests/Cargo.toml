@@ -1,40 +1,50 @@
 [package]
-name = "abstract-interchain-tests"
-version = "0.24.1-beta.2"
-edition = { workspace = true }
-license = { workspace = true }
-description = "Interchain testing library for the Abstract SDK. This is used primarily for tests but some elements are re-usable for testing apps and adapters"
+name = "abstract-tests"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
 
 [lib]
-
 [dependencies]
 cosmwasm-std = { workspace = true }
-cw2 = { workspace = true }
+cosmwasm-schema = { workspace = true }
 cw-utils = { workspace = true }
+
 cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch-clone-testing = { workspace = true }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }
 
 abstract-std = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-unit-test-utils = { workspace = true }
+abstract-client = { workspace = true }
+abstract-interface = { workspace = true, features = ["daemon", "interchain"] }
+abstract-integration-test-utils = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
-abstract-unit-test-utils = { workspace = true }
-abstract-interface = { workspace = true, features = ["interchain"] }
-abstract-scripts = { path = "../scripts" }
-abstract-client = { workspace = true }
 
 tokio = { workspace = true }
-log = "0.4.14"
 anyhow = { workspace = true }
 env_logger = "0.11.3"
+lazy_static = "1.4.0"
+log = "0.4.14"
 dotenv = "0.15.0"
+
+cw2 = { workspace = true }
+semver = { workspace = true }
+
 
 ibc-relayer-types = "0.29"
 
 cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }
-cosmwasm-schema.workspace = true
 cw-controllers = { workspace = true }
 cw-storage-plus.workspace = true
 thiserror.workspace = true
@@ -43,3 +53,7 @@ base64 = "0.22.1"
 counter-contract = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "main" } # Use tag if breaks
 
 ping-pong = { path = "../../modules/contracts/apps/ping-pong" }
+
+
+[lints]
+workspace = true

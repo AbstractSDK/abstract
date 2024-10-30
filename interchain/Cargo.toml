@@ -1,10 +1,5 @@
 [workspace]
-members = [
-  "scripts",
-  "interchain-end_to_end_testing",
-  "framework-clone-testing",
-  "modules-clone-testing",
-]
+members = ["scripts"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #

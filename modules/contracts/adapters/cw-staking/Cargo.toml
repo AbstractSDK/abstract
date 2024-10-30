@@ -30,7 +30,7 @@ crate-type = ["cdylib", "rlib"]
 export = []
 default = ["export"]
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw20"]
+testing = ["dep:abstract-client", "dep:cw20", "export"]
 # osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
 # Supported Dexes

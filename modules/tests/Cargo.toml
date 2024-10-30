@@ -23,21 +23,21 @@ lazy_static = "1.4.0"
 
 # # Clone testing
 abstract-dex-adapter = { workspace = true, features = [
-  "testing",
-  # "astroport",
-  # "fin",
-  "astrovault",
+    "testing",
+    # "astroport",
+    # "fin",
+    "astrovault",
 ] }
 abstract-cw-staking = { workspace = true, features = [
-  "testing",
-  # "astroport",
-  # "bow",
-  "astrovault",
+    "testing",
+    # "astroport",
+    # "bow",
+    "astrovault",
 ] }
 abstract-money-market-adapter = { workspace = true, features = [
-  "testing",
-  # "mars",
-  # "ghost",
+    "testing",
+    # "mars",
+    # "ghost",
 ] }
 # astroport = { version = "3.11.1" }
 # kujira = { version = "0.8" }
