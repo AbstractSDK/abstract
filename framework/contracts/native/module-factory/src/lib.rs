@@ -8,7 +8,7 @@ pub(crate) use abstract_sdk::std::module_factory::state;
 
 #[cfg(test)]
 mod test_common {
-    use abstract_testing::{mock_env_validated, prelude::*};
+    use abstract_unit_test_utils::{mock_env_validated, prelude::*};
     use cosmwasm_std::{testing::*, Response};
 
     use crate::{contract, error::ModuleFactoryError};

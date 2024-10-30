@@ -364,7 +364,7 @@ fn validate_pool_assets(
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_testing::{map_tester::CwMapTester, prelude::*};
+    use abstract_unit_test_utils::{map_tester::CwMapTester, prelude::*};
     use cosmwasm_std::{testing::*, Addr};
 
     use super::*;
@@ -397,7 +397,7 @@ mod test {
     mod update_dexes {
         use super::*;
 
-        use abstract_testing::mock_env_validated;
+        use abstract_unit_test_utils::mock_env_validated;
         use cosmwasm_std::{testing::MockApi, Empty, OwnedDeps};
 
         #[coverage_helper::test]
@@ -549,7 +549,7 @@ mod test {
 
     mod update_contract_addresses {
         use abstract_std::{ans_host::ContractMapEntry, objects::ContractEntry};
-        use abstract_testing::map_tester::CwMapTesterBuilder;
+        use abstract_unit_test_utils::map_tester::CwMapTesterBuilder;
 
         use super::*;
 
@@ -728,7 +728,7 @@ mod test {
     mod update_asset_addresses {
         use super::*;
 
-        use abstract_testing::map_tester::CwMapTesterBuilder;
+        use abstract_unit_test_utils::map_tester::CwMapTesterBuilder;
         use cw_asset::{AssetInfo, AssetInfoBase};
         use cw_storage_plus::Map;
 
@@ -905,7 +905,7 @@ mod test {
 
     mod update_channels {
         use abstract_std::objects::ChannelEntry;
-        use abstract_testing::map_tester::CwMapTesterBuilder;
+        use abstract_unit_test_utils::map_tester::CwMapTesterBuilder;
 
         use super::*;
 

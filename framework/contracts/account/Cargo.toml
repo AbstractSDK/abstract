@@ -67,9 +67,9 @@ abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-standalone = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 abstract-macros = { workspace = true }
-abstract-integration-tests = { workspace = true }
+abstract-integration-test-utils = { workspace = true }
 coverage-helper = { workspace = true }
 
 base64 = { version = "0.22.1", default-features = false }

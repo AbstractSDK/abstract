@@ -311,7 +311,7 @@ mod test {
         ans_host::*,
         objects::{pool_id::PoolAddressBase, PoolType, TruncatedChainId},
     };
-    use abstract_testing::{addresses::AbstractMockAddrs, mock_env_validated};
+    use abstract_unit_test_utils::{addresses::AbstractMockAddrs, mock_env_validated};
     use cosmwasm_std::{from_json, testing::*, Addr, DepsMut, OwnedDeps};
     use cw_asset::AssetInfo;
     use std::str::FromStr;

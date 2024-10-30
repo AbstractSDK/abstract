@@ -3,8 +3,8 @@
 use abstract_account::contract::instantiate;
 use abstract_std::account::InstantiateMsg;
 use abstract_std::registry::state::LOCAL_ACCOUNT_SEQUENCE;
-use abstract_testing::abstract_mock_querier_builder;
-use abstract_testing::prelude::AbstractMockAddrs;
+use abstract_unit_test_utils::abstract_mock_querier_builder;
+use abstract_unit_test_utils::prelude::AbstractMockAddrs;
 use abstract_xion::auth::sign_arb::wrap_message;
 use abstract_xion::auth::util;
 use base64::{engine::general_purpose, Engine as _};

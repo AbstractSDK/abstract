@@ -41,7 +41,7 @@ mod test_common {
         account::{self},
         objects::{account::AccountTrace, gov_type::GovernanceDetails, ownership, AccountId},
     };
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{testing::*, Addr, Empty, OwnedDeps};
 
     use crate::{contract::AccountResult, error::AccountError, msg::ExecuteMsg};

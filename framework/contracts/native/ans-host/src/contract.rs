@@ -124,7 +124,7 @@ mod tests {
 
     mod migrate {
         use abstract_std::AbstractError;
-        use abstract_testing::mock_env_validated;
+        use abstract_unit_test_utils::mock_env_validated;
         use cw2::get_contract_version;
 
         use super::*;

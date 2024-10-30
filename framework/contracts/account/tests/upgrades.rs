@@ -1,6 +1,6 @@
 use abstract_account::error::AccountError;
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
-use abstract_integration_tests::{create_default_account, mock_modules::*, AResult, *};
+use abstract_integration_test_utils::{create_default_account, mock_modules::*, AResult, *};
 use abstract_interface::{
     Abstract, AbstractInterfaceError, AccountDetails, AccountExecFns as _, AccountI,
     AccountQueryFns, MFactoryQueryFns, RegistryExecFns,
@@ -20,7 +20,7 @@ use abstract_std::{
     registry::UpdateModule,
     AbstractError, IBC_CLIENT,
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cosmwasm_std::coin;
 use cw2::ContractVersion;
 use cw_orch::prelude::*;
@@ -263,14 +263,14 @@ fn upgrade_app() -> AResult {
 fn uninstall_modules() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::uninstall_modules(chain)
+    abstract_integration_test_utils::account::uninstall_modules(chain)
 }
 
 #[test]
 fn update_adapter_with_authorized_addrs() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::update_adapter_with_authorized_addrs(
+    abstract_integration_test_utils::account::update_adapter_with_authorized_addrs(
         chain.clone(),
         chain.addr_make("authorizee"),
     )
@@ -410,7 +410,7 @@ fn create_account_with_installed_module() -> AResult {
 fn create_sub_account_with_installed_module() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::create_sub_account_with_modules_installed(chain)
+    abstract_integration_test_utils::account::create_sub_account_with_modules_installed(chain)
 }
 
 #[test]
@@ -811,7 +811,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
 fn create_account_with_installed_module_monetization_and_init_funds() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
+    abstract_integration_test_utils::account::create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
 }
 
 // See gen_app_mock for more details
@@ -819,7 +819,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
 fn install_app_with_account_action() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::install_app_with_account_action(chain)
+    abstract_integration_test_utils::account::install_app_with_account_action(chain)
 }
 
 #[test]

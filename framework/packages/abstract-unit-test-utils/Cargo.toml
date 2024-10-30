@@ -1,5 +1,5 @@
 [package]
-name = "abstract-testing"
+name = "abstract-unit-test-utils"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }

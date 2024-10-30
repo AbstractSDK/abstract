@@ -31,7 +31,7 @@ impl<
 mod test {
     use abstract_sdk::base::ModuleIbcEndpoint;
     use abstract_std::native_addrs;
-    use abstract_testing::mock_env_validated;
+    use abstract_unit_test_utils::mock_env_validated;
     use cosmwasm_std::Api;
 
     use crate::mock::{mock_init, BASIC_MOCK_APP};

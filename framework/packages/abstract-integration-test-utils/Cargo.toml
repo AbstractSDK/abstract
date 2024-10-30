@@ -1,5 +1,5 @@
 [package]
-name = "abstract-integration-tests"
+name = "abstract-integration-test-utils"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -19,7 +19,7 @@ log = "0.4.14"
 abstract-std.workspace = true
 abstract-sdk.workspace = true
 anyhow.workspace = true
-abstract-testing.workspace = true
+abstract-unit-test-utils.workspace = true
 cosmwasm-schema = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }

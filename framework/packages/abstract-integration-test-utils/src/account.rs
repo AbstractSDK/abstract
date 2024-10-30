@@ -17,7 +17,7 @@ use abstract_std::{
     },
     registry::UpdateModule,
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
 use cw2::ContractVersion;
 use cw_orch::{environment::MutCwEnv, prelude::*};

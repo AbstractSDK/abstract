@@ -21,7 +21,7 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # use abstract_testing::prelude::*;
+        # use abstract_unit_test_utils::prelude::*;
         # let deps = mock_dependencies();
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
@@ -55,7 +55,7 @@ impl<'a, T: ModuleInterface> AbstractApi<T> for Modules<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # use abstract_testing::prelude::*;
+    # use abstract_unit_test_utils::prelude::*;
     # let deps = mock_dependencies();
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
@@ -119,7 +119,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
 
     use super::*;
     use crate::{apis::traits::test::abstract_api_test, mock_module::*};

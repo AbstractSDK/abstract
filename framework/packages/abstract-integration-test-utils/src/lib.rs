@@ -14,7 +14,7 @@ use abstract_std::objects::{
     namespace::Namespace,
     AccountId,
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cw_orch::prelude::*;
 pub type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 

@@ -18,7 +18,7 @@ pub mod traits {
 
 pub use abstract_interface;
 #[cfg(feature = "test-utils")]
-pub use abstract_testing;
+pub use abstract_unit_test_utils;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
@@ -75,7 +75,7 @@ pub mod mock {
     pub struct MockStandaloneWithDepI;
 
     use abstract_sdk::{AbstractResponse, AbstractSdkError};
-    use abstract_testing::{addresses::*, prelude::*};
+    use abstract_unit_test_utils::{addresses::*, prelude::*};
     use thiserror::Error;
 
     use crate::StandaloneContract;
@@ -156,7 +156,7 @@ pub mod mock {
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
-    /// This will set the [`abstract_testing::addresses::TEST_`] as the admin.
+    /// This will set the [`abstract_unit_test_utils::addresses::TEST_`] as the admin.
     pub fn mock_init(migratable: bool) -> MockDeps {
         let mut deps = mock_dependencies();
         deps.querier = standalone_base_mock_querier(deps.api).build();

@@ -293,7 +293,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
 }
 
 pub mod origin_app {
-    use abstract_testing::{module::TEST_MODULE_ID, TEST_VERSION};
+    use abstract_unit_test_utils::{module::TEST_MODULE_ID, TEST_VERSION};
 
     use super::{mock_app, MockAppContract};
     pub const MOCK_APP_ORIGIN: MockAppContract = mock_app(TEST_MODULE_ID, TEST_VERSION);
@@ -349,7 +349,7 @@ pub mod test {
         AccountI, AccountQueryFns, AppDeployer, DeployStrategy, RegistryExecFns,
     };
     use abstract_std::account::{self, ModuleInstallConfig};
-    use abstract_testing::{
+    use abstract_unit_test_utils::{
         module::{TEST_MODULE_ID, TEST_NAMESPACE},
         TEST_VERSION,
     };

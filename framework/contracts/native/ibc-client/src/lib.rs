@@ -10,7 +10,7 @@ mod queries;
 #[cfg(test)]
 mod test_common {
     use abstract_std::ibc_client::InstantiateMsg;
-    use abstract_testing::{mock_env_validated, prelude::*};
+    use abstract_unit_test_utils::{mock_env_validated, prelude::*};
     use cosmwasm_std::{
         testing::{message_info, MockApi},
         OwnedDeps,

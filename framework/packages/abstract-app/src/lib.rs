@@ -27,7 +27,7 @@ pub mod traits {
 mod interface;
 pub use abstract_interface;
 #[cfg(feature = "test-utils")]
-pub use abstract_testing;
+pub use abstract_unit_test_utils;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
@@ -84,7 +84,7 @@ pub mod mock {
     pub struct MockSudoMsg;
 
     use abstract_sdk::{base::InstantiateEndpoint, features::Dependencies, AbstractSdkError};
-    use abstract_testing::{mock_env_validated, prelude::*};
+    use abstract_unit_test_utils::{mock_env_validated, prelude::*};
     use thiserror::Error;
 
     use self::interface::MockAppWithDepI;
@@ -162,7 +162,7 @@ pub mod mock {
 
     // Needs to be in a separate module due to the `interface` module names colliding otherwise.
     pub mod mock_app_dependency {
-        use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
+        use abstract_unit_test_utils::prelude::{TEST_MODULE_ID, TEST_VERSION};
         use cosmwasm_std::{to_json_binary, Response};
 
         use super::{MockAppContract, MockQueryResponse};
@@ -204,7 +204,7 @@ pub mod mock {
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
-    /// This will set the [`abstract_testing::addresses::TEST_ACCOUNT`] as the admin.
+    /// This will set the [`abstract_unit_test_utils::addresses::TEST_ACCOUNT`] as the admin.
     pub fn mock_init() -> MockDeps {
         let mut deps = mock_dependencies();
         let abstr = AbstractMockAddrs::new(deps.api);

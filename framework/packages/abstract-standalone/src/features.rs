@@ -43,7 +43,7 @@ mod test {
         namespace::{Namespace, ABSTRACT_NAMESPACE},
         ABSTRACT_ACCOUNT_ID,
     };
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
 
     use super::*;
     use crate::mock::*;

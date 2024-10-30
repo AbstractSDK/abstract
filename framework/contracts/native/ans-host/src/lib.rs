@@ -12,7 +12,7 @@ mod tests;
 #[cfg(test)]
 mod test_common {
     use abstract_std::ans_host::InstantiateMsg;
-    use abstract_testing::{mock_env_validated, prelude::AbstractMockAddrs};
+    use abstract_unit_test_utils::{mock_env_validated, prelude::AbstractMockAddrs};
     use cosmwasm_std::{testing::*, OwnedDeps, Response};
 
     use crate::{contract, error::AnsHostError};

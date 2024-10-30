@@ -10,7 +10,7 @@ dependencies = [
  "abstract-ans-host",
  "abstract-app",
  "abstract-ica",
- "abstract-integration-tests",
+ "abstract-integration-test-utils",
  "abstract-interface",
  "abstract-macros",
  "abstract-module-factory",
@@ -18,7 +18,7 @@ dependencies = [
  "abstract-sdk",
  "abstract-standalone",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "abstract-xion",
  "anyhow",
  "base64 0.22.1",
@@ -49,7 +49,7 @@ dependencies = [
  "abstract-interface",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
@@ -80,7 +80,7 @@ dependencies = [
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
@@ -103,11 +103,11 @@ version = "0.24.1-beta.2"
 dependencies = [
  "abstract-app",
  "abstract-ibc-host",
- "abstract-integration-tests",
+ "abstract-integration-test-utils",
  "abstract-interface",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
@@ -135,7 +135,7 @@ dependencies = [
  "abstract-interface",
  "abstract-registry",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -205,7 +205,7 @@ dependencies = [
  "abstract-interface",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anyhow",
  "clap",
  "cosmwasm-schema",
@@ -231,7 +231,7 @@ dependencies = [
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anybuf",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -258,7 +258,7 @@ dependencies = [
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -282,7 +282,7 @@ name = "abstract-ica"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-sdk",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "alloy",
  "alloy-sol-types",
  "anyhow",
@@ -310,7 +310,7 @@ dependencies = [
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
@@ -326,7 +326,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "abstract-integration-tests"
+name = "abstract-integration-test-utils"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-account",
@@ -335,7 +335,7 @@ dependencies = [
  "abstract-interface",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -362,7 +362,7 @@ dependencies = [
  "abstract-registry",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "cosmrs 0.19.0",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -403,12 +403,12 @@ dependencies = [
 name = "abstract-module-factory"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-integration-tests",
+ "abstract-integration-test-utils",
  "abstract-interface",
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -515,7 +515,7 @@ dependencies = [
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -537,7 +537,7 @@ dependencies = [
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "cosmos-sdk-proto 0.24.0",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -570,7 +570,7 @@ dependencies = [
  "abstract-interface",
  "abstract-sdk",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anyhow",
  "clap",
  "cosmwasm-schema",
@@ -593,12 +593,12 @@ dependencies = [
 name = "abstract-standalone"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-integration-tests",
+ "abstract-integration-test-utils",
  "abstract-interface",
  "abstract-sdk",
  "abstract-standalone",
  "abstract-std",
- "abstract-testing",
+ "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
@@ -618,7 +618,7 @@ dependencies = [
 name = "abstract-std"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-testing",
+ "abstract-unit-test-utils",
  "anyhow",
  "bech32 0.11.0",
  "cosmwasm-schema",
@@ -648,7 +648,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "abstract-testing"
+name = "abstract-unit-test-utils"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-sdk",

@@ -482,9 +482,9 @@ mod test {
     use super::*;
 
     use crate::msg::ExecuteMsg;
-    use abstract_adapter::abstract_testing::abstract_mock_querier_builder;
-    use abstract_adapter::abstract_testing::module::TEST_MODULE_ID;
-    use abstract_adapter::abstract_testing::prelude::{
+    use abstract_adapter::abstract_unit_test_utils::abstract_mock_querier_builder;
+    use abstract_adapter::abstract_unit_test_utils::module::TEST_MODULE_ID;
+    use abstract_adapter::abstract_unit_test_utils::prelude::{
         test_account, AbstractMockAddrs, AbstractMockQuerier, TEST_ACCOUNT_ID,
     };
     use abstract_adapter::sdk::mock_module::MockModule;

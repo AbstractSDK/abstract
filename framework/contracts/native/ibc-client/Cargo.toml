@@ -38,7 +38,7 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 
 ibc-proto = { version = "0.47.0", default-features = false }
 prost = { version = "0.13.1", default-features = false }

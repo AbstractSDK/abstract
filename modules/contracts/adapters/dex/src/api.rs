@@ -340,14 +340,14 @@ mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
     use crate::msg::ExecuteMsg;
-    use abstract_adapter::abstract_testing::mock_env_validated;
-    use abstract_adapter::abstract_testing::prelude::{
+    use abstract_adapter::abstract_unit_test_utils::mock_env_validated;
+    use abstract_adapter::abstract_unit_test_utils::prelude::{
         test_account, AbstractMockQuerier, TEST_ACCOUNT_ID,
     };
     use abstract_adapter::std::adapter::AdapterRequestMsg;
     use abstract_adapter::std::objects::pool_id::PoolAddressBase;
     use abstract_adapter::{
-        abstract_testing::prelude::AbstractMockAddrs, sdk::mock_module::MockModule,
+        abstract_unit_test_utils::prelude::AbstractMockAddrs, sdk::mock_module::MockModule,
     };
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute, Addr};
 
@@ -371,13 +371,14 @@ mod test {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
         let account = test_account(deps.api);
-        deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
+        deps.querier =
+            abstract_adapter::abstract_unit_test_utils::abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
         let stub = MockModule::new(deps.api, account.clone());
         let dex = stub
             .dex(deps.as_ref(), &env, "junoswap".into())
-            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_unit_test_utils::prelude::TEST_MODULE_ID);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let dex_name = "junoswap".to_string();
@@ -419,16 +420,17 @@ mod test {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
         let account = test_account(deps.api);
-        deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
+        deps.querier =
+            abstract_adapter::abstract_unit_test_utils::abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
         let stub = MockModule::new(deps.api, account.clone());
         let dex_name = "junoswap".to_string();
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let dex = stub
             .dex(deps.as_ref(), &env, dex_name.clone())
-            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_unit_test_utils::prelude::TEST_MODULE_ID);
 
         let assets = vec![Asset::native("taco", 1000u128)];
         let max_spread = Some(Decimal::percent(1));
@@ -464,16 +466,17 @@ mod test {
         let mut deps = mock_dependencies();
         let env = mock_env_validated(deps.api);
         let account = test_account(deps.api);
-        deps.querier = abstract_adapter::abstract_testing::abstract_mock_querier_builder(deps.api)
-            .account(&account, TEST_ACCOUNT_ID)
-            .build();
+        deps.querier =
+            abstract_adapter::abstract_unit_test_utils::abstract_mock_querier_builder(deps.api)
+                .account(&account, TEST_ACCOUNT_ID)
+                .build();
         let stub = MockModule::new(deps.api, account.clone());
         let dex_name = "junoswap".to_string();
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let dex = stub
             .dex(deps.as_ref(), &env, dex_name.clone())
-            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_unit_test_utils::prelude::TEST_MODULE_ID);
 
         let lp_token = Asset::native("taco", 1000u128);
         let pool = PoolAddressBase::Id(POOL);

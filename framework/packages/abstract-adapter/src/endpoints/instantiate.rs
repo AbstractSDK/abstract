@@ -50,7 +50,7 @@ mod test {
         adapter::{AdapterState, BaseInstantiateMsg, InstantiateMsg},
         objects::module_version::{ModuleData, MODULE},
     };
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::testing::*;
     use cw2::{ContractVersion, CONTRACT};
 
@@ -64,7 +64,7 @@ mod test {
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let info = message_info(abstr.account.addr(), &[]);
-        deps.querier = abstract_testing::abstract_mock_querier(deps.api);
+        deps.querier = abstract_unit_test_utils::abstract_mock_querier(deps.api);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {},
             module: MockInitMsg {},

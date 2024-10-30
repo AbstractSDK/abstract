@@ -125,7 +125,7 @@ mod tests {
     use crate::test_common::test_only_owner;
     use crate::test_common::{execute_as, mock_init};
     use abstract_std::account::ExecuteMsg;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{testing::*, Addr, StdError};
     use ownership::{GovAction, GovOwnershipError, GovernanceDetails};
 

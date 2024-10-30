@@ -32,7 +32,7 @@ use abstract_std::{
     },
     IBC_CLIENT,
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;

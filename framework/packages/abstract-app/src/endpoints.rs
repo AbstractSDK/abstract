@@ -131,7 +131,7 @@ mod test {
         SudoEndpoint,
     };
     use abstract_sdk::base::CustomExecuteHandler;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{Binary, SubMsgResult};
 
     #[coverage_helper::test]

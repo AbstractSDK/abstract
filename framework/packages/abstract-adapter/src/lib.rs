@@ -23,7 +23,7 @@ pub mod traits {
 mod interface;
 pub use abstract_interface;
 #[cfg(feature = "test-utils")]
-pub use abstract_testing;
+pub use abstract_unit_test_utils;
 
 mod endpoints;
 pub mod error;
@@ -39,7 +39,7 @@ pub mod state;
 pub mod mock {
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_std::{adapter::*, objects::dependency::StaticDependency};
-    use abstract_testing::{mock_env_validated, prelude::*, TEST_VERSION};
+    use abstract_unit_test_utils::{mock_env_validated, prelude::*, TEST_VERSION};
     use cosmwasm_std::{testing::*, OwnedDeps, Response, StdError};
     use cw_storage_plus::Item;
     use thiserror::Error;

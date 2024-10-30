@@ -291,7 +291,7 @@ mod test {
 
     use crate::contract;
     use abstract_std::{account, objects::account::AccountTrace, registry::*};
-    use abstract_testing::{prelude::*, MockQuerierOwnership};
+    use abstract_unit_test_utils::{prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies, MockApi},
         Addr, Binary, StdError,

@@ -4,7 +4,7 @@ use abstract_std::{
     objects::{ans_host::AnsHost, dependency::StaticDependency, registry::RegistryContract},
     registry::Account,
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cosmwasm_std::{
     testing::{mock_dependencies, MockApi},
     Deps, Env,

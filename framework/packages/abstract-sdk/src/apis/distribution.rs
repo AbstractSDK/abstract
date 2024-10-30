@@ -22,7 +22,7 @@ pub trait DistributionInterface: AccountExecutor {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # use abstract_testing::prelude::*;
+        # use abstract_unit_test_utils::prelude::*;
         # let deps = mock_dependencies();
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
@@ -45,7 +45,7 @@ impl<T> DistributionInterface for T where T: AccountExecutor {}
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # use abstract_testing::prelude::*;
+    # use abstract_unit_test_utils::prelude::*;
     # let deps = mock_dependencies();
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
@@ -148,7 +148,7 @@ mod test {
 
     use super::*;
     use crate::mock_module::*;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::testing::MockApi;
 
     mod set_withdraw_address {

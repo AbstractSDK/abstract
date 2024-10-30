@@ -18,7 +18,7 @@ default = []
 stargate = ["dep:cosmos-sdk-proto", "dep:prost-types", "dep:ibc-proto"]
 
 # Expose MockModule for testing with other Adapters
-test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
+test-utils = ["dep:abstract-unit-test-utils", "dep:cosmwasm-schema"]
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator", "staking"] }
@@ -42,7 +42,7 @@ cw-clearable = { workspace = true }
 serde-cw-value = { workspace = true }
 
 # test-utils feature
-abstract-testing = { workspace = true, optional = true }
+abstract-unit-test-utils = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

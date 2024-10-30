@@ -48,5 +48,5 @@ cw-orch = { workspace = true }
 abstract-std = { workspace = true }
 anyhow.workspace = true
 abstract-adapter = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 coverage-helper = { workspace = true }

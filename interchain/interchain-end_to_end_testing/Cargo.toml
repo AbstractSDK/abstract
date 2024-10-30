@@ -19,7 +19,7 @@ abstract-std = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 abstract-interface = { workspace = true, features = ["interchain"] }
 abstract-scripts = { path = "../scripts" }
 abstract-client = { workspace = true }

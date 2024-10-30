@@ -204,7 +204,7 @@ mod test {
         account::{ExecuteMsg, InternalConfigAction},
         objects::AccountId,
     };
-    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use abstract_unit_test_utils::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::testing::*;
 
     #[coverage_helper::test]

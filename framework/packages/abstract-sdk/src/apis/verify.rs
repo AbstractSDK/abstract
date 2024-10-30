@@ -24,7 +24,7 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # use abstract_testing::prelude::*;
+        # use abstract_unit_test_utils::prelude::*;
         # let deps = mock_dependencies();
         # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
@@ -68,7 +68,7 @@ impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # use abstract_testing::prelude::*;
+    # use abstract_unit_test_utils::prelude::*;
     # let deps = mock_dependencies();
     # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
@@ -139,7 +139,7 @@ mod test {
         objects::{account::AccountTrace, module::ModuleId, registry::RegistryError},
         registry::{self, state::ACCOUNT_ADDRESSES},
     };
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{testing::*, Coin};
 
     struct MockBinding {}

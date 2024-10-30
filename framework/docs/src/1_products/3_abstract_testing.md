@@ -19,11 +19,11 @@ framework's functionalities, and facilitating robust unit testing.
 
 ## Usage
 
-Add the `abstract-testing` dependency to your Cargo.toml file:
+Add the `abstract-unit-test-utils` dependency to your Cargo.toml file:
 
 ```toml
 [dependencies]
-abstract-testing = "0.18.0"
+abstract-unit-test-utils = "0.18.0"
 ```
 
 For more information about the available types and methods, please refer to
@@ -35,8 +35,8 @@ You can find the latest version of the package on [crates.io](https://crates.io/
 ## Example
 
 ```rust,no_run
-use abstract_testing::MockQuerierBuilder;
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::MockQuerierBuilder;
+use abstract_unit_test_utils::prelude::*;
 
 #[test]
 fn returns_account_owner() -> VersionControlTestResult {

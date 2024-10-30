@@ -25,7 +25,7 @@ pub trait Execution: AccountExecutor + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # use abstract_testing::prelude::*;
+        # use abstract_unit_test_utils::prelude::*;
         # let deps = mock_dependencies();
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
@@ -62,7 +62,7 @@ impl<'a, T: Execution> AbstractApi<T> for Executor<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # use abstract_testing::prelude::*;
+    # use abstract_unit_test_utils::prelude::*;
     # let deps = mock_dependencies();
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
@@ -184,7 +184,7 @@ impl From<ExecutorMsg> for CosmosMsg {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::account::ExecuteMsg;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::*;
 
     use super::*;

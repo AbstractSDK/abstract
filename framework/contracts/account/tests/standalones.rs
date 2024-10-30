@@ -1,11 +1,11 @@
 use abstract_account::error::AccountError;
-use abstract_integration_tests::{create_default_account, AResult};
+use abstract_integration_test_utils::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_standalone::{
     gen_standalone_mock,
     mock::{MockExecMsgFns, MockQueryMsgFns, MockQueryResponse},
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cosmwasm_std::Binary;
 use cw_orch::prelude::*;
 

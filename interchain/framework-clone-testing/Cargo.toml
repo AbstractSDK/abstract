@@ -15,10 +15,10 @@ cw-orch-clone-testing = { workspace = true }
 
 abstract-std = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 abstract-client = { workspace = true }
 abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
+abstract-integration-test-utils = { path = "../../framework/packages/abstract-integration-test-utils" }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }

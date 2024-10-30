@@ -1,5 +1,5 @@
 use abstract_account::error::AccountError;
-use abstract_integration_tests::{create_default_account, AResult};
+use abstract_integration_test_utils::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_std::{
     account::SubAccountIdsResponse,
@@ -248,7 +248,7 @@ fn sub_account_move_ownership() -> AResult {
 fn account_move_ownership_to_sub_account() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::account_move_ownership_to_sub_account(chain)?;
+    abstract_integration_test_utils::account::account_move_ownership_to_sub_account(chain)?;
     Ok(())
 }
 

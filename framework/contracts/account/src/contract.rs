@@ -450,7 +450,7 @@ mod tests {
             AccountId,
         },
     };
-    use abstract_testing::{
+    use abstract_unit_test_utils::{
         abstract_mock_querier_builder, mock_env_validated, prelude::AbstractMockAddrs,
     };
     use cosmwasm_std::{

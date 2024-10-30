@@ -7,7 +7,7 @@ use abstract_std::{
     registry::{self, Account, NamespaceInfo, NamespaceResponse},
     ABSTRACT_EVENT_TYPE, ACCOUNT,
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cw_orch::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
@@ -309,5 +309,5 @@ fn create_one_account_with_namespace_fee() -> AResult {
     let mut chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
     chain.set_sender(Abstract::mock_admin(&chain));
-    abstract_integration_tests::create::create_one_account_with_namespace_fee(chain)
+    abstract_integration_test_utils::create::create_one_account_with_namespace_fee(chain)
 }

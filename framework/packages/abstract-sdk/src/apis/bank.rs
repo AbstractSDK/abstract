@@ -26,7 +26,7 @@ pub trait TransferInterface:
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # use abstract_testing::prelude::*;
+        # use abstract_unit_test_utils::prelude::*;
         # let deps = mock_dependencies();
         # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
@@ -68,7 +68,7 @@ impl<'a, T: TransferInterface> AbstractApi<T> for Bank<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # use abstract_testing::prelude::*;
+    # use abstract_unit_test_utils::prelude::*;
     # let deps = mock_dependencies();
     # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
@@ -282,8 +282,8 @@ impl Transferable for Coin {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_testing::mock_env_validated;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::mock_env_validated;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::*;
 
     use super::*;
@@ -316,9 +316,9 @@ mod test {
                 assert_eq!(module_id, app.module_id());
             }
 
-            let abstr = abstract_testing::prelude::AbstractMockAddrs::new(deps.api);
+            let abstr = abstract_unit_test_utils::prelude::AbstractMockAddrs::new(deps.api);
             // update querier and balances
-            deps.querier = abstract_testing::abstract_mock_querier_builder(deps.api)
+            deps.querier = abstract_unit_test_utils::abstract_mock_querier_builder(deps.api)
                 .with_contract_map_entry(
                     &abstr.ans_host,
                     abstract_std::ans_host::state::ASSET_ADDRESSES,

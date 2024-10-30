@@ -659,7 +659,7 @@ mod tests {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
     use abstract_std::{objects::account::AccountTrace, registry::*, ACCOUNT};
-    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use abstract_unit_test_utils::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies, MockApi},

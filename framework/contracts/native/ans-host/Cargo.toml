@@ -41,7 +41,7 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 cw20 = { workspace = true }
 cosmwasm-schema = { workspace = true }
 rstest = { workspace = true }
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 coverage-helper = { workspace = true }
 
 [profile.release]

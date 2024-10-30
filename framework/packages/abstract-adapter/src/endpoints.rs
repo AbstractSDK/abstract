@@ -100,7 +100,7 @@ mod test {
         SudoEndpoint,
     };
     use abstract_std::adapter::{self, AdapterRequestMsg};
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies},
         Binary, SubMsgResult,

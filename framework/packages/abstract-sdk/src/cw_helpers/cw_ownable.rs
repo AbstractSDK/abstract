@@ -41,7 +41,7 @@ macro_rules! query_ownership {
 #[cfg(test)]
 mod tests {
     use abstract_macros::abstract_response;
-    use abstract_testing::mock_env_validated;
+    use abstract_unit_test_utils::mock_env_validated;
     use cosmwasm_schema::{cw_serde, QueryResponses};
     use cosmwasm_std::{
         from_json,

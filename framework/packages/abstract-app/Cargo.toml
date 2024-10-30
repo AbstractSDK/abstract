@@ -14,7 +14,7 @@ crate-type = ["cdylib", "rlib"]
 
 
 [features]
-test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
+test-utils = ["dep:abstract-unit-test-utils", "abstract-sdk/test-utils"]
 schema = []
 stargate = ["abstract-sdk/stargate"]
 
@@ -31,7 +31,7 @@ cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
-abstract-testing = { workspace = true, optional = true }
+abstract-unit-test-utils = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 
 abstract-interface = { version = "0.24.1-beta.2", path = "../../packages/abstract-interface" }
@@ -43,5 +43,5 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
 abstract-app = { path = ".", features = ["test-utils"] }
-abstract-integration-tests = { workspace = true }
+abstract-integration-test-utils = { workspace = true }
 coverage-helper = { workspace = true }

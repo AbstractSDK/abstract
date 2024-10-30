@@ -143,7 +143,7 @@ mod tests {
 
     use crate::test_common::mock_init;
     use abstract_std::{account, ibc_client::state::*, registry};
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies},

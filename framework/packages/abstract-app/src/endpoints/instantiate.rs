@@ -58,7 +58,7 @@ mod test {
     use crate::mock::*;
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_std::app::BaseInstantiateMsg;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
 
     #[coverage_helper::test]
     fn test_instantiate() {

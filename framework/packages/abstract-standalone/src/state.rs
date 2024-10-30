@@ -75,7 +75,7 @@ mod tests {
         standalone::StandaloneState,
         ACCOUNT,
     };
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
 
     use crate::mock::{mock_init, MockStandaloneContract, BASIC_MOCK_STANDALONE};
 

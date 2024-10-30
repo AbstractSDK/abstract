@@ -40,7 +40,7 @@ impl StandaloneContract {
 mod test {
     use crate::mock::*;
     use abstract_std::standalone::StandaloneInstantiateMsg;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::testing::message_info;
 
     #[coverage_helper::test]

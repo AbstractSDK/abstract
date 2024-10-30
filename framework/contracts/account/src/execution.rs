@@ -178,7 +178,7 @@ mod test {
     use crate::test_common::mock_init;
     use abstract_std::account::{state::*, *};
     use abstract_std::{account, IBC_CLIENT};
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::testing::*;
     use cosmwasm_std::{coins, CosmosMsg, SubMsg};
 

@@ -28,7 +28,7 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # use abstract_testing::prelude::*;
+        # use abstract_unit_test_utils::prelude::*;
         # let deps = mock_dependencies();
         # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
@@ -73,7 +73,7 @@ impl<'a, T: ModuleRegistryInterface> AbstractApi<T> for ModuleRegistry<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # use abstract_testing::prelude::*;
+    # use abstract_unit_test_utils::prelude::*;
     # let deps = mock_dependencies();
     # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
@@ -231,7 +231,7 @@ mod test {
         },
         registry::ModulesResponse,
     };
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::testing::mock_dependencies;
 
     struct MockBinding {}

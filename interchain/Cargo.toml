@@ -71,7 +71,7 @@ abstract-std = { version = "0.24.1-beta.2", path = "../framework/packages/abstra
 abstract-xion = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-xion" }
 abstract-app = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-adapter" }
-abstract-testing = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-testing" }
+abstract-unit-test-utils = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-unit-test-utils" }
 abstract-client = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-client" }
 # Modules
 abstract-account = { version = "0.24.1-beta.2", path = "../framework/contracts/account" }
@@ -93,7 +93,7 @@ abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
-abstract-testing = { path = "../framework/packages/abstract-testing" }
+abstract-unit-test-utils = { path = "../framework/packages/abstract-unit-test-utils" }
 abstract-std = { path = "../framework/packages/abstract-std" }
 abstract-xion = { path = "../framework/packages/abstract-xion" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }

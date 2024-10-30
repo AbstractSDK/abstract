@@ -5,7 +5,7 @@
 //! Example of creating an account
 //! ```
 //! # use abstract_client::AbstractClientError;
-//! # use abstract_testing::prelude::*;
+//! # use abstract_unit_test_utils::prelude::*;
 //! use abstract_client::{AbstractClient, Account};
 //! use cw_orch::prelude::*;
 //!

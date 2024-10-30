@@ -76,7 +76,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::objects::{AnsAsset, AssetEntry};
-    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use abstract_unit_test_utils::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{
         coins,
         testing::{mock_dependencies, mock_env},

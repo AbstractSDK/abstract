@@ -3,10 +3,10 @@
 
 use abstract_app::mock::MockInitMsg;
 use abstract_framework_clone_testing::common;
-use abstract_integration_tests::account::mock_app::{MockApp, APP_VERSION};
+use abstract_integration_test_utils::account::mock_app::{MockApp, APP_VERSION};
 use abstract_interface::{Abstract, AccountI, AppDeployer, DeployStrategy, RegistryExecFns};
 use abstract_std::objects::gov_type::GovernanceDetails;
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use anyhow::Ok;
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
@@ -90,7 +90,7 @@ fn old_account_functions() -> anyhow::Result<()> {
 }
 
 mod account {
-    use abstract_integration_tests::account::{
+    use abstract_integration_test_utils::account::{
         account_install_app, account_move_ownership_to_sub_account,
         create_account_with_installed_module_monetization_and_init_funds,
         create_sub_account_with_modules_installed, install_app_with_account_action,
@@ -165,7 +165,7 @@ mod account {
 
 mod account_factory {
 
-    use abstract_integration_tests::create::create_one_account_with_namespace_fee;
+    use abstract_integration_test_utils::create::create_one_account_with_namespace_fee;
 
     use super::*;
 

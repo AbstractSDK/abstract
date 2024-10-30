@@ -84,7 +84,7 @@ mod tests {
         },
         registry::{self as vc, ModuleConfiguration},
     };
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{
         from_json,
         testing::{mock_dependencies, MockApi},
@@ -178,7 +178,7 @@ mod tests {
         use abstract_ica::msg::QueryMsg;
         use abstract_std::objects::TruncatedChainId;
 
-        use abstract_testing::mock_env_validated;
+        use abstract_unit_test_utils::mock_env_validated;
         use cosmwasm_std::{coins, wasm_execute};
         use evm::types;
         use evm_note::msg::EvmMsg;

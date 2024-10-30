@@ -65,7 +65,7 @@ fn associated_client(deps: Deps, chain: String) -> HostResult<ClientProxyRespons
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
 
-    use abstract_testing::mock_env_validated;
+    use abstract_unit_test_utils::mock_env_validated;
 
     #[coverage_helper::test]
     fn test_registered_client() {

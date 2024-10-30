@@ -58,7 +58,7 @@ abstract-interface = { version = "0.24.1-beta.2" }
 abstract-adapter = { version = "0.24.1-beta.2" }
 abstract-app = { version = "0.24.1-beta.2" }
 abstract-standalone = { version = "0.24.1-beta.2" }
-abstract-testing = { version = "0.24.1-beta.2" }
+abstract-unit-test-utils = { version = "0.24.1-beta.2" }
 abstract-macros = { version = "0.24.1-beta.2" }
 abstract-client = { version = "0.24.1-beta.2" }
 
@@ -95,7 +95,7 @@ abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-standalone = { path = "../framework/packages/abstract-standalone" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
-abstract-testing = { path = "../framework/packages/abstract-testing" }
+abstract-unit-test-utils = { path = "../framework/packages/abstract-unit-test-utils" }
 abstract-std = { path = "../framework/packages/abstract-std" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }

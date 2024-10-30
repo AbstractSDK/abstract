@@ -145,7 +145,7 @@ mod tests {
     #[cfg(test)]
     mod testing {
         use abstract_std::registry;
-        use abstract_testing::prelude::*;
+        use abstract_unit_test_utils::prelude::*;
         use cosmwasm_std::{
             testing::{message_info, mock_dependencies, MockApi},
             OwnedDeps, Response,
@@ -291,7 +291,7 @@ mod tests {
                 },
                 registry::state::LOCAL_ACCOUNT_SEQUENCE,
             };
-            use abstract_testing::prelude::AbstractMockAddrs;
+            use abstract_unit_test_utils::prelude::AbstractMockAddrs;
             use contract::{VCResult, VcResponse};
             use registry::state::NAMESPACES;
 

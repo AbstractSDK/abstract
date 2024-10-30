@@ -15,7 +15,7 @@
 //! use abstract_app::mock::mock_app_dependency::interface::MockAppI;
 //! use cw_orch::prelude::*;
 //! use abstract_client::{AbstractClient, Publisher, Namespace};
-//! use abstract_testing::prelude::*;
+//! use abstract_unit_test_utils::prelude::*;
 //!
 //! let chain = MockBech32::new("mock");
 //! let client = AbstractClient::builder(chain.clone()).build_mock()?;
@@ -102,7 +102,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Abstract Name Service contract is a database contract that stores all asset-related information.
     /// ```
     /// # use abstract_client::AbstractClientError;
-    /// # use abstract_testing::prelude::*;
+    /// # use abstract_unit_test_utils::prelude::*;
     /// use abstract_client::{AbstractClient, ClientResolve};
     /// use cw_asset::AssetInfo;
     /// use abstract_app::objects::AssetEntry;

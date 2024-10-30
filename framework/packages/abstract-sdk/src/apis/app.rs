@@ -19,7 +19,7 @@ pub trait AppInterface: ModuleInterface + ModuleIdentification {
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # use abstract_testing::prelude::*;
+        # use abstract_unit_test_utils::prelude::*;
         # let deps = mock_dependencies();
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
@@ -53,7 +53,7 @@ impl<'a, T: AppInterface> AbstractApi<T> for Apps<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # use abstract_testing::prelude::*;
+    # use abstract_unit_test_utils::prelude::*;
     # let deps = mock_dependencies();
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
@@ -97,7 +97,7 @@ impl<'a, T: AppInterface> Apps<'a, T> {
 #[cfg(test)]
 mod tests {
     use abstract_std::registry::Account;
-    use abstract_testing::{abstract_mock_querier_builder, prelude::*};
+    use abstract_unit_test_utils::{abstract_mock_querier_builder, prelude::*};
     use cosmwasm_std::{testing::*, *};
 
     pub use super::*;

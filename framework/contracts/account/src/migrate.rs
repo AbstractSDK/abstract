@@ -18,7 +18,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::mock_env_validated;
+    use abstract_unit_test_utils::mock_env_validated;
     use cosmwasm_std::testing::*;
     use semver::Version;
 

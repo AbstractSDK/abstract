@@ -231,7 +231,7 @@ pub fn new_module_addrs(modules_to_register: &[Addr]) -> ModuleFactoryResult<Str
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use abstract_std::module_factory::ExecuteMsg;
-    use abstract_testing::{mock_env_validated, MockDeps};
+    use abstract_unit_test_utils::{mock_env_validated, MockDeps};
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies},
         to_json_binary,
@@ -262,7 +262,7 @@ mod test {
     }
 
     mod update_ownership {
-        use abstract_testing::prelude::AbstractMockAddrs;
+        use abstract_unit_test_utils::prelude::AbstractMockAddrs;
 
         use super::*;
 

@@ -4,7 +4,7 @@ use abstract_adapter::{
     mock::{self, MockError, MockExecMsg, MockInitMsg},
     AdapterError,
 };
-use abstract_integration_tests::{
+use abstract_integration_test_utils::{
     add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,
     install_adapter_with_funds, mock_modules,
     mock_modules::adapter_1::{MockAdapterI1V1, MockAdapterI1V2},
@@ -20,7 +20,7 @@ use abstract_std::{
     },
     *,
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cosmwasm_std::{coin, coins};
 use cw_orch::prelude::*;
 use mock_modules::{adapter_1, V1, V2};
@@ -116,7 +116,7 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
 fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::installing_one_adapter_with_fee_should_succeed(
+    abstract_integration_test_utils::account::installing_one_adapter_with_fee_should_succeed(
         chain.clone(),
     )?;
     take_storage_snapshot!(chain, "install_one_adapter_with_fee");

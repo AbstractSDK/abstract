@@ -22,7 +22,7 @@ pub trait AccountIdentification: Sized {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::testing::MockApi;
 
     use super::*;

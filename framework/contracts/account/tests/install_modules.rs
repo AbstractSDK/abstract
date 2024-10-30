@@ -1,5 +1,5 @@
 use abstract_account::error::AccountError;
-use abstract_integration_tests::{create_default_account, mock_modules, AResult};
+use abstract_integration_test_utils::{create_default_account, mock_modules, AResult};
 use abstract_interface::{Abstract, AccountQueryFns, RegistryExecFns};
 use abstract_std::{
     account::{
@@ -8,7 +8,7 @@ use abstract_std::{
     },
     objects::{module::ModuleInfo, ownership::GovOwnershipError},
 };
-use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
+use abstract_unit_test_utils::prelude::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 use cw_orch::{prelude::*, take_storage_snapshot};
 use mock_modules::{adapter_1, deploy_modules, V1};
 

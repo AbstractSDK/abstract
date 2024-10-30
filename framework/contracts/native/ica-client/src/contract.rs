@@ -83,7 +83,7 @@ mod tests {
     use super::*;
 
     use crate::test_common::mock_init;
-    use abstract_testing::{mock_env_validated, prelude::*};
+    use abstract_unit_test_utils::{mock_env_validated, prelude::*};
     use cosmwasm_std::{
         from_json,
         testing::{message_info, mock_dependencies},

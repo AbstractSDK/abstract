@@ -43,7 +43,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 mod tests {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::adapter::{AdapterRequestMsg, ExecuteMsg};
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{testing::*, DepsMut, MessageInfo, Response};
 
     use super::*;

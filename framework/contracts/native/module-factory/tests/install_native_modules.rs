@@ -1,4 +1,4 @@
-use abstract_integration_tests::{create_default_account, AResult};
+use abstract_integration_test_utils::{create_default_account, AResult};
 use abstract_interface::{Abstract, AccountI, AccountQueryFns};
 use abstract_std::{
     account::{ExecuteMsg as AccountMsg, ModuleInstallConfig},

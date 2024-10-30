@@ -1,6 +1,6 @@
 use abstract_interface::{RegisteredModule, ServiceDeployer};
 use abstract_std::objects::dependency::StaticDependency;
-use abstract_testing::prelude::TEST_VERSION;
+use abstract_unit_test_utils::prelude::TEST_VERSION;
 use cosmwasm_std::{to_json_binary, Empty};
 use cw_orch::{contract::Contract, prelude::*};
 

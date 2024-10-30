@@ -20,7 +20,7 @@ pub(crate) mod test {
         let api_id = T::api_id();
         assert_eq!(api_id, T::API_ID);
         let base = api.base();
-        assert_eq!(base.module_id(), abstract_testing::module::TEST_MODULE_ID);
+        assert_eq!(base.module_id(), abstract_unit_test_utils::module::TEST_MODULE_ID);
         let deps = api.deps();
         assert!(deps
             .api

@@ -340,8 +340,8 @@ mod tests {
     use crate::test_common::{execute_as, mock_init};
     use abstract_std::account::{ExecuteMsg, InternalConfigAction};
     use abstract_std::objects::dependency::Dependency;
-    use abstract_testing::module::TEST_MODULE_ID;
-    use abstract_testing::prelude::AbstractMockAddrs;
+    use abstract_unit_test_utils::module::TEST_MODULE_ID;
+    use abstract_unit_test_utils::prelude::AbstractMockAddrs;
     use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
     use ownership::GovOwnershipError;
 

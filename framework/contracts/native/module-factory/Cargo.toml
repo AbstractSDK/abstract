@@ -44,8 +44,8 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true }
 anyhow = { workspace = true }
-abstract-testing = { workspace = true }
-abstract-integration-tests = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
+abstract-integration-test-utils = { workspace = true }
 coverage-helper = { workspace = true }
 
 [profile.release]

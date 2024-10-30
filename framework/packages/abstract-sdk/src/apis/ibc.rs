@@ -35,7 +35,7 @@ pub trait IbcInterface:
         use abstract_sdk::prelude::*;
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
-        # use abstract_testing::prelude::*;
+        # use abstract_unit_test_utils::prelude::*;
         # let deps = mock_dependencies();
         # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
@@ -78,7 +78,7 @@ impl<'a, T: IbcInterface> AbstractApi<T> for IbcClient<'a, T> {
     use abstract_sdk::prelude::*;
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
-    # use abstract_testing::prelude::*;
+    # use abstract_unit_test_utils::prelude::*;
     # let deps = mock_dependencies();
     # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
@@ -356,7 +356,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
 #[cfg(test)]
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::*;
 
     use super::*;

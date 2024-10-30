@@ -247,7 +247,7 @@ fn get_addr_from_module_id_or_addr(
 #[cfg(test)]
 mod tests {
     use abstract_std::adapter;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{testing::*, Addr, Storage};
 
     use super::*;

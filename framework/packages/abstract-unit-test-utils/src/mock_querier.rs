@@ -23,7 +23,7 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 ///
 /// ```
 /// use cosmwasm_std::{from_json, to_json_binary};
-/// use abstract_testing::MockQuerierBuilder;
+/// use abstract_unit_test_utils::MockQuerierBuilder;
 /// use cosmwasm_std::testing::{MockQuerier, MockApi};
 /// use abstract_sdk::mock_module::MockModuleExecuteMsg;
 ///
@@ -124,7 +124,7 @@ impl MockQuerierBuilder {
     /// Usage:
     /// ```rust
     /// use cosmwasm_std::{from_json, to_json_binary};
-    /// use abstract_testing::MockQuerierBuilder;
+    /// use abstract_unit_test_utils::MockQuerierBuilder;
     /// use cosmwasm_std::testing::{MockQuerier, MockApi};
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
     ///
@@ -155,7 +155,7 @@ impl MockQuerierBuilder {
     ///
     /// ```rust
     /// use cosmwasm_std::{from_json, to_json_binary};
-    /// use abstract_testing::MockQuerierBuilder;
+    /// use abstract_unit_test_utils::MockQuerierBuilder;
     /// use cosmwasm_std::testing::{MockQuerier, MockApi};
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
     ///
@@ -187,7 +187,7 @@ impl MockQuerierBuilder {
     /// ```rust
     /// use cw_storage_plus::Map;
     /// use cosmwasm_std::testing::MockApi;
-    /// use abstract_testing::MockQuerierBuilder;
+    /// use abstract_unit_test_utils::MockQuerierBuilder;
     ///
     /// let api = MockApi::default();
     /// let contract_address = api.addr_make("contract1");
@@ -266,7 +266,7 @@ impl MockQuerierBuilder {
     /// ```rust
     /// use cw_storage_plus::Item;
     /// use cosmwasm_std::testing::MockApi;
-    /// use abstract_testing::MockQuerierBuilder;
+    /// use abstract_unit_test_utils::MockQuerierBuilder;
     ///
     /// let api = MockApi::default();
     /// let contract_address = api.addr_make("contract1");
@@ -295,7 +295,7 @@ impl MockQuerierBuilder {
 
     /// Add a specific version of the contract to the mock querier.
     /// ```rust
-    /// use abstract_testing::MockQuerierBuilder;
+    /// use abstract_unit_test_utils::MockQuerierBuilder;
     /// use cosmwasm_std::testing::MockApi;
     ///
     /// let api = MockApi::default();

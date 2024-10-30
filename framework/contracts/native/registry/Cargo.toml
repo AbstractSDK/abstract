@@ -42,7 +42,7 @@ cosmwasm-schema = { workspace = true }
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true }
 anyhow = { workspace = true }
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 coverage-helper = { workspace = true }
 
 [profile.release]

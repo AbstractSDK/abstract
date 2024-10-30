@@ -28,7 +28,7 @@ impl<
 mod test {
     use abstract_sdk::base::IbcCallbackEndpoint;
     use abstract_std::{account::state::ACCOUNT_MODULES, IBC_CLIENT};
-    use abstract_testing::{
+    use abstract_unit_test_utils::{
         abstract_mock_querier_builder, mock_env_validated, prelude::test_account,
     };
     use cosmwasm_std::Addr;

@@ -1,5 +1,5 @@
 use abstract_std::ans_host::ExecuteMsg;
-use abstract_testing::mock_env_validated;
+use abstract_unit_test_utils::mock_env_validated;
 use cosmwasm_std::{testing::*, Addr, OwnedDeps, Querier, Storage};
 
 use crate::{contract, contract::AnsHostResult};

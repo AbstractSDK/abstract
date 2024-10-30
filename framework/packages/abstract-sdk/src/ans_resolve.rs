@@ -130,7 +130,7 @@ mod tests {
     use super::*;
 
     use abstract_std::ans_host::state::ASSET_ADDRESSES;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, MockApi},
         Binary, Empty,

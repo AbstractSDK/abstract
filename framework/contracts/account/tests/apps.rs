@@ -2,7 +2,7 @@ use core::panic;
 
 use abstract_account::error::AccountError;
 use abstract_app::{gen_app_mock, mock, mock::MockError};
-use abstract_integration_tests::{create_default_account, AResult};
+use abstract_integration_test_utils::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_std::{
     account::ModuleInstallConfig,
@@ -13,7 +13,7 @@ use abstract_std::{
     },
     registry::ModuleFilter,
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
 use cw_orch::prelude::*;
@@ -76,7 +76,7 @@ fn execute_on_account() -> AResult {
 fn account_install_app() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::account_install_app(chain.clone())?;
+    abstract_integration_test_utils::account::account_install_app(chain.clone())?;
     take_storage_snapshot!(chain, "account_install_app");
     Ok(())
 }

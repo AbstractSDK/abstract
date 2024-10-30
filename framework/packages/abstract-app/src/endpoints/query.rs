@@ -109,7 +109,7 @@ mod test {
 
     mod app_query {
         use abstract_sdk::AbstractSdkError;
-        use abstract_testing::mock_env_validated;
+        use abstract_unit_test_utils::mock_env_validated;
         use cosmwasm_std::{to_json_binary, Env};
 
         use super::*;
@@ -159,7 +159,7 @@ mod test {
             app::{AppConfigResponse, BaseQueryMsg},
             objects::module_version::ModuleDataResponse,
         };
-        use abstract_testing::prelude::*;
+        use abstract_unit_test_utils::prelude::*;
         use cw_controllers::AdminResponse;
 
         #[coverage_helper::test]

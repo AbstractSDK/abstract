@@ -1,6 +1,6 @@
 use abstract_account::error::AccountError;
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
-use abstract_integration_tests::*;
+use abstract_integration_test_utils::*;
 use abstract_interface::*;
 use abstract_std::{
     account::{ModuleInstallConfig, ModuleVersionsResponse},
@@ -15,7 +15,7 @@ use abstract_std::{
     },
     registry::{NamespaceResponse, UpdateModule},
 };
-use abstract_testing::prelude::*;
+use abstract_unit_test_utils::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_orch::prelude::*;
 
@@ -161,7 +161,7 @@ fn default_without_response_data() -> AResult {
 fn with_response_data() -> AResult {
     let chain = MockBech32::new("mock");
     Abstract::deploy_on_mock(chain.clone())?;
-    abstract_integration_tests::account::with_response_data(chain.clone())?;
+    abstract_integration_test_utils::account::with_response_data(chain.clone())?;
     take_storage_snapshot!(chain, "account_with_response_data");
 
     Ok(())

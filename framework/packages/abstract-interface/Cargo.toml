@@ -65,7 +65,7 @@ cosmrs = { version = "0.19.0" }
 serde_json = "1.0.79"
 
 [dev-dependencies]
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 coverage-helper = { workspace = true }

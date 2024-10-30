@@ -35,7 +35,7 @@ impl StandaloneContract {
 #[cfg(test)]
 mod test {
     use crate::mock::*;
-    use abstract_testing::prelude::*;
+    use abstract_unit_test_utils::prelude::*;
 
     #[coverage_helper::test]
     fn test_migrate_migratable() {

@@ -51,7 +51,7 @@ rand = { version = "0.8.5" }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
-abstract-testing = { workspace = true }
+abstract-unit-test-utils = { workspace = true }
 abstract-client = { path = ".", features = ["test-utils", "interchain"] }
 abstract-account = { workspace = true }
 registry = { workspace = true }
