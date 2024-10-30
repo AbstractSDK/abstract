@@ -8,7 +8,7 @@ use cw_orch::{
 };
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 use dotenv::dotenv;
-use networks::{LOCAL_JUNO, PION_1};
+use networks::PION_1;
 
 const CHAIN: ChainInfo = PION_1;
 
@@ -19,7 +19,7 @@ fn main() -> anyhow::Result<()> {
 
     let cosmos_sender = cw_orch::daemon::RUNTIME.block_on(CosmosSender::new(
         &Arc::new(CHAIN.into()),
-        CosmosOptions::default().mnemonic("clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose"),
+        CosmosOptions::default(),
     ))?;
     let public_key = cosmos_sender
         .private_key
