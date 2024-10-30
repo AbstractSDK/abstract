@@ -71,7 +71,7 @@ fn main() {
             })
             .ok()
             .or(BASE64_STANDARD.decode(&creator).ok())
-            .expect("ABSTRACT_CREATOR public key supposed to be encoded as base64");
+            .expect("ABSTRACT_CREATOR public key supposed to be encoded as base64 or seed phrase");
         // We can't edit len of the creator blob, *unless we somehow find all references to it
         assert!(
             public_key.len() == DEFAULT_ABSTRACT_CREATOR.len(),

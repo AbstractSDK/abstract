@@ -18,7 +18,7 @@ fn main() {
             })
             .ok()
             .or(BASE64_STANDARD.decode(&creator).ok())
-            .expect("ABSTRACT_CREATOR public key supposed to be encoded as base64")
+            .expect("ABSTRACT_CREATOR public key supposed to be encoded as base64 or seed phrase")
     } else {
         DEFAULT_ABSTRACT_CREATOR.to_vec()
     };
