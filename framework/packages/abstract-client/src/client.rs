@@ -186,47 +186,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self,
         source: T,
     ) -> AbstractClientResult<Account<Chain>> {
-        self.account_from(source)
-    }
-
-    /// Fetches an existing Abstract [`Account`] from chain
-    /// If the Namespace is not claimed, creates an account with the provided account builder
-    pub fn fetch_or_build_account<T: Into<AccountSource>, F>(
-        &self,
-        source: T,
-        build_fn: F,
-    ) -> AbstractClientResult<Account<Chain>>
-    where
-        F: for<'a, 'b> FnOnce(
-            &'a mut AccountBuilder<'b, Chain>,
-        ) -> &'a mut AccountBuilder<'b, Chain>,
-    {
-        match self.account_from(source).ok() {
-            Some(account) => Ok(account),
-            None => {
-                let mut account_builder = self.account_builder();
-                build_fn(&mut account_builder).build()
-            }
-        }
-    }
-
-    /// Address of the sender
-    pub fn sender(&self) -> Addr {
-        self.environment().sender_addr()
-    }
-
-    /// Fetch an [`Account`] from a given source.
-    ///
-    /// This method is used to retrieve an account from a given source. It will **not** create a new account if the source is invalid.
-    ///
-    /// Sources that can be used are:
-    /// - [`Namespace`]: Will retrieve the account from the namespace if it is already claimed.
-    /// - [`AccountId`]: Will retrieve the account from the account id.
-    /// - App [`Addr`]: Will retrieve the account from an app that is installed on it.
-    pub fn account_from<T: Into<AccountSource>>(
-        &self,
-        source: T,
-    ) -> AbstractClientResult<Account<Chain>> {
         let source = source.into();
         let chain = self.abstr.registry.environment();
 
@@ -272,6 +231,48 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 Ok(Account::new(abstract_account))
             }
         }
+    }
+
+    /// Fetches an existing Abstract [`Account`] from chain
+    /// If the Namespace is not claimed, creates an account with the provided account builder
+    pub fn fetch_or_build_account<T: Into<AccountSource>, F>(
+        &self,
+        source: T,
+        build_fn: F,
+    ) -> AbstractClientResult<Account<Chain>>
+    where
+        F: for<'a, 'b> FnOnce(
+            &'a mut AccountBuilder<'b, Chain>,
+        ) -> &'a mut AccountBuilder<'b, Chain>,
+    {
+        match self.fetch_account(source) {
+            Ok(account) => Ok(account),
+            Err(_) => {
+                let mut account_builder = self.account_builder();
+                build_fn(&mut account_builder).build()
+            }
+        }
+    }
+
+    /// Address of the sender
+    pub fn sender(&self) -> Addr {
+        self.environment().sender_addr()
+    }
+
+    /// Fetch an [`Account`] from a given source.
+    ///
+    /// This method is used to retrieve an account from a given source. It will **not** create a new account if the source is invalid.
+    ///
+    /// Sources that can be used are:
+    /// - [`Namespace`]: Will retrieve the account from the namespace if it is already claimed.
+    /// - [`AccountId`]: Will retrieve the account from the account id.
+    /// - App [`Addr`]: Will retrieve the account from an app that is installed on it.
+    #[deprecated(since = "0.24.2", note = "use fetch_account instead")]
+    pub fn account_from<T: Into<AccountSource>>(
+        &self,
+        source: T,
+    ) -> AbstractClientResult<Account<Chain>> {
+        self.fetch_account(source)
     }
 
     /// Retrieve denom balance for provided address
