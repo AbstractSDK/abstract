@@ -1601,8 +1601,11 @@ fn account_fetcher_shouldnt_install_module_on_existing_account() -> anyhow::Resu
         .namespace(NEW_NAMESPACE.try_into()?)
         .build()?;
 
-    client.fetch_or_build_account(NEW_NAMESPACE.try_into()?, |builder| {
-        builder.install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
+    let namespace: Namespace = NEW_NAMESPACE.try_into()?;
+    client.fetch_or_build_account(namespace.clone(), |builder| {
+        builder
+            .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
+            .namespace(namespace)
     })?;
     assert!(!account.module_installed(TEST_MODULE_ID)?);
     Ok(())

@@ -15,7 +15,7 @@ pub enum AbstractXionError {
     FromHex(#[from] hex::FromHexError),
 
     #[error(transparent)]
-    Bech32(#[from] bech32::Error),
+    Bech32Encode(#[from] bech32::EncodeError),
 
     #[error(transparent)]
     Base64Decode(#[from] base64::DecodeError),
