@@ -50,10 +50,7 @@ cw-storage-plus.workspace = true
 thiserror.workspace = true
 base64 = "0.22.1"
 # Testing contract
-counter-contract = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "main" } # Use tag if breaks
-
-ping-pong = { path = "../../modules/contracts/apps/ping-pong" }
-
+counter-contract = { version = "0.27.0" }
 
 [lints]
 workspace = true

@@ -1,4 +1,4 @@
-use crate::interchain_integration::{ibc_abstract_setup, logger_test_init, JUNO, STARGAZE};
+use abstract_tests::interchain::{ibc_abstract_setup, logger_test_init, JUNO, STARGAZE};
 
 use abstract_std::{
     ibc::{Callback, IbcResult},
@@ -337,7 +337,6 @@ pub mod test {
         );
         Ok(())
     }
-    use super::super::interchain_accounts::create_test_remote_account;
     use super::{
         origin_app::interface::MockAppOriginI,
         remote_app::{interface::MockAppRemoteI, TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE},
@@ -349,6 +348,7 @@ pub mod test {
         AccountI, AccountQueryFns, AppDeployer, DeployStrategy, RegistryExecFns,
     };
     use abstract_std::account::{self, ModuleInstallConfig};
+    use abstract_tests::interchain::create_test_remote_account;
     use abstract_unit_test_utils::{
         module::{TEST_MODULE_ID, TEST_NAMESPACE},
         TEST_VERSION,

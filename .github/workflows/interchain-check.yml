@@ -1,0 +1,86 @@
+name: interchain-check
+permissions:
+  contents: read
+on:
+  push:
+    branches: [main]
+    paths:
+      - "interchain/**"
+  pull_request:
+    paths:
+      - "interchain/**"
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    name: stable / fmt
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
+            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
+      - name: Install stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: cargo fmt --check
+        working-directory: ./interchain
+        run: cargo fmt --check
+  clippy:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.toolchain }} / clippy
+    permissions:
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [stable, beta]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
+            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
+      - name: Install ${{ matrix.toolchain }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy
+      - name: cargo clippy
+        working-directory: ./interchain
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  # Find any unused dependencies
+  unused-deps:
+    runs-on: ubuntu-latest
+    name: nigtly / unused-deps
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
+            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.5
+        with:
+          version: "v0.8.1"
+      - name: Install nightly
+        uses: dtolnay/rust-toolchain@nightly
+      - name: cargo install cargo-udeps
+        uses: taiki-e/install-action@cargo-udeps
+      - name: cargo install cargo-workspaces
+        run: cargo +stable install cargo-workspaces
+      - name: cargo udeps interchain
+        working-directory: ./interchain
+        run: cargo workspaces exec cargo +nightly udeps

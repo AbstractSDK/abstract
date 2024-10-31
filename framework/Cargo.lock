@@ -7,17 +7,17 @@ name = "abstract-account"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
- "abstract-ans-host 0.24.1-beta.2",
- "abstract-app 0.24.1-beta.2",
- "abstract-ica 0.24.1-beta.2",
+ "abstract-ans-host",
+ "abstract-app",
+ "abstract-ica",
  "abstract-integration-test-utils",
- "abstract-interface 0.24.1-beta.2",
- "abstract-macros 0.24.1-beta.2",
- "abstract-module-factory 0.24.1-beta.2",
- "abstract-registry 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-macros",
+ "abstract-module-factory",
+ "abstract-registry",
+ "abstract-sdk",
  "abstract-standalone",
- "abstract-std 0.24.1-beta.2",
+ "abstract-std",
  "abstract-unit-test-utils",
  "abstract-xion",
  "anyhow",
@@ -36,31 +36,7 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-account"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "596483e3009638487ade6610f7ea012c1a0a3fa6466c40efd3c67de817a07775"
-dependencies = [
- "abstract-ica 0.24.1",
- "abstract-macros 0.24.1",
- "abstract-sdk 0.24.1",
- "abstract-std 0.24.1",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-asset",
- "cw-controllers",
- "cw-storage-plus",
- "cw2",
- "cw20",
- "schemars",
- "semver",
- "serde",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -68,11 +44,11 @@ name = "abstract-adapter"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
- "abstract-ibc-client 0.24.1-beta.2",
- "abstract-ibc-host 0.24.1-beta.2",
- "abstract-interface 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-ibc-client",
+ "abstract-ibc-host",
+ "abstract-interface",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -84,7 +60,7 @@ dependencies = [
  "schemars",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -94,16 +70,16 @@ dependencies = [
  "cosmwasm-std",
  "cw-asset",
  "cw20",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-ans-host"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-macros 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-macros",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -118,40 +94,19 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-ans-host"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "620199d6543aff7a7433abc54e2481e4676d790750c9f13d29507732f2c6157d"
-dependencies = [
- "abstract-macros 0.24.1",
- "abstract-sdk 0.24.1",
- "abstract-std 0.24.1",
- "cosmwasm-std",
- "cw-asset",
- "cw-controllers",
- "cw-ownable",
- "cw-storage-plus",
- "cw2",
- "semver",
- "serde",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-app"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-app 0.24.1-beta.2",
- "abstract-ibc-host 0.24.1-beta.2",
+ "abstract-app",
+ "abstract-ibc-host",
  "abstract-integration-test-utils",
- "abstract-interface 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -165,45 +120,21 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-app"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "301f266581519bbd9d2df810dffb3f9703c94c01650b5c3a5f633df2f5b5e121"
-dependencies = [
- "abstract-ibc-host 0.24.1",
- "abstract-interface 0.24.1",
- "abstract-sdk 0.24.1",
- "abstract-std 0.24.1",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-asset",
- "cw-controllers",
- "cw-orch 0.27.0",
- "cw-storage-plus",
- "cw2",
- "schemars",
- "semver",
- "serde",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-client"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-account 0.24.1-beta.2",
+ "abstract-account",
  "abstract-adapter",
- "abstract-app 0.24.1-beta.2",
+ "abstract-app",
  "abstract-client",
  "abstract-cw-orch-polytone",
- "abstract-interface 0.24.1-beta.2",
- "abstract-registry 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-registry",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
@@ -223,7 +154,7 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -271,9 +202,9 @@ version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
- "abstract-interface 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anyhow",
  "clap",
@@ -290,16 +221,16 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-ibc-client"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-macros 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-macros",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anybuf",
  "cosmwasm-schema",
@@ -315,29 +246,7 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-ibc-client"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53672e61471a20fb991594ba02841928e7ce12318d52f1d64f5c3a89e0d2fbe5"
-dependencies = [
- "abstract-macros 0.24.1",
- "abstract-sdk 0.24.1",
- "abstract-std 0.24.1",
- "anybuf",
- "cosmwasm-std",
- "cw-ownable",
- "cw-paginate",
- "cw-storage-plus",
- "cw-utils",
- "cw2",
- "semver",
- "serde",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -345,10 +254,10 @@ name = "abstract-ibc-host"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
- "abstract-interface 0.24.1-beta.2",
- "abstract-macros 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-macros",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
@@ -365,39 +274,14 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-ibc-host"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce0be825a029f8ce2c9f97918545b3f455639b5cd0e9e2967cb6002b6be247db"
-dependencies = [
- "abstract-macros 0.24.1",
- "abstract-sdk 0.24.1",
- "abstract-std 0.24.1",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-controllers",
- "cw-orch 0.27.0",
- "cw-ownable",
- "cw-paginate",
- "cw-storage-plus",
- "cw-utils",
- "cw2",
- "schemars",
- "semver",
- "serde",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-ica"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-sdk 0.24.1-beta.2",
+ "abstract-sdk",
  "abstract-unit-test-utils",
  "alloy",
  "alloy-sol-types",
@@ -415,39 +299,17 @@ dependencies = [
  "schemars",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-ica"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73c07044d98282beac12c66d6455ed4e6bded3e93e5881d4c25b183c84c6798e"
-dependencies = [
- "abstract-sdk 0.24.1",
- "alloy",
- "alloy-sol-types",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-orch 0.27.0",
- "cw-ownable",
- "cw-storage-plus",
- "map-macro",
- "polytone-evm",
- "schemars",
- "serde",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-ica-client"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-ica 0.24.1-beta.2",
- "abstract-macros 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-ica",
+ "abstract-macros",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -460,19 +322,19 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-integration-test-utils"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-account 0.24.1-beta.2",
+ "abstract-account",
  "abstract-adapter",
- "abstract-app 0.24.1-beta.2",
- "abstract-interface 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-app",
+ "abstract-interface",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
@@ -483,23 +345,23 @@ dependencies = [
  "cw2",
  "log",
  "semver",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-interface"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-account 0.24.1-beta.2",
- "abstract-ans-host 0.24.1-beta.2",
- "abstract-app 0.24.1-beta.2",
+ "abstract-account",
+ "abstract-ans-host",
+ "abstract-app",
  "abstract-cw-orch-polytone",
- "abstract-ibc-client 0.24.1-beta.2",
- "abstract-ibc-host 0.24.1-beta.2",
- "abstract-module-factory 0.24.1-beta.2",
- "abstract-registry 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-ibc-client",
+ "abstract-ibc-host",
+ "abstract-module-factory",
+ "abstract-registry",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "cosmrs 0.19.0",
  "cosmwasm-schema",
@@ -523,41 +385,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-interface"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6220fe6cc3b1dd4c2db51c7d86728875e435d128b44447b016d424936e60901"
-dependencies = [
- "abstract-account 0.24.1",
- "abstract-ans-host 0.24.1",
- "abstract-ibc-client 0.24.1",
- "abstract-ibc-host 0.24.1",
- "abstract-module-factory 0.24.1",
- "abstract-registry 0.24.1",
- "abstract-std 0.24.1",
- "cosmrs 0.19.0",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-address-like",
- "cw-asset",
- "cw-blob",
- "cw-controllers",
- "cw-orch 0.27.0",
- "cw-storage-plus",
- "cw2",
- "cw20",
- "log",
- "rust-embed",
- "schemars",
- "semver",
- "serde",
- "serde_json",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -572,25 +400,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "abstract-macros"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79c1026bf7c55563279be559b11a0febb25b0417933c2f8017cd65f3b77cbf62"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "abstract-module-factory"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-integration-test-utils",
- "abstract-interface 0.24.1-beta.2",
- "abstract-macros 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-macros",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
@@ -605,29 +422,7 @@ dependencies = [
  "semver",
  "serde-cw-value",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-module-factory"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38a88237d26c633ea40f8190a0b07dbcdd21acbd25dad489d5e7a447e080eb7a"
-dependencies = [
- "abstract-macros 0.24.1",
- "abstract-sdk 0.24.1",
- "abstract-std 0.24.1",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-asset",
- "cw-controllers",
- "cw-ownable",
- "cw-storage-plus",
- "cw2",
- "semver",
- "serde-cw-value",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -636,8 +431,8 @@ version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-sdk",
+ "abstract-std",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
@@ -647,7 +442,7 @@ dependencies = [
  "schemars",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -716,10 +511,10 @@ dependencies = [
 name = "abstract-registry"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-interface 0.24.1-beta.2",
- "abstract-macros 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-macros",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anyhow",
  "cosmwasm-schema",
@@ -732,36 +527,16 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-registry"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc4713bfa21e9eef5c0300cd1ce7d12b6b4e7309cb2981f46dce129e1c43cb8e"
-dependencies = [
- "abstract-macros 0.24.1",
- "abstract-sdk 0.24.1",
- "abstract-std 0.24.1",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-ownable",
- "cw-storage-plus",
- "cw2",
- "semver",
- "serde",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-sdk"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-macros 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-macros",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "cosmos-sdk-proto 0.24.0",
  "cosmwasm-schema",
@@ -783,30 +558,7 @@ dependencies = [
  "serde-cw-value",
  "serde_json",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-sdk"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a27571b79df99c846b3d8b09b2642e8f7b4411e1cbb47eeda679cf711e266950"
-dependencies = [
- "abstract-macros 0.24.1",
- "abstract-std 0.24.1",
- "cosmwasm-std",
- "cw-asset",
- "cw-clearable",
- "cw-controllers",
- "cw-storage-plus",
- "cw2",
- "cw20",
- "schemars",
- "semver",
- "serde",
- "serde-cw-value",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -815,9 +567,9 @@ version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
- "abstract-interface 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anyhow",
  "clap",
@@ -834,7 +586,7 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -842,10 +594,10 @@ name = "abstract-standalone"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-integration-test-utils",
- "abstract-interface 0.24.1-beta.2",
- "abstract-sdk 0.24.1-beta.2",
+ "abstract-interface",
+ "abstract-sdk",
  "abstract-standalone",
- "abstract-std 0.24.1-beta.2",
+ "abstract-std",
  "abstract-unit-test-utils",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -859,7 +611,7 @@ dependencies = [
  "semver",
  "serde",
  "thiserror",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -892,37 +644,7 @@ dependencies = [
  "serde",
  "sha2 0.10.8",
  "thiserror",
- "workspace-hack 0.1.0",
-]
-
-[[package]]
-name = "abstract-std"
-version = "0.24.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e44a120d19d81a5044d413f7d586ad850f09d90db8f158692001ec873aa51319"
-dependencies = [
- "bech32 0.11.0",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-address-like",
- "cw-asset",
- "cw-blob",
- "cw-clearable",
- "cw-controllers",
- "cw-orch 0.27.0",
- "cw-ownable",
- "cw-storage-plus",
- "cw-utils",
- "cw2",
- "cw20",
- "function_name",
- "ripemd",
- "schemars",
- "semver",
- "serde",
- "sha2 0.10.8",
- "thiserror",
- "workspace-hack 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -930,14 +652,14 @@ name = "abstract-tests"
 version = "0.24.1-beta.2"
 dependencies = [
  "abstract-adapter",
- "abstract-app 0.24.1-beta.2",
+ "abstract-app",
  "abstract-client",
  "abstract-cw-orch-polytone",
  "abstract-integration-test-utils",
- "abstract-interface 0.24.1-beta.2",
+ "abstract-interface",
  "abstract-polytone",
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-sdk",
+ "abstract-std",
  "abstract-unit-test-utils",
  "anyhow",
  "base64 0.22.1",
@@ -957,7 +679,6 @@ dependencies = [
  "ibc-relayer-types",
  "lazy_static",
  "log",
- "ping-pong",
  "semver",
  "thiserror",
  "tokio",
@@ -967,8 +688,8 @@ dependencies = [
 name = "abstract-unit-test-utils"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-sdk 0.24.1-beta.2",
- "abstract-std 0.24.1-beta.2",
+ "abstract-sdk",
+ "abstract-std",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
@@ -979,14 +700,14 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "abstract-xion"
 version = "0.24.1-beta.2"
 dependencies = [
- "abstract-std 0.24.1-beta.2",
+ "abstract-std",
  "base64 0.22.1",
  "bech32 0.9.1",
  "cosmwasm-schema",
@@ -1003,7 +724,7 @@ dependencies = [
  "thiserror",
  "tiny-keccak",
  "url",
- "workspace-hack 0.1.0",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1685,9 +1406,9 @@ dependencies = [
 
 [[package]]
 name = "bitcoin"
-version = "0.32.3"
+version = "0.32.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0032b0e8ead7074cda7fc4f034409607e3f03a6f71d66ade8a307f79b4d99e73"
+checksum = "788902099d47c8682efe6a7afb01c8d58b9794ba66c06affd81c3d6b560743eb"
 dependencies = [
  "base58ck",
  "bech32 0.11.0",
@@ -2359,8 +2080,9 @@ dependencies = [
 
 [[package]]
 name = "counter-contract"
-version = "0.11.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator.git?branch=main#652bc2bcba502cf5a6c3edde1282bfc9b983d01d"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07908727953279e0c4fb687313c29ea2181f66d46a0a4e794109a79fbd1d789c"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -2766,7 +2488,7 @@ dependencies = [
  "base16",
  "base64 0.22.1",
  "bech32 0.11.0",
- "bitcoin 0.32.3",
+ "bitcoin 0.32.4",
  "chrono",
  "cosmrs 0.19.0",
  "cosmwasm-std",
@@ -2787,7 +2509,7 @@ dependencies = [
  "prost 0.13.3",
  "prost-types 0.13.3",
  "rand_core",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "ring",
  "ripemd",
  "schemars",
@@ -2813,7 +2535,7 @@ dependencies = [
  "base64 0.22.1",
  "bech32 0.11.0",
  "bip39",
- "bitcoin 0.32.3",
+ "bitcoin 0.32.4",
  "chrono",
  "cosmrs 0.19.0",
  "cosmwasm-std",
@@ -2834,7 +2556,7 @@ dependencies = [
  "prost 0.13.3",
  "prost-types 0.13.3",
  "rand_core",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "ring",
  "ripemd",
  "schemars",
@@ -3021,7 +2743,7 @@ dependencies = [
  "k8s-openapi",
  "kube",
  "log",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "serde",
  "serde_json",
  "thiserror",
@@ -4684,7 +4406,7 @@ dependencies = [
  "hyper 1.5.0",
  "hyper-util",
  "log",
- "rustls 0.23.15",
+ "rustls 0.23.16",
  "rustls-native-certs 0.8.0",
  "rustls-pki-types",
  "tokio",
@@ -4723,9 +4445,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-util"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41296eb09f183ac68eec06e03cdbea2e759633d4067b2f6552fc2e009bcad08b"
+checksum = "df2dcfbe0677734ab2f3ffa7fa7bfd4706bfdc1ef393f2ee30184aed67e631b4"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -5003,9 +4725,9 @@ dependencies = [
 
 [[package]]
 name = "insta"
-version = "1.40.0"
+version = "1.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6593a41c7a73841868772495db7dc1e8ecab43bb5c0b6da2059246c4b506ab60"
+checksum = "a1f72d3e19488cf7d8ea52d2fc0f8754fc933398b337cd3cbdb28aaeb35159ef"
 dependencies = [
  "console",
  "lazy_static",
@@ -5187,7 +4909,7 @@ dependencies = [
  "kube-core",
  "pem",
  "rand",
- "rustls 0.23.15",
+ "rustls 0.23.16",
  "rustls-pemfile 2.2.0",
  "secrecy",
  "serde",
@@ -5292,9 +5014,9 @@ dependencies = [
 
 [[package]]
 name = "libm"
-version = "0.2.8"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
+checksum = "8355be11b20d696c8f18f6cc018c4e372165b1fa8126cef092399c9951984ffa"
 
 [[package]]
 name = "libredox"
@@ -5979,22 +5701,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
-name = "ping-pong"
-version = "0.1.0"
-dependencies = [
- "abstract-app 0.24.1",
- "abstract-ibc-client 0.24.1-beta.2",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-asset",
- "cw-controllers",
- "cw-orch 0.27.0",
- "cw-storage-plus",
- "schemars",
- "thiserror",
-]
-
-[[package]]
 name = "pkcs1"
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6462,9 +6168,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.12.8"
+version = "0.12.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f713147fbe92361e52392c73b8c9e48c04c6625bce969ef54dc901e58e042a7b"
+checksum = "a77c62af46e79de0a562e1a9849205ffcb7fc1238876e9bd743357570e04046f"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -6703,9 +6409,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.37"
+version = "0.38.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8acb788b847c24f28525660c4d7758620a7210875711f79e7f663cc152726811"
+checksum = "aa260229e6538e52293eeb577aabd09945a09d6d9cc0fc550ed7529056c2e32a"
 dependencies = [
  "bitflags 2.6.0",
  "errno",
@@ -6742,9 +6448,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.15"
+version = "0.23.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fbb44d7acc4e873d613422379f69f237a1b141928c02f6bc6ccfddddc2d7993"
+checksum = "eee87ff5d9b36712a58574e12e9f0ea80f915a5b0ac518d322b24a465617925e"
 dependencies = [
  "log",
  "once_cell",
@@ -7030,9 +6736,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.213"
+version = "1.0.214"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ea7893ff5e2466df8d720bb615088341b295f849602c6956047f8f80f0e9bc1"
+checksum = "f55c3193aca71c12ad7890f1785d2b73e1b9f63a0bbc353c08ef26fe03fc56b5"
 dependencies = [
  "serde_derive",
 ]
@@ -7097,9 +6803,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.213"
+version = "1.0.214"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e85ad2009c50b58e87caa8cd6dac16bdf511bbfb7af6c33df902396aa480fa5"
+checksum = "de523f781f095e28fa605cdce0f8307e451cc0fd14e2eb4cd2e98a355b147766"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -8006,7 +7712,7 @@ version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c7bc40d0e5a97695bb96e27995cd3a08538541b0a846f65bba7a359f36700d4"
 dependencies = [
- "rustls 0.23.15",
+ "rustls 0.23.16",
  "rustls-pki-types",
  "tokio",
 ]
@@ -9172,7 +8878,7 @@ dependencies = [
  "regex-automata 0.4.8",
  "regex-syntax 0.8.5",
  "reqwest 0.11.27",
- "reqwest 0.12.8",
+ "reqwest 0.12.9",
  "ripemd",
  "sec1",
  "semver",
@@ -9200,12 +8906,6 @@ dependencies = [
  "uuid",
  "zeroize",
 ]
-
-[[package]]
-name = "workspace-hack"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "beffa227304dbaea3ad6a06ac674f9bc83a3dec3b7f63eeb442de37e7cb6bb01"
 
 [[package]]
 name = "wyz"

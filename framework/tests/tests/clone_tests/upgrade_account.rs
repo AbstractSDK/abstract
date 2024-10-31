@@ -21,7 +21,7 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
         .flat_map(|account_id| {
             // Create the account helper
             let account = AccountI::load_from(&abstr_deployment, AccountId::local(account_id))?;
-            if let Some(owner) = account.top_level_owner().ok() {
+            if let std::result::Result::Ok(owner) = account.top_level_owner() {
                 let ver = account.item_query(cw2::CONTRACT)?;
                 let account_version = Version::parse(&ver.version)?;
 

@@ -66,7 +66,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 mod test {
     #![allow(clippy::needless_borrows_for_generic_args)]
     use super::*;
-    use crate::interchain_integration::{
+    use abstract_tests::interchain::{
         ibc_abstract_setup, logger_test_init, JUNO, OSMOSIS, STARGAZE,
     };
 
