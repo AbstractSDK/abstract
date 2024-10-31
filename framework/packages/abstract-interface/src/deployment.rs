@@ -4,10 +4,11 @@ use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 use cw_orch::daemon::DeployedChains;
 
 use cw_orch::{mock::MockBase, prelude::*};
+use cw_plus_orch::cw3_flex_multisig::Cw3FlexMultisig;
 
 use crate::{
-    get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
-    AnsHost, ModuleFactory, Registry,
+    get_ibc_contracts, get_native_contracts, multisig::AbstractMultisig, AbstractIbc,
+    AbstractInterfaceError, AccountI, AnsHost, ModuleFactory, Registry,
 };
 use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
 
@@ -21,6 +22,7 @@ pub struct Abstract<Chain: CwEnv> {
     pub ibc: AbstractIbc<Chain>,
     pub(crate) account: AccountI<Chain>,
     pub(crate) blob: CwBlob<Chain>,
+    pub multisig: AbstractMultisig<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -38,6 +40,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         let ibc_infra = AbstractIbc::new(&chain);
 
+        let multisig = AbstractMultisig::new(&chain);
+
         blob.upload_if_needed()?;
         ans_host.upload()?;
         registry.upload()?;
@@ -52,6 +56,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             account,
             ibc: ibc_infra,
             blob,
+            multisig,
         };
 
         Ok(deployment)
@@ -215,6 +220,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         let (ans_host, registry, module_factory) = get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
         let account = AccountI::new(ACCOUNT, chain.clone());
+        let multisig = AbstractMultisig::new(&chain);
         Self {
             account,
             ans_host,
@@ -224,6 +230,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 client: ibc_client,
                 host: ibc_host,
             },
+            multisig,
             blob: CwBlob::new(CW_BLOB, chain),
         }
     }
@@ -300,6 +307,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ibc,
             account,
             blob: _,
+            multisig: _,
         } = self;
         ans_host.set_sender(sender);
         registry.set_sender(sender);
@@ -317,6 +325,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ibc: self.ibc.call_as(sender),
             account: self.account.call_as(sender),
             blob: self.blob.clone(),
+            multisig: self.multisig.clone(),
         }
     }
 }

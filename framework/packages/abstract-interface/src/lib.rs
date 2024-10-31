@@ -29,4 +29,4 @@ pub use crate::{deployers::*, deployment::*};
 
 pub use daemon_state::AbstractDaemonState;
 
-mod multisig;
+pub mod multisig;

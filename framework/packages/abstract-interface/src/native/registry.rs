@@ -321,7 +321,7 @@ impl<Chain: CwEnv> Registry<Chain> {
         Ok(())
     }
 
-    fn contracts_into_module_entries<RefFn>(
+    pub(crate) fn contracts_into_module_entries<RefFn>(
         &self,
         modules: Vec<(&Contract<Chain>, VersionString)>,
         ref_fn: RefFn,

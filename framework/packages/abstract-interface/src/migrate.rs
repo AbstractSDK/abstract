@@ -200,7 +200,7 @@ impl<T: CwEnv> Abstract<T> {
     }
 }
 
-fn contract_version<Chain: CwEnv, A: ContractInstance<Chain>>(
+pub(crate) fn contract_version<Chain: CwEnv, A: ContractInstance<Chain>>(
     contract: &A,
 ) -> Result<ContractVersion, crate::AbstractInterfaceError> {
     let wasm_querier = contract.environment().wasm_querier();
