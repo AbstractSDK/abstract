@@ -76,7 +76,7 @@ pub struct RegistryContract {
 }
 
 impl RegistryContract {
-    /// Retrieve address of the Version Control
+    /// Retrieve address of the Registry
     pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
         let hrp = native_addrs::hrp_from_env(env);
         let address = api.addr_humanize(&native_addrs::registry_address(hrp, api)?)?;
