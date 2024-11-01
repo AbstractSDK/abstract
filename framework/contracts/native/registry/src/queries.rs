@@ -58,6 +58,18 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
             let versions: StdResult<Vec<(ModuleVersion, ModuleReference)>> = REGISTERED_MODULES
                 .prefix((module.namespace.clone(), module.name.clone()))
                 .range(deps.storage, None, None, Order::Descending)
+                .skip_while(|result| {
+                    if let Ok((v, _)) = result {
+                        let without_prerelease = semver::Version::parse(&v.to_string())
+                            .unwrap()
+                            .pre
+                            .is_empty();
+                        // Skip until we find release version and not prerelease
+                        !without_prerelease
+                    } else {
+                        false
+                    }
+                })
                 .take(1)
                 .collect();
             let (latest_version, id) = versions?
@@ -531,8 +543,13 @@ mod test {
             let module_id = "test:module";
             let oldest_version =
                 ModuleInfo::from_id(module_id, ModuleVersion::Version("0.1.2".into())).unwrap();
-
             add_module(&mut deps, oldest_version);
+
+            let beta_newest_version =
+                ModuleInfo::from_id(module_id, ModuleVersion::Version("100.1.2-beta.1".into()))
+                    .unwrap();
+            add_module(&mut deps, beta_newest_version.clone());
+
             let newest_version =
                 ModuleInfo::from_id(module_id, ModuleVersion::Version("100.1.2".into())).unwrap();
             add_module(&mut deps, newest_version.clone());
