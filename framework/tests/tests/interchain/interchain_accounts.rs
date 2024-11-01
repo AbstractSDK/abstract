@@ -1,6 +1,5 @@
-use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
-// We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 use abstract_interface::{Abstract, AccountDetails, AccountI, AccountQueryFns};
+use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
 use cw_orch::anyhow::Result as AnyResult;
 use cw_orch::{environment::Environment, prelude::*};
 use cw_orch_interchain::prelude::*;

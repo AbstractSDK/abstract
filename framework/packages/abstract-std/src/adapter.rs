@@ -19,9 +19,13 @@ use crate::{
     objects::module_version::ModuleDataResponse,
 };
 
+/// ExecuteMsg wrapper defined for adapters. All messages sent to adapters need to have this structure
 pub type ExecuteMsg<Request = Empty> =
     MiddlewareExecMsg<BaseExecuteMsg, AdapterRequestMsg<Request>>;
+
+/// QueryMsg wrapper defined for adapters. All queries sent to adapters need to have this structure
 pub type QueryMsg<ModuleMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, ModuleMsg>;
+/// InstantiateMsg wrapper defined for adapters. The instantiate message for adapters need to have this structure
 pub type InstantiateMsg<ModuleMsg = Empty> =
     MiddlewareInstantiateMsg<BaseInstantiateMsg, ModuleMsg>;
 
@@ -76,12 +80,16 @@ impl<RequestMsg, BaseExecMsg> From<AdapterRequestMsg<RequestMsg>>
 /// If account is None, then the sender must be an Account.
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterRequestMsg<Request> {
+    #[allow(missing_docs)]
     pub account_address: Option<String>,
     /// The actual request
     pub request: Request,
 }
 
 impl<Request: Serialize> AdapterRequestMsg<Request> {
+    /// Creates a new Adapter request message
+    ///
+    /// `request` corresponds to the implementer-defined query
     pub fn new(account_address: Option<String>, request: Request) -> Self {
         Self {
             account_address,
@@ -90,14 +98,14 @@ impl<Request: Serialize> AdapterRequestMsg<Request> {
     }
 }
 
-// serde attributes remain it compatible with previous versions in cases where account_address is omitted
+/// Abstract defined message that can be sent to adapters
 #[cosmwasm_schema::cw_serde]
 pub struct BaseExecuteMsg {
     /// The account address for which to apply the configuration
     /// If None, the sender must be an Account
     /// If Some, the sender must be a direct or indirect owner (through sub-accounts) of the specified account.
     pub account_address: Option<String>,
-    // The actual base message
+    /// The actual base message
     pub msg: AdapterBaseMsg,
 }
 
@@ -107,7 +115,9 @@ pub enum AdapterBaseMsg {
     /// Add or remove authorized addresses
     /// If an authorized address is both in to_add and to_remove, it will be removed.
     UpdateAuthorizedAddresses {
+        #[allow(missing_docs)]
         to_add: Vec<String>,
+        #[allow(missing_docs)]
         to_remove: Vec<String>,
     },
 }
@@ -121,7 +131,10 @@ pub enum BaseQueryMsg {
     BaseConfig {},
     /// Returns [`AuthorizedAddressesResponse`].
     #[returns(AuthorizedAddressesResponse)]
-    AuthorizedAddresses { account_address: String },
+    AuthorizedAddresses {
+        #[allow(missing_docs)]
+        account_address: String,
+    },
     /// Returns module data
     /// Returns [`ModuleDataResponse`].
     #[returns(ModuleDataResponse)]
@@ -134,16 +147,23 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
     }
 }
 
+/// Base Configuration of the Adapter
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterConfigResponse {
+    #[allow(missing_docs)]
     pub registry_address: Addr,
+    #[allow(missing_docs)]
     pub ans_host_address: Addr,
+    /// Adapter dependencies
     pub dependencies: Vec<String>,
 }
 
 #[cosmwasm_schema::cw_serde]
+/// Contains all authorized addresses for this adapter
+///
+/// Those addresses are allowed to call the adapter on behalf of the account
 pub struct AuthorizedAddressesResponse {
-    /// Contains all authorized addresses
+    #[allow(missing_docs)]
     pub addresses: Vec<Addr>,
 }
 

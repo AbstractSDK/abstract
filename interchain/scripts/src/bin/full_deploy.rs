@@ -1,21 +1,14 @@
 use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
-use std::{
-    fs::{self, File},
-    io::BufReader,
-    net::TcpStream,
-};
 
-use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
+use abstract_scripts::{assert_wallet_balance, SUPPORTED_CHAINS};
 
 use clap::Parser;
 use cw_orch::{daemon::networks::parse_network, prelude::*};
-use reqwest::Url;
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 

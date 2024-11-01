@@ -65,7 +65,9 @@ pub fn list_proxies_by_account_id(
     Ok(ListRemoteAccountsResponse { accounts: proxies })
 }
 
-// No need for pagination here, not a lot of chains
+/// List the remote hosts registered and connected to this ibc-client
+///
+/// No need for pagination here, not a lot of chains
 pub fn list_remote_hosts(deps: Deps) -> IbcClientResult<ListRemoteHostsResponse> {
     let hosts = IBC_INFRA
         .range(deps.storage, None, None, Order::Ascending)
@@ -74,7 +76,9 @@ pub fn list_remote_hosts(deps: Deps) -> IbcClientResult<ListRemoteHostsResponse>
     Ok(ListRemoteHostsResponse { hosts })
 }
 
-// No need for pagination here, not a lot of chains
+/// List the remote polytone proxies registered and connected to this ibc-client
+///
+/// No need for pagination here, not a lot of chains
 pub fn list_remote_proxies(deps: Deps) -> IbcClientResult<ListRemoteAccountsResponse> {
     let proxies = IBC_INFRA
         .range(deps.storage, None, None, Order::Ascending)
@@ -83,7 +87,9 @@ pub fn list_remote_proxies(deps: Deps) -> IbcClientResult<ListRemoteAccountsResp
     Ok(ListRemoteAccountsResponse { accounts: proxies })
 }
 
-// No need for pagination here, not a lot of chains
+/// List the remote abstract counterparts registered and connected to this ibc-client
+///
+/// No need for pagination here, not a lot of chains
 pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructureResponse> {
     let counterparts = IBC_INFRA
         .range(deps.storage, None, None, Order::Ascending)

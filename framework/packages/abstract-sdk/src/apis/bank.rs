@@ -221,7 +221,6 @@ pub trait Transferable {
     ) -> AbstractSdkResult<Asset>;
 }
 
-// Helper to wrap errors
 fn transferable_api_error(
     base: &impl ModuleIdentification,
     error: AnsHostError,

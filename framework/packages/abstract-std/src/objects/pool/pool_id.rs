@@ -6,7 +6,7 @@ use crate::{error::AbstractError, AbstractResult};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
-// Need eq and hash for ans scraper
+// Need Eq and Hash for ans scraper
 #[cfg_attr(not(target_arch = "wasm32"), derive(Eq, Hash, PartialOrd, Ord))]
 pub enum PoolAddressBase<T> {
     SeparateAddresses { swap: T, liquidity: T },

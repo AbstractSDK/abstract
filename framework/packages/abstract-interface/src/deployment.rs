@@ -321,8 +321,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
     }
 }
 
-// Sender addr means it's mock or CloneTest(which is also mock)
 impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
+    /// Allows deploying abstract in a mock environment (Mock or CloneTesting)
+    ///
+    /// This is mandatory if you want to work inside testing environments as the Abstract deployer can't change
     pub fn deploy_on_mock(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let admin = Self::mock_admin(&chain);
         Self::deploy_on(chain, admin)

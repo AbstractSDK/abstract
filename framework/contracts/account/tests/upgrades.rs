@@ -814,7 +814,6 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
     abstract_integration_test_utils::account::create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
 }
 
-// See gen_app_mock for more details
 #[test]
 fn install_app_with_account_action() -> AResult {
     let chain = MockBech32::new("mock");

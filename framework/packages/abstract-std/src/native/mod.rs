@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 pub mod ans_host;
 pub mod ibc;
 pub use ibc::{ibc_client, ibc_host, ica_client};

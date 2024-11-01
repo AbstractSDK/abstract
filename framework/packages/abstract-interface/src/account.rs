@@ -128,7 +128,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
     }
 }
 
-// Module related operations
+/// Module related operations
 impl<Chain: CwEnv> AccountI<Chain> {
     pub fn upgrade_module<M: Serialize>(
         &self,
@@ -357,7 +357,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
     }
 }
 
-// Remote accounts related operations
+/// Remote accounts related operations
 impl<Chain: CwEnv> AccountI<Chain> {
     /// Helper to create remote accounts
     pub fn register_remote_account(

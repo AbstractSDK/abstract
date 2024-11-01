@@ -17,7 +17,6 @@ impl<T> AnsEntryConvertor<T> {
     }
 }
 
-// An LP token can convert to:
 impl AnsEntryConvertor<LpToken> {
     pub fn asset_entry(self) -> AssetEntry {
         AssetEntry::from(self.entry.to_string())

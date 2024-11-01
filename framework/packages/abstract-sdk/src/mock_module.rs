@@ -19,7 +19,6 @@ use crate::{
     AbstractSdkResult,
 };
 
-// We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {
     fn account(&self, _deps: Deps) -> AbstractSdkResult<Account> {
         Ok(self.account.clone())

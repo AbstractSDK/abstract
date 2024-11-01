@@ -1,6 +1,5 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/AbstractSDK/assets/mainline/logo.svg")]
 #![doc = include_str ! ("../README.md")]
-// #![doc(test(attr(warn(unused), deny(warnings), allow(unused_extern_crates, unused),)))]
 #![warn(missing_docs)]
 #![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 

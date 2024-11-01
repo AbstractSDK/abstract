@@ -9,7 +9,7 @@ use crate::constants::ATTRIBUTE_DELIMITER;
 
 /// Key to get the Address of a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
-// Need hash for ans scraper
+// Hash is needed for ans scraper
 #[cfg_attr(not(target_arch = "wasm32"), derive(Hash))]
 pub struct UncheckedContractEntry {
     pub protocol: String,
@@ -131,10 +131,6 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
     )
     .into())
 }
-
-//--------------------------------------------------------------------------------------------------
-// Tests
-//--------------------------------------------------------------------------------------------------
 
 #[cfg(test)]
 mod test {

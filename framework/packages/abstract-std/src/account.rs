@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 //! # Account Account
 //!
 //! `abstract_std::account` implements the contract interface and state lay-out.
@@ -254,7 +255,9 @@ pub enum QueryMsg {
     /// Returns [`SubAccountIdsResponse`]
     #[returns(SubAccountIdsResponse)]
     SubAccountIds {
+        #[allow(missing_docs)]
         start_after: Option<u32>,
+        #[allow(missing_docs)]
         limit: Option<u8>,
     },
     /// Returns [`TopLevelOwnerResponse`]
@@ -292,7 +295,9 @@ pub enum InternalConfigAction {
     /// Updates the [`state::ACCOUNT_MODULES`] map
     /// Only callable by owner.
     UpdateModuleAddresses {
+        /// Specify (module_id, address)
         to_add: Vec<(String, String)>,
+        /// Specify module_id
         to_remove: Vec<String>,
     },
     /// Update the execution whitelist in [`state::WHITELISTED_MODULES`]

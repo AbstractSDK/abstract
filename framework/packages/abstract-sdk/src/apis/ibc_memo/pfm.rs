@@ -99,7 +99,10 @@ impl PacketForwardMiddlewareHop {
     }
 }
 
-// Forward structure
+/// Packet Forward structure
+///
+/// See here for specification:
+/// https://github.com/cosmos/ibc-apps/tree/8cb681e31589bc90b47e0ab58173a579825fd56d/middleware/packet-forward-middleware#full-example---chain-forward-a-b-c-d-with-retry-on-timeout
 struct ForwardMemo {
     receiver: Option<String>,
     port: String,

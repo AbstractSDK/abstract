@@ -7,7 +7,7 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use abstract_interchain_tests::{JUNO, STARGAZE};
+use abstract_tests::interchain::{JUNO, STARGAZE};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, Uint128};
 use cw_orch::prelude::queriers::Ibc;

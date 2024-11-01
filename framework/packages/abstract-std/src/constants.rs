@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 //! # Registry constants
 //!
 //! `abstract_std` contains all contract names supported by Abstract.
@@ -18,7 +19,10 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// IBC protocols
 pub const ICS20: &str = "ics-20";
 
-// chain-id prefixes based on `https://cosmos.directory/`
+//  ---------------------------
+//  Cosmos chains
+//  https://cosmos.directory/
+//  ---------------------------
 pub mod juno {
     pub const JUNO_MAINNET: &str = "juno";
     pub const JUNO_TESTNET: &str = "uni";
@@ -80,8 +84,10 @@ pub use terra::TERRA;
 pub use union::UNION;
 pub use xion::XION;
 
-// EVM chains
-// https://chainlist.org/
+//  ---------------------------
+//  EVM chains
+//  https://chainlist.org/
+//  ---------------------------
 pub mod berachain {
     pub const BERACHAIN_BARTIO: &str = "bartio";
     pub const BERACHAIN: &[&str] = &[BERACHAIN_BARTIO];
@@ -93,7 +99,6 @@ pub mod ethereum {
     pub const ETHEREUM: &[&str] = &[ETHEREUM_SEPOLIA, ETHEREUM_MAINNET];
 }
 
-// EVM
 pub use berachain::BERACHAIN;
 pub use ethereum::ETHEREUM;
 
@@ -103,7 +108,9 @@ pub static NATIVE_CONTRACTS: &[&str] = &[ANS_HOST, MODULE_FACTORY, REGISTRY, "cw
 pub static ACCOUNT_CONTRACTS: &[&str] = &[ACCOUNT, ACCOUNT];
 pub const ABSTRACT_EVENT_TYPE: &str = "wasm-abstract";
 
-// Delimiters
+//  ---------------------------
+//  Delimiters
+//  ---------------------------
 
 /// The delimiter between assets in lists
 pub const ASSET_DELIMITER: &str = ",";

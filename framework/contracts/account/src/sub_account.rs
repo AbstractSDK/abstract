@@ -99,7 +99,7 @@ pub fn handle_sub_account_action(
     }
 }
 
-// Unregister sub-account from the state
+/// Unregister sub-account from the state
 fn unregister_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) -> AccountResult {
     let registry = RegistryContract::new(deps.api, env)?;
 
@@ -121,7 +121,7 @@ fn unregister_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) 
     }
 }
 
-// Register sub-account to the state
+/// Register sub-account to the state
 fn register_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) -> AccountResult {
     let registry = RegistryContract::new(deps.api, env)?;
 

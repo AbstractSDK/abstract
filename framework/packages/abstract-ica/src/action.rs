@@ -28,22 +28,7 @@ pub enum IcaExecute {
         msgs: Vec<polytone_evm::evm::EvmMsg<String>>,
         callback: Option<polytone_evm::callbacks::CallbackRequest>,
     },
-    // Cosmos {
-    //     msgs: Vec<CosmosMsg>,
-    //     callback: Option<CallbackRequest>,
-    // },
 }
-
-// pub enum IcaQuery {
-// 	Evm {
-// 		// encoded data
-// 		// ...
-// 	},
-// 	Cosmos {
-// 	    // Encoded data
-// 		// ...
-// 	}
-// }
 
 #[cosmwasm_schema::cw_serde]
 pub struct IcaActionResponse {

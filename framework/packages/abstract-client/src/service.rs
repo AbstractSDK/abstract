@@ -14,8 +14,8 @@ use crate::{client::AbstractClientResult, Application};
 ///
 /// `Service`s should be created from [`Application`]s using the `into_service` method.
 /// They can then be registered using the `service.deploy()` method.
-//
-// It implements cw-orch traits of the module itself, so you can call its methods directly from the service struct.
+///
+/// It implements cw-orch traits of the module itself, so you can call its methods directly from the service struct.
 #[derive(Clone)]
 pub struct Service<T: CwEnv, M> {
     module: M,

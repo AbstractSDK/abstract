@@ -126,15 +126,13 @@ pub struct IbcModuleToModuleMsg {
     ibc_msg: String,
 }
 
-// Easy way to see if an ibc-callback was actually received.
+/// Easy way to see if an ibc-callback was actually received.
 pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
-// Easy way to see if an module ibc called was actually received.
+/// Easy way to see if an module ibc called was actually received.
 pub const MODULE_IBC_RECEIVED: Item<ModuleInfo> = Item::new("module_ibc_received");
-
-// Easy way to see if an ibc-callback was actually received.
+/// Easy way to see if an ibc-callback was actually received for a query.
 pub const IBC_CALLBACK_QUERY_RECEIVED: Item<Vec<Coin>> = Item::new("ibc_callback_query_received");
-
-// Easy way to see if an ibc-query was actually performed.
+/// Easy way to see if an ibc-query was actually performed.
 pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<String> =
     Item::new("ibc_callback_module_query_received");
 

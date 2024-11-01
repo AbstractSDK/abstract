@@ -85,8 +85,6 @@ pub trait ClientResolve<Chain: CwEnv> {
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError>;
 }
 
-// cw-multi-test doesn't support raw queries, so we will have to do smart queries instead
-
 impl<Chain: CwEnv> ClientResolve<Chain> for AssetEntry {
     type Output = AssetInfo;
 

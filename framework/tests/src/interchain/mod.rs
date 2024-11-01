@@ -19,7 +19,7 @@ pub const JUNO: &str = "juno-1";
 pub const STARGAZE: &str = "stargaze-1";
 pub const OSMOSIS: &str = "osmosis-1";
 
-// Note: Truncated chain id have to be different
+/// Note: Truncated chain id have to be different
 pub const JUNO2: &str = "junotwo-1";
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
@@ -31,7 +31,7 @@ pub fn set_env() {
     std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
 }
 
-// Set in code for starship tests
+/// Sets env variable in code for starship tests
 pub fn set_starship_env() {
     std::env::set_var("STATE_FILE", "starship-state.json");
     std::env::set_var("ARTIFACTS_DIR", "../artifacts");

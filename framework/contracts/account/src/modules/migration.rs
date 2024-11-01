@@ -220,7 +220,7 @@ pub(crate) fn add_module_upgrade_to_context(
     Ok(())
 }
 
-// migrates the module to a new version
+/// Migrates the module to a new version
 pub(crate) fn build_module_migrate_msg(
     module_addr: Addr,
     new_code_id: u64,

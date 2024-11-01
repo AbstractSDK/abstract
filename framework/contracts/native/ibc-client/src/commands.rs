@@ -85,7 +85,7 @@ pub fn execute_register_infrastructure(
     Ok(IbcClientResponse::action("allow_chain_port").add_message(note_proxy_msg))
 }
 
-// allows admins to clear host if needed
+/// Allows admins to clear host if needed
 pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
@@ -93,7 +93,6 @@ pub fn execute_remove_host(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    // auth check
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     if let Some(ibc_infra) = IBC_INFRA.may_load(deps.storage, &host_chain)? {
@@ -456,7 +455,7 @@ fn _ics_20_send_msg(
     }
 }
 
-// Map a ModuleQuery to a regular query.
+/// Maps a ModuleQuery to a regular query.
 fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<Empty> {
     match query {
         QueryRequest::Custom(ModuleQuery { target_module, msg }) => {

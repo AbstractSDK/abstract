@@ -3,7 +3,6 @@ pub mod cw721;
 mod gov_ownable;
 pub mod nested_admin;
 
-// Re-export this type here as well
 pub use super::gov_type::GovernanceDetails;
 
 pub use gov_ownable::{

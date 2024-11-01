@@ -65,7 +65,6 @@ pub trait InstallConfig: RegisteredModule {
     }
 }
 
-// Blanket implemention.
 impl<T> InstallConfig for T where T: RegisteredModule {}
 
 /// Strategy for deploying

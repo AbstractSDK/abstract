@@ -7,15 +7,15 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use abstract_interchain_tests::{
-    abstract_starship_interfaces, create_test_remote_account, set_starship_env, JUNO,
-};
 use abstract_interface::{AccountI, AccountQueryFns};
 use abstract_sdk::PfmMemoBuilder;
 use abstract_std::{
     ans_host::ExecuteMsgFns,
     objects::{TruncatedChainId, UncheckedChannelEntry},
     IBC_CLIENT, ICS20,
+};
+use abstract_tests::interchain::{
+    abstract_starship_interfaces, create_test_remote_account, set_starship_env, JUNO,
 };
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins};

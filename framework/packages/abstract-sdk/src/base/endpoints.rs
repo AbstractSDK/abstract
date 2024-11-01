@@ -131,7 +131,6 @@ mod query;
 mod reply;
 mod sudo;
 
-// Provide endpoints under ::base::traits::
 pub use execute::{CustomExecuteHandler, ExecuteEndpoint};
 pub use ibc_callback::IbcCallbackEndpoint;
 pub use instantiate::InstantiateEndpoint;

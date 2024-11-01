@@ -8,8 +8,7 @@ use crate::{
     AbstractSdkResult, AccountAction, TransferInterface,
 };
 // ANCHOR: splitter
-// Trait to retrieve the Splitter object
-// Depends on the ability to transfer funds
+/// This trait allows to retrieve the Splitter object to split funds amongst multiple receivers
 pub trait SplitterInterface: TransferInterface + AccountExecutor + ModuleIdentification {
     fn splitter<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> Splitter<Self> {
         Splitter {
@@ -20,7 +19,6 @@ pub trait SplitterInterface: TransferInterface + AccountExecutor + ModuleIdentif
     }
 }
 
-// Implement for every object that can transfer funds
 impl<T> SplitterInterface for T where T: TransferInterface + AccountExecutor + ModuleIdentification {}
 
 impl<'a, T: SplitterInterface> AbstractApi<T> for Splitter<'a, T> {

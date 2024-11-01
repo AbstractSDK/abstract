@@ -6,10 +6,8 @@ pub mod state;
 
 pub use crate::state::StandaloneContract;
 
-// Useful re-exports
-pub use abstract_std as std;
-// re-export objects specifically
 pub use abstract_sdk as sdk;
+pub use abstract_std as std;
 
 pub use crate::std::objects;
 pub mod traits {

@@ -1,6 +1,4 @@
-// #![warn(missing_docs)]
-
-// https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html
+#![warn(missing_docs)]
 
 //! # Abstract Account
 //!

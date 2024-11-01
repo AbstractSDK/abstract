@@ -1,10 +1,14 @@
+//! Defines the messages generics used for all types of Abstract Modules
+//!
+//! Those types define a common interface for all Abstract Modules
+
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Empty;
 
 use crate::ibc::{IbcResponseMsg, ModuleIbcMsg};
 
 // ANCHOR: exec
-/// Wrapper around all possible messages that can be sent to the module.
+/// Wrapper around all possible execution messages that can be sent to the module.
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg<BaseMsg, CustomExecMsg> {
     /// A configuration message, defined by the base.
@@ -22,6 +26,9 @@ pub enum ExecuteMsg<BaseMsg, CustomExecMsg> {
 // ANCHOR_END: exec
 
 // ANCHOR: init
+/// InstantiateMsg for modules.
+///
+/// Contains a base part needed to init Abstract related storage.
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg<BaseMsg, CustomInitMsg = Empty> {
     /// base instantiate information
@@ -32,6 +39,7 @@ pub struct InstantiateMsg<BaseMsg, CustomInitMsg = Empty> {
 // ANCHOR_END: init
 
 // ANCHOR: query
+/// Wrapper around all possible queries that can be sent to the module.
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[query_responses(nested)]
@@ -44,6 +52,9 @@ pub enum QueryMsg<BaseMsg, CustomQueryMsg = Empty> {
 // ANCHOR_END: query
 
 // ANCHOR: migrate
+/// MigrateMsg for modules.
+///
+/// Contains a base part needed to init Abstract related storage.
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg<BaseMsg = Empty, CustomMigrateMsg = Empty> {
     /// base migrate information

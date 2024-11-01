@@ -325,8 +325,6 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     Ok(())
 }
 
-// struct TestModule = AppContract
-
 #[test]
 fn unauthorized_exec() -> AResult {
     let chain = MockBech32::new("mock");

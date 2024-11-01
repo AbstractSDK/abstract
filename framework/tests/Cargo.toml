@@ -12,6 +12,7 @@ description = "Testing library for the Abstract SDK. This is used primarily for 
 
 
 [lib]
+
 [dependencies]
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }

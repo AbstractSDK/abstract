@@ -86,6 +86,7 @@ pub mod state {
 /// AnsHost Instantiate msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
+    #[allow(missing_docs)]
     pub admin: String,
 }
 
@@ -96,30 +97,30 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
-        // Contracts to update or add
+        /// Contracts to update or add
         to_add: Vec<(UncheckedContractEntry, String)>,
-        // Contracts to remove
+        /// Contracts to remove
         to_remove: Vec<UncheckedContractEntry>,
     },
     /// Updates the Asset addressbook
     UpdateAssetAddresses {
-        // Assets to update or add
+        /// Assets to update or add
         to_add: Vec<(String, AssetInfoUnchecked)>,
-        // Assets to remove
+        /// Assets to remove
         to_remove: Vec<String>,
     },
     /// Updates the Asset addressbook
     UpdateChannels {
-        // Assets to update or add
+        /// Assets to update or add
         to_add: Vec<(UncheckedChannelEntry, String)>,
-        // Assets to remove
+        /// Assets to remove
         to_remove: Vec<UncheckedChannelEntry>,
     },
     /// Registers a dex
     UpdateDexes {
-        // Dexes to add
+        /// Dexes to add
         to_add: Vec<String>,
-        // Dexes to remove
+        /// Dexes to remove
         to_remove: Vec<String>,
     },
     /// Update the pools
@@ -178,60 +179,72 @@ pub enum QueryMsg {
     /// returns [`AssetsResponse`]
     #[returns(AssetsResponse)]
     Assets {
-        // Names of assets to query
+        /// Names of assets to query
         names: Vec<String>,
     },
     /// Page over assets
     /// returns [`AssetListResponse`]
     #[returns(AssetListResponse)]
     AssetList {
+        #[allow(missing_docs)]
         filter: Option<AssetFilter>,
+        #[allow(missing_docs)]
         start_after: Option<String>,
+        #[allow(missing_docs)]
         limit: Option<u8>,
     },
     /// Queries assets based on address
     /// returns [`AssetInfosResponse`]
     #[returns(AssetInfosResponse)]
     AssetInfos {
-        // Addresses of assets to query
+        /// Addresses of assets to query
         infos: Vec<AssetInfoUnchecked>,
     },
     /// Page over asset infos
     /// returns [`AssetInfoListResponse`]
     #[returns(AssetInfoListResponse)]
     AssetInfoList {
+        #[allow(missing_docs)]
         filter: Option<AssetInfoFilter>,
+        #[allow(missing_docs)]
         start_after: Option<AssetInfoUnchecked>,
+        #[allow(missing_docs)]
         limit: Option<u8>,
     },
     /// Queries contracts based on name
     /// returns [`ContractsResponse`]
     #[returns(ContractsResponse)]
     Contracts {
-        // Project and contract names of contracts to query
+        /// Project and contract names of contracts to query
         entries: Vec<ContractEntry>,
     },
     /// Page over contracts
     /// returns [`ContractListResponse`]
     #[returns(ContractListResponse)]
     ContractList {
+        #[allow(missing_docs)]
         filter: Option<ContractFilter>,
+        #[allow(missing_docs)]
         start_after: Option<ContractEntry>,
+        #[allow(missing_docs)]
         limit: Option<u8>,
     },
     /// Queries contracts based on name
     /// returns [`ChannelsResponse`]
     #[returns(ChannelsResponse)]
     Channels {
-        // Project and contract names of contracts to query
+        /// Project and contract names of contracts to query
         entries: Vec<ChannelEntry>,
     },
     /// Page over contracts
     /// returns [`ChannelListResponse`]
     #[returns(ChannelListResponse)]
     ChannelList {
+        #[allow(missing_docs)]
         filter: Option<ChannelFilter>,
+        #[allow(missing_docs)]
         start_after: Option<ChannelEntry>,
+        #[allow(missing_docs)]
         limit: Option<u8>,
     },
     /// Retrieve the registered dexes
@@ -241,13 +254,19 @@ pub enum QueryMsg {
     /// Retrieve the pools with the specified keys
     /// returns [`PoolsResponse`]
     #[returns(PoolsResponse)]
-    Pools { pairings: Vec<DexAssetPairing> },
+    Pools {
+        #[allow(missing_docs)]
+        pairings: Vec<DexAssetPairing>,
+    },
     /// Retrieve the (optionally-filtered) list of pools.
     /// returns [`PoolAddressListResponse`]
     #[returns(PoolAddressListResponse)]
     PoolList {
+        #[allow(missing_docs)]
         filter: Option<AssetPairingFilter>,
+        #[allow(missing_docs)]
         start_after: Option<DexAssetPairing>,
+        #[allow(missing_docs)]
         limit: Option<u8>,
     },
     /// Get the pool metadatas for given pool ids
@@ -258,8 +277,11 @@ pub enum QueryMsg {
     /// returns [`PoolMetadataListResponse`]
     #[returns(PoolMetadataListResponse)]
     PoolMetadataList {
+        #[allow(missing_docs)]
         filter: Option<PoolMetadataFilter>,
+        #[allow(missing_docs)]
         start_after: Option<UniquePoolId>,
+        #[allow(missing_docs)]
         limit: Option<u8>,
     },
 }

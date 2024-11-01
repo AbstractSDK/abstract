@@ -101,8 +101,6 @@ impl MsgAllowance for BasicAllowance {}
 impl MsgAllowance for PeriodicAllowance {}
 impl<A: BasicOrPeriodicAllowance> MsgAllowance for AllowedMsgAllowance<A> {}
 
-// Stargate Msg implementations
-
 impl StargateMessage for BasicAllowance {
     type ProtoType = feegrant::v1beta1::BasicAllowance;
 

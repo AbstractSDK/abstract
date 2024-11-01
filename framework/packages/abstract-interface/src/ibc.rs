@@ -58,7 +58,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 }
 
 #[cfg(feature = "interchain")]
-// Helpers to create connection with another chain
+/// Helpers to create connection with other chains
 pub mod connection {
     use crate::Abstract;
 

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Copy,
 )]
-// Need hash for ans scraper
+/// Need Hash for ans scraper (off-chain)
 #[cfg_attr(not(target_arch = "wasm32"), derive(Hash))]
 pub struct UniquePoolId(u64);
 

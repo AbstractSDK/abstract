@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use bech32::{Bech32, Hrp};
 use cosmwasm_std::{instantiate2_address, Addr, Api, CanonicalAddr, Env};
 use ripemd::Ripemd160;
@@ -14,7 +15,6 @@ const TEST_ABSTRACT_CREATOR: [u8; 33] = [
     56, 192, 110, 242, 251, 222, 103, 198, 68, 80, 201, 159, 3,
 ];
 
-// Salts for deployments
 pub const ANS_HOST_SALT: &[u8] = b"ans";
 pub const REGISTRY_SALT: &[u8] = b"reg";
 pub const MODULE_FACTORY_SALT: &[u8] = b"mf";
@@ -75,7 +75,8 @@ pub fn hrp_from_env(env: &Env) -> &str {
 
 /// Hrp from the address
 /// Any address validated on this chain can be used
-// https://en.bitcoin.it/wiki/BIP_0173#Specification
+///
+/// See https://en.bitcoin.it/wiki/BIP_0173#Specification
 pub fn hrp_from_address(addr: &Addr) -> &str {
     addr.as_str()
         .split_once("1")

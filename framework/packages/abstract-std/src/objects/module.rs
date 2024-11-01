@@ -256,7 +256,7 @@ impl FromStr for ModuleVersion {
     }
 }
 
-// Do not change!!
+// Do not change, this is used inside the logic itself!!
 impl Display for ModuleVersion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let print_str = match self {
@@ -519,10 +519,6 @@ impl Default for Monetization {
 
 /// Module Metadata String
 pub type ModuleMetadata = String;
-
-//--------------------------------------------------------------------------------------------------
-// Tests
-//--------------------------------------------------------------------------------------------------
 
 #[cfg(test)]
 mod test {

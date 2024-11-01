@@ -4,7 +4,6 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use abstract_interchain_tests::{create_test_remote_account, set_env, JUNO, STARGAZE};
 use abstract_interface::{Abstract, AccountI, AccountQueryFns};
 use abstract_std::IBC_CLIENT;
 use abstract_std::{
@@ -12,6 +11,7 @@ use abstract_std::{
     objects::{TruncatedChainId, UncheckedChannelEntry},
     ICS20,
 };
+use abstract_tests::interchain::{create_test_remote_account, set_env, JUNO, STARGAZE};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins};
 use cw_orch::{daemon::RUNTIME, prelude::*};

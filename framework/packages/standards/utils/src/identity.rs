@@ -9,8 +9,10 @@ pub trait Identify {
 }
 
 /// Helper to un-nest the platform name
+///
 /// The platform_name has format juno>wyndex
-// Returns (Option<chain_id>, platform_name)
+///
+/// Returns (Option<chain_id>, platform_name)
 pub fn decompose_platform_name(platform_name: &str) -> (Option<String>, String) {
     let mut decomposed = platform_name.splitn(2, '>');
     match (

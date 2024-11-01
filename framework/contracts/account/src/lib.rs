@@ -18,11 +18,10 @@ pub mod state {
     pub use abstract_xion::state::*;
 }
 
-/// Abstract Account
+/// Xion Abstract Account
 #[cfg(feature = "xion")]
 pub use abstract_xion;
 
-// re-export based on the feature
 pub mod msg {
     pub use abstract_std::account::{MigrateMsg, QueryMsg};
 

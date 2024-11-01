@@ -1,12 +1,11 @@
-// This script is used for testing a connection between 4 chains
-// This script checks ibc-hook memo implementation on ibc-client
+//! This script is used for testing a connection between 4 chains
+//! This script checks ibc-hook memo implementation on ibc-client
 
 use std::{
     sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use abstract_interchain_tests::{abstract_starship_interfaces, set_starship_env, JUNO, JUNO2};
 use abstract_interface::AccountI;
 use abstract_sdk::HookMemoBuilder;
 use abstract_std::{
@@ -14,6 +13,7 @@ use abstract_std::{
     objects::{TruncatedChainId, UncheckedChannelEntry},
     IBC_CLIENT, ICS20,
 };
+use abstract_tests::interchain::{abstract_starship_interfaces, set_starship_env, JUNO, JUNO2};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins};
 use counter_contract::CounterContract;
@@ -68,7 +68,7 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         )?
         .interchain_channel;
 
-    let (abstr_juno, abstr_juno2) = abstract_starship_interfaces(
+    let (abstr_juno, _abstr_juno2) = abstract_starship_interfaces(
         &interchain,
         &juno_abstract_deployer,
         &juno2_abstract_deployer,

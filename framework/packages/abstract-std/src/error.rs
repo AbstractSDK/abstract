@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
 use semver::Version;

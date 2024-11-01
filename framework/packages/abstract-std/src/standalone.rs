@@ -13,6 +13,7 @@ pub struct StandaloneInstantiateMsg {}
 /// Contains the abstract infrastructure addresses needed the APIs.
 #[cosmwasm_schema::cw_serde]
 pub struct StandaloneState {
+    #[allow(missing_docs)]
     pub account: Account,
     /// Used to determine if this standalone is migratable
     pub is_migratable: bool,

@@ -1,6 +1,5 @@
 #![warn(missing_docs)]
 //! # MoneyMarket Adapter API
-// re-export response types
 use crate::{ans_action::MoneyMarketAnsAction, raw_action::MoneyMarketRawAction};
 use abstract_std::objects::AssetEntry;
 use abstract_std::{adapter, objects::fee::UsageFee};

@@ -87,7 +87,7 @@ pub mod adapter_2 {
     }
 }
 
-// app 1 depends on adapter 1 and adapter 2
+/// App 1 depends on adapter 1 and adapter 2
 pub mod app_1 {
     pub use v1::*;
     pub use v2::*;
@@ -183,7 +183,7 @@ pub mod gen_mock {
     }
 }
 
-// this standalone have cw2
+/// This is a standalone module that follow the cw2 standard
 pub mod standalone_cw2 {
     use super::*;
     use crate::gen_standalone_mock;
@@ -198,7 +198,7 @@ pub mod standalone_cw2 {
     );
 }
 
-// this standalone does not have cw2
+/// This is a standalone module that doesn't follow the cw2 standard
 pub mod standalone_no_cw2 {
     use super::*;
     use crate::gen_standalone_mock;

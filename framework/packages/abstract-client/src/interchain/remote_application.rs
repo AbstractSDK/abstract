@@ -123,8 +123,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chai
     }
 }
 
-// ## Traits to make generated queries work
-
+// Traits to make generated queries work on RemoteApplications
 impl<
         Chain: IbcQueryHandler,
         IBC: InterchainEnv<Chain>,

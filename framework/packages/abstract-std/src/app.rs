@@ -13,9 +13,13 @@ use crate::{
     registry::Account,
 };
 
+/// ExecuteMsg wrapper defined for apps. All messages sent to apps need to have this structure
 pub type ExecuteMsg<ModuleMsg = Empty> = EndpointExecMsg<BaseExecuteMsg, ModuleMsg>;
+/// QueryMsg wrapper defined for apps. All queries sent to apps need to have this structure
 pub type QueryMsg<ModuleMsg = Empty> = EndpointQueryMsg<BaseQueryMsg, ModuleMsg>;
+/// InstantiateMsg wrapper defined for apps. The instantiate message for apps need to have this structure
 pub type InstantiateMsg<ModuleMsg = Empty> = EndpointInstantiateMsg<BaseInstantiateMsg, ModuleMsg>;
+/// MigrateMsg wrapper defined for apps. The migrate message for apps need to have this structure
 pub type MigrateMsg<ModuleMsg = Empty> = EndpointMigrateMsg<BaseMigrateMsg, ModuleMsg>;
 
 use cosmwasm_schema::QueryResponses;
@@ -50,9 +54,11 @@ impl AppQueryMsg for Empty {}
 /// Used by Module Factory to instantiate App
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
+    #[allow(missing_docs)]
     pub account: Account,
 }
 
+/// Abstract defined message that can be sent to adapters
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
 pub enum BaseExecuteMsg {}
@@ -63,6 +69,7 @@ impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
     }
 }
 
+/// Query App message
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum BaseQueryMsg {
@@ -89,13 +96,18 @@ impl<T> From<BaseQueryMsg> for QueryMsg<T> {
     }
 }
 
+/// Base Configuration of the App
 #[cosmwasm_schema::cw_serde]
 pub struct AppConfigResponse {
+    #[allow(missing_docs)]
     pub account: Addr,
+    #[allow(missing_docs)]
     pub ans_host_address: Addr,
+    #[allow(missing_docs)]
     pub registry_address: Addr,
 }
 
+/// Base MigrateMsg of the App
 #[cosmwasm_schema::cw_serde]
 pub struct BaseMigrateMsg {}
 

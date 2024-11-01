@@ -20,7 +20,7 @@ use crate::{
     HostError,
 };
 
-// one hour
+/// One hour
 const PACKET_LIFETIME: u64 = 60 * 60;
 
 /// Creates and registers account for remote Account

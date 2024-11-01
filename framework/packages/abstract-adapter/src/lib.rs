@@ -5,16 +5,13 @@
 use cosmwasm_std::{Empty, Response};
 
 pub type AdapterResult<C = Empty> = Result<Response<C>, AdapterError>;
-// Default to Empty
 
 pub use error::AdapterError;
 
 pub use crate::state::AdapterContract;
 
-// Useful re-exports
-pub use abstract_std as std;
-// re-export objects specifically
 pub use abstract_sdk as sdk;
+pub use abstract_std as std;
 pub use abstract_std::objects;
 pub mod traits {
     pub use abstract_sdk::{features::*, prelude::*};
