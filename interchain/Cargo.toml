@@ -12,7 +12,7 @@ members = ["scripts"]
 resolver = "2"
 
 [workspace.package]
-version = "0.24.1-beta.2"
+version = "0.24.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -60,16 +60,16 @@ cw-orch-proto = { version = "0.9.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-sdk" }
-abstract-std = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-std" }
-abstract-xion = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-xion" }
-abstract-app = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-app" }
-abstract-adapter = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-adapter" }
-abstract-unit-test-utils = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-unit-test-utils" }
-abstract-client = { version = "0.24.1-beta.2", path = "../framework/packages/abstract-client" }
+abstract-interface = { version = "0.24.1", path = "../framework/packages/abstract-interface" }
+abstract-sdk = { version = "0.24.1", path = "../framework/packages/abstract-sdk" }
+abstract-std = { version = "0.24.1", path = "../framework/packages/abstract-std" }
+abstract-xion = { version = "0.24.1", path = "../framework/packages/abstract-xion" }
+abstract-app = { version = "0.24.1", path = "../framework/packages/abstract-app" }
+abstract-adapter = { version = "0.24.1", path = "../framework/packages/abstract-adapter" }
+abstract-unit-test-utils = { version = "0.24.1", path = "../framework/packages/abstract-unit-test-utils" }
+abstract-client = { version = "0.24.1", path = "../framework/packages/abstract-client" }
 # Modules
-abstract-account = { version = "0.24.1-beta.2", path = "../framework/contracts/account" }
+abstract-account = { version = "0.24.1", path = "../framework/contracts/account" }
 # croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }
 # dca-app = { path = "../modules/contracts/apps/dca" }

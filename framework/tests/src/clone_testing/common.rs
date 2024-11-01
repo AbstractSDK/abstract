@@ -12,8 +12,6 @@ pub fn setup(chain: ChainInfo) -> anyhow::Result<(Abstract<CloneTesting>, CloneT
     let mut app = CloneTesting::new(chain)?;
     app.set_sender(Abstract::mock_admin(&app));
 
-    // TODO: we have nothing to migrate yet, it's a first version of Abstract2
-    // let abstr_deployment = Abstract::load_from(app.clone())?;
-    let abstr_deployment = Abstract::deploy_on_mock(app.clone())?;
+    let abstr_deployment = Abstract::load_from(app.clone())?;
     Ok((abstr_deployment, app))
 }

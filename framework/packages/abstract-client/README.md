@@ -82,7 +82,7 @@ See the [`AccountBuilder`](https://docs.rs/abstract-client/latest/abstract_clien
 
 ### Creating a `Publisher`
 
-Creating a `Publisher` follows a similar process to creating an account. You can use the `AbstractClient::publisher_builder` function to create a `PublisherBuilder` that you can configure to build a `Publisher`.
+Creating a `Publisher` follows a similar process to creating an account. You can use the `AbstractAccount::publisher` function to create a `Publisher` from an account. Don't forget the claim a namespace for your account ! 
 
 However, unlike an `Account` a `Publisher` **must** have a namespace. If a namespace is not yet claimed, the builder will create a new account and claim the namespace. `Publisher` is simply a wrapper around an `Account`.
 
@@ -101,8 +101,7 @@ let chain = MockBech32::new("mock");
 let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build_mock()?;
 
 // Build a Publisher
-let publisher: Publisher<MockBech32> = client.publisher_builder(Namespace::new("tester")?)
-        .build()?;
+let publisher: Publisher<MockBech32> = client.account_builder().namespace(Namespace::new("tester")?).build()?.publisher()?;
 
 publisher.publish_app::<MockAppI<_>>()?;
 

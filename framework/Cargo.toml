@@ -18,7 +18,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.24.1-beta.2"
+version = "0.24.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -28,7 +28,7 @@ edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"
 repository = "https://github.com/AbstractSDK/abstract"
-license = "GPL-3.0-or-later"
+license = "LGPL-3.0"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
@@ -74,8 +74,8 @@ abstract-standalone = { path = "packages/abstract-standalone" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { version = "0.24.1-beta.1", path = "packages/abstract-interface" }
-abstract-client = { version = "0.24.1-beta.1", path = "packages/abstract-client" }
+abstract-interface = { version = "0.24.1", path = "packages/abstract-interface" }
+abstract-client = { version = "0.24.1", path = "packages/abstract-client" }
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 registry = { package = "abstract-registry", path = "contracts/native/registry" }
@@ -86,16 +86,16 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 
 abstract-account = { path = "contracts/account", default-features = false }
 
-abstract-ica = { version = "0.24.1-beta.2", path = "packages/abstract-ica" }
-abstract-sdk = { version = "0.24.1-beta.2", path = "packages/abstract-sdk" }
-abstract-unit-test-utils = { version = "0.24.1-beta.2", path = "packages/abstract-unit-test-utils" }
-abstract-std = { version = "0.24.1-beta.2", path = "packages/abstract-std" }
-abstract-xion = { version = "0.24.1-beta.2", path = "packages/abstract-xion" }
+abstract-ica = { version = "0.24.1", path = "packages/abstract-ica" }
+abstract-sdk = { version = "0.24.1", path = "packages/abstract-sdk" }
+abstract-unit-test-utils = { version = "0.24.1", path = "packages/abstract-unit-test-utils" }
+abstract-std = { version = "0.24.1", path = "packages/abstract-std" }
+abstract-xion = { version = "0.24.1", path = "packages/abstract-xion" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.24.1-beta.2", path = "packages/abstract-macros" }
+abstract-macros = { version = "0.24.1", path = "packages/abstract-macros" }
 
-abstract-adapter-utils = { version = "0.24.1-beta.2", path = "packages/standards/utils" }
+abstract-adapter-utils = { version = "0.24.1", path = "packages/standards/utils" }
 abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 

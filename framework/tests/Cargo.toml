@@ -8,6 +8,7 @@ documentation.workspace = true
 repository.workspace = true
 license.workspace = true
 keywords.workspace = true
+description = "Testing library for the Abstract SDK. This is used primarily for tests but some elements are re-usable for testing apps and adapters"
 
 
 [lib]

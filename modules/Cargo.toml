@@ -10,7 +10,7 @@ exclude = ["contracts/apps/croncat", "contracts/apps/dca"]
 resolver = "2"
 
 [workspace.package]
-version = "0.24.1-beta.2"
+version = "0.24.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -51,23 +51,23 @@ semver = "1.0"
 cw-orch = { version = "0.27.0" }
 cw-orch-interchain = { version = "0.8.1" }
 cw-orch-clone-testing = { version = "0.9.0" }
-# cw-orch-osmosis-test-tube = { version = "0.2.0" }
+cw-orch-osmosis-test-tube = { version = "0.4.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.24.1-beta.2" }
-abstract-adapter = { version = "0.24.1-beta.2" }
-abstract-app = { version = "0.24.1-beta.2" }
-abstract-standalone = { version = "0.24.1-beta.2" }
-abstract-unit-test-utils = { version = "0.24.1-beta.2" }
-abstract-macros = { version = "0.24.1-beta.2" }
-abstract-client = { version = "0.24.1-beta.2" }
+abstract-interface = { version = "0.24.1" }
+abstract-adapter = { version = "0.24.1" }
+abstract-app = { version = "0.24.1" }
+abstract-standalone = { version = "0.24.1" }
+abstract-unit-test-utils = { version = "0.24.1" }
+abstract-macros = { version = "0.24.1" }
+abstract-client = { version = "0.24.1" }
 
-abstract-adapter-utils = { version = "0.24.1-beta.2" }
-abstract-dex-standard = { version = "0.24.1-beta.2" }
-abstract-staking-standard = { version = "0.24.1-beta.2" }
-abstract-money-market-standard = { version = "0.24.1-beta.2" }
+abstract-adapter-utils = { version = "0.24.1" }
+abstract-dex-standard = { version = "0.24.1" }
+abstract-staking-standard = { version = "0.24.1" }
+abstract-money-market-standard = { version = "0.24.1" }
 
 # Integrations
 abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }
