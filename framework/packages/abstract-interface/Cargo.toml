@@ -68,6 +68,7 @@ cw-plus-orch = "0.25.0"
 cw-utils = "2.0.0"
 cw3 = "2.0.0"
 cw4 = "2.0.0"
+cw-ownable = { workspace = true }
 
 [build-dependencies]
 serde_json = "1.0.79"

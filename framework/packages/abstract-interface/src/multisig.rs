@@ -1,14 +1,23 @@
 use abstract_std::{
-    ans_host, ibc_client, ibc_host, ica_client, module_factory,
-    objects::{module::ModuleInfo, module_reference::ModuleReference},
-    registry::{self, QueryMsgFns},
+    account::{self, ExecuteMsgFns as _},
+    ans_host::{self, ExecuteMsgFns as _},
+    ibc_client::{self, ExecuteMsgFns as _},
+    ibc_host::{self, ExecuteMsgFns as _},
+    ica_client,
+    module_factory::{self, ExecuteMsgFns as _},
+    objects::{
+        gov_type::{GovAction, GovernanceDetails},
+        module::ModuleInfo,
+        module_reference::ModuleReference,
+    },
+    registry::{self, ExecuteMsgFns as _, QueryMsgFns as _},
     ACCOUNT,
 };
 use cosmrs::tx::Msg;
 use cosmwasm_std::{from_json, to_json_binary, CosmosMsg, WasmMsg};
 use cw_orch::{contract::Contract, prelude::*};
 use cw_plus_orch::{
-    cw3_flex_multisig::{self, Cw3FlexMultisig},
+    cw3_flex_multisig::{self, Cw3FlexMultisig, ExecuteMsgInterfaceFns},
     cw4_group::{self, Cw4Group},
 };
 use prost::{Message, Name};
@@ -81,7 +90,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         let chain = self.registry.environment().clone();
         let cw3_flex_address = self.multisig.cw3.address()?;
 
-        let admin_upgrades = self
+        let contract_admin_upgrades = self
             .contracts()
             .into_iter()
             .map(|(contract, _version)| contract.clone())
@@ -98,10 +107,108 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             .collect::<Vec<_>>();
         chain
             .commit_any::<cosmrs::proto::cosmwasm::wasm::v1::MsgUpdateAdminResponse>(
-                admin_upgrades,
+                contract_admin_upgrades,
                 None,
             )
             .map_err(Into::into)?;
+
+        let mut msgs = vec![];
+        // Transfer ownership
+        let cw_ownable_transfer_msg = cw_ownable::Action::TransferOwnership {
+            new_owner: cw3_flex_address.to_string(),
+            expiry: None,
+        };
+
+        // Registry
+        self.registry
+            .update_ownership(cw_ownable_transfer_msg.clone())?;
+        msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: self.registry.addr_str()?,
+            msg: to_json_binary(&registry::ExecuteMsg::UpdateOwnership(
+                cw_ownable::Action::AcceptOwnership,
+            ))?,
+            funds: vec![],
+        }));
+
+        // Ans host
+        self.ans_host
+            .update_ownership(cw_ownable_transfer_msg.clone())?;
+        msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: self.registry.addr_str()?,
+            msg: to_json_binary(&ans_host::ExecuteMsg::UpdateOwnership(
+                cw_ownable::Action::AcceptOwnership,
+            ))?,
+            funds: vec![],
+        }));
+
+        // Module factory
+        self.module_factory
+            .update_ownership(cw_ownable_transfer_msg.clone())?;
+        msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: self.registry.addr_str()?,
+            msg: to_json_binary(&module_factory::ExecuteMsg::UpdateOwnership(
+                cw_ownable::Action::AcceptOwnership,
+            ))?,
+            funds: vec![],
+        }));
+
+        // IBC Client
+        self.ibc
+            .client
+            .update_ownership(cw_ownable_transfer_msg.clone())?;
+        msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: self.registry.addr_str()?,
+            msg: to_json_binary(&ibc_client::ExecuteMsg::UpdateOwnership(
+                cw_ownable::Action::AcceptOwnership,
+            ))?,
+            funds: vec![],
+        }));
+
+        // IBC Host
+        self.ibc
+            .host
+            .update_ownership(cw_ownable_transfer_msg.clone())?;
+        msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: self.registry.addr_str()?,
+            msg: to_json_binary(&ibc_host::ExecuteMsg::UpdateOwnership(
+                cw_ownable::Action::AcceptOwnership,
+            ))?,
+            funds: vec![],
+        }));
+
+        // Accept new contracts owners
+        let title = "Accept ownership of abstract contracts as multisig".to_owned();
+        let description = "".to_owned();
+        self.multisig
+            .cw3
+            .propose(description, msgs, title, None, &[])?;
+
+        // Move ownership of the account
+        self.account
+            .update_ownership(GovAction::TransferOwnership {
+                new_owner: GovernanceDetails::External {
+                    governance_address: cw3_flex_address.to_string(),
+                    governance_type: "cw3-flex".to_owned(),
+                },
+                expiry: None,
+            })?;
+        // Accept new account owner
+        let title = "Accept ownership of abstract account as multisig".to_owned();
+        let description = "".to_owned();
+        self.multisig.cw3.propose(
+            description,
+            vec![CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: self.account.addr_str()?,
+                msg: to_json_binary(&<account::ExecuteMsg>::UpdateOwnership(
+                    GovAction::AcceptOwnership,
+                ))?,
+                funds: vec![],
+            })],
+            title,
+            None,
+            &[],
+        )?;
+
         Ok(())
     }
 
@@ -244,6 +351,12 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             })?,
             funds: vec![],
         }));
+
+        let title = "Migrate native contracts of the abstract".to_owned();
+        let description = "".to_owned();
+        self.multisig
+            .cw3
+            .propose(description, msgs, title, None, &[])?;
 
         Ok(has_uploaded)
     }
