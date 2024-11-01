@@ -74,8 +74,8 @@ abstract-standalone = { path = "packages/abstract-standalone" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { version = "0.24.1", path = "packages/abstract-interface" }
-abstract-client = { version = "0.24.1", path = "packages/abstract-client" }
+abstract-interface = { path = "packages/abstract-interface" }
+abstract-client = { path = "packages/abstract-client" }
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 registry = { package = "abstract-registry", path = "contracts/native/registry" }
