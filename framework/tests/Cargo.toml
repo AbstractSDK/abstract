@@ -54,5 +54,8 @@ base64 = "0.22.1"
 # Testing contract
 counter-contract = { version = "0.27.0" }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+workspace-hack = { version = "0.1", path = "../workspace-hack" }
+
 [lints]
 workspace = true

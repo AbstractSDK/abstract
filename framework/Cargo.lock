@@ -682,6 +682,7 @@ dependencies = [
  "semver",
  "thiserror",
  "tokio",
+ "workspace-hack",
 ]
 
 [[package]]
