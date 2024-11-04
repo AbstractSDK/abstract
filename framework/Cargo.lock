@@ -125,7 +125,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-client"
-version = "0.24.1"
+version = "0.24.2"
 dependencies = [
  "abstract-account",
  "abstract-adapter",
