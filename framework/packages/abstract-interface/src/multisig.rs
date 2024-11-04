@@ -23,7 +23,7 @@ use cw_plus_orch::{
 };
 use prost::{Message, Name};
 
-use crate::{migrate::contract_version, Abstract, AbstractInterfaceError, AccountI};
+use crate::{Abstract, AbstractInterfaceError, AccountI};
 
 pub const CW3_ABSTRACT: &str = "cw3:abstract";
 pub const CW4_ABSTRACT: &str = "cw4:abstract";
@@ -64,7 +64,7 @@ impl<Chain: CwEnv> AbstractMultisig<Chain> {
             &cw3_flex_multisig::InstantiateMsg {
                 group_addr: cw4_address.to_string(),
                 threshold: cw_utils::Threshold::AbsolutePercentage {
-                    percentage: cosmwasm_std::Decimal::from_ratio(1_u128, 2_u128),
+                    percentage: cosmwasm_std::Decimal::from_ratio(51_u128, 100_u128),
                 },
                 max_voting_period: cw_utils::WEEK,
                 executor: None,
@@ -78,6 +78,7 @@ impl<Chain: CwEnv> AbstractMultisig<Chain> {
     }
 }
 
+#[cfg(feature = "daemon")]
 impl<T: CwEnv + Stargate> Abstract<T> {
     pub fn update_admin_to_multisig(
         &self,
@@ -136,7 +137,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         self.ans_host
             .update_ownership(cw_ownable_transfer_msg.clone())?;
         msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.registry.addr_str()?,
+            contract_addr: self.ans_host.addr_str()?,
             msg: to_json_binary(&ans_host::ExecuteMsg::UpdateOwnership(
                 cw_ownable::Action::AcceptOwnership,
             ))?,
@@ -147,7 +148,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         self.module_factory
             .update_ownership(cw_ownable_transfer_msg.clone())?;
         msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.registry.addr_str()?,
+            contract_addr: self.module_factory.addr_str()?,
             msg: to_json_binary(&module_factory::ExecuteMsg::UpdateOwnership(
                 cw_ownable::Action::AcceptOwnership,
             ))?,
@@ -159,7 +160,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             .client
             .update_ownership(cw_ownable_transfer_msg.clone())?;
         msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.registry.addr_str()?,
+            contract_addr: self.ibc.client.addr_str()?,
             msg: to_json_binary(&ibc_client::ExecuteMsg::UpdateOwnership(
                 cw_ownable::Action::AcceptOwnership,
             ))?,
@@ -171,7 +172,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             .host
             .update_ownership(cw_ownable_transfer_msg.clone())?;
         msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.registry.addr_str()?,
+            contract_addr: self.ibc.host.addr_str()?,
             msg: to_json_binary(&ibc_host::ExecuteMsg::UpdateOwnership(
                 cw_ownable::Action::AcceptOwnership,
             ))?,
@@ -180,7 +181,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
 
         // Accept new contracts owners
         let title = "Accept ownership of abstract contracts as multisig".to_owned();
-        let description = "".to_owned();
+        let description = "We should accept ownership of abstract contracts as multisig so our root account is not managed by a single wallet".to_owned();
         self.multisig
             .cw3
             .propose(description, msgs, title, None, &[])?;
@@ -197,8 +198,8 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         })?;
 
         // Accept new account owner
-        let title = "Accept ownership of abstract account as multisig".to_owned();
-        let description = "".to_owned();
+        let title = "Accept ownership of abstract account".to_owned();
+        let description = "We should accept ownership of abstract account as multisig so our root account is not managed by a single wallet".to_owned();
         self.multisig.cw3.propose(
             description,
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
@@ -232,7 +233,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         // };
 
         if ::module_factory::contract::CONTRACT_VERSION
-            != contract_version(&self.module_factory)?.version
+            != crate::migrate::contract_version(&self.module_factory)?.version
         {
             let uploading_result = self.module_factory.upload_if_needed()?;
             if let Some(result) = uploading_result {
@@ -250,7 +251,9 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             }
         }
 
-        if ::registry::contract::CONTRACT_VERSION != contract_version(&self.registry)?.version {
+        if ::registry::contract::CONTRACT_VERSION
+            != crate::migrate::contract_version(&self.registry)?.version
+        {
             let uploading_result = self.registry.upload_if_needed()?;
             if let Some(result) = uploading_result {
                 let new_code_id = result.uploaded_code_id()?;
@@ -267,7 +270,9 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             }
         }
 
-        if ::ans_host::contract::CONTRACT_VERSION != contract_version(&self.ans_host)?.version {
+        if ::ans_host::contract::CONTRACT_VERSION
+            != crate::migrate::contract_version(&self.ans_host)?.version
+        {
             let uploading_result = self.ans_host.upload_if_needed()?;
             if let Some(result) = uploading_result {
                 let new_code_id = result.uploaded_code_id()?;
@@ -285,7 +290,9 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         }
 
         // TODO: are we keeping migrate or instantiate on breaking ibc bump
-        if ::ibc_client::contract::CONTRACT_VERSION != contract_version(&self.ibc.client)?.version {
+        if ::ibc_client::contract::CONTRACT_VERSION
+            != crate::migrate::contract_version(&self.ibc.client)?.version
+        {
             let uploading_result = self.ibc.client.upload_if_needed()?;
             if let Some(result) = uploading_result {
                 let new_code_id = result.uploaded_code_id()?;
@@ -301,7 +308,9 @@ impl<T: CwEnv + Stargate> Abstract<T> {
                 }));
             }
         }
-        if ::ibc_host::contract::CONTRACT_VERSION != contract_version(&self.ibc.host)?.version {
+        if ::ibc_host::contract::CONTRACT_VERSION
+            != crate::migrate::contract_version(&self.ibc.host)?.version
+        {
             let uploading_result = self.ibc.host.upload_if_needed()?;
             if let Some(result) = uploading_result {
                 let new_code_id = result.uploaded_code_id()?;
