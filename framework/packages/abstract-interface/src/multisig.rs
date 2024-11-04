@@ -9,6 +9,7 @@ use abstract_std::{
         gov_type::{GovAction, GovernanceDetails},
         module::ModuleInfo,
         module_reference::ModuleReference,
+        ABSTRACT_ACCOUNT_ID,
     },
     registry::{self, ExecuteMsgFns as _, QueryMsgFns as _},
     ACCOUNT,
@@ -22,7 +23,7 @@ use cw_plus_orch::{
 };
 use prost::{Message, Name};
 
-use crate::{migrate::contract_version, Abstract, AbstractInterfaceError};
+use crate::{migrate::contract_version, Abstract, AbstractInterfaceError, AccountI};
 
 pub const CW3_ABSTRACT: &str = "cw3:abstract";
 pub const CW4_ABSTRACT: &str = "cw4:abstract";
@@ -111,6 +112,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
                 None,
             )
             .map_err(Into::into)?;
+        log::info!("Updated migrate admin of abstract contracts");
 
         let mut msgs = vec![];
         // Transfer ownership
@@ -182,23 +184,25 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         self.multisig
             .cw3
             .propose(description, msgs, title, None, &[])?;
+        log::info!("Created proposal to update ownerships of abstract contracts");
 
         // Move ownership of the account
-        self.account
-            .update_ownership(GovAction::TransferOwnership {
-                new_owner: GovernanceDetails::External {
-                    governance_address: cw3_flex_address.to_string(),
-                    governance_type: "cw3-flex".to_owned(),
-                },
-                expiry: None,
-            })?;
+        let root_account = AccountI::load_from(&self, ABSTRACT_ACCOUNT_ID)?;
+        root_account.update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::External {
+                governance_address: cw3_flex_address.to_string(),
+                governance_type: "cw3-flex".to_owned(),
+            },
+            expiry: None,
+        })?;
+
         // Accept new account owner
         let title = "Accept ownership of abstract account as multisig".to_owned();
         let description = "".to_owned();
         self.multisig.cw3.propose(
             description,
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: self.account.addr_str()?,
+                contract_addr: root_account.addr_str()?,
                 msg: to_json_binary(&<account::ExecuteMsg>::UpdateOwnership(
                     GovAction::AcceptOwnership,
                 ))?,
@@ -208,6 +212,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             None,
             &[],
         )?;
+        log::info!("Created proposal to update abstract root account governance");
 
         Ok(())
     }

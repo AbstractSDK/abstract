@@ -64,3 +64,4 @@ prost = { version = "0.13" }
 prost-types = { version = "0.13" }
 
 cw-orch-core = "2.0.0"
+cw4 = "2.0.0"
