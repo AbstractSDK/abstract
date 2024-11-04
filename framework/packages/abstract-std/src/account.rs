@@ -176,7 +176,7 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     },
     /// Upgrade the module to a new version
     /// If module is `abstract::account` then the contract will do a self-migration.
-    /// Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Version Control
+    /// Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Registry
     Upgrade {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },

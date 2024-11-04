@@ -238,7 +238,7 @@ pub fn load_module_addr(storage: &dyn Storage, module_id: &str) -> AccountResult
         .ok_or_else(|| AccountError::ModuleNotFound(module_id.to_string()))
 }
 
-/// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
+/// Query Registry for the [`Module`] given the provided [`ContractVersion`]
 pub fn query_module(
     deps: Deps,
     env: &Env,

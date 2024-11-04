@@ -77,9 +77,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Self { abstr })
     }
 
-    /// Version Control contract API
+    /// Registry contract API
     ///
-    /// The Version Control contract is a database contract that stores all module-related information.
+    /// The Registry contract is a database contract that stores all module-related information.
     /// ```
     /// # use abstract_client::AbstractClientError;
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
