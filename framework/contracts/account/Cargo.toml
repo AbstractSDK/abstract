@@ -3,7 +3,7 @@ name = "abstract-account"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
-description = "Abstract Manager Contract"
+description = "Abstract Account Contract"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract"
