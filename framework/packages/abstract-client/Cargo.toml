@@ -1,6 +1,6 @@
 [package]
 name = "abstract-client"
-version = "0.24.1"
+version = "0.24.2"
 description = "A client oriented package for the Abstract Framework."
 authors.workspace = true
 edition.workspace = true
