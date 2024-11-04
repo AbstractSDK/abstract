@@ -1,5 +1,5 @@
-use abstract_interface::{AnsHost, IbcClient, IbcHost, ModuleFactory, Registry};
-use abstract_std::{ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY};
+use abstract_interface::{AnsHost, ModuleFactory, Registry};
+use abstract_std::{ANS_HOST, MODULE_FACTORY, REGISTRY};
 use cosmwasm_schema::serde::Serialize;
 use cw_blob::interface::CwBlob;
 use cw_orch::{anyhow, mock::MockBase, prelude::*};
@@ -95,19 +95,4 @@ fn module_factory() {
         },
     )
     .unwrap();
-}
-
-#[test]
-fn ibc_host() {
-    let chain = MockBech32::new("mock");
-    let contract = IbcHost::new(IBC_HOST, chain.clone());
-    instantiate_from_blob_same_result(contract, abstract_std::ibc_host::InstantiateMsg {}).unwrap();
-}
-
-#[test]
-fn ibc_client() {
-    let chain = MockBech32::new("mock");
-    let contract = IbcClient::new(IBC_CLIENT, chain.clone());
-    instantiate_from_blob_same_result(contract, abstract_std::ibc_client::InstantiateMsg {})
-        .unwrap();
 }

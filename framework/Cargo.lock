@@ -102,6 +102,7 @@ name = "abstract-app"
 version = "0.24.1"
 dependencies = [
  "abstract-app",
+ "abstract-ibc-client",
  "abstract-ibc-host",
  "abstract-integration-tests",
  "abstract-interface",

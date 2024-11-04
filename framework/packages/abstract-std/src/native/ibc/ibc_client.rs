@@ -58,12 +58,7 @@ pub mod state {
 pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub enum MigrateMsg {
-    /// Migrating from blob contract
-    Instantiate(InstantiateMsg),
-    /// Migrating from previous version
-    Migrate {},
-}
+pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
