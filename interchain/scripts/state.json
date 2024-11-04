@@ -2,11 +2,11 @@
   "osmo-test-5": {
     "code_ids": {
       "abstract:account": 11304,
-      "abstract:ans-host": 11303,
+      "abstract:ans-host": 11341,
       "abstract:ibc-client": 11305,
       "abstract:ibc-host": 11306,
       "abstract:module-factory": 11301,
-      "abstract:registry": 11302,
+      "abstract:registry": 11342,
       "cw:blob": 11289
     },
     "default": {
@@ -22,11 +22,11 @@
   "pion-1": {
     "code_ids": {
       "abstract:account": 7693,
-      "abstract:ans-host": 7692,
+      "abstract:ans-host": 7936,
       "abstract:ibc-client": 7694,
       "abstract:ibc-host": 7695,
       "abstract:module-factory": 7690,
-      "abstract:registry": 7691,
+      "abstract:registry": 7938,
       "cw:blob": 7399
     },
     "default": {
@@ -62,11 +62,11 @@
   "xion-testnet-1": {
     "code_ids": {
       "abstract:account": 1282,
-      "abstract:ans-host": 1279,
+      "abstract:ans-host": 1298,
       "abstract:ibc-client": 1283,
       "abstract:ibc-host": 1284,
       "abstract:module-factory": 1281,
-      "abstract:registry": 1280,
+      "abstract:registry": 1299,
       "cw:blob": 1278
     },
     "default": {

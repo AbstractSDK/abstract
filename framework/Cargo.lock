@@ -75,7 +75,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ans-host"
-version = "0.24.1"
+version = "0.24.2"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -509,7 +509,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-registry"
-version = "0.24.1"
+version = "0.24.2"
 dependencies = [
  "abstract-interface",
  "abstract-macros",
