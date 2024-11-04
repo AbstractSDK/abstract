@@ -1,5 +1,8 @@
-use abstract_sdk::ModuleInterface;
-use abstract_std::IBC_CLIENT;
+use abstract_sdk::features::AbstractRegistryAccess;
+use abstract_std::{
+    objects::module::{ModuleInfo, ModuleVersion},
+    IBC_CLIENT,
+};
 use cosmwasm_std::Addr;
 
 use crate::{state::ContractError, AppContract, IbcCallbackEndpoint};
@@ -17,10 +20,20 @@ impl<
     fn ibc_client_addr(
         &self,
         deps: cosmwasm_std::Deps,
-        _env: &cosmwasm_std::Env,
+        env: &cosmwasm_std::Env,
     ) -> Result<Addr, Self::Error> {
-        let ibc_client = self.modules(deps).module_address(IBC_CLIENT)?;
-        Ok(ibc_client)
+        let registry_query_result = self
+            .abstract_registry(deps, env)?
+            .query_module(
+                ModuleInfo::from_id(
+                    IBC_CLIENT,
+                    ModuleVersion::from(abstract_ibc_client::contract::CONTRACT_VERSION),
+                )?,
+                &deps.querier,
+            )
+            .map_err(Into::<abstract_std::AbstractError>::into)?;
+
+        Ok(registry_query_result.reference.unwrap_native()?)
     }
 }
 

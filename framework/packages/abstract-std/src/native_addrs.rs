@@ -18,8 +18,6 @@ const TEST_ABSTRACT_CREATOR: [u8; 33] = [
 pub const ANS_HOST_SALT: &[u8] = b"ans";
 pub const REGISTRY_SALT: &[u8] = b"reg";
 pub const MODULE_FACTORY_SALT: &[u8] = b"mf";
-pub const IBC_CLIENT_SALT: &[u8] = b"ic";
-pub const IBC_HOST_SALT: &[u8] = b"ih";
 
 pub fn ans_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
     contract_canon_address(hrp, ANS_HOST_SALT, api)
@@ -31,14 +29,6 @@ pub fn registry_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAdd
 
 pub fn module_factory_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
     contract_canon_address(hrp, MODULE_FACTORY_SALT, api)
-}
-
-pub fn ibc_client_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, IBC_CLIENT_SALT, api)
-}
-
-pub fn ibc_host_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, IBC_HOST_SALT, api)
 }
 
 pub fn derive_addr_from_pub_key(hrp: &str, pub_key: &[u8]) -> AbstractResult<String> {

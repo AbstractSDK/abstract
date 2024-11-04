@@ -37,12 +37,7 @@ pub mod state {
 pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub enum MigrateMsg {
-    /// Migrating from blob contract
-    Instantiate(InstantiateMsg),
-    /// Migrating from previous version
-    Migrate {},
-}
+pub struct MigrateMsg {}
 
 // ANCHOR: ibc-host-action
 #[cosmwasm_schema::cw_serde]
