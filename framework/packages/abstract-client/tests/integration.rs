@@ -119,7 +119,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
         .build()?;
 
     // From namespace directly
-    let account_from_namespace: Account<MockBech32> = client.account_from(namespace)?;
+    let account_from_namespace: Account<MockBech32> = client.fetch_account(namespace)?;
 
     assert_eq!(account.info()?, account_from_namespace.info()?);
     Ok(())
@@ -135,7 +135,7 @@ fn err_fetching_unclaimed_namespace() -> anyhow::Result<()> {
     let account_from_namespace_no_claim_res: Result<
         Account<MockBech32>,
         abstract_client::AbstractClientError,
-    > = client.account_from(namespace);
+    > = client.fetch_account(namespace);
 
     assert!(matches!(
         account_from_namespace_no_claim_res.unwrap_err(),
@@ -406,7 +406,7 @@ fn can_fetch_account_from_id() -> anyhow::Result<()> {
 
     let account1 = client.account_builder().build()?;
 
-    let account2 = client.account_from(account1.id()?)?;
+    let account2 = client.fetch_account(account1.id()?)?;
 
     assert_eq!(account1.info()?, account2.info()?);
 
@@ -430,7 +430,7 @@ fn can_fetch_account_from_app() -> anyhow::Result<()> {
 
     let app = account1.install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
 
-    let account2 = client.account_from(AccountSource::App(app.address()?))?;
+    let account2 = client.fetch_account(AccountSource::App(app.address()?))?;
 
     assert_eq!(account1.info()?, account2.info()?);
 
@@ -1601,8 +1601,11 @@ fn account_fetcher_shouldnt_install_module_on_existing_account() -> anyhow::Resu
         .namespace(NEW_NAMESPACE.try_into()?)
         .build()?;
 
-    client.fetch_or_build_account(NEW_NAMESPACE.try_into()?, |builder| {
-        builder.install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
+    let namespace: Namespace = NEW_NAMESPACE.try_into()?;
+    client.fetch_or_build_account(namespace.clone(), |builder| {
+        builder
+            .install_app::<MockAppWithDepI<MockBech32>>(&MockInitMsg {})
+            .namespace(namespace)
     })?;
     assert!(!account.module_installed(TEST_MODULE_ID)?);
     Ok(())

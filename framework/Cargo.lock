@@ -125,7 +125,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-client"
-version = "0.24.1"
+version = "0.24.2"
 dependencies = [
  "abstract-account",
  "abstract-adapter",
@@ -668,11 +668,11 @@ dependencies = [
 
 [[package]]
 name = "abstract-xion"
-version = "0.24.1"
+version = "0.24.2"
 dependencies = [
  "abstract-std",
  "base64 0.22.1",
- "bech32 0.9.1",
+ "bech32 0.11.0",
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
