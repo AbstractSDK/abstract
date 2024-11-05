@@ -262,8 +262,16 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
         host_chain: TruncatedChainId,
         funds: Vec<Coin>,
         memo: Option<String>,
+        receiver: Option<String>,
     ) -> AbstractSdkResult<CosmosMsg> {
-        self.execute(&IbcClientMsg::SendFunds { host_chain, memo }, funds)
+        self.execute(
+            &IbcClientMsg::SendFunds {
+                host_chain,
+                memo,
+                receiver,
+            },
+            funds,
+        )
     }
 
     /// A simple helper to install an app on an account
@@ -408,6 +416,7 @@ mod test {
             TEST_HOST_CHAIN.parse().unwrap(),
             expected_funds.clone(),
             None,
+            None,
         );
         assert!(msg.is_ok());
 
@@ -419,6 +428,7 @@ mod test {
                 exec_msg: to_json_binary(&IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     memo: None,
+                    receiver: None,
                 })
                 .unwrap(),
                 funds: expected_funds,

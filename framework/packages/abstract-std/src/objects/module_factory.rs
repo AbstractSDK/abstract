@@ -10,7 +10,7 @@ pub struct ModuleFactoryContract {
 }
 
 impl ModuleFactoryContract {
-    /// Retrieve address of the Version Control
+    /// Retrieve address of the Registry
     pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
         let hrp = native_addrs::hrp_from_env(env);
         let address = api.addr_humanize(&native_addrs::module_factory_address(hrp, api)?)?;

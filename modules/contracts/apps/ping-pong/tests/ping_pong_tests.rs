@@ -1,4 +1,3 @@
-use abstract_app::abstract_interface::RegistryQueryFns;
 use abstract_app::objects::namespace::Namespace;
 use abstract_app::objects::AccountId;
 
@@ -43,7 +42,11 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
 
         let namespace = Namespace::from_id(APP_ID)?;
         // Publish and install on both chains
-        let publisher_juno = abs_juno.publisher_builder(namespace.clone()).build()?;
+        let publisher_juno = abs_juno
+            .account_builder()
+            .namespace(namespace.clone())
+            .build()?
+            .publisher()?;
         publisher_juno.publish_app::<AppInterface<_>>()?;
         let app = publisher_juno
             .account()
@@ -53,7 +56,11 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
                 &[],
             )?;
 
-        let publisher_stargaze = abs_stargaze.publisher_builder(namespace).build()?;
+        let publisher_stargaze = abs_stargaze
+            .account_builder()
+            .namespace(namespace)
+            .build()?
+            .publisher()?;
         publisher_stargaze.publish_app::<AppInterface<_>>()?;
 
         let remote_account = app

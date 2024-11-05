@@ -49,9 +49,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
-        ExecuteMsg::SendFunds { host_chain, memo } => {
-            commands::execute_send_funds(deps, env, info, host_chain, memo).map_err(Into::into)
-        }
+        ExecuteMsg::SendFunds {
+            host_chain,
+            receiver,
+            memo,
+        } => commands::execute_send_funds(deps, env, info, host_chain, memo, receiver)
+            .map_err(Into::into),
         ExecuteMsg::Register {
             host_chain,
             namespace,
@@ -118,20 +121,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespon
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> IbcClientResult {
-    match msg {
-        MigrateMsg::Instantiate(instantiate_msg) => {
-            abstract_sdk::cw_helpers::migrate_instantiate(deps, env, instantiate_msg, instantiate)
-        }
-        MigrateMsg::Migrate {} => {
-            let to_version: Version = CONTRACT_VERSION.parse().unwrap();
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
+    let to_version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
-            cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
-            migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
-            Ok(IbcClientResponse::action("migrate"))
-        }
-    }
+    assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
+    cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+    migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
+    Ok(IbcClientResponse::action("migrate"))
 }
 
 #[cfg(test)]
@@ -218,7 +214,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg {});
 
             assert_eq!(
                 res,
@@ -245,7 +241,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg {});
 
             assert_eq!(
                 res,
@@ -271,7 +267,7 @@ mod tests {
             let old_name = "old:contract";
             cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {});
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg {});
 
             assert_eq!(
                 res,
@@ -301,7 +297,7 @@ mod tests {
             .to_string();
             cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, small_version)?;
 
-            let res = contract::migrate(deps.as_mut(), env, MigrateMsg::Migrate {})?;
+            let res = contract::migrate(deps.as_mut(), env, MigrateMsg {})?;
             assert!(res.messages.is_empty());
 
             assert_eq!(
@@ -637,6 +633,7 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
+                receiver: None,
                 memo: None,
             };
 
@@ -678,6 +675,7 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name.clone(),
+                receiver: None,
                 memo: None,
             };
 
@@ -711,6 +709,7 @@ mod tests {
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
+                receiver: None,
                 memo: memo.clone(),
             };
 

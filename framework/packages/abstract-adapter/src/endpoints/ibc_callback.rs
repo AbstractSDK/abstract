@@ -12,7 +12,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
     fn ibc_client_addr(&self, deps: Deps, env: &Env) -> Result<Addr, Self::Error> {
-        let vc_query_result = self
+        let registry_query_result = self
             .abstract_registry(deps, env)?
             .query_module(
                 ModuleInfo::from_id(
@@ -23,6 +23,6 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             )
             .map_err(Into::<AbstractError>::into)?;
 
-        Ok(vc_query_result.reference.unwrap_native()?)
+        Ok(registry_query_result.reference.unwrap_native()?)
     }
 }

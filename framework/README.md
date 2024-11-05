@@ -70,3 +70,9 @@ cargo fmt
 # format toml files
 find . -type f -iname "*.toml" -print0 | xargs -0 taplo format
 ```
+
+## License
+
+This software is licensed under LGPL-3.0. For more information, see the [LICENSE](LICENSE.LESSER) file.
+
+Versions of this software on and before commit `1add9689c3f5ac74268396712c6461435efe07bb`, corresponding to version `v0.24.1`, are licensed under GPL-3.0. For more information, see the [LICENSE](LICENSE) file.

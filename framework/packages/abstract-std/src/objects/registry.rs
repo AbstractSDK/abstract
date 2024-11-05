@@ -76,7 +76,7 @@ pub struct RegistryContract {
 }
 
 impl RegistryContract {
-    /// Retrieve address of the Version Control
+    /// Retrieve address of the Registry
     pub fn new(deps: Deps, abstract_code_id: u64) -> AbstractResult<Self> {
         let address = deps
             .api

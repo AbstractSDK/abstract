@@ -277,9 +277,9 @@ fn reject_modules(storage: &mut dyn Storage, rejects: Vec<ModuleInfo>) -> VCResu
     Ok(("rejects", rejects.join(",")).into())
 }
 
-/// Remove a module from the Version Control registry.
+/// Remove a module from the Registry registry.
 pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> VCResult {
-    // Only the Version Control Admin can remove modules
+    // Only the Registry Admin can remove modules
     cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     // Only specific versions may be removed

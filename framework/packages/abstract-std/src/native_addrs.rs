@@ -8,8 +8,6 @@ pub use cw_blob::CHECKSUM as BLOB_CHECKSUM;
 pub const ANS_HOST_SALT: &[u8] = b"ans";
 pub const REGISTRY_SALT: &[u8] = b"reg";
 pub const MODULE_FACTORY_SALT: &[u8] = b"mf";
-pub const IBC_CLIENT_SALT: &[u8] = b"ic";
-pub const IBC_HOST_SALT: &[u8] = b"ih";
 
 pub fn ans_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
     contract_canon_address(deps, abstract_code_id, ANS_HOST_SALT)
@@ -21,14 +19,6 @@ pub fn registry_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<Can
 
 pub fn module_factory_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
     contract_canon_address(deps, abstract_code_id, MODULE_FACTORY_SALT)
-}
-
-pub fn ibc_client_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(deps, abstract_code_id, IBC_CLIENT_SALT)
-}
-
-pub fn ibc_host_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(deps, abstract_code_id, IBC_HOST_SALT)
 }
 
 /// Address of the abstract admin
