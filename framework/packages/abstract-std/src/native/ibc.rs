@@ -17,6 +17,8 @@ use crate::{
 };
 use polytone_callbacks::{Callback as PolytoneCallback, ErrorResponse, ExecutionResponse};
 
+pub const PACKET_LIFETIME: u64 = 60 * 60;
+
 /// Callback from modules, that is turned into an IbcResponseMsg by the ibc client
 /// A callback can only be sent to itself
 #[cosmwasm_schema::cw_serde]

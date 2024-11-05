@@ -3,13 +3,16 @@ use abstract_sdk::{
     feature_objects::{AnsHost, RegistryContract},
     Resolve,
 };
-use abstract_std::objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId};
+use abstract_std::{
+    ibc::PACKET_LIFETIME,
+    objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId},
+};
 use cosmwasm_std::{
     wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, Env, HexBinary, QuerierWrapper, WasmMsg,
 };
 use evm_note::msg::{CallbackRequest, EvmMsg};
 
-use crate::{contract::IcaClientResult, error::IcaClientError, queries::PACKET_LIFETIME};
+use crate::{contract::IcaClientResult, error::IcaClientError};
 
 pub fn execute(
     querier: &QuerierWrapper,

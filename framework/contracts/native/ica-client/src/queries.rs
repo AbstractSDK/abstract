@@ -5,9 +5,6 @@ use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
 use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
 
-/// Timeout in seconds
-pub const PACKET_LIFETIME: u64 = 60 * 60;
-
 pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
     Ok(ConfigResponse {
         ans_host: AnsHost::new(deps.api, env)?.address,
@@ -176,7 +173,7 @@ mod tests {
         use std::str::FromStr;
 
         use abstract_ica::msg::QueryMsg;
-        use abstract_std::objects::TruncatedChainId;
+        use abstract_std::{ibc::PACKET_LIFETIME, objects::TruncatedChainId};
 
         use abstract_testing::mock_env_validated;
         use cosmwasm_std::{coins, wasm_execute};

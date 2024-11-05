@@ -25,6 +25,8 @@ pub use abstract_xion;
 // re-export based on the feature
 pub mod msg {
     pub use abstract_std::account::{MigrateMsg, QueryMsg};
+    use abstract_std::{account::ICS20PacketIdentifier, objects::storage_namespaces};
+    use cw_storage_plus::Map;
 
     #[cfg(feature = "xion")]
     pub type Authenticator = crate::abstract_xion::auth::AddAuthenticator;
@@ -33,6 +35,9 @@ pub mod msg {
 
     pub type ExecuteMsg = abstract_std::account::ExecuteMsg<Authenticator>;
     pub type InstantiateMsg = abstract_std::account::InstantiateMsg<Authenticator>;
+
+    pub const ICS20_CALLBACKS: Map<ICS20PacketIdentifier, Vec<ExecuteMsg>> =
+        Map::new(storage_namespaces::account::ICS20_CALLBACKS);
 }
 
 #[cfg(test)]

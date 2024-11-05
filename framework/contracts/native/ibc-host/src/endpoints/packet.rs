@@ -59,6 +59,7 @@ pub fn handle_host_action(
             namespace,
             install_modules,
             false,
+            vec![],
         ),
 
         action => {
@@ -109,6 +110,7 @@ pub fn handle_host_action(
                     None,
                     vec![],
                     true,
+                    vec![],
                 )
             }
         }

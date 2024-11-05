@@ -5,13 +5,13 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account::{self, ModuleInstallConfig},
+    ibc::PACKET_LIFETIME,
     objects::{module::ModuleInfo, module_reference::ModuleReference, AccountId, TruncatedChainId},
     registry::Account,
     ACCOUNT,
 };
 use cosmwasm_std::{
-    instantiate2_address, to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env,
-    IbcMsg, Response, SubMsg, WasmMsg,
+    instantiate2_address, to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, Response, SubMsg, WasmMsg
 };
 
 use crate::{
@@ -19,9 +19,6 @@ use crate::{
     endpoints::reply::{INIT_BEFORE_ACTION_REPLY_ID, RESPONSE_REPLY_ID},
     HostError,
 };
-
-// one hour
-const PACKET_LIFETIME: u64 = 60 * 60;
 
 /// Creates and registers account for remote Account
 #[allow(clippy::too_many_arguments)]
@@ -35,6 +32,7 @@ pub fn receive_register(
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
+    funds: Vec<Coin>,
 ) -> HostResult {
     let registry = RegistryContract::new(deps.api, &env)?;
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
@@ -78,7 +76,7 @@ pub fn receive_register(
         code_id,
         label: account_id.to_string(),
         msg: to_json_binary(&create_account_msg)?,
-        funds: vec![],
+        funds,
         salt,
     };
 

@@ -1,18 +1,27 @@
-use abstract_sdk::std::account::state::WHITELISTED_MODULES;
+use abstract_sdk::{
+    feature_objects::AnsHost, std::account::state::WHITELISTED_MODULES, HookMemoBuilder, Resolve,
+};
 use abstract_std::{
-    account::state::{ACCOUNT_MODULES, CALLING_TO_AS_ADMIN},
-    objects::ownership,
-    ICA_CLIENT,
+    account::state::{ACCOUNT_ID, ACCOUNT_MODULES, CALLING_TO_AS_ADMIN},
+    ibc::PACKET_LIFETIME,
+    ibc_client::state::IBC_INFRA,
+    ibc_host,
+    objects::{ownership, ChannelEntry, TruncatedChainId},
+    IBC_CLIENT, ICA_CLIENT, ICS20,
 };
 use cosmwasm_std::{
-    Addr, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo, StdError, SubMsg, WasmMsg,
-    WasmQuery,
+    to_json_binary, Addr, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, IbcMsg, IbcTimeout,
+    MessageInfo, Response, StdError, SubMsg, WasmMsg, WasmQuery,
 };
 
 use crate::{
-    contract::{AccountResponse, AccountResult, ADMIN_ACTION_REPLY_ID, FORWARD_RESPONSE_REPLY_ID},
+    contract::{
+        AccountResponse, AccountResult, ADMIN_ACTION_REPLY_ID, FORWARD_RESPONSE_REPLY_ID,
+        IBC_TOKEN_FLOW,
+    },
     error::AccountError,
     modules::load_module_addr,
+    msg::ExecuteMsg,
 };
 
 /// Check that sender either whitelisted or governance
@@ -169,6 +178,54 @@ pub fn ica_action(mut deps: DepsMut, msg_info: MessageInfo, action_query: Binary
     )?;
 
     Ok(AccountResponse::action("ica_action").add_messages(res.msgs))
+}
+
+pub fn send_funds_with_actions(
+    mut deps: DepsMut,
+    msg_info: MessageInfo,
+    env: Env,
+    host_chain: TruncatedChainId,
+    funds: Coin,
+    actions: Vec<ExecuteMsg>,
+) -> AccountResult {
+    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
+    // We send a funds message to the host saying we want to deposit on a remote account
+    host_chain.verify()?;
+
+    let ans = AnsHost::new(deps.api, &env)?;
+
+    let ics20_channel_entry = ChannelEntry {
+        connected_chain: host_chain.clone(),
+        protocol: ICS20.to_string(),
+    };
+    let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;
+
+    let ibc_client_module = load_module_addr(deps.storage, IBC_CLIENT)?;
+    let remote_host = IBC_INFRA
+        .query(&deps.querier, ibc_client_module, &host_chain)?
+        .ok_or(AccountError::ChainNotRegistered(host_chain))?;
+
+    let action_memo = HookMemoBuilder::new(
+        remote_host.remote_abstract_host.clone(),
+        &ibc_host::ExecuteMsg::Fund {
+            src_account: ACCOUNT_ID.load(deps.storage)?,
+            src_chain: TruncatedChainId::from_chain_id(&env.block.chain_id),
+        },
+    )
+    .build()?;
+
+    let transfer_msg = IbcMsg::Transfer {
+        channel_id: ics20_channel_id.clone(),
+        to_address: remote_host.remote_abstract_host,
+        amount: funds,
+        timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(PACKET_LIFETIME)),
+        memo: Some(action_memo),
+    };
+
+    Ok(Response::new().add_submessage(
+        SubMsg::reply_on_success(transfer_msg, IBC_TOKEN_FLOW)
+            .with_payload(to_json_binary(&actions)?),
+    ))
 }
 
 #[cfg(test)]

@@ -1,6 +1,9 @@
 use abstract_sdk::std::objects::module::ModuleInfo;
 use abstract_std::{
-    objects::{registry::RegistryError, validation::ValidationError},
+    objects::{
+        ans_host::AnsHostError, registry::RegistryError, validation::ValidationError,
+        TruncatedChainId,
+    },
     AbstractError,
 };
 use cosmwasm_std::{Instantiate2AddressError, StdError};
@@ -25,6 +28,12 @@ pub enum AccountError {
 
     #[error(transparent)]
     RegistryError(#[from] RegistryError),
+
+    #[error(transparent)]
+    AnsHostError(#[from] AnsHostError),
+
+    #[error(transparent)]
+    ProstDecodeError(#[from] prost::DecodeError),
 
     #[error("Your account is currently suspended")]
     AccountSuspended {},
@@ -118,4 +127,7 @@ pub enum AccountError {
     #[cfg(feature = "xion")]
     #[error(transparent)]
     AbstractXion(#[from] abstract_xion::error::AbstractXionError),
+
+    #[error("Chain {0} not registered in the IBC Client")]
+    ChainNotRegistered(TruncatedChainId),
 }

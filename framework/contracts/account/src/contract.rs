@@ -10,7 +10,7 @@ use abstract_sdk::{
 use abstract_std::{
     account::{
         state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
-        UpdateSubAccountAction,
+        ICS20PacketIdentifier, UpdateSubAccountAction,
     },
     module_factory::SimulateInstallModulesResponse,
     objects::{
@@ -22,8 +22,9 @@ use abstract_std::{
     registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult,
+    ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, IbcAckCallbackMsg,
+    IbcBasicResponse, IbcSourceCallbackMsg, IbcTimeoutCallbackMsg, MessageInfo, Reply, Response,
+    StdAck, StdResult,
 };
 
 pub use crate::migrate::migrate;
@@ -33,19 +34,23 @@ use crate::{
     execution::{
         add_auth_method, admin_execute, admin_execute_on_module, execute_msgs,
         execute_msgs_with_data, execute_on_module, ica_action, remove_auth_method,
+        send_funds_with_actions,
     },
     modules::{
         _install_modules, install_modules,
         migration::{assert_modules_dependency_requirements, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
-    msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
+    msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ICS20_CALLBACKS},
     queries::{
         handle_account_info_query, handle_config_query, handle_module_address_query,
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
         handle_top_level_owner_query,
     },
-    reply::{admin_action_reply, forward_response_reply, register_dependencies},
+    reply::{
+        admin_action_reply, forward_response_reply, register_dependencies,
+        register_sub_sequent_messages,
+    },
     sub_account::{
         create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
         remove_account_from_contracts,
@@ -63,6 +68,7 @@ pub const FORWARD_RESPONSE_REPLY_ID: u64 = 1;
 pub const ADMIN_ACTION_REPLY_ID: u64 = 2;
 pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 3;
 pub const ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID: u64 = 4;
+pub const IBC_TOKEN_FLOW: u64 = 5;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -353,6 +359,11 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 }
                 #[allow(unused)]
                 ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
+                ExecuteMsg::SendFundsWithActions {
+                    amount,
+                    host_chain,
+                    actions,
+                } => send_funds_with_actions(deps, info, env, host_chain, amount, actions),
             }
         }
     }
@@ -367,6 +378,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
         ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID => {
             assert_modules_dependency_requirements(deps)
         }
+        IBC_TOKEN_FLOW => register_sub_sequent_messages(deps, msg),
 
         _ => Err(AccountError::UnexpectedReply {}),
     }
@@ -401,6 +413,62 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             return abstract_xion::queries::authenticator_ids(deps.storage);
             #[cfg(not(feature = "xion"))]
             Ok(Binary::default())
+        }
+    }
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn ibc_source_callback(
+    deps: DepsMut,
+    env: Env,
+    msg: IbcSourceCallbackMsg,
+) -> StdResult<IbcBasicResponse> {
+    match msg {
+        IbcSourceCallbackMsg::Acknowledgement(IbcAckCallbackMsg {
+            acknowledgement,
+            original_packet,
+            relayer: _,
+            ..
+        }) => {
+            let packet_identifier = ICS20PacketIdentifier {
+                channel_id: original_packet.src.channel_id,
+                sequence: original_packet.sequence,
+            };
+
+            let (outcome, stored_msgs) =
+                if acknowledgement.data == StdAck::success(b"\x01").to_binary() {
+                    (
+                        "result",
+                        ICS20_CALLBACKS
+                            .load(deps.storage, packet_identifier.clone())?
+                            .into_iter()
+                            .map(|msg| wasm_execute(&env.contract.address, &msg, vec![]))
+                            .collect::<Result<Vec<_>, _>>()?,
+                    )
+                } else {
+                    ("failure", vec![])
+                };
+
+            ICS20_CALLBACKS.remove(deps.storage, packet_identifier.clone());
+
+            Ok(IbcBasicResponse::new()
+                .add_attribute("action", "ibc_source_callback")
+                .add_attribute("outcome", outcome)
+                .add_messages(stored_msgs))
+        }
+        IbcSourceCallbackMsg::Timeout(IbcTimeoutCallbackMsg {
+            packet, relayer: _, ..
+        }) => {
+            ICS20_CALLBACKS.remove(
+                deps.storage,
+                ICS20PacketIdentifier {
+                    channel_id: packet.src.channel_id,
+                    sequence: packet.sequence,
+                },
+            );
+            Ok(IbcBasicResponse::new()
+                .add_attribute("action", "ibc_source_callback")
+                .add_attribute("outcome", "timeout"))
         }
     }
 }
