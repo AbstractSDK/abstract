@@ -29,7 +29,10 @@ impl<
         msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
         // Base state
-        let state = AdapterState {};
+        let contract_info = deps.querier.query_wasm_contract_info(info.sender.clone())?;
+        let state = AdapterState {
+            code_id: contract_info.code_id,
+        };
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
@@ -99,7 +102,7 @@ mod test {
         assert!(none_authorized);
 
         let state = api.base_state.load(&deps.storage)?;
-        assert_eq!(state, AdapterState {});
+        assert_eq!(state, AdapterState { code_id: 1 });
         Ok(())
     }
 }

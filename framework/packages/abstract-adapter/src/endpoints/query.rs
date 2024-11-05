@@ -60,11 +60,14 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     }
 
     fn dapp_config(&self, deps: Deps, env: &Env) -> StdResult<AdapterConfigResponse> {
+        let contract_info = deps
+            .querier
+            .query_wasm_contract_info(env.contract.address.clone())?;
         Ok(AdapterConfigResponse {
-            registry_address: RegistryContract::new(deps.api, env)
+            registry_address: RegistryContract::new(deps, contract_info.code_id)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
-            ans_host_address: AnsHost::new(deps.api, env)
+            ans_host_address: AnsHost::new(deps, contract_info.code_id)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
             dependencies: self
