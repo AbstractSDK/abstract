@@ -22,7 +22,6 @@ default = ["integration"]
 daemon = ["cw-orch/daemon"]
 integration = []
 interchain = ["dep:cw-orch-interchain", "dep:cw-orch-polytone"]
-mock-deployment = ["abstract-std/mock-deployment"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 cosmwasm-std = { workspace = true }

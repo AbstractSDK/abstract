@@ -1,29 +1,8 @@
-use bech32::{Bech32, Hrp};
-use cosmwasm_std::{instantiate2_address, Addr, Api, CanonicalAddr, Env};
-use ripemd::Ripemd160;
-use sha2::{Digest, Sha256};
+use cosmwasm_std::{instantiate2_address, Addr, CanonicalAddr, Deps, Env};
 
 use crate::AbstractResult;
 
 pub use cw_blob::CHECKSUM as BLOB_CHECKSUM;
-
-// TODO: fill bytes with Public address of creator
-// Default local-juno used right now(for testing)
-#[cfg(not(feature = "mock-deployment"))]
-const TEST_ABSTRACT_CREATOR: [u8; 33] = [
-    2, 146, 187, 207, 156, 96, 230, 188, 163, 167, 152, 64, 234, 101, 130, 38, 50, 89, 139, 233,
-    56, 192, 110, 242, 251, 222, 103, 198, 68, 80, 201, 159, 3,
-];
-//
-// From https://github.com/CosmosContracts/juno/blob/32568dba828ff7783aea8cb5bb4b8b5832888255/docker/test-user.env#L2
-#[cfg(feature = "mock-deployment")]
-pub const MOCK_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
-#[cfg(feature = "mock-deployment")]
-const TEST_ABSTRACT_CREATOR: [u8; 33] = [
-    3, 208, 185, 115, 73, 181, 13, 228, 227, 43, 34, 172, 109, 175, 102, 189, 121, 191, 67, 6, 0,
-    8, 47, 154, 46, 207, 188, 171, 180, 64, 237, 128, 170,
-];
-//
 
 // Salts for deployments
 pub const ANS_HOST_SALT: &[u8] = b"ans";
@@ -32,49 +11,42 @@ pub const MODULE_FACTORY_SALT: &[u8] = b"mf";
 pub const IBC_CLIENT_SALT: &[u8] = b"ic";
 pub const IBC_HOST_SALT: &[u8] = b"ih";
 
-pub fn ans_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, ANS_HOST_SALT, api)
+pub fn ans_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(deps, abstract_code_id, ANS_HOST_SALT)
 }
 
-pub fn registry_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, REGISTRY_SALT, api)
+pub fn registry_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(deps, abstract_code_id, REGISTRY_SALT)
 }
 
-pub fn module_factory_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, MODULE_FACTORY_SALT, api)
+pub fn module_factory_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(deps, abstract_code_id, MODULE_FACTORY_SALT)
 }
 
-pub fn ibc_client_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, IBC_CLIENT_SALT, api)
+pub fn ibc_client_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(deps, abstract_code_id, IBC_CLIENT_SALT)
 }
 
-pub fn ibc_host_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, IBC_HOST_SALT, api)
-}
-
-pub fn derive_addr_from_pub_key(hrp: &str, pub_key: &[u8]) -> AbstractResult<String> {
-    let hrp: Hrp = Hrp::parse(hrp)?;
-
-    let hash = Sha256::digest(pub_key);
-    let rip_hash = Ripemd160::digest(hash);
-
-    let addr = bech32::encode::<Bech32>(hrp, &rip_hash)?;
-
-    Ok(addr)
+pub fn ibc_host_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(deps, abstract_code_id, IBC_HOST_SALT)
 }
 
 /// Address of the abstract admin
-pub fn creator_address(hrp: &str) -> AbstractResult<String> {
-    derive_addr_from_pub_key(hrp, &TEST_ABSTRACT_CREATOR)
+pub fn creator_address(
+    querier: &cosmwasm_std::QuerierWrapper,
+    abstract_code_id: u64,
+) -> cosmwasm_std::StdResult<Addr> {
+    let code_info = querier.query_wasm_code_info(abstract_code_id)?;
+    Ok(code_info.creator)
 }
 
 pub fn contract_canon_address(
-    hrp: &str,
+    deps: Deps,
+    abstract_code_id: u64,
     salt: &[u8],
-    api: &dyn Api,
 ) -> AbstractResult<CanonicalAddr> {
-    let creator_addr = creator_address(hrp)?;
-    let creator_canon = api.addr_canonicalize(&creator_addr)?;
+    let creator_addr = creator_address(&deps.querier, abstract_code_id)?;
+    let creator_canon = deps.api.addr_canonicalize(creator_addr.as_str())?;
     let canon_addr = instantiate2_address(&BLOB_CHECKSUM, &creator_canon, salt)?;
     Ok(canon_addr)
 }

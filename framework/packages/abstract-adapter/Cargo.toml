@@ -17,10 +17,6 @@ crate-type = ["cdylib", "rlib"]
 test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
 schema = []
 stargate = ["abstract-sdk/stargate"]
-mock-deployment = [
-    "abstract-interface/mock-deployment",
-    "abstract-std/mock-deployment",
-]
 
 [dependencies]
 cosmwasm-std = { workspace = true }

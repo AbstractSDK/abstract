@@ -12,7 +12,6 @@ repository = "https://github.com/AbstractSDK/abstract"
 workspace = true
 
 [features]
-mock-deployment = []
 # for quicker tests, cargo test --lib
 
 [dependencies]

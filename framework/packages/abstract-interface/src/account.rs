@@ -741,18 +741,8 @@ impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
     }
 
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
-        let build_postfix = {
-            #[cfg(feature = "mock-deployment")]
-            {
-                cw_orch::build::BuildPostfix::Custom("mock".to_string())
-            }
-            #[cfg(not(feature = "mock-deployment"))]
-            {
-                cw_orch::build::BuildPostfix::ChainName(_chain)
-            }
-        };
         artifacts_dir_from_workspace!()
-            .find_wasm_path_with_build_postfix("account", build_postfix)
+            .find_wasm_path("account")
             .unwrap()
     }
 }

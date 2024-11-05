@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Api, Env, QuerierWrapper};
+use cosmwasm_std::{Addr, Api, Deps, Env, QuerierWrapper};
 use thiserror::Error;
 
 use super::{
@@ -77,9 +77,10 @@ pub struct RegistryContract {
 
 impl RegistryContract {
     /// Retrieve address of the Version Control
-    pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
-        let hrp = native_addrs::hrp_from_env(env);
-        let address = api.addr_humanize(&native_addrs::registry_address(hrp, api)?)?;
+    pub fn new(deps: Deps, abstract_code_id: u64) -> AbstractResult<Self> {
+        let address = deps
+            .api
+            .addr_humanize(&native_addrs::registry_address(deps, abstract_code_id)?)?;
         Ok(Self { address })
     }
 
