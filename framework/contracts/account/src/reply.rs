@@ -88,7 +88,13 @@ struct MsgTransferResponse {
 
 pub fn register_sub_sequent_messages(deps: DepsMut, reply: Reply) -> AccountResult {
     let res = reply.result.into_result().map_err(StdError::generic_err)?;
-    let transfer_response = MsgTransferResponse::decode(res.msg_responses[0].value.as_slice())?;
+    println!("{:x?}", res.data);
+    // TODO, implement for msg_responses (to have both cases covered)
+    let transfer_response = MsgTransferResponse::decode(
+        res.data
+            .expect("Data is set after sending a packet")
+            .as_slice(),
+    )?;
 
     let payload: TokenFlowPayload = from_json(reply.payload)?;
 
@@ -107,6 +113,6 @@ pub fn register_sub_sequent_messages(deps: DepsMut, reply: Reply) -> AccountResu
 
 #[cw_serde]
 pub struct TokenFlowPayload {
-    channel_id: String,
-    msgs: Vec<ExecuteMsg>,
+    pub channel_id: String,
+    pub msgs: Vec<ExecuteMsg>,
 }

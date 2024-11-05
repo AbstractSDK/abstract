@@ -22,6 +22,7 @@ use crate::{
     error::AccountError,
     modules::load_module_addr,
     msg::ExecuteMsg,
+    reply::TokenFlowPayload,
 };
 
 /// Check that sender either whitelisted or governance
@@ -223,8 +224,12 @@ pub fn send_funds_with_actions(
     };
 
     Ok(Response::new().add_submessage(
-        SubMsg::reply_on_success(transfer_msg, IBC_TOKEN_FLOW)
-            .with_payload(to_json_binary(&actions)?),
+        SubMsg::reply_on_success(transfer_msg, IBC_TOKEN_FLOW).with_payload(to_json_binary(
+            &TokenFlowPayload {
+                channel_id: ics20_channel_id,
+                msgs: actions,
+            },
+        )?),
     ))
 }
 
