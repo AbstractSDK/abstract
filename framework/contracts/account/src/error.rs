@@ -117,5 +117,5 @@ pub enum AccountError {
 
     #[cfg(feature = "xion")]
     #[error(transparent)]
-    AbstractXion(#[from] abstract_xion::error::AbstractXionError),
+    AbstractXion(#[from] abstract_xion::error::ContractError),
 }
