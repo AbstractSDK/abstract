@@ -27,7 +27,7 @@ pub mod msg {
     pub use abstract_std::account::{MigrateMsg, QueryMsg};
 
     #[cfg(feature = "xion")]
-    pub type Authenticator = crate::abstract_xion::AddAuthenticator;
+    pub type Authenticator = crate::abstract_xion::auth::AddAuthenticator;
     #[cfg(not(feature = "xion"))]
     pub type Authenticator = cosmwasm_std::Empty;
 

@@ -9,10 +9,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account::{
-        state::{
-            AccountInfo, WhitelistedModules, AUTH_ADMIN, INFO, SUSPENSION_STATUS,
-            WHITELISTED_MODULES,
-        },
+        state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
         UpdateSubAccountAction,
     },
     module_factory::SimulateInstallModulesResponse,
@@ -159,7 +156,7 @@ pub fn instantiate(
                 let Some(mut add_auth) = authenticator else {
                     return Err(AccountError::AbsAccNoAuth {});
                 };
-                abstract_xion::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
+                abstract_xion::auth::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
 
                 response = response.add_event(
                     cosmwasm_std::Event::new("create_abstract_account").add_attributes(vec![
@@ -254,17 +251,16 @@ pub fn instantiate(
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> AccountResult {
-    let response = match msg {
+    match msg {
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
-        } => update_account_status(deps.branch(), info, suspension_status),
+        } => update_account_status(deps, info, suspension_status),
         msg => {
             // Block actions if account is suspended
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
             if is_suspended {
                 return Err(AccountError::AccountSuspended {});
             }
-            let mut deps = deps.branch();
 
             match msg {
                 // ## Execution ##
@@ -359,9 +355,7 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
             }
         }
-    }?;
-    AUTH_ADMIN.remove(deps.storage);
-    Ok(response)
+    }
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -398,18 +392,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         #[cfg_attr(not(feature = "xion"), allow(unused_variables))]
         QueryMsg::AuthenticatorByID { id } => {
             #[cfg(feature = "xion")]
-            return cosmwasm_std::to_json_binary(&abstract_xion::query::authenticator_by_id(
-                deps.storage,
-                id,
-            )?);
+            return abstract_xion::queries::authenticator_by_id(deps.storage, id);
             #[cfg(not(feature = "xion"))]
             Ok(Binary::default())
         }
         QueryMsg::AuthenticatorIDs {} => {
             #[cfg(feature = "xion")]
-            return cosmwasm_std::to_json_binary(&abstract_xion::query::authenticator_ids(
-                deps.storage,
-            )?);
+            return abstract_xion::queries::authenticator_ids(deps.storage);
             #[cfg(not(feature = "xion"))]
             Ok(Binary::default())
         }
@@ -421,12 +410,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 pub fn sudo(
     deps: DepsMut,
     env: Env,
-    msg: abstract_xion::contract::AccountSudoMsg,
-) -> abstract_xion::error::ContractResult<Response> {
-    if let abstract_xion::contract::AccountSudoMsg::BeforeTx { .. } = &msg {
-        AUTH_ADMIN.save(deps.storage, &true)?;
-    };
-    abstract_xion::contract::sudo(deps, env, msg)
+    msg: abstract_xion::AccountSudoMsg,
+) -> abstract_xion::AbstractXionResult {
+    abstract_xion::sudo::sudo(deps, env, msg)
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*
