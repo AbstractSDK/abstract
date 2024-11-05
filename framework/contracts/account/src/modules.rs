@@ -71,8 +71,11 @@ pub fn _install_modules(
     let mut account_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
 
-    let registry = RegistryContract::new(deps.api, env)?;
-    let module_factory = ModuleFactoryContract::new(deps.api, env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
+    let module_factory = ModuleFactoryContract::new(deps.as_ref(), contract_info.code_id)?;
 
     let canonical_module_factory = deps
         .api
@@ -211,7 +214,10 @@ pub fn uninstall_module(
     crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
     // Remove for account if needed
-    let registry = RegistryContract::new(deps.api, env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
 
     let module = registry.query_module(
         ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
@@ -246,7 +252,10 @@ pub fn query_module(
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, AccountError> {
     // Construct feature object to access registry functions
-    let registry = RegistryContract::new(deps.api, env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps, contract_info.code_id)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {

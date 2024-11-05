@@ -11,7 +11,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AbstractNameService
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
+        let state = self.state(deps.storage)?;
         AnsHost::new(deps.api, env).map_err(Into::into)
     }
 }

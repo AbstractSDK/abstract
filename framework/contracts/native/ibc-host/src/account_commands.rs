@@ -36,7 +36,10 @@ pub fn receive_register(
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
 ) -> HostResult {
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
     let salt = cosmwasm_std::to_json_binary(&account_id)?;
@@ -146,7 +149,10 @@ pub fn send_all_back(
     src_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
     // get the ICS20 channel information
-    let ans = AnsHost::new(deps.api, &env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let ans = AnsHost::new(deps, contract_info.code_id)?;
     let ics20_channel_entry = ChannelEntry {
         connected_chain: src_chain,
         protocol: ICS20.to_string(),
@@ -179,7 +185,10 @@ pub fn send_all_back(
 
 /// get the account from the registry contract
 pub fn get_account(deps: Deps, env: &Env, account_id: &AccountId) -> Result<Account, HostError> {
-    let registry = RegistryContract::new(deps.api, env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps, contract_info.code_id)?;
     let account = registry.account(account_id, &deps.querier)?;
     Ok(account)
 }

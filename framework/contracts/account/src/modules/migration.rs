@@ -110,7 +110,10 @@ pub fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), AccountError> {
-    let registry = RegistryContract::new(deps.api, env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
 
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
     let old_module_cw2 = query_module_version(deps.as_ref(), old_module_addr.clone(), &registry)?;

@@ -66,15 +66,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let original_sender = chain.sender().clone();
         chain.set_sender(deploy_data);
 
-        // Ensure we have expected sender address
         let sender_addr = chain.sender_addr();
-        let hrp = sender_addr.as_str().split_once("1").unwrap().0;
-        assert_eq!(
-            sender_addr.as_str(),
-            native_addrs::creator_address(hrp)?,
-            "Only predetermined abstract admin can deploy abstract contracts, see `native_addrs.rs`"
-        );
-
         let admin = sender_addr.to_string();
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
@@ -309,21 +301,21 @@ impl<Chain: CwEnv> Abstract<Chain> {
 }
 
 // Sender addr means it's mock or CloneTest(which is also mock)
-impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
-    pub fn deploy_on_mock(chain: Chain) -> Result<Self, AbstractInterfaceError> {
-        let admin = Self::mock_admin(&chain);
-        Self::deploy_on(chain, admin)
-    }
+// impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
+//     pub fn deploy_on_mock(chain: Chain) -> Result<Self, AbstractInterfaceError> {
+//         let admin = Self::mock_admin(&chain);
+//         Self::deploy_on(chain, admin)
+//     }
 
-    pub fn mock_admin(chain: &Chain) -> <MockBase as TxHandler>::Sender {
-        // Getting prefix
-        let sender_addr: cosmrs::AccountId = chain.sender().as_str().parse().unwrap();
-        let prefix = sender_addr.prefix();
-        // Building mock_admin
-        let mock_admin = native_addrs::creator_address(prefix).unwrap();
-        Addr::unchecked(mock_admin)
-    }
-}
+//     pub fn mock_admin(chain: &Chain) -> <MockBase as TxHandler>::Sender {
+//         // Getting prefix
+//         let sender_addr: cosmrs::AccountId = chain.sender().as_str().parse().unwrap();
+//         let prefix = sender_addr.prefix();
+//         // Building mock_admin
+//         let mock_admin = native_addrs::creator_address(prefix).unwrap();
+//         Addr::unchecked(mock_admin)
+//     }
+// }
 
 #[cfg(test)]
 mod test {
@@ -338,8 +330,6 @@ mod test {
     fn deploy2() -> anyhow::Result<()> {
         let prefix = "mock";
         let mut chain = MockBech32::new(prefix);
-        let sender = native_addrs::creator_address(prefix)?;
-        chain.set_sender(Addr::unchecked(sender));
 
         let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
         let app = chain.app.borrow();

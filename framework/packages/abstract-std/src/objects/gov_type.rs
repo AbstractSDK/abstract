@@ -90,8 +90,9 @@ impl GovernanceDetails<String> {
             GovernanceDetails::SubAccount { account } => {
                 let account_addr = deps.api.addr_validate(&account)?;
 
-                let hrp = native_addrs::hrp_from_address(&account_addr);
-                let registry_address = native_addrs::registry_address(hrp, deps.api)?;
+                let account_contract_info = deps.querier.query_wasm_contract_info(account)?;
+                let registry_address =
+                    native_addrs::registry_address(deps, account_contract_info.code_id)?;
                 let registry_address = deps.api.addr_humanize(&registry_address)?;
 
                 let account_id = ACCOUNT_ID.query(&deps.querier, account_addr.clone())?;

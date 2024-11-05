@@ -6,7 +6,7 @@ use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
 /// Trait for a contract to call itself on an IBC counterpart.
 pub trait ModuleIbcEndpoint: Handler {
     /// Get the address of the ibc host associated with this module
-    fn ibc_host(&self, deps: Deps, env: &Env) -> Result<Addr, Self::Error>;
+    fn ibc_host(&self, deps: Deps) -> Result<Addr, Self::Error>;
 
     /// Handler for the `ExecuteMsg::ModuleIbc(ModuleIbcMsg)` variant.
     fn module_ibc(
@@ -17,7 +17,7 @@ pub trait ModuleIbcEndpoint: Handler {
         msg: ModuleIbcMsg,
     ) -> Result<Response, Self::Error> {
         // Only an IBC host can call this endpoint
-        let ibc_host = self.ibc_host(deps.as_ref(), &env)?;
+        let ibc_host = self.ibc_host(deps.as_ref())?;
         if info.sender.ne(&ibc_host) {
             return Err(AbstractSdkError::ModuleIbcNotCalledByHost {
                 caller: info.sender,

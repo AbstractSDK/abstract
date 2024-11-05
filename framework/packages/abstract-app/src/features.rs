@@ -4,7 +4,7 @@ use abstract_sdk::{
     AbstractSdkResult,
 };
 use abstract_std::registry::Account;
-use cosmwasm_std::{Deps, Env};
+use cosmwasm_std::Deps;
 
 use crate::{state::ContractError, AppContract};
 
@@ -19,8 +19,12 @@ impl<
     > AbstractNameService
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
-        AnsHost::new(deps.api, env).map_err(Into::into)
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
+        let state = self.base_state.load(deps.storage)?;
+        let contract_info = deps
+            .querier
+            .query_wasm_contract_info(state.account.into_addr())?;
+        AnsHost::new(deps, contract_info.code_id).map_err(Into::into)
     }
 }
 // ANCHOR_END: ans
@@ -50,8 +54,12 @@ impl<
     > AbstractRegistryAccess
     for AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
-        RegistryContract::new(deps.api, env).map_err(Into::into)
+    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
+        let state = self.base_state.load(deps.storage)?;
+        let contract_info = deps
+            .querier
+            .query_wasm_contract_info(state.account.into_addr())?;
+        RegistryContract::new(deps, contract_info.code_id).map_err(Into::into)
     }
 }
 
@@ -74,7 +82,7 @@ mod test {
         let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref(), &env)?;
+        let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref())?;
 
         assert_eq!(ans_host.address, abstr.ans_host);
         Ok(())
@@ -86,7 +94,7 @@ mod test {
         let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref(), &env)?;
+        let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref())?;
 
         assert_eq!(abstract_registry.address, abstr.registry);
         Ok(())
@@ -114,19 +122,16 @@ mod test {
         assert_eq!(base, test_account.clone());
 
         // AbstractNameService
-        let host = MOCK_APP_WITH_DEP
-            .name_service(deps.as_ref(), &env)
-            .host()
-            .clone();
-        assert_eq!(host, AnsHost::new(&deps.api, &env)?);
+        let host = MOCK_APP_WITH_DEP.name_service(deps.as_ref()).host().clone();
+        assert_eq!(host, AnsHost::new(&deps.api, 1)?);
 
         // AccountRegistry
         let binding = MOCK_APP_WITH_DEP;
-        let account_registry = binding.account_registry(deps.as_ref(), &env)?;
+        let account_registry = binding.account_registry(deps.as_ref())?;
         let base = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account);
 
-        let module_registry = binding.module_registry(deps.as_ref(), &env)?;
+        let module_registry = binding.module_registry(deps.as_ref())?;
         let abstract_namespace =
             module_registry.query_namespace_raw(Namespace::unchecked(ABSTRACT_NAMESPACE))?;
         assert_eq!(abstract_namespace, Some(ABSTRACT_ACCOUNT_ID));

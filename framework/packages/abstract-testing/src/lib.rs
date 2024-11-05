@@ -158,24 +158,28 @@ pub mod addresses {
 
     impl AbstractMockAddrs {
         pub fn new(mock_api: MockApi) -> AbstractMockAddrs {
-            let mock_env = mock_env_validated(mock_api);
-            let hrp = native_addrs::hrp_from_env(&mock_env);
-
+            // TODO:
+            // let hrp = native_addrs::hrp_from_env(&mock_env);
+            // let mock_env = mock_env_validated(mock_api);
             AbstractMockAddrs {
-                owner: mock_api
-                    .addr_validate(&native_addrs::creator_address(hrp).unwrap())
-                    .unwrap(),
-                ans_host: mock_api
-                    .addr_humanize(&native_addrs::ans_address(hrp, &mock_api).unwrap())
-                    .unwrap(),
-                registry: mock_api
-                    .addr_humanize(&native_addrs::registry_address(hrp, &mock_api).unwrap())
-                    .unwrap(),
-                module_factory: mock_api
-                    .addr_humanize(&native_addrs::module_factory_address(hrp, &mock_api).unwrap())
-                    .unwrap(),
-                module_address: mock_api.addr_make("module"),
+                // owner: mock_api
+                //     .addr_validate(&native_addrs::creator_address(hrp).unwrap())
+                //     .unwrap(),
+                // ans_host: mock_api
+                //     .addr_humanize(&native_addrs::ans_address(hrp, &mock_api).unwrap())
+                //     .unwrap(),
+                // registry: mock_api
+                //     .addr_humanize(&native_addrs::registry_address(hrp, &mock_api).unwrap())
+                //     .unwrap(),
+                // module_factory: mock_api
+                //     .addr_humanize(&native_addrs::module_factory_address(hrp, &mock_api).unwrap())
+                //     .unwrap(),
+                owner: mock_api.addr_make(crate::OWNER),
+                ans_host: mock_api.addr_make(abstract_std::ANS_HOST),
+                registry: mock_api.addr_make(abstract_std::REGISTRY),
+                module_factory: mock_api.addr_make(abstract_std::MODULE_FACTORY),
                 account: admin_account(mock_api),
+                module_address: mock_api.addr_make("module"),
             }
         }
     }
@@ -232,5 +236,6 @@ pub mod prelude {
 
     use super::*;
     pub use super::{MockAnsHost, MockDeps, TEST_VERSION};
+    pub const OWNER: &str = "owner";
     pub const TEST_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
 }

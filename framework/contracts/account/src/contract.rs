@@ -83,8 +83,12 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let registry = RegistryContract::new(deps.api, &env)?;
-    let module_factory = ModuleFactoryContract::new(deps.api, &env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
+    let module_factory = ModuleFactoryContract::new(deps.as_ref(), contract_info.code_id)?;
 
     let account_id = match account_id {
         Some(account_id) => account_id,

@@ -150,4 +150,7 @@ pub struct AuthorizedAddressesResponse {
 /// The BaseState contains the main addresses needed for sending and verifying messages
 /// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
 #[cosmwasm_schema::cw_serde]
-pub struct AdapterState {}
+pub struct AdapterState {
+    /// Code id of abstract contract
+    pub code_id: u64,
+}

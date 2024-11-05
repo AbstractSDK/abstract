@@ -61,11 +61,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 pub fn query_config(deps: Deps, env: &Env) -> StdResult<ConfigResponse> {
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+
     let resp = ConfigResponse {
-        registry_address: RegistryContract::new(deps.api, env)
+        registry_address: RegistryContract::new(deps, contract_info.code_id)
             .map_err(|e| StdError::generic_err(e.to_string()))?
             .address,
-        ans_host_address: AnsHost::new(deps.api, env)
+        ans_host_address: AnsHost::new(deps, contract_info.code_id)
             .map_err(|e| StdError::generic_err(e.to_string()))?
             .address,
     };
@@ -78,8 +82,11 @@ pub fn query_simulate_install_modules(
     env: &Env,
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
-    let registry =
-        RegistryContract::new(deps.api, env).map_err(|e| StdError::generic_err(e.to_string()))?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps, contract_info.code_id)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
 
     let module_responses = registry
         .query_modules_configs(modules, &deps.querier)
