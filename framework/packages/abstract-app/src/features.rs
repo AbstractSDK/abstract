@@ -123,7 +123,7 @@ mod test {
 
         // AbstractNameService
         let host = MOCK_APP_WITH_DEP.name_service(deps.as_ref()).host().clone();
-        assert_eq!(host, AnsHost::new(&deps.api, 1)?);
+        assert_eq!(host, AnsHost::new(deps.as_ref(), 1)?);
 
         // AccountRegistry
         let binding = MOCK_APP_WITH_DEP;
