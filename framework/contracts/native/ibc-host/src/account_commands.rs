@@ -11,7 +11,8 @@ use abstract_std::{
     ACCOUNT,
 };
 use cosmwasm_std::{
-    instantiate2_address, to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, Response, SubMsg, WasmMsg
+    instantiate2_address, to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
+    IbcMsg, Response, SubMsg, WasmMsg,
 };
 
 use crate::{
