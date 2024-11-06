@@ -1,12 +1,12 @@
 {
   "osmo-test-5": {
     "code_ids": {
-      "abstract:account": 11293,
-      "abstract:ans-host": 11290,
-      "abstract:ibc-client": 11294,
-      "abstract:ibc-host": 11295,
-      "abstract:module-factory": 11292,
-      "abstract:registry": 11291,
+      "abstract:account": 11304,
+      "abstract:ans-host": 11341,
+      "abstract:ibc-client": 11305,
+      "abstract:ibc-host": 11306,
+      "abstract:module-factory": 11301,
+      "abstract:registry": 11342,
       "cw:blob": 11289
     },
     "default": {
@@ -16,19 +16,17 @@
       "abstract:ibc-client": "osmo1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqarcqmv",
       "abstract:ibc-host": "osmo1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqsw6nr2j",
       "abstract:module-factory": "osmo1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqcxdtus",
-      "abstract:registry": "osmo1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqtpxd7m",
-      "polytone:note": "osmo1354ydt9y6rradvfzcjex7er8hh3vd6vaux7lzsfam9sc8wjyulgqz9dvra",
-      "polytone:voice": "osmo1kkg2p53nhpx4e8uqk42uktqewgw9mtyu4z7s67c35gqv4k0v8ucszgsnlv"
+      "abstract:registry": "osmo1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqtpxd7m"
     }
   },
   "pion-1": {
     "code_ids": {
-      "abstract:account": 7569,
-      "abstract:ans-host": 7568,
-      "abstract:ibc-client": 7570,
-      "abstract:ibc-host": 7571,
-      "abstract:module-factory": 7566,
-      "abstract:registry": 7567,
+      "abstract:account": 7693,
+      "abstract:ans-host": 7936,
+      "abstract:ibc-client": 7694,
+      "abstract:ibc-host": 7695,
+      "abstract:module-factory": 7690,
+      "abstract:registry": 7938,
       "cw:blob": 7399
     },
     "default": {
@@ -63,23 +61,44 @@
       "abstract:evm-note": "union1dhzx2n0s3w609u2uuw2avkfnqn76mcjx3tj5cspng0cdv2s4tfyquuapet"
     }
   },
-  "xion-testnet-1": {
+  "provider": {
     "code_ids": {
-      "abstract:ans-host": 1253,
-      "abstract:ibc-client": 1256,
-      "abstract:ibc-host": 1257,
-      "abstract:ica-client": 1258,
-      "abstract:module-factory": 1255,
-      "abstract:registry": 1254,
-      "cw:blob": 1252
+      "abstract:account": 39,
+      "abstract:ans-host": 36,
+      "abstract:ibc-client": 40,
+      "abstract:ibc-host": 41,
+      "abstract:module-factory": 38,
+      "abstract:registry": 37,
+      "cw:blob": 35
     },
     "default": {
+      "abstract:account-local-0": "cosmos1hafge5xucuc03ar5lkwac0n9yctnxq6xrgygftdl9xl3tzncgghszwuw5z",
+      "abstract:account-local-1": "cosmos1v9dl0fw5s3jujn6emmlgch7w4ynt02nykj75pnzk8mdw7nmu3p4q0fnq48",
+      "abstract:ans-host": "cosmos1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsvutp48",
+      "abstract:ibc-client": "cosmos1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqg7qcv2",
+      "abstract:ibc-host": "cosmos1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqsm8tma5",
+      "abstract:module-factory": "cosmos1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqdm4ntk",
+      "abstract:registry": "cosmos1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq7u74fa"
+    }
+  },
+  "xion-testnet-1": {
+    "code_ids": {
+      "abstract:account": 1282,
+      "abstract:ans-host": 1298,
+      "abstract:ibc-client": 1283,
+      "abstract:ibc-host": 1284,
+      "abstract:module-factory": 1281,
+      "abstract:registry": 1299,
+      "cw:blob": 1278
+    },
+    "default": {
+      "abstract:account-local-0": "xion10wvm0t3de2k23x6da6whwy30p3prt4gx3fx3klcjw36hgrjd44wsf86jwl",
+      "abstract:account-local-1": "xion1dnymc7khmeq9ya3hjs45cthwp3gnvpl2gynw0dvw6hyxv7enj6uqj8mf9p",
       "abstract:ans-host": "xion1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdskfcdvu",
       "abstract:ibc-client": "xion1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqjtn543",
       "abstract:ibc-host": "xion1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqspjchy0",
-      "abstract:ica-client": "xion1z8cj7npguxxnytuyyq42u8chm3hts4uwyl4wlaewa4lfjquj7easnwang6",
       "abstract:module-factory": "xion1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqhwxljd",
-      "abstract:registry": "xion1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqyfdesx",
+      "abstract:registry": "xion1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqyfdesx"
     }
   }
 }

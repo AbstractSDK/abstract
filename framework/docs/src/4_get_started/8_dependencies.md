@@ -38,7 +38,7 @@ Before you can install your own module you must install all your module's depend
 Here's an example using our dollar-cost-average app that depends on CronCat and our DEX adapter.
 
 ```rust
-{{#include ../../../../modules/contracts/apps/dca/src/contract.rs:deps_creation}}
+{{#include ../../../../modules/contracts/apps/payment/src/contract.rs:dependencies}}
 ```
 
 Neither dependencies require any configuration on instantiation so the `DependenciesConfig` can be `Empty`.

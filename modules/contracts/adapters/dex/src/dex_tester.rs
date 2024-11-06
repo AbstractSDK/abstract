@@ -99,7 +99,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<DexAdapter<Chain>>()?
+            .install_adapter::<DexAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -159,7 +159,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<DexAdapter<Chain>>()?
+            .install_adapter::<DexAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -249,7 +249,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<DexAdapter<Chain>>()?
+            .install_adapter::<DexAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -306,7 +306,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<DexAdapter<Chain>>()?
+            .install_adapter::<DexAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -373,7 +373,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<DexAdapter<Chain>>()?
+            .install_adapter::<DexAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -407,7 +407,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<DexAdapter<Chain>>()?
+            .install_adapter::<DexAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -471,7 +471,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<DexAdapter<Chain>>()?
+            .install_adapter::<DexAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 
@@ -546,7 +546,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<DexAdapter<Chain>>()?
+            .install_adapter::<DexAdapter<Chain>>()
             .build()?;
         let account_addr = new_account.address()?;
 

@@ -723,7 +723,9 @@ mod test {
                 exec_msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: TruncatedChainId::from_chain_id(STARGAZE),
                     memo: None,
-                })?,
+                    receiver: None,
+                })
+                .unwrap(),
                 funds: coins(10, origin_denom),
             },
             &[],

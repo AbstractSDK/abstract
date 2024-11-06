@@ -125,28 +125,9 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         )?;
 
         // We also instantiate ibc contracts
-        deployment.ibc.client.deterministic_instantiate(
-            &abstract_std::ibc_client::MigrateMsg::Instantiate(
-                abstract_std::ibc_client::InstantiateMsg {},
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::IBC_CLIENT_SALT)?,
-            Binary::from(native_addrs::IBC_CLIENT_SALT),
-        )?;
-        deployment.ibc.host.deterministic_instantiate(
-            &abstract_std::ibc_host::MigrateMsg::Instantiate(
-                abstract_std::ibc_host::InstantiateMsg {},
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::IBC_HOST_SALT)?,
-            Binary::from(native_addrs::IBC_HOST_SALT),
-        )?;
-
-        deployment.ibc.ica_client.instantiate(
-            &abstract_std::ica_client::InstantiateMsg {},
-            Some(&sender_addr),
-            &[],
-        )?;
+        deployment
+            .ibc
+            .instantiate(&Addr::unchecked(admin.clone()))?;
         deployment.ibc.register(&deployment.registry)?;
 
         deployment.registry.register_base(&deployment.account)?;
@@ -374,15 +355,6 @@ mod test {
             module_factory,
             native_addrs::module_factory_address(prefix, api)?
         );
-
-        // IBC_CLIENT
-        let ibc_client = api.addr_canonicalize(&abstr.ibc.client.addr_str()?)?;
-        assert_eq!(ibc_client, native_addrs::ibc_client_address(prefix, api)?);
-
-        // IBC_HOST
-        let ibc_host = api.addr_canonicalize(&abstr.ibc.host.addr_str()?)?;
-        assert_eq!(ibc_host, native_addrs::ibc_host_address(prefix, api)?);
-
         Ok(())
     }
 }

@@ -3,23 +3,22 @@
 The Abstract IBC architecture aims to provide developers with a set of Abstract-SDK supported actions to simplify IBC usage. 
 
 # Message flow
-IBC actions are instantiated in a custom contract (with proxy execute permissions) or an installed adapter/app. They result
-in a call to the Account's proxy contract on the `ExecuteMsg::IbcAction { msgs: Vec<IbcClientMsg> }` endpoint.
+IBC actions are instantiated in a custom contract (with Account execute permissions) or an installed adapter/app. They result
+in a call to the Account contract on the `ExecuteMsg::IbcAction { msgs: Vec<IbcClientMsg> }` endpoint.
 
 These `IbcClientMsg` messages are then called on the Account's client contract. Note that the client contract must be enabled
-on the Account's manager. This ensures that the user/developer is aware of enabling IBC on their Account.
+on the Account. This ensures that the user/developer is aware of enabling IBC on their Account.
 
-> By calling the client through the Account's proxy we can ensure the calling contract has sufficient permission to perform action on the local and remote Account.
+> By calling the client through the Account we can ensure the calling contract has sufficient permission to perform action on the local and remote Account.
 > The IBC functionality can be enabled on the Account by installing the `IBC_CLIENT` adapter on the account.
-> The client contract will check the caller's identity and packet destination. It will then construct the packet and send it over IBC. 
-
-> The channel over which these packets are relayed is maintained by Polytone and Abstract. Nonetheless we advise users to also relay the channel using their own relayer. (The relaying strategy still has to be determined) 
+> The client contract will check the caller's identity and packet destination. It will then construct the packet and send it over IBC.
+> The channel over which these packets are relayed is maintained by Polytone and Abstract. Nonetheless we advise users to also relay the channel using their own relayer. (The relaying strategy still has to be determined)
 
 # IBC Client
 The IBC client contract is a single contract deployed to the client chain (the chain on which the developer aims to
-deploy his application). The client contract can only be called by an Account proxy. By providing
+deploy his application). The client contract can only be called by an Account. By providing
 an [`abstract_sdk::std::ibc_client:ExecuteMsg::RemoteAction`] message, the Client contract will resolve the target
-chain and related Polytone contracts to send the message through. 
+chain and related Polytone contracts to send the message through.
 
 ```rust
 RemoteAction {

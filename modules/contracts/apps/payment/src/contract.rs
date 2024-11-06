@@ -25,12 +25,15 @@ const DEX_DEPENDENCY: StaticDependency = StaticDependency::new(
     &[abstract_dex_adapter::contract::CONTRACT_VERSION],
 );
 
+// ANCHOR: dependencies
 const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
     .with_migrate(handlers::migrate_handler)
+    // Specify dependencies
     .with_dependencies(&[DEX_DEPENDENCY]);
+// ANCHOR_END: dependencies
 
 // Export handlers
 #[cfg(feature = "export")]

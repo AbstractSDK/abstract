@@ -46,7 +46,7 @@ use rand::Rng;
 use crate::{
     account::{Account, AccountBuilder},
     source::AccountSource,
-    AbstractClientError, Environment, PublisherBuilder, Service,
+    AbstractClientError, Environment, Publisher, Service,
 };
 
 /// Client to interact with Abstract accounts and modules
@@ -77,9 +77,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Self { abstr })
     }
 
-    /// Version Control contract API
+    /// Registry contract API
     ///
-    /// The Version Control contract is a database contract that stores all module-related information.
+    /// The Registry contract is a database contract that stores all module-related information.
     /// ```
     /// # use abstract_client::AbstractClientError;
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
@@ -159,10 +159,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Publisher builder for creating new [`Publisher`](crate::Publisher) Abstract Account
-    /// To publish any modules your account requires to have claimed a namespace.
-    pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
-        PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
+    /// Fetches an existing Abstract [`Publisher`] from chain
+    pub fn fetch_publisher(&self, namespace: Namespace) -> AbstractClientResult<Publisher<Chain>> {
+        let account = self.fetch_account(namespace)?;
+        account.publisher()
     }
 
     /// Builder for creating a new Abstract [`Account`].
@@ -170,9 +170,15 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         AccountBuilder::new(&self.abstr)
     }
 
-    /// Address of the sender
-    pub fn sender(&self) -> Addr {
-        self.environment().sender_addr()
+    /// Builder for creating a new Abstract [`Account`].
+    pub fn sub_account_builder<'a>(
+        &'a self,
+        account: &'a Account<Chain>,
+    ) -> AbstractClientResult<AccountBuilder<Chain>> {
+        let mut builder = AccountBuilder::new(&self.abstr);
+        builder.sub_account(account);
+        builder.name("Sub Account");
+        Ok(builder)
     }
 
     /// Fetch an [`Account`] from a given source.
@@ -183,7 +189,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// - [`Namespace`]: Will retrieve the account from the namespace if it is already claimed.
     /// - [`AccountId`]: Will retrieve the account from the account id.
     /// - App [`Addr`]: Will retrieve the account from an app that is installed on it.
-    pub fn account_from<T: Into<AccountSource>>(
+    pub fn fetch_account<T: Into<AccountSource>>(
         &self,
         source: T,
     ) -> AbstractClientResult<Account<Chain>> {
@@ -195,7 +201,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 // if namespace, check if we need to claim or not.
                 // Check if namespace already claimed
                 let account_from_namespace_result: Option<Account<Chain>> =
-                    Account::maybe_from_namespace(&self.abstr, namespace.clone(), true)?;
+                    Account::maybe_from_namespace(&self.abstr, namespace.clone())?;
 
                 // Only return if the account can be retrieved without errors.
                 if let Some(account_from_namespace) = account_from_namespace_result {
@@ -208,7 +214,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             }
             AccountSource::AccountId(account_id) => {
                 let abstract_account = AccountI::load_from(&self.abstr, account_id.clone())?;
-                Ok(Account::new(abstract_account, true))
+                Ok(Account::new(abstract_account))
             }
             AccountSource::App(app) => {
                 // Query app for account address and get AccountId from it.
@@ -229,9 +235,51 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                     .map_err(Into::into)?;
                 // This function verifies the account-id is valid and returns an error if not.
                 let abstract_account = AccountI::load_from(&self.abstr, account_config.account_id)?;
-                Ok(Account::new(abstract_account, true))
+                Ok(Account::new(abstract_account))
             }
         }
+    }
+
+    /// Fetches an existing Abstract [`Account`] from chain
+    /// If the Namespace is not claimed, creates an account with the provided account builder
+    pub fn fetch_or_build_account<T: Into<AccountSource>, F>(
+        &self,
+        source: T,
+        build_fn: F,
+    ) -> AbstractClientResult<Account<Chain>>
+    where
+        F: for<'a, 'b> FnOnce(
+            &'a mut AccountBuilder<'b, Chain>,
+        ) -> &'a mut AccountBuilder<'b, Chain>,
+    {
+        match self.fetch_account(source) {
+            Ok(account) => Ok(account),
+            Err(_) => {
+                let mut account_builder = self.account_builder();
+                build_fn(&mut account_builder).build()
+            }
+        }
+    }
+
+    /// Address of the sender
+    pub fn sender(&self) -> Addr {
+        self.environment().sender_addr()
+    }
+
+    /// Fetch an [`Account`] from a given source.
+    ///
+    /// This method is used to retrieve an account from a given source. It will **not** create a new account if the source is invalid.
+    ///
+    /// Sources that can be used are:
+    /// - [`Namespace`]: Will retrieve the account from the namespace if it is already claimed.
+    /// - [`AccountId`]: Will retrieve the account from the account id.
+    /// - App [`Addr`]: Will retrieve the account from an app that is installed on it.
+    #[deprecated(since = "0.24.2", note = "use fetch_account instead")]
+    pub fn account_from<T: Into<AccountSource>>(
+        &self,
+        source: T,
+    ) -> AbstractClientResult<Account<Chain>> {
+        self.fetch_account(source)
     }
 
     /// Retrieve denom balance for provided address

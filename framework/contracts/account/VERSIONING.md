@@ -18,7 +18,7 @@ Every module (App/Adapter) has a set of dependencies it can declare. The depende
 
 Version requirements are stored in the module itself and can be queried.
 
-## Manager Version-Management Flow
+## Account Version-Management Flow
 
 ### Installation
 
@@ -38,8 +38,8 @@ Then for each module that was migrated:
 1. Remove self as a dependent when it no longer applies. I.e. the module depended on a module A but no longer does after the migration.
 2. Add self as a dependent when it applies. I.e. the module did not depended on a module B but does after the migration.
 now what could happen is that the new version of the module
-2. Update dependency version.
-3. Add dependencies (there might be a new requirement)
+3. Update dependency version.
+4. Add dependencies (there might be a new requirement)
 
 ### Uninstall
 

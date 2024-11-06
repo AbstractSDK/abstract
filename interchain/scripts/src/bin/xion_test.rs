@@ -87,7 +87,7 @@ fn main() -> anyhow::Result<()> {
 
     let abstr = abstr?;
     // Create the Abstract Account because it's needed for the fees for the dex module
-    let maybe_account = abstr.account_from(Namespace::new("test")?);
+    let maybe_account = abstr.fetch_account(Namespace::new("test")?);
 
     println!("Wallet Addr: {}", wallet.pub_addr_str());
     let account = match maybe_account {
@@ -149,7 +149,7 @@ fn main() -> anyhow::Result<()> {
                 None,
             ))?;
 
-            abstr.account_from(account_id)?
+            abstr.fetch_account(account_id)?
         }
     };
 

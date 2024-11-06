@@ -58,12 +58,7 @@ pub mod state {
 pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub enum MigrateMsg {
-    /// Migrating from blob contract
-    Instantiate(InstantiateMsg),
-    /// Migrating from previous version
-    Migrate {},
-}
+pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
@@ -87,6 +82,9 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: TruncatedChainId,
+        /// Address of the token receiver on host chain
+        /// Defaults to address of the remote account
+        receiver: Option<String>,
         memo: Option<String>,
     },
     /// Only callable by Account

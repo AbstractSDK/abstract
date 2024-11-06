@@ -1,6 +1,6 @@
 [package]
 name = "abstract-interchain-tests"
-version = "0.24.1-beta.2"
+version = "0.24.1"
 edition = { workspace = true }
 license = { workspace = true }
 description = "Interchain testing library for the Abstract SDK. This is used primarily for tests but some elements are re-usable for testing apps and adapters"
@@ -29,6 +29,7 @@ tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }
 env_logger = "0.11.3"
+dotenv = "0.15.0"
 
 ibc-relayer-types = "0.29"
 
@@ -39,7 +40,6 @@ cw-controllers = { workspace = true }
 cw-storage-plus.workspace = true
 thiserror.workspace = true
 base64 = "0.22.1"
-
 
 # ICA Client specific
 
@@ -58,8 +58,11 @@ protos = { git = "https://github.com/unionlabs/union", features = [
     "serde",
 ] }
 pretty_env_logger = "0.5.0"
-dotenv = "0.15.0"
 prost = "0.13.3"
 prost_union = { package = "prost", version = "0.12.3" }
 prost-types = "0.13.3"
 hex = "0.4.3"
+# Testing contract
+counter-contract = { version = "0.27.0" } # Use tag if breaks
+
+ping-pong = { path = "../../modules/contracts/apps/ping-pong" }
