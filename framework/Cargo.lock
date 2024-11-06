@@ -163,7 +163,7 @@ dependencies = [
 [[package]]
 name = "abstract-cw-multi-test"
 version = "2.1.4"
-source = "git+https://github.com/abstractsdk/cw-multi-test-fork?branch=feature/add-ics20-transfer-data#8f57d09786850921d815dadf1f040dfd73d4df42"
+source = "git+https://github.com/abstractsdk/cw-multi-test-fork?branch=feature/add-ics20-transfer-data#24a12c818a062726ddcf1c76e6ec58ab8510c386"
 dependencies = [
  "anyhow",
  "bech32 0.11.0",
@@ -181,6 +181,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "thiserror",
+ "tiny-keccak",
 ]
 
 [[package]]

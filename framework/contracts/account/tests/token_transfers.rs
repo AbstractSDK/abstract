@@ -5,7 +5,7 @@ use abstract_std::{
     objects::{gov_type::GovernanceDetails, TruncatedChainId, UncheckedChannelEntry},
     ACCOUNT, ICS20,
 };
-use cosmwasm_std::{coin, coins};
+use cosmwasm_std::coin;
 use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
 
@@ -100,11 +100,13 @@ fn transfer_without_messages() -> AResult {
     )?;
     account.set_ibc_status(true)?;
 
-    src.add_balance(&account.address()?, coins(100_000, "usource"))?;
+    let funds_to_transfer = coin(100_000, "usource");
+
+    src.add_balance(&account.address()?, vec![funds_to_transfer.clone()])?;
 
     let tx_response = account.send_funds_with_actions(
         vec![],
-        coin(100_000, "usource"),
+        funds_to_transfer.clone(),
         TruncatedChainId::from_chain_id(&dst.chain_id()),
     )?;
 
@@ -115,6 +117,15 @@ fn transfer_without_messages() -> AResult {
 
     let dst_host_balance = dst.balance(&dest_abstr.ibc.host.address()?, None)?;
     assert!(dst_host_balance.is_empty());
+
+    // We fetch the remote account balance
+    let mut remote_account_id = account.id()?;
+    remote_account_id.push_chain(TruncatedChainId::from_chain_id(SOURCE_CHAIN_ID));
+
+    let remote_account = AccountI::load_from(&dest_abstr, remote_account_id)?;
+
+    let dest_account_balance = dst.balance(&remote_account.address()?, None)?;
+    assert_eq!(dest_account_balance.len(), 1);
 
     Ok(())
 }

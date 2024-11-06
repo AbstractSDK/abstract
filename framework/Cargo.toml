@@ -129,6 +129,7 @@ incremental = false
 # abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 abstract-cw-multi-test = { git = "https://github.com/abstractsdk/cw-multi-test-fork", branch = "feature/add-ics20-transfer-data" }
+# abstract-cw-multi-test = { path = "../../cw-multi-test" }
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep
