@@ -4,7 +4,7 @@ pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_std::{
     objects::namespace::Namespace,
     registry::{
-        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES},
+        state::{LOCAL_ACCOUNT_SEQUENCE, NAMESPACES, REV_NAMESPACES},
         Config,
     },
 };
@@ -46,11 +46,9 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(&admin))?;
 
     // Save the abstract namespace to the Abstract admin account
-    NAMESPACES.save(
-        deps.storage,
-        &Namespace::new(ABSTRACT_NAMESPACE)?,
-        &ABSTRACT_ACCOUNT_ID,
-    )?;
+    let namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
+    NAMESPACES.save(deps.storage, &namespace, &ABSTRACT_ACCOUNT_ID)?;
+    REV_NAMESPACES.save(deps.storage, &ABSTRACT_ACCOUNT_ID, &namespace)?;
 
     LOCAL_ACCOUNT_SEQUENCE.save(deps.storage, &0)?;
 
