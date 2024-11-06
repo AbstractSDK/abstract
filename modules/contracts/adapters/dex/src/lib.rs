@@ -57,7 +57,10 @@ pub mod interface {
         }
         fn wasm(chain: &ChainInfoOwned) -> WasmPath {
             artifacts_dir_from_workspace!()
-                .find_wasm_path("abstract_dex_adapter")
+                .find_wasm_path_with_build_postfix(
+                    "abstract_dex_adapter",
+                    BuildPostfix::ChainName(chain),
+                )
                 .unwrap()
         }
     }

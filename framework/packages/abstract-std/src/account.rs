@@ -97,6 +97,8 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 // ANCHOR: init_msg
 pub struct InstantiateMsg<Authenticator = Empty> {
+    /// Code id of the account
+    pub code_id: u64,
     /// The ownership structure of the Account.
     pub owner: GovernanceDetails<String>,
     /// Optionally specify an account-id for this account.
@@ -368,10 +370,11 @@ mod test {
     #[coverage_helper::test]
     fn minimal_deser_instantiate_test() {
         let init_msg_binary: InstantiateMsg =
-            cosmwasm_std::from_json(br#"{"owner": {"renounced": {}}}"#).unwrap();
+            cosmwasm_std::from_json(br#"{"code_id": 1, "owner": {"renounced": {}}}"#).unwrap();
         assert_eq!(
             init_msg_binary,
             InstantiateMsg {
+                code_id: 1,
                 owner: GovernanceDetails::Renounced {},
                 authenticator: Default::default(),
                 account_id: Default::default(),
@@ -395,6 +398,7 @@ mod test {
         assert_eq!(
             init_msg_string,
             InstantiateMsg {
+                code_id: 1,
                 owner: GovernanceDetails::Monarchy {
                     monarch: "bob".to_owned()
                 },

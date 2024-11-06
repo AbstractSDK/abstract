@@ -446,7 +446,6 @@ mod osmosis_test {
                 PoolType::ConcentratedLiquidity.to_string(),
                 "osmosis".to_owned(),
             );
-            // dbg!(e);
             assert!(e.contains(&expected_err.to_string()));
         } else {
             panic!("Expected stderror");

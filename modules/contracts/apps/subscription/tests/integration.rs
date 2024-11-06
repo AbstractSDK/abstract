@@ -101,9 +101,7 @@ fn setup_native<'a>(
     let client = AbstractClient::builder(chain.clone()).build(chain.sender().clone())?;
     client.set_balances(balances)?;
     let publisher: Publisher<MockBech32> = client
-        .account_builder()
-        .namespace(Namespace::new("abstract")?)
-        .build()?
+        .fetch_account(Namespace::new("abstract")?)?
         .publisher()?;
     publisher.publish_app::<SubscriptionInterface<_>>()?;
 

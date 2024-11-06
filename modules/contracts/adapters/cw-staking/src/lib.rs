@@ -57,7 +57,10 @@ pub mod interface {
         }
         fn wasm(chain: &ChainInfoOwned) -> WasmPath {
             artifacts_dir_from_workspace!()
-                .find_wasm_path("abstract_cw_staking")
+                .find_wasm_path_with_build_postfix(
+                    "abstract_cw_staking",
+                    BuildPostfix::ChainName(chain),
+                )
                 .unwrap()
         }
     }

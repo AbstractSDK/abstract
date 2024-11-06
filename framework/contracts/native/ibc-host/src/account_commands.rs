@@ -57,6 +57,7 @@ pub fn receive_register(
     let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
 
     let create_account_msg = account::InstantiateMsg::<cosmwasm_std::Empty> {
+        code_id,
         owner: abstract_std::objects::gov_type::GovernanceDetails::External {
             governance_address: env.contract.address.into_string(),
             governance_type: "abstract-ibc".into(), // at least 4 characters

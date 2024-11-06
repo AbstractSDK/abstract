@@ -70,6 +70,7 @@ pub fn instantiate(
     env: Env,
     info: MessageInfo,
     #[cfg_attr(not(feature = "xion"), allow(unused_variables))] InstantiateMsg {
+        code_id,
         account_id,
         owner,
         install_modules,
@@ -83,12 +84,8 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
-
-    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
-    let module_factory = ModuleFactoryContract::new(deps.as_ref(), contract_info.code_id)?;
+    let registry = RegistryContract::new(deps.as_ref(), code_id)?;
+    let module_factory = ModuleFactoryContract::new(deps.as_ref(), code_id)?;
 
     let account_id = match account_id {
         Some(account_id) => account_id,
@@ -481,6 +478,7 @@ mod tests {
             env,
             info,
             account::InstantiateMsg {
+                code_id: 1,
                 account_id: AccountId::new(1, AccountTrace::Local).ok(),
                 owner: GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),

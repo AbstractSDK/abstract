@@ -382,6 +382,7 @@ mod test {
             code_id: account_code_id,
             label: "local_account_from_remote WOW".to_string(),
             msg: to_json_binary(&account::InstantiateMsg {
+                code_id: account_code_id,
                 account_id: None,
                 owner: GovernanceDetails::Monarchy {
                     monarch: abstr_remote.registry.address()?.to_string(),
@@ -454,6 +455,7 @@ mod test {
         let res = chain.call_as(sender).instantiate2(
             account_code_id,
             &account::InstantiateMsg {
+                code_id: account_code_id,
                 account_id: Some(account_id.clone()),
                 owner: GovernanceDetails::Monarchy {
                     monarch: chain.addr_make("user").to_string(),

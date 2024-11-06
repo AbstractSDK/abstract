@@ -53,6 +53,7 @@ pub fn create_sub_account(
     let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
 
     let create_account_msg = abstract_std::account::InstantiateMsg {
+        code_id: self_code_id,
         account_id: Some(account_id.clone()),
         owner: GovernanceDetails::SubAccount {
             account: env.contract.address.into_string(),
