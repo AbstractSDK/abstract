@@ -1,5 +1,9 @@
 use abstract_std::{
-    objects::{module_version::assert_cw_contract_upgrade, namespace::Namespace, AccountId},
+    objects::{
+        module_version::assert_cw_contract_upgrade,
+        namespace::{Namespace, ABSTRACT_NAMESPACE},
+        AccountId, ABSTRACT_ACCOUNT_ID,
+    },
     registry::{
         state::{NAMESPACES, REV_NAMESPACES},
         MigrateMsg,
@@ -47,7 +51,14 @@ pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> VCResult {
             let namespaces_info = NAMESPACES_INFO
                 .range(deps.storage, None, None, Order::Ascending)
                 .collect::<StdResult<Vec<_>>>()?;
-            for (namespace, account_id) in namespaces_info {
+            for (namespace, account_id) in namespaces_info
+                .into_iter()
+                // Make sure abstract included
+                .chain(std::iter::once((
+                    Namespace::new(ABSTRACT_NAMESPACE)?,
+                    ABSTRACT_ACCOUNT_ID,
+                )))
+            {
                 NAMESPACES.save(deps.storage, &namespace, &account_id)?;
                 REV_NAMESPACES.save(deps.storage, &account_id, &namespace)?;
             }
