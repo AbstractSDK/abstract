@@ -18,7 +18,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::mock_env_validated;
+    use abstract_testing::{abstract_mock_querier, mock_env_validated};
     use cosmwasm_std::testing::*;
     use semver::Version;
 
@@ -32,6 +32,7 @@ mod tests {
     #[coverage_helper::test]
     fn disallow_same_version() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
@@ -56,6 +57,7 @@ mod tests {
     #[coverage_helper::test]
     fn disallow_downgrade() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
@@ -82,7 +84,8 @@ mod tests {
 
     #[coverage_helper::test]
     fn disallow_name_change() -> AccountResult<()> {
-        let mut deps = mock_dependencies();
+        let mut deps = mock_dependencies();       
+        deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
@@ -108,6 +111,7 @@ mod tests {
     #[coverage_helper::test]
     fn works() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 

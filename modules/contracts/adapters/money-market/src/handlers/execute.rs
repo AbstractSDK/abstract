@@ -38,7 +38,7 @@ pub fn execute_handler(
                 platform_resolver::resolve_money_market(&local_money_market_name)?,
                 action,
             );
-            let ans = module.name_service(deps.as_ref(), &env);
+            let ans = module.name_service(deps.as_ref());
             let raw_action = ans.query(&whole_money_market_action)?;
 
             // if money_market is on an app-chain, execute the action on the app-chain
@@ -47,14 +47,7 @@ pub fn execute_handler(
             //  handle_ibc_request(&deps, info, &adapter, local_money_market_name, &raw_action)
             } else {
                 // the action can be executed on the local chain
-                handle_local_request(
-                    deps,
-                    env,
-                    info,
-                    &module,
-                    local_money_market_name,
-                    raw_action,
-                )
+                handle_local_request(deps, info, &module, local_money_market_name, raw_action)
             }
         }
         MoneyMarketExecuteMsg::RawAction {
@@ -69,7 +62,7 @@ pub fn execute_handler(
                 // handle_ibc_request(&deps, info, &adapter, local_money_market_name, &action)
             } else {
                 // the action can be executed on the local chain
-                handle_local_request(deps, env, info, &module, local_money_market_name, action)
+                handle_local_request(deps, info, &module, local_money_market_name, action)
             }
         }
         MoneyMarketExecuteMsg::UpdateFee {
@@ -78,7 +71,7 @@ pub fn execute_handler(
         } => {
             // Only namespace owner (abstract) can change recipient address
             let namespace = module
-                .module_registry(deps.as_ref(), &env)?
+                .module_registry(deps.as_ref())?
                 .query_namespace(Namespace::new(ABSTRACT_NAMESPACE)?)?;
 
             // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
@@ -98,7 +91,7 @@ pub fn execute_handler(
             // Update recipient account id
             if let Some(account_id) = recipient_account_id {
                 let recipient = module
-                    .account_registry(deps.as_ref(), &env)?
+                    .account_registry(deps.as_ref())?
                     .account(&AccountId::new(account_id, AccountTrace::Local)?)?;
                 fee.set_recipient(recipient.into_addr());
             }
@@ -112,7 +105,6 @@ pub fn execute_handler(
 /// Handle an adapter request that can be executed on the local chain
 fn handle_local_request(
     deps: DepsMut,
-    env: Env,
     _info: MessageInfo,
     module: &MoneyMarketAdapter,
     money_market: String,
@@ -124,7 +116,6 @@ fn handle_local_request(
     let (msgs, _) = crate::adapter::MoneyMarketAdapter::resolve_money_market_action(
         module,
         deps.as_ref(),
-        &env,
         target_account.into_addr(),
         action,
         money_market,

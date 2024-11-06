@@ -42,7 +42,9 @@ fn deploy_cw_staking(
         cw_staking.set_code_id(code_id);
         let init_msg = adapter::InstantiateMsg {
             module: Empty {},
-            base: adapter::BaseInstantiateMsg {},
+            base: adapter::BaseInstantiateMsg {
+                registry_address: registry.addr_str()?,
+            },
         };
         cw_staking
             .as_instance_mut()

@@ -11,13 +11,13 @@ fn create_remote_account() -> anyhow::Result<()> {
     let mock_interchain =
         MockBech32InterchainEnv::new(vec![("juno-1", "juno"), ("osmo-1", "osmo")]);
 
-    let mut mock_juno = mock_interchain.get_chain("juno-1")?;
-    mock_juno.set_sender(AbstractClient::mock_admin(&mock_juno));
-    let mut mock_osmo = mock_interchain.get_chain("osmo-1")?;
-    mock_osmo.set_sender(AbstractClient::mock_admin(&mock_osmo));
+    let mock_juno = mock_interchain.get_chain("juno-1")?;
+    let mock_osmo = mock_interchain.get_chain("osmo-1")?;
 
-    let juno_abstr = AbstractClient::builder(mock_juno.clone()).build_mock()?;
-    let osmo_abstr = AbstractClient::builder(mock_osmo.clone()).build_mock()?;
+    let juno_abstr =
+        AbstractClient::builder(mock_juno.clone()).build(mock_juno.sender().clone())?;
+    let osmo_abstr =
+        AbstractClient::builder(mock_osmo.clone()).build(mock_osmo.sender().clone())?;
 
     juno_abstr.connect_to(&osmo_abstr, &mock_interchain)?;
 

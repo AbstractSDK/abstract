@@ -295,7 +295,7 @@ fn cast_vote(
     let proposal_id = get_or_create_active_proposal(&mut deps, &env, challenge_id, module)?;
 
     let voter = match module
-        .account_registry(deps.as_ref(), &env)?
+        .account_registry(deps.as_ref())?
         .assert_is_account(&info.sender)
     {
         Ok(base) => base.into_addr(),
@@ -404,7 +404,7 @@ fn charge_penalty(
         amount: amount_per_friend,
     };
 
-    let bank = module.bank(deps.as_ref(), &env);
+    let bank = module.bank(deps.as_ref());
     let executor = module.executor(deps.as_ref());
 
     // Create a transfer action for each friend
@@ -414,7 +414,7 @@ fn charge_penalty(
             let recipent = match friend {
                 Friend::Addr(addr) => addr.address,
                 Friend::AbstractAccount(account_id) => module
-                    .account_registry(deps.as_ref(), &env)?
+                    .account_registry(deps.as_ref())?
                     .account(&account_id)?
                     .into_addr(),
             };

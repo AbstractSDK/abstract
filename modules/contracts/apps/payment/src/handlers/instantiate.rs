@@ -15,7 +15,7 @@ pub fn instantiate_handler(
     module: PaymentApp,
     msg: AppInstantiateMsg,
 ) -> AppResult {
-    let name_service = module.name_service(deps.as_ref(), &env);
+    let name_service = module.name_service(deps.as_ref());
 
     if let Some(asset) = &msg.desired_asset {
         name_service

@@ -31,10 +31,14 @@ pub fn query(deps: Deps, env: Env, query: QueryMsg) -> HostResult<Binary> {
 }
 
 fn config(deps: Deps, env: &Env) -> HostResult<ConfigResponse> {
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+
     Ok(ConfigResponse {
-        ans_host_address: AnsHost::new(deps.api, env)?.address,
-        module_factory_address: ModuleFactoryContract::new(deps.api, env)?.address,
-        registry_address: RegistryContract::new(deps.api, env)?.address,
+        ans_host_address: AnsHost::new(deps, contract_info.code_id)?.address,
+        module_factory_address: ModuleFactoryContract::new(deps, contract_info.code_id)?.address,
+        registry_address: RegistryContract::new(deps, contract_info.code_id)?.address,
     })
 }
 

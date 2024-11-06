@@ -40,10 +40,14 @@ pub fn send_funds(
     memo: Option<String>,
 ) -> IcaClientResult<CosmosMsg> {
     // Identify the remote recipient for the funds
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+
     let receiver: HexBinary = match receiver {
         Some(r) => r.into(),
         None => {
-            let registry = RegistryContract::new(deps.api, env)?;
+            let registry = RegistryContract::new(deps, contract_info.code_id)?;
             let note_addr = evm_note_addr(&registry, &deps.querier)?;
 
             // If state objects will be public on evm_note
@@ -61,7 +65,7 @@ pub fn send_funds(
         }
     };
 
-    let ans_host = AnsHost::new(deps.api, env)?;
+    let ans_host = AnsHost::new(deps, contract_info.code_id)?;
 
     // Resolve the transfer channel id for the given chain
     let ucs_channel_entry = ChannelEntry {

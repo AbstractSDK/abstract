@@ -18,8 +18,8 @@ anstream = { version = "0.6" }
 anyhow = { version = "1" }
 bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
-cw-orch = { version = "0.27", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.8", features = ["daemon"] }
+cw-orch = { version = "0.26", features = ["daemon", "snapshot-testing"] }
+cw-orch-interchain = { version = "0.7", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
@@ -43,8 +43,8 @@ anstream = { version = "0.6" }
 anyhow = { version = "1" }
 bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
-cw-orch = { version = "0.27", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.8", features = ["daemon"] }
+cw-orch = { version = "0.26", features = ["daemon", "snapshot-testing"] }
+cw-orch-interchain = { version = "0.7", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
@@ -69,6 +69,7 @@ zeroize = { version = "1" }
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32 = { version = "0.5" }
 bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bitflags = { version = "2", default-features = false, features = ["std"] }
@@ -81,7 +82,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
@@ -148,6 +149,7 @@ uuid = { version = "1", features = ["v4"] }
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32 = { version = "0.5" }
 bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bitflags = { version = "2", default-features = false, features = ["std"] }
@@ -160,7 +162,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 derive_more = { version = "0.99" }
@@ -229,6 +231,7 @@ uuid = { version = "1", features = ["v4"] }
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32 = { version = "0.5" }
 bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bs58 = { version = "0.5", features = ["check"] }
@@ -240,7 +243,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
@@ -307,6 +310,7 @@ uuid = { version = "1", features = ["v4"] }
 ahash = { version = "0.8" }
 aho-corasick = { version = "1" }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32 = { version = "0.5" }
 bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
 bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
 bs58 = { version = "0.5", features = ["check"] }
@@ -318,7 +322,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 derive_more = { version = "0.99" }

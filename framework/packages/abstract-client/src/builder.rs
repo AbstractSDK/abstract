@@ -155,13 +155,6 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     }
 }
 
-impl<Chain: CwEnv<Sender = Addr>> AbstractClientBuilder<Chain> {
-    /// Deploy mock abstract with current configuration
-    pub fn build_mock(&self) -> AbstractClientResult<AbstractClient<Chain>> {
-        self.build(Abstract::mock_admin(&self.chain))
-    }
-}
-
 pub mod cw20_builder {
     //! # CW20 Builder
 

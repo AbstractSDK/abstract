@@ -99,7 +99,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(IBC_CLIENT)?;
         self.base
-            .module_registry(self.deps, self.env)?
+            .module_registry(self.deps)?
             .query_module(ModuleInfo::from_id(IBC_CLIENT, ABSTRACT_VERSION.into())?)?
             .reference
             .unwrap_native()

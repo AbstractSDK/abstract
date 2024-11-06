@@ -34,7 +34,10 @@ pub fn create_sub_account(
 ) -> AccountResult {
     // only owner can create a subaccount
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
     let seq = account_id.unwrap_or(
         abstract_std::registry::state::LOCAL_ACCOUNT_SEQUENCE
             .query(&deps.querier, registry.address.clone())?,
@@ -50,6 +53,7 @@ pub fn create_sub_account(
     let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
 
     let create_account_msg = abstract_std::account::InstantiateMsg {
+        code_id: self_code_id,
         account_id: Some(account_id.clone()),
         owner: GovernanceDetails::SubAccount {
             account: env.contract.address.into_string(),
@@ -101,7 +105,10 @@ pub fn handle_sub_account_action(
 
 // Unregister sub-account from the state
 fn unregister_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) -> AccountResult {
-    let registry = RegistryContract::new(deps.api, env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
 
     let account = abstract_std::registry::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
@@ -123,7 +130,10 @@ fn unregister_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) 
 
 // Register sub-account to the state
 fn register_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) -> AccountResult {
-    let registry = RegistryContract::new(deps.api, env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
 
     let account = abstract_std::registry::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
@@ -221,7 +231,10 @@ pub fn remove_account_from_contracts(deps: DepsMut, env: &Env) -> AccountResult<
         );
     }
 
-    let registry = RegistryContract::new(deps.api, env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
     let mut namespaces = registry
         .query_namespaces(vec![account_id], &deps.querier)?
         .namespaces;

@@ -53,7 +53,7 @@ pub fn execute_handler(
         } => {
             // Only namespace owner (abstract) can change recipient address
             let namespace = module
-                .module_registry(deps.as_ref(), &env)?
+                .module_registry(deps.as_ref())?
                 .query_namespace(Namespace::new(ABSTRACT_NAMESPACE)?)?;
 
             // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
@@ -73,7 +73,7 @@ pub fn execute_handler(
             // Update recipient account id
             if let Some(account_id) = recipient_account_id {
                 let recipient = module
-                    .account_registry(deps.as_ref(), &env)?
+                    .account_registry(deps.as_ref())?
                     .account(&AccountId::new(account_id, AccountTrace::Local)?)?;
                 fee.recipient = recipient.into_addr();
             }
@@ -118,7 +118,7 @@ fn handle_ibc_request(
 ) -> DexResult {
     let host_chain = TruncatedChainId::from_string(dex_name.clone())?;
 
-    let ans = module.name_service(deps.as_ref(), env);
+    let ans = module.name_service(deps.as_ref());
     let ibc_client = module.ibc_client(deps.as_ref(), env);
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;

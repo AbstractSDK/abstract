@@ -126,7 +126,10 @@ pub fn handle_module_execute(
     msg: Binary,
 ) -> HostResult {
     // We resolve the target module
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
 
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
@@ -174,7 +177,10 @@ pub fn handle_host_module_query(
     msg: Binary,
 ) -> HostResult<Binary> {
     // We resolve the target module
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps, contract_info.code_id)?;
 
     let target_module_resolved = target_module.addr(deps, registry)?;
 

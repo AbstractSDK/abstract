@@ -129,8 +129,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.fetch_data(
             deps,
             sender,
-            self.abstract_registry(deps, env)?,
-            self.ans_host(deps, env)?,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
         )?;
         let mut swap_msgs = exchange.swap(
             deps,
@@ -174,8 +174,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.fetch_data(
             deps,
             sender,
-            self.abstract_registry(deps, env)?,
-            self.ans_host(deps, env)?,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
         )?;
         let mut swap_msgs =
             exchange.swap_route(deps, swap_route, offer_asset, belief_price, max_spread)?;
@@ -206,8 +206,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.fetch_data(
             deps,
             sender,
-            self.abstract_registry(deps, env)?,
-            self.ans_host(deps, env)?,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
         )?;
         exchange.provide_liquidity(deps, pool_address, offer_assets, max_spread)
     }
@@ -227,8 +227,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.fetch_data(
             deps,
             sender,
-            self.abstract_registry(deps, env)?,
-            self.ans_host(deps, env)?,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
         )?;
         exchange.withdraw_liquidity(deps, pool_address, lp_token)
     }

@@ -69,7 +69,7 @@ fn handle_ibc_request(
     action: &StakingAction,
 ) -> StakingResult {
     let host_chain = TruncatedChainId::from_string(provider_name.clone())?;
-    let ans = module.name_service(deps.as_ref(), env);
+    let ans = module.name_service(deps.as_ref());
     let ibc_client = module.ibc_client(deps.as_ref(), env);
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;

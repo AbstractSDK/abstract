@@ -9,9 +9,12 @@ use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps.api, env)?.address,
-        registry_address: RegistryContract::new(deps.api, env)?.address,
+        ans_host: AnsHost::new(deps, contract_info.code_id)?.address,
+        registry_address: RegistryContract::new(deps, contract_info.code_id)?.address,
     })
 }
 
@@ -40,7 +43,10 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
-                    let registry = RegistryContract::new(deps.api, &env)?;
+                    let contract_info = deps
+                        .querier
+                        .query_wasm_contract_info(env.contract.address.clone())?;
+                    let registry = RegistryContract::new(deps, contract_info.code_id)?;
 
                     let msg = evm::execute(&deps.querier, &registry, msgs, callback)?;
 

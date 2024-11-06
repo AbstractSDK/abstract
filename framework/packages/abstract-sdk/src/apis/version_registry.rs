@@ -9,7 +9,7 @@ use abstract_std::{
     },
     registry::{ModuleConfiguration, ModuleResponse, NamespaceResponse, NamespacesResponse},
 };
-use cosmwasm_std::{Addr, Deps, Env};
+use cosmwasm_std::{Addr, Deps};
 
 use super::AbstractApi;
 use crate::{
@@ -37,12 +37,8 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref(), &env).unwrap();
         ```
     */
-    fn module_registry<'a>(
-        &'a self,
-        deps: Deps<'a>,
-        env: &Env,
-    ) -> AbstractSdkResult<ModuleRegistry<Self>> {
-        let vc = self.abstract_registry(deps, env)?;
+    fn module_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<ModuleRegistry<Self>> {
+        let vc = self.abstract_registry(deps)?;
         Ok(ModuleRegistry {
             base: self,
             deps,
@@ -237,8 +233,8 @@ mod test {
     struct MockBinding {}
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
-            RegistryContract::new(deps.api, env).map_err(Into::into)
+        fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
+            RegistryContract::new(deps, 1).map_err(Into::into)
         }
     }
 
@@ -255,7 +251,7 @@ mod test {
         deps.querier = abstract_mock_querier(deps.api);
 
         let binding = MockBinding {};
-        let module_registry = binding.module_registry(deps.as_ref(), &env).unwrap();
+        let module_registry = binding.module_registry(deps.as_ref()).unwrap();
         let module_reference = module_registry
             .query_module_reference_raw(
                 &ModuleInfo::from_id(abstract_std::ACCOUNT, TEST_VERSION.parse().unwrap()).unwrap(),
@@ -277,7 +273,7 @@ mod test {
             .build();
 
         let binding = MockBinding {};
-        let module_registry = binding.module_registry(deps.as_ref(), &env).unwrap();
+        let module_registry = binding.module_registry(deps.as_ref()).unwrap();
         let namespace = module_registry
             .query_namespace(Namespace::new(ABSTRACT_NAMESPACE).unwrap())
             .unwrap();
@@ -303,7 +299,7 @@ mod test {
             .build();
 
         let binding = MockBinding {};
-        let module_registry = binding.module_registry(deps.as_ref(), &env).unwrap();
+        let module_registry = binding.module_registry(deps.as_ref()).unwrap();
         let namespaces = module_registry
             .query_namespaces(vec![ABSTRACT_ACCOUNT_ID])
             .unwrap();
@@ -376,7 +372,7 @@ mod test {
         let module_info1 = ModuleInfo::from_id(TEST_MODULE_ID, "0.1.0".parse().unwrap()).unwrap();
         let module_info2 = ModuleInfo::from_id("test:module", "0.1.0".parse().unwrap()).unwrap();
 
-        let module_registry = binding.module_registry(deps.as_ref(), &env).unwrap();
+        let module_registry = binding.module_registry(deps.as_ref()).unwrap();
         let module = module_registry.query_module(module_info1.clone()).unwrap();
         assert_eq!(
             module,
@@ -437,7 +433,7 @@ mod test {
     fn abstract_api() {
         let (deps, _, app) = mock_module_setup();
         let env = mock_env_validated(deps.api);
-        let module_registry = app.module_registry(deps.as_ref(), &env).unwrap();
+        let module_registry = app.module_registry(deps.as_ref()).unwrap();
 
         abstract_api_test(module_registry);
     }

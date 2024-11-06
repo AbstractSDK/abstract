@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Api, Env, QuerierWrapper};
+use cosmwasm_std::{Addr, Api, Deps, Env, QuerierWrapper};
 use cw_asset::AssetInfo;
 use thiserror::Error;
 
@@ -78,9 +78,10 @@ pub struct AnsHost {
 
 impl AnsHost {
     /// Retrieve address of the ans host
-    pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
-        let hrp = native_addrs::hrp_from_env(env);
-        let address = api.addr_humanize(&native_addrs::ans_address(hrp, api)?)?;
+    pub fn new(deps: Deps, abstract_code_id: u64) -> AbstractResult<Self> {
+        let address = deps
+            .api
+            .addr_humanize(&native_addrs::ans_address(deps, abstract_code_id)?)?;
         Ok(Self { address })
     }
     /// Raw Query to AnsHost contract

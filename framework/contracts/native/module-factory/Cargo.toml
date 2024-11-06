@@ -21,7 +21,6 @@ default = ["export"]
 export = []
 # for quicker tests, cargo test --lib
 
-
 [dependencies]
 cosmwasm-std = { workspace = true }
 cw-controllers = { workspace = true }

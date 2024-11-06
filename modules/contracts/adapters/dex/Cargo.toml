@@ -25,16 +25,21 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw20", "dep:serde_json"]
+testing = [
+  "dep:abstract-client",
+  "dep:cw20",
+  "dep:serde_json",
+  "abstract-adapter/test-utils",
+]
 
 # Supported Dexes
 # wynd = ["abstract-wyndex-adapter/full_integration"]
-# osmosis = ["abstract-osmosis-adapter/full_integration"]
+osmosis = ["abstract-osmosis-adapter/full_integration"]
 # astroport = ["abstract-astroport-adapter/full_integration"]
 # fin = ["abstract-kujira-adapter/full_integration"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 
-# osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
+osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
 # Builds
 [package.metadata.optimizer]
@@ -48,9 +53,7 @@ builds = [
   # { name = "neutron", features = [
   #   "astroport",
   # ] },
-  # { name = "osmosis", features = [
-  #   "osmosis",
-  # ] },
+  { name = "osmosis", features = ["osmosis"] },
   # { name = "kujira", features = [
   #   "fin",
   # ] },
@@ -73,7 +76,7 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true }
-# cw-orch-osmosis-test-tube = { workspace = true, optional = true }
+cw-orch-osmosis-test-tube = { workspace = true, optional = true }
 
 # Local
 abstract-dex-standard = { workspace = true }
@@ -82,8 +85,8 @@ abstract-adapter-utils = { workspace = true }
 # # Wyndex #
 # abstract-wyndex-adapter = { workspace = true }
 
-# # Osmosis #
-# abstract-osmosis-adapter = { workspace = true }
+# Osmosis #
+abstract-osmosis-adapter = { workspace = true }
 
 # # Terra #
 # abstract-astroport-adapter = { workspace = true }
@@ -113,9 +116,10 @@ clap = { workspace = true }
 
 dex = { path = ".", features = [
   # "wynd",
-  # "osmosis",
+  "osmosis",
   "testing",
 ], package = "abstract-dex-adapter" }
+bip32 = { version = "0.5.2" }
 
 # abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 

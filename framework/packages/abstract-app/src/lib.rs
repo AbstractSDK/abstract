@@ -307,7 +307,7 @@ pub mod mock {
                 if !balance.amount.is_zero() {
                 println!("sending amount from account: {balance:?}");
                     let action = module
-                        .bank(deps.as_ref(), &env)
+                        .bank(deps.as_ref())
                         .transfer::<::cosmwasm_std::Coin>(
                             vec![balance.into()],
                             &adapter1_addr.unwrap(),

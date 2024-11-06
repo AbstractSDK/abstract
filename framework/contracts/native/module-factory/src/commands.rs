@@ -32,7 +32,10 @@ pub fn execute_create_modules(
     let block_height = env.block.height;
     // Verify sender is active Account
     // Construct feature object to access registry functions
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let contract_info = deps
+        .querier
+        .query_wasm_contract_info(env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
 
     // assert that sender is account
     let account = registry.assert_account(&info.sender, &deps.querier)?;

@@ -49,6 +49,12 @@ pub struct AccountDetails {
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountI<Chain>;
 
+impl<Chain> AsRef<AccountI<Chain>> for AccountI<Chain> {
+    fn as_ref(&self) -> &AccountI<Chain> {
+        self
+    }
+}
+
 impl<Chain: CwEnv> AccountI<Chain> {
     pub fn load_from(
         abstract_deployment: &Abstract<Chain>,
@@ -90,6 +96,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .instantiate2(
                 code_id,
                 &InstantiateMsg::<Empty> {
+                    code_id,
                     account_id: details.account_id.map(AccountId::local),
                     owner: governance_details,
                     namespace: details.namespace,
@@ -733,6 +740,7 @@ impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
             .with_reply(::account::contract::reply),
         )
     }
+
     fn wasm(chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path_with_build_postfix(
