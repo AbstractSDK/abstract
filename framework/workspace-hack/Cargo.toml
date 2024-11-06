@@ -18,8 +18,8 @@ anstream = { version = "0.6" }
 anyhow = { version = "1" }
 bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
-cw-orch = { version = "0.26", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.7", features = ["daemon"] }
+cw-orch = { version = "0.27", features = ["daemon", "snapshot-testing"] }
+cw-orch-interchain = { version = "0.8", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
@@ -43,8 +43,8 @@ anstream = { version = "0.6" }
 anyhow = { version = "1" }
 bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
-cw-orch = { version = "0.26", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.7", features = ["daemon"] }
+cw-orch = { version = "0.27", features = ["daemon", "snapshot-testing"] }
+cw-orch-interchain = { version = "0.8", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
@@ -82,7 +82,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
@@ -142,7 +142,6 @@ tower = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
-url = { version = "2" }
 uuid = { version = "1", features = ["v4"] }
 
 [target.x86_64-unknown-linux-gnu.build-dependencies]
@@ -162,7 +161,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 derive_more = { version = "0.99" }
@@ -213,7 +212,7 @@ serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["visit"] }
+syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 tendermint-proto = { version = "0.38" }
 time = { version = "0.3", features = ["macros", "parsing"] }
@@ -224,7 +223,6 @@ tower = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
-url = { version = "2" }
 uuid = { version = "1", features = ["v4"] }
 
 [target.aarch64-apple-darwin.dependencies]
@@ -243,7 +241,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
@@ -303,7 +301,6 @@ tower = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
-url = { version = "2" }
 uuid = { version = "1", features = ["v4"] }
 
 [target.aarch64-apple-darwin.build-dependencies]
@@ -322,7 +319,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.8", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 derive_more = { version = "0.99" }
@@ -373,7 +370,7 @@ serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["visit"] }
+syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 tendermint-proto = { version = "0.38" }
 time = { version = "0.3", features = ["macros", "parsing"] }
@@ -384,7 +381,6 @@ tower = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-normalization = { version = "0.1" }
-url = { version = "2" }
 uuid = { version = "1", features = ["v4"] }
 
 ### END HAKARI SECTION

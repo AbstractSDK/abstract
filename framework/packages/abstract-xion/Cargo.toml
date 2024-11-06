@@ -27,7 +27,6 @@ getrandom = { version = "0.2.15", default-features = false, features = [
     "custom",
 ] }
 p256 = { version = "0.13.2", features = ["ecdsa-core", "arithmetic", "serde"] }
-url = { version = "2.5.2", default-features = false }
 ripemd = { version = "0.1.3", default-features = false }
 prost = { version = "0.13.2" }
 
