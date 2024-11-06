@@ -37,7 +37,7 @@ fn account_creation() -> anyhow::Result<()> {
 
     let origin_chain = chain.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), chain.sender().clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
     let abstr_remote = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
@@ -109,7 +109,7 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
 
     let origin_chain = chain.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), chain.sender().clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
 
     let chain_name = "juno";
 
@@ -134,7 +134,7 @@ fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
 
     let origin_chain = chain.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), chain.sender().clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
 
     let chain_name = "juno";
 
@@ -160,7 +160,7 @@ fn account_creation_full() -> anyhow::Result<()> {
 
     let origin_chain = chain.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), chain.sender().clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
     let abstr_remote = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
@@ -247,7 +247,7 @@ fn account_action() -> anyhow::Result<()> {
 
     let origin_chain = mock.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), mock.sender().clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
     let abstr_remote = Abstract::load_from(mock.clone())?;
 
     let account_sequence = 1;
@@ -313,7 +313,7 @@ fn account_action() -> anyhow::Result<()> {
 fn execute_action_with_account_creation() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
 
-    let abstr = Abstract::deploy_on(mock.clone(), mock.sender().clone())?;
+    let abstr = Abstract::deploy_on(mock.clone(), ())?;
 
     let account_sequence = 1;
     let chain = "juno";
@@ -360,7 +360,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 fn execute_send_all_back_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
 
-    let abstr = Abstract::deploy_on(mock.clone(), mock.sender().clone())?;
+    let abstr = Abstract::deploy_on(mock.clone(), ())?;
 
     let account_sequence = 1;
     let chain = "juno";

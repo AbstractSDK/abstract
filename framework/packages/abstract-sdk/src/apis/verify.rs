@@ -161,7 +161,6 @@ mod test {
         #[coverage_helper::test]
         fn not_account_fails() {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             let not_account = Account::new(deps.api.addr_make("not_account"));
             let base = test_account(deps.api);
 
@@ -194,7 +193,6 @@ mod test {
         #[coverage_helper::test]
         fn inactive_account_fails() {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
@@ -226,7 +224,6 @@ mod test {
         #[coverage_helper::test]
         fn returns_account() {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             let account = test_account(deps.api);
 
             deps.querier = abstract_mock_querier_builder(deps.api)
@@ -248,7 +245,6 @@ mod test {
     #[coverage_helper::test]
     fn namespace_fee() {
         let mut deps = mock_dependencies();
-        let env = mock_env_validated(deps.api);
 
         deps.querier = abstract_mock_querier(deps.api);
 
@@ -285,7 +281,6 @@ mod test {
         let mut deps = mock_dependencies();
         deps.querier = abstract_mock_querier(deps.api);
         let module = MockBinding {};
-        let env = mock_env_validated(deps.api);
 
         let account_registry = module.account_registry(deps.as_ref()).unwrap();
 

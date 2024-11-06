@@ -16,7 +16,7 @@ use mock_modules::{adapter_1, deploy_modules, V1};
 fn cannot_reinstall_module() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
@@ -58,7 +58,7 @@ fn cannot_reinstall_module() -> AResult {
 fn adds_module_to_account_modules() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&sender, &abstr)?;
 
     abstr
@@ -89,7 +89,7 @@ fn adds_module_to_account_modules() -> AResult {
 fn useful_error_module_not_found() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&sender, &abstr)?;
 
     let err = account
@@ -115,7 +115,7 @@ fn useful_error_module_not_found() -> AResult {
 #[test]
 fn only_admin_can_add_or_remove_module() -> AResult {
     let chain = MockBech32::new("mock");
-    let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
 
     let not_admin = chain.addr_make("not_admin");
@@ -162,7 +162,7 @@ fn only_admin_can_add_or_remove_module() -> AResult {
 #[test]
 fn fails_adding_previously_added_module() -> AResult {
     let chain = MockBech32::new("mock");
-    let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
 
     abstr
@@ -203,7 +203,7 @@ fn fails_adding_previously_added_module() -> AResult {
 #[test]
 fn remove_module() -> AResult {
     let chain = MockBech32::new("mock");
-    let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
 
     abstr
@@ -239,7 +239,7 @@ fn remove_module() -> AResult {
 #[test]
 fn fails_removing_non_existing_module() -> AResult {
     let chain = MockBech32::new("mock");
-    let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&chain.sender_addr(), &abstr)?;
 
     let err: AccountError = account

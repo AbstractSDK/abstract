@@ -53,7 +53,7 @@ fn deploy_emission(client: &AbstractClient<MockBech32>) -> anyhow::Result<Cw20Ba
 /// Set up the test environment with the contract installed
 fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
     let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain.clone()).build(chain.sender().clone())?;
+    let client = AbstractClient::builder(chain.clone()).build()?;
 
     // Deploy factory_token
     let cw20 = client
@@ -96,7 +96,7 @@ fn setup_native<'a>(
     chain: &MockBech32,
     balances: impl IntoIterator<Item = (&'a Addr, &'a [Coin])>,
 ) -> anyhow::Result<NativeSubscription> {
-    let client = AbstractClient::builder(chain.clone()).build(chain.sender().clone())?;
+    let client = AbstractClient::builder(chain.clone()).build()?;
     client.set_balances(balances)?;
     let publisher: Publisher<MockBech32> = client
         .fetch_account(Namespace::new("abstract")?)?

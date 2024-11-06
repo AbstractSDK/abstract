@@ -283,7 +283,6 @@ mod test {
         #[coverage_helper::test]
         fn balance() {
             let (mut deps, account, app) = mock_module_setup();
-            let env = mock_env_validated(deps.api);
 
             // API Query Error
             {
@@ -334,7 +333,6 @@ mod test {
         #[coverage_helper::test]
         fn transfer_asset_to_sender() {
             let (deps, account, app) = mock_module_setup();
-            let env = mock_env_validated(deps.api);
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
@@ -377,7 +375,6 @@ mod test {
         #[coverage_helper::test]
         fn deposit() {
             let (deps, account, app) = mock_module_setup();
-            let env = mock_env_validated(deps.api);
 
             // ANCHOR: deposit
             // Get bank API struct from the app
@@ -431,7 +428,6 @@ mod test {
         #[coverage_helper::test]
         fn send_cw20() {
             let (deps, _, app) = mock_module_setup();
-            let env = mock_env_validated(deps.api);
 
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
@@ -459,7 +455,6 @@ mod test {
         #[coverage_helper::test]
         fn send_coins() {
             let (deps, _, app) = mock_module_setup();
-            let env = mock_env_validated(deps.api);
 
             let expected_amount = 100u128;
             let expected_recipient = deps.api.addr_make("recipient");
@@ -483,7 +478,6 @@ mod test {
     #[coverage_helper::test]
     fn abstract_api() {
         let (deps, _, app) = mock_module_setup();
-        let env = mock_env_validated(deps.api);
         let bank = app.bank(deps.as_ref());
 
         abstract_api_test(bank);

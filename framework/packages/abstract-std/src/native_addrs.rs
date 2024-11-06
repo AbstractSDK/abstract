@@ -1,4 +1,4 @@
-use cosmwasm_std::{instantiate2_address, Addr, Binary, CanonicalAddr, Deps, Env, StdResult};
+use cosmwasm_std::{instantiate2_address, Addr, CanonicalAddr, Deps, Env, StdResult};
 
 use crate::AbstractResult;
 

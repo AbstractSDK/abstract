@@ -10,7 +10,7 @@ use crate::{
 
 pub fn instantiate_handler(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     _info: MessageInfo,
     module: PaymentApp,
     msg: AppInstantiateMsg,

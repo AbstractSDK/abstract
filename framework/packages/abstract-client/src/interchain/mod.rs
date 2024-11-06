@@ -2,8 +2,6 @@ pub(crate) mod remote_account;
 mod remote_application;
 use std::collections::HashMap;
 
-use abstract_interface::Abstract;
-use cosmwasm_std::Addr;
 use cw_orch_interchain::prelude::*;
 pub use remote_account::RemoteAccount;
 pub use remote_application::RemoteApplication;
@@ -51,7 +49,7 @@ impl<Chain: IbcQueryHandler> AbstractInterchainClient<Chain> {
         // We deploy Abstract on all chains
         let clients = interchain
             .chains()
-            .map(|chain| AbstractClient::builder(chain.clone()).build(chain.sender().clone()))
+            .map(|chain| AbstractClient::builder(chain.clone()).build())
             .collect::<Result<Vec<_>, _>>()?;
 
         // We connect all chains together

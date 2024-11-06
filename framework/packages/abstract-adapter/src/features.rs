@@ -3,7 +3,7 @@ use abstract_sdk::{
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Deps, Env, StdError};
+use cosmwasm_std::{Deps, StdError};
 
 use crate::{state::ContractError, AdapterContract};
 
@@ -46,7 +46,7 @@ mod tests {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::adapter::{AdapterRequestMsg, ExecuteMsg};
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, DepsMut, MessageInfo, Response};
+    use cosmwasm_std::{testing::*, DepsMut, Env, MessageInfo, Response};
 
     use super::*;
     use crate::mock::{
@@ -56,7 +56,7 @@ mod tests {
 
     pub fn feature_exec_fn(
         deps: DepsMut,
-        env: Env,
+        _env: Env,
         _info: MessageInfo,
         module: MockAdapterContract,
         _msg: MockExecMsg,

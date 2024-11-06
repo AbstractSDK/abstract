@@ -3,7 +3,6 @@ use abstract_client::AbstractClient;
 use abstract_client::GovernanceDetails;
 use abstract_interface::IbcClient;
 use cw_orch::mock::MockBase;
-use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
 
 #[test]
@@ -14,10 +13,8 @@ fn create_remote_account() -> anyhow::Result<()> {
     let mock_juno = mock_interchain.get_chain("juno-1")?;
     let mock_osmo = mock_interchain.get_chain("osmo-1")?;
 
-    let juno_abstr =
-        AbstractClient::builder(mock_juno.clone()).build(mock_juno.sender().clone())?;
-    let osmo_abstr =
-        AbstractClient::builder(mock_osmo.clone()).build(mock_osmo.sender().clone())?;
+    let juno_abstr = AbstractClient::builder(mock_juno.clone()).build()?;
+    let osmo_abstr = AbstractClient::builder(mock_osmo.clone()).build()?;
 
     juno_abstr.connect_to(&osmo_abstr, &mock_interchain)?;
 

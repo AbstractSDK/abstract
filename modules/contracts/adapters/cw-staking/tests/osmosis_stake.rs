@@ -171,7 +171,7 @@ mod osmosis_test {
             ],
         )?;
 
-        let deployment = Abstract::deploy_on(tube.clone(), tube.sender().clone())?;
+        let deployment = Abstract::deploy_on(tube.clone(), ())?;
 
         let _root_os = AccountI::create_default_account(
             &deployment,

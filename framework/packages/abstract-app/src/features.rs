@@ -79,7 +79,6 @@ mod test {
     #[coverage_helper::test]
     fn test_ans_host() -> AppTestResult {
         let deps = mock_init();
-        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let ans_host = MOCK_APP_WITH_DEP.ans_host(deps.as_ref())?;
@@ -91,7 +90,6 @@ mod test {
     #[coverage_helper::test]
     fn test_abstract_registry() -> AppTestResult {
         let deps = mock_init();
-        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let abstract_registry = MOCK_APP_WITH_DEP.abstract_registry(deps.as_ref())?;
@@ -103,7 +101,6 @@ mod test {
     #[coverage_helper::test]
     fn test_traits_generated() -> AppTestResult {
         let mut deps = mock_init();
-        let env = mock_env_validated(deps.api);
         let test_account = test_account(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)

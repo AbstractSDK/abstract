@@ -2,10 +2,7 @@
 // This script sets up tokens and channels between transfer ports to transfer those tokens
 // This also mints tokens to the chain sender for future interactions
 
-use std::{
-    sync::Arc,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use abstract_interchain_tests::{
     abstract_starship_interfaces, create_test_remote_account, set_starship_env, JUNO,
@@ -19,10 +16,7 @@ use abstract_std::{
 };
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins};
-use cw_orch::{
-    daemon::{networks::ChainKind, senders::CosmosSender, CosmosOptions, RUNTIME},
-    prelude::*,
-};
+use cw_orch::{daemon::RUNTIME, prelude::*};
 use cw_orch_interchain::prelude::*;
 use cw_orch_proto::tokenfactory::{create_denom, get_denom, mint};
 
@@ -40,27 +34,7 @@ pub fn test_pfm() -> AnyResult<()> {
     let interchain = starship.interchain_env();
 
     let juno = interchain.get_chain(JUNO).unwrap();
-    let juno2 = interchain.get_chain(JUNO2).unwrap();
     let juno4 = interchain.get_chain(JUNO4).unwrap();
-
-    // Using chainkind local so we can use mnemonic from env
-    let juno_chain_info = ChainInfoOwned {
-        kind: ChainKind::Local,
-        ..juno.chain_info().clone()
-    };
-    let juno2_chain_info = ChainInfoOwned {
-        kind: ChainKind::Local,
-        ..juno2.chain_info().clone()
-    };
-
-    let juno_abstract_deployer = juno.rt_handle.block_on(CosmosSender::new(
-        &Arc::new(juno_chain_info),
-        CosmosOptions::default(),
-    ))?;
-    let juno2_abstract_deployer = juno2.rt_handle.block_on(CosmosSender::new(
-        &Arc::new(juno2_chain_info),
-        CosmosOptions::default(),
-    ))?;
 
     // Create a channel between the 4 chains for the transfer ports
     // JUNO>JUNO2>JUNO3>JUNO4
@@ -97,11 +71,7 @@ pub fn test_pfm() -> AnyResult<()> {
         )?
         .interchain_channel;
 
-    let (abstr_juno, abstr_juno2) = abstract_starship_interfaces(
-        &interchain,
-        &juno_abstract_deployer,
-        &juno2_abstract_deployer,
-    )?;
+    let (abstr_juno, abstr_juno2) = abstract_starship_interfaces(&interchain)?;
 
     let sender = juno.sender_addr().to_string();
 
@@ -121,23 +91,20 @@ pub fn test_pfm() -> AnyResult<()> {
     mint(&juno, sender.as_str(), token_subdenom.as_str(), test_amount)?;
 
     // Register this channel with the abstract ibc implementation for sending tokens
-    abstr_juno
-        .ans_host
-        .call_as(&juno_abstract_deployer)
-        .update_channels(
-            vec![(
-                UncheckedChannelEntry {
-                    connected_chain: "junotwo".to_string(),
-                    protocol: ICS20.to_string(),
-                },
-                juno_juno2_channel
-                    .get_chain(JUNO)?
-                    .channel
-                    .unwrap()
-                    .to_string(),
-            )],
-            vec![],
-        )?;
+    abstr_juno.ans_host.update_channels(
+        vec![(
+            UncheckedChannelEntry {
+                connected_chain: "junotwo".to_string(),
+                protocol: ICS20.to_string(),
+            },
+            juno_juno2_channel
+                .get_chain(JUNO)?
+                .channel
+                .unwrap()
+                .to_string(),
+        )],
+        vec![],
+    )?;
 
     // Create a test account + Remote account
     let (origin_account, remote_account_id) =

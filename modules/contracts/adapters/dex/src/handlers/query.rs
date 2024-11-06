@@ -57,7 +57,6 @@ pub fn query_handler(
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
                         module,
                         deps,
-                        &env,
                         addr_as_sender,
                         action,
                         exchange,

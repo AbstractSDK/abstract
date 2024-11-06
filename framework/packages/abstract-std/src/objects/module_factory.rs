@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Api, Deps, Env};
+use cosmwasm_std::{Addr, Deps};
 
 use crate::{native_addrs, AbstractResult};
 

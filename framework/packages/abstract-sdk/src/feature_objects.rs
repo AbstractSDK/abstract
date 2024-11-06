@@ -6,7 +6,7 @@
 
 pub use abstract_std::objects::{ans_host::AnsHost, registry::RegistryContract};
 use abstract_std::{registry::Account, ANS_HOST, REGISTRY};
-use cosmwasm_std::{Deps, Env};
+use cosmwasm_std::Deps;
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
@@ -66,7 +66,6 @@ mod tests {
         fn test_registry() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_mock_querier(deps.api);
-            let env = mock_env_validated(deps.api);
             let registry = RegistryContract::new(deps.as_ref(), 1).unwrap();
 
             assert_eq!(registry.abstract_registry(deps.as_ref()).unwrap(), registry);
@@ -85,7 +84,6 @@ mod tests {
         fn test_ans() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_mock_querier(deps.api);
-            let env = mock_env_validated(deps.api);
             let ans = AnsHost::new(deps.as_ref(), 1).unwrap();
 
             assert_eq!(ans.ans_host(deps.as_ref()).unwrap(), ans);

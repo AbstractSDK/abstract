@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Api, Deps, Env, QuerierWrapper};
+use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use thiserror::Error;
 
 use super::{

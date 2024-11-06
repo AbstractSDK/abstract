@@ -83,7 +83,7 @@ fn main() -> anyhow::Result<()> {
     ))?;
 
     let abstr = AbstractClient::new(xiond.clone())
-        .or_else(|_| AbstractClient::builder(xiond.clone()).build(abstract_sender));
+        .or_else(|_| AbstractClient::builder(xiond.clone()).build());
 
     let abstr = abstr?;
     // Create the Abstract Account because it's needed for the fees for the dex module

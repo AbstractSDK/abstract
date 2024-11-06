@@ -122,6 +122,11 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
 ///   - "account_id" -> ABSTRACT_ACCOUNT_ID
 /// - REGISTRY
 ///   - "account" -> { ABSTRACT_ACCOUNT }
+/// Also it returns query responses for
+/// - [`cosmwasm_std::WasmQuery::ContractInfo`]
+///   - $contract_address -> ContractInfoResponse { creator: api.addr_make([`crate::OWNER`]), code_id: 1, admin: $contract_address}
+/// - [`cosmwasm_std::WasmQuery::CodeInfo`]
+///   - $code_id -> CodeInfoResponse { code_id: $code_id, creator: api.addr_make([`crate::OWNER`]), checksum: [`abstract_std::native_addrs::BLOB_CHECKSUM`]}
 pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
     abstract_mock_querier_builder(mock_api).build()
 }
@@ -141,8 +146,6 @@ pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
     use abstract_std::{native_addrs, registry::Account};
     use cosmwasm_std::{instantiate2_address, testing::MockApi, Addr, Api};
-
-    use crate::mock_env_validated;
 
     // Test addr makers
     const ADMIN_ACCOUNT: &str = "admin_account_address";

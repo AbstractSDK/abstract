@@ -247,7 +247,6 @@ mod test {
     #[coverage_helper::test]
     fn query_module_reference_raw() {
         let mut deps = mock_dependencies();
-        let env = mock_env_validated(deps.api);
         deps.querier = abstract_mock_querier(deps.api);
 
         let binding = MockBinding {};
@@ -263,7 +262,6 @@ mod test {
     #[coverage_helper::test]
     fn query_namespace() {
         let mut deps = mock_dependencies();
-        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         deps.querier = abstract_mock_querier_builder(deps.api)
@@ -283,7 +281,6 @@ mod test {
     #[coverage_helper::test]
     fn query_namespaces() {
         let mut deps = mock_dependencies();
-        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         deps.querier = abstract_mock_querier_builder(deps.api)
@@ -317,7 +314,6 @@ mod test {
     #[coverage_helper::test]
     fn query_modules() {
         let mut deps = mock_dependencies();
-        let env = mock_env_validated(deps.api);
         let account = test_account(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -432,7 +428,6 @@ mod test {
     #[coverage_helper::test]
     fn abstract_api() {
         let (deps, _, app) = mock_module_setup();
-        let env = mock_env_validated(deps.api);
         let module_registry = app.module_registry(deps.as_ref()).unwrap();
 
         abstract_api_test(module_registry);

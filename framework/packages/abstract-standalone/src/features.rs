@@ -4,7 +4,7 @@ use abstract_sdk::{
     AbstractSdkResult,
 };
 use abstract_std::registry::Account;
-use cosmwasm_std::{Deps, Env};
+use cosmwasm_std::Deps;
 
 use crate::StandaloneContract;
 
@@ -59,7 +59,6 @@ mod test {
     #[coverage_helper::test]
     fn test_ans_host() -> StandaloneTestResult {
         let deps = mock_init(true);
-        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref())?;
@@ -71,7 +70,6 @@ mod test {
     #[coverage_helper::test]
     fn test_abstract_registry() -> StandaloneTestResult {
         let deps = mock_init(true);
-        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
         let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref())?;
@@ -83,7 +81,6 @@ mod test {
     #[coverage_helper::test]
     fn test_traits_generated() -> StandaloneTestResult {
         let mut deps = mock_init(true);
-        let env = mock_env_validated(deps.api);
         let expected_account = test_account(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)

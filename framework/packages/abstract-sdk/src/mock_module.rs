@@ -7,7 +7,7 @@ use abstract_std::{
 use abstract_testing::prelude::*;
 use cosmwasm_std::{
     testing::{mock_dependencies, MockApi},
-    Deps, Env,
+    Deps,
 };
 
 use crate::{

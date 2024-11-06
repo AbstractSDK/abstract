@@ -83,7 +83,7 @@ fn create_challenge(
         .init_friends
         .iter()
         .cloned()
-        .map(|human| human.check(deps.as_ref(), &env, &module))
+        .map(|human| human.check(deps.as_ref(), &module))
         .collect::<AbstractSdkResult<_>>()?;
 
     let (friend_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
@@ -191,7 +191,7 @@ fn update_friends_for_challenge(
     let friends_validated: Vec<(Addr, Friend<Addr>)> = friends
         .iter()
         .cloned()
-        .map(|human| human.check(deps.as_ref(), &env, module))
+        .map(|human| human.check(deps.as_ref(), module))
         .collect::<AbstractSdkResult<_>>()?;
 
     let (voters_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
@@ -220,7 +220,7 @@ fn update_friends_for_challenge(
 
             let mut current_friends_addrs: Vec<Addr> = current_friends
                 .iter()
-                .map(|f| f.addr(deps.as_ref(), &env, module))
+                .map(|f| f.addr(deps.as_ref(), module))
                 .collect::<AbstractSdkResult<_>>()?;
             current_friends_addrs.extend(voters_addrs);
             // Check if addrs unique
@@ -270,7 +270,7 @@ fn get_or_create_active_proposal(
     let friends: Vec<Addr> = CHALLENGE_FRIENDS
         .load(deps.storage, challenge_id)?
         .into_iter()
-        .map(|friend| friend.addr(deps.as_ref(), &env, module))
+        .map(|friend| friend.addr(deps.as_ref(), module))
         .collect::<AbstractSdkResult<_>>()?;
     let proposal_id = SIMPLE_VOTING.new_proposal(
         deps.storage,
@@ -324,7 +324,6 @@ fn count_votes(
 
     try_finish_challenge(
         deps,
-        env,
         module,
         proposal_info,
         outcome,
@@ -355,7 +354,6 @@ fn veto(
 
 fn try_finish_challenge(
     deps: DepsMut,
-    env: Env,
     module: &ChallengeApp,
     proposal_info: ProposalInfo,
     proposal_outcome: ProposalOutcome,
@@ -373,7 +371,7 @@ fn try_finish_challenge(
     let res = if !matches!(proposal_outcome, ProposalOutcome::Passed) {
         module.response("finish_vote")
     } else {
-        charge_penalty(deps, env, module, challenge, friends)?
+        charge_penalty(deps, module, challenge, friends)?
     };
     Ok(res
         .add_attribute("proposal_info", format!("{proposal_info:?}"))
@@ -382,7 +380,6 @@ fn try_finish_challenge(
 
 fn charge_penalty(
     deps: DepsMut,
-    env: Env,
     module: &ChallengeApp,
     challenge: ChallengeEntry,
     friends: Vec<Friend<Addr>>,

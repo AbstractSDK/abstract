@@ -30,10 +30,9 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
             .handle(rt.handle())
             .build()?;
 
-        let sender = chain.sender().clone();
         let monarch = chain.sender_addr();
 
-        let deployment = match Abstract::deploy_on(chain, sender) {
+        let deployment = match Abstract::deploy_on(chain, ()) {
             Ok(deployment) => {
                 // write_deployment(&deployment_status)?;
                 deployment

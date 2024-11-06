@@ -17,7 +17,7 @@ pub fn load_abstr(chain: ChainInfo) -> anyhow::Result<AbstractClient<CloneTestin
 
     // TODO: first version, nothing to load yet
     // let abstr_deployment = AbstractClient::new(app)?;
-    let abstr_deployment = AbstractClient::builder(app.clone()).build(app.sender().clone())?;
+    let abstr_deployment = AbstractClient::builder(app.clone()).build()?;
 
     let creator = app
         .wasm_querier()

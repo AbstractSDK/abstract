@@ -1,4 +1,4 @@
-use abstract_app::std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
+use abstract_app::std::objects::{namespace::Namespace, AssetEntry};
 use abstract_client::{AbstractClient, Application, Publisher};
 // Use prelude to get all the necessary imports
 use calendar_app::{
@@ -92,7 +92,7 @@ fn setup_with_time(
     let chain = MockBech32::new("mock");
     let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone())
         .asset(DENOM, AssetInfoUnchecked::native(DENOM))
-        .build(chain.sender().clone())?;
+        .build()?;
 
     client.set_balances(vec![
         (

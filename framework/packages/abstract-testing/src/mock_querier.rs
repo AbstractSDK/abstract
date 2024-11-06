@@ -8,8 +8,8 @@ use abstract_std::{
     },
 };
 use cosmwasm_std::{
-    testing::MockApi, Addr, Binary, Checksum, CodeInfoResponse, ContractInfoResponse,
-    ContractResult, Empty, QuerierWrapper, SystemResult, WasmQuery,
+    testing::MockApi, Addr, Binary, CodeInfoResponse, ContractInfoResponse, ContractResult, Empty,
+    QuerierWrapper, SystemResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};

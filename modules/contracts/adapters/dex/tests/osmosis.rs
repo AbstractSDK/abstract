@@ -109,7 +109,7 @@ fn setup_mock() -> anyhow::Result<(
         ],
     )?;
 
-    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
 
     let _root_os = AccountI::create_default_account(
         &deployment,

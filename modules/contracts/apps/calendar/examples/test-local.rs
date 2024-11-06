@@ -38,7 +38,7 @@ fn main() -> anyhow::Result<()> {
         .build()
         .unwrap();
     // Deploy abstract locally
-    let abstract_deployment = Abstract::deploy_on(daemon.clone(), daemon.sender().clone())?;
+    let abstract_deployment = Abstract::deploy_on(daemon.clone(), ())?;
 
     let app = CalendarAppInterface::new(APP_ID, daemon.clone());
 
