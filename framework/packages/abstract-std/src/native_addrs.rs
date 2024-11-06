@@ -31,22 +31,26 @@ pub fn creator_address(
 }
 
 pub fn creator_canon_address(deps: Deps, abstract_code_id: u64) -> StdResult<CanonicalAddr> {
-    static mut CREATOR_CANON_ADDRESS: Option<CanonicalAddr> = None;
     // TODO: should we color it with unsafe?
-    // It's safe unless multithreaded
+    // It's safe unless multithreaded or multi-chain
     // https://google.github.io/comprehensive-rust/unsafe-rust/mutable-static.html
-    unsafe {
-        if CREATOR_CANON_ADDRESS.is_none() {
-            CREATOR_CANON_ADDRESS = Some(
-                creator_address(&deps.querier, abstract_code_id).and_then(|creator_addr| {
-                    deps.api
-                        .addr_canonicalize(creator_addr.as_str())
-                        .map(Into::into)
-                })?,
-            )
-        }
-        Ok(CREATOR_CANON_ADDRESS.clone().unwrap())
-    }
+
+    // Uncomment to use
+
+    // static mut CREATOR_CANON_ADDRESS: Option<CanonicalAddr> = None;
+    // unsafe {
+    //     if CREATOR_CANON_ADDRESS.is_none() {
+    //         CREATOR_CANON_ADDRESS = Some(
+    creator_address(&deps.querier, abstract_code_id).and_then(|creator_addr| {
+        deps.api
+            .addr_canonicalize(creator_addr.as_str())
+            .map(Into::into)
+    })
+    //             ?,
+    //         )
+    //     }
+    //     Ok(CREATOR_CANON_ADDRESS.clone().unwrap())
+    // }
 }
 
 pub fn contract_canon_address(

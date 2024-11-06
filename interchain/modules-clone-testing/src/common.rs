@@ -15,14 +15,17 @@ pub fn load_abstr(chain: ChainInfo) -> anyhow::Result<AbstractClient<CloneTestin
     let gas_denom = chain.gas_denom;
     let mut app = CloneTesting::new(chain)?;
 
-    let sender = AbstractClient::mock_admin(&app);
-    // Make sure sender have enough gas
-    app.add_balance(&sender, coins(1_000_000_000_000_000, gas_denom))?;
-    app.set_sender(sender);
-
     // TODO: first version, nothing to load yet
     // let abstr_deployment = AbstractClient::new(app)?;
-    let abstr_deployment = AbstractClient::builder(app).build_mock()?;
+    let abstr_deployment = AbstractClient::builder(app.clone()).build(app.sender().clone())?;
+
+    let creator = app
+        .wasm_querier()
+        .code(abstr_deployment.registry().code_id()?)?
+        .creator;
+    // Make sure creator have enough gas
+    app.add_balance(&creator, coins(1_000_000_000_000_000, gas_denom))?;
+    app.set_sender(creator);
 
     // Migrate if needed
     {

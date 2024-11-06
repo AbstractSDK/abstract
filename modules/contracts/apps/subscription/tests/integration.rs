@@ -66,9 +66,7 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
         .instantiate_with_id("abstract:cw20")?;
 
     let publisher: Publisher<_> = client
-        .account_builder()
-        .namespace(Namespace::new("abstract")?)
-        .build()?
+        .fetch_account(Namespace::new("abstract")?)?
         .publisher()?;
     publisher.publish_app::<SubscriptionInterface<_>>()?;
 

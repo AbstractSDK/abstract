@@ -111,12 +111,7 @@ fn setup_with_time(
 
     // Create account to install app onto as well as claim namespace.
     let publisher: Publisher<MockBech32> = client
-        .account_builder()
-        .namespace(Namespace::new("abstract")?)
-        .ownership(GovernanceDetails::Monarchy {
-            monarch: chain.sender_addr().to_string(),
-        })
-        .build()?
+        .fetch_account(Namespace::new("abstract")?)?
         .publisher()?;
 
     publisher.publish_app::<CalendarAppInterface<MockBech32>>()?;
