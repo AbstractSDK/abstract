@@ -415,10 +415,3 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(())
     }
 }
-
-impl<Chain: CwEnv<Sender = Addr>> AbstractClient<Chain> {
-    /// Admin of the abstract deployment
-    pub fn mock_admin(chain: &Chain) -> <Chain as TxHandler>::Sender {
-        Abstract::mock_admin(chain)
-    }
-}

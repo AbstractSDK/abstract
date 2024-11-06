@@ -88,18 +88,13 @@ impl<Chain: IbcQueryHandler<Sender = Addr>> AbstractInterchainClient<Chain> {
         // We deploy Abstract on all chains
         let clients = interchain
             .chains()
-            .map(|chain| AbstractClient::builder(chain.clone()).build_mock())
+            .map(|chain| AbstractClient::builder(chain.clone()).build(chain.sender().clone()))
             .collect::<Result<Vec<_>, _>>()?;
 
         // We connect all chains together
         for i in 0..clients.len() {
             for j in i + 1..clients.len() {
-                clients[i]
-                    .call_as(&Abstract::mock_admin(&clients[i].environment()))
-                    .connect_to(
-                        &clients[j].call_as(&Abstract::mock_admin(&clients[j].environment())),
-                        interchain,
-                    )?;
+                clients[i].connect_to(&clients[j], interchain)?;
             }
         }
 

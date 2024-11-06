@@ -29,7 +29,9 @@ impl<
         msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
         // Base state
-        let contract_info = deps.querier.query_wasm_contract_info(info.sender.clone())?;
+        let contract_info = deps
+            .querier
+            .query_wasm_contract_info(msg.base.registry_address)?;
         let state = AdapterState {
             code_id: contract_info.code_id,
         };
@@ -69,7 +71,9 @@ mod test {
         let info = message_info(abstr.account.addr(), &[]);
         deps.querier = abstract_testing::abstract_mock_querier(deps.api);
         let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {},
+            base: BaseInstantiateMsg {
+                registry_address: abstr.registry.to_string(),
+            },
             module: MockInitMsg {},
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;

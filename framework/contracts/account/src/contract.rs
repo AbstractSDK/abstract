@@ -455,7 +455,8 @@ mod tests {
         },
     };
     use abstract_testing::{
-        abstract_mock_querier_builder, mock_env_validated, prelude::AbstractMockAddrs,
+        abstract_mock_querier, abstract_mock_querier_builder, mock_env_validated,
+        prelude::AbstractMockAddrs,
     };
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies},
@@ -469,6 +470,7 @@ mod tests {
     #[coverage_helper::test]
     fn successful_instantiate() {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
 
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);

@@ -64,7 +64,8 @@ mod tests {
 
         #[coverage_helper::test]
         fn test_registry() {
-            let deps = mock_dependencies();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             let registry = RegistryContract::new(deps.as_ref(), 1).unwrap();
 
@@ -82,7 +83,8 @@ mod tests {
 
         #[coverage_helper::test]
         fn test_ans() {
-            let deps = mock_dependencies();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             let ans = AnsHost::new(deps.as_ref(), 1).unwrap();
 

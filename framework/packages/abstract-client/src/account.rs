@@ -812,14 +812,14 @@ impl<Chain: CwEnv> Debug for Account<Chain> {
 pub mod test {
     use abstract_interface::{Abstract, RegistryQueryFns};
     use abstract_std::objects::namespace::Namespace;
-    use cw_orch::{contract::Deploy, mock::MockBech32};
+    use cw_orch::{contract::Deploy, mock::MockBech32, prelude::*};
 
     use crate::AbstractClient;
 
     #[coverage_helper::test]
     fn namespace_after_creation() -> cw_orch::anyhow::Result<()> {
         let mock = MockBech32::new("mock");
-        let abstr = AbstractClient::builder(mock.clone()).build_mock()?;
+        let abstr = AbstractClient::builder(mock.clone()).build(mock.sender().clone())?;
 
         let my_namespace = "my-namespace";
         let new_account = abstr.account_builder().build()?;

@@ -282,7 +282,8 @@ mod test {
 
     #[coverage_helper::test]
     fn abstract_api() {
-        let deps = mock_dependencies();
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let module = MockBinding {};
         let env = mock_env_validated(deps.api);
 

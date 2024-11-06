@@ -349,8 +349,7 @@ mod tests {
     use crate::test_common::{execute_as, mock_init};
     use abstract_std::account::{ExecuteMsg, InternalConfigAction};
     use abstract_std::objects::dependency::Dependency;
-    use abstract_testing::module::TEST_MODULE_ID;
-    use abstract_testing::prelude::AbstractMockAddrs;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
     use ownership::GovOwnershipError;
 
@@ -361,6 +360,7 @@ mod tests {
     }
 
     mod add_module_upgrade {
+
         use crate::modules::migration::add_module_upgrade_to_context;
 
         use super::*;
@@ -368,6 +368,7 @@ mod tests {
         #[coverage_helper::test]
         fn should_allow_migrate_msg() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             mock_init(&mut deps)?;
             let storage = deps.as_mut().storage;
 
@@ -390,6 +391,7 @@ mod tests {
         #[coverage_helper::test]
         fn manual_adds_module_to_account_modules() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let module1_addr = deps.api.addr_make("module1");
             let module2_addr = deps.api.addr_make("module2");
 
@@ -416,6 +418,7 @@ mod tests {
         #[coverage_helper::test]
         fn missing_id() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
 
             mock_init(&mut deps).unwrap();
 
@@ -431,6 +434,7 @@ mod tests {
         #[coverage_helper::test]
         fn manual_removes_module_from_account_modules() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             mock_init(&mut deps)?;
 
             // manually add module
@@ -455,6 +459,7 @@ mod tests {
         #[coverage_helper::test]
         fn only_account_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
             let not_account_factory = deps.api.addr_make("not_account_factory");
@@ -503,6 +508,7 @@ mod tests {
         #[coverage_helper::test]
         fn errors_with_existing_dependents() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
             mock_init(&mut deps)?;
@@ -543,6 +549,7 @@ mod tests {
             };
 
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let not_owner = deps.api.addr_make("not_owner");
             mock_init(&mut deps)?;
 
@@ -560,6 +567,7 @@ mod tests {
         #[coverage_helper::test]
         fn fails_with_nonexistent_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 
@@ -581,6 +589,7 @@ mod tests {
         #[coverage_helper::test]
         fn forwards_exec_to_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 

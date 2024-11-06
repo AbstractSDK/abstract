@@ -76,6 +76,7 @@ mod test_common {
 
     pub fn test_only_owner(msg: ExecuteMsg) -> anyhow::Result<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let not_owner = deps.api.addr_make("not_owner");
         mock_init(&mut deps)?;
 

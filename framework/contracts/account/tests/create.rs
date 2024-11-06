@@ -15,7 +15,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
 
     let vc = deployment.registry;
     let vc_config = vc.config()?;
@@ -34,7 +34,7 @@ fn instantiate() -> AResult {
 fn create_one_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
 
     let registry = &deployment.registry;
 
@@ -88,7 +88,7 @@ fn create_one_account() -> AResult {
 fn create_two_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
 
     let registry = &deployment.registry;
 
@@ -158,7 +158,7 @@ fn create_two_accounts() -> AResult {
 fn sender_is_not_admin_monarchy() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     let account = AccountI::new(ACCOUNT, chain);
 
     let registry = &deployment.registry;
@@ -206,7 +206,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 fn sender_is_not_admin_external() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     let account = AccountI::new(ACCOUNT, chain);
     let registry = &deployment.registry;
 
@@ -251,7 +251,7 @@ fn sender_is_not_admin_external() -> AResult {
 fn create_one_account_with_namespace() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     let account = AccountI::new(ACCOUNT, chain);
 
     let namespace_to_claim = "namespace-to-claim";
@@ -306,8 +306,7 @@ fn create_one_account_with_namespace() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace_fee() -> AResult {
-    let mut chain = MockBech32::new("mock");
-    Abstract::deploy_on_mock(chain.clone())?;
-    chain.set_sender(Abstract::mock_admin(&chain));
+    let chain = MockBech32::new("mock");
+    Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
     abstract_integration_tests::create::create_one_account_with_namespace_fee(chain)
 }

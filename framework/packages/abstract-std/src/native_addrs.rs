@@ -1,4 +1,4 @@
-use cosmwasm_std::{instantiate2_address, Addr, Binary, CanonicalAddr, Deps, Env};
+use cosmwasm_std::{instantiate2_address, Addr, Binary, CanonicalAddr, Deps, Env, StdResult};
 
 use crate::AbstractResult;
 
@@ -30,27 +30,22 @@ pub fn creator_address(
     Ok(code_info.creator)
 }
 
-use std::sync::Once;
-
-// TODO: 2 issues we have with this function
-pub fn creator_canon_address(deps: Deps, abstract_code_id: u64) -> CanonicalAddr {
-    dbg!(abstract_code_id);
-    static CREATOR_CANON_EVALUATION: Once = Once::new();
-    // 1) CanonicalAddr cannot be constructed in a const context
-    static mut CREATOR_CANON_ADDRESS: Binary = Binary::new(vec![]);
+pub fn creator_canon_address(deps: Deps, abstract_code_id: u64) -> StdResult<CanonicalAddr> {
+    static mut CREATOR_CANON_ADDRESS: Option<CanonicalAddr> = None;
+    // TODO: should we color it with unsafe?
+    // It's safe unless multithreaded
+    // https://google.github.io/comprehensive-rust/unsafe-rust/mutable-static.html
     unsafe {
-        CREATOR_CANON_EVALUATION.call_once(|| {
-            // 2) StdResult don't have clone, so we have to store just canonical address
-            CREATOR_CANON_ADDRESS = creator_address(&deps.querier, abstract_code_id)
-                .and_then(|creator_addr| {
-                    dbg!(&creator_addr);
+        if CREATOR_CANON_ADDRESS.is_none() {
+            CREATOR_CANON_ADDRESS = Some(
+                creator_address(&deps.querier, abstract_code_id).and_then(|creator_addr| {
                     deps.api
                         .addr_canonicalize(creator_addr.as_str())
                         .map(Into::into)
-                })
-                .unwrap();
-        });
-        CREATOR_CANON_ADDRESS.clone().into()
+                })?,
+            )
+        }
+        Ok(CREATOR_CANON_ADDRESS.clone().unwrap())
     }
 }
 
@@ -59,7 +54,7 @@ pub fn contract_canon_address(
     abstract_code_id: u64,
     salt: &[u8],
 ) -> AbstractResult<CanonicalAddr> {
-    let creator_canon = creator_canon_address(deps, abstract_code_id);
+    let creator_canon = creator_canon_address(deps, abstract_code_id)?;
     let canon_addr = instantiate2_address(&BLOB_CHECKSUM, &creator_canon, salt)?;
     Ok(canon_addr)
 }

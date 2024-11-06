@@ -140,7 +140,7 @@ pub fn mock_env_validated(mock_api: MockApi) -> Env {
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
     use abstract_std::{native_addrs, registry::Account};
-    use cosmwasm_std::{testing::MockApi, Addr, Api};
+    use cosmwasm_std::{instantiate2_address, testing::MockApi, Addr, Api};
 
     use crate::mock_env_validated;
 
@@ -158,26 +158,32 @@ pub mod addresses {
 
     impl AbstractMockAddrs {
         pub fn new(mock_api: MockApi) -> AbstractMockAddrs {
-            // TODO:
-            // let hrp = native_addrs::hrp_from_env(&mock_env);
-            // let mock_env = mock_env_validated(mock_api);
+            let owner = mock_api.addr_make(crate::OWNER);
+            let owner_canon = mock_api.addr_canonicalize(owner.as_str()).unwrap();
+            let ans_host = instantiate2_address(
+                &native_addrs::BLOB_CHECKSUM,
+                &owner_canon,
+                native_addrs::ANS_HOST_SALT,
+            )
+            .unwrap();
+            let registry = instantiate2_address(
+                &native_addrs::BLOB_CHECKSUM,
+                &owner_canon,
+                native_addrs::REGISTRY_SALT,
+            )
+            .unwrap();
+            let module_factory = instantiate2_address(
+                &native_addrs::BLOB_CHECKSUM,
+                &owner_canon,
+                native_addrs::MODULE_FACTORY_SALT,
+            )
+            .unwrap();
+
             AbstractMockAddrs {
-                // owner: mock_api
-                //     .addr_validate(&native_addrs::creator_address(hrp).unwrap())
-                //     .unwrap(),
-                // ans_host: mock_api
-                //     .addr_humanize(&native_addrs::ans_address(hrp, &mock_api).unwrap())
-                //     .unwrap(),
-                // registry: mock_api
-                //     .addr_humanize(&native_addrs::registry_address(hrp, &mock_api).unwrap())
-                //     .unwrap(),
-                // module_factory: mock_api
-                //     .addr_humanize(&native_addrs::module_factory_address(hrp, &mock_api).unwrap())
-                //     .unwrap(),
-                owner: mock_api.addr_make(crate::OWNER),
-                ans_host: mock_api.addr_make(abstract_std::ANS_HOST),
-                registry: mock_api.addr_make(abstract_std::REGISTRY),
-                module_factory: mock_api.addr_make(abstract_std::MODULE_FACTORY),
+                owner,
+                ans_host: mock_api.addr_humanize(&ans_host).unwrap(),
+                registry: mock_api.addr_humanize(&registry).unwrap(),
+                module_factory: mock_api.addr_humanize(&module_factory).unwrap(),
                 account: admin_account(mock_api),
                 module_address: mock_api.addr_make("module"),
             }
