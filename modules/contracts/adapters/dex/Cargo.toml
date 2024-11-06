@@ -25,7 +25,12 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw20", "dep:serde_json"]
+testing = [
+  "dep:abstract-client",
+  "dep:cw20",
+  "dep:serde_json",
+  "abstract-adapter/test-utils",
+]
 
 # Supported Dexes
 # wynd = ["abstract-wyndex-adapter/full_integration"]

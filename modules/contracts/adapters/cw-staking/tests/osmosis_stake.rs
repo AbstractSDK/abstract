@@ -153,15 +153,15 @@ mod osmosis_test {
     )> {
         let mut tube = OsmosisTestTube::new(vec![]);
 
-        let seed = Abstract::<OsmosisTestTube>::mock_mnemonic().to_seed("");
-        let derive_path = Abstract::<OsmosisTestTube>::mock_derive_path(None);
-        let signing_key = cw_orch_osmosis_test_tube::osmosis_test_tube::cosmrs::crypto::secp256k1::SigningKey::derive_from_path(seed, &derive_path.parse().unwrap()).unwrap();
-        let signing_account = cw_orch_osmosis_test_tube::osmosis_test_tube::SigningAccount::new(
-            tube.sender.prefix().to_string(),
-            signing_key,
-            tube.sender.fee_setting().clone(),
-        );
-        tube.set_sender(Rc::new(signing_account));
+        // let seed = Abstract::<OsmosisTestTube>::mock_mnemonic().to_seed("");
+        // let derive_path = Abstract::<OsmosisTestTube>::mock_derive_path(None);
+        // let signing_key = cw_orch_osmosis_test_tube::osmosis_test_tube::cosmrs::crypto::secp256k1::SigningKey::derive_from_path(seed, &derive_path.parse().unwrap()).unwrap();
+        // let signing_account = cw_orch_osmosis_test_tube::osmosis_test_tube::SigningAccount::new(
+        //     tube.sender.prefix().to_string(),
+        //     signing_key,
+        //     tube.sender.fee_setting().clone(),
+        // );
+        // tube.set_sender(Rc::new(signing_account));
 
         tube.add_balance(
             &tube.sender_addr(),
