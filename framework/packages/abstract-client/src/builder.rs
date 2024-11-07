@@ -177,6 +177,10 @@ pub mod cw20_builder {
     use crate::client::AbstractClientResult;
 
     /// A builder for creating and deploying `Cw20` contract in a [`CwEnv`](cw_orch::prelude::CwEnv) environment.
+    ///
+    /// Use the builder methods to specifiy the details of your cw20 token.
+    ///
+    /// Use [`Self::instantiate_with_id`] to upload and instantiate your token.
     pub struct Cw20Builder<Chain: CwEnv> {
         chain: Chain,
         name: String,
