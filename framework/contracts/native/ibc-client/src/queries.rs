@@ -7,6 +7,7 @@ use abstract_std::{
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
         ListIbcInfrastructureResponse, ListRemoteAccountsResponse, ListRemoteHostsResponse,
     },
+    native_addrs,
     objects::{
         account::{AccountSequence, AccountTrace},
         AccountId, TruncatedChainId,
@@ -92,12 +93,11 @@ pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructur
 }
 
 pub fn config(deps: Deps, env: &Env) -> IbcClientResult<ConfigResponse> {
-    let contract_config = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps, contract_config.code_id)?.address,
-        registry_address: RegistryContract::new(deps, contract_config.code_id)?.address,
+        ans_host: AnsHost::new(deps, abstract_code_id)?.address,
+        registry_address: RegistryContract::new(deps, abstract_code_id)?.address,
     })
 }
 

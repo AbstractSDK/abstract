@@ -3,7 +3,7 @@ use abstract_sdk::{
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use abstract_std::registry::Account;
+use abstract_std::{native_addrs, registry::Account};
 use cosmwasm_std::Deps;
 
 use crate::{state::ContractError, AppContract};
@@ -21,10 +21,9 @@ impl<
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         let state = self.base_state.load(deps.storage)?;
-        let contract_info = deps
-            .querier
-            .query_wasm_contract_info(state.account.into_addr())?;
-        AnsHost::new(deps, contract_info.code_id).map_err(Into::into)
+        let abstract_code_id =
+            native_addrs::abstract_code_id(&deps.querier, state.account.into_addr())?;
+        AnsHost::new(deps, abstract_code_id).map_err(Into::into)
     }
 }
 // ANCHOR_END: ans
@@ -56,10 +55,9 @@ impl<
 {
     fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
         let state = self.base_state.load(deps.storage)?;
-        let contract_info = deps
-            .querier
-            .query_wasm_contract_info(state.account.into_addr())?;
-        RegistryContract::new(deps, contract_info.code_id).map_err(Into::into)
+        let abstract_code_id =
+            native_addrs::abstract_code_id(&deps.querier, state.account.into_addr())?;
+        RegistryContract::new(deps, abstract_code_id).map_err(Into::into)
     }
 }
 

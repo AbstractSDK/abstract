@@ -1,6 +1,6 @@
 use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
 use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
-use abstract_std::objects::TruncatedChainId;
+use abstract_std::{native_addrs, objects::TruncatedChainId};
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
 use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
@@ -9,12 +9,12 @@ use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps, contract_info.code_id)?.address,
-        registry_address: RegistryContract::new(deps, contract_info.code_id)?.address,
+        ans_host: AnsHost::new(deps, abstract_code_id)?.address,
+        registry_address: RegistryContract::new(deps, abstract_code_id)?.address,
     })
 }
 
@@ -43,10 +43,11 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
-                    let contract_info = deps
-                        .querier
-                        .query_wasm_contract_info(env.contract.address.clone())?;
-                    let registry = RegistryContract::new(deps, contract_info.code_id)?;
+                    let abstract_code_id = native_addrs::abstract_code_id(
+                        &deps.querier,
+                        env.contract.address.clone(),
+                    )?;
+                    let registry = RegistryContract::new(deps, abstract_code_id)?;
 
                     let msg = evm::execute(&deps.querier, &registry, msgs, callback)?;
 

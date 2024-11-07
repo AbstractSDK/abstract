@@ -13,6 +13,7 @@ use abstract_std::{
         IbcClientCallback, InstalledModuleIdentification, PolytoneNoteExecuteMsg,
     },
     ibc_host::{self, HostAction, InternalAction},
+    native_addrs,
     objects::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
@@ -153,10 +154,9 @@ pub fn execute_send_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address)?;
-    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
     // The packet we need to send depends on the action we want to execute
 
     let note_message = match &action {
@@ -192,10 +192,10 @@ pub fn execute_send_module_to_module_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
-    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     // Query the sender module information
     let module_info = registry
@@ -337,10 +337,10 @@ pub fn execute_register_account(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
-    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     // Verify that the sender is a account contract
     let account = registry.assert_account(&info.sender, &deps.querier)?;
@@ -385,12 +385,11 @@ pub fn execute_send_funds(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
 
-    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
-    let ans = AnsHost::new(deps.as_ref(), contract_info.code_id)?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
+    let ans = AnsHost::new(deps.as_ref(), abstract_code_id)?;
     // Verify that the sender is a account contract
 
     let account = registry.assert_account(&info.sender, &deps.querier)?;

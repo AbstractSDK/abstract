@@ -8,7 +8,7 @@ use abstract_sdk::{
     },
     *,
 };
-use abstract_std::objects::module;
+use abstract_std::{native_addrs, objects::module};
 use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, WasmMsg,
@@ -32,10 +32,10 @@ pub fn execute_create_modules(
     let block_height = env.block.height;
     // Verify sender is active Account
     // Construct feature object to access registry functions
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
-    let registry = RegistryContract::new(deps.as_ref(), contract_info.code_id)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     // assert that sender is account
     let account = registry.assert_account(&info.sender, &deps.querier)?;

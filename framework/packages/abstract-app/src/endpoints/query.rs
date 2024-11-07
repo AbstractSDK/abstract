@@ -1,6 +1,7 @@
 use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
+    native_addrs,
     objects::{
         gov_type::TopLevelOwnerResponse,
         module_version::{ModuleDataResponse, MODULE},
@@ -29,7 +30,7 @@ impl<
 
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
-            QueryMsg::Base(msg) => self.base_query(deps, env, msg).map_err(Into::into),
+            QueryMsg::Base(msg) => self.base_query(deps, msg).map_err(Into::into),
             QueryMsg::Module(msg) => self.query_handler()?(deps, env, self, msg),
         }
     }
@@ -45,26 +46,24 @@ impl<
         SudoMsg,
     > AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg>
 {
-    pub fn base_query(&self, deps: Deps, env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
+    pub fn base_query(&self, deps: Deps, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
-            BaseQueryMsg::BaseConfig {} => to_json_binary(&self.dapp_config(deps, &env)?),
+            BaseQueryMsg::BaseConfig {} => to_json_binary(&self.dapp_config(deps)?),
             BaseQueryMsg::BaseAdmin {} => to_json_binary(&self.admin(deps)?),
             BaseQueryMsg::ModuleData {} => to_json_binary(&self.module_data(deps)?),
             BaseQueryMsg::TopLevelOwner {} => to_json_binary(&self.top_level_owner(deps)?),
         }
     }
 
-    fn dapp_config(&self, deps: Deps, env: &Env) -> StdResult<AppConfigResponse> {
+    fn dapp_config(&self, deps: Deps) -> StdResult<AppConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
-        let contract_info = deps
-            .querier
-            .query_wasm_contract_info(env.contract.address.clone())?;
+        let abstract_code_id = native_addrs::abstract_code_id(&deps.querier, state.account.addr())?;
         Ok(AppConfigResponse {
             account: state.account.into_addr(),
-            ans_host_address: AnsHost::new(deps, contract_info.code_id)
+            ans_host_address: AnsHost::new(deps, abstract_code_id)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
-            registry_address: RegistryContract::new(deps, contract_info.code_id)
+            registry_address: RegistryContract::new(deps, abstract_code_id)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
         })

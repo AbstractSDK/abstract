@@ -6,6 +6,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     ibc_host::{state::CHAIN_PROXIES, ClientProxiesResponse, ClientProxyResponse, ConfigResponse},
+    native_addrs,
     objects::{module_factory::ModuleFactoryContract, TruncatedChainId},
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
@@ -31,14 +32,13 @@ pub fn query(deps: Deps, env: Env, query: QueryMsg) -> HostResult<Binary> {
 }
 
 fn config(deps: Deps, env: &Env) -> HostResult<ConfigResponse> {
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
 
     Ok(ConfigResponse {
-        ans_host_address: AnsHost::new(deps, contract_info.code_id)?.address,
-        module_factory_address: ModuleFactoryContract::new(deps, contract_info.code_id)?.address,
-        registry_address: RegistryContract::new(deps, contract_info.code_id)?.address,
+        ans_host_address: AnsHost::new(deps, abstract_code_id)?.address,
+        module_factory_address: ModuleFactoryContract::new(deps, abstract_code_id)?.address,
+        registry_address: RegistryContract::new(deps, abstract_code_id)?.address,
     })
 }
 

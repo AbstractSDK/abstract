@@ -35,11 +35,10 @@ impl<
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
     AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn base_query(&self, deps: Deps, env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
+    fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
             BaseQueryMsg::BaseConfig {} => {
-                to_json_binary(&self.dapp_config(deps, &env).map_err(Error::from)?)
-                    .map_err(Into::into)
+                to_json_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
             BaseQueryMsg::AuthorizedAddresses { account_address } => {
                 let account_address = deps.api.addr_validate(&account_address)?;
@@ -59,15 +58,13 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         }
     }
 
-    fn dapp_config(&self, deps: Deps, env: &Env) -> StdResult<AdapterConfigResponse> {
-        let contract_info = deps
-            .querier
-            .query_wasm_contract_info(env.contract.address.clone())?;
+    fn dapp_config(&self, deps: Deps) -> StdResult<AdapterConfigResponse> {
+        let abstract_code_id = self.state(deps.storage)?.code_id;
         Ok(AdapterConfigResponse {
-            registry_address: RegistryContract::new(deps, contract_info.code_id)
+            registry_address: RegistryContract::new(deps, abstract_code_id)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
-            ans_host_address: AnsHost::new(deps, contract_info.code_id)
+            ans_host_address: AnsHost::new(deps, abstract_code_id)
                 .map_err(|e| StdError::generic_err(e.to_string()))?
                 .address,
             dependencies: self

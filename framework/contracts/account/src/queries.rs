@@ -10,6 +10,7 @@ use abstract_std::{
         AccountModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleVersionsResponse, SubAccountIdsResponse,
     },
+    native_addrs,
     objects::{
         gov_type::TopLevelOwnerResponse,
         module::{self, ModuleInfo},
@@ -43,12 +44,11 @@ pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
 
 pub fn handle_config_query(deps: Deps, env: &Env) -> StdResult<Binary> {
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
-    let registry = RegistryContract::new(deps, contract_info.code_id)
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps, abstract_code_id)
         .map_err(|e| StdError::generic_err(e.to_string()))?;
-    let module_factory = ModuleFactoryContract::new(deps, contract_info.code_id)
+    let module_factory = ModuleFactoryContract::new(deps, abstract_code_id)
         .map_err(|e| StdError::generic_err(e.to_string()))?;
     let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
     to_json_binary(&ConfigResponse {
@@ -76,10 +76,9 @@ pub fn handle_module_info_query(
 
     let ids_and_addr = res?;
 
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
-    let registry = RegistryContract::new(deps, contract_info.code_id)
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps, abstract_code_id)
         .map_err(|e| StdError::generic_err(e.to_string()))?;
 
     let mut resp_vec: Vec<AccountModuleInfo> = vec![];
@@ -170,10 +169,9 @@ pub fn query_module_versions(
     let addresses: BTreeMap<String, Addr> = query_module_addresses(deps, module_names)?;
     let mut module_versions: BTreeMap<String, ContractVersion> = BTreeMap::new();
 
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
-    let registry = RegistryContract::new(deps, contract_info.code_id)
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps, abstract_code_id)
         .map_err(|e| StdError::generic_err(e.to_string()))?;
     for (name, address) in addresses.into_iter() {
         let result = query_module_version(deps, address, &registry)?;

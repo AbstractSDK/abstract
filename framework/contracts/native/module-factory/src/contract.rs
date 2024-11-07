@@ -3,9 +3,12 @@ use abstract_sdk::{
     feature_objects::{AnsHost, RegistryContract},
     std::{module_factory::*, MODULE_FACTORY},
 };
-use abstract_std::objects::{
-    module::{ModuleInfo, Monetization},
-    module_version::assert_contract_upgrade,
+use abstract_std::{
+    native_addrs,
+    objects::{
+        module::{ModuleInfo, Monetization},
+        module_version::assert_contract_upgrade,
+    },
 };
 use cosmwasm_std::{
     to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
@@ -61,15 +64,14 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 pub fn query_config(deps: Deps, env: &Env) -> StdResult<ConfigResponse> {
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
 
     let resp = ConfigResponse {
-        registry_address: RegistryContract::new(deps, contract_info.code_id)
+        registry_address: RegistryContract::new(deps, abstract_code_id)
             .map_err(|e| StdError::generic_err(e.to_string()))?
             .address,
-        ans_host_address: AnsHost::new(deps, contract_info.code_id)
+        ans_host_address: AnsHost::new(deps, abstract_code_id)
             .map_err(|e| StdError::generic_err(e.to_string()))?
             .address,
     };
@@ -82,10 +84,10 @@ pub fn query_simulate_install_modules(
     env: &Env,
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
-    let contract_info = deps
-        .querier
-        .query_wasm_contract_info(env.contract.address.clone())?;
-    let registry = RegistryContract::new(deps, contract_info.code_id)
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps, abstract_code_id)
         .map_err(|e| StdError::generic_err(e.to_string()))?;
 
     let module_responses = registry

@@ -1,4 +1,6 @@
-use cosmwasm_std::{instantiate2_address, Addr, CanonicalAddr, Deps, Env, StdResult};
+use cosmwasm_std::{
+    instantiate2_address, Addr, CanonicalAddr, Deps, Env, QuerierWrapper, StdResult,
+};
 
 use crate::AbstractResult;
 
@@ -23,34 +25,68 @@ pub fn module_factory_address(deps: Deps, abstract_code_id: u64) -> AbstractResu
 
 /// Address of the abstract admin
 pub fn creator_address(
-    querier: &cosmwasm_std::QuerierWrapper,
+    querier: &QuerierWrapper,
     abstract_code_id: u64,
 ) -> cosmwasm_std::StdResult<Addr> {
     let code_info = querier.query_wasm_code_info(abstract_code_id)?;
     Ok(code_info.creator)
 }
 
-pub fn creator_canon_address(deps: Deps, abstract_code_id: u64) -> StdResult<CanonicalAddr> {
-    // TODO: should we color it with unsafe?
-    // It's safe unless multithreaded or multi-chain
-    // https://google.github.io/comprehensive-rust/unsafe-rust/mutable-static.html
+fn _abstract_code_id(
+    querier: &QuerierWrapper,
+    abstract_address: impl Into<String>,
+) -> StdResult<u64> {
+    querier
+        .query_wasm_contract_info(abstract_address)
+        .map(|contract_info| contract_info.code_id)
+}
 
-    // Uncomment to use
+#[cfg(target_arch = "wasm32")]
+pub fn abstract_code_id(
+    querier: &QuerierWrapper,
+    abstract_address: impl Into<String>,
+) -> StdResult<u64> {
+    // For wasm we can safely use static to avoid recurring queries, as we don't expect multi threads
+    static mut ABSTRACT_CODE_ID: Option<u64> = None;
+    unsafe {
+        if ABSTRACT_CODE_ID.is_none() {
+            ABSTRACT_CODE_ID = Some(_abstract_code_id(querier, abstract_address)?)
+        }
+        Ok(ABSTRACT_CODE_ID.clone().unwrap())
+    }
+}
 
-    // static mut CREATOR_CANON_ADDRESS: Option<CanonicalAddr> = None;
-    // unsafe {
-    //     if CREATOR_CANON_ADDRESS.is_none() {
-    //         CREATOR_CANON_ADDRESS = Some(
+#[cfg(not(target_arch = "wasm32"))]
+pub fn abstract_code_id(
+    querier: &QuerierWrapper,
+    abstract_address: impl Into<String>,
+) -> StdResult<u64> {
+    _abstract_code_id(querier, abstract_address)
+}
+
+fn _creator_canon_address(deps: Deps, abstract_code_id: u64) -> StdResult<CanonicalAddr> {
     creator_address(&deps.querier, abstract_code_id).and_then(|creator_addr| {
         deps.api
             .addr_canonicalize(creator_addr.as_str())
             .map(Into::into)
     })
-    //             ?,
-    //         )
-    //     }
-    //     Ok(CREATOR_CANON_ADDRESS.clone().unwrap())
-    // }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn creator_canon_address(deps: Deps, abstract_code_id: u64) -> StdResult<CanonicalAddr> {
+    // For wasm we can safely use static to avoid recurring queries, as we don't expect multi threads
+    static mut CREATOR_CANON_ADDRESS: Option<CanonicalAddr> = None;
+    unsafe {
+        if CREATOR_CANON_ADDRESS.is_none() {
+            CREATOR_CANON_ADDRESS = Some(_creator_canon_address(deps, abstract_code_id)?)
+        }
+        Ok(CREATOR_CANON_ADDRESS.clone().unwrap())
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn creator_canon_address(deps: Deps, abstract_code_id: u64) -> StdResult<CanonicalAddr> {
+    _creator_canon_address(deps, abstract_code_id)
 }
 
 pub fn contract_canon_address(
