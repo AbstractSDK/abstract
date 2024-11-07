@@ -55,8 +55,8 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         CosmosOptions::default(),
     ))?;
 
-    // Create a channel between the 2 chains for the transfer ports
-    // JUNO>JUNO2
+    // // Create a channel between the 2 chains for the transfer ports
+    // // JUNO>JUNO2
     let juno_juno2_channel = interchain
         .create_channel(
             JUNO,
@@ -68,11 +68,14 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         )?
         .interchain_channel;
 
-    let (abstr_juno, abstr_juno2) = abstract_starship_interfaces(
-        &interchain,
-        &juno_abstract_deployer,
-        &juno2_abstract_deployer,
-    )?;
+    // let (abstr_juno, abstr_juno2) = abstract_starship_interfaces(
+    //     &interchain,
+    //     &juno_abstract_deployer,
+    //     &juno2_abstract_deployer,
+    // )?;
+
+    let abstr_juno = abstract_interface::Abstract::load_from(juno.clone())?;
+    let abstr_juno2 = abstract_interface::Abstract::load_from(juno2.clone())?;
 
     let counter_juno2 = init_counter(juno2.clone())?;
 
@@ -154,7 +157,7 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         coins(10_000_000_000, get_denom(&juno, token_subdenom.as_str())),
     )?;
 
-    origin_account.execute_on_module(
+    let send_tx = origin_account.execute_on_module(
         IBC_CLIENT,
         &abstract_std::ibc_client::ExecuteMsg::SendFunds {
             host_chain: TruncatedChainId::from_chain_id(JUNO2),
@@ -163,6 +166,12 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         },
         coins(10_000_000_000, get_denom(&juno, token_subdenom.as_str())),
     )?;
+
+    let ibc_result = interchain.await_and_check_packets(&juno.chain_id(), send_tx)?;
+    println!(
+        "Ibc Result of sending funds + memo : {:?}",
+        ibc_result.packets[0]
+    );
 
     log::info!("waiting for ibc_hook to finish tx");
     std::thread::sleep(Duration::from_secs(15));

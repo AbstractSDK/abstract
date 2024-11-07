@@ -35,6 +35,9 @@ pub enum AccountError {
     #[error(transparent)]
     ProstDecodeError(#[from] prost::DecodeError),
 
+    #[error("{0}")]
+    SerdeJsonError(String),
+
     #[error("Your account is currently suspended")]
     AccountSuspended {},
 
@@ -130,4 +133,10 @@ pub enum AccountError {
 
     #[error("Chain {0} not registered in the IBC Client")]
     ChainNotRegistered(TruncatedChainId),
+}
+
+impl From<serde_json::Error> for AccountError {
+    fn from(value: serde_json::Error) -> Self {
+        Self::SerdeJsonError(value.to_string())
+    }
 }

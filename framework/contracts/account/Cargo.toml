@@ -49,6 +49,8 @@ abstract-ica = { workspace = true }
 
 abstract-xion = { workspace = true, optional = true }
 prost = "0.13.3"
+serde_json = "1.0.132"
+json-patch = "3.0.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

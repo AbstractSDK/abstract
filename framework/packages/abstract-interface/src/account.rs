@@ -730,7 +730,8 @@ impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
                 ::account::contract::query,
             )
             .with_migrate(::account::contract::migrate)
-            .with_reply(::account::contract::reply),
+            .with_reply(::account::contract::reply)
+            .with_ibc_source_callback(::account::contract::ibc_source_callback),
         )
     }
     fn wasm(chain: &ChainInfoOwned) -> WasmPath {

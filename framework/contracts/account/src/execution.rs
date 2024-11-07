@@ -10,9 +10,10 @@ use abstract_std::{
     IBC_CLIENT, ICA_CLIENT, ICS20,
 };
 use cosmwasm_std::{
-    to_json_binary, Addr, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, IbcMsg, IbcTimeout,
-    MessageInfo, Response, StdError, SubMsg, WasmMsg, WasmQuery,
+    to_json_binary, Addr, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, IbcCallbackRequest, IbcMsg,
+    IbcSrcCallback, IbcTimeout, MessageInfo, Response, StdError, SubMsg, WasmMsg, WasmQuery,
 };
+use serde_json::{self, Value};
 
 use crate::{
     contract::{
@@ -26,7 +27,11 @@ use crate::{
 };
 
 /// Check that sender either whitelisted or governance
-pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> AccountResult<()> {
+pub(crate) fn assert_whitelisted_or_owner(
+    deps: &mut DepsMut,
+    env: &Env,
+    sender: &Addr,
+) -> AccountResult<()> {
     #[cfg(feature = "xion")]
     {
         if let Some(is_admin) = crate::state::AUTH_ADMIN.may_load(deps.storage)? {
@@ -36,6 +41,10 @@ pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> 
                 return Ok(());
             }
         }
+    }
+    // Account can execute on itself
+    if env.contract.address == sender {
+        return Ok(());
     }
     let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
     if whitelisted_modules.0.contains(sender)
@@ -51,10 +60,11 @@ pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> 
 /// Permission: Module
 pub fn execute_msgs(
     mut deps: DepsMut,
+    env: Env,
     msg_sender: &Addr,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, msg_sender)?;
+    assert_whitelisted_or_owner(&mut deps, &env, msg_sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
@@ -63,10 +73,11 @@ pub fn execute_msgs(
 /// Permission: Module
 pub fn execute_msgs_with_data(
     mut deps: DepsMut,
+    env: Env,
     msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, msg_sender)?;
+    assert_whitelisted_or_owner(&mut deps, &env, msg_sender)?;
 
     let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
@@ -77,6 +88,7 @@ pub fn execute_msgs_with_data(
 /// This is a simple wrapper around [`ExecuteMsg::Execute`](abstract_std::account::ExecuteMsg::Execute).
 pub fn execute_on_module(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
@@ -85,6 +97,7 @@ pub fn execute_on_module(
     let module_addr = load_module_addr(deps.storage, &module_id)?;
     execute_msgs(
         deps,
+        env,
         &info.sender,
         vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: module_addr.into(),
@@ -159,8 +172,13 @@ pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
 /// It then fires a smart-query on that address of type [`QueryMsg::IcaAction`](abstract_ica::msg::QueryMsg).
 ///
 /// The resulting `Vec<CosmosMsg>` are then executed on the account contract.
-pub fn ica_action(mut deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
+pub fn ica_action(
+    mut deps: DepsMut,
+    env: Env,
+    msg_info: MessageInfo,
+    action_query: Binary,
+) -> AccountResult {
+    assert_whitelisted_or_owner(&mut deps, &env, &msg_info.sender)?;
 
     let ica_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, ICA_CLIENT)?
@@ -189,7 +207,7 @@ pub fn send_funds_with_actions(
     funds: Coin,
     actions: Vec<ExecuteMsg>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
+    assert_whitelisted_or_owner(&mut deps, &env, &msg_info.sender)?;
     // We send a funds message to the host saying we want to deposit on a remote account
     host_chain.verify()?;
 
@@ -206,6 +224,7 @@ pub fn send_funds_with_actions(
         .query(&deps.querier, ibc_client_module, &host_chain)?
         .ok_or(AccountError::ChainNotRegistered(host_chain))?;
 
+    // Hook for sending the funds correctly to the sender
     let action_memo = HookMemoBuilder::new(
         remote_host.remote_abstract_host.clone(),
         &ibc_host::ExecuteMsg::Fund {
@@ -215,12 +234,21 @@ pub fn send_funds_with_actions(
     )
     .build()?;
 
+    // Hook for sending the callback after the ack comes back
+    let callback = IbcCallbackRequest::source(IbcSrcCallback {
+        address: env.contract.address,
+        gas_limit: None,
+    });
+
+    let mut final_json: Value = action_memo.parse()?;
+    json_patch::merge(&mut final_json, &serde_json::to_value(callback)?);
+
     let transfer_msg = IbcMsg::Transfer {
         channel_id: ics20_channel_id.clone(),
         to_address: remote_host.remote_abstract_host,
         amount: funds,
         timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(PACKET_LIFETIME)),
-        memo: Some(action_memo),
+        memo: Some(final_json.to_string()),
     };
 
     Ok(Response::new().add_submessage(
