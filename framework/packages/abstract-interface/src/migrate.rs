@@ -10,6 +10,7 @@ use cw_orch::{environment::Environment, prelude::*};
 
 impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
+    #[deprecated(note = "use migrate_if_version_changed instead")]
     pub fn migrate_if_needed(&self) -> Result<bool, crate::AbstractInterfaceError> {
         // start with factory
         let module_factory = self
@@ -246,10 +247,10 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             .upload_if_needed()?
             .expect("IBC host wasm might be outdated");
 
-        // Check if version is breaking
-        let version_req = semver::VersionReq::parse(&ibc_client_cw2_version).unwrap();
-        let new_version = semver::Version::parse(::ibc_client::contract::CONTRACT_VERSION).unwrap();
-        if version_req.matches(&new_version) {
+        if is_upgrade_breaking(
+            &ibc_client_cw2_version,
+            ::ibc_client::contract::CONTRACT_VERSION,
+        ) {
             // If version is not breaking, simply migrate
             self.client
                 .migrate_if_needed(&ibc_client::MigrateMsg {})?
@@ -263,5 +264,37 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         }
 
         Ok(true)
+    }
+}
+
+// Check if version upgrade is breaking
+fn is_upgrade_breaking(current_version: &str, new_version: &str) -> bool {
+    let current_version = semver::Version::parse(current_version).unwrap();
+    let new_version = semver::Version::parse(new_version).unwrap();
+    // upgrades from pre-release is breaking
+    if !current_version.pre.is_empty() && new_version.pre.is_empty() {
+        return true;
+    }
+    // major or minor upgrade is breaking
+    if new_version.major != current_version.major || new_version.minor != current_version.minor {
+        return true;
+    }
+
+    false
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn upgrade_breaking() {
+        assert!(is_upgrade_breaking("0.1.2", "0.2.0"));
+        assert!(is_upgrade_breaking("0.1.2-beta.1", "0.1.2"));
+        assert!(is_upgrade_breaking("1.2.3", "1.3.0"));
+        assert!(is_upgrade_breaking("1.2.3-beta.1", "1.2.3"));
+
+        assert!(!is_upgrade_breaking("0.1.2", "0.1.3"));
+        assert!(!is_upgrade_breaking("1.2.3", "1.2.4"));
+        assert!(!is_upgrade_breaking("1.2.3", "1.2.3"));
     }
 }
