@@ -29,6 +29,7 @@ impl<T: CwEnv> Abstract<T> {
         let account = self.account.upload_and_register_if_needed(&self.registry)?;
 
         // Then ibc
+        #[allow(deprecated)]
         let ibc = self.ibc.migrate_if_needed()?;
 
         self.registry.approve_any_abstract_modules()?;
@@ -213,6 +214,7 @@ fn contract_version<Chain: CwEnv, A: ContractInstance<Chain>>(
 }
 
 impl<Chain: CwEnv> AbstractIbc<Chain> {
+    #[deprecated(note = "use deploy_or_migrate_if_version_changed instead")]
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
     pub fn migrate_if_needed(&self) -> Result<bool, crate::AbstractInterfaceError> {
         let client = self
