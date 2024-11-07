@@ -73,6 +73,7 @@ abstract-app = { version = "0.24.1", path = "../framework/packages/abstract-app"
 abstract-adapter = { version = "0.24.1", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.24.1", path = "../framework/packages/abstract-testing" }
 abstract-client = { version = "0.24.1", path = "../framework/packages/abstract-client" }
+abstract-ica-client = { version = "0.24.1", path = "../framework/contracts/native/ica-client" }
 # Modules
 abstract-account = { version = "0.24.1", path = "../framework/contracts/account" }
 # croncat-app = { path = "../modules/contracts/apps/croncat" }
@@ -101,11 +102,21 @@ abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
+abstract-ica-client = { path = "../framework/contracts/native/ica-client" }
 
 #TODO: remove after polytone release
 abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+
+# TODO: remove after union-connector released
+# evm-note = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+# polytone-evm = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+
+[patch."https://github.com/abstractsdk/evm-ibc"]
+# union-connector = { path = "../../evm-ibc/cw/packages/union-connector" }
+polytone-evm = { version = "0.3.0" }
+evm-note = { version = "0.3.1" }
 
 # Backup release profile, will result in warnings during optimization
 

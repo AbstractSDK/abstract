@@ -45,8 +45,6 @@ abstract-std = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
 
-abstract-ica = { workspace = true }
-
 abstract-xion = { workspace = true, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

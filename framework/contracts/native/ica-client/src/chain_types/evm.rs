@@ -1,8 +1,8 @@
-use abstract_ica::EVM_NOTE_ID;
 use abstract_sdk::{
     feature_objects::{AnsHost, RegistryContract},
     Resolve,
 };
+use abstract_std::ica_client::EVM_NOTE_ID;
 use abstract_std::objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId};
 use cosmwasm_std::{
     wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, Env, HexBinary, QuerierWrapper, WasmMsg,
@@ -94,8 +94,10 @@ pub fn send_funds(
 }
 
 fn evm_note_addr(vc: &RegistryContract, querier: &QuerierWrapper) -> IcaClientResult<Addr> {
-    let evm_note_entry =
-        ModuleInfo::from_id(EVM_NOTE_ID, abstract_ica::POLYTONE_EVM_VERSION.parse()?)?;
+    let evm_note_entry = ModuleInfo::from_id(
+        EVM_NOTE_ID,
+        abstract_std::ica_client::POLYTONE_EVM_VERSION.parse()?,
+    )?;
 
     vc.query_module(evm_note_entry, querier)?
         .reference
@@ -103,7 +105,7 @@ fn evm_note_addr(vc: &RegistryContract, querier: &QuerierWrapper) -> IcaClientRe
         .map_err(Into::into)
 }
 
-pub(crate) mod types {
+pub mod types {
     use super::*;
 
     pub const UCS01_PROTOCOL: &str = "ucs01";

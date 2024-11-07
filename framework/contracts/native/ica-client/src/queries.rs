@@ -1,5 +1,5 @@
-use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
 use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
+use abstract_std::ica_client::{ChainType, ConfigResponse, IcaAction, IcaActionResponse};
 use abstract_std::objects::TruncatedChainId;
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
@@ -10,7 +10,7 @@ pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps.api, env)?.address,
+        ans_host_address: AnsHost::new(deps.api, env)?.address,
         registry_address: RegistryContract::new(deps.api, env)?.address,
     })
 }
@@ -23,7 +23,7 @@ pub(crate) fn ica_action(
     actions: Vec<IcaAction>,
 ) -> IcaClientResult<IcaActionResponse> {
     // match chain-id with cosmos or EVM
-    use abstract_ica::CastChainType;
+    use abstract_std::ica_client::CastChainType;
     let chain_type = chain.chain_type().ok_or(IcaClientError::NoChainType {
         chain: chain.to_string(),
     })?;
@@ -31,7 +31,7 @@ pub(crate) fn ica_action(
     let process_action = |action: IcaAction| -> IcaClientResult<Vec<CosmosMsg>> {
         match action {
             IcaAction::Execute(ica_exec) => match ica_exec {
-                abstract_ica::IcaExecute::Evm { msgs, callback } => {
+                abstract_std::ica_client::IcaExecute::Evm { msgs, callback } => {
                     ensure_eq!(
                         chain_type,
                         ChainType::Evm,
@@ -145,7 +145,9 @@ mod tests {
                             infos[0],
                             ModuleInfo::from_id(
                                 EVM_NOTE_ID,
-                                abstract_ica::POLYTONE_EVM_VERSION.parse().unwrap()
+                                abstract_std::ica_client::POLYTONE_EVM_VERSION
+                                    .parse()
+                                    .unwrap()
                             )
                             .unwrap()
                         );
@@ -155,7 +157,9 @@ mod tests {
                                 module: Module {
                                     info: ModuleInfo::from_id(
                                         EVM_NOTE_ID,
-                                        abstract_ica::POLYTONE_EVM_VERSION.parse().unwrap(),
+                                        abstract_std::ica_client::POLYTONE_EVM_VERSION
+                                            .parse()
+                                            .unwrap(),
                                     )
                                     .unwrap(),
                                     reference: ModuleReference::Native(env_note_addr(api)),
@@ -175,7 +179,7 @@ mod tests {
         use super::*;
         use std::str::FromStr;
 
-        use abstract_ica::msg::QueryMsg;
+        use abstract_std::ica_client::QueryMsg;
         use abstract_std::objects::TruncatedChainId;
 
         use abstract_testing::mock_env_validated;
@@ -199,7 +203,7 @@ mod tests {
             assert_eq!(
                 res,
                 ConfigResponse {
-                    ans_host: abstr.ans_host,
+                    ans_host_address: abstr.ans_host,
                     registry_address: abstr.registry
                 }
             );
@@ -220,15 +224,17 @@ mod tests {
             let msg = QueryMsg::IcaAction {
                 account_address: abstr.account.addr().to_string(),
                 chain: chain_name,
-                actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
-                    msgs: vec![EvmMsg::Call {
-                        to: "to".to_string(),
-                        data: vec![0x01].into(),
-                        value: None,
-                        allow_failure: None,
-                    }],
-                    callback: None,
-                })],
+                actions: vec![IcaAction::Execute(
+                    abstract_std::ica_client::IcaExecute::Evm {
+                        msgs: vec![EvmMsg::Call {
+                            to: "to".to_string(),
+                            data: vec![0x01].into(),
+                            allow_failure: None,
+                            value: None,
+                        }],
+                        callback: None,
+                    },
+                )],
             };
 
             let res = query(deps.as_ref(), env, msg)?;
@@ -244,8 +250,8 @@ mod tests {
                             msgs: vec![EvmMsg::Call {
                                 to: "to".to_string(),
                                 data: vec![0x01].into(),
-                                value: None,
                                 allow_failure: None,
+                                value: None,
                             }],
                             timeout_seconds: PACKET_LIFETIME.into(),
                         },
@@ -361,15 +367,17 @@ mod tests {
             let msg = QueryMsg::IcaAction {
                 account_address: abstr.account.addr().to_string(),
                 chain: chain_name.clone(),
-                actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
-                    msgs: vec![EvmMsg::Call {
-                        to: "to".to_string(),
-                        data: vec![0x01].into(),
-                        value: None,
-                        allow_failure: None,
-                    }],
-                    callback: None,
-                })],
+                actions: vec![IcaAction::Execute(
+                    abstract_std::ica_client::IcaExecute::Evm {
+                        msgs: vec![EvmMsg::Call {
+                            to: "to".to_string(),
+                            data: vec![0x01].into(),
+                            allow_failure: None,
+                            value: None,
+                        }],
+                        callback: None,
+                    },
+                )],
             };
 
             let err = query(deps.as_ref(), mock_env_validated(deps.api), msg).unwrap_err();
