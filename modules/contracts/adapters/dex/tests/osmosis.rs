@@ -88,16 +88,11 @@ fn setup_mock() -> anyhow::Result<(
     let osmo = "uosmo";
     let juno = "ujunox";
 
-    let mut chain = OsmosisTestTube::new(vec![]);
-
-    chain.add_balance(
-        &chain.sender_addr(),
-        vec![
-            coin(1_000_000_000_000, atom),
-            coin(1_000_000_000_000, juno),
-            coin(1_000_000_000_000, osmo),
-        ],
-    )?;
+    let chain = OsmosisTestTube::new(vec![
+        coin(1_000_000_000_000, atom),
+        coin(1_000_000_000_000, juno),
+        coin(1_000_000_000_000, osmo),
+    ]);
 
     let deployment = Abstract::deploy_on(chain.clone(), ())?;
 

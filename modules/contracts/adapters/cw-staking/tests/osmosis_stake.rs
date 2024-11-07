@@ -153,15 +153,10 @@ mod osmosis_test {
     )> {
         std::env::set_var("RUST_LOG", "debug");
         let _ = env_logger::try_init().unwrap();
-        let mut tube = OsmosisTestTube::new(vec![]);
-
-        tube.add_balance(
-            &tube.sender_addr(),
-            vec![
-                coin(1_000_000_000_000, ASSET_2),
-                coin(1_000_000_000_000, ASSET_1),
-            ],
-        )?;
+        let tube = OsmosisTestTube::new(vec![
+            coin(1_000_000_000_000, ASSET_2),
+            coin(1_000_000_000_000, ASSET_1),
+        ]);
 
         let deployment = Abstract::deploy_on(tube.clone(), ())?;
 
