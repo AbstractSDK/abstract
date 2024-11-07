@@ -26,16 +26,19 @@ generic-array = { version = "0.14", default-features = false, features = ["more_
 getrandom = { version = "0.2", default-features = false, features = ["custom", "std"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
+phf_shared = { version = "0.11", default-features = false, features = ["std"] }
 ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
 prost = { version = "0.13", features = ["prost-derive"] }
 prost-types = { version = "0.13" }
-rand = { version = "0.8" }
+rand = { version = "0.8", features = ["small_rng"] }
 rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
+rand_core = { version = "0.6", default-features = false, features = ["std"] }
 semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["alloc", "derive"] }
 sha2 = { version = "0.10", features = ["oid"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
-tiny-keccak = { version = "2", features = ["keccak"] }
+tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
+tendermint-proto-f645eb7eb1285ab4 = { package = "tendermint-proto", version = "0.39", features = ["std"] }
 zeroize = { version = "1" }
 
 [build-dependencies]
@@ -51,18 +54,21 @@ generic-array = { version = "0.14", default-features = false, features = ["more_
 getrandom = { version = "0.2", default-features = false, features = ["custom", "std"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
+phf_shared = { version = "0.11", default-features = false, features = ["std"] }
 ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
 prost = { version = "0.13", features = ["prost-derive"] }
 prost-types = { version = "0.13" }
-rand = { version = "0.8" }
+rand = { version = "0.8", features = ["small_rng"] }
 rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
+rand_core = { version = "0.6", default-features = false, features = ["std"] }
 semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["alloc", "derive"] }
 sha2 = { version = "0.10", features = ["oid"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn-dff4ba8e3ae991db = { package = "syn", version = "1", features = ["extra-traits", "full", "visit", "visit-mut"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit-mut"] }
-tiny-keccak = { version = "2", features = ["keccak"] }
+tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
+tendermint-proto-f645eb7eb1285ab4 = { package = "tendermint-proto", version = "0.39", features = ["std"] }
 zeroize = { version = "1" }
 
 [target.x86_64-unknown-linux-gnu.dependencies]
@@ -107,6 +113,7 @@ hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "
 ibc-proto = { version = "0.47", features = ["serde"] }
 ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
+informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2" }
@@ -119,8 +126,6 @@ num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-rand = { version = "0.8", default-features = false, features = ["small_rng"] }
-rand_core = { version = "0.6", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -133,8 +138,8 @@ signature = { version = "2", default-features = false, features = ["digest", "ra
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
-tendermint-proto = { version = "0.38" }
 time = { version = "0.3", features = ["macros", "parsing"] }
+tiny-keccak = { version = "2", features = ["keccak"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
 tonic = { version = "0.12", features = ["tls-roots"] }
@@ -187,6 +192,7 @@ hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "
 ibc-proto = { version = "0.47", features = ["serde"] }
 ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
+informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2" }
@@ -199,8 +205,6 @@ num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-rand = { version = "0.8", default-features = false, features = ["small_rng"] }
-rand_core = { version = "0.6", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -214,8 +218,8 @@ smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
-tendermint-proto = { version = "0.38" }
 time = { version = "0.3", features = ["macros", "parsing"] }
+tiny-keccak = { version = "2", features = ["keccak"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
 tonic = { version = "0.12", features = ["tls-roots"] }
@@ -266,6 +270,7 @@ hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "
 ibc-proto = { version = "0.47", features = ["serde"] }
 ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
+informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2", features = ["extra_traits"] }
@@ -278,8 +283,6 @@ num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-rand = { version = "0.8", default-features = false, features = ["small_rng"] }
-rand_core = { version = "0.6", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -292,8 +295,8 @@ signature = { version = "2", default-features = false, features = ["digest", "ra
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
-tendermint-proto = { version = "0.38" }
 time = { version = "0.3", features = ["macros", "parsing"] }
+tiny-keccak = { version = "2", features = ["keccak"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
 tonic = { version = "0.12", features = ["tls-roots"] }
@@ -345,6 +348,7 @@ hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "
 ibc-proto = { version = "0.47", features = ["serde"] }
 ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
+informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2", features = ["extra_traits"] }
@@ -357,8 +361,6 @@ num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-rand = { version = "0.8", default-features = false, features = ["small_rng"] }
-rand_core = { version = "0.6", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -372,8 +374,8 @@ smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
-tendermint-proto = { version = "0.38" }
 time = { version = "0.3", features = ["macros", "parsing"] }
+tiny-keccak = { version = "2", features = ["keccak"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
 tonic = { version = "0.12", features = ["tls-roots"] }
