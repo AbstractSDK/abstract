@@ -30,7 +30,7 @@ pub mod msg {
     use cw_storage_plus::Map;
 
     #[cfg(feature = "xion")]
-    pub type Authenticator = crate::abstract_xion::auth::AddAuthenticator;
+    pub type Authenticator = crate::abstract_xion::AddAuthenticator;
     #[cfg(not(feature = "xion"))]
     pub type Authenticator = cosmwasm_std::Empty;
 

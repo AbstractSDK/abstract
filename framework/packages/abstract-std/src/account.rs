@@ -87,6 +87,9 @@ pub mod state {
         Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
     pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
+    // XION temporary state
+    pub const AUTH_ADMIN: Item<bool> = Item::new(storage_namespaces::account::AUTH_ADMIN);
+
     // Additional states, not listed here: cw_gov_ownable::GovOwnership, authenticators, if chain supports it
 }
 
