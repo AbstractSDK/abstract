@@ -79,15 +79,29 @@ impl<Chain: CwEnv> AbstractMultisig<Chain> {
 #[cfg(feature = "daemon")]
 impl<T: CwEnv + Stargate> Abstract<T> {
     pub fn update_admin_to_multisig(
-        &self,
+        &mut self,
         admin: String,
         members: Vec<cw4::Member>,
+        proposal_creator: &T::Sender,
         extra_contracts: impl IntoIterator<Item = Contract<T>>,
     ) -> Result<(), AbstractInterfaceError> {
+        self.multisig.cw3.set_sender(proposal_creator);
+        self.multisig.cw4.set_sender(proposal_creator);
+
+        let chain = self.registry.environment().clone();
+
+        let proposal_creator_addr = self.multisig.cw3.environment().sender_addr();
+
+        assert!(
+            members
+                .iter()
+                .any(|member| member.addr == proposal_creator_addr.as_str()),
+            "proposal_creator must be in members list"
+        );
+
         self.multisig.upload_if_needed()?;
         self.multisig.instantiate(admin, members)?;
 
-        let chain = self.registry.environment().clone();
         let cw3_flex_address = self.multisig.cw3.address()?;
 
         let contract_admin_upgrades = self
@@ -106,10 +120,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             })
             .collect::<Vec<_>>();
         chain
-            .commit_any::<cosmrs::proto::cosmwasm::wasm::v1::MsgUpdateAdminResponse>(
-                contract_admin_upgrades,
-                None,
-            )
+            .commit_any(contract_admin_upgrades, None)
             .map_err(Into::into)?;
         log::info!("Updated migrate admin of abstract contracts");
 
@@ -223,106 +234,90 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         let mut has_uploaded = false;
         let mut msgs: Vec<CosmosMsg> = vec![];
         let mut natives_to_register = vec![];
-        //  cw3_flex_multisig::ExecuteMsg::Propose {
-        //     title: "Migrate Abstract Deployment".to_owned(),
-        //     description: (),
-        //     msgs: (),
-        //     latest: None,
-        // };
 
         if ::module_factory::contract::CONTRACT_VERSION
             != crate::migrate::contract_version(&self.module_factory)?.version
         {
-            let uploading_result = self.module_factory.upload_if_needed()?;
-            if let Some(result) = uploading_result {
-                let new_code_id = result.uploaded_code_id()?;
-                has_uploaded = true;
-                natives_to_register.push((
-                    self.module_factory.as_instance(),
-                    ::module_factory::contract::CONTRACT_VERSION.to_string(),
-                ));
-                msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
-                    contract_addr: self.module_factory.addr_str()?,
-                    new_code_id,
-                    msg: to_json_binary(&module_factory::MigrateMsg::Migrate {})?,
-                }));
-            }
+            self.module_factory.upload_if_needed()?;
+            let new_code_id = self.module_factory.code_id()?;
+            has_uploaded = true;
+            natives_to_register.push((
+                self.module_factory.as_instance(),
+                ::module_factory::contract::CONTRACT_VERSION.to_string(),
+            ));
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
+                contract_addr: self.module_factory.addr_str()?,
+                new_code_id,
+                msg: to_json_binary(&module_factory::MigrateMsg::Migrate {})?,
+            }));
         }
 
         if ::registry::contract::CONTRACT_VERSION
             != crate::migrate::contract_version(&self.registry)?.version
         {
-            let uploading_result = self.registry.upload_if_needed()?;
-            if let Some(result) = uploading_result {
-                let new_code_id = result.uploaded_code_id()?;
-                has_uploaded = true;
-                natives_to_register.push((
-                    self.registry.as_instance(),
-                    ::registry::contract::CONTRACT_VERSION.to_string(),
-                ));
-                msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
-                    contract_addr: self.registry.addr_str()?,
-                    new_code_id,
-                    msg: to_json_binary(&registry::MigrateMsg::Migrate {})?,
-                }));
-            }
+            self.registry.upload_if_needed()?;
+            let new_code_id = self.registry.code_id()?;
+            has_uploaded = true;
+            natives_to_register.push((
+                self.registry.as_instance(),
+                ::registry::contract::CONTRACT_VERSION.to_string(),
+            ));
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
+                contract_addr: self.registry.addr_str()?,
+                new_code_id,
+                msg: to_json_binary(&registry::MigrateMsg::Migrate {})?,
+            }));
         }
 
         if ::ans_host::contract::CONTRACT_VERSION
             != crate::migrate::contract_version(&self.ans_host)?.version
         {
-            let uploading_result = self.ans_host.upload_if_needed()?;
-            if let Some(result) = uploading_result {
-                let new_code_id = result.uploaded_code_id()?;
-                has_uploaded = true;
-                natives_to_register.push((
-                    self.ans_host.as_instance(),
-                    ::ans_host::contract::CONTRACT_VERSION.to_string(),
-                ));
-                msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
-                    contract_addr: self.ans_host.addr_str()?,
-                    new_code_id,
-                    msg: to_json_binary(&ans_host::MigrateMsg::Migrate {})?,
-                }));
-            }
+            self.ans_host.upload_if_needed()?;
+            let new_code_id = self.ans_host.code_id()?;
+            has_uploaded = true;
+            natives_to_register.push((
+                self.ans_host.as_instance(),
+                ::ans_host::contract::CONTRACT_VERSION.to_string(),
+            ));
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
+                contract_addr: self.ans_host.addr_str()?,
+                new_code_id,
+                msg: to_json_binary(&ans_host::MigrateMsg::Migrate {})?,
+            }));
         }
 
         // TODO: reimplement desired logic here after #531 merged
         if ::ibc_client::contract::CONTRACT_VERSION
             != crate::migrate::contract_version(&self.ibc.client)?.version
         {
-            let uploading_result = self.ibc.client.upload_if_needed()?;
-            if let Some(result) = uploading_result {
-                let new_code_id = result.uploaded_code_id()?;
-                has_uploaded = true;
-                natives_to_register.push((
-                    self.ibc.client.as_instance(),
-                    ::ibc_client::contract::CONTRACT_VERSION.to_string(),
-                ));
-                msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
-                    contract_addr: self.ibc.client.addr_str()?,
-                    new_code_id,
-                    msg: to_json_binary(&ibc_client::MigrateMsg::Migrate {})?,
-                }));
-            }
+            self.ibc.client.upload_if_needed()?;
+            let new_code_id = self.ibc.client.code_id()?;
+            has_uploaded = true;
+            natives_to_register.push((
+                self.ibc.client.as_instance(),
+                ::ibc_client::contract::CONTRACT_VERSION.to_string(),
+            ));
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
+                contract_addr: self.ibc.client.addr_str()?,
+                new_code_id,
+                msg: to_json_binary(&ibc_client::MigrateMsg {})?,
+            }));
         }
         if ::ibc_host::contract::CONTRACT_VERSION
             != crate::migrate::contract_version(&self.ibc.host)?.version
         {
-            let uploading_result = self.ibc.host.upload_if_needed()?;
-            if let Some(result) = uploading_result {
-                let new_code_id = result.uploaded_code_id()?;
-                has_uploaded = true;
-                natives_to_register.push((
-                    self.ibc.host.as_instance(),
-                    ::ibc_host::contract::CONTRACT_VERSION.to_string(),
-                ));
-                msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
-                    contract_addr: self.ibc.host.addr_str()?,
-                    new_code_id,
-                    msg: to_json_binary(&ibc_host::MigrateMsg::Migrate {})?,
-                }));
-            }
+            self.ibc.host.upload_if_needed()?;
+            let new_code_id = self.ibc.host.code_id()?;
+            has_uploaded = true;
+            natives_to_register.push((
+                self.ibc.host.as_instance(),
+                ::ibc_host::contract::CONTRACT_VERSION.to_string(),
+            ));
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Migrate {
+                contract_addr: self.ibc.host.addr_str()?,
+                new_code_id,
+                msg: to_json_binary(&ibc_host::MigrateMsg {})?,
+            }));
         }
 
         let mut modules_to_register = self
@@ -345,31 +340,40 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             has_uploaded = true
         }
 
-        msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.registry.addr_str()?,
-            msg: to_json_binary(&registry::ExecuteMsg::ProposeModules {
-                modules: modules_to_register.clone(),
-            })?,
-            funds: vec![],
-        }));
-        msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.registry.addr_str()?,
-            msg: to_json_binary(&registry::ExecuteMsg::ApproveOrRejectModules {
-                approves: modules_to_register
-                    .into_iter()
-                    .map(|(info, _reference)| info)
-                    .collect(),
-                rejects: vec![],
-            })?,
-            funds: vec![],
-        }));
-
         let title = "Migrate native contracts of the abstract".to_owned();
         let description = "We should upgrade abstract contracts to a new versions".to_owned();
         self.multisig
             .cw3
             .propose(description, msgs, title, None, &[])?;
 
+        let msgs = vec![
+            CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: self.registry.addr_str()?,
+                msg: to_json_binary(&registry::ExecuteMsg::ProposeModules {
+                    modules: modules_to_register.clone(),
+                })?,
+                funds: vec![],
+            }),
+            CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: self.registry.addr_str()?,
+                msg: to_json_binary(&registry::ExecuteMsg::ApproveOrRejectModules {
+                    approves: modules_to_register
+                        .into_iter()
+                        .map(|(info, _reference)| info)
+                        .collect(),
+                    rejects: vec![],
+                })?,
+                funds: vec![],
+            }),
+        ];
+
+        let title = "Register abstract modules in the abstract".to_owned();
+        let description =
+            "We should register upgraded modules in the abstract contracts under a new version"
+                .to_owned();
+        self.multisig
+            .cw3
+            .propose(description, msgs, title, None, &[])?;
         Ok(has_uploaded)
     }
 }
