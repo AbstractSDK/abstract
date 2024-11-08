@@ -18,7 +18,7 @@ use crate::{
     AbstractSdkError, AbstractSdkResult,
 };
 
-/// Access the Abstract Version Control and access module information.
+/// Access the Abstract Registry and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification {
     /**
         API for querying module information from the Abstract registry contract.

@@ -216,10 +216,10 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
     pub fn migrate_if_needed(&self) -> Result<bool, crate::AbstractInterfaceError> {
         let client = self
             .client
-            .upload_and_migrate_if_needed(&ibc_client::MigrateMsg::Migrate {})?;
+            .upload_and_migrate_if_needed(&ibc_client::MigrateMsg {})?;
         let host = self
             .host
-            .upload_and_migrate_if_needed(&ibc_host::MigrateMsg::Migrate {})?;
+            .upload_and_migrate_if_needed(&ibc_host::MigrateMsg {})?;
         Ok(client.is_some() || host.is_some())
     }
 
@@ -252,10 +252,10 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         if version_req.matches(&new_version) {
             // If version is not breaking, simply migrate
             self.client
-                .migrate_if_needed(&ibc_client::MigrateMsg::Migrate {})?
+                .migrate_if_needed(&ibc_client::MigrateMsg {})?
                 .expect("IBC client supposed to be migrated, but skipped instead");
             self.host
-                .migrate_if_needed(&ibc_host::MigrateMsg::Migrate {})?
+                .migrate_if_needed(&ibc_host::MigrateMsg {})?
                 .expect("IBC host supposed to be migrated, but skipped instead");
         } else {
             // Version change is breaking, need to deploy new version

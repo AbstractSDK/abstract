@@ -14,7 +14,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
         deps: cosmwasm_std::Deps,
         env: &cosmwasm_std::Env,
     ) -> Result<Addr, Self::Error> {
-        let vc_query_result = self
+        let registry_query_result = self
             .abstract_registry(deps, env)?
             .query_module(
                 ModuleInfo::from_id(
@@ -25,6 +25,6 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             )
             .map_err(Into::<AbstractError>::into)?;
 
-        Ok(vc_query_result.reference.unwrap_native()?)
+        Ok(registry_query_result.reference.unwrap_native()?)
     }
 }

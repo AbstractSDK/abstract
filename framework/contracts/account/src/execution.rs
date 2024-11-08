@@ -123,7 +123,7 @@ pub fn add_auth_method(
 ) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        abstract_xion::auth::execute::add_auth_method(_deps, &_env, &mut _auth).map_err(Into::into)
+        abstract_xion::execute::add_auth_method(_deps, &_env, &mut _auth).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
@@ -134,7 +134,7 @@ pub fn add_auth_method(
 pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        abstract_xion::auth::execute::remove_auth_method(_deps, _env, _id).map_err(Into::into)
+        abstract_xion::execute::remove_auth_method(_deps, _env, _id).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
@@ -340,6 +340,7 @@ mod test {
                 exec_msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: "juno".parse()?,
                     memo: None,
+                    receiver: None,
                 })?,
                 funds: funds.clone(),
             };
@@ -386,6 +387,7 @@ mod test {
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                         host_chain: "juno".parse()?,
                         memo: None,
+                        receiver: None,
                     })?,
                     funds,
                 },))

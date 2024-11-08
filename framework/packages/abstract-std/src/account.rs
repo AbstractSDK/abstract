@@ -86,6 +86,9 @@ pub mod state {
         Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
     pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
+    // XION temporary state
+    pub const AUTH_ADMIN: Item<bool> = Item::new(storage_namespaces::account::AUTH_ADMIN);
+
     // Additional states, not listed here: cw_gov_ownable::GovOwnership, authenticators, if chain supports it
 }
 
@@ -176,7 +179,7 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     },
     /// Upgrade the module to a new version
     /// If module is `abstract::account` then the contract will do a self-migration.
-    /// Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Version Control
+    /// Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Registry
     Upgrade {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },

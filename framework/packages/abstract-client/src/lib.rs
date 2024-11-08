@@ -26,7 +26,7 @@ pub use builder::AbstractClientBuilder;
 pub use client::AbstractClient;
 pub use error::AbstractClientError;
 pub use infrastructure::Environment;
-pub use publisher::{Publisher, PublisherBuilder};
+pub use publisher::Publisher;
 pub use service::Service;
 pub use source::AccountSource;
 

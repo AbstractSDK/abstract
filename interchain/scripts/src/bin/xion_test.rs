@@ -6,7 +6,7 @@ use abstract_std::{
     objects::{module::ModuleInfo, salt::generate_instantiate_salt, AccountId},
     ACCOUNT,
 };
-use abstract_xion::auth::AddAuthenticator;
+use abstract_xion::AddAuthenticator;
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
 use cosmwasm_std::{coins, to_json_binary, Binary};
 use cosmwasm_std::{to_json_vec, Addr};
@@ -87,7 +87,7 @@ fn main() -> anyhow::Result<()> {
 
     let abstr = abstr?;
     // Create the Abstract Account because it's needed for the fees for the dex module
-    let maybe_account = abstr.account_from(Namespace::new("test")?);
+    let maybe_account = abstr.fetch_account(Namespace::new("test")?);
 
     println!("Wallet Addr: {}", wallet.pub_addr_str());
     let account = match maybe_account {
@@ -149,7 +149,7 @@ fn main() -> anyhow::Result<()> {
                 None,
             ))?;
 
-            abstr.account_from(account_id)?
+            abstr.fetch_account(account_id)?
         }
     };
 
@@ -382,7 +382,7 @@ mod xion_sender {
                 .unwrap();
             let signature = self.cosmos_private_key().sign(&sign_doc_bytes)?;
 
-            let AUTHID = abstract_xion::auth::AuthId::new(1u8, true).unwrap();
+            let AUTHID = auth_id::AuthId::new(1u8, true).unwrap();
             let smart_contract_sig = AUTHID.signature(signature.to_vec());
 
             Ok(xion_sdk_proto::cosmos::tx::v1beta1::TxRaw {
@@ -540,56 +540,46 @@ mod xion_sender {
     }
 }
 
-// mod proto {
+pub mod auth_id {
 
-//     use cosmos_sdk_proto::cosmos;
-//     use cosmwasm_std::{AnyMsg, CosmosMsg};
-//     use prost::{Message, Name};
+    /// Authentication id for the signature
+    #[cosmwasm_schema::cw_serde]
+    #[derive(Copy)]
+    pub struct AuthId(pub(crate) u8);
 
-//     #[derive(Clone, PartialEq, prost::Message)]
-//     pub struct MsgRegisterAccount {
-//         #[prost(string, tag = "1")]
-//         pub sender: String,
+    impl AuthId {
+        /// Create AuthId from signature id and flag for admin call
+        /// Note: It's helper for signer, not designed to be used inside contract
+        #[cfg(not(target_arch = "wasm32"))]
+        pub fn new(id: u8, admin: bool) -> Option<Self> {
+            let first_bit: u8 = 0b10000000;
+            // If first bit occupied - we can't create AuthId
+            if id & first_bit != 0 {
+                return None;
+            };
 
-//         #[prost(uint64, tag = "2")]
-//         pub code_id: u64,
+            Some(if admin {
+                Self(id | first_bit)
+            } else {
+                Self(id)
+            })
+        }
 
-//         #[prost(bytes = "vec", tag = "3")]
-//         pub msg: Vec<u8>,
+        /// Get signature bytes with this [`AuthId`]
+        /// Note: It's helper for signer, not designed to be used inside contract
+        #[cfg(not(target_arch = "wasm32"))]
+        pub fn signature(self, mut signature: Vec<u8>) -> Vec<u8> {
+            signature.insert(0, self.0);
+            signature
+        }
 
-//         #[prost(message, repeated, tag = "4")]
-//         pub funds: Vec<cosmos::base::v1beta1::Coin>,
-
-//         #[prost(bytes = "vec", tag = "5")]
-//         pub salt: Vec<u8>,
-//     }
-
-//     impl From<MsgRegisterAccount> for CosmosMsg {
-//         fn from(msg: MsgRegisterAccount) -> Self {
-//             let any_msg: AnyMsg = AnyMsg {
-//                 type_url: MsgRegisterAccount::type_url(),
-//                 value: msg.encode_to_vec().into(),
-//             };
-//             CosmosMsg::Any(any_msg)
-//         }
-//     }
-
-//     impl Name for MsgRegisterAccount {
-//         const NAME: &'static str = "MsgRegisterAccount";
-//         const PACKAGE: &'static str = "abstractaccount.v1";
-//     }
-
-//     #[derive(Clone, PartialEq, prost::Message)]
-//     pub struct MsgRegisterAccountResponse {
-//         #[prost(string, tag = "1")]
-//         pub address: String,
-
-//         #[prost(bytes = "vec", tag = "2")]
-//         pub data: Vec<u8>,
-//     }
-
-//     impl Name for MsgRegisterAccountResponse {
-//         const NAME: &'static str = "MsgRegisterAccountResponse";
-//         const PACKAGE: &'static str = "abstractaccount.v1";
-//     }
-// }
+        pub fn cred_id(self) -> (u8, bool) {
+            let first_bit: u8 = 0b10000000;
+            if self.0 & first_bit == 0 {
+                (self.0, false)
+            } else {
+                (self.0 & !first_bit, true)
+            }
+        }
+    }
+}

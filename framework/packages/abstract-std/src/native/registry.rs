@@ -1,4 +1,4 @@
-//! # Version Control
+//! # Registry
 //!
 //! `abstract_std::registry` stores chain-specific code-ids, addresses and an account_id map.
 //!
@@ -109,7 +109,7 @@ impl From<Account<Addr>> for Account<String> {
     }
 }
 
-/// Version Control Instantiate Msg
+/// Registry Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub admin: String,
@@ -121,7 +121,7 @@ pub struct InstantiateMsg {
     pub namespace_registration_fee: Option<Coin>,
 }
 
-/// Version Control Execute Msg
+/// Registry Execute Msg
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
@@ -201,7 +201,7 @@ pub struct ModuleFilter {
     pub status: Option<ModuleStatus>,
 }
 
-/// Version Control Query Msg
+/// Registry Query Msg
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
