@@ -4,7 +4,6 @@ use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 use cw_orch::daemon::DeployedChains;
 
 use cw_orch::{mock::MockBase, prelude::*};
-use cw_plus_orch::cw3_flex_multisig::Cw3FlexMultisig;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, multisig::AbstractMultisig, AbstractIbc,

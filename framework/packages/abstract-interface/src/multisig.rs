@@ -3,7 +3,6 @@ use abstract_std::{
     ans_host::{self, ExecuteMsgFns as _},
     ibc_client::{self, ExecuteMsgFns as _},
     ibc_host::{self, ExecuteMsgFns as _},
-    ica_client,
     module_factory::{self, ExecuteMsgFns as _},
     objects::{
         gov_type::{GovAction, GovernanceDetails},
@@ -11,11 +10,10 @@ use abstract_std::{
         module_reference::ModuleReference,
         ABSTRACT_ACCOUNT_ID,
     },
-    registry::{self, ExecuteMsgFns as _, QueryMsgFns as _},
+    registry::{self, ExecuteMsgFns as _},
     ACCOUNT,
 };
-use cosmrs::tx::Msg;
-use cosmwasm_std::{from_json, to_json_binary, CosmosMsg, WasmMsg};
+use cosmwasm_std::{to_json_binary, CosmosMsg, WasmMsg};
 use cw_orch::{contract::Contract, prelude::*};
 use cw_plus_orch::{
     cw3_flex_multisig::{self, Cw3FlexMultisig, ExecuteMsgInterfaceFns},
@@ -289,7 +287,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             }
         }
 
-        // TODO: are we keeping migrate or instantiate on breaking ibc bump
+        // TODO: reimplement desired logic here after #531 merged
         if ::ibc_client::contract::CONTRACT_VERSION
             != crate::migrate::contract_version(&self.ibc.client)?.version
         {
@@ -327,14 +325,14 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             }
         }
 
-        // We need to check the version in registry for the account contract
-        let account = self.registry.module(ModuleInfo::from_id_latest(ACCOUNT)?)?;
-
         let mut modules_to_register = self
             .registry
             .contracts_into_module_entries(natives_to_register, |c| {
                 ModuleReference::Native(c.address().unwrap())
             })?;
+
+        // We need to check the version in registry for the account contract
+        let account = self.registry.module(ModuleInfo::from_id_latest(ACCOUNT)?)?;
 
         if ::account::contract::CONTRACT_VERSION != account.info.version.to_string()
             && self.account.upload_if_needed()?.is_some()
@@ -367,7 +365,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         }));
 
         let title = "Migrate native contracts of the abstract".to_owned();
-        let description = "".to_owned();
+        let description = "We should upgrade abstract contracts to a new versions".to_owned();
         self.multisig
             .cw3
             .propose(description, msgs, title, None, &[])?;
