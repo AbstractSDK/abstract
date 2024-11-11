@@ -238,6 +238,7 @@ impl<Chain: CwEnv> Registry<Chain> {
             .collect::<Vec<String>>()
             .join(",");
         log::info!("Modules {to_register_module_ids} registered");
+        self.propose_modules(to_register)?;
         Ok(())
     }
 

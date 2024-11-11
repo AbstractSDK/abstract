@@ -391,6 +391,7 @@ mod test {
 
         let init_msg_string: InstantiateMsg = cosmwasm_std::from_json(
             json!({
+                "code_id": 1,
                 "owner": GovernanceDetails::Monarchy {
                     monarch: "bob".to_owned()
                 }
