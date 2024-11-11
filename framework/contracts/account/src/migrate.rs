@@ -3,7 +3,6 @@ use abstract_sdk::std::{account::state::ACCOUNT_ID, ACCOUNT};
 use abstract_std::account::ModuleInstallConfig;
 use abstract_std::objects::module::ModuleInfo;
 use abstract_std::objects::module_version::assert_contract_upgrade;
-use abstract_std::IBC_CLIENT;
 use abstract_std::{account::MigrateMsg, objects::AccountId};
 use abstract_std::{
     account::{
@@ -16,11 +15,11 @@ use abstract_std::{
     },
     registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
-use cosmwasm_std::{wasm_execute, DepsMut, Env, StdError};
+use abstract_std::{AbstractError, IBC_CLIENT};
+use cosmwasm_std::{wasm_execute, DepsMut, Env};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-use crate::error::AccountError;
 use crate::{
     modules::{_install_modules, MIGRATE_CONTEXT},
     msg::ExecuteMsg,
@@ -32,15 +31,20 @@ use crate::contract::{AccountResponse, AccountResult, CONTRACT_VERSION};
 pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
+    let current_contract_version = get_contract_version(deps.storage)?;
     // If we already have an abstract account, we just migrate like normal
-    if assert_contract_upgrade(deps.storage, ACCOUNT, version).is_ok() {
+    if current_contract_version.contract != "abstract::account" {
+        assert_contract_upgrade(deps.storage, ACCOUNT, version)?;
         set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
         return Ok(AccountResponse::action("migrate"));
     }
+
     // else this means that we are migrating from another contract, we assert it's `account` and create an abstract account
-    let current_contract_version = get_contract_version(deps.storage)?;
     if current_contract_version.contract != "account" {
-        return Err(AccountError::Std(StdError::generic_err("Can't migrate something other than `abstract::account`  or `account` to `abstract::account`")));
+        Err(AbstractError::ContractNameMismatch {
+            from: current_contract_version.contract,
+            to: ACCOUNT.to_string(),
+        })?;
     }
 
     // Use CW2 to set the contract version, this is needed for migrations
