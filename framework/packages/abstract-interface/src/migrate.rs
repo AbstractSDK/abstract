@@ -245,6 +245,9 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             &ibc_client_cw2_version,
             ::ibc_client::contract::CONTRACT_VERSION,
         ) {
+            // Version change is breaking, need to deploy new version
+            self.instantiate(&self.client.environment().sender_addr())?;
+        } else {
             // If version is not breaking, simply migrate
             self.client
                 .upload_and_migrate_if_needed(&ibc_client::MigrateMsg {})?
@@ -252,9 +255,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             self.host
                 .upload_and_migrate_if_needed(&ibc_host::MigrateMsg {})?
                 .expect("IBC host supposed to be migrated, but skipped instead");
-        } else {
-            // Version change is breaking, need to deploy new version
-            self.instantiate(&self.client.environment().sender_addr())?;
         }
 
         Ok(true)
