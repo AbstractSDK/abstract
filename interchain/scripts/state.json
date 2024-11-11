@@ -6,7 +6,7 @@
       "abstract:ibc-client": 11305,
       "abstract:ibc-host": 11306,
       "abstract:module-factory": 11301,
-      "abstract:registry": 11342,
+      "abstract:registry": 11418,
       "cw:blob": 11289
     },
     "default": {
@@ -26,7 +26,7 @@
       "abstract:ibc-client": 7694,
       "abstract:ibc-host": 7695,
       "abstract:module-factory": 7690,
-      "abstract:registry": 7938,
+      "abstract:registry": 8003,
       "cw:blob": 7399
     },
     "default": {
@@ -66,7 +66,7 @@
       "abstract:ibc-client": 1283,
       "abstract:ibc-host": 1284,
       "abstract:module-factory": 1281,
-      "abstract:registry": 1299,
+      "abstract:registry": 1309,
       "cw:blob": 1278
     },
     "default": {
