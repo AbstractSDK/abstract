@@ -7,6 +7,7 @@ use abstract_std::{ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY};
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, prelude::*};
+use semver::{Comparator, Op, Version, VersionReq};
 
 impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
@@ -263,18 +264,25 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 
 // Check if version upgrade is breaking
 fn is_upgrade_breaking(current_version: &str, new_version: &str) -> bool {
-    let current_version = semver::Version::parse(current_version).unwrap();
+    let version_req = semver::VersionReq::parse(current_version).unwrap();
     let new_version = semver::Version::parse(new_version).unwrap();
-    // upgrades from pre-release is breaking
-    if !current_version.pre.is_empty() && new_version.pre.is_empty() {
-        return true;
-    }
-    // major or minor upgrade is breaking
-    if new_version.major != current_version.major || new_version.minor != current_version.minor {
-        return true;
-    }
+    let current_version = semver::Version::parse(current_version).unwrap();
 
-    false
+    let sem_ver_matches = version_req.matches(&new_version);
+
+    // Pre are not matched correctly by [`VersionReq::matches`].
+    // If the match returns true and one version has a pre, we need to make sure that the pres are compatible
+    !sem_ver_matches
+        || (one_has_pre(&new_version, &current_version)
+            && !pre_is_compatible(&new_version, &current_version))
+}
+
+fn one_has_pre(cmp: &Version, ver: &Version) -> bool {
+    !cmp.pre.is_empty() || !ver.pre.is_empty()
+}
+
+fn pre_is_compatible(cmp: &Version, ver: &Version) -> bool {
+    cmp.major == ver.major && cmp.minor == ver.minor && cmp.patch == ver.patch && cmp.pre == ver.pre
 }
 
 #[cfg(test)]
@@ -284,11 +292,15 @@ mod test {
     fn upgrade_breaking() {
         assert!(is_upgrade_breaking("0.1.2", "0.2.0"));
         assert!(is_upgrade_breaking("0.1.2-beta.1", "0.1.2"));
-        assert!(is_upgrade_breaking("1.2.3", "1.3.0"));
         assert!(is_upgrade_breaking("1.2.3-beta.1", "1.2.3"));
+        assert!(is_upgrade_breaking("1.2.3", "1.2.4-beta.1"));
+        assert!(is_upgrade_breaking("1.2.3-beta.1", "1.2.3-beta.2"));
 
+        assert!(!is_upgrade_breaking("1.2.3", "1.3.0"));
         assert!(!is_upgrade_breaking("0.1.2", "0.1.3"));
         assert!(!is_upgrade_breaking("1.2.3", "1.2.4"));
         assert!(!is_upgrade_breaking("1.2.3", "1.2.3"));
+        assert!(!is_upgrade_breaking("1.2.3-beta.1", "1.2.3-beta.1"));
+        assert!(!is_upgrade_breaking("0.25.0-beta.1", "0.25.0-beta.1"));
     }
 }
