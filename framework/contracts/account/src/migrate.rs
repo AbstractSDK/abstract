@@ -40,7 +40,7 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
     // else this means that we are migrating from another contract, we assert it's `account` and create an abstract account
     let current_contract_version = get_contract_version(deps.storage)?;
     if current_contract_version.contract != "account" {
-        return Err(AccountError::Std(StdError::generic_err("Can't migrate something other than `abstract::account`  or `account` to `abstract_account`")));
+        return Err(AccountError::Std(StdError::generic_err("Can't migrate something other than `abstract::account`  or `account` to `abstract::account`")));
     }
 
     // Use CW2 to set the contract version, this is needed for migrations

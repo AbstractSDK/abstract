@@ -9,7 +9,10 @@ use crate::{
     get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
     AnsHost, ModuleFactory, Registry,
 };
-use abstract_std::{native_addrs, ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY};
+use abstract_std::{
+    native_addrs, objects::module::ModuleInfo, registry::QueryMsgFns, ACCOUNT, ANS_HOST,
+    MODULE_FACTORY, REGISTRY,
+};
 
 const CW_BLOB: &str = "cw:blob";
 
@@ -308,7 +311,15 @@ impl<Chain: CwEnv> Abstract<Chain> {
     }
 
     pub fn account_code_id(&self) -> Result<u64, AbstractInterfaceError> {
-        self.account.code_id().map_err(Into::into)
+        let account_module_info = &self
+            .registry
+            .modules(vec![ModuleInfo::from_id_latest(ACCOUNT)?])?
+            .modules[0];
+
+        match account_module_info.module.reference {
+            abstract_std::objects::module_reference::ModuleReference::Account(code_id) => Ok(code_id),
+            _ => panic!("Your abstract instance has an account module that is not registered as an account. This is bad"),
+        }
     }
 }
 
