@@ -7,7 +7,7 @@ use abstract_std::{ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY};
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, prelude::*};
-use semver::{Comparator, Op, Version, VersionReq};
+use semver::Version;
 
 impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
@@ -268,11 +268,9 @@ fn is_upgrade_breaking(current_version: &str, new_version: &str) -> bool {
     let new_version = semver::Version::parse(new_version).unwrap();
     let current_version = semver::Version::parse(current_version).unwrap();
 
-    let sem_ver_matches = version_req.matches(&new_version);
-
     // Pre are not matched correctly by [`VersionReq::matches`].
     // If the match returns true and one version has a pre, we need to make sure that the pres are compatible
-    !sem_ver_matches
+    !version_req.matches(&new_version)
         || (one_has_pre(&new_version, &current_version)
             && !pre_is_compatible(&new_version, &current_version))
 }
