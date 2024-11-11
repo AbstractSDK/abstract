@@ -84,7 +84,7 @@ mod tests {
 
     #[coverage_helper::test]
     fn disallow_name_change() -> AccountResult<()> {
-        let mut deps = mock_dependencies();       
+        let mut deps = mock_dependencies();
         deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;

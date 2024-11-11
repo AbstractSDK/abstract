@@ -122,6 +122,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
 ///   - "account_id" -> ABSTRACT_ACCOUNT_ID
 /// - REGISTRY
 ///   - "account" -> { ABSTRACT_ACCOUNT }
+///
 /// Also it returns query responses for
 /// - [`cosmwasm_std::WasmQuery::ContractInfo`]
 ///   - $contract_address -> ContractInfoResponse { creator: api.addr_make([`crate::OWNER`]), code_id: 1, admin: $contract_address}

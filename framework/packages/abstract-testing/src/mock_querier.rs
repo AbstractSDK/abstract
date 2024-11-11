@@ -377,8 +377,7 @@ impl MockQuerierBuilder {
                     let creator = self.api.addr_make(crate::OWNER);
                     let checksum = native_addrs::BLOB_CHECKSUM;
 
-                    let code_info =
-                        CodeInfoResponse::new(code_id.clone(), creator, checksum.into());
+                    let code_info = CodeInfoResponse::new(*code_id, creator, checksum.into());
                     Ok(to_json_binary(&code_info).unwrap())
                 }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
