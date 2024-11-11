@@ -284,7 +284,7 @@ impl<T: CwEnv + Stargate> Abstract<T> {
         log::info!("Created proposal to update ownerships of abstract contracts");
 
         // Move ownership of the account
-        let root_account = AccountI::load_from(&self, ABSTRACT_ACCOUNT_ID)?;
+        let root_account = AccountI::load_from(self, ABSTRACT_ACCOUNT_ID)?;
         root_account.update_ownership(GovAction::TransferOwnership {
             new_owner: GovernanceDetails::External {
                 governance_address: cw3_flex_address.to_string(),
