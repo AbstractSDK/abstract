@@ -96,6 +96,8 @@ expression: all_storage
     - "\"mock1zrcvn33rptsj7t6hacjrhuekqplf8eagqs3dg7m9vqqrhnyaxtxsa9tlkx\""
   - - "\u0000\u0002cjabstract"
     - "{\"trace\":\"local\",\"seq\":0}"
+  - - "\u0000\u0002ck\u0000\u0005local\u0000\u0000\u0000\u0000"
+    - "\"abstract\""
   - - cfg
     - "{\"security_disabled\":true,\"namespace_registration_fee\":null}"
   - - ci
