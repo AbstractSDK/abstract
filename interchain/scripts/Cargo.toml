@@ -22,7 +22,7 @@ cw-orch-polytone = { workspace = true }
 cw-plus-orch = { workspace = true }
 abstract-std = { workspace = true }
 abstract-xion = { workspace = true }
-abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-interface = { workspace = true, features = ["daemon", "multisig"] }
 tokio = { workspace = true, features = ["full"] }
 log = "0.4.14"
 anyhow = { workspace = true }

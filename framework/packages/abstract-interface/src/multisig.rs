@@ -21,7 +21,7 @@ use cw_plus_orch::{
 };
 use prost::{Message, Name};
 
-use crate::{Abstract, AbstractInterfaceError, AccountI};
+use crate::{Abstract, AbstractInterfaceError, AccountI, AnsHost, ModuleFactory, Registry};
 
 pub const CW3_ABSTRACT: &str = "cw3:abstract";
 pub const CW4_ABSTRACT: &str = "cw4:abstract";
@@ -73,6 +73,93 @@ impl<Chain: CwEnv> AbstractMultisig<Chain> {
         )?;
 
         Ok(())
+    }
+
+    pub fn propose_on_registry_msgs(
+        &self,
+        registry: &Registry<Chain>,
+        msgs: Vec<registry::ExecuteMsg>,
+    ) -> Result<Vec<CosmosMsg>, AbstractInterfaceError> {
+        let registry = registry.addr_str()?;
+        msgs.into_iter()
+            .map(|msg| {
+                Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: registry.clone(),
+                    msg: to_json_binary(&msg)?,
+                    funds: vec![],
+                }))
+            })
+            .collect()
+    }
+
+    pub fn propose_on_ans_msgs(
+        &self,
+        ans: &AnsHost<Chain>,
+        msgs: Vec<ans_host::ExecuteMsg>,
+    ) -> Result<Vec<CosmosMsg>, AbstractInterfaceError> {
+        let ans_host = ans.addr_str()?;
+        msgs.into_iter()
+            .map(|msg| {
+                Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: ans_host.clone(),
+                    msg: to_json_binary(&msg)?,
+                    funds: vec![],
+                }))
+            })
+            .collect()
+    }
+
+    pub fn propose_on_ibc_client_msgs(
+        &self,
+        ibc_client: &ModuleFactory<Chain>,
+        msgs: Vec<ibc_client::ExecuteMsg>,
+    ) -> Result<Vec<CosmosMsg>, AbstractInterfaceError> {
+        let ibc_client = ibc_client.addr_str()?;
+        msgs.into_iter()
+            .map(|msg| {
+                Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: ibc_client.clone(),
+                    msg: to_json_binary(&msg)?,
+                    funds: vec![],
+                }))
+            })
+            .collect()
+    }
+
+    pub fn propose_on_ibc_host_msgs(
+        &self,
+        ibc_host: &ModuleFactory<Chain>,
+        msgs: Vec<ibc_host::ExecuteMsg>,
+    ) -> Result<Vec<CosmosMsg>, AbstractInterfaceError> {
+        let ibc_host = ibc_host.addr_str()?;
+        msgs.into_iter()
+            .map(|msg| {
+                Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: ibc_host.clone(),
+                    msg: to_json_binary(&msg)?,
+                    funds: vec![],
+                }))
+            })
+            .collect()
+    }
+
+    /// Create messages for new modules
+    pub fn propose_modules_msgs(
+        &self,
+        registry: &Registry<Chain>,
+        modules: Vec<(ModuleInfo, ModuleReference)>,
+    ) -> Result<Vec<CosmosMsg>, AbstractInterfaceError> {
+        let mut msgs = vec![registry::ExecuteMsg::ProposeModules {
+            modules: modules.clone(),
+        }];
+        let registry_config = registry.config()?;
+        if !registry_config.security_disabled {
+            msgs.push(registry::ExecuteMsg::ApproveOrRejectModules {
+                approves: modules.into_iter().map(|(info, _reference)| info).collect(),
+                rejects: vec![],
+            });
+        }
+        self.propose_on_registry_msgs(registry, msgs)
     }
 }
 
@@ -346,36 +433,17 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             .cw3
             .propose(description, msgs, title, None, &[])?;
 
-        let mut msgs = vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.registry.addr_str()?,
-            msg: to_json_binary(&registry::ExecuteMsg::ProposeModules {
-                modules: modules_to_register.clone(),
-            })?,
-            funds: vec![],
-        })];
-        // When security enabled we need to register it
-        let registry_config = self.registry.config()?;
-        if !registry_config.security_disabled {
-            msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: self.registry.addr_str()?,
-                msg: to_json_binary(&registry::ExecuteMsg::ApproveOrRejectModules {
-                    approves: modules_to_register
-                        .into_iter()
-                        .map(|(info, _reference)| info)
-                        .collect(),
-                    rejects: vec![],
-                })?,
-                funds: vec![],
-            }));
-        }
+        let propose_modules_msgs = self
+            .multisig
+            .propose_modules_msgs(&self.registry, modules_to_register)?;
 
-        let title = "Register abstract modules in the abstract".to_owned();
+        let title = "Register abstract native modules in the abstract".to_owned();
         let description =
             "We should register upgraded modules in the abstract contracts under a new version"
                 .to_owned();
         self.multisig
             .cw3
-            .propose(description, msgs, title, None, &[])?;
+            .propose(description, propose_modules_msgs, title, None, &[])?;
         Ok(has_uploaded)
     }
 }

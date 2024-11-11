@@ -1,3 +1,6 @@
+//! This script moves ownership of the abstract to the newly-created multisig
+//! You need to fill members and network to run it correctly
+
 use std::sync::Arc;
 
 use abstract_interface::Abstract;
@@ -11,7 +14,7 @@ fn main() -> anyhow::Result<()> {
     use dotenv::dotenv;
 
     let abstract_mnemonic =
-        std::env::var("ABSTRACT_MNEMONIC").expect("Fill your abstract mnemonic");
+        std::env::var("MULTISIG_MNEMONIC").expect("Fill your abstract mnemonic");
     // Fill members
     let members = vec![];
     assert!(!members.is_empty(), "Fill multisig members first");

@@ -1,13 +1,17 @@
+//! Template to create proposal as abstract multisig
+
 use abstract_interface::Abstract;
 use clap::Parser;
 use cw_orch::prelude::{
     networks::{parse_network, ChainInfo},
     *,
 };
+use cw_plus_orch::cw3_flex_multisig::ExecuteMsgInterfaceFns;
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[allow(unused)]
 fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     for network in networks {
@@ -15,7 +19,26 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         let deployment = Abstract::load_from(chain.clone())?;
 
-        deployment.propose_migrate_if_version_changed()?;
+        let mut msgs = vec![];
+
+        // Example of abstract action
+        msgs.extend(deployment.multisig.propose_on_ans_msgs(
+            &deployment.ans_host,
+            vec![abstract_std::ans_host::ExecuteMsg::UpdateAssetAddresses {
+                to_add: vec![],
+                to_remove: vec![],
+            }],
+        )?);
+
+        msgs.push(todo!());
+
+        let title: &str = todo!();
+        let description: &str = todo!();
+        let latest = None;
+        deployment
+            .multisig
+            .cw3
+            .propose(description, msgs, title, latest, &[])?;
     }
 
     Ok(())
