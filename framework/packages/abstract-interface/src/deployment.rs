@@ -306,6 +306,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
             blob: self.blob.clone(),
         }
     }
+
+    pub fn account_code_id(&self) -> Result<u64, AbstractInterfaceError> {
+        self.account.code_id().map_err(Into::into)
+    }
 }
 
 // Sender addr means it's mock or CloneTest(which is also mock)
