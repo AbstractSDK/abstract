@@ -10,7 +10,7 @@ use abstract_std::{
         module_reference::ModuleReference,
         ABSTRACT_ACCOUNT_ID,
     },
-    registry::{self, ExecuteMsgFns as _},
+    registry::{self, ExecuteMsgFns as _, QueryMsgFns},
     ACCOUNT,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, WasmMsg};
@@ -346,15 +346,17 @@ impl<T: CwEnv + Stargate> Abstract<T> {
             .cw3
             .propose(description, msgs, title, None, &[])?;
 
-        let msgs = vec![
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: self.registry.addr_str()?,
-                msg: to_json_binary(&registry::ExecuteMsg::ProposeModules {
-                    modules: modules_to_register.clone(),
-                })?,
-                funds: vec![],
-            }),
-            CosmosMsg::Wasm(WasmMsg::Execute {
+        let mut msgs = vec![CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: self.registry.addr_str()?,
+            msg: to_json_binary(&registry::ExecuteMsg::ProposeModules {
+                modules: modules_to_register.clone(),
+            })?,
+            funds: vec![],
+        })];
+        // When security enabled we need to register it
+        let registry_config = self.registry.config()?;
+        if !registry_config.security_disabled {
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: self.registry.addr_str()?,
                 msg: to_json_binary(&registry::ExecuteMsg::ApproveOrRejectModules {
                     approves: modules_to_register
@@ -364,8 +366,8 @@ impl<T: CwEnv + Stargate> Abstract<T> {
                     rejects: vec![],
                 })?,
                 funds: vec![],
-            }),
-        ];
+            }));
+        }
 
         let title = "Register abstract modules in the abstract".to_owned();
         let description =

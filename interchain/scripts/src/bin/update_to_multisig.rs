@@ -13,10 +13,7 @@ fn main() -> anyhow::Result<()> {
     let abstract_mnemonic =
         std::env::var("ABSTRACT_MNEMONIC").expect("Fill your abstract mnemonic");
     // Fill members
-    let members = vec![cw4::Member {
-        addr: "juno14cl2dthqamgucg9sfvv4relp3aa83e40rg8jrz".to_string(),
-        weight: 1,
-    }];
+    let members = vec![];
     assert!(!members.is_empty(), "Fill multisig members first");
 
     // Change network
