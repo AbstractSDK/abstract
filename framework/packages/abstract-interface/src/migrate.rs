@@ -7,9 +7,11 @@ use abstract_std::{ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, REGISTRY};
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
 use cw_orch::{environment::Environment, prelude::*};
+use semver::Version;
 
 impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
+    #[deprecated(note = "use migrate_if_version_changed instead")]
     pub fn migrate_if_needed(&self) -> Result<bool, crate::AbstractInterfaceError> {
         // start with factory
         let module_factory = self
@@ -28,6 +30,7 @@ impl<T: CwEnv> Abstract<T> {
         let account = self.account.upload_and_register_if_needed(&self.registry)?;
 
         // Then ibc
+        #[allow(deprecated)]
         let ibc = self.ibc.migrate_if_needed()?;
 
         self.registry.approve_any_abstract_modules()?;
@@ -212,6 +215,7 @@ fn contract_version<Chain: CwEnv, A: ContractInstance<Chain>>(
 }
 
 impl<Chain: CwEnv> AbstractIbc<Chain> {
+    #[deprecated(note = "use deploy_or_migrate_if_version_changed instead")]
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
     pub fn migrate_if_needed(&self) -> Result<bool, crate::AbstractInterfaceError> {
         let client = self
@@ -238,30 +242,58 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             return Ok(false);
         }
 
-        // Version change - upload both contracts
-        self.client
-            .upload_if_needed()?
-            .expect("IBC client wasm might be outdated");
-        self.host
-            .upload_if_needed()?
-            .expect("IBC host wasm might be outdated");
-
-        // Check if version is breaking
-        let version_req = semver::VersionReq::parse(&ibc_client_cw2_version).unwrap();
-        let new_version = semver::Version::parse(::ibc_client::contract::CONTRACT_VERSION).unwrap();
-        if version_req.matches(&new_version) {
-            // If version is not breaking, simply migrate
-            self.client
-                .migrate_if_needed(&ibc_client::MigrateMsg {})?
-                .expect("IBC client supposed to be migrated, but skipped instead");
-            self.host
-                .migrate_if_needed(&ibc_host::MigrateMsg {})?
-                .expect("IBC host supposed to be migrated, but skipped instead");
-        } else {
+        if is_upgrade_breaking(
+            &ibc_client_cw2_version,
+            ::ibc_client::contract::CONTRACT_VERSION,
+        ) {
             // Version change is breaking, need to deploy new version
             self.instantiate(&self.client.environment().sender_addr())?;
+        } else {
+            // If version is not breaking, simply migrate
+            self.client
+                .upload_and_migrate_if_needed(&ibc_client::MigrateMsg {})?
+                .expect("IBC client supposed to be migrated, but skipped instead");
+            self.host
+                .upload_and_migrate_if_needed(&ibc_host::MigrateMsg {})?
+                .expect("IBC host supposed to be migrated, but skipped instead");
         }
 
         Ok(true)
+    }
+}
+
+// Check if version upgrade is breaking
+fn is_upgrade_breaking(current_version: &str, new_version: &str) -> bool {
+    let version_req = semver::VersionReq::parse(current_version).unwrap();
+    let new_version = semver::Version::parse(new_version).unwrap();
+    let current_version = semver::Version::parse(current_version).unwrap();
+
+    // Pre are not matched correctly by [`VersionReq::matches`].
+    // If the match returns true and one version has a pre, we need to make sure that the pres are compatible
+    !version_req.matches(&new_version)
+        || (one_has_pre(&new_version, &current_version) && new_version != current_version)
+}
+
+fn one_has_pre(cmp: &Version, ver: &Version) -> bool {
+    !cmp.pre.is_empty() || !ver.pre.is_empty()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn upgrade_breaking() {
+        assert!(is_upgrade_breaking("0.1.2", "0.2.0"));
+        assert!(is_upgrade_breaking("0.1.2-beta.1", "0.1.2"));
+        assert!(is_upgrade_breaking("1.2.3-beta.1", "1.2.3"));
+        assert!(is_upgrade_breaking("1.2.3", "1.2.4-beta.1"));
+        assert!(is_upgrade_breaking("1.2.3-beta.1", "1.2.3-beta.2"));
+
+        assert!(!is_upgrade_breaking("1.2.3", "1.3.0"));
+        assert!(!is_upgrade_breaking("0.1.2", "0.1.3"));
+        assert!(!is_upgrade_breaking("1.2.3", "1.2.4"));
+        assert!(!is_upgrade_breaking("1.2.3", "1.2.3"));
+        assert!(!is_upgrade_breaking("1.2.3-beta.1", "1.2.3-beta.1"));
+        assert!(!is_upgrade_breaking("0.25.0-beta.1", "0.25.0-beta.1"));
     }
 }
