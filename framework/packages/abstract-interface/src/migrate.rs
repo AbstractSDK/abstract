@@ -271,16 +271,11 @@ fn is_upgrade_breaking(current_version: &str, new_version: &str) -> bool {
     // Pre are not matched correctly by [`VersionReq::matches`].
     // If the match returns true and one version has a pre, we need to make sure that the pres are compatible
     !version_req.matches(&new_version)
-        || (one_has_pre(&new_version, &current_version)
-            && !pre_is_compatible(&new_version, &current_version))
+        || (one_has_pre(&new_version, &current_version) && new_version != current_version)
 }
 
 fn one_has_pre(cmp: &Version, ver: &Version) -> bool {
     !cmp.pre.is_empty() || !ver.pre.is_empty()
-}
-
-fn pre_is_compatible(cmp: &Version, ver: &Version) -> bool {
-    cmp.major == ver.major && cmp.minor == ver.minor && cmp.patch == ver.patch && cmp.pre == ver.pre
 }
 
 #[cfg(test)]
