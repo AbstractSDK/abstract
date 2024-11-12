@@ -15,7 +15,7 @@ use abstract_std::{
     },
     registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
-use abstract_std::{AbstractError, IBC_CLIENT};
+use abstract_std::{native_addrs, AbstractError, IBC_CLIENT};
 use cosmwasm_std::{wasm_execute, DepsMut, Env};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
@@ -50,7 +50,9 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     let account_id =
         AccountId::local(LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, registry.address.clone())?);
