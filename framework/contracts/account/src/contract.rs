@@ -10,7 +10,7 @@ use abstract_sdk::{
 use abstract_std::{
     account::{
         state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
-        ICS20PacketIdentifier, UpdateSubAccountAction,
+        UpdateSubAccountAction,
     },
     module_factory::SimulateInstallModulesResponse,
     objects::{
@@ -21,10 +21,10 @@ use abstract_std::{
     },
     registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
+
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, IbcAckCallbackMsg,
-    IbcBasicResponse, IbcSourceCallbackMsg, IbcTimeoutCallbackMsg, MessageInfo, Reply, Response,
-    StdAck, StdResult,
+    ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response,
+    StdResult,
 };
 
 pub use crate::migrate::migrate;
@@ -36,12 +36,13 @@ use crate::{
         execute_msgs_with_data, execute_on_module, ica_action, remove_auth_method,
         send_funds_with_actions,
     },
+    ics20::ics20_hook_callback,
     modules::{
         _install_modules, install_modules,
         migration::{assert_modules_dependency_requirements, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
-    msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ICS20_CALLBACKS},
+    msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg},
     queries::{
         handle_account_info_query, handle_config_query, handle_module_address_query,
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
@@ -418,76 +419,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn ibc_source_callback(
-    deps: DepsMut,
-    env: Env,
-    msg: IbcSourceCallbackMsg,
-) -> StdResult<IbcBasicResponse> {
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> AccountResult {
     match msg {
-        IbcSourceCallbackMsg::Acknowledgement(IbcAckCallbackMsg {
-            acknowledgement,
-            original_packet,
-            relayer: _,
-            ..
-        }) => {
-            let packet_identifier = ICS20PacketIdentifier {
-                channel_id: original_packet.src.channel_id,
-                sequence: original_packet.sequence,
-            };
+        SudoMsg::IBCLifecycleComplete(msg) => ics20_hook_callback(deps, env, msg),
 
-            // TODO: This needs to change to better assert the success ack
-            // TODO: we also need to authenticate the original packet that needs to be a packet coming from transfer ports
-            // TODO, this will most likely fail to or from union
-
-            // TODO: The acknowledgement actually has this structure with ibc hooks, we need to coed accordingly
-            // TODO: https://github.com/cosmos/ibc-apps/blob/8cb681e31589bc90b47e0ab58173a579825fd56d/modules/ibc-hooks/wasm_hook.go#L119C1-L119C86
-
-            let (outcome, stored_msgs) =
-                if acknowledgement.data == StdAck::success(b"\x01").to_binary() {
-                    (
-                        "result",
-                        ICS20_CALLBACKS
-                            .load(deps.storage, packet_identifier.clone())?
-                            .into_iter()
-                            .map(|msg| wasm_execute(&env.contract.address, &msg, vec![]))
-                            .collect::<Result<Vec<_>, _>>()?,
-                    )
-                } else {
-                    ("failure", vec![])
-                };
-
-            ICS20_CALLBACKS.remove(deps.storage, packet_identifier.clone());
-
-            Ok(IbcBasicResponse::new()
-                .add_attribute("action", "ibc_source_callback")
-                .add_attribute("outcome", outcome)
-                .add_messages(stored_msgs))
-        }
-        IbcSourceCallbackMsg::Timeout(IbcTimeoutCallbackMsg {
-            packet, relayer: _, ..
-        }) => {
-            ICS20_CALLBACKS.remove(
-                deps.storage,
-                ICS20PacketIdentifier {
-                    channel_id: packet.src.channel_id,
-                    sequence: packet.sequence,
-                },
-            );
-            Ok(IbcBasicResponse::new()
-                .add_attribute("action", "ibc_source_callback")
-                .add_attribute("outcome", "timeout"))
-        }
+        #[cfg(feature = "xion")]
+        SudoMsg::Xion(msg) => abstract_xion::sudo::sudo(deps, env, msg).map_err(Into::into),
     }
-}
-
-#[cfg(feature = "xion")]
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn sudo(
-    deps: DepsMut,
-    env: Env,
-    msg: abstract_xion::AccountSudoMsg,
-) -> abstract_xion::AbstractXionResult {
-    abstract_xion::sudo::sudo(deps, env, msg)
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*

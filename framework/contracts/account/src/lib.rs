@@ -4,6 +4,7 @@ pub mod config;
 pub mod contract;
 pub mod error;
 pub mod execution;
+pub mod ics20;
 pub mod migrate;
 pub mod modules;
 pub mod queries;
@@ -38,6 +39,38 @@ pub mod msg {
 
     pub const ICS20_CALLBACKS: Map<ICS20PacketIdentifier, Vec<ExecuteMsg>> =
         Map::new(storage_namespaces::account::ICS20_CALLBACKS);
+
+    #[cosmwasm_schema::cw_serde]
+    pub enum SudoMsg {
+        /// For IBC hooks acknoledgments
+        #[serde(rename = "ibc_lifecycle_complete")]
+        IBCLifecycleComplete(IBCLifecycleComplete),
+        #[cfg(feature = "xion")]
+        #[serde(untagged)]
+        Xion(abstract_xion::AccountSudoMsg),
+    }
+
+    #[cosmwasm_schema::cw_serde]
+    pub enum IBCLifecycleComplete {
+        #[serde(rename = "ibc_ack")]
+        IBCAck {
+            /// The source channel (osmosis side) of the IBC packet
+            channel: String,
+            /// The sequence number that the packet was sent with
+            sequence: u64,
+            /// String encoded version of the `Ack` as seen by OnAcknowledgementPacket(..)
+            ack: String,
+            /// Weather an `Ack` is a success of failure according to the transfer spec
+            success: bool,
+        },
+        #[serde(rename = "ibc_timeout")]
+        IBCTimeout {
+            /// The source channel (osmosis side) of the IBC packet
+            channel: String,
+            /// The sequence number that the packet was sent with
+            sequence: u64,
+        },
+    }
 }
 
 #[cfg(test)]

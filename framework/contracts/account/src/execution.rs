@@ -10,10 +10,9 @@ use abstract_std::{
     IBC_CLIENT, ICA_CLIENT, ICS20,
 };
 use cosmwasm_std::{
-    to_json_binary, Addr, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, IbcCallbackRequest, IbcMsg,
-    IbcSrcCallback, IbcTimeout, MessageInfo, Response, StdError, SubMsg, WasmMsg, WasmQuery,
+    to_json_binary, Addr, Binary, Coin, CosmosMsg, DepsMut, Empty, Env, IbcMsg, IbcTimeout,
+    MessageInfo, Response, StdError, SubMsg, WasmMsg, WasmQuery,
 };
-use serde_json::{self, Value};
 
 use crate::{
     contract::{
@@ -232,23 +231,15 @@ pub fn send_funds_with_actions(
             src_chain: TruncatedChainId::from_chain_id(&env.block.chain_id),
         },
     )
+    .callback(&env)
     .build()?;
-
-    // Hook for sending the callback after the ack comes back
-    let callback = IbcCallbackRequest::source(IbcSrcCallback {
-        address: env.contract.address,
-        gas_limit: None,
-    });
-
-    let mut final_json: Value = action_memo.parse()?;
-    json_patch::merge(&mut final_json, &serde_json::to_value(callback)?);
 
     let transfer_msg = IbcMsg::Transfer {
         channel_id: ics20_channel_id.clone(),
         to_address: remote_host.remote_abstract_host,
         amount: funds,
         timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(PACKET_LIFETIME)),
-        memo: Some(final_json.to_string()),
+        memo: Some(action_memo),
     };
 
     Ok(Response::new().add_submessage(

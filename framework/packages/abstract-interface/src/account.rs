@@ -731,7 +731,7 @@ impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
             )
             .with_migrate(::account::contract::migrate)
             .with_reply(::account::contract::reply)
-            .with_ibc_source_callback(::account::contract::ibc_source_callback),
+            .with_sudo(::account::contract::sudo),
         )
     }
     fn wasm(chain: &ChainInfoOwned) -> WasmPath {
