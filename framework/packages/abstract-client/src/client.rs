@@ -22,8 +22,10 @@
 //!
 //! let namespace = Namespace::new("tester")?;
 //! let publisher: Publisher<MockBech32> = client
-//!     .publisher_builder(namespace)
-//!     .build()?;
+//!     .account_builder()
+//!     .namespace(namespace)
+//!     .build()?
+//!     .publisher()?;
 //!
 //! publisher.publish_app::<MockAppI<MockBech32>>()?;
 //! # Ok::<(), AbstractClientError>(())
