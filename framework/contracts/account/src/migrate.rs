@@ -1,19 +1,125 @@
+use abstract_sdk::feature_objects::RegistryContract;
+use abstract_sdk::std::{account::state::ACCOUNT_ID, ACCOUNT};
+use abstract_std::account::ModuleInstallConfig;
+use abstract_std::objects::module::ModuleInfo;
+use abstract_std::objects::module_version::assert_contract_upgrade;
+use abstract_std::{account::MigrateMsg, objects::AccountId};
 use abstract_std::{
-    account::MigrateMsg, objects::module_version::assert_contract_upgrade, ACCOUNT,
+    account::{
+        state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
+        UpdateSubAccountAction,
+    },
+    objects::{
+        gov_type::GovernanceDetails,
+        ownership::{self},
+    },
+    registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
-use cosmwasm_std::{DepsMut, Env};
-use cw2::set_contract_version;
+use abstract_std::{AbstractError, IBC_CLIENT};
+use cosmwasm_std::{wasm_execute, DepsMut, Env};
+use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
+
+use crate::{
+    modules::{_install_modules, MIGRATE_CONTEXT},
+    msg::ExecuteMsg,
+};
 
 use crate::contract::{AccountResponse, AccountResult, CONTRACT_VERSION};
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
+pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, ACCOUNT, version)?;
+    let current_contract_version = get_contract_version(deps.storage)?;
+    // If we already have an abstract account, we just migrate like normal
+    if current_contract_version.contract != "abstract::account" {
+        assert_contract_upgrade(deps.storage, ACCOUNT, version)?;
+        set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
+        return Ok(AccountResponse::action("migrate"));
+    }
+
+    // else this means that we are migrating from another contract, we assert it's `account` and create an abstract account
+    if current_contract_version.contract != "account" {
+        Err(AbstractError::ContractNameMismatch {
+            from: current_contract_version.contract,
+            to: ACCOUNT.to_string(),
+        })?;
+    }
+
+    // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
-    Ok(AccountResponse::action("migrate"))
+
+    let registry = RegistryContract::new(deps.api, &env)?;
+
+    let account_id =
+        AccountId::local(LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, registry.address.clone())?);
+
+    let mut response = AccountResponse::new(
+        "migrate",
+        vec![("account_id".to_owned(), account_id.to_string())],
+    );
+
+    ACCOUNT_ID.save(deps.storage, &account_id)?;
+    WHITELISTED_MODULES.save(deps.storage, &WhitelistedModules(vec![]))?;
+
+    let account_info = AccountInfo {
+        name: None,
+        description: None,
+        link: None,
+    };
+
+    if account_info.has_info() {
+        INFO.save(deps.storage, &account_info)?;
+    }
+    MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
+
+    let governance = GovernanceDetails::AbstractAccount {
+        address: env.contract.address.clone(),
+    };
+
+    // Set owner
+    let cw_gov_owner = ownership::initialize_owner(deps.branch(), governance)?;
+
+    SUSPENSION_STATUS.save(deps.storage, &false)?;
+
+    response = response.add_attribute("owner".to_owned(), cw_gov_owner.owner.to_string());
+
+    response = response.add_message(wasm_execute(
+        registry.address,
+        &abstract_std::registry::ExecuteMsg::AddAccount {
+            namespace: None,
+            creator: env.contract.address.to_string(),
+        },
+        vec![],
+    )?);
+
+    // Register on account if it's sub-account
+    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
+        response = response.add_message(wasm_execute(
+            account,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                id: ACCOUNT_ID.load(deps.storage)?.seq(),
+            }),
+            vec![],
+        )?);
+    }
+
+    let install_modules = vec![ModuleInstallConfig::new(
+        ModuleInfo::from_id_latest(IBC_CLIENT)?,
+        None,
+    )];
+
+    if !install_modules.is_empty() {
+        // Install modules
+        let (install_msgs, install_attribute) =
+            _install_modules(deps, &env, install_modules, vec![])?;
+        response = response
+            .add_submessages(install_msgs)
+            .add_attribute(install_attribute.key, install_attribute.value);
+    }
+
+    Ok(response)
 }
 
 #[cfg(test)]
