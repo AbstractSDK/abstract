@@ -1331,7 +1331,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Upgrade the module to a new version If module is `abstract::account` then the contract will do a self-migration. Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Version Control",
+            "description": "Upgrade the module to a new version If module is `abstract::account` then the contract will do a self-migration. Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Registry",
             "type": "object",
             "required": [
               "upgrade"
@@ -3615,42 +3615,8 @@
   "migrate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MigrateMsg",
-    "oneOf": [
-      {
-        "description": "Migrating from blob contract",
-        "type": "object",
-        "required": [
-          "instantiate"
-        ],
-        "properties": {
-          "instantiate": {
-            "$ref": "#/definitions/InstantiateMsg"
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Migrating from previous version",
-        "type": "object",
-        "required": [
-          "migrate"
-        ],
-        "properties": {
-          "migrate": {
-            "type": "object",
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      }
-    ],
-    "definitions": {
-      "InstantiateMsg": {
-        "description": "This needs no info. Owner of the contract is whoever signed the InstantiateMsg.",
-        "type": "object",
-        "additionalProperties": false
-      }
-    }
+    "type": "object",
+    "additionalProperties": false
   },
   "sudo": null,
   "responses": {

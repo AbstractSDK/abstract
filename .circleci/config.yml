@@ -43,10 +43,14 @@ workflows:
       - build-modules:
           requires:
             - build-branch
+      - build-schemas:
+          requires:
+            - build-branch
       - merge-build-branch:
           requires:
             - build-framework
             - build-modules
+            - build-schemas
 
   modules-coverage:
     when:
@@ -149,14 +153,6 @@ jobs:
           command: |
             set -e
             ./scripts/wasm-framework-ci.sh
-      - run:
-          name: Generate schemas
-          command: |
-            # Install deps
-            cargo install cargo-workspaces
-            cargo install just
-            # Run script
-            just schema
       - save_cache:
           paths:
             # Cargo registry
@@ -174,9 +170,7 @@ jobs:
             git pull
             # Check for wasm changes
             git add framework/artifacts --force
-            # Check for schema changes
-            git add schema --force
-            git commit -m 'Update framework WASM & Schemas [skip ci]' || true
+            git commit -m 'Update framework WASM' || true
             git push origin "$CIRCLE_BRANCH-build" || true
       - run:
           name: Remove temporary branch if it failed during build framework
@@ -245,6 +239,63 @@ jobs:
           failure_message: "**${CIRCLE_USERNAME}**'s modules WASM build failed. Please check why! 😭"
           webhook: "${DISCORD_STATUS_WEBHOOK}"
 
+  build-schemas:
+    docker:
+      - image: cimg/rust:1.80.0
+    resource_class: xlarge
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: "Check for newer workflow"
+          background: true
+          command: |
+            while true; do
+              sleep 5
+              LATEST_COMMIT=$(git ls-remote $CIRCLE_REPOSITORY_URL | grep "$CIRCLE_BRANCH$" | cut -f 1)
+              if [ "$LATEST_COMMIT" != "$CIRCLE_SHA1" ]; then
+                echo "more recent commit to branch, exiting"
+                # Remove temporary branch
+                git push origin --delete "$CIRCLE_BRANCH-build" || true
+                curl -X POST "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN"
+              fi
+            done
+      - run:
+          name: Checkout temporary branch
+          command: |
+            git fetch origin "$CIRCLE_BRANCH-build"
+            git checkout "$CIRCLE_BRANCH-build"
+      - restore_cache:
+          keys:
+            - cargocache-v2-build-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
+      - run:
+          name: Generate schemas
+          command: |
+            # Install deps
+            cargo install cargo-workspaces
+            cargo install just
+            # Run script
+            just schema
+      - run:
+          name: Commit and push schemas
+          command: |
+            git config --global user.name 'CircleCI'
+            git config --global user.email 'circleci@example.com'
+            # Pull latest changes
+            git pull
+            # Check for schema changes
+            git add schema --force
+            git commit -m 'Update Schemas [skip ci]' || true
+            git push origin "$CIRCLE_BRANCH-build" || true
+      - run:
+          name: Remove temporary branch if it failed during build schemas
+          when: on_fail
+          command: git push origin --delete "$CIRCLE_BRANCH-build" || true
+      - discord/status:
+          fail_only: true
+          failure_message: "**${CIRCLE_USERNAME}**'s schemas build failed. Please check why! 😭"
+          webhook: "${DISCORD_STATUS_WEBHOOK}"
+
   merge-build-branch:
     docker:
       - image: cimg/base:2024.01
@@ -252,6 +303,16 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
+      - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key 4C19E4CC17E67B7B
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey 4C19E4CC17E67B7B
+            git config --global commit.gpgSign true
       - run:
           name: "Merge build branch"
           command: |
@@ -262,7 +323,7 @@ jobs:
             git fetch origin "$CIRCLE_BRANCH-build"
             # Merge artifacts to a branch
             git merge "origin/$CIRCLE_BRANCH-build" --squash
-            git commit -m "Update WASM & Schemas [skip ci]" || echo "No changes to commit"
+            git commit -S -m "Update WASM & Schemas [skip ci]" || echo "No changes to commit"
             git push origin $CIRCLE_BRANCH || true
             # Delete temporary branch
             git push origin --delete "$CIRCLE_BRANCH-build"
