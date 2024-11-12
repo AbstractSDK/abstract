@@ -103,12 +103,12 @@ fn transfer_with_account_rename_message() -> AResult {
 
     pub const INITIAL_AMOUNT: u128 = 100_000;
     pub const LOCAL_TRANSFER_AMOUNT: u128 = 50_000;
-    let funds_to_transfer = coin(100_000, "usource");
-    let funds_remaining = coin(INITIAL_AMOUNT, "usource1");
+    let funds_to_transfer = coin(INITIAL_AMOUNT, "usource");
+    let funds_after_ics20 = coin(INITIAL_AMOUNT, "usource1");
 
     src.add_balance(
         &account.address()?,
-        vec![funds_to_transfer.clone(), funds_remaining.clone()],
+        vec![funds_to_transfer.clone(), funds_after_ics20.clone()],
     )?;
 
     // Here we send some funds on the remote account and then change the name of the account on callback
@@ -123,13 +123,14 @@ fn transfer_with_account_rename_message() -> AResult {
         funds_to_transfer.clone(),
         TruncatedChainId::from_chain_id(&dst.chain_id()),
     )?;
-
-    interchain.await_and_check_packets(SOURCE_CHAIN_ID, tx_response)?;
-
+    let src_account_balance = src.balance(&account.address()?, None)?;
+    assert_eq!(src_account_balance, coins(INITIAL_AMOUNT, "usource1"));
+    let result = interchain.await_and_check_packets(SOURCE_CHAIN_ID, tx_response)?;
+    println!("{:?}", result);
     let src_account_balance = src.balance(&account.address()?, None)?;
     assert_eq!(
         src_account_balance,
-        coins(INITIAL_AMOUNT - LOCAL_TRANSFER_AMOUNT, "usource1")
+        coins(LOCAL_TRANSFER_AMOUNT, "usource1")
     );
 
     let dst_host_balance = dst.balance(&dest_abstr.ibc.host.address()?, None)?;
