@@ -58,8 +58,8 @@ expression: all_storage
     - "{\"native\":\"mock1awvrj8fm7khxxfllk06hqehrh6kg4m2wakt9x5w4zjmpwrgjx02snv3vdy\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\bibc-host0.24.1"
     - "{\"native\":\"mock1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcns7ctvz5\"}"
-  - - "\u0000\u0002cb\u0000\babstract\u0000\bregistry0.24.2"
-    - "{\"native\":\"mock1h9wzw84sqsmkylh43j64wdduww9l7xdznfptkqe3e0ytf3vx9h7quplk0z\"}"
+  - - "\u0000\u0002cb\u0000\babstract\u0000\bregistry0.24.3"
+    - "{\"native\":\"mock1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqapxshc\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\nibc-client0.24.1"
     - "{\"native\":\"mock16jzpxp0e8550c9aht6q9svcux30vtyyyyxv5w2l2djjra46580wsgtnl4n\"}"
   - - "\u0000\u0002cb\u0000\babstract\u0000\u000bstandalone11.0.0"
@@ -87,6 +87,6 @@ expression: all_storage
   - - ci
     - "1"
   - - contract_info
-    - "{\"contract\":\"abstract:registry\",\"version\":\"0.24.2\"}"
+    - "{\"contract\":\"abstract:registry\",\"version\":\"0.24.3\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
