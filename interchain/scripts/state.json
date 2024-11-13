@@ -1,7 +1,7 @@
 {
   "osmo-test-5": {
     "code_ids": {
-      "abstract:account": 11304,
+      "abstract:account": 11497,
       "abstract:ans-host": 11341,
       "abstract:ibc-client": 11305,
       "abstract:ibc-host": 11306,
@@ -21,7 +21,7 @@
   },
   "pion-1": {
     "code_ids": {
-      "abstract:account": 7693,
+      "abstract:account": 8091,
       "abstract:ans-host": 7936,
       "abstract:ibc-client": 7694,
       "abstract:ibc-host": 7695,
