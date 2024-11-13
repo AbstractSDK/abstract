@@ -4,7 +4,7 @@ use cosmwasm_std::Response;
 use crate::{
     error::AppError,
     handlers, ibc,
-    msg::{AppExecuteMsg, AppInstantiateMsg, AppMigrateMsg, AppQueryMsg},
+    msg::{AppExecuteMsg, AppInstantiateMsg, AppMigrateMsg, AppQueryMsg, AppSudoMsg},
 };
 
 /// The version of your app
@@ -16,7 +16,8 @@ pub const APP_ID: &str = "abstract:ping-pong";
 pub type AppResult<T = Response> = Result<T, AppError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type App = AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, AppMigrateMsg>;
+pub type App =
+    AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, AppMigrateMsg, AppSudoMsg>;
 
 const APP: App = App::new(APP_ID, APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
@@ -28,7 +29,8 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
     )])
     .with_module_ibc(ibc::receive_module_ibc)
     .with_ibc_callback(ibc::ibc_callback)
-    .with_ics20_callback_reply(handlers::ICS20_CALLBACK_ID);
+    .with_ics20_callback_reply(handlers::ICS20_CALLBACK_ID)
+    .with_sudo(handlers::sudo::sudo_handler);
 
 // Export handlers
 #[cfg(feature = "export")]

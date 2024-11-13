@@ -10,8 +10,14 @@ pub trait ReplyEndpoint: Handler {
         // Handle ICS20 callback Reply if present and id matches
         if self.maybe_ics20_callback_handler() == Some(id) {
             ics20_callback_reply(deps.storage, msg.clone())?;
+            // User might want to have extra handling under this reply id
+            match self.maybe_reply_handler(id) {
+                Some(handler) => handler(deps, env, self, msg),
+                None => Ok(Response::new()),
+            }
+        } else {
+            let handler = self.reply_handler(id)?;
+            handler(deps, env, self, msg)
         }
-        let handler = self.reply_handler(id)?;
-        handler(deps, env, self, msg)
     }
 }
