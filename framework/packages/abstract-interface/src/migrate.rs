@@ -246,7 +246,9 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             &ibc_client_cw2_version,
             ::ibc_client::contract::CONTRACT_VERSION,
         ) {
-            // Version change is breaking, need to deploy new version
+            // Version change is breaking, need to upload and instantiate new version
+            self.client.upload_if_needed()?;
+            self.host.upload_if_needed()?;
             self.instantiate(&self.client.environment().sender_addr())?;
         } else {
             // If version is not breaking, simply migrate

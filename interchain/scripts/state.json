@@ -41,20 +41,20 @@
   },
   "provider": {
     "code_ids": {
-      "abstract:account": 39,
-      "abstract:ans-host": 36,
-      "abstract:ibc-client": 40,
-      "abstract:ibc-host": 41,
-      "abstract:module-factory": 38,
-      "abstract:registry": 37,
+      "abstract:account": 63,
+      "abstract:ans-host": 62,
+      "abstract:ibc-client": 64,
+      "abstract:ibc-host": 65,
+      "abstract:module-factory": 60,
+      "abstract:registry": 61,
       "cw:blob": 35
     },
     "default": {
       "abstract:account-local-0": "cosmos1hafge5xucuc03ar5lkwac0n9yctnxq6xrgygftdl9xl3tzncgghszwuw5z",
       "abstract:account-local-1": "cosmos1v9dl0fw5s3jujn6emmlgch7w4ynt02nykj75pnzk8mdw7nmu3p4q0fnq48",
       "abstract:ans-host": "cosmos1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsvutp48",
-      "abstract:ibc-client": "cosmos1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqg7qcv2",
-      "abstract:ibc-host": "cosmos1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqsm8tma5",
+      "abstract:ibc-client": "cosmos1uspvkgrr9gfw429de02a5gx6dpl5neaw8srx4zsdd0xdtpk7gstq5ykc0u",
+      "abstract:ibc-host": "cosmos1x7q3st5m56g0h005l7eaas7ngh52tjsct2tmgs5hzcqlme0j604qwl604h",
       "abstract:module-factory": "cosmos1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqdm4ntk",
       "abstract:registry": "cosmos1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq7u74fa"
     }
