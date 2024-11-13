@@ -3,24 +3,24 @@
 //!
 
 use abstract_std::{
-    account::ExecuteMsg,
-    account::ModuleInstallConfig,
+    account::{ExecuteMsg, ModuleInstallConfig},
     base,
-    ibc::{Callback, ModuleQuery},
+    ibc::{Callback, ModuleQuery, PACKET_LIFETIME},
     ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
-    ibc_host::HostAction,
-    objects::{module::ModuleInfo, TruncatedChainId},
-    ABSTRACT_VERSION, IBC_CLIENT,
+    ibc_host::{self, HostAction},
+    objects::{module::ModuleInfo, ChannelEntry, TruncatedChainId},
+    ABSTRACT_VERSION, IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Empty, Env, QueryRequest,
+    to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Empty, Env, IbcMsg, IbcTimeout,
+    QueryRequest, SubMsg,
 };
 use serde::Serialize;
 
 use super::AbstractApi;
 use crate::{
-    features::{AccountExecutor, AccountIdentification, ModuleIdentification},
-    AbstractSdkResult, ModuleInterface, ModuleRegistryInterface,
+    features::{AbstractNameService, AccountExecutor, AccountIdentification, ModuleIdentification},
+    AbstractSdkResult, HookMemoBuilder, ModuleInterface, ModuleRegistryInterface,
 };
 
 /// Interact with other chains over IBC.
@@ -350,6 +350,61 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
                 (&trace, sequence, host_chain),
             )
             .map_err(Into::into)
+    }
+}
+
+impl<'a, T: IbcInterface + AccountExecutor + AbstractNameService> IbcClient<'a, T> {
+    /// Send funds from account to remote account with callback to the module
+    ///
+    /// This method should be combined with `.with_ics20_callback_reply` handler on a AbstractContract module object and use same reply_id
+    /// Callback can be retrieved with `module.load_ics20_callback`
+    ///
+    /// Note: Payload occupied for saving callback and shouldn't be edited
+    pub fn send_funds_with_callback(
+        &self,
+        host_chain: TruncatedChainId,
+        funds: Coin,
+        callback: Callback,
+        reply_id: u64,
+    ) -> AbstractSdkResult<SubMsg> {
+        let name_service = self.base.name_service(self.deps(), &self.env);
+        let ics20_channel_entry = ChannelEntry {
+            connected_chain: host_chain.clone(),
+            protocol: ICS20.to_string(),
+        };
+        let ics20_channel_id = name_service.query(&ics20_channel_entry)?;
+        let payload = to_json_binary(&abstract_std::ibc::ICS20CallbackPayload {
+            channel_id: ics20_channel_id.clone(),
+            callback,
+        })?;
+
+        let ibc_client_addr = self.module_address()?;
+        let remote_host = ibc_client::state::IBC_INFRA
+            .query(&self.deps.querier, ibc_client_addr, &host_chain)?
+            .ok_or(cosmwasm_std::StdError::generic_err(format!(
+                "chain {host_chain} not registered in ibc_client"
+            )))?;
+
+        // Hook for sending the funds correctly to the sender
+        let account_id = self.base.account_id(self.deps)?;
+        let action_memo = HookMemoBuilder::new(
+            remote_host.remote_abstract_host.clone(),
+            &ibc_host::ExecuteMsg::Fund {
+                src_account: account_id,
+                src_chain: TruncatedChainId::from_chain_id(&self.env.block.chain_id),
+            },
+        )
+        .callback(&self.env)
+        .build()?;
+
+        let transfer_msg = IbcMsg::Transfer {
+            channel_id: ics20_channel_id,
+            to_address: remote_host.remote_abstract_host,
+            amount: funds,
+            timeout: IbcTimeout::with_timestamp(self.env.block.time.plus_seconds(PACKET_LIFETIME)),
+            memo: Some(action_memo),
+        };
+        Ok(SubMsg::reply_on_success(transfer_msg, reply_id).with_payload(payload))
     }
 }
 

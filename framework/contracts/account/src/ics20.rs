@@ -1,10 +1,9 @@
-use abstract_std::account::ICS20PacketIdentifier;
+use abstract_std::ibc::{IBCLifecycleComplete, ICS20PacketIdentifier};
 use cosmwasm_std::{wasm_execute, DepsMut, Env, Response};
 
 use crate::contract::AccountResult;
-use crate::msg::{IBCLifecycleComplete, ICS20_CALLBACKS};
+use crate::msg::ICS20_CALLBACKS;
 
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn ics20_hook_callback(deps: DepsMut, env: Env, msg: IBCLifecycleComplete) -> AccountResult {
     match msg {
         IBCLifecycleComplete::IBCAck {

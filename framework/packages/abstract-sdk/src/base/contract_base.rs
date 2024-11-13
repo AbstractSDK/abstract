@@ -88,6 +88,8 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
     pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     /// IBC callback handler following an IBC action
     pub(crate) ibc_callback_handler: Option<IbcCallbackHandlerFn<Module, Error>>,
+    /// ICS20 Callback handler for resolving callback after
+    pub(crate) ics20_callback_reply_handler: Option<u64>,
     /// Module IBC handler for passing messages between a module on different chains.
     pub(crate) module_ibc_handler: Option<ModuleIbcHandlerFn<Module, Error>>,
 }
@@ -109,6 +111,7 @@ where
             instantiate_handler: None,
             query_handler: None,
             module_ibc_handler: None,
+            ics20_callback_reply_handler: None,
         }
     }
     /// Gets the cw2 version of the contract.
@@ -139,6 +142,12 @@ where
         callback: IbcCallbackHandlerFn<Module, Error>,
     ) -> Self {
         self.ibc_callback_handler = Some(callback);
+        self
+    }
+
+    /// add ICS20 reply handler for callback to contract
+    pub const fn with_ics20_callback_reply(mut self, reply_id: u64) -> Self {
+        self.ics20_callback_reply_handler = Some(reply_id);
         self
     }
 

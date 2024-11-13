@@ -26,7 +26,7 @@ pub use abstract_xion;
 // re-export based on the feature
 pub mod msg {
     pub use abstract_std::account::{MigrateMsg, QueryMsg};
-    use abstract_std::{account::ICS20PacketIdentifier, objects::storage_namespaces};
+    use abstract_std::{ibc::ICS20PacketIdentifier, objects::storage_namespaces};
     use cw_storage_plus::Map;
 
     #[cfg(feature = "xion")]
@@ -44,32 +44,10 @@ pub mod msg {
     pub enum SudoMsg {
         /// For IBC hooks acknoledgments
         #[serde(rename = "ibc_lifecycle_complete")]
-        IBCLifecycleComplete(IBCLifecycleComplete),
+        IBCLifecycleComplete(abstract_std::ibc::IBCLifecycleComplete),
         #[cfg(feature = "xion")]
         #[serde(untagged)]
         Xion(abstract_xion::AccountSudoMsg),
-    }
-
-    #[cosmwasm_schema::cw_serde]
-    pub enum IBCLifecycleComplete {
-        #[serde(rename = "ibc_ack")]
-        IBCAck {
-            /// The source channel (osmosis side) of the IBC packet
-            channel: String,
-            /// The sequence number that the packet was sent with
-            sequence: u64,
-            /// String encoded version of the `Ack` as seen by OnAcknowledgementPacket(..)
-            ack: String,
-            /// Weather an `Ack` is a success of failure according to the transfer spec
-            success: bool,
-        },
-        #[serde(rename = "ibc_timeout")]
-        IBCTimeout {
-            /// The source channel (osmosis side) of the IBC packet
-            channel: String,
-            /// The sequence number that the packet was sent with
-            sequence: u64,
-        },
     }
 }
 

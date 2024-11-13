@@ -147,6 +147,13 @@ where
         let contract = self.contract();
         contract.ibc_callback_handler
     }
+
+    /// Get an ibc callback handler if it exists.
+    fn maybe_ics20_callback_handler(&self) -> Option<u64> {
+        let contract = self.contract();
+        contract.ics20_callback_reply_handler
+    }
+
     /// Get an IBC module call handler if it exists.
     fn maybe_module_ibc_handler(&self) -> Option<ModuleIbcHandlerFn<Self, Self::Error>> {
         let contract = self.contract();

@@ -6,8 +6,10 @@ pub const ADMIN_NAMESPACE: &str = "admin";
 pub const OWNERSHIP_STORAGE_KEY: &str = "ownership";
 /// storage key for ModuleData
 pub const MODULE_STORAGE_KEY: &str = "mod";
-/// Storage key for config in all modules
+/// storage key for config in all modules
 pub const CONFIG_STORAGE_KEY: &str = "cfg";
+/// storage key for ics20 callback in all modules
+pub const ICS20_CALLBACKS: &str = "i20cb";
 
 pub mod account {
     pub const SUSPENSION_STATUS: &str = "aa";

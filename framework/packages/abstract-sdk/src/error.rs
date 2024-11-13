@@ -2,6 +2,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::std::AbstractError;
+use anybuf::BufanyError;
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use thiserror::Error;

@@ -5,3 +5,5 @@ pub mod query;
 pub use crate::handlers::{
     execute::execute_handler, instantiate::instantiate_handler, query::query_handler,
 };
+
+pub const ICS20_CALLBACK_ID: u64 = 1;

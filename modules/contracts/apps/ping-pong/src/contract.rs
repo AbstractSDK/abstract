@@ -27,7 +27,8 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
         &[abstract_ibc_client::contract::CONTRACT_VERSION],
     )])
     .with_module_ibc(ibc::receive_module_ibc)
-    .with_ibc_callback(ibc::ibc_callback);
+    .with_ibc_callback(ibc::ibc_callback)
+    .with_ics20_callback_reply(handlers::ICS20_CALLBACK_ID);
 
 // Export handlers
 #[cfg(feature = "export")]

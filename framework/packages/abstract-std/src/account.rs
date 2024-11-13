@@ -365,32 +365,6 @@ pub struct ConfigResponse {
     pub module_factory_address: Addr,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct ICS20PacketIdentifier {
-    pub channel_id: String,
-    pub sequence: u64,
-}
-
-impl<'a> PrimaryKey<'a> for ICS20PacketIdentifier {
-    /// channel id
-    type Prefix = String;
-
-    /// channel id
-    type SubPrefix = String;
-
-    /// sequence
-    type Suffix = u64;
-
-    // sequence
-    type SuperSuffix = u64;
-
-    fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut keys = self.channel_id.key();
-        keys.extend(self.sequence.key());
-        keys
-    }
-}
-
 #[cfg(test)]
 mod test {
     use cw_orch::core::serde_json::json;
