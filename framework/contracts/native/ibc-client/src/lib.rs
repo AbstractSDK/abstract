@@ -5,7 +5,9 @@ mod commands;
 pub mod contract;
 pub mod error;
 pub mod ibc;
+pub mod ics20;
 mod queries;
+pub mod reply;
 
 #[cfg(test)]
 mod test_common {

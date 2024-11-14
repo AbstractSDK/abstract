@@ -50,6 +50,7 @@ schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.50" }
 protobuf = { version = "2", features = ["with-bytes"] }
+anybuf = { version = "0.5.0" }
 
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
@@ -135,6 +136,8 @@ abstract-cw-multi-test = { git = "https://github.com/abstractsdk/cw-multi-test-f
 # abstract-cw-multi-test = { path = "../../cw-multi-test" }
 cw-orch-interchain-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
 cw-orch-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
+cw-orch-mock = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
+cw-orch-interchain = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
 cw-orch-interchain-daemon = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
 cw-orch-interchain-mock = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
 # cw-orch-interchain-core = { path = "../../cw-orchestrator/packages/interchain/interchain-core" }

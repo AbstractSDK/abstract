@@ -4,7 +4,6 @@ pub mod config;
 pub mod contract;
 pub mod error;
 pub mod execution;
-pub mod ics20;
 pub mod migrate;
 pub mod modules;
 pub mod queries;
@@ -26,8 +25,6 @@ pub use abstract_xion;
 // re-export based on the feature
 pub mod msg {
     pub use abstract_std::account::{MigrateMsg, QueryMsg};
-    use abstract_std::{account::ICS20PacketIdentifier, objects::storage_namespaces};
-    use cw_storage_plus::Map;
 
     #[cfg(feature = "xion")]
     pub type Authenticator = crate::abstract_xion::AddAuthenticator;
@@ -37,40 +34,8 @@ pub mod msg {
     pub type ExecuteMsg = abstract_std::account::ExecuteMsg<Authenticator>;
     pub type InstantiateMsg = abstract_std::account::InstantiateMsg<Authenticator>;
 
-    pub const ICS20_CALLBACKS: Map<ICS20PacketIdentifier, Vec<ExecuteMsg>> =
-        Map::new(storage_namespaces::account::ICS20_CALLBACKS);
-
-    #[cosmwasm_schema::cw_serde]
-    pub enum SudoMsg {
-        /// For IBC hooks acknoledgments
-        #[serde(rename = "ibc_lifecycle_complete")]
-        IBCLifecycleComplete(IBCLifecycleComplete),
-        #[cfg(feature = "xion")]
-        #[serde(untagged)]
-        Xion(abstract_xion::AccountSudoMsg),
-    }
-
-    #[cosmwasm_schema::cw_serde]
-    pub enum IBCLifecycleComplete {
-        #[serde(rename = "ibc_ack")]
-        IBCAck {
-            /// The source channel (osmosis side) of the IBC packet
-            channel: String,
-            /// The sequence number that the packet was sent with
-            sequence: u64,
-            /// String encoded version of the `Ack` as seen by OnAcknowledgementPacket(..)
-            ack: String,
-            /// Weather an `Ack` is a success of failure according to the transfer spec
-            success: bool,
-        },
-        #[serde(rename = "ibc_timeout")]
-        IBCTimeout {
-            /// The source channel (osmosis side) of the IBC packet
-            channel: String,
-            /// The sequence number that the packet was sent with
-            sequence: u64,
-        },
-    }
+    #[cfg(feature = "xion")]
+    pub use abstract_xion::contract::AccountSudoMsg;
 }
 
 #[cfg(test)]

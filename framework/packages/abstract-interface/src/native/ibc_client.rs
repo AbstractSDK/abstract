@@ -21,7 +21,9 @@ impl<Chain: CwEnv> Uploadable for IbcClient<Chain> {
                 ::ibc_client::contract::instantiate,
                 ::ibc_client::contract::query,
             )
-            .with_migrate(::ibc_client::contract::migrate),
+            .with_migrate(::ibc_client::contract::migrate)
+            .with_reply(::ibc_client::contract::reply)
+            .with_sudo(::ibc_client::contract::sudo),
         )
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {

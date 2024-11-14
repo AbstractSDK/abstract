@@ -27,6 +27,9 @@ pub enum IbcClientError {
     #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
+    #[error(transparent)]
+    PaymentError(#[from] cw_utils::PaymentError),
+
     #[error("No account for chain {0}")]
     UnregisteredChain(String),
 
@@ -44,4 +47,10 @@ pub enum IbcClientError {
 
     #[error("IBC Client is not installed on {account_id}")]
     IbcClientNotInstalled { account_id: AccountId },
+
+    #[error("Contract got an unexpected Reply")]
+    UnexpectedReply {},
+
+    #[error("IBC Client not whitelisted, cannot send callbacks to account")]
+    NotWhitelisted {},
 }

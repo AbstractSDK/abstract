@@ -20,7 +20,6 @@ pub mod account {
     pub const INSTALL_MODULES_CONTEXT: &str = "ah";
     pub const MIGRATE_CONTEXT: &str = "ai";
     pub const CALLING_TO_AS_ADMIN: &str = "aj";
-    pub const ICS20_CALLBACKS: &str = "ak";
 
     // XION authentificators, could be there could be not
     pub const AUTH_ADMIN: &str = "ax";
@@ -59,6 +58,8 @@ pub mod ibc_client {
     pub const REVERSE_POLYTONE_NOTE: &str = "eb";
     pub const ACCOUNTS: &str = "ec";
     pub const ACKS: &str = "ed";
+    pub const ICS20_ACCOUNT_CALLBACKS: &str = "ee";
+    pub const ICS20_ACCOUNT_CALLBACK_PAYLOAD: &str = "ef";
 }
 
 pub mod ibc_host {

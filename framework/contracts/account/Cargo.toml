@@ -48,7 +48,6 @@ abstract-macros = { workspace = true }
 abstract-ica = { workspace = true }
 
 abstract-xion = { workspace = true, optional = true }
-prost = "0.13.3"
 serde_json = "1.0.132"
 json-patch = "3.0.1"
 

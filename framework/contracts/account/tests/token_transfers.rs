@@ -3,9 +3,9 @@ use abstract_interface::*;
 use abstract_std::{
     account,
     objects::{gov_type::GovernanceDetails, TruncatedChainId, UncheckedChannelEntry},
-    ACCOUNT, ICS20,
+    ACCOUNT, IBC_CLIENT, ICS20,
 };
-use cosmwasm_std::{coin, coins, BankMsg};
+use cosmwasm_std::{coin, coins, to_json_binary, BankMsg};
 use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
 
@@ -100,6 +100,12 @@ fn transfer_with_account_rename_message() -> AResult {
         &[],
     )?;
     account.set_ibc_status(true)?;
+    // Whitelist ibc_client to enable ibc-client callbacks
+    let ibc_client = account.module_address(IBC_CLIENT)?;
+    account.update_internal_config(account::InternalConfigAction::UpdateWhitelist {
+        to_add: vec![ibc_client.to_string()],
+        to_remove: vec![],
+    })?;
 
     pub const INITIAL_AMOUNT: u128 = 100_000;
     pub const LOCAL_TRANSFER_AMOUNT: u128 = 50_000;
@@ -112,16 +118,21 @@ fn transfer_with_account_rename_message() -> AResult {
     )?;
 
     // Here we send some funds on the remote account and then change the name of the account on callback
-    let tx_response = account.send_funds_with_actions(
-        vec![account::ExecuteMsg::Execute {
-            msgs: vec![BankMsg::Send {
-                to_address: src.sender_addr().to_string(),
-                amount: coins(LOCAL_TRANSFER_AMOUNT, "usource1"),
-            }
-            .into()],
-        }],
-        funds_to_transfer.clone(),
-        TruncatedChainId::from_chain_id(&dst.chain_id()),
+    let tx_response = account.execute_on_module(
+        IBC_CLIENT,
+        abstract_std::ibc_client::ExecuteMsg::SendFundsWithActions {
+            host_chain: TruncatedChainId::from_chain_id(&dst.chain_id()),
+            actions: vec![to_json_binary(
+                &abstract_account::msg::ExecuteMsg::Execute {
+                    msgs: vec![BankMsg::Send {
+                        to_address: src.sender_addr().to_string(),
+                        amount: coins(LOCAL_TRANSFER_AMOUNT, "usource1"),
+                    }
+                    .into()],
+                },
+            )?],
+        },
+        vec![funds_to_transfer.clone()],
     )?;
     let src_account_balance = src.balance(&account.address()?, None)?;
     assert_eq!(src_account_balance, coins(INITIAL_AMOUNT, "usource1"));
@@ -240,20 +251,31 @@ fn transfer_with_account_rename_message_timeout() -> AResult {
         &[],
     )?;
     account.set_ibc_status(true)?;
+    // Whitelist ibc_client to enable ibc-client callbacks
+    let ibc_client = account.module_address(IBC_CLIENT)?;
+    account.update_internal_config(account::InternalConfigAction::UpdateWhitelist {
+        to_add: vec![ibc_client.to_string()],
+        to_remove: vec![],
+    })?;
 
     let funds_to_transfer = coin(100_000, "usource");
 
     src.add_balance(&account.address()?, vec![funds_to_transfer.clone()])?;
 
     // Here we send some funds on the remote account and then change the name of the account on callback
-    let tx_response = account.send_funds_with_actions(
-        vec![account::ExecuteMsg::UpdateInfo {
-            name: Some(NEW_DUMMY_NAME.to_string()),
-            description: None,
-            link: None,
-        }],
-        funds_to_transfer.clone(),
-        TruncatedChainId::from_chain_id(&dst.chain_id()),
+    let tx_response = account.execute_on_module(
+        IBC_CLIENT,
+        abstract_std::ibc_client::ExecuteMsg::SendFundsWithActions {
+            host_chain: TruncatedChainId::from_chain_id(&dst.chain_id()),
+            actions: vec![to_json_binary(
+                &abstract_account::msg::ExecuteMsg::UpdateInfo {
+                    name: Some(NEW_DUMMY_NAME.to_string()),
+                    description: None,
+                    link: None,
+                },
+            )?],
+        },
+        vec![funds_to_transfer.clone()],
     )?;
 
     // Trigger timeout

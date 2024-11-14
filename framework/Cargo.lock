@@ -44,7 +44,6 @@ dependencies = [
  "cw2",
  "cw20",
  "json-patch 3.0.1",
- "prost",
  "rstest",
  "schemars",
  "semver",
@@ -176,7 +175,7 @@ dependencies = [
 [[package]]
 name = "abstract-cw-multi-test"
 version = "2.1.4"
-source = "git+https://github.com/abstractsdk/cw-multi-test-fork?branch=feature/add-ics20-transfer-data#e987f48151df25bb593176890d6268f46ca94829"
+source = "git+https://github.com/abstractsdk/cw-multi-test-fork?branch=feature/add-ics20-transfer-data#3a0f97fd83e3d7f78c4d7a02672a92fb669bb0a0"
 dependencies = [
  "anyhow",
  "bech32 0.11.0",
@@ -634,6 +633,7 @@ name = "abstract-std"
 version = "0.24.1"
 dependencies = [
  "abstract-testing",
+ "anybuf",
  "anyhow",
  "bech32 0.11.0",
  "cosmwasm-schema",
@@ -684,7 +684,7 @@ dependencies = [
 [[package]]
 name = "account"
 version = "0.1.0"
-source = "git+https://github.com/abstractsdk/xion-contracts?branch=fix-for-abstract#20a72eddeee7c0e32ef701d6878049599b4201de"
+source = "git+https://github.com/abstractsdk/xion-contracts?branch=fix-for-abstract#6493190c7fa9259f5658c3cd5e608325052aedb3"
 dependencies = [
  "absacc",
  "base64 0.21.7",
@@ -1512,9 +1512,9 @@ dependencies = [
 
 [[package]]
 name = "bstr"
-version = "1.10.0"
+version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40723b8fb387abc38f4f4a37c09073622e41dd12327033091ef8950659e6dc0c"
+checksum = "1a68f1f47cdf0ec8ee4b941b2eee2a80cb796db73118c0dd09ac63fbe405be22"
 dependencies = [
  "memchr",
  "serde",
@@ -1553,9 +1553,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.37"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40545c26d092346d8a8dab71ee48e7685a7a9cba76e634790c215b41a4a7b4cf"
+checksum = "fd9de9f2205d5ef3fd67e685b0df337994ddd4495e2a28d185500d0e1edfea47"
 dependencies = [
  "shlex",
 ]
@@ -1583,9 +1583,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.20"
+version = "4.5.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b97f376d85a664d5837dbae44bf546e6477a679ff6610010f17276f686d867e8"
+checksum = "fb3b4b9e5a7c7514dfa52869339ee98b3156b0bfb4e8a77c4ff4babb64b1604f"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -1593,9 +1593,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.20"
+version = "4.5.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19bc80abd44e4bed93ca373a0704ccbd1b710dc5749406201bb018272808dc54"
+checksum = "b17a95aa67cc7b5ebd32aa5370189aa0d79069ef1c64ce893bd30fb24bff20ec"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1617,9 +1617,9 @@ dependencies = [
 
 [[package]]
 name = "clap_lex"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
+checksum = "afb84c814227b90d6895e01398aee0d8033c00e7466aca416fb6a8e0eb19d8a7"
 
 [[package]]
 name = "colorchoice"
@@ -2084,7 +2084,7 @@ dependencies = [
  "cw-orch-contract-derive",
  "cw-orch-core",
  "cw-orch-fns-derive",
- "cw-orch-mock 0.24.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cw-orch-mock",
  "cw-orch-traits 0.24.1",
  "cw-utils",
  "hex",
@@ -2107,7 +2107,7 @@ dependencies = [
  "cw-orch-core",
  "cw-orch-daemon 0.28.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "cw-orch-fns-derive",
- "cw-orch-mock 0.24.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cw-orch-mock",
  "cw-orch-networks 0.24.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "cw-orch-traits 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cw-utils",
@@ -2270,14 +2270,13 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain"
 version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05f43184d2458fe1677a642270f34381defbe01205e897e113b60c3f2998bac7"
+source = "git+https://github.com/abstractsdk/cw-orchestrator?branch=interchain/add-ics-hooks-ack#4ec9cbfd434b2265869e732d876ad34c3ae01d7d"
 dependencies = [
  "cosmwasm-std",
  "cw-orch-interchain-core",
  "cw-orch-interchain-daemon",
  "cw-orch-interchain-mock",
- "cw-orch-starship 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cw-orch-starship",
  "cw1",
  "cw1-whitelist",
  "ibc-relayer-types",
@@ -2294,7 +2293,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-orch-core",
  "cw-orch-daemon 0.28.1 (git+https://github.com/abstractsdk/cw-orchestrator?branch=interchain/add-ics-hooks-ack)",
- "cw-orch-mock 0.24.3 (git+https://github.com/abstractsdk/cw-orchestrator?branch=interchain/add-ics-hooks-ack)",
+ "cw-orch-mock",
  "futures",
  "ibc-relayer-types",
  "log",
@@ -2319,7 +2318,7 @@ dependencies = [
  "cw-orch-core",
  "cw-orch-daemon 0.28.1 (git+https://github.com/abstractsdk/cw-orchestrator?branch=interchain/add-ics-hooks-ack)",
  "cw-orch-interchain-core",
- "cw-orch-starship 0.7.0 (git+https://github.com/abstractsdk/cw-orchestrator?branch=interchain/add-ics-hooks-ack)",
+ "cw-orch-starship",
  "derive_builder 0.20.2",
  "dialoguer",
  "diff-struct",
@@ -2344,28 +2343,13 @@ dependencies = [
  "cosmwasm-std",
  "cw-orch-core",
  "cw-orch-interchain-core",
- "cw-orch-mock 0.24.3 (git+https://github.com/abstractsdk/cw-orchestrator?branch=interchain/add-ics-hooks-ack)",
+ "cw-orch-mock",
  "cw-utils",
  "ibc-relayer-types",
  "log",
  "serde",
  "serde_json",
  "thiserror",
-]
-
-[[package]]
-name = "cw-orch-mock"
-version = "0.24.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa1151a4ed23b986dd197959c5a090a54710512913b033e202625c53ea8ae239"
-dependencies = [
- "abstract-cw-multi-test",
- "cosmwasm-std",
- "cw-orch-core",
- "cw-utils",
- "log",
- "serde",
- "sha2 0.10.8",
 ]
 
 [[package]]
@@ -2399,30 +2383,6 @@ source = "git+https://github.com/abstractsdk/cw-orchestrator?branch=interchain/a
 dependencies = [
  "cw-orch-core",
  "serde",
-]
-
-[[package]]
-name = "cw-orch-starship"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0de1288ab45095534d6e30f1c5645a1bc0dd13538fa4c9190b8616cb4dfa3eb"
-dependencies = [
- "cosmwasm-std",
- "cw-orch-core",
- "cw-orch-daemon 0.28.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "env_logger",
- "ibc-chain-registry",
- "ibc-relayer-types",
- "k8s-openapi",
- "kube",
- "log",
- "reqwest 0.12.9",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "url",
- "yaml-rust2",
 ]
 
 [[package]]
@@ -3393,9 +3353,9 @@ dependencies = [
 
 [[package]]
 name = "flate2"
-version = "1.0.34"
+version = "1.0.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1b589b4dc103969ad3cf85c950899926ec64300a1a46d76c03a6072957036f0"
+checksum = "c936bfdafb507ebbf50b8074c54fa31c5be9a1e7e5f467dd659697041407d07c"
 dependencies = [
  "crc32fast",
  "miniz_oxide",

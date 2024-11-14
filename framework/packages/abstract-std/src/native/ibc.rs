@@ -8,6 +8,7 @@ use cosmwasm_std::{
     to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, Event, QueryRequest, StdError,
     StdResult,
 };
+use cw_storage_plus::PrimaryKey;
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -191,3 +192,58 @@ pub struct ModuleQuery {
     pub msg: Binary,
 }
 // ANCHOR_END: module_ibc_query
+
+// Source: https://github.com/cosmos/ibc-apps/blob/8cb681e31589bc90b47e0ab58173a579825fd56d/modules/ibc-hooks/README.md#interface-for-receiving-the-acks-and-timeouts
+#[cosmwasm_schema::cw_serde]
+pub enum IBCLifecycleComplete {
+    #[serde(rename = "ibc_ack")]
+    IBCAck {
+        /// The source channel of the IBC packet
+        channel: String,
+        /// The sequence number that the packet was sent with
+        sequence: u64,
+        /// String encoded version of the `Ack` as seen by OnAcknowledgementPacket(..)
+        ack: String,
+        /// Weather an `Ack` is a success of failure according to the transfer spec
+        success: bool,
+    },
+    #[serde(rename = "ibc_timeout")]
+    IBCTimeout {
+        /// The source channel of the IBC packet
+        channel: String,
+        /// The sequence number that the packet was sent with
+        sequence: u64,
+    },
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ICS20CallbackPayload {
+    pub channel_id: String,
+    pub callback: Callback,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ICS20PacketIdentifier {
+    pub channel_id: String,
+    pub sequence: u64,
+}
+
+impl<'a> PrimaryKey<'a> for ICS20PacketIdentifier {
+    /// channel id
+    type Prefix = String;
+
+    /// channel id
+    type SubPrefix = String;
+
+    /// sequence
+    type Suffix = u64;
+
+    // sequence
+    type SuperSuffix = u64;
+
+    fn key(&self) -> Vec<cw_storage_plus::Key> {
+        let mut keys = self.channel_id.key();
+        keys.extend(self.sequence.key());
+        keys
+    }
+}

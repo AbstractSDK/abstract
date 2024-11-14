@@ -37,24 +37,19 @@ use crate::{
     execution::{
         add_auth_method, admin_execute, admin_execute_on_module, execute_msgs,
         execute_msgs_with_data, execute_on_module, ica_action, remove_auth_method,
-        send_funds_with_actions,
     },
-    ics20::ics20_hook_callback,
     modules::{
         _install_modules, install_modules,
         migration::{assert_modules_dependency_requirements, upgrade_modules},
         uninstall_module, MIGRATE_CONTEXT,
     },
-    msg::{ExecuteMsg, InstantiateMsg, QueryMsg, SudoMsg},
+    msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
     queries::{
         handle_account_info_query, handle_config_query, handle_module_address_query,
         handle_module_info_query, handle_module_versions_query, handle_sub_accounts_query,
         handle_top_level_owner_query,
     },
-    reply::{
-        admin_action_reply, forward_response_reply, register_dependencies,
-        register_sub_sequent_messages,
-    },
+    reply::{admin_action_reply, forward_response_reply, register_dependencies},
     sub_account::{
         create_sub_account, handle_sub_account_action, maybe_update_sub_account_governance,
         remove_account_from_contracts,
@@ -364,11 +359,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 }
                 #[allow(unused)]
                 ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
-                ExecuteMsg::SendFundsWithActions {
-                    amount,
-                    host_chain,
-                    actions,
-                } => send_funds_with_actions(deps, info, env, host_chain, amount, actions),
             }
         }
     }?;
@@ -385,7 +375,6 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountResult {
         ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID => {
             assert_modules_dependency_requirements(deps)
         }
-        IBC_TOKEN_FLOW => register_sub_sequent_messages(deps, msg),
 
         _ => Err(AccountError::UnexpectedReply {}),
     }
@@ -429,14 +418,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
+#[cfg(feature = "xion")]
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> AccountResult {
-    match msg {
-        SudoMsg::IBCLifecycleComplete(msg) => ics20_hook_callback(deps, env, msg),
-
-        #[cfg(feature = "xion")]
-        SudoMsg::Xion(msg) => abstract_xion::contract::sudo(deps, env, msg).map_err(Into::into),
-    }
+pub fn sudo(deps: DepsMut, env: Env, msg: crate::msg::AccountSudoMsg) -> AccountResult {
+    abstract_xion::contract::sudo(deps, env, msg).map_err(Into::into)
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*

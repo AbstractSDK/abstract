@@ -4,7 +4,9 @@ use abstract_std::{
     objects::module_version::{assert_cw_contract_upgrade, migrate_module_data, set_module_data},
     IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
+use cosmwasm_std::{
+    to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response,
+};
 use semver::Version;
 
 use crate::{commands, error::IbcClientError, ibc, queries};
@@ -12,6 +14,8 @@ use crate::{commands, error::IbcClientError, ibc, queries};
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub(crate) type IbcClientResult<T = Response> = Result<T, IbcClientError>;
+
+pub const SEND_FUNDS_WITH_ACTIONS_REPLY_ID: u64 = 1;
 
 #[abstract_response(IBC_CLIENT)]
 pub(crate) struct IbcClientResponse;
@@ -53,8 +57,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             host_chain,
             receiver,
             memo,
-        } => commands::execute_send_funds(deps, env, info, host_chain, memo, receiver)
-            .map_err(Into::into),
+        } => commands::execute_send_funds(deps, env, info, host_chain, memo, receiver),
+        ExecuteMsg::SendFundsWithActions {
+            host_chain,
+            actions,
+        } => commands::execute_send_funds_with_actions(deps, env, info, host_chain, actions),
         ExecuteMsg::Register {
             host_chain,
             namespace,
@@ -68,11 +75,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             install_modules,
         ),
         ExecuteMsg::RemoveHost { host_chain } => {
-            commands::execute_remove_host(deps, info, host_chain).map_err(Into::into)
+            commands::execute_remove_host(deps, info, host_chain)
         }
-        ExecuteMsg::Callback(c) => {
-            ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
-        }
+        ExecuteMsg::Callback(c) => ibc::receive_action_callback(deps, env, info, c),
         ExecuteMsg::ModuleIbcAction {
             host_chain,
             target_module,
@@ -128,6 +133,21 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
     cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
     Ok(IbcClientResponse::action("migrate"))
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> IbcClientResult {
+    match msg.id {
+        SEND_FUNDS_WITH_ACTIONS_REPLY_ID => crate::reply::save_callback_actions(deps, msg),
+        _ => Err(IbcClientError::UnexpectedReply {}),
+    }
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> IbcClientResult {
+    match msg {
+        SudoMsg::IBCLifecycleComplete(msg) => crate::ics20::ics20_hook_callback(deps, env, msg),
+    }
 }
 
 #[cfg(test)]

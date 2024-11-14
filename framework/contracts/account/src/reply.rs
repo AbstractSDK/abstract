@@ -1,17 +1,15 @@
 use crate::{
     contract::{AccountResponse, AccountResult},
     modules::INSTALL_MODULES_CONTEXT,
-    msg::{ExecuteMsg, ICS20_CALLBACKS},
 };
 use abstract_std::{
-    account::{state::CALLING_TO_AS_ADMIN, ICS20PacketIdentifier},
+    account::state::CALLING_TO_AS_ADMIN,
     objects::{
         module::{assert_module_data_validity, Module},
         module_reference::ModuleReference,
     },
 };
-use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{from_json, DepsMut, Reply, Response, StdError};
+use cosmwasm_std::{DepsMut, Reply, Response, StdError};
 
 /// Add the message's data to the response
 pub(crate) fn forward_response_reply(result: Reply) -> AccountResult {
@@ -77,42 +75,4 @@ pub(crate) fn register_dependencies(deps: DepsMut) -> AccountResult {
     }
 
     Ok(Response::new())
-}
-
-use prost::Message;
-#[derive(Clone, PartialEq, Message)]
-struct MsgTransferResponse {
-    #[prost(uint64, tag = "1")]
-    pub sequence: u64,
-}
-
-pub fn register_sub_sequent_messages(deps: DepsMut, reply: Reply) -> AccountResult {
-    let res = reply.result.into_result().map_err(StdError::generic_err)?;
-    println!("{:x?}", res.data);
-    // TODO, implement for msg_responses (to have both cases covered)
-    let transfer_response = MsgTransferResponse::decode(
-        res.data
-            .expect("Data is set after sending a packet")
-            .as_slice(),
-    )?;
-
-    let payload: TokenFlowPayload = from_json(reply.payload)?;
-
-    // We register the callback for later use
-    ICS20_CALLBACKS.save(
-        deps.storage,
-        ICS20PacketIdentifier {
-            channel_id: payload.channel_id,
-            sequence: transfer_response.sequence,
-        },
-        &payload.msgs,
-    )?;
-
-    Ok(Response::new())
-}
-
-#[cw_serde]
-pub struct TokenFlowPayload {
-    pub channel_id: String,
-    pub msgs: Vec<ExecuteMsg>,
 }

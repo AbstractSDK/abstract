@@ -85,6 +85,20 @@ pub mod ibc {
                 .append_string(8, &self.memo)
         }
     }
+
+    pub struct MsgTransferResponse {
+        pub sequence: u64, // 1
+    }
+
+    impl MsgTransferResponse {
+        pub fn decode(data: &cosmwasm_std::Binary) -> Result<Self, anybuf::BufanyError> {
+            let bufany = anybuf::Bufany::deserialize(data.as_ref())?;
+            let sequence = bufany
+                .uint64(1)
+                .ok_or(anybuf::BufanyError::UnexpectedEndOfData)?;
+            Ok(Self { sequence })
+        }
+    }
 }
 
 #[cfg(test)]

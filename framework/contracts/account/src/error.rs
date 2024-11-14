@@ -32,9 +32,6 @@ pub enum AccountError {
     #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
-    #[error(transparent)]
-    ProstDecodeError(#[from] prost::DecodeError),
-
     #[error("{0}")]
     SerdeJsonError(String),
 

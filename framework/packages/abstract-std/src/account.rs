@@ -17,9 +17,7 @@
 //!
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Coin, CosmosMsg, Empty};
-use cw_storage_plus::PrimaryKey;
 
-use crate::objects::TruncatedChainId;
 use crate::objects::{
     gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
     module::ModuleInfo,
@@ -227,11 +225,6 @@ pub enum ExecuteMsg<Authenticator = Empty> {
     RemoveAuthMethod {
         id: u8,
     },
-    SendFundsWithActions {
-        host_chain: TruncatedChainId,
-        amount: Coin,
-        actions: Vec<ExecuteMsg<Authenticator>>,
-    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -366,32 +359,6 @@ pub struct ConfigResponse {
     pub is_suspended: SuspensionStatus,
     pub registry_address: Addr,
     pub module_factory_address: Addr,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct ICS20PacketIdentifier {
-    pub channel_id: String,
-    pub sequence: u64,
-}
-
-impl<'a> PrimaryKey<'a> for ICS20PacketIdentifier {
-    /// channel id
-    type Prefix = String;
-
-    /// channel id
-    type SubPrefix = String;
-
-    /// sequence
-    type Suffix = u64;
-
-    // sequence
-    type SuperSuffix = u64;
-
-    fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut keys = self.channel_id.key();
-        keys.extend(self.sequence.key());
-        keys
-    }
 }
 
 #[cfg(test)]
