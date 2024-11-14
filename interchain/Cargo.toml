@@ -68,7 +68,6 @@ cw-orch-proto = { version = "0.9.0" }
 abstract-interface = { version = "0.24.1", path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.24.1", path = "../framework/packages/abstract-sdk" }
 abstract-std = { version = "0.24.1", path = "../framework/packages/abstract-std" }
-abstract-xion = { version = "0.24.1", path = "../framework/packages/abstract-xion" }
 abstract-app = { version = "0.24.1", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.24.1", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.24.1", path = "../framework/packages/abstract-testing" }
@@ -81,6 +80,10 @@ challenge-app = { path = "../modules/contracts/apps/challenge" }
 abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking" }
 abstract-dex-adapter = { path = "../modules/contracts/adapters/dex" }
 abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market" }
+
+abstract-xion = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = [
+  "library",
+], branch = "fix-for-abstract" }
 
 ## Testing
 rstest = "0.17.0"
@@ -95,7 +98,6 @@ abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-std = { path = "../framework/packages/abstract-std" }
-abstract-xion = { path = "../framework/packages/abstract-xion" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }

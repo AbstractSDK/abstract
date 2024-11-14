@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added migration function to migrate from xion accounts
 - Added `PfmMemoBuilder` API for building middleware forwarding memo
 - Added `HookMemoBuilder` API for building wasm ibc hook memo
 - `execute_with_funds` to Executor to attach funds to execution.

@@ -1,6 +1,6 @@
 {
   "contract_name": "abstract-account",
-  "contract_version": "0.24.1",
+  "contract_version": "0.24.2",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -132,15 +132,14 @@
         ]
       },
       "AddAuthenticator": {
-        "description": "Note: Instead of transaction bytes address of the Abstract Account used",
         "oneOf": [
           {
             "type": "object",
             "required": [
-              "secp256_k1"
+              "Secp256K1"
             ],
             "properties": {
-              "secp256_k1": {
+              "Secp256K1": {
                 "type": "object",
                 "required": [
                   "id",
@@ -168,10 +167,10 @@
           {
             "type": "object",
             "required": [
-              "ed25519"
+              "Ed25519"
             ],
             "properties": {
-              "ed25519": {
+              "Ed25519": {
                 "type": "object",
                 "required": [
                   "id",
@@ -199,10 +198,10 @@
           {
             "type": "object",
             "required": [
-              "eth_wallet"
+              "EthWallet"
             ],
             "properties": {
-              "eth_wallet": {
+              "EthWallet": {
                 "type": "object",
                 "required": [
                   "address",
@@ -230,10 +229,10 @@
           {
             "type": "object",
             "required": [
-              "jwt"
+              "Jwt"
             ],
             "properties": {
-              "jwt": {
+              "Jwt": {
                 "type": "object",
                 "required": [
                   "aud",
@@ -265,10 +264,10 @@
           {
             "type": "object",
             "required": [
-              "secp256_r1"
+              "Secp256R1"
             ],
             "properties": {
-              "secp256_r1": {
+              "Secp256R1": {
                 "type": "object",
                 "required": [
                   "id",
@@ -296,10 +295,10 @@
           {
             "type": "object",
             "required": [
-              "passkey"
+              "Passkey"
             ],
             "properties": {
-              "passkey": {
+              "Passkey": {
                 "type": "object",
                 "required": [
                   "credential",
@@ -790,7 +789,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Upgrade the module to a new version If module is `abstract::account` then the contract will do a self-migration. Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Version Control",
+        "description": "Upgrade the module to a new version If module is `abstract::account` then the contract will do a self-migration. Self-migration is protected and only possible to the [`crate::objects::module_reference::ModuleReference::Account`] registered in Registry",
         "type": "object",
         "required": [
           "upgrade"
@@ -1018,15 +1017,14 @@
     ],
     "definitions": {
       "AddAuthenticator": {
-        "description": "Note: Instead of transaction bytes address of the Abstract Account used",
         "oneOf": [
           {
             "type": "object",
             "required": [
-              "secp256_k1"
+              "Secp256K1"
             ],
             "properties": {
-              "secp256_k1": {
+              "Secp256K1": {
                 "type": "object",
                 "required": [
                   "id",
@@ -1054,10 +1052,10 @@
           {
             "type": "object",
             "required": [
-              "ed25519"
+              "Ed25519"
             ],
             "properties": {
-              "ed25519": {
+              "Ed25519": {
                 "type": "object",
                 "required": [
                   "id",
@@ -1085,10 +1083,10 @@
           {
             "type": "object",
             "required": [
-              "eth_wallet"
+              "EthWallet"
             ],
             "properties": {
-              "eth_wallet": {
+              "EthWallet": {
                 "type": "object",
                 "required": [
                   "address",
@@ -1116,10 +1114,10 @@
           {
             "type": "object",
             "required": [
-              "jwt"
+              "Jwt"
             ],
             "properties": {
-              "jwt": {
+              "Jwt": {
                 "type": "object",
                 "required": [
                   "aud",
@@ -1151,10 +1149,10 @@
           {
             "type": "object",
             "required": [
-              "secp256_r1"
+              "Secp256R1"
             ],
             "properties": {
-              "secp256_r1": {
+              "Secp256R1": {
                 "type": "object",
                 "required": [
                   "id",
@@ -1182,10 +1180,10 @@
           {
             "type": "object",
             "required": [
-              "passkey"
+              "Passkey"
             ],
             "properties": {
-              "passkey": {
+              "Passkey": {
                 "type": "object",
                 "required": [
                   "credential",

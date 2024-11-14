@@ -5,8 +5,8 @@ use abstract_std::account::InstantiateMsg;
 use abstract_std::registry::state::LOCAL_ACCOUNT_SEQUENCE;
 use abstract_testing::abstract_mock_querier_builder;
 use abstract_testing::prelude::AbstractMockAddrs;
-use abstract_xion::auth::sign_arb::wrap_message;
-use abstract_xion::auth::util;
+use abstract_xion::testing::util;
+use abstract_xion::testing::wrap_message;
 use base64::{engine::general_purpose, Engine as _};
 use cosmwasm_std::testing::{message_info, mock_dependencies, mock_env};
 use cosmwasm_std::{Addr, Api, Binary};
@@ -98,7 +98,7 @@ fn test_init_sign_arb() {
     let signature_bytes = general_purpose::STANDARD.decode(signature).unwrap();
 
     let instantiate_msg = InstantiateMsg {
-        authenticator: Some(abstract_xion::auth::AddAuthenticator::Secp256K1 {
+        authenticator: Some(abstract_xion::AddAuthenticator::Secp256K1 {
             id: 0,
             pubkey: Binary::from(pubkey_bytes),
             signature: Binary::from(signature_bytes),
