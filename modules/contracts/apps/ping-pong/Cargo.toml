@@ -20,7 +20,7 @@ cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
-abstract-app = { workspace = true }
+abstract-app = { workspace = true, features = ["stargate"] }
 cw-orch = { workspace = true }
 abstract-ibc-client = { version = "0.24.1", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
 

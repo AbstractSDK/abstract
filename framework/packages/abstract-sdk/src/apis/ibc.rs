@@ -353,6 +353,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     }
 }
 
+#[cfg(feature = "stargate")]
 impl<'a, T: IbcInterface + AccountExecutor + AbstractNameService> IbcClient<'a, T> {
     /// Send funds from account to remote account with callback to the module
     ///
