@@ -29,6 +29,9 @@ pub enum AbstractInterfaceError {
 
     #[error("No matching module deployed {0:?}")]
     NoMatchingModule(StaticDependency),
+
+    #[error("Multisig error: {0}")]
+    Multisig(String),
 }
 
 impl AbstractInterfaceError {

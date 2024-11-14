@@ -5,6 +5,8 @@ use cw_orch::daemon::DeployedChains;
 
 use cw_orch::{mock::MockBase, prelude::*};
 
+#[cfg(feature = "multisig")]
+use crate::multisig::AbstractMultisig;
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
     AnsHost, ModuleFactory, Registry,
@@ -24,6 +26,8 @@ pub struct Abstract<Chain: CwEnv> {
     pub ibc: AbstractIbc<Chain>,
     pub(crate) account: AccountI<Chain>,
     pub(crate) blob: CwBlob<Chain>,
+    #[cfg(feature = "multisig")]
+    pub multisig: AbstractMultisig<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -55,6 +59,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             account,
             ibc: ibc_infra,
             blob,
+            #[cfg(feature = "multisig")]
+            multisig: AbstractMultisig::new(&chain),
         };
 
         Ok(deployment)
@@ -214,6 +220,8 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 client: ibc_client,
                 host: ibc_host,
             },
+            #[cfg(feature = "multisig")]
+            multisig: AbstractMultisig::new(&chain),
             blob: CwBlob::new(CW_BLOB, chain),
         }
     }
@@ -290,6 +298,8 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ibc,
             account,
             blob: _,
+            #[cfg(feature = "multisig")]
+                multisig: _,
         } = self;
         ans_host.set_sender(sender);
         registry.set_sender(sender);
@@ -307,6 +317,8 @@ impl<Chain: CwEnv> Abstract<Chain> {
             ibc: self.ibc.call_as(sender),
             account: self.account.call_as(sender),
             blob: self.blob.clone(),
+            #[cfg(feature = "multisig")]
+            multisig: self.multisig.clone(),
         }
     }
 

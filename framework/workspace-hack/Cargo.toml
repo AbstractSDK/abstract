@@ -85,8 +85,9 @@ byteorder = { version = "1", features = ["i128"] }
 bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
-cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
-cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
+cosmos-sdk-proto-2ffb4c3fe830441c = { package = "cosmos-sdk-proto", version = "0.25", default-features = false, features = ["cosmwasm", "std"] }
+cosmos-sdk-proto-adf3d7031871b0af = { package = "cosmos-sdk-proto", version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
+cosmrs = { version = "0.20", features = ["cosmwasm"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
 cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
@@ -161,8 +162,9 @@ byteorder = { version = "1", features = ["i128"] }
 bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
-cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
-cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
+cosmos-sdk-proto-2ffb4c3fe830441c = { package = "cosmos-sdk-proto", version = "0.25", default-features = false, features = ["cosmwasm", "std"] }
+cosmos-sdk-proto-adf3d7031871b0af = { package = "cosmos-sdk-proto", version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
+cosmrs = { version = "0.20", features = ["cosmwasm"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
 cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
@@ -214,7 +216,7 @@ serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["visit"] }
+syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 time = { version = "0.3", features = ["macros", "parsing"] }
 tiny-keccak = { version = "2", features = ["keccak"] }
@@ -238,8 +240,9 @@ byteorder = { version = "1", features = ["i128"] }
 bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
-cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
-cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
+cosmos-sdk-proto-2ffb4c3fe830441c = { package = "cosmos-sdk-proto", version = "0.25", default-features = false, features = ["cosmwasm", "std"] }
+cosmos-sdk-proto-adf3d7031871b0af = { package = "cosmos-sdk-proto", version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
+cosmrs = { version = "0.20", features = ["cosmwasm"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
 cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
@@ -313,8 +316,9 @@ byteorder = { version = "1", features = ["i128"] }
 bytes = { version = "1" }
 chrono = { version = "0.4", features = ["serde"] }
 console = { version = "0.15" }
-cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
-cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
+cosmos-sdk-proto-2ffb4c3fe830441c = { package = "cosmos-sdk-proto", version = "0.25", default-features = false, features = ["cosmwasm", "std"] }
+cosmos-sdk-proto-adf3d7031871b0af = { package = "cosmos-sdk-proto", version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
+cosmrs = { version = "0.20", features = ["cosmwasm"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
 cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
@@ -366,7 +370,7 @@ serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["visit"] }
+syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 time = { version = "0.3", features = ["macros", "parsing"] }
 tiny-keccak = { version = "2", features = ["keccak"] }
