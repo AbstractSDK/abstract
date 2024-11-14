@@ -4,7 +4,8 @@ use crate::{
     msg::{ExecuteMsg, ICS20_CALLBACKS},
 };
 use abstract_std::{
-    account::{state::CALLING_TO_AS_ADMIN, ICS20PacketIdentifier},
+    account::state::CALLING_TO_AS_ADMIN,
+    ibc::ICS20PacketIdentifier,
     objects::{
         module::{assert_module_data_validity, Module},
         module_reference::ModuleReference,

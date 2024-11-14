@@ -40,6 +40,7 @@ semver = { workspace = true }
 abstract-macros = { workspace = true }
 cw-clearable = { workspace = true }
 serde-cw-value = { workspace = true }
+anybuf = { workspace = true }
 
 # test-utils feature
 abstract-testing = { workspace = true, optional = true }

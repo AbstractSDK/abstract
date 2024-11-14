@@ -4,12 +4,14 @@ use abstract_app::{
     std::{ibc::Callback, ibc_client::InstalledModuleIdentification},
     traits::{AbstractResponse, AccountIdentification},
 };
-use cosmwasm_std::{CosmosMsg, DepsMut, Env, MessageInfo};
+use cosmwasm_std::{Coin, CosmosMsg, DepsMut, Env, MessageInfo};
 
 use crate::{
     contract::{App, AppResult},
     msg::{AppExecuteMsg, AppQueryMsg, PingOrPong, PingPongCallbackMsg, PingPongIbcMsg},
 };
+
+use super::ICS20_CALLBACK_ID;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -23,6 +25,11 @@ pub fn execute_handler(
         AppExecuteMsg::QueryAndMaybePingPong {
             opponent_chain: host_chain,
         } => query_and_ping(deps, &env, host_chain, module),
+        AppExecuteMsg::FundOpponent {
+            opponent_chain,
+            funds,
+            callback,
+        } => fund_opponent(deps, &env, opponent_chain, funds, callback, module),
     }
 }
 
@@ -76,4 +83,19 @@ fn query_and_ping(
     )?;
 
     Ok(module.response("rematch").add_message(module_query))
+}
+
+pub(crate) fn fund_opponent(
+    deps: DepsMut,
+    env: &Env,
+    opponent_chain: TruncatedChainId,
+    funds: Coin,
+    callback: Callback,
+    module: App,
+) -> AppResult {
+    let ibc_client: IbcClient<_> = module.ibc_client(deps.as_ref(), env);
+    let msg =
+        ibc_client.send_funds_with_callback(opponent_chain, funds, callback, ICS20_CALLBACK_ID)?;
+
+    Ok(module.response("fund_opponent").add_submessage(msg))
 }

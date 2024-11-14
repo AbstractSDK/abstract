@@ -1,5 +1,9 @@
-use abstract_app::objects::TruncatedChainId;
+use abstract_app::{
+    objects::TruncatedChainId,
+    std::ibc::{Callback, IBCLifecycleComplete},
+};
 use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Coin;
 
 use crate::contract::App;
 
@@ -19,6 +23,11 @@ pub enum AppExecuteMsg {
     /// Same as PingPong but first queries the state of the opponent chain.
     /// If the opponent chain should lose (block height not even), it will try to play.
     QueryAndMaybePingPong { opponent_chain: TruncatedChainId },
+    FundOpponent {
+        opponent_chain: TruncatedChainId,
+        funds: Coin,
+        callback: Callback,
+    },
 }
 
 /// App query messages
@@ -30,6 +39,8 @@ pub enum AppQueryMsg {
     /// Returns last ping pong that was initiated through this smart contract
     #[returns(BlockHeightResponse)]
     BlockHeight {},
+    #[returns(Vec<(Callback, IBCLifecycleComplete)>)]
+    ICS20Callbacks {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -67,4 +78,11 @@ pub struct BlockHeightResponse {
 pub struct PreviousPingPongResponse {
     pub pongs: Option<u32>,
     pub host_chain: Option<TruncatedChainId>,
+}
+
+/// Message type for `sudo` entry_point
+#[cosmwasm_schema::cw_serde]
+pub enum AppSudoMsg {
+    #[serde(rename = "ibc_lifecycle_complete")]
+    IBCLifecycleComplete(IBCLifecycleComplete),
 }

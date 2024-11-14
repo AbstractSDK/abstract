@@ -1,17 +1,18 @@
 use abstract_sdk::{
     base::{ModuleIbcHandlerFn, SudoHandlerFn},
-    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE, ICS20_CALLBACKS},
     AbstractSdkError,
 };
 use abstract_std::{
     app::AppState,
+    ibc::{Callback, IBCLifecycleComplete, ICS20PacketIdentifier},
     objects::{
         dependency::StaticDependency, module::ModuleInfo, ownership::nested_admin::NestedAdmin,
     },
     AbstractError, AbstractResult,
 };
 use cosmwasm_std::{Empty, StdResult, Storage};
-use cw_storage_plus::Item;
+use cw_storage_plus::{Item, Map};
 
 use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -48,6 +49,7 @@ pub struct AppContract<
     // Custom state for every App
     pub admin: NestedAdmin,
     pub(crate) base_state: Item<AppState>,
+    pub(crate) ics20_callbacks: Map<ICS20PacketIdentifier, Callback>,
 
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,
@@ -71,6 +73,7 @@ impl<
         Self {
             base_state: Item::new(BASE_STATE),
             admin: NestedAdmin::new(ADMIN_NAMESPACE),
+            ics20_callbacks: Map::new(ICS20_CALLBACKS),
             contract: AbstractContract::new(name, version, metadata),
         }
     }
@@ -89,6 +92,32 @@ impl<
 
     pub fn load_state(&self, store: &dyn Storage) -> StdResult<AppState> {
         self.base_state.load(store)
+    }
+
+    /// Loads callback and clean ups the state after it
+    pub fn load_ics20_callback(
+        &self,
+        store: &mut dyn Storage,
+        ibc_cycle: &IBCLifecycleComplete,
+    ) -> StdResult<Callback> {
+        let key = match ibc_cycle {
+            IBCLifecycleComplete::IBCAck {
+                channel,
+                sequence,
+                ack: _,
+                success: _,
+            } => ICS20PacketIdentifier {
+                channel_id: channel.clone(),
+                sequence: *sequence,
+            },
+            IBCLifecycleComplete::IBCTimeout { channel, sequence } => ICS20PacketIdentifier {
+                channel_id: channel.clone(),
+                sequence: *sequence,
+            },
+        };
+        let callback = self.ics20_callbacks.load(store, key.clone())?;
+        self.ics20_callbacks.remove(store, key);
+        Ok(callback)
     }
 
     /// add dependencies to the contract
@@ -145,6 +174,13 @@ impl<
     /// add IBC callback handler to contract
     pub const fn with_ibc_callback(mut self, callback: IbcCallbackHandlerFn<Self, Error>) -> Self {
         self.contract = self.contract.with_ibc_callback(callback);
+        self
+    }
+
+    /// add ICS20 reply handler for callback to contract
+    /// See [`crate::sdk::IbcClient::send_funds_with_callback`] for the usage
+    pub const fn with_ics20_callback_reply(mut self, reply_id: u64) -> Self {
+        self.contract = self.contract.with_ics20_callback_reply(reply_id);
         self
     }
 
