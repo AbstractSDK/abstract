@@ -4,9 +4,9 @@ set -e
 
 # Detect the architecture #
 if [[ $(arch) == "arm64" ]]; then
-  image="cosmwasm/optimizer-arm64:0.16.0"
+  image="cosmwasm/optimizer-arm64:0.16.1"
 else
-  image="cosmwasm/optimizer:0.16.0"
+  image="cosmwasm/optimizer:0.16.1"
 fi
 
 starting_dir=$(pwd)

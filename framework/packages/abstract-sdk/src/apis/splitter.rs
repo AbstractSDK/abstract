@@ -11,12 +11,8 @@ use crate::{
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
 pub trait SplitterInterface: TransferInterface + AccountExecutor + ModuleIdentification {
-    fn splitter<'a>(&'a self, deps: Deps<'a>, env: &'a Env) -> Splitter<Self> {
-        Splitter {
-            base: self,
-            deps,
-            env,
-        }
+    fn splitter<'a>(&'a self, deps: Deps<'a>) -> Splitter<Self> {
+        Splitter { base: self, deps }
     }
 }
 
@@ -38,7 +34,6 @@ impl<'a, T: SplitterInterface> AbstractApi<T> for Splitter<'a, T> {
 pub struct Splitter<'a, T: SplitterInterface> {
     base: &'a T,
     deps: Deps<'a>,
-    env: &'a Env,
 }
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
@@ -53,7 +48,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
         };
 
         // Retrieve the bank API
-        let bank = self.base.bank(self.deps, self.env);
+        let bank = self.base.bank(self.deps);
         receivers
             .iter()
             .map(|receiver| {
@@ -113,9 +108,7 @@ mod test {
 
             let receivers = vec![receiver1, receiver2, receiver3];
 
-            let split_funds = module
-                .splitter(deps.as_ref(), &env)
-                .split(asset, &receivers)?;
+            let split_funds = module.splitter(deps.as_ref()).split(asset, &receivers)?;
             assert_eq!(split_funds.messages().len(), 3);
 
             let msg: ExecutorMsg = module.executor(deps.as_ref()).execute(vec![split_funds])?;
@@ -161,7 +154,7 @@ mod test {
         let account = test_account(deps.api);
         let module = MockModule::new(deps.api, account.clone());
         let env = mock_env_validated(deps.api);
-        let splitter = module.splitter(deps.as_ref(), &env);
+        let splitter = module.splitter(deps.as_ref());
 
         abstract_api_test(splitter);
     }

@@ -191,6 +191,7 @@ mod test {
         #[coverage_helper::test]
         fn only_whitelisted_can_execute() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::Execute { msgs: vec![] };
@@ -206,6 +207,7 @@ mod test {
         #[coverage_helper::test]
         fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
@@ -252,6 +254,7 @@ mod test {
         #[coverage_helper::test]
         fn add_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -325,6 +328,7 @@ mod test {
         #[coverage_helper::test]
         fn send_funds() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -408,6 +412,7 @@ mod test {
         #[coverage_helper::test]
         fn ica_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let ica_client_addr = deps.api.addr_make("ica_client_addr");

@@ -20,7 +20,6 @@ default = ["export"]
 export = []
 schema = []
 
-
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["stargate"] }
 cosmwasm-schema = { workspace = true }

@@ -26,7 +26,7 @@ gen_app_mock!(MockApp, APP_ID, APP_VERSION, &[]);
 fn execute_on_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&sender, &deployment)?;
 
     // mint coins to account address
@@ -75,7 +75,7 @@ fn execute_on_account() -> AResult {
 #[test]
 fn account_install_app() -> AResult {
     let chain = MockBech32::new("mock");
-    Abstract::deploy_on_mock(chain.clone())?;
+    Abstract::deploy_on(chain.clone(), ())?;
     abstract_integration_tests::account::account_install_app(chain.clone())?;
     take_storage_snapshot!(chain, "account_install_app");
     Ok(())
@@ -85,7 +85,7 @@ fn account_install_app() -> AResult {
 fn account_app_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
@@ -136,7 +136,7 @@ fn account_app_ownership() -> AResult {
 fn subaccount_app_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
@@ -184,7 +184,7 @@ fn subaccount_app_ownership() -> AResult {
 fn cant_reinstall_app_after_uninstall() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let account = create_default_account(&sender, &deployment)?;
 
     deployment
@@ -211,17 +211,13 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
 fn deploy_strategy_uploaded() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let admin = Abstract::mock_admin(&chain);
-    let deployment = Abstract::deploy_on(chain.clone(), admin.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let _account = create_default_account(&sender, &deployment)?;
 
     deployment
         .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
-    deployment
-        .registry
-        .call_as(&admin)
-        .update_config(None, Some(false))?;
+    deployment.registry.update_config(None, Some(false))?;
 
     let app = MockApp::new_test(chain.clone());
     app.upload()?;
@@ -239,16 +235,13 @@ fn deploy_strategy_uploaded() -> AResult {
     assert!(module_list.modules[0].module.info.name == "app");
 
     // Clean module
-    deployment
-        .registry
-        .call_as(&admin)
-        .approve_or_reject_modules(
-            vec![],
-            vec![ModuleInfo::from_id(
-                APP_ID,
-                ModuleVersion::Version(APP_VERSION.to_owned()),
-            )?],
-        )?;
+    deployment.registry.approve_or_reject_modules(
+        vec![],
+        vec![ModuleInfo::from_id(
+            APP_ID,
+            ModuleVersion::Version(APP_VERSION.to_owned()),
+        )?],
+    )?;
 
     // Deploy Error
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Error)?;
@@ -263,16 +256,13 @@ fn deploy_strategy_uploaded() -> AResult {
     assert!(module_list.modules[0].module.info.name == "app");
 
     // Clean module
-    deployment
-        .registry
-        .call_as(&admin)
-        .approve_or_reject_modules(
-            vec![],
-            vec![ModuleInfo::from_id(
-                APP_ID,
-                ModuleVersion::Version(APP_VERSION.to_owned()),
-            )?],
-        )?;
+    deployment.registry.approve_or_reject_modules(
+        vec![],
+        vec![ModuleInfo::from_id(
+            APP_ID,
+            ModuleVersion::Version(APP_VERSION.to_owned()),
+        )?],
+    )?;
 
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Force)?;
     let module_list = deployment.registry.module_list(
@@ -292,17 +282,13 @@ fn deploy_strategy_uploaded() -> AResult {
 fn deploy_strategy_deployed() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
-    let admin = Abstract::mock_admin(&chain);
-    let deployment = Abstract::deploy_on(chain.clone(), admin.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let _account = create_default_account(sender, &deployment)?;
 
     deployment
         .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
-    deployment
-        .registry
-        .call_as(&admin)
-        .update_config(None, Some(false))?;
+    deployment.registry.update_config(None, Some(false))?;
 
     let app = MockApp::new_test(chain.clone());
 

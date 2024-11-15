@@ -3,7 +3,7 @@ use abstract_sdk::{
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Deps, Env, StdError};
+use cosmwasm_std::{Deps, StdError};
 
 use crate::{state::ContractError, AdapterContract};
 
@@ -11,8 +11,9 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AbstractNameService
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
-        AnsHost::new(deps.api, env).map_err(Into::into)
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
+        let state = self.state(deps.storage)?;
+        AnsHost::new(deps, state.code_id).map_err(Into::into)
     }
 }
 
@@ -35,8 +36,9 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
     AbstractRegistryAccess
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg>
 {
-    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
-        RegistryContract::new(deps.api, env).map_err(Into::into)
+    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
+        let state = self.state(deps.storage)?;
+        RegistryContract::new(deps, state.code_id).map_err(Into::into)
     }
 }
 #[cfg(test)]
@@ -44,7 +46,7 @@ mod tests {
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_std::adapter::{AdapterRequestMsg, ExecuteMsg};
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{testing::*, DepsMut, MessageInfo, Response};
+    use cosmwasm_std::{testing::*, DepsMut, Env, MessageInfo, Response};
 
     use super::*;
     use crate::mock::{
@@ -54,7 +56,7 @@ mod tests {
 
     pub fn feature_exec_fn(
         deps: DepsMut,
-        env: Env,
+        _env: Env,
         _info: MessageInfo,
         module: MockAdapterContract,
         _msg: MockExecMsg,
@@ -62,12 +64,16 @@ mod tests {
         let mock_api = MockApi::default();
         let expected_account = test_account(mock_api);
         // assert with test values
+        let state = module.state(deps.storage)?;
         let account = module.account(deps.as_ref())?;
         assert_eq!(account, expected_account);
-        let ans = module.ans_host(deps.as_ref(), &env)?;
-        assert_eq!(ans, AnsHost::new(deps.api, &env)?);
-        let registry = module.abstract_registry(deps.as_ref(), &env)?;
-        assert_eq!(registry, RegistryContract::new(deps.api, &env)?);
+        let ans = module.ans_host(deps.as_ref())?;
+        assert_eq!(ans, AnsHost::new(deps.as_ref(), state.code_id)?);
+        let registry = module.abstract_registry(deps.as_ref())?;
+        assert_eq!(
+            registry,
+            RegistryContract::new(deps.as_ref(), state.code_id)?
+        );
 
         module.target()?;
 

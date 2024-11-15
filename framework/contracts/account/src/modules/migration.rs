@@ -3,6 +3,7 @@ use abstract_std::{
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg as AdapterQuery,
     },
+    native_addrs,
     objects::{
         dependency::Dependency,
         module::ModuleInfo,
@@ -110,7 +111,9 @@ pub fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), AccountError> {
-    let registry = RegistryContract::new(deps.api, env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
     let old_module_cw2 = query_module_version(deps.as_ref(), old_module_addr.clone(), &registry)?;

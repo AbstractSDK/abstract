@@ -5,7 +5,7 @@ use abstract_adapter::sdk::{
 };
 use abstract_adapter::std::objects::pool_id::PoolAddressBase;
 use abstract_dex_standard::{action::DexAction, msg::SwapNode, DexCommand, DexError};
-use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Env};
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};
 
 use crate::state::DEX_FEES;
@@ -25,7 +25,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_dex_action(
         &self,
         deps: Deps,
-        env: &Env,
         sender: Addr,
         action: DexAction,
         mut exchange: Box<dyn DexCommand>,
@@ -42,7 +41,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                 (
                     self.resolve_provide_liquidity(
                         deps,
-                        env,
                         sender,
                         assets,
                         pool,
@@ -53,14 +51,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                 )
             }
             DexAction::WithdrawLiquidity { pool, lp_token } => (
-                self.resolve_withdraw_liquidity(
-                    deps,
-                    env,
-                    sender,
-                    lp_token,
-                    pool,
-                    exchange.as_mut(),
-                )?,
+                self.resolve_withdraw_liquidity(deps, sender, lp_token, pool, exchange.as_mut())?,
                 WITHDRAW_LIQUIDITY,
             ),
             DexAction::Swap {
@@ -72,7 +63,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             } => (
                 self.resolve_swap(
                     deps,
-                    env,
                     sender,
                     offer_asset,
                     ask_asset,
@@ -91,7 +81,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             } => (
                 self.resolve_route_swap(
                     deps,
-                    env,
                     sender,
                     offer_asset,
                     route,
@@ -108,7 +97,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_swap(
         &self,
         deps: Deps,
-        env: &Env,
         sender: Addr,
         offer_asset: AssetBase<String>,
         ask_asset: AssetInfoBase<String>,
@@ -129,8 +117,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.fetch_data(
             deps,
             sender,
-            self.abstract_registry(deps, env)?,
-            self.ans_host(deps, env)?,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
         )?;
         let mut swap_msgs = exchange.swap(
             deps,
@@ -152,7 +140,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_route_swap(
         &self,
         deps: Deps,
-        env: &Env,
         sender: Addr,
         offer_asset: AssetBase<String>,
         swap_route: Vec<SwapNode<String>>,
@@ -174,8 +161,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.fetch_data(
             deps,
             sender,
-            self.abstract_registry(deps, env)?,
-            self.ans_host(deps, env)?,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
         )?;
         let mut swap_msgs =
             exchange.swap_route(deps, swap_route, offer_asset, belief_price, max_spread)?;
@@ -190,7 +177,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_provide_liquidity(
         &self,
         deps: Deps,
-        env: &Env,
         sender: Addr,
         offer_assets: Vec<AssetBase<String>>,
         pool: PoolAddressBase<String>,
@@ -206,8 +192,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.fetch_data(
             deps,
             sender,
-            self.abstract_registry(deps, env)?,
-            self.ans_host(deps, env)?,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
         )?;
         exchange.provide_liquidity(deps, pool_address, offer_assets, max_spread)
     }
@@ -215,7 +201,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_withdraw_liquidity(
         &self,
         deps: Deps,
-        env: &Env,
         sender: Addr,
         lp_token: AssetBase<String>,
         pool: PoolAddressBase<String>,
@@ -227,8 +212,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange.fetch_data(
             deps,
             sender,
-            self.abstract_registry(deps, env)?,
-            self.ans_host(deps, env)?,
+            self.abstract_registry(deps)?,
+            self.ans_host(deps)?,
         )?;
         exchange.withdraw_liquidity(deps, pool_address, lp_token)
     }

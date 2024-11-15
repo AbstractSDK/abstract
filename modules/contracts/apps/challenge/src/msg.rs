@@ -8,7 +8,7 @@ use abstract_app::{
     },
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Deps, Env, StdResult, Timestamp, Uint64};
+use cosmwasm_std::{Addr, Deps, StdResult, Timestamp, Uint64};
 use cw_address_like::AddressLike;
 
 use crate::{
@@ -245,10 +245,9 @@ impl Friend<String> {
     pub(crate) fn check(
         self,
         deps: Deps,
-        env: &Env,
         module: &ChallengeApp,
     ) -> AbstractSdkResult<(Addr, Friend<Addr>)> {
-        let account_registry = module.account_registry(deps, env)?;
+        let account_registry = module.account_registry(deps)?;
         let checked = match self {
             Friend::Addr(human) => {
                 let checked = human.check(deps)?;
@@ -264,16 +263,11 @@ impl Friend<String> {
 }
 
 impl Friend<Addr> {
-    pub(crate) fn addr(
-        &self,
-        deps: Deps,
-        env: &Env,
-        module: &ChallengeApp,
-    ) -> AbstractSdkResult<Addr> {
+    pub(crate) fn addr(&self, deps: Deps, module: &ChallengeApp) -> AbstractSdkResult<Addr> {
         Ok(match self {
             Friend::Addr(human) => human.address.clone(),
             Friend::AbstractAccount(account_id) => module
-                .account_registry(deps, env)?
+                .account_registry(deps)?
                 .account(account_id)?
                 .into_addr(),
         })

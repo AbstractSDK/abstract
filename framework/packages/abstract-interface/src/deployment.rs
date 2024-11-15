@@ -3,7 +3,7 @@ use cw_blob::interface::{CwBlob, DeterministicInstantiation};
 #[cfg(feature = "daemon")]
 use cw_orch::daemon::DeployedChains;
 
-use cw_orch::{mock::MockBase, prelude::*};
+use cw_orch::prelude::*;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
@@ -29,7 +29,7 @@ pub struct Abstract<Chain: CwEnv> {
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = AbstractInterfaceError;
-    type DeployData = Chain::Sender;
+    type DeployData = ();
 
     fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let blob = CwBlob::new(CW_BLOB, chain.clone());
@@ -63,24 +63,13 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     /// Deploys abstract using provided [`TxHandler::Sender`].
     /// After deployment sender of abstract contracts is a sender of provided `chain`
     fn deploy_on(
-        mut chain: Chain,
-        deploy_data: Self::DeployData,
+        chain: Chain,
+        _deploy_data: Self::DeployData,
     ) -> Result<Self, AbstractInterfaceError> {
-        let original_sender = chain.sender().clone();
-        chain.set_sender(deploy_data);
-
-        // Ensure we have expected sender address
         let sender_addr = chain.sender_addr();
-        let hrp = sender_addr.as_str().split_once("1").unwrap().0;
-        assert_eq!(
-            sender_addr.as_str(),
-            native_addrs::creator_address(hrp)?,
-            "Only predetermined abstract admin can deploy abstract contracts, see `native_addrs.rs`"
-        );
-
         let admin = sender_addr.to_string();
         // upload
-        let mut deployment = Self::store_on(chain.clone())?;
+        let deployment = Self::store_on(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
 
         let creator_account_id: cosmrs::AccountId = admin.as_str().parse().unwrap();
@@ -150,8 +139,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             },
         )?;
 
-        // Return original sender
-        deployment.update_sender(&original_sender);
         Ok(deployment)
     }
 
@@ -282,23 +269,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
         ]
     }
 
-    pub fn update_sender(&mut self, sender: &Chain::Sender) {
-        let Self {
-            ans_host,
-            registry,
-            module_factory,
-            ibc,
-            account,
-            blob: _,
-        } = self;
-        ans_host.set_sender(sender);
-        registry.set_sender(sender);
-        module_factory.set_sender(sender);
-        account.set_sender(sender);
-        ibc.client.set_sender(sender);
-        ibc.host.set_sender(sender);
-    }
-
     pub fn call_as(&self, sender: &<Chain as TxHandler>::Sender) -> Self {
         Self {
             ans_host: self.ans_host.clone().call_as(sender),
@@ -320,60 +290,5 @@ impl<Chain: CwEnv> Abstract<Chain> {
             abstract_std::objects::module_reference::ModuleReference::Account(code_id) => Ok(code_id),
             _ => panic!("Your abstract instance has an account module that is not registered as an account. This is bad"),
         }
-    }
-}
-
-// Sender addr means it's mock or CloneTest(which is also mock)
-impl<Chain: CwEnv<Sender = Addr>> Abstract<Chain> {
-    pub fn deploy_on_mock(chain: Chain) -> Result<Self, AbstractInterfaceError> {
-        let admin = Self::mock_admin(&chain);
-        Self::deploy_on(chain, admin)
-    }
-
-    pub fn mock_admin(chain: &Chain) -> <MockBase as TxHandler>::Sender {
-        // Getting prefix
-        let sender_addr: cosmrs::AccountId = chain.sender().as_str().parse().unwrap();
-        let prefix = sender_addr.prefix();
-        // Building mock_admin
-        let mock_admin = native_addrs::creator_address(prefix).unwrap();
-        Addr::unchecked(mock_admin)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    #![allow(clippy::needless_borrows_for_generic_args)]
-
-    use cosmwasm_std::Api;
-    use cw_orch::anyhow;
-
-    use super::*;
-
-    #[coverage_helper::test]
-    fn deploy2() -> anyhow::Result<()> {
-        let prefix = "mock";
-        let mut chain = MockBech32::new(prefix);
-        let sender = native_addrs::creator_address(prefix)?;
-        chain.set_sender(Addr::unchecked(sender));
-
-        let abstr = Abstract::deploy_on(chain.clone(), chain.sender().clone())?;
-        let app = chain.app.borrow();
-        let api = app.api();
-
-        // ANS
-        let ans_addr = api.addr_canonicalize(&abstr.ans_host.addr_str()?)?;
-        assert_eq!(ans_addr, native_addrs::ans_address(prefix, api)?);
-
-        // REGISTRY
-        let registry = api.addr_canonicalize(&abstr.registry.addr_str()?)?;
-        assert_eq!(registry, native_addrs::registry_address(prefix, api)?);
-
-        // MODULE_FACTORY
-        let module_factory = api.addr_canonicalize(&abstr.module_factory.addr_str()?)?;
-        assert_eq!(
-            module_factory,
-            native_addrs::module_factory_address(prefix, api)?
-        );
-        Ok(())
     }
 }

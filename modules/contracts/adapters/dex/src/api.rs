@@ -244,7 +244,7 @@ pub mod ans {
         /// Executes a [DexAction] in th DEX
         fn execute(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
-            let ans_host = self.base.ans_host(self.deps, self.env)?;
+            let ans_host = self.base.ans_host(self.deps)?;
             let message = WholeDexAction(self.dex_name(), action)
                 .resolve(&self.deps.querier, &ans_host)
                 .map_err(AbstractError::from)?;
@@ -313,7 +313,7 @@ pub mod ans {
             belief_price: Option<Decimal>,
             addr_as_sender: impl Into<String>,
         ) -> AbstractSdkResult<GenerateMessagesResponse> {
-            let ans_host = self.base.ans_host(self.deps, self.env)?;
+            let ans_host = self.base.ans_host(self.deps)?;
             let message = WholeDexAction(
                 self.dex_name(),
                 DexAnsAction::Swap {

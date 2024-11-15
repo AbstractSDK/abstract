@@ -41,10 +41,10 @@ pub fn execute_handler(
 
             // if exchange is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
-                handle_ibc_request(&deps, &env, info, &module, local_dex_name, &action)
+                handle_ibc_request(&deps, info, &module, local_dex_name, &action)
             } else {
                 // the action can be executed on the local chain
-                handle_local_request(deps, env, info, &module, local_dex_name, action)
+                handle_local_request(deps, info, &module, local_dex_name, action)
             }
         }
         DexExecuteMsg::UpdateFee {
@@ -53,7 +53,7 @@ pub fn execute_handler(
         } => {
             // Only namespace owner (abstract) can change recipient address
             let namespace = module
-                .module_registry(deps.as_ref(), &env)?
+                .module_registry(deps.as_ref())?
                 .query_namespace(Namespace::new(ABSTRACT_NAMESPACE)?)?;
 
             // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
@@ -73,7 +73,7 @@ pub fn execute_handler(
             // Update recipient account id
             if let Some(account_id) = recipient_account_id {
                 let recipient = module
-                    .account_registry(deps.as_ref(), &env)?
+                    .account_registry(deps.as_ref())?
                     .account(&AccountId::new(account_id, AccountTrace::Local)?)?;
                 fee.recipient = recipient.into_addr();
             }
@@ -87,7 +87,6 @@ pub fn execute_handler(
 /// Handle an adapter request that can be executed on the local chain
 fn handle_local_request(
     deps: DepsMut,
-    env: Env,
     _info: MessageInfo,
     module: &DexAdapter,
     exchange: String,
@@ -98,7 +97,6 @@ fn handle_local_request(
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
         module,
         deps.as_ref(),
-        &env,
         target_account.into_addr(),
         action,
         exchange,
@@ -110,7 +108,6 @@ fn handle_local_request(
 /// Handle an adapter request that can be executed on an IBC chain
 fn handle_ibc_request(
     deps: &DepsMut,
-    env: &Env,
     info: MessageInfo,
     module: &DexAdapter,
     dex_name: DexName,
@@ -118,8 +115,8 @@ fn handle_ibc_request(
 ) -> DexResult {
     let host_chain = TruncatedChainId::from_string(dex_name.clone())?;
 
-    let ans = module.name_service(deps.as_ref(), env);
-    let ibc_client = module.ibc_client(deps.as_ref(), env);
+    let ans = module.name_service(deps.as_ref());
+    let ibc_client = module.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)

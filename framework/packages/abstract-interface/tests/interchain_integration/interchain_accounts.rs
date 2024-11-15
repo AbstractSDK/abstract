@@ -231,18 +231,14 @@ mod test {
         ]);
 
         // SETUP
-        let mut chain1 = mock_interchain.get_chain(JUNO).unwrap();
-        let mut chain2 = mock_interchain.get_chain(STARGAZE).unwrap();
-        let mut chain3 = mock_interchain.get_chain(OSMOSIS).unwrap();
-
-        chain1.set_sender(Abstract::mock_admin(&chain1));
-        chain2.set_sender(Abstract::mock_admin(&chain2));
-        chain3.set_sender(Abstract::mock_admin(&chain3));
+        let chain1 = mock_interchain.get_chain(JUNO).unwrap();
+        let chain2 = mock_interchain.get_chain(STARGAZE).unwrap();
+        let chain3 = mock_interchain.get_chain(OSMOSIS).unwrap();
 
         // Deploying abstract and the IBC abstract logic
-        let abstr_origin = Abstract::deploy_on_mock(chain1.clone())?;
-        let abstr_intermediate_remote = Abstract::deploy_on_mock(chain2.clone())?;
-        let abstr_host_remote = Abstract::deploy_on_mock(chain3.clone())?;
+        let abstr_origin = Abstract::deploy_on(chain1.clone(), ())?;
+        let abstr_intermediate_remote = Abstract::deploy_on(chain2.clone(), ())?;
+        let abstr_host_remote = Abstract::deploy_on(chain3.clone(), ())?;
 
         // Creating a connection between 2 abstract deployments
         abstr_origin.connect_to(&abstr_intermediate_remote, &mock_interchain)?;
@@ -385,6 +381,7 @@ mod test {
             code_id: account_code_id,
             label: "local_account_from_remote WOW".to_string(),
             msg: to_json_binary(&account::InstantiateMsg {
+                code_id: account_code_id,
                 account_id: None,
                 owner: GovernanceDetails::Monarchy {
                     monarch: abstr_remote.registry.address()?.to_string(),
@@ -457,6 +454,7 @@ mod test {
         let res = chain.call_as(sender).instantiate2(
             account_code_id,
             &account::InstantiateMsg {
+                code_id: account_code_id,
                 account_id: Some(account_id.clone()),
                 owner: GovernanceDetails::Monarchy {
                     monarch: chain.addr_make("user").to_string(),

@@ -6,7 +6,7 @@
 
 pub use abstract_std::objects::{ans_host::AnsHost, registry::RegistryContract};
 use abstract_std::{registry::Account, ANS_HOST, REGISTRY};
-use cosmwasm_std::{Deps, Env};
+use cosmwasm_std::Deps;
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
@@ -27,7 +27,7 @@ impl ModuleIdentification for Account {
 }
 
 impl crate::features::AbstractRegistryAccess for RegistryContract {
-    fn abstract_registry(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<RegistryContract> {
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<RegistryContract> {
         Ok(self.clone())
     }
 }
@@ -39,7 +39,7 @@ impl ModuleIdentification for RegistryContract {
 }
 
 impl crate::features::AbstractNameService for AnsHost {
-    fn ans_host(&self, _deps: Deps, _env: &Env) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(self.clone())
     }
 }
@@ -64,14 +64,11 @@ mod tests {
 
         #[coverage_helper::test]
         fn test_registry() {
-            let deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
-            let registry = RegistryContract::new(&deps.api, &env).unwrap();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
+            let registry = RegistryContract::new(deps.as_ref(), 1).unwrap();
 
-            assert_eq!(
-                registry.abstract_registry(deps.as_ref(), &env).unwrap(),
-                registry
-            );
+            assert_eq!(registry.abstract_registry(deps.as_ref()).unwrap(), registry);
             assert_eq!(registry.module_id(), REGISTRY);
         }
     }
@@ -85,11 +82,11 @@ mod tests {
 
         #[coverage_helper::test]
         fn test_ans() {
-            let deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
-            let ans = AnsHost::new(&deps.api, &env).unwrap();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
+            let ans = AnsHost::new(deps.as_ref(), 1).unwrap();
 
-            assert_eq!(ans.ans_host(deps.as_ref(), &env).unwrap(), ans);
+            assert_eq!(ans.ans_host(deps.as_ref()).unwrap(), ans);
             assert_eq!(ans.module_id(), ANS_HOST);
         }
     }

@@ -128,23 +128,15 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     }
 
     /// Deploy abstract with current configuration
-    pub fn build(
-        &self,
-        abstract_admin: Chain::Sender,
-    ) -> AbstractClientResult<AbstractClient<Chain>> {
-        let abstr = Abstract::deploy_on(self.chain.clone(), abstract_admin.clone())?;
-        self.update_ans(&abstr, abstract_admin)?;
+    pub fn build(&self) -> AbstractClientResult<AbstractClient<Chain>> {
+        let abstr = Abstract::deploy_on(self.chain.clone(), ())?;
+        self.update_ans(&abstr)?;
 
         AbstractClient::new(self.chain.clone())
     }
 
-    fn update_ans(
-        &self,
-        abstr: &Abstract<Chain>,
-        abstract_admin: Chain::Sender,
-    ) -> AbstractClientResult<()> {
-        let mut ans_host = abstr.ans_host.clone();
-        ans_host.set_sender(&abstract_admin);
+    fn update_ans(&self, abstr: &Abstract<Chain>) -> AbstractClientResult<()> {
+        let ans_host = &abstr.ans_host;
         ans_host.update_dexes(self.dexes.clone(), vec![])?;
         ans_host.update_contract_addresses(self.contracts.clone(), vec![])?;
         ans_host.update_asset_addresses(self.assets.clone(), vec![])?;
@@ -152,13 +144,6 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
         ans_host.update_pools(self.pools.clone(), vec![])?;
 
         Ok(())
-    }
-}
-
-impl<Chain: CwEnv<Sender = Addr>> AbstractClientBuilder<Chain> {
-    /// Deploy mock abstract with current configuration
-    pub fn build_mock(&self) -> AbstractClientResult<AbstractClient<Chain>> {
-        self.build(Abstract::mock_admin(&self.chain))
     }
 }
 

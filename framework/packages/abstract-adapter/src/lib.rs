@@ -140,7 +140,9 @@ pub mod mock {
         let info = message_info(&abstr.owner, &[]);
         let env = mock_env_validated(deps.api);
         let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {},
+            base: BaseInstantiateMsg {
+                registry_address: abstr.registry.to_string(),
+            },
             module: MockInitMsg {},
         };
         adapter.instantiate(deps.as_mut(), env, info, init_msg)
@@ -155,7 +157,9 @@ pub mod mock {
         let info = message_info(&abstr.owner, &[]);
         let env = mock_env_validated(deps.api);
         let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {},
+            base: BaseInstantiateMsg {
+                registry_address: abstr.registry.to_string(),
+            },
             module: MockInitMsg {},
         };
         module.instantiate(deps.as_mut(), env, info, init_msg)

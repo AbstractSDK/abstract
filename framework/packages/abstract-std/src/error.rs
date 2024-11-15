@@ -21,12 +21,6 @@ pub enum AbstractError {
     AnsHostError(#[from] AnsHostError),
 
     #[error(transparent)]
-    Bech32Encode(#[from] bech32::EncodeError),
-
-    #[error(transparent)]
-    HrpError(#[from] bech32::primitives::hrp::Error),
-
-    #[error(transparent)]
     Instantiate2AddressError(#[from] cosmwasm_std::Instantiate2AddressError),
 
     #[error("Semver error encountered while handling account object: {0}")]

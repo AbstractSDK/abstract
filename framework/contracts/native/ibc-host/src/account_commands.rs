@@ -5,6 +5,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account::{self, ModuleInstallConfig},
+    native_addrs,
     objects::{module::ModuleInfo, module_reference::ModuleReference, AccountId, TruncatedChainId},
     registry::Account,
     ACCOUNT,
@@ -36,7 +37,10 @@ pub fn receive_register(
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
 ) -> HostResult {
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
     let salt = cosmwasm_std::to_json_binary(&account_id)?;
@@ -54,6 +58,7 @@ pub fn receive_register(
     let self_canon_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
 
     let create_account_msg = account::InstantiateMsg::<cosmwasm_std::Empty> {
+        code_id,
         owner: abstract_std::objects::gov_type::GovernanceDetails::External {
             governance_address: env.contract.address.into_string(),
             governance_type: "abstract-ibc".into(), // at least 4 characters
@@ -146,7 +151,10 @@ pub fn send_all_back(
     src_chain: TruncatedChainId,
 ) -> Result<CosmosMsg, HostError> {
     // get the ICS20 channel information
-    let ans = AnsHost::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let ans = AnsHost::new(deps, abstract_code_id)?;
     let ics20_channel_entry = ChannelEntry {
         connected_chain: src_chain,
         protocol: ICS20.to_string(),
@@ -179,7 +187,10 @@ pub fn send_all_back(
 
 /// get the account from the registry contract
 pub fn get_account(deps: Deps, env: &Env, account_id: &AccountId) -> Result<Account, HostError> {
-    let registry = RegistryContract::new(deps.api, env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps, abstract_code_id)?;
     let account = registry.account(account_id, &deps.querier)?;
     Ok(account)
 }

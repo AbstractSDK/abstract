@@ -201,7 +201,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 target_module,
             } => {
                 use abstract_sdk::features::AccountIdentification;
-                let ibc_client = app.ibc_client(deps.as_ref(), &env);
+                let ibc_client = app.ibc_client(deps.as_ref());
                 let mut account = app.account_id(deps.as_ref())?;
                 account.push_chain(TruncatedChainId::new(&env));
                 let msg = ibc_client.module_ibc_query(

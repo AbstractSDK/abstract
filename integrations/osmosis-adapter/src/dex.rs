@@ -6,7 +6,6 @@ use crate::{AVAILABLE_CHAINS, OSMOSIS};
 
 #[derive(Default)]
 pub struct Osmosis {
-    pub registry_contract: Option<RegistryContract>,
     pub addr_as_sender: Option<Addr>,
 }
 
@@ -22,10 +21,7 @@ impl Identify for Osmosis {
 #[cfg(feature = "full_integration")]
 use {
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread, SwapNode},
-    abstract_sdk::{
-        feature_objects::AnsHost, features::AbstractRegistryAccess, std::objects::PoolAddress,
-        AbstractSdkError,
-    },
+    abstract_sdk::{feature_objects::AnsHost, std::objects::PoolAddress},
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
     },
@@ -40,30 +36,15 @@ use {
 };
 
 #[cfg(feature = "full_integration")]
-impl AbstractRegistryAccess for Osmosis {
-    fn abstract_registry(
-        &self,
-        _: cosmwasm_std::Deps<'_>,
-    ) -> std::result::Result<RegistryContract, abstract_sdk::AbstractSdkError> {
-        self.registry_contract
-            .clone()
-            .ok_or(AbstractSdkError::generic_err("registry address is not set"))
-        // We need to get to the registry somehow (possible from Ans Host ?)
-    }
-}
-
-#[cfg(feature = "full_integration")]
 /// Osmosis app-chain dex implementation
 impl DexCommand for Osmosis {
     fn fetch_data(
         &mut self,
         _deps: Deps,
         addr_as_sender: Addr,
-        registry_contract: RegistryContract,
+        _registry_contract: RegistryContract,
         _ans_host: AnsHost,
     ) -> Result<(), DexError> {
-        self.registry_contract = Some(registry_contract);
-
         self.addr_as_sender = Some(addr_as_sender);
         Ok(())
     }
@@ -306,6 +287,8 @@ impl DexCommand for Osmosis {
 
         #[allow(deprecated)]
         let swap_exact_amount_in_response = EstimateSwapExactAmountInRequest {
+            // Deprecated
+            sender: Default::default(),
             pool_id: pool_id.to_string().parse::<u64>().unwrap(),
             token_in,
             routes,

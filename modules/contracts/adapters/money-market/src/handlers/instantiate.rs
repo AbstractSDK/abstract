@@ -10,13 +10,13 @@ use crate::{
 
 pub fn instantiate_handler(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     _info: MessageInfo,
     module: MoneyMarketAdapter,
     msg: MoneyMarketInstantiateMsg,
 ) -> MoneyMarketResult {
     let recipient = module
-        .account_registry(deps.as_ref(), &env)?
+        .account_registry(deps.as_ref())?
         .account(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
     let money_market_fees = UsageFee::new(msg.fee, recipient.into_addr())?;
     MONEY_MARKET_FEES.save(deps.storage, &money_market_fees)?;

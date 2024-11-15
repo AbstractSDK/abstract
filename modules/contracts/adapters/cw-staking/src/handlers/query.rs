@@ -13,9 +13,9 @@ pub fn query_handler(
     module: &CwStakingAdapter,
     msg: StakingQueryMsg,
 ) -> StakingResult<Binary> {
-    let name_service = module.name_service(deps, &env);
+    let name_service = module.name_service(deps);
     let ans_host = name_service.host();
-    let registry_contract = module.abstract_registry(deps, &env)?;
+    let registry_contract = module.abstract_registry(deps)?;
 
     match msg {
         StakingQueryMsg::Info {
