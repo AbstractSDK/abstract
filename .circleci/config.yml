@@ -103,6 +103,16 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key 4C19E4CC17E67B7B
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey 4C19E4CC17E67B7B
+            git config --global commit.gpgSign true
+      - run:
           name: "Create build branch"
           command: |
             git config --global user.name 'CircleCI'
@@ -170,7 +180,7 @@ jobs:
             git pull
             # Check for wasm changes
             git add framework/artifacts --force
-            git commit -m 'Update framework WASM' || true
+            git commit -S -m 'Update framework WASM' || true
             git push origin "$CIRCLE_BRANCH-build" || true
       - run:
           name: Remove temporary branch if it failed during build framework
@@ -228,7 +238,7 @@ jobs:
             git pull
             # Check for wasm changes
             git add modules/artifacts --force
-            git commit -m 'Update modules WASM [skip ci]' || true
+            git commit -S -m 'Update modules WASM [skip ci]' || true
             git push origin "$CIRCLE_BRANCH-build" || true
       - run:
           name: Remove temporary branch if it failed during building modules
@@ -285,7 +295,7 @@ jobs:
             git pull
             # Check for schema changes
             git add schema --force
-            git commit -m 'Update Schemas [skip ci]' || true
+            git commit -S -m 'Update Schemas [skip ci]' || true
             git push origin "$CIRCLE_BRANCH-build" || true
       - run:
           name: Remove temporary branch if it failed during build schemas
@@ -303,16 +313,6 @@ jobs:
     steps:
       - setup_remote_docker
       - checkout
-      - run:
-          name: Import GPG Key
-          command: |
-            echo -e "$GPG_PRIVATE_KEY" | gpg --import
-            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key 4C19E4CC17E67B7B
-      - run:
-          name: Configure Git for Signing
-          command: |
-            git config --global user.signingkey 4C19E4CC17E67B7B
-            git config --global commit.gpgSign true
       - run:
           name: "Merge build branch"
           command: |
@@ -378,12 +378,22 @@ jobs:
             cd framework
             cargo run --bin full_deploy -- --network-ids $NETWORKS
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key 4C19E4CC17E67B7B
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey 4C19E4CC17E67B7B
+            git config --global commit.gpgSign true
+      - run:
           name: Commit and push deploy file
           command: |
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
             git add framework/scripts --force
-            git commit -m 'Update deploy deploy file [skip ci]'
+            git commit -S -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
       - run:
           name: Commit and push state file
@@ -392,7 +402,7 @@ jobs:
             git config --global user.email 'circleci@example.com'
             cp ~/.cw-orchestrator/state.json ./framework/scripts/
             git add ./framework/scripts/state.json
-            git commit -m 'Update deploy deploy file [skip ci]'
+            git commit -S -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
       - save_cache:
           paths:
