@@ -270,24 +270,24 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 
             match msg {
                 // ## Execution ##
-                ExecuteMsg::Execute { msgs } => execute_msgs(deps, env, &info.sender, msgs),
+                ExecuteMsg::Execute { msgs } => execute_msgs(deps, &info.sender, msgs),
                 ExecuteMsg::AdminExecute { addr, msg } => {
                     let addr = deps.api.addr_validate(&addr)?;
                     admin_execute(deps, info, addr, msg)
                 }
                 ExecuteMsg::ExecuteWithData { msg } => {
-                    execute_msgs_with_data(deps, env, &info.sender, msg)
+                    execute_msgs_with_data(deps, &info.sender, msg)
                 }
                 ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg,
                     funds,
-                } => execute_on_module(deps, env, info, module_id, exec_msg, funds),
+                } => execute_on_module(deps, info, module_id, exec_msg, funds),
                 ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
                     admin_execute_on_module(deps, info, module_id, msg)
                 }
                 ExecuteMsg::IcaAction { action_query_msg } => {
-                    ica_action(deps, env, info, action_query_msg)
+                    ica_action(deps, info, action_query_msg)
                 }
 
                 // ## Configuration ##
@@ -420,8 +420,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 #[cfg(feature = "xion")]
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: crate::msg::AccountSudoMsg) -> AccountResult {
-    abstract_xion::contract::sudo(deps, env, msg).map_err(Into::into)
+pub fn sudo(
+    deps: DepsMut,
+    env: Env,
+    msg: crate::msg::AccountSudoMsg,
+) -> abstract_xion::error::ContractResult<Response> {
+    if let abstract_xion::contract::AccountSudoMsg::BeforeTx { .. } = &msg {
+        AUTH_ADMIN.save(deps.storage, &true)?;
+    };
+    abstract_xion::contract::sudo(deps, env, msg)
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*

@@ -55,8 +55,8 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         CosmosOptions::default(),
     ))?;
 
-    // // Create a channel between the 2 chains for the transfer ports
-    // // JUNO>JUNO2
+    // Create a channel between the 2 chains for the transfer ports
+    // JUNO>JUNO2
     let juno_juno2_channel = interchain
         .create_channel(
             JUNO,
@@ -68,14 +68,11 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         )?
         .interchain_channel;
 
-    // let (abstr_juno, abstr_juno2) = abstract_starship_interfaces(
-    //     &interchain,
-    //     &juno_abstract_deployer,
-    //     &juno2_abstract_deployer,
-    // )?;
-
-    let abstr_juno = abstract_interface::Abstract::load_from(juno.clone())?;
-    let abstr_juno2 = abstract_interface::Abstract::load_from(juno2.clone())?;
+    let (abstr_juno, abstr_juno2) = abstract_starship_interfaces(
+        &interchain,
+        &juno_abstract_deployer,
+        &juno2_abstract_deployer,
+    )?;
 
     let counter_juno2 = init_counter(juno2.clone())?;
 

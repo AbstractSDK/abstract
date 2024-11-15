@@ -81,22 +81,17 @@ fn transfer_with_account_rename_message() -> AResult {
             vec![],
         )?;
 
-    let account = AccountI::new(ACCOUNT, src.clone());
-
-    account.instantiate(
-        &account::InstantiateMsg {
-            name: Some(String::from("first_account")),
+    let account = AccountI::create(
+        &src_abstr,
+        AccountDetails {
+            name: String::from("first_account"),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
-            namespace: None,
-            install_modules: vec![],
-            account_id: None,
-            owner: GovernanceDetails::Monarchy {
-                monarch: src.sender_addr().to_string(),
-            },
-            authenticator: None,
+            ..Default::default()
         },
-        None,
+        GovernanceDetails::Monarchy {
+            monarch: src.sender_addr().to_string(),
+        },
         &[],
     )?;
     account.set_ibc_status(true)?;
@@ -232,24 +227,20 @@ fn transfer_with_account_rename_message_timeout() -> AResult {
             vec![],
         )?;
 
-    let account = AccountI::new(ACCOUNT, src.clone());
-
-    account.instantiate(
-        &account::InstantiateMsg {
-            name: Some(String::from("first_account")),
+    let account = AccountI::create(
+        &src_abstr,
+        AccountDetails {
+            name: String::from("first_account"),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
-            namespace: None,
-            install_modules: vec![],
-            account_id: None,
-            owner: GovernanceDetails::Monarchy {
-                monarch: src.sender_addr().to_string(),
-            },
-            authenticator: None,
+            ..Default::default()
         },
-        None,
+        GovernanceDetails::Monarchy {
+            monarch: src.sender_addr().to_string(),
+        },
         &[],
     )?;
+
     account.set_ibc_status(true)?;
     // Whitelist ibc_client to enable ibc-client callbacks
     let ibc_client = account.module_address(IBC_CLIENT)?;

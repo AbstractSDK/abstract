@@ -29,12 +29,6 @@ pub enum AccountError {
     #[error(transparent)]
     RegistryError(#[from] RegistryError),
 
-    #[error(transparent)]
-    AnsHostError(#[from] AnsHostError),
-
-    #[error("{0}")]
-    SerdeJsonError(String),
-
     #[error("Your account is currently suspended")]
     AccountSuspended {},
 
@@ -127,13 +121,4 @@ pub enum AccountError {
     #[cfg(feature = "xion")]
     #[error(transparent)]
     AbstractXion(#[from] abstract_xion::error::ContractError),
-
-    #[error("Chain {0} not registered in the IBC Client")]
-    ChainNotRegistered(TruncatedChainId),
-}
-
-impl From<serde_json::Error> for AccountError {
-    fn from(value: serde_json::Error) -> Self {
-        Self::SerdeJsonError(value.to_string())
-    }
 }
