@@ -48,11 +48,13 @@ pub fn install_modules(
     // only owner can call this method
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
     let (install_msgs, install_attribute) = _install_modules(
         deps.branch(),
-        env,
         modules,
         info.funds, // We forward all the funds to the module_factory address for them to use in the install
+        abstract_code_id,
     )?;
     let response = AccountResponse::new("install_modules", std::iter::once(install_attribute))
         .add_submessages(install_msgs);
@@ -64,16 +66,14 @@ pub fn install_modules(
 /// Adds the modules to the internal store for reference and adds them to the account allowlist if applicable.
 pub fn _install_modules(
     mut deps: DepsMut,
-    env: &Env,
     modules: Vec<ModuleInstallConfig>,
     funds: Vec<Coin>,
+    abstract_code_id: u64,
 ) -> AccountResult<(Vec<SubMsg>, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut account_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
 
-    let abstract_code_id =
-        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
     let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
     let module_factory = ModuleFactoryContract::new(deps.as_ref(), abstract_code_id)?;
 
