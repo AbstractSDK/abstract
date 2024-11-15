@@ -230,9 +230,9 @@ pub fn instantiate(
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
-            &env,
             install_modules,
             simulate_resp.total_required_funds,
+            code_id,
         )?;
         response = response
             .add_submessages(install_msgs)
