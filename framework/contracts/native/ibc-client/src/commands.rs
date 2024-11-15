@@ -434,14 +434,6 @@ pub(crate) fn execute_send_funds_with_actions(
     let registry = RegistryContract::new(deps.api, &env)?;
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
-    // Check that ibc-client whitelisted, to ensure callback can be called
-    let whitelisted_modules =
-        account::state::WHITELISTED_MODULES.query(&deps.querier, account.addr().clone())?;
-    ensure!(
-        whitelisted_modules.0.contains(&env.contract.address),
-        IbcClientError::NotWhitelisted {}
-    );
-
     // get account_id of Account
     let account_id = account.account_id(deps.as_ref())?;
 

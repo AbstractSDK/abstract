@@ -12,7 +12,7 @@ use super::module_reference::ModuleReference;
 use crate::{
     error::AbstractError,
     objects::{fee::FixedFee, module_version::MODULE, namespace::Namespace},
-    AbstractResult,
+    AbstractResult, IBC_CLIENT,
 };
 
 /// ID of the module
@@ -369,8 +369,12 @@ impl Module {
     // Helper to know if this module supposed to be whitelisted on account contract
     pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
-            // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on account
-            ModuleReference::Adapter(_) | ModuleReference::App(_) => true,
+            // Standalone, Service or Native(exception for IBC Client for the ICS20 Callbacks) contracts not supposed to be whitelisted on account
+            ModuleReference::Adapter(_) | ModuleReference::App(_) | ModuleReference::Native(_)
+                if self.info.id() == IBC_CLIENT =>
+            {
+                true
+            }
             _ => false,
         }
     }
