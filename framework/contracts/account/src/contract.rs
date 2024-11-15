@@ -67,7 +67,6 @@ pub const FORWARD_RESPONSE_REPLY_ID: u64 = 1;
 pub const ADMIN_ACTION_REPLY_ID: u64 = 2;
 pub const REGISTER_MODULES_DEPENDENCIES_REPLY_ID: u64 = 3;
 pub const ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID: u64 = 4;
-pub const IBC_TOKEN_FLOW: u64 = 5;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
