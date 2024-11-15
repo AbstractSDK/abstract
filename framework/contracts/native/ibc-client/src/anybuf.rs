@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use anybuf::Anybuf;
 
 pub struct Coin {

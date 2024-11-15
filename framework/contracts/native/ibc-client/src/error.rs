@@ -50,7 +50,4 @@ pub enum IbcClientError {
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply {},
-
-    #[error("IBC Client not whitelisted, cannot send callbacks to account")]
-    NotWhitelisted {},
 }

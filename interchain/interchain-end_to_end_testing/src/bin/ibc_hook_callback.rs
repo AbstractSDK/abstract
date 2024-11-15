@@ -126,9 +126,6 @@ pub fn test_ibc_hook_callback() -> AnyResult<()> {
         test_amount,
     )?;
 
-    // Whitelist ibc-client to get callback
-    let ibc_client_addr = origin_account.module_address(IBC_CLIENT)?;
-    origin_account.update_whitelist(vec![ibc_client_addr.to_string()], vec![])?;
     let tx_response = origin_account.execute_on_module(
         IBC_CLIENT,
         ibc_client::ExecuteMsg::SendFundsWithActions {

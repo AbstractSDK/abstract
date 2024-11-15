@@ -67,7 +67,7 @@ pub mod state {
     pub const ICS20_ACCOUNT_CALLBACKS: Map<ICS20PacketIdentifier, (Addr, Coin, Vec<Binary>)> =
         Map::new(storage_namespaces::ibc_client::ICS20_ACCOUNT_CALLBACKS);
     pub const ICS20_ACCOUNT_CALLBACK_PAYLOAD: Item<AccountCallbackPayload> =
-        Item::new(&storage_namespaces::ibc_client::ICS20_ACCOUNT_CALLBACK_PAYLOAD);
+        Item::new(storage_namespaces::ibc_client::ICS20_ACCOUNT_CALLBACK_PAYLOAD);
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.

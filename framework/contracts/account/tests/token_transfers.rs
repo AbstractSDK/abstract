@@ -1,9 +1,8 @@
 use abstract_interface::connection::connect_one_way_to;
 use abstract_interface::*;
 use abstract_std::{
-    account,
     objects::{gov_type::GovernanceDetails, TruncatedChainId, UncheckedChannelEntry},
-    ACCOUNT, IBC_CLIENT, ICS20,
+    IBC_CLIENT, ICS20,
 };
 use cosmwasm_std::{coin, coins, to_json_binary, BankMsg};
 use cw_orch::prelude::*;
@@ -95,12 +94,6 @@ fn transfer_with_account_rename_message() -> AResult {
         &[],
     )?;
     account.set_ibc_status(true)?;
-    // Whitelist ibc_client to enable ibc-client callbacks
-    let ibc_client = account.module_address(IBC_CLIENT)?;
-    account.update_internal_config(account::InternalConfigAction::UpdateWhitelist {
-        to_add: vec![ibc_client.to_string()],
-        to_remove: vec![],
-    })?;
 
     pub const INITIAL_AMOUNT: u128 = 100_000;
     pub const LOCAL_TRANSFER_AMOUNT: u128 = 50_000;
@@ -242,13 +235,6 @@ fn transfer_with_account_rename_message_timeout() -> AResult {
     )?;
 
     account.set_ibc_status(true)?;
-    // Whitelist ibc_client to enable ibc-client callbacks
-    let ibc_client = account.module_address(IBC_CLIENT)?;
-    account.update_internal_config(account::InternalConfigAction::UpdateWhitelist {
-        to_add: vec![ibc_client.to_string()],
-        to_remove: vec![],
-    })?;
-
     let funds_to_transfer = coin(100_000, "usource");
 
     src.add_balance(&account.address()?, vec![funds_to_transfer.clone()])?;
