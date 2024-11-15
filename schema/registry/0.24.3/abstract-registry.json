@@ -1,11 +1,11 @@
 {
   "contract_name": "abstract-registry",
-  "contract_version": "0.24.2",
+  "contract_version": "0.24.3",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "InstantiateMsg",
-    "description": "Version Control Instantiate Msg",
+    "description": "Registry Instantiate Msg",
     "type": "object",
     "required": [
       "admin"
@@ -59,7 +59,7 @@
   "execute": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "ExecuteMsg",
-    "description": "Version Control Execute Msg",
+    "description": "Registry Execute Msg",
     "oneOf": [
       {
         "description": "Remove some version of a module",
@@ -813,7 +813,7 @@
   "query": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "QueryMsg",
-    "description": "Version Control Query Msg",
+    "description": "Registry Query Msg",
     "oneOf": [
       {
         "description": "Query Core of Accounts Returns [`AccountsResponse`]",
@@ -1276,7 +1276,7 @@
         "additionalProperties": false
       },
       "InstantiateMsg": {
-        "description": "Version Control Instantiate Msg",
+        "description": "Registry Instantiate Msg",
         "type": "object",
         "required": [
           "admin"
