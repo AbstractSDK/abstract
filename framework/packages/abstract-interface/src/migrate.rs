@@ -242,19 +242,22 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             return Ok(false);
         }
 
+        self.client.upload_if_needed()?;
+        self.host.upload_if_needed()?;
         if is_upgrade_breaking(
             &ibc_client_cw2_version,
             ::ibc_client::contract::CONTRACT_VERSION,
         ) {
-            // Version change is breaking, need to deploy new version
+            // Version change is breaking, need to instantiate new version
+
             self.instantiate(&self.client.environment().sender_addr())?;
         } else {
             // If version is not breaking, simply migrate
             self.client
-                .upload_and_migrate_if_needed(&ibc_client::MigrateMsg {})?
+                .migrate_if_needed(&ibc_client::MigrateMsg {})?
                 .expect("IBC client supposed to be migrated, but skipped instead");
             self.host
-                .upload_and_migrate_if_needed(&ibc_host::MigrateMsg {})?
+                .migrate_if_needed(&ibc_host::MigrateMsg {})?
                 .expect("IBC host supposed to be migrated, but skipped instead");
         }
 
