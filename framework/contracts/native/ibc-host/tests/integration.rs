@@ -35,11 +35,9 @@ fn account_creation() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
 
-    let admin = Abstract::mock_admin(&chain);
-    let mut origin_chain = chain.clone();
-    origin_chain.set_sender(admin.clone());
+    let origin_chain = chain.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), admin.clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
     let abstr_remote = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
@@ -109,11 +107,9 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
 
-    let admin = Abstract::mock_admin(&chain);
-    let mut origin_chain = chain.clone();
-    origin_chain.set_sender(admin.clone());
+    let origin_chain = chain.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), admin.clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
 
     let chain_name = "juno";
 
@@ -136,11 +132,9 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
 fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
 
-    let admin = Abstract::mock_admin(&chain);
-    let mut origin_chain = chain.clone();
-    origin_chain.set_sender(admin.clone());
+    let origin_chain = chain.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), admin.clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
 
     let chain_name = "juno";
 
@@ -164,11 +158,9 @@ fn account_creation_full() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
 
-    let admin = Abstract::mock_admin(&chain);
-    let mut origin_chain = chain.clone();
-    origin_chain.set_sender(admin.clone());
+    let origin_chain = chain.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), admin.clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
     let abstr_remote = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
@@ -206,7 +198,7 @@ fn account_creation_full() -> anyhow::Result<()> {
 
     // Deploy app to install it during account registration
     let mock_adapter = MockAdapter::new_test(chain);
-    mock_adapter.call_as(&admin).deploy(
+    mock_adapter.deploy(
         "1.0.0".parse().unwrap(),
         MockInitMsg {},
         DeployStrategy::Try,
@@ -253,11 +245,9 @@ fn account_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
     let sender = mock.sender().clone();
 
-    let admin = Abstract::mock_admin(&mock);
-    let mut origin_chain = mock.clone();
-    origin_chain.set_sender(admin.clone());
+    let origin_chain = mock.clone();
 
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), admin.clone())?;
+    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), ())?;
     let abstr_remote = Abstract::load_from(mock.clone())?;
 
     let account_sequence = 1;
@@ -322,9 +312,8 @@ fn account_action() -> anyhow::Result<()> {
 #[test]
 fn execute_action_with_account_creation() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let admin = Abstract::mock_admin(&mock);
 
-    let abstr = Abstract::deploy_on(mock.clone(), admin.clone())?;
+    let abstr = Abstract::deploy_on(mock.clone(), ())?;
 
     let account_sequence = 1;
     let chain = "juno";
@@ -333,14 +322,12 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
     abstr
         .ibc
         .host
-        .call_as(&admin)
-        .register_chain_proxy(chain.parse().unwrap(), admin.to_string())?;
+        .register_chain_proxy(chain.parse().unwrap(), mock.sender_addr().to_string())?;
 
     // We call the action
     let account_action_response = abstr
         .ibc
         .host
-        .call_as(&admin)
         .ibc_execute(
             mock.addr_make("proxy_address"),
             AccountId::local(account_sequence),
@@ -372,9 +359,8 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 #[test]
 fn execute_send_all_back_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
-    let admin = Abstract::mock_admin(&mock);
 
-    let abstr = Abstract::deploy_on(mock.clone(), admin.clone())?;
+    let abstr = Abstract::deploy_on(mock.clone(), ())?;
 
     let account_sequence = 1;
     let chain = "juno";
@@ -385,11 +371,10 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     abstr
         .ibc
         .host
-        .call_as(&admin)
         .register_chain_proxy(chain.parse().unwrap(), polytone_proxy.to_string())?;
 
     // Add the juno token ics20 channel.
-    abstr.ans_host.call_as(&admin).update_channels(
+    abstr.ans_host.update_channels(
         vec![(
             UncheckedChannelEntry {
                 connected_chain: chain.to_owned(),

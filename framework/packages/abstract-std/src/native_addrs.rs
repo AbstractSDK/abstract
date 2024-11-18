@@ -1,59 +1,60 @@
-use bech32::{Bech32, Hrp};
-use cosmwasm_std::{instantiate2_address, Addr, Api, CanonicalAddr, Env};
-use ripemd::Ripemd160;
-use sha2::{Digest, Sha256};
+use cosmwasm_std::{
+    instantiate2_address, Addr, CanonicalAddr, Deps, Env, QuerierWrapper, StdResult,
+};
 
 use crate::AbstractResult;
 
 pub use cw_blob::CHECKSUM as BLOB_CHECKSUM;
-
-// TODO: fill bytes with Public address of creator
-// Default local-juno used right now(for testing)
-const TEST_ABSTRACT_CREATOR: [u8; 33] = [
-    2, 146, 187, 207, 156, 96, 230, 188, 163, 167, 152, 64, 234, 101, 130, 38, 50, 89, 139, 233,
-    56, 192, 110, 242, 251, 222, 103, 198, 68, 80, 201, 159, 3,
-];
 
 // Salts for deployments
 pub const ANS_HOST_SALT: &[u8] = b"ans";
 pub const REGISTRY_SALT: &[u8] = b"reg";
 pub const MODULE_FACTORY_SALT: &[u8] = b"mf";
 
-pub fn ans_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, ANS_HOST_SALT, api)
+pub fn ans_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(deps, abstract_code_id, ANS_HOST_SALT)
 }
 
-pub fn registry_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, REGISTRY_SALT, api)
+pub fn registry_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(deps, abstract_code_id, REGISTRY_SALT)
 }
 
-pub fn module_factory_address(hrp: &str, api: &dyn Api) -> AbstractResult<CanonicalAddr> {
-    contract_canon_address(hrp, MODULE_FACTORY_SALT, api)
-}
-
-pub fn derive_addr_from_pub_key(hrp: &str, pub_key: &[u8]) -> AbstractResult<String> {
-    let hrp: Hrp = Hrp::parse(hrp)?;
-
-    let hash = Sha256::digest(pub_key);
-    let rip_hash = Ripemd160::digest(hash);
-
-    let addr = bech32::encode::<Bech32>(hrp, &rip_hash)?;
-
-    Ok(addr)
+pub fn module_factory_address(deps: Deps, abstract_code_id: u64) -> AbstractResult<CanonicalAddr> {
+    contract_canon_address(deps, abstract_code_id, MODULE_FACTORY_SALT)
 }
 
 /// Address of the abstract admin
-pub fn creator_address(hrp: &str) -> AbstractResult<String> {
-    derive_addr_from_pub_key(hrp, &TEST_ABSTRACT_CREATOR)
+pub fn creator_address(
+    querier: &QuerierWrapper,
+    abstract_code_id: u64,
+) -> cosmwasm_std::StdResult<Addr> {
+    let code_info = querier.query_wasm_code_info(abstract_code_id)?;
+    Ok(code_info.creator)
+}
+
+pub fn abstract_code_id(
+    querier: &QuerierWrapper,
+    abstract_address: impl Into<String>,
+) -> StdResult<u64> {
+    querier
+        .query_wasm_contract_info(abstract_address)
+        .map(|contract_info| contract_info.code_id)
+}
+
+pub fn creator_canon_address(deps: Deps, abstract_code_id: u64) -> StdResult<CanonicalAddr> {
+    creator_address(&deps.querier, abstract_code_id).and_then(|creator_addr| {
+        deps.api
+            .addr_canonicalize(creator_addr.as_str())
+            .map(Into::into)
+    })
 }
 
 pub fn contract_canon_address(
-    hrp: &str,
+    deps: Deps,
+    abstract_code_id: u64,
     salt: &[u8],
-    api: &dyn Api,
 ) -> AbstractResult<CanonicalAddr> {
-    let creator_addr = creator_address(hrp)?;
-    let creator_canon = api.addr_canonicalize(&creator_addr)?;
+    let creator_canon = creator_canon_address(deps, abstract_code_id)?;
     let canon_addr = instantiate2_address(&BLOB_CHECKSUM, &creator_canon, salt)?;
     Ok(canon_addr)
 }

@@ -1,12 +1,5 @@
-use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
-use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_interface::{Abstract, AdapterDeployer, AppDeployer, DeployStrategy};
-use abstract_money_market_adapter::{
-    interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEY_MARKET_ADAPTER_ID,
-};
-use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
+use abstract_interface::Abstract;
 use clap::Parser;
-use cosmwasm_std::Decimal;
 use cw_orch::prelude::{
     networks::{parse_network, ChainInfo},
     *,
@@ -24,6 +17,13 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         deployment.migrate_if_version_changed()?;
 
+        // use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
+        // use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+        // use abstract_interface::{Abstract, AdapterDeployer, AppDeployer, DeployStrategy};
+        // use abstract_money_market_adapter::{
+        //     interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEY_MARKET_ADAPTER_ID,
+        // };
+        // use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
         // Deploy Adapters
         // CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
         //     abstract_cw_staking::contract::CONTRACT_VERSION.parse()?,

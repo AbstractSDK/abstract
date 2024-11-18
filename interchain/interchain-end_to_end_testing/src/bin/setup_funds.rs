@@ -30,8 +30,8 @@ pub fn test_send_funds() -> AnyResult<()> {
     let juno = interchain.get_chain(JUNO).unwrap();
     let stargaze = interchain.get_chain(STARGAZE).unwrap();
 
-    let abstr_stargaze = Abstract::deploy_on(stargaze.clone(), stargaze.sender().clone())?;
-    let abstr_juno = Abstract::deploy_on(juno.clone(), juno.sender().clone())?;
+    let abstr_stargaze = Abstract::deploy_on(stargaze.clone(), ())?;
+    let abstr_juno = Abstract::deploy_on(juno.clone(), ())?;
     abstr_juno.connect_to(&abstr_stargaze, &interchain)?;
     // let abstr_stargaze: Abstract<Daemon> = Abstract::load_from(stargaze.clone())?;
     // let abstr_juno: Abstract<Daemon> = Abstract::load_from(juno.clone())?;

@@ -98,6 +98,7 @@ fn test_init_sign_arb() {
     let signature_bytes = general_purpose::STANDARD.decode(signature).unwrap();
 
     let instantiate_msg = InstantiateMsg {
+        code_id: 1,
         authenticator: Some(abstract_xion::AddAuthenticator::Secp256K1 {
             id: 0,
             pubkey: Binary::from(pubkey_bytes),

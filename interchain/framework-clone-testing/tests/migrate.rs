@@ -181,7 +181,6 @@ mod from_xion {
     use super::*;
     use abstract_interface::{AccountExecFns, AccountI};
     use abstract_std::{account::MigrateMsg, IBC_CLIENT};
-    use cw_orch::prelude::*;
     use networks::XION_TESTNET_1;
 
     pub const XION_ACCOUNT: &str =

@@ -16,6 +16,7 @@ use abstract_std::{
         IbcClientCallback, InstalledModuleIdentification, PolytoneNoteExecuteMsg,
     },
     ibc_host::{self, HostAction, InternalAction},
+    native_addrs,
     objects::{
         module::ModuleInfo, module_reference::ModuleReference, AccountId, ChannelEntry,
         TruncatedChainId,
@@ -156,7 +157,9 @@ pub fn execute_send_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
     // The packet we need to send depends on the action we want to execute
 
     let note_message = match &action {
@@ -192,11 +195,14 @@ pub fn execute_send_module_to_module_packet(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     // Query the sender module information
     let module_info = registry
-        .module_registry(deps.as_ref(), &env)?
+        .module_registry(deps.as_ref())?
         .module_info(info.sender.clone())?;
 
     // We need additional information depending on the module type
@@ -333,7 +339,11 @@ pub fn execute_register_account(
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
     host_chain.verify()?;
-    let registry = RegistryContract::new(deps.api, &env)?;
+
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     // Verify that the sender is a account contract
     let account = registry.assert_account(&info.sender, &deps.querier)?;
@@ -378,8 +388,11 @@ pub fn execute_send_funds(
 ) -> IbcClientResult {
     host_chain.verify()?;
 
-    let registry = RegistryContract::new(deps.api, &env)?;
-    let ans = AnsHost::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
+    let ans = AnsHost::new(deps.as_ref(), abstract_code_id)?;
     // Verify that the sender is a account contract
 
     let account = registry.assert_account(&info.sender, &deps.querier)?;
@@ -431,13 +444,15 @@ pub(crate) fn execute_send_funds_with_actions(
 
     let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
     // Verify that the sender is a account contract
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id of Account
     let account_id = account.account_id(deps.as_ref())?;
 
-    let ans = AnsHost::new(deps.api, &env)?;
+    let ans = AnsHost::new(deps.as_ref(), abstract_code_id)?;
     let ics20_channel_entry = ChannelEntry {
         connected_chain: host_chain,
         protocol: ICS20.to_string(),

@@ -1,10 +1,10 @@
 use abstract_adapter::abstract_interface::{
-    AdapterDeployer, AnsHost, DeployStrategy, Registry, RegistryExecFns,
+    AdapterDeployer, DeployStrategy, Registry, RegistryExecFns,
 };
 use abstract_adapter::std::{
     adapter,
     objects::module::{Module, ModuleInfo, ModuleVersion},
-    ANS_HOST, REGISTRY,
+    REGISTRY,
 };
 use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
 use cosmwasm_std::{Addr, Empty};
@@ -42,7 +42,9 @@ fn deploy_cw_staking(
         cw_staking.set_code_id(code_id);
         let init_msg = adapter::InstantiateMsg {
             module: Empty {},
-            base: adapter::BaseInstantiateMsg {},
+            base: adapter::BaseInstantiateMsg {
+                registry_address: registry.addr_str()?,
+            },
         };
         cw_staking
             .as_instance_mut()

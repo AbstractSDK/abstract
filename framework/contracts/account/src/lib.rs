@@ -63,6 +63,7 @@ mod test_common {
             env,
             info,
             account::InstantiateMsg {
+                code_id: 1,
                 account_id: Some(AccountId::new(1, AccountTrace::Local).unwrap()),
                 owner: GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),
@@ -79,6 +80,7 @@ mod test_common {
 
     pub fn test_only_owner(msg: ExecuteMsg) -> anyhow::Result<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let not_owner = deps.api.addr_make("not_owner");
         mock_init(&mut deps)?;
 

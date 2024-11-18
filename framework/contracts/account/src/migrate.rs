@@ -15,7 +15,7 @@ use abstract_std::{
     },
     registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
-use abstract_std::{AbstractError, IBC_CLIENT};
+use abstract_std::{native_addrs, AbstractError, IBC_CLIENT};
 use cosmwasm_std::{wasm_execute, DepsMut, Env};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
@@ -50,7 +50,9 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     let account_id =
         AccountId::local(LOCAL_ACCOUNT_SEQUENCE.query(&deps.querier, registry.address.clone())?);
@@ -111,9 +113,11 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
     )];
 
     if !install_modules.is_empty() {
+        let abstract_code_id =
+            native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
         // Install modules
         let (install_msgs, install_attribute) =
-            _install_modules(deps, &env, install_modules, vec![])?;
+            _install_modules(deps, install_modules, vec![], abstract_code_id)?;
         response = response
             .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);
@@ -124,7 +128,7 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::mock_env_validated;
+    use abstract_testing::{abstract_mock_querier, mock_env_validated};
     use cosmwasm_std::testing::*;
     use semver::Version;
 
@@ -138,6 +142,7 @@ mod tests {
     #[coverage_helper::test]
     fn disallow_same_version() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
@@ -162,6 +167,7 @@ mod tests {
     #[coverage_helper::test]
     fn disallow_downgrade() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
@@ -189,6 +195,7 @@ mod tests {
     #[coverage_helper::test]
     fn disallow_name_change() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 
@@ -214,6 +221,7 @@ mod tests {
     #[coverage_helper::test]
     fn works() -> AccountResult<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let env = mock_env_validated(deps.api);
         mock_init(&mut deps)?;
 

@@ -25,7 +25,7 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw20"]
+testing = ["dep:abstract-client", "dep:cw20", "abstract-adapter/test-utils"]
 
 # Supported Moneymarkets
 # mars = ["abstract-mars-adapter/full_integration"]

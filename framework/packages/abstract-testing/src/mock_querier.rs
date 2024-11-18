@@ -1,11 +1,15 @@
 use std::{collections::HashMap, ops::Deref};
 
-use abstract_std::objects::{
-    gov_type::GovernanceDetails, ownership::Ownership, storage_namespaces::OWNERSHIP_STORAGE_KEY,
+use abstract_std::{
+    native_addrs,
+    objects::{
+        gov_type::GovernanceDetails, ownership::Ownership,
+        storage_namespaces::OWNERSHIP_STORAGE_KEY,
+    },
 };
 use cosmwasm_std::{
-    testing::MockApi, Addr, Binary, ContractInfoResponse, ContractResult, Empty, QuerierWrapper,
-    SystemResult, WasmQuery,
+    testing::MockApi, Addr, Binary, CodeInfoResponse, ContractInfoResponse, ContractResult, Empty,
+    QuerierWrapper, SystemResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};
@@ -359,14 +363,22 @@ impl MockQuerierBuilder {
                 }
                 WasmQuery::ContractInfo { contract_addr } => {
                     let addr = Addr::unchecked(contract_addr);
+                    let creator = self.api.addr_make(crate::OWNER);
                     let info = ContractInfoResponse::new(
                         1,
-                        Addr::unchecked(""),
+                        creator,
                         self.contract_admin.get(&addr).map(Addr::unchecked),
                         false,
                         None,
                     );
                     Ok(to_json_binary(&info).unwrap())
+                }
+                WasmQuery::CodeInfo { code_id } => {
+                    let creator = self.api.addr_make(crate::OWNER);
+                    let checksum = native_addrs::BLOB_CHECKSUM;
+
+                    let code_info = CodeInfoResponse::new(*code_id, creator, checksum.into());
+                    Ok(to_json_binary(&code_info).unwrap())
                 }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
             };

@@ -56,7 +56,9 @@ impl AdapterQueryMsg for Empty {}
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the registry contract using [`crate::registry::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
-pub struct BaseInstantiateMsg {}
+pub struct BaseInstantiateMsg {
+    pub registry_address: String,
+}
 
 impl<RequestMsg> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg> {
     fn from(adapter_msg: BaseExecuteMsg) -> Self {
@@ -150,4 +152,7 @@ pub struct AuthorizedAddressesResponse {
 /// The BaseState contains the main addresses needed for sending and verifying messages
 /// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
 #[cosmwasm_schema::cw_serde]
-pub struct AdapterState {}
+pub struct AdapterState {
+    /// Code id of abstract contract
+    pub code_id: u64,
+}

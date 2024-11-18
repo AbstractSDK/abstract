@@ -83,7 +83,7 @@ fn main() -> anyhow::Result<()> {
     ))?;
 
     let abstr = AbstractClient::new(xiond.clone())
-        .or_else(|_| AbstractClient::builder(xiond.clone()).build(abstract_sender));
+        .or_else(|_| AbstractClient::builder(xiond.clone()).build());
 
     let abstr = abstr?;
     // Create the Abstract Account because it's needed for the fees for the dex module
@@ -118,6 +118,7 @@ fn main() -> anyhow::Result<()> {
                 sender: wallet.pub_addr_str(),
                 code_id,
                 msg: to_json_binary(&abstract_std::account::InstantiateMsg {
+                    code_id,
                     authenticator: Some(AddAuthenticator::Secp256K1 {
                         id: 1,
                         pubkey: Binary::new(signing_key.public_key().to_bytes()),

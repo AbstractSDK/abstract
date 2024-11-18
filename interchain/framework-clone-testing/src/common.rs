@@ -10,8 +10,13 @@ pub fn setup(chain: ChainInfo) -> anyhow::Result<(Abstract<CloneTesting>, CloneT
     // We set the state file to be able to clone test
     std::env::set_var("STATE_FILE", "../scripts/state.json");
     let mut app = CloneTesting::new(chain)?;
-    app.set_sender(Abstract::mock_admin(&app));
 
     let abstr_deployment = Abstract::load_from(app.clone())?;
+    let creator = app
+        .wasm_querier()
+        .code(abstr_deployment.registry.code_id()?)?
+        .creator;
+    app.set_sender(creator);
+
     Ok((abstr_deployment, app))
 }

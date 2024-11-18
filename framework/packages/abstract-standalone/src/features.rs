@@ -3,23 +3,29 @@ use abstract_sdk::{
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
-use abstract_std::registry::Account;
-use cosmwasm_std::{Deps, Env};
+use abstract_std::{native_addrs, registry::Account};
+use cosmwasm_std::Deps;
 
 use crate::StandaloneContract;
 
 // ANCHOR: ans
 impl AbstractNameService for StandaloneContract {
-    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         // Retrieve the ANS host address from the base state.
-        Ok(AnsHost::new(deps.api, env)?)
+        let state = self.load_state(deps.storage)?;
+        let abstract_code_id =
+            native_addrs::abstract_code_id(&deps.querier, state.account.into_addr())?;
+        Ok(AnsHost::new(deps, abstract_code_id)?)
     }
 }
 // ANCHOR_END: ans
 
 impl AbstractRegistryAccess for StandaloneContract {
-    fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
-        Ok(RegistryContract::new(deps.api, env)?)
+    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
+        let state = self.load_state(deps.storage)?;
+        let abstract_code_id =
+            native_addrs::abstract_code_id(&deps.querier, state.account.into_addr())?;
+        Ok(RegistryContract::new(deps, abstract_code_id)?)
     }
 }
 
@@ -51,10 +57,9 @@ mod test {
     #[coverage_helper::test]
     fn test_ans_host() -> StandaloneTestResult {
         let deps = mock_init(true);
-        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref(), &env)?;
+        let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref())?;
 
         assert_eq!(ans_host.address, abstr.ans_host);
         Ok(())
@@ -63,10 +68,9 @@ mod test {
     #[coverage_helper::test]
     fn test_abstract_registry() -> StandaloneTestResult {
         let deps = mock_init(true);
-        let env = mock_env_validated(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
 
-        let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref(), &env)?;
+        let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref())?;
 
         assert_eq!(abstract_registry.address, abstr.registry);
         Ok(())
@@ -75,7 +79,6 @@ mod test {
     #[coverage_helper::test]
     fn test_traits_generated() -> StandaloneTestResult {
         let mut deps = mock_init(true);
-        let env = mock_env_validated(deps.api);
         let expected_account = test_account(deps.api);
         let abstr = AbstractMockAddrs::new(deps.api);
         deps.querier = abstract_mock_querier_builder(deps.api)
@@ -92,18 +95,18 @@ mod test {
 
         // AbstractNameService
         let host = BASIC_MOCK_STANDALONE
-            .name_service(deps.as_ref(), &env)
+            .name_service(deps.as_ref())
             .host()
             .clone();
-        assert_eq!(host, AnsHost::new(&deps.api, &env)?);
+        assert_eq!(host, AnsHost::new(deps.as_ref(), 1)?);
 
         // AccountRegistry
         let binding = BASIC_MOCK_STANDALONE;
-        let account_registry = binding.account_registry(deps.as_ref(), &env).unwrap();
+        let account_registry = binding.account_registry(deps.as_ref()).unwrap();
         let account = account_registry.account(&TEST_ACCOUNT_ID)?;
         assert_eq!(account, expected_account);
 
-        let module_registry = binding.module_registry(deps.as_ref(), &env)?;
+        let module_registry = binding.module_registry(deps.as_ref())?;
         let abstract_namespace =
             module_registry.query_namespace_raw(Namespace::unchecked(ABSTRACT_NAMESPACE))?;
         assert_eq!(abstract_namespace, Some(ABSTRACT_ACCOUNT_ID));

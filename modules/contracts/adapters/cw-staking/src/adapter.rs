@@ -29,8 +29,8 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
             deps.as_ref(),
             env.clone(),
             Some(target_account.into_addr()),
-            &self.ans_host(deps.as_ref(), &env)?,
-            self.abstract_registry(deps.as_ref(), &env)?,
+            &self.ans_host(deps.as_ref())?,
+            self.abstract_registry(deps.as_ref())?,
             staking_asset,
         )?;
 

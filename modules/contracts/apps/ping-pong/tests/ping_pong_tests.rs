@@ -35,7 +35,7 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        let interchain_abstract = AbstractInterchainClient::new(&mock_interchain)?;
+        let interchain_abstract = AbstractInterchainClient::deploy_on(&mock_interchain)?;
 
         let abs_juno = interchain_abstract.client(JUNO)?;
         let abs_stargaze = interchain_abstract.client(STARGAZE)?;
@@ -43,9 +43,9 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
         let namespace = Namespace::from_id(APP_ID)?;
         // Publish and install on both chains
         let publisher_juno = abs_juno
-            .account_builder()
-            .namespace(namespace.clone())
-            .build()?
+            .fetch_or_build_account(namespace.clone(), |builder| {
+                builder.namespace(namespace.clone())
+            })?
             .publisher()?;
         publisher_juno.publish_app::<AppInterface<_>>()?;
         let app = publisher_juno
@@ -57,9 +57,7 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
             )?;
 
         let publisher_stargaze = abs_stargaze
-            .account_builder()
-            .namespace(namespace)
-            .build()?
+            .fetch_or_build_account(namespace.clone(), |builder| builder.namespace(namespace))?
             .publisher()?;
         publisher_stargaze.publish_app::<AppInterface<_>>()?;
 

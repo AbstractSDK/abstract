@@ -7,6 +7,7 @@ use abstract_std::{
         state::{ActionAfterCreationCache, TEMP_ACTION_AFTER_CREATION},
         HelperAction, HostAction, InternalAction,
     },
+    native_addrs,
     objects::{
         account::AccountTrace, module::ModuleInfo, module_reference::ModuleReference, AccountId,
         TruncatedChainId,
@@ -128,7 +129,10 @@ pub fn handle_module_execute(
     msg: Binary,
 ) -> HostResult {
     // We resolve the target module
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
@@ -176,7 +180,10 @@ pub fn handle_host_module_query(
     msg: Binary,
 ) -> HostResult<Binary> {
     // We resolve the target module
-    let registry = RegistryContract::new(deps.api, &env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
+    let registry = RegistryContract::new(deps, abstract_code_id)?;
 
     let target_module_resolved = target_module.addr(deps, registry)?;
 

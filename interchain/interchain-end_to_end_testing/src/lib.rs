@@ -4,10 +4,7 @@ use abstract_interface::{
 use abstract_std::objects::{AccountId, AccountTrace, TruncatedChainId};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coins, Coin};
-use cw_orch::{
-    daemon::{TxSender, Wallet},
-    prelude::*,
-};
+use cw_orch::prelude::*;
 use cw_orch_interchain::{
     core::{IbcQueryHandler, InterchainEnv},
     daemon::DaemonInterchain,
@@ -91,8 +88,6 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 pub fn abstract_starship_interfaces(
     interchain: &DaemonInterchain<Starship>,
-    juno_abstract_deployer: &Wallet,
-    juno2_abstract_deployer: &Wallet,
 ) -> AnyResult<(Abstract<Daemon>, Abstract<Daemon>)> {
     let juno = interchain.get_chain(JUNO).unwrap();
     let juno2 = interchain.get_chain(JUNO2).unwrap();
@@ -104,20 +99,16 @@ pub fn abstract_starship_interfaces(
 
     // Send some funds for deploying abstract
     juno.rt_handle.block_on(juno.sender().bank_send(
-        &juno_abstract_deployer.address(),
+        &juno.sender_addr(),
         coins(10_000_000_000_000, juno.chain_info().gas_denom.clone()),
     ))?;
     juno2.rt_handle.block_on(juno2.sender().bank_send(
-        &juno2_abstract_deployer.address(),
+        &juno2.sender_addr(),
         coins(10_000_000_000_000, juno2.chain_info().gas_denom.clone()),
     ))?;
-    let abstr_juno = Abstract::deploy_on(juno.clone(), juno_abstract_deployer.clone())?;
-    let abstr_juno2 = Abstract::deploy_on(juno2.clone(), juno2_abstract_deployer.clone())?;
-    connect_one_way_to(
-        &abstr_juno.call_as(juno_abstract_deployer),
-        &abstr_juno2.call_as(juno2_abstract_deployer),
-        interchain,
-    )?;
+    let abstr_juno = Abstract::deploy_on(juno.clone(), ())?;
+    let abstr_juno2 = Abstract::deploy_on(juno2.clone(), ())?;
+    connect_one_way_to(&abstr_juno, &abstr_juno2, interchain)?;
 
     Ok((abstr_juno, abstr_juno2))
 }

@@ -19,22 +19,17 @@ pub fn execute_handler(
     msg: AppExecuteMsg,
 ) -> AppResult {
     match msg {
-        AppExecuteMsg::PingPong { opponent_chain } => ping_pong(deps, &env, opponent_chain, module),
+        AppExecuteMsg::PingPong { opponent_chain } => ping_pong(deps, opponent_chain, module),
         AppExecuteMsg::QueryAndMaybePingPong {
             opponent_chain: host_chain,
         } => query_and_ping(deps, &env, host_chain, module),
     }
 }
 
-pub(crate) fn ping_pong(
-    deps: DepsMut,
-    env: &Env,
-    opponent_chain: TruncatedChainId,
-    module: App,
-) -> AppResult {
+pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: TruncatedChainId, module: App) -> AppResult {
     // # ANCHOR: ibc_client
     let self_module_info = module.module_info()?;
-    let ibc_client: IbcClient<_> = module.ibc_client(deps.as_ref(), env);
+    let ibc_client: IbcClient<_> = module.ibc_client(deps.as_ref());
     let ibc_action: CosmosMsg = ibc_client.module_ibc_action(
         opponent_chain.clone(),
         self_module_info,
@@ -60,7 +55,7 @@ fn query_and_ping(
     opponent_chain: TruncatedChainId,
     module: App,
 ) -> AppResult {
-    let ibc_client = module.ibc_client(deps.as_ref(), env);
+    let ibc_client = module.ibc_client(deps.as_ref());
     let remote_account_id = module
         .account_id(deps.as_ref())?
         .into_remote_account_id(TruncatedChainId::new(env), opponent_chain.clone());

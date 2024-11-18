@@ -22,14 +22,10 @@ fn transfer_with_account_rename_message() -> AResult {
     let src = interchain.get_chain(SOURCE_CHAIN_ID)?;
     let dst = interchain.get_chain(DEST_CHAIN_ID)?;
 
-    let src_abstr = Abstract::deploy_on_mock(src.clone())?;
-    let dest_abstr = Abstract::deploy_on_mock(dst.clone())?;
+    let src_abstr = Abstract::deploy_on(src.clone(), ())?;
+    let dest_abstr = Abstract::deploy_on(dst.clone(), ())?;
 
-    connect_one_way_to(
-        &src_abstr.call_as(&Abstract::mock_admin(&src)),
-        &dest_abstr.call_as(&Abstract::mock_admin(&dst)),
-        &interchain,
-    )?;
+    connect_one_way_to(&src_abstr, &dest_abstr, &interchain)?;
 
     let ics20_channel = interchain
         .create_channel(
@@ -43,42 +39,36 @@ fn transfer_with_account_rename_message() -> AResult {
         .interchain_channel;
 
     // Update the channels on the src side (for sending tokens)
-    src_abstr
-        .ans_host
-        .call_as(&Abstract::mock_admin(&src))
-        .update_channels(
-            vec![(
-                UncheckedChannelEntry {
-                    connected_chain: TruncatedChainId::from_chain_id(DEST_CHAIN_ID).to_string(),
-                    protocol: ICS20.to_string(),
-                },
-                ics20_channel
-                    .get_chain(SOURCE_CHAIN_ID)?
-                    .channel
-                    .unwrap()
-                    .to_string(),
-            )],
-            vec![],
-        )?;
+    src_abstr.ans_host.update_channels(
+        vec![(
+            UncheckedChannelEntry {
+                connected_chain: TruncatedChainId::from_chain_id(DEST_CHAIN_ID).to_string(),
+                protocol: ICS20.to_string(),
+            },
+            ics20_channel
+                .get_chain(SOURCE_CHAIN_ID)?
+                .channel
+                .unwrap()
+                .to_string(),
+        )],
+        vec![],
+    )?;
 
     // Update the channels on the src side (for sending back tokens)
-    dest_abstr
-        .ans_host
-        .call_as(&Abstract::mock_admin(&dst))
-        .update_channels(
-            vec![(
-                UncheckedChannelEntry {
-                    connected_chain: TruncatedChainId::from_chain_id(SOURCE_CHAIN_ID).to_string(),
-                    protocol: ICS20.to_string(),
-                },
-                ics20_channel
-                    .get_chain(DEST_CHAIN_ID)?
-                    .channel
-                    .unwrap()
-                    .to_string(),
-            )],
-            vec![],
-        )?;
+    dest_abstr.ans_host.update_channels(
+        vec![(
+            UncheckedChannelEntry {
+                connected_chain: TruncatedChainId::from_chain_id(SOURCE_CHAIN_ID).to_string(),
+                protocol: ICS20.to_string(),
+            },
+            ics20_channel
+                .get_chain(DEST_CHAIN_ID)?
+                .channel
+                .unwrap()
+                .to_string(),
+        )],
+        vec![],
+    )?;
 
     let account = AccountI::create(
         &src_abstr,
@@ -162,14 +152,10 @@ fn transfer_with_account_rename_message_timeout() -> AResult {
     let src = interchain.get_chain(SOURCE_CHAIN_ID)?;
     let dst = interchain.get_chain(DEST_CHAIN_ID)?;
 
-    let src_abstr = Abstract::deploy_on_mock(src.clone())?;
-    let dest_abstr = Abstract::deploy_on_mock(dst.clone())?;
+    let src_abstr = Abstract::deploy_on(src.clone(), ())?;
+    let dest_abstr = Abstract::deploy_on(dst.clone(), ())?;
 
-    connect_one_way_to(
-        &src_abstr.call_as(&Abstract::mock_admin(&src)),
-        &dest_abstr.call_as(&Abstract::mock_admin(&dst)),
-        &interchain,
-    )?;
+    connect_one_way_to(&src_abstr, &dest_abstr, &interchain)?;
 
     let ics20_channel = interchain
         .create_channel(
@@ -183,42 +169,36 @@ fn transfer_with_account_rename_message_timeout() -> AResult {
         .interchain_channel;
 
     // Update the channels on the src side (for sending tokens)
-    src_abstr
-        .ans_host
-        .call_as(&Abstract::mock_admin(&src))
-        .update_channels(
-            vec![(
-                UncheckedChannelEntry {
-                    connected_chain: TruncatedChainId::from_chain_id(DEST_CHAIN_ID).to_string(),
-                    protocol: ICS20.to_string(),
-                },
-                ics20_channel
-                    .get_chain(SOURCE_CHAIN_ID)?
-                    .channel
-                    .unwrap()
-                    .to_string(),
-            )],
-            vec![],
-        )?;
+    src_abstr.ans_host.update_channels(
+        vec![(
+            UncheckedChannelEntry {
+                connected_chain: TruncatedChainId::from_chain_id(DEST_CHAIN_ID).to_string(),
+                protocol: ICS20.to_string(),
+            },
+            ics20_channel
+                .get_chain(SOURCE_CHAIN_ID)?
+                .channel
+                .unwrap()
+                .to_string(),
+        )],
+        vec![],
+    )?;
 
     // Update the channels on the src side (for sending back tokens)
-    dest_abstr
-        .ans_host
-        .call_as(&Abstract::mock_admin(&dst))
-        .update_channels(
-            vec![(
-                UncheckedChannelEntry {
-                    connected_chain: TruncatedChainId::from_chain_id(SOURCE_CHAIN_ID).to_string(),
-                    protocol: ICS20.to_string(),
-                },
-                ics20_channel
-                    .get_chain(DEST_CHAIN_ID)?
-                    .channel
-                    .unwrap()
-                    .to_string(),
-            )],
-            vec![],
-        )?;
+    dest_abstr.ans_host.update_channels(
+        vec![(
+            UncheckedChannelEntry {
+                connected_chain: TruncatedChainId::from_chain_id(SOURCE_CHAIN_ID).to_string(),
+                protocol: ICS20.to_string(),
+            },
+            ics20_channel
+                .get_chain(DEST_CHAIN_ID)?
+                .channel
+                .unwrap()
+                .to_string(),
+        )],
+        vec![],
+    )?;
 
     let account = AccountI::create(
         &src_abstr,

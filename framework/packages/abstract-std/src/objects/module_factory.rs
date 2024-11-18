@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Api, Env};
+use cosmwasm_std::{Addr, Deps};
 
 use crate::{native_addrs, AbstractResult};
 
@@ -11,9 +11,13 @@ pub struct ModuleFactoryContract {
 
 impl ModuleFactoryContract {
     /// Retrieve address of the Registry
-    pub fn new(api: &dyn Api, env: &Env) -> AbstractResult<Self> {
-        let hrp = native_addrs::hrp_from_env(env);
-        let address = api.addr_humanize(&native_addrs::module_factory_address(hrp, api)?)?;
+    pub fn new(deps: Deps, account_code_id: u64) -> AbstractResult<Self> {
+        let address = deps
+            .api
+            .addr_humanize(&native_addrs::module_factory_address(
+                deps,
+                account_code_id,
+            )?)?;
         Ok(Self { address })
     }
 }
