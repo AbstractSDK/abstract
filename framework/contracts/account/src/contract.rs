@@ -24,7 +24,6 @@ use abstract_std::{
     },
     registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
-
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Addr, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response,
     StdResult,
