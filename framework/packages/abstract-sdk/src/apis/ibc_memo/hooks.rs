@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use cosmwasm_std::{from_json, to_json_binary, Addr, Binary};
+use cosmwasm_std::{from_json, to_json_binary, Addr, Binary, Env};
 use serde_cw_value::Value;
 
 /// Builder for [IbcHooks](https://github.com/cosmos/ibc-apps/tree/main/modules/ibc-hooks) memo field.
@@ -27,6 +27,12 @@ impl HookMemoBuilder {
     pub fn callback_contract(mut self, callback_contract: Addr) -> Self {
         self.ibc_callback = Some(callback_contract);
         self
+    }
+
+    /// The current contract will receive a callback
+    /// https://github.com/cosmos/ibc-apps/blob/main/modules/ibc-hooks/README.md#interface-for-receiving-the-acks-and-timeouts
+    pub fn callback(self, env: &Env) -> Self {
+        self.callback_contract(env.contract.address.clone())
     }
 
     /// Build memo json string

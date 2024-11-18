@@ -4,6 +4,7 @@ use abstract_sdk::{
     Resolve,
 };
 use abstract_std::{
+    ibc::PACKET_LIFETIME,
     native_addrs,
     objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId},
 };
@@ -12,7 +13,7 @@ use cosmwasm_std::{
 };
 use evm_note::msg::{CallbackRequest, EvmMsg};
 
-use crate::{contract::IcaClientResult, error::IcaClientError, queries::PACKET_LIFETIME};
+use crate::{contract::IcaClientResult, error::IcaClientError};
 
 pub fn execute(
     querier: &QuerierWrapper,

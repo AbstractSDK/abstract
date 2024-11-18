@@ -121,7 +121,7 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         coins(10_000_000_000, get_denom(&juno, token_subdenom.as_str())),
     )?;
 
-    origin_account.execute_on_module(
+    let send_tx = origin_account.execute_on_module(
         IBC_CLIENT,
         &abstract_std::ibc_client::ExecuteMsg::SendFunds {
             host_chain: TruncatedChainId::from_chain_id(JUNO2),
@@ -130,6 +130,12 @@ pub fn test_ibc_hook() -> AnyResult<()> {
         },
         coins(10_000_000_000, get_denom(&juno, token_subdenom.as_str())),
     )?;
+
+    let ibc_result = interchain.await_and_check_packets(&juno.chain_id(), send_tx)?;
+    println!(
+        "Ibc Result of sending funds + memo : {:?}",
+        ibc_result.packets[0]
+    );
 
     log::info!("waiting for ibc_hook to finish tx");
     std::thread::sleep(Duration::from_secs(15));

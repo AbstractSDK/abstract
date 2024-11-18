@@ -106,6 +106,11 @@ pub enum ExecuteMsg {
         target_module: ModuleInfo,
         msg: Binary,
     },
+    /// Sends the associated funds to the local account corresponding to the source account id
+    Fund {
+        src_account: AccountId,
+        src_chain: TruncatedChainId,
+    },
 }
 
 /// Query Host message

@@ -24,7 +24,6 @@ use crate::objects::{
     ownership::Ownership,
     AccountId,
 };
-
 use cosmwasm_std::Addr;
 use cw2::ContractVersion;
 

@@ -5,7 +5,7 @@ use abstract_framework_clone_testing::common;
 use abstract_interface::{Abstract, AccountDetails, AccountI, AccountQueryFns, RegistryQueryFns};
 use abstract_std::objects::AccountId;
 use abstract_testing::TEST_VERSION;
-use anyhow::{bail, Ok};
+use anyhow::bail;
 use cw_orch::{daemon::networks::PION_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
 use semver::Version;
@@ -21,7 +21,7 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
         .flat_map(|account_id| {
             // Create the account helper
             let account = AccountI::load_from(&abstr_deployment, AccountId::local(account_id))?;
-            if let Some(owner) = account.top_level_owner().ok() {
+            if let Ok(owner) = account.top_level_owner() {
                 let ver = account.item_query(cw2::CONTRACT)?;
                 let account_version = Version::parse(&ver.version)?;
 

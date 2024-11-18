@@ -3,10 +3,11 @@ use abstract_std::{
     ibc_host::state::{CHAIN_PROXIES, REVERSE_CHAIN_PROXIES},
     objects::TruncatedChainId,
 };
-use cosmwasm_std::{DepsMut, Env, MessageInfo};
+use cosmwasm_std::{BankMsg, DepsMut, Env, MessageInfo, Response};
 
 use super::packet::{handle_host_action, handle_module_execute};
 use crate::{
+    account_commands::{self, receive_register},
     contract::{HostResponse, HostResult},
     HostError,
 };
@@ -41,6 +42,47 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
                 REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
             handle_module_execute(deps, env, src_chain, source_module, target_module, msg)
+        }
+        ExecuteMsg::Fund {
+            src_account,
+            src_chain,
+        } => {
+            // Push the client chain to the account trace
+            let account_id = {
+                let mut account_id = src_account.clone();
+                account_id.push_chain(src_chain.clone());
+                account_id
+            };
+            if let Ok(account) = account_commands::get_account(deps.as_ref(), &env, &account_id) {
+                // Send funds to the account
+
+                Ok(Response::new().add_message(BankMsg::Send {
+                    to_address: account.addr().to_string(),
+                    amount: info.funds,
+                }))
+            } else {
+                // If no account is created already, we create one and send the funds during instantiation directly
+                // The account metadata are not set with this call
+                // One will have to change them at a later point if they decide to
+                let name = format!(
+                    "Remote Abstract Account for {}/{}",
+                    src_chain.as_str(),
+                    account_id
+                );
+
+                receive_register(
+                    deps,
+                    env,
+                    account_id,
+                    Some(name),
+                    None,
+                    None,
+                    None,
+                    vec![],
+                    false,
+                    info.funds,
+                )
+            }
         }
     }
 }
