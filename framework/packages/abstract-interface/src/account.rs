@@ -589,9 +589,11 @@ impl<Chain: CwEnv> AccountI<Chain> {
                 }
                 sub_account_ids.extend(sub_account_ids_page);
             }
+            println!("Upgrades {:?}", sub_account_ids);
             for sub_account_id in sub_account_ids {
                 let abstract_account =
                     AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id))?;
+                println!("{:?}", abstract_account.item_query(cw2::CONTRACT)?);
                 if abstract_account.upgrade_account(abstract_deployment)? {
                     one_migration_was_successful = true;
                 }
