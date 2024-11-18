@@ -10,7 +10,7 @@ use cw_orch::{daemon::networks::PION_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
 use semver::Version;
 
-pub const FORBIDDEN_VERSIONS: &[&str] = &["0.24.1-beta.1"];
+pub const MINIMUM_VERSION: &str = "0.24.1";
 
 fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
     let (abstr_deployment, chain) = common::setup(PION_1)?;
@@ -26,13 +26,10 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
             if let Ok(owner) = account.top_level_owner() {
                 let ver = account.item_query(cw2::CONTRACT)?;
                 let account_version = Version::parse(&ver.version)?;
-                if FORBIDDEN_VERSIONS.iter().any(|&s| {
-                    println!("current account version {}", ver.version);
-                    s == ver.version
-                }) {
+                let minimum_version = Version::parse(MINIMUM_VERSION)?;
+                if account_version < minimum_version {
                     bail!("Can't migrate from this version");
                 }
-                println!("Keeping {account_version}");
                 Ok((account_id, owner.address, account_version))
             } else {
                 bail!("No owner for this account")
@@ -47,14 +44,16 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
 #[test]
 fn upgrade_account_iteratively() -> anyhow::Result<()> {
     let (chain, account_id, owner) = find_old_account()?;
-    println!("Found, {account_id}");
 
     let abstr_deployment = Abstract::load_from(chain.call_as(&owner).clone())?;
     let account = AccountI::load_from(&abstr_deployment, AccountId::local(account_id))?;
 
     account.upgrade_account(&abstr_deployment)?;
     let info_account = account.item_query(cw2::CONTRACT)?;
-    assert_eq!(info_account.version, TEST_VERSION);
+    assert_eq!(
+        info_account.version,
+        abstract_account::contract::CONTRACT_VERSION
+    );
 
     Ok(())
 }

@@ -589,11 +589,9 @@ impl<Chain: CwEnv> AccountI<Chain> {
                 }
                 sub_account_ids.extend(sub_account_ids_page);
             }
-            println!("Upgrades {:?}", sub_account_ids);
             for sub_account_id in sub_account_ids {
                 let abstract_account =
                     AccountI::load_from(abstract_deployment, AccountId::local(sub_account_id))?;
-                println!("{:?}", abstract_account.item_query(cw2::CONTRACT)?);
                 if abstract_account.upgrade_account(abstract_deployment)? {
                     one_migration_was_successful = true;
                 }
@@ -649,9 +647,14 @@ impl<Chain: CwEnv> AccountI<Chain> {
             )?
             .modules
             .into_iter()
-            .map(|module| {
+            .filter_map(|module| {
                 let version: Version = module.module.info.version.clone().try_into().unwrap();
-                version
+                // We add this check because the ModuleFilter doesn't work properly with beta versions
+                if version > current_module_version {
+                    Some(version)
+                } else {
+                    None
+                }
             })
             .collect::<Vec<_>>();
 
