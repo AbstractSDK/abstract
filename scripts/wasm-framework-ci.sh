@@ -18,7 +18,7 @@ cd ./framework
 # Remove for docker to successfuly copy
 rm packages/abstract-interface/state.json
 rm packages/abstract-interface/build.rs
-rm packages/abstract-interface/artifacts
+rm packages/abstract-interface/artifacts || true
 
 # Create lock file if it does not exist
 if [ ! -f Cargo.lock ]; then
