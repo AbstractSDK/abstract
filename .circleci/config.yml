@@ -112,6 +112,7 @@ jobs:
           command: |
             git config --global user.signingkey 4C19E4CC17E67B7B
             git config --global commit.gpgSign true
+            echo "test" | gpg --clearsign
       - run:
           name: "Create build branch"
           command: |
