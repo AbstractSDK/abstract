@@ -106,17 +106,17 @@ jobs:
           name: Import GPG Key
           command: |
             echo -e "$GPG_PRIVATE_KEY" | gpg --import
-            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key 4C19E4CC17E67B7B
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
       - run:
           name: Configure Git for Signing
           command: |
-            git config --global user.signingkey 4C19E4CC17E67B7B
+            git config --global user.signingkey $GPG_KEY_ID
             git config --global commit.gpgSign true
       - run:
           name: "Create build branch"
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
             git checkout -b "$CIRCLE_BRANCH-build"
@@ -172,10 +172,20 @@ jobs:
             - framework/target/debug/deps
           key: cargocache-v2-build-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
           name: Commit and push framework artifacts
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull
             # Check for wasm changes
@@ -230,10 +240,20 @@ jobs:
             set -e
             ./scripts/wasm-modules-ci.sh
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
           name: Commit and push module artifacts
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull
             # Check for wasm changes
@@ -287,10 +307,20 @@ jobs:
             # Run script
             just schema
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
           name: Commit and push schemas
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull
             # Check for schema changes
@@ -314,10 +344,20 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
           name: "Merge build branch"
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
             git fetch origin "$CIRCLE_BRANCH-build"
@@ -381,25 +421,25 @@ jobs:
           name: Import GPG Key
           command: |
             echo -e "$GPG_PRIVATE_KEY" | gpg --import
-            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key 4C19E4CC17E67B7B
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
       - run:
           name: Configure Git for Signing
           command: |
-            git config --global user.signingkey 4C19E4CC17E67B7B
+            git config --global user.signingkey $GPG_KEY_ID
             git config --global commit.gpgSign true
       - run:
           name: Commit and push deploy file
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             git add framework/scripts --force
             git commit -S -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
       - run:
           name: Commit and push state file
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             cp ~/.cw-orchestrator/state.json ./framework/scripts/
             git add ./framework/scripts/state.json
             git commit -S -m 'Update deploy deploy file [skip ci]'

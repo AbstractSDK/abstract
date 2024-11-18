@@ -647,9 +647,14 @@ impl<Chain: CwEnv> AccountI<Chain> {
             )?
             .modules
             .into_iter()
-            .map(|module| {
+            .filter_map(|module| {
                 let version: Version = module.module.info.version.clone().try_into().unwrap();
-                version
+                // We add this check because the ModuleFilter doesn't work properly with beta versions
+                if version > current_module_version {
+                    Some(version)
+                } else {
+                    None
+                }
             })
             .collect::<Vec<_>>();
 

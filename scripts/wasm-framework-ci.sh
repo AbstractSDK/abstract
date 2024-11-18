@@ -20,9 +20,6 @@ rm packages/abstract-interface/state.json
 rm packages/abstract-interface/build.rs
 rm packages/abstract-interface/artifacts || true
 
-# Delete the current artifacts folder.
-# rm -rf ./artifacts
-
 # Create lock file if it does not exist
 if [ ! -f Cargo.lock ]; then
     cargo generate-lockfile

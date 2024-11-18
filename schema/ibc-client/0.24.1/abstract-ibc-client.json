@@ -104,6 +104,41 @@
         "additionalProperties": false
       },
       {
+        "description": "Only callable by Account Will attempt to forward the specified funds to the account on the remote chain.",
+        "type": "object",
+        "required": [
+          "send_funds_with_actions"
+        ],
+        "properties": {
+          "send_funds_with_actions": {
+            "type": "object",
+            "required": [
+              "actions",
+              "host_chain"
+            ],
+            "properties": {
+              "actions": {
+                "description": "Actions on the account that will be executed after successful transfer Encoded with base64 to allow different versions of the account Note: ibc-client have to be whitelisted",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Binary"
+                }
+              },
+              "host_chain": {
+                "description": "host chain to be executed on Example: \"osmosis\"",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/TruncatedChainId"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
         "description": "Only callable by Account Register an Account on a remote chain over IBC This action creates a account for them on the remote chain.",
         "type": "object",
         "required": [

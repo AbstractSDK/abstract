@@ -33,7 +33,7 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
 
     let current_contract_version = get_contract_version(deps.storage)?;
     // If we already have an abstract account, we just migrate like normal
-    if current_contract_version.contract != "abstract::account" {
+    if current_contract_version.contract == ACCOUNT {
         assert_contract_upgrade(deps.storage, ACCOUNT, version)?;
         set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
         return Ok(AccountResponse::action("migrate"));

@@ -132,19 +132,6 @@ incremental = false
 # abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 # abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
-abstract-cw-multi-test = { git = "https://github.com/abstractsdk/cw-multi-test-fork", branch = "feature/add-ics20-transfer-data" }
-# abstract-cw-multi-test = { path = "../../cw-multi-test" }
-cw-orch-interchain-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
-cw-orch-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
-cw-orch-mock = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
-cw-orch-interchain = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
-cw-orch-interchain-daemon = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
-cw-orch-interchain-mock = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack" }
-# cw-orch-interchain-core = { path = "../../cw-orchestrator/packages/interchain/interchain-core" }
-# cw-orch-core = { path = "../../cw-orchestrator/packages/cw-orch-core" }
-# cw-orch-interchain-daemon = { path = "../../cw-orchestrator/packages/interchain/interchain-daemon" }
-# cw-orch-interchain-mock = { path = "../../cw-orchestrator/packages/interchain/interchain-mock" }
-
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep
 normal = ["workspace-hack"]

@@ -8,6 +8,7 @@
     "description": "Account Instantiate Msg https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs",
     "type": "object",
     "required": [
+      "code_id",
       "owner"
     ],
     "properties": {
@@ -32,6 +33,12 @@
             "type": "null"
           }
         ]
+      },
+      "code_id": {
+        "description": "Code id of the account",
+        "type": "integer",
+        "format": "uint64",
+        "minimum": 0.0
       },
       "description": {
         "description": "Optional account description.",

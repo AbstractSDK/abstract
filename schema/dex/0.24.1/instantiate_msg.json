@@ -29,6 +29,14 @@
     "BaseInstantiateMsg": {
       "description": "Used by Abstract to instantiate the contract The contract is then registered on the registry contract using [`crate::registry::ExecuteMsg::ProposeModules`].",
       "type": "object",
+      "required": [
+        "registry_address"
+      ],
+      "properties": {
+        "registry_address": {
+          "type": "string"
+        }
+      },
       "additionalProperties": false
     },
     "Decimal": {

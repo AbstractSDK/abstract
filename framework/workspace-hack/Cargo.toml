@@ -19,7 +19,7 @@ anyhow = { version = "1" }
 bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
 cw-orch = { version = "0.27", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack", features = ["daemon"] }
+cw-orch-interchain = { version = "0.8", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
@@ -47,7 +47,7 @@ anyhow = { version = "1" }
 bytes = { version = "1", default-features = false, features = ["serde"] }
 cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
 cw-orch = { version = "0.27", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack", features = ["daemon"] }
+cw-orch-interchain = { version = "0.8", features = ["daemon"] }
 cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
@@ -88,7 +88,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
@@ -165,7 +165,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 derive_more = { version = "0.99" }
@@ -243,7 +243,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
@@ -319,7 +319,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "interchain/add-ics-hooks-ack", default-features = false, features = ["daemon"] }
+cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 derive_more = { version = "0.99" }
