@@ -171,9 +171,9 @@ dependencies = [
 
 [[package]]
 name = "abstract-cw-multi-test"
-version = "2.1.4"
+version = "2.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26ce11298aa1e7480bcd52e44dc5fa3be29370ba0c166bde3ae33ddef64eff5b"
+checksum = "e09b032e3379899df1872e6a8e38ce31d1d446bb26adfe7d3ff432b0fe0bf4c1"
 dependencies = [
  "anyhow",
  "bech32 0.11.0",
@@ -191,6 +191,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "thiserror",
+ "tiny-keccak",
 ]
 
 [[package]]
@@ -239,6 +240,7 @@ dependencies = [
 name = "abstract-ibc-client"
 version = "0.24.1"
 dependencies = [
+ "abstract-interface",
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
@@ -247,6 +249,8 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
+ "cw-orch 0.27.0",
+ "cw-orch-interchain",
  "cw-ownable",
  "cw-paginate",
  "cw-storage-plus",
@@ -631,6 +635,7 @@ name = "abstract-std"
 version = "0.24.1"
 dependencies = [
  "abstract-testing",
+ "anybuf",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -2238,9 +2243,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-core"
-version = "0.9.1"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44bb92310efe5711f3e5166b42805d7dd1a1af0d0733c497321ccaefb8f12983"
+checksum = "77df30fe2f18aec67c3a3e845138ca4f61fc8537f17055675dca14f6efccb1e1"
 dependencies = [
  "base64 0.22.1",
  "cosmwasm-schema",
@@ -7989,7 +7994,6 @@ dependencies = [
  "tendermint-proto 0.38.1",
  "tendermint-proto 0.39.1",
  "time",
- "tiny-keccak",
  "tokio-stream",
  "tokio-util",
  "tonic",

@@ -134,6 +134,32 @@
           }
         },
         "additionalProperties": false
+      },
+      {
+        "description": "Sends the associated funds to the local account corresponding to the source account id",
+        "type": "object",
+        "required": [
+          "fund"
+        ],
+        "properties": {
+          "fund": {
+            "type": "object",
+            "required": [
+              "src_account",
+              "src_chain"
+            ],
+            "properties": {
+              "src_account": {
+                "$ref": "#/definitions/AccountId"
+              },
+              "src_chain": {
+                "$ref": "#/definitions/TruncatedChainId"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       }
     ],
     "definitions": {

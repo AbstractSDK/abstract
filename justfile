@@ -56,3 +56,6 @@ copy-schema:
 
 nightly-fmt:
   just cargo-all +nightly fmt
+
+circle-ci-export-key key-id:
+   gpg -a --export-secret-keys {{key-id}} | cat -e | sed 's/\$/\\n/g'

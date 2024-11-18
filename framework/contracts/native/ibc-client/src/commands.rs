@@ -2,14 +2,17 @@ use abstract_sdk::{
     feature_objects::{AnsHost, RegistryContract},
     features::AccountIdentification,
     namespaces::BASE_STATE,
-    ModuleRegistryInterface, Resolve,
+    HookMemoBuilder, ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
     account::{self, ModuleInstallConfig},
     app::AppState,
     ibc::{polytone_callbacks::CallbackRequest, Callback, ModuleQuery},
     ibc_client::{
-        state::{IbcInfrastructure, ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
+        state::{
+            AccountCallbackPayload, IbcInfrastructure, ACCOUNTS, IBC_INFRA,
+            ICS20_ACCOUNT_CALLBACK_PAYLOAD, REVERSE_POLYTONE_NOTE,
+        },
         IbcClientCallback, InstalledModuleIdentification, PolytoneNoteExecuteMsg,
     },
     ibc_host::{self, HostAction, InternalAction},
@@ -23,12 +26,12 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     ensure, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
-    IbcMsg, MessageInfo, QueryRequest, WasmQuery,
+    IbcMsg, MessageInfo, QueryRequest, SubMsg, WasmQuery,
 };
 use cw_storage_plus::Item;
 
 use crate::{
-    contract::{IbcClientResponse, IbcClientResult},
+    contract::{IbcClientResponse, IbcClientResult, SEND_FUNDS_WITH_ACTIONS_REPLY_ID},
     error::IbcClientError,
 };
 
@@ -416,7 +419,6 @@ pub fn execute_send_funds(
     let mut transfers: Vec<CosmosMsg> = vec![];
     for coin in info.funds {
         // construct a packet to send
-
         let ics_20_send = _ics_20_send_msg(
             &env,
             ics20_channel_id.clone(),
@@ -430,6 +432,69 @@ pub fn execute_send_funds(
     Ok(IbcClientResponse::action("handle_send_funds").add_messages(transfers))
 }
 
+pub(crate) fn execute_send_funds_with_actions(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    host_chain: TruncatedChainId,
+    actions: Vec<Binary>,
+) -> IbcClientResult {
+    host_chain.verify()?;
+    let coin = cw_utils::one_coin(&info)?;
+
+    let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
+    // Verify that the sender is a account contract
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
+    let account = registry.assert_account(&info.sender, &deps.querier)?;
+
+    // get account_id of Account
+    let account_id = account.account_id(deps.as_ref())?;
+
+    let ans = AnsHost::new(deps.as_ref(), abstract_code_id)?;
+    let ics20_channel_entry = ChannelEntry {
+        connected_chain: host_chain,
+        protocol: ICS20.to_string(),
+    };
+    let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;
+
+    // Hook for sending the funds correctly to the sender
+    let memo = HookMemoBuilder::new(
+        ibc_infra.remote_abstract_host.clone(),
+        &ibc_host::ExecuteMsg::Fund {
+            src_account: account_id,
+            src_chain: TruncatedChainId::from_chain_id(&env.block.chain_id),
+        },
+    )
+    .callback(&env)
+    .build()?;
+
+    let msg = SubMsg::reply_on_success(
+        _ics_20_send_msg(
+            &env,
+            ics20_channel_id.clone(),
+            coin.clone(),
+            ibc_infra.remote_abstract_host,
+            Some(memo),
+        ),
+        SEND_FUNDS_WITH_ACTIONS_REPLY_ID,
+    );
+    // Save payload for use in reply
+    ICS20_ACCOUNT_CALLBACK_PAYLOAD.save(
+        deps.storage,
+        &AccountCallbackPayload {
+            channel_id: ics20_channel_id,
+            account_address: account.into_addr(),
+            funds: coin,
+            msgs: actions,
+        },
+    )?;
+
+    Ok(IbcClientResponse::action("handle_send_funds_with_actions").add_submessage(msg))
+}
+
+#[cfg(target_arch = "wasm32")]
 fn _ics_20_send_msg(
     env: &Env,
     ics20_channel_id: String,
@@ -467,6 +532,25 @@ fn _ics_20_send_msg(
         }
         .into(),
     }
+}
+
+// cw-multi-test does not support stargate messages, so we always send ibcmsg in tests
+#[cfg(not(target_arch = "wasm32"))]
+fn _ics_20_send_msg(
+    env: &Env,
+    ics20_channel_id: String,
+    coin: Coin,
+    receiver: String,
+    memo: Option<String>,
+) -> CosmosMsg {
+    IbcMsg::Transfer {
+        channel_id: ics20_channel_id,
+        to_address: receiver,
+        amount: coin,
+        timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+        memo,
+    }
+    .into()
 }
 
 // Map a ModuleQuery to a regular query.

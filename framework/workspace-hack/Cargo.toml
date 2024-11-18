@@ -139,7 +139,6 @@ smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 time = { version = "0.3", features = ["macros", "parsing"] }
-tiny-keccak = { version = "2", features = ["keccak"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
 tonic = { version = "0.12", features = ["tls-roots"] }
@@ -219,7 +218,6 @@ spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 time = { version = "0.3", features = ["macros", "parsing"] }
-tiny-keccak = { version = "2", features = ["keccak"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
 tonic = { version = "0.12", features = ["tls-roots"] }
@@ -296,7 +294,6 @@ smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 time = { version = "0.3", features = ["macros", "parsing"] }
-tiny-keccak = { version = "2", features = ["keccak"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
 tonic = { version = "0.12", features = ["tls-roots"] }
@@ -375,7 +372,6 @@ spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 time = { version = "0.3", features = ["macros", "parsing"] }
-tiny-keccak = { version = "2", features = ["keccak"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
 tonic = { version = "0.12", features = ["tls-roots"] }
