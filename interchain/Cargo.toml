@@ -111,6 +111,10 @@ abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git
 
 # Backup release profile, will result in warnings during optimization
 
+
+abstract-cw-multi-test = { git = "https://github.com/abstractsdk/cw-multi-test-fork", branch = "feature/add-ics20-transfer-data" }
+# abstract-cw-multi-test = { path = "../../cw-multi-test" }
+
 [patch.'https://github.com/AbstractSDK/cw-orchestrator']
 cw-orch = { version = "0.26.0" }
 cw-orch-interchain = { version = "=0.7.2" }
