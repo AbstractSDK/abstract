@@ -216,7 +216,8 @@ mod test {
             .get_chain(STARGAZE)
             .unwrap()
             .balance(&remote_abstract_account.address()?, None)?;
-        assert_eq!(remote_account_balance, coins(100, "ibc/channel-0/ujuno"));
+        assert_eq!(remote_account_balance.len(), 1);
+        assert_eq!(remote_account_balance[0].amount.u128(), 100);
 
         Ok(())
     }
@@ -345,7 +346,7 @@ mod test {
                 is_suspended: false,
                 module_factory_address: abstr_remote.module_factory.address()?,
                 registry_address: abstr_remote.registry.address()?,
-                whitelisted_addresses: vec![]
+                whitelisted_addresses: vec![abstr_remote.ibc.client.address()?]
             }
         );
 
@@ -525,7 +526,7 @@ mod test {
         let result = abstr_remote
             .ibc
             .host
-            .call_as(&Addr::unchecked("rando"))
+            .call_as(&Addr::unchecked("random"))
             .remove_chain_proxy(TruncatedChainId::from_chain_id(STARGAZE));
 
         assert!(result.is_err());
@@ -545,7 +546,7 @@ mod test {
         let result = abstr_remote
             .ibc
             .host
-            .call_as(&Addr::unchecked("rando"))
+            .call_as(&Addr::unchecked("random"))
             .register_chain_proxy(TruncatedChainId::from_chain_id(OSMOSIS), ACCOUNT.to_owned());
         assert!(result.is_err());
 
@@ -648,7 +649,6 @@ mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
         let origin_denom = "ujuno";
-        let remote_denom: &str = &format!("ibc/channel-0/{}", origin_denom);
 
         // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -742,8 +742,9 @@ mod test {
         // Check balance on remote chain.
         let remote_balance = mock_interchain
             .get_chain(STARGAZE)?
-            .query_balance(&remote_account.address()?, remote_denom)?;
-        assert_eq!(Uint128::from(10u128), remote_balance);
+            .query_all_balances(&remote_account.address()?)?;
+        assert_eq!(1, remote_balance.len());
+        assert_eq!(Uint128::from(10u128), remote_balance[0].amount);
 
         // Send all back.
         let send_funds_back_tx =
@@ -754,8 +755,8 @@ mod test {
         // Check balance on remote chain.
         let remote_balance = mock_interchain
             .get_chain(STARGAZE)?
-            .query_balance(&remote_account.address()?, remote_denom)?;
-        assert!(remote_balance.is_zero());
+            .query_all_balances(&remote_account.address()?)?;
+        assert!(remote_balance.is_empty());
 
         // Check balance on local chain.
         let origin_balance = mock_interchain

@@ -139,12 +139,12 @@ impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// # }
     /// #
     /// # impl AbstractNameService for MockModule {
-    /// #   fn ans_host(&self, _deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
+    /// #   fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
     /// #     unimplemented!("Not needed for this example")
     /// #  }
     /// # }
-    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, env: &Env, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
-    ///     let bank = app.bank(deps.as_ref(), env);
+    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
+    ///     let bank = app.bank(deps.as_ref());
     ///     let executor = app.executor(deps.as_ref());    
     ///     let transfer_action = bank.transfer(vec![requested_asset.clone()], &info.sender)?;
     ///

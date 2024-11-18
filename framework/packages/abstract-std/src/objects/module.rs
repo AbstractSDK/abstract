@@ -370,11 +370,8 @@ impl Module {
     pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
             // Standalone, Service or Native(exception for IBC Client for the ICS20 Callbacks) contracts not supposed to be whitelisted on account
-            ModuleReference::Adapter(_) | ModuleReference::App(_) | ModuleReference::Native(_)
-                if self.info.id() == IBC_CLIENT =>
-            {
-                true
-            }
+            ModuleReference::Adapter(_) | ModuleReference::App(_) => true,
+            ModuleReference::Native(_) if self.info.id() == IBC_CLIENT => true,
             _ => false,
         }
     }

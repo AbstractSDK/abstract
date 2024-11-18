@@ -30,11 +30,10 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         # use abstract_sdk::mock_module::MockModule;
         # use abstract_testing::prelude::*;
         # let deps = mock_dependencies();
-        # let env = mock_env_validated(deps.api);
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
 
-        let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref(), &env).unwrap();
+        let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
         ```
     */
     fn module_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<ModuleRegistry<Self>> {
@@ -71,11 +70,10 @@ impl<'a, T: ModuleRegistryInterface> AbstractApi<T> for ModuleRegistry<'a, T> {
     # use abstract_sdk::mock_module::MockModule;
     # use abstract_testing::prelude::*;
     # let deps = mock_dependencies();
-    # let env = mock_env_validated(deps.api);
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
 
-    let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref(), &env).unwrap();
+    let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
     ```
 */
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
