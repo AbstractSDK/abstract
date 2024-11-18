@@ -33,9 +33,6 @@ pub mod msg {
 
     pub type ExecuteMsg = abstract_std::account::ExecuteMsg<Authenticator>;
     pub type InstantiateMsg = abstract_std::account::InstantiateMsg<Authenticator>;
-
-    #[cfg(feature = "xion")]
-    pub use abstract_xion::contract::AccountSudoMsg;
 }
 
 #[cfg(test)]

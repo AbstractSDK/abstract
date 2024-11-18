@@ -423,7 +423,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 pub fn sudo(
     deps: DepsMut,
     env: Env,
-    msg: crate::msg::AccountSudoMsg,
+    msg: abstract_xion::contract::AccountSudoMsg,
 ) -> abstract_xion::error::ContractResult<Response> {
     if let abstract_xion::contract::AccountSudoMsg::BeforeTx { .. } = &msg {
         AUTH_ADMIN.save(deps.storage, &true)?;

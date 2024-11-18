@@ -39,7 +39,6 @@ dependencies = [
  "cw-asset",
  "cw-controllers",
  "cw-orch 0.27.0",
- "cw-orch-interchain",
  "cw-storage-plus",
  "cw2",
  "cw20",
@@ -242,6 +241,7 @@ dependencies = [
 name = "abstract-ibc-client"
 version = "0.24.1"
 dependencies = [
+ "abstract-interface",
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
@@ -250,6 +250,8 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "coverage-helper",
+ "cw-orch 0.27.0",
+ "cw-orch-interchain",
  "cw-ownable",
  "cw-paginate",
  "cw-storage-plus",

@@ -8,7 +8,7 @@ use cosmwasm_std::{coin, coins, to_json_binary, BankMsg};
 use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
 
-type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
+type AResult = cw_orch::anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 pub const SOURCE_CHAIN_ID: &str = "source-1";
 pub const DEST_CHAIN_ID: &str = "dest-1";
@@ -101,7 +101,7 @@ fn transfer_with_account_rename_message() -> AResult {
         abstract_std::ibc_client::ExecuteMsg::SendFundsWithActions {
             host_chain: TruncatedChainId::from_chain_id(&dst.chain_id()),
             actions: vec![to_json_binary(
-                &abstract_account::msg::ExecuteMsg::Execute {
+                &abstract_std::account::ExecuteMsg::<Empty>::Execute {
                     msgs: vec![BankMsg::Send {
                         to_address: src.sender_addr().to_string(),
                         amount: coins(LOCAL_TRANSFER_AMOUNT, "usource1"),
@@ -225,7 +225,7 @@ fn transfer_with_account_rename_message_timeout() -> AResult {
         abstract_std::ibc_client::ExecuteMsg::SendFundsWithActions {
             host_chain: TruncatedChainId::from_chain_id(&dst.chain_id()),
             actions: vec![to_json_binary(
-                &abstract_account::msg::ExecuteMsg::UpdateInfo {
+                &abstract_std::account::ExecuteMsg::<Empty>::UpdateInfo {
                     name: Some(NEW_DUMMY_NAME.to_string()),
                     description: None,
                     link: None,
