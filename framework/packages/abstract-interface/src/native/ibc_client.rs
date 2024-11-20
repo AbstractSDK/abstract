@@ -13,7 +13,6 @@ pub struct IbcClient<Chain>;
 impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for IbcClient<Chain> {}
 
 impl<Chain: CwEnv> Uploadable for IbcClient<Chain> {
-    #[cfg(feature = "integration")]
     fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(

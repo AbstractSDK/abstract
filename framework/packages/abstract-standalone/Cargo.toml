@@ -14,7 +14,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 stargate   = ["abstract-sdk/stargate"]
-test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
+test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils", "abstract-interface/testing"]
 
 [dependencies]
 abstract-sdk    = { workspace = true }

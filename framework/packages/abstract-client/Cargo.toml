@@ -17,8 +17,13 @@ version                 = "0.24.2"
 workspace = true
 
 [features]
-default    = ["test-utils"]
-interchain = ["dep:cw-orch-interchain", "dep:cw-orch-polytone", "abstract-interface/interchain"]
+default = ["test-utils"]
+interchain = [
+  "dep:cw-orch-interchain",
+  "dep:cw-orch-polytone",
+  "abstract-interface/interchain",
+  "abstract-interface/testing",
+]
 test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
 
 [dependencies]

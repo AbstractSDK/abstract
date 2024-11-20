@@ -15,7 +15,7 @@ wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1
 wyndex-pair      = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
 wyndex-stake     = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
 
-abstract-interface          = { workspace = true, features = ["integration"] }
+abstract-interface          = { workspace = true, features = ["testing"] }
 abstract-std                = { workspace = true }
 anyhow                      = { workspace = true }
 cosmwasm-schema             = { workspace = true }
