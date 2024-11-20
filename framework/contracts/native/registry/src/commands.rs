@@ -161,7 +161,7 @@ pub fn propose_modules(
         let store_has_module = PENDING_MODULES.has(deps.storage, &module)
             || REGISTERED_MODULES.has(deps.storage, &module)
             || YANKED_MODULES.has(deps.storage, &module);
-        if !config.security_disabled && store_has_module {
+        if config.security_enabled && store_has_module {
             return Err(RegistryError::NotUpdateableModule(module));
         }
 
@@ -187,7 +187,9 @@ pub fn propose_modules(
             }
         }
 
-        if config.security_disabled {
+        if config.security_enabled {
+            PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
+        } else {
             // assert that its data is equal to what it wants to be registered under.
             module::assert_module_data_validity(
                 &deps.querier,
@@ -210,8 +212,6 @@ pub fn propose_modules(
                 }
                 _ => (),
             }
-        } else {
-            PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
     }
 
@@ -443,11 +443,11 @@ pub fn claim_namespace(
 ) -> VCResult {
     let Config {
         namespace_registration_fee: fee,
-        security_disabled,
+        security_enabled,
         ..
     } = CONFIG.load(deps.storage)?;
 
-    if !security_disabled {
+    if security_enabled {
         // When security is enabled, only the contract admin can claim namespaces
         cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
     } else {
@@ -573,7 +573,7 @@ pub fn forgo_namespace(deps: DepsMut, msg_info: MessageInfo, namespaces: Vec<Str
 pub fn update_config(
     deps: DepsMut,
     info: MessageInfo,
-    security_disabled: Option<bool>,
+    security_enabled: Option<bool>,
     namespace_registration_fee: Option<Clearable<Coin>>,
 ) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
@@ -581,14 +581,17 @@ pub fn update_config(
 
     let mut attributes = vec![];
 
-    if let Some(allow) = security_disabled {
-        let previous_allow = config.security_disabled;
-        config.security_disabled = allow;
+    if let Some(security_enabled) = security_enabled {
+        let previous_security_enabled = config.security_enabled;
+        config.security_enabled = security_enabled;
         attributes.extend(vec![
-            ("previous_security_disabled", previous_allow.to_string()),
+            (
+                "previous_security_enabled",
+                previous_security_enabled.to_string(),
+            ),
             (
                 "allow_direct_module_registration_and_updates",
-                allow.to_string(),
+                security_enabled.to_string(),
             ),
         ])
     }
@@ -683,17 +686,17 @@ mod tests {
     pub const SECOND_TEST_ACCOUNT_ID: AccountId = AccountId::const_new(2, AccountTrace::Local);
     pub const THIRD_TEST_ACCOUNT_ID: AccountId = AccountId::const_new(3, AccountTrace::Local);
 
-    fn vc_mock_deps() -> MockDeps {
+    fn registry_mock_deps() -> MockDeps {
         let mut deps = mock_dependencies();
 
-        let querier = vc_mock_querier_builder(deps.api).build();
+        let querier = registry_mock_querier_builder(deps.api).build();
 
         deps.querier = querier;
 
         deps
     }
 
-    fn vc_mock_querier_builder(api: MockApi) -> MockQuerierBuilder {
+    fn registry_mock_querier_builder(api: MockApi) -> MockQuerierBuilder {
         let abstr = AbstractMockAddrs::new(api);
 
         let owner = Ownership {
@@ -735,7 +738,7 @@ mod tests {
             info.clone(),
             InstantiateMsg {
                 admin,
-                security_disabled: Some(true),
+                security_enabled: Some(false),
                 namespace_registration_fee: None,
             },
         )?;
@@ -762,7 +765,7 @@ mod tests {
     /// Initialize the registry with admin as creator and test account
     fn mock_init_with_account(
         deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-        security_disabled: bool,
+        security_enabled: bool,
     ) -> VCResult {
         let abstr = AbstractMockAddrs::new(deps.api);
         let admin_info = message_info(&abstr.owner, &[]);
@@ -775,7 +778,7 @@ mod tests {
             admin_info,
             InstantiateMsg {
                 admin,
-                security_disabled: Some(security_disabled),
+                security_enabled: Some(security_enabled),
                 namespace_registration_fee: None,
             },
         )?;
@@ -880,7 +883,7 @@ mod tests {
 
         #[coverage_helper::test]
         fn only_admin_admin() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
                 new_owner: deps.api.addr_make("new_admin").to_string(),
@@ -892,7 +895,7 @@ mod tests {
 
         #[coverage_helper::test]
         fn updates_admin() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -928,10 +931,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn claim_namespaces_by_owner() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id: FIRST_TEST_ACCOUNT_ID,
@@ -959,10 +962,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn fail_claim_permissioned_namespaces() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, false)?;
+            mock_init_with_account(&mut deps, true)?;
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id: FIRST_TEST_ACCOUNT_ID,
@@ -994,11 +997,11 @@ mod tests {
 
         #[coverage_helper::test]
         fn claim_namespaces_with_fee() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
 
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
 
             let one_namespace_fee = Coin {
                 denom: "ujunox".to_string(),
@@ -1009,7 +1012,7 @@ mod tests {
                 &mut deps,
                 &abstr.owner,
                 ExecuteMsg::UpdateConfig {
-                    security_disabled: None,
+                    security_enabled: None,
                     namespace_registration_fee: Clearable::new_opt(one_namespace_fee.clone()),
                 },
             )
@@ -1066,10 +1069,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn claim_namespaces_not_owner() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id: FIRST_TEST_ACCOUNT_ID,
@@ -1090,10 +1093,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn claim_existing_namespaces() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
 
             create_second_account(&mut deps);
 
@@ -1121,10 +1124,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn cannot_claim_abstract() -> VCResult<()> {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
 
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
 
             // Add account 1
             create_second_account(&mut deps);
@@ -1151,11 +1154,11 @@ mod tests {
 
         #[coverage_helper::test]
         fn only_admin() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateConfig {
-                security_disabled: Some(false),
+                security_enabled: Some(false),
                 namespace_registration_fee: None,
             };
 
@@ -1168,19 +1171,19 @@ mod tests {
 
         #[coverage_helper::test]
         fn direct_registration() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
             let msg = ExecuteMsg::UpdateConfig {
-                security_disabled: Some(false),
+                security_enabled: Some(true),
                 namespace_registration_fee: None,
             };
 
             let res = execute_as(&mut deps, &abstr.owner, msg);
             assert!(res.is_ok());
 
-            assert!(!CONFIG.load(&deps.storage).unwrap().security_disabled);
+            assert!(CONFIG.load(&deps.storage).unwrap().security_enabled);
 
             Ok(())
         }
@@ -1193,11 +1196,11 @@ mod tests {
 
         #[coverage_helper::test]
         fn only_admin() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateConfig {
-                security_disabled: None,
+                security_enabled: None,
                 namespace_registration_fee: Clearable::new_opt(Coin {
                     denom: "ujunox".to_string(),
                     amount: Uint128::one(),
@@ -1213,7 +1216,7 @@ mod tests {
 
         #[coverage_helper::test]
         fn updates_fee() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -1223,7 +1226,7 @@ mod tests {
             };
 
             let msg = ExecuteMsg::UpdateConfig {
-                security_disabled: None,
+                security_enabled: None,
                 namespace_registration_fee: Clearable::new_opt(new_fee.clone()),
             };
 
@@ -1254,10 +1257,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn forgo_namespace_by_admin_or_owner() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let new_namespace2 = Namespace::new("namespace2").unwrap();
 
@@ -1304,10 +1307,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn remove_namespaces_as_other() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let new_namespace1 = Namespace::new("namespace1")?;
 
             // add namespaces
@@ -1335,10 +1338,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn remove_not_existing_namespaces() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let new_namespace1 = Namespace::new("namespace1")?;
 
             // remove as owner
@@ -1367,10 +1370,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn yank_orphaned_modules() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
 
             // add namespaces
             let new_namespace1 = Namespace::new("namespace1")?;
@@ -1418,10 +1421,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn add_module_by_admin() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let mut new_module = test_module();
             new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
             let msg = ExecuteMsg::ProposeModules {
@@ -1436,10 +1439,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn add_module_by_account_owner() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let new_module = test_module();
 
             let msg = ExecuteMsg::ProposeModules {
@@ -1475,10 +1478,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn update_existing_module() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let new_module = test_module();
 
             let msg = ExecuteMsg::ProposeModules {
@@ -1516,10 +1519,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn update_existing_module_fails() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, false)?;
+            mock_init_with_account(&mut deps, true)?;
             let new_module = test_module();
 
             let msg = ExecuteMsg::ProposeModules {
@@ -1568,16 +1571,16 @@ mod tests {
 
         #[coverage_helper::test]
         fn try_add_module_to_approval_with_admin() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             let contract_addr = deps.api.addr_make("contract");
             // create mock with ContractInfo response for contract with admin set
-            deps.querier = vc_mock_querier_builder(deps.api)
+            deps.querier = registry_mock_querier_builder(deps.api)
                 .with_contract_admin(&contract_addr, &deps.api.addr_make("admin"))
                 .build();
 
             let abstr = AbstractMockAddrs::new(deps.api);
 
-            mock_init_with_account(&mut deps, false)?;
+            mock_init_with_account(&mut deps, true)?;
             let new_module = test_module();
 
             let mod_ref = ModuleReference::Adapter(contract_addr);
@@ -1614,10 +1617,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn add_module_to_approval() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, false)?;
+            mock_init_with_account(&mut deps, true)?;
             let new_module = test_module();
 
             let msg = ExecuteMsg::ProposeModules {
@@ -1653,10 +1656,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn approve_modules() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, false)?;
+            mock_init_with_account(&mut deps, true)?;
             let new_module = test_module();
 
             // add namespaces
@@ -1703,10 +1706,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn reject_modules() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, false)?;
+            mock_init_with_account(&mut deps, true)?;
             let new_module = test_module();
 
             // add namespaces
@@ -1753,10 +1756,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn remove_module() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let rm_module = test_module();
 
             // add namespaces
@@ -1796,10 +1799,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn yank_module_only_account_owner() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let rm_module = test_module();
 
             // add namespaces as the account owner
@@ -1835,10 +1838,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn yank_module() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let rm_module = test_module();
 
             // add namespaces as the owner
@@ -1872,10 +1875,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn bad_version() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespace {
@@ -1911,11 +1914,11 @@ mod tests {
 
         #[coverage_helper::test]
         fn abstract_namespace() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             let abstract_contract_id = format!("{}:{}", ABSTRACT_NAMESPACE, "test-module");
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let new_module = ModuleInfo::from_id(&abstract_contract_id, TEST_VERSION.into())?;
 
             // let mod_ref = ModuleReference::
@@ -1939,9 +1942,9 @@ mod tests {
 
         #[coverage_helper::test]
         fn validates_module_info() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let bad_modules = vec![
                 ModuleInfo {
                     name: "test-module".to_string(),
@@ -1986,10 +1989,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn add_module_monetization() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let mut new_module = test_module();
             new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
             let msg = ExecuteMsg::ProposeModules {
@@ -2036,10 +2039,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn add_module_init_funds() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let mut new_module = test_module();
             new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
             let msg = ExecuteMsg::ProposeModules {
@@ -2090,10 +2093,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn add_module_metadata() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             let mut new_module = test_module();
             new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
             let msg = ExecuteMsg::ProposeModules {
@@ -2153,10 +2156,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn test_only_admin() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             claim_test_namespace_as_owner(&mut deps, &abstr.owner)?;
 
             // add a module as the owner
@@ -2184,10 +2187,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn remove_from_library() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             claim_test_namespace_as_owner(&mut deps, &abstr.owner)?;
 
             // add a module as the owner
@@ -2212,10 +2215,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn leaves_pending() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             claim_test_namespace_as_owner(&mut deps, &abstr.owner)?;
 
             // add a module as the owner
@@ -2234,10 +2237,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn remove_from_yanked() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
             claim_test_namespace_as_owner(&mut deps, &abstr.owner)?;
 
             // add a module as the owner
@@ -2265,10 +2268,10 @@ mod tests {
 
         #[coverage_helper::test]
         fn add_account() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
 
             let other = deps.api.addr_make(TEST_OTHER);
-            deps.querier = vc_mock_querier_builder(deps.api)
+            deps.querier = registry_mock_querier_builder(deps.api)
                 .with_contract_version(&other, "some:contract", "0.0.0")
                 .build();
 
@@ -2310,7 +2313,7 @@ mod tests {
 
         #[coverage_helper::test]
         fn update_admin() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
 
@@ -2349,9 +2352,9 @@ mod tests {
 
         #[coverage_helper::test]
         fn returns_account_owner() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
 
             let account_owner = query_account_owner(
                 &deps.as_ref().querier,
@@ -2365,9 +2368,9 @@ mod tests {
 
         #[coverage_helper::test]
         fn no_owner_returns_err() -> RegistryTestResult {
-            let mut deps = vc_mock_deps();
+            let mut deps = registry_mock_deps();
             let abstr = AbstractMockAddrs::new(deps.api);
-            deps.querier = vc_mock_querier_builder(deps.api)
+            deps.querier = registry_mock_querier_builder(deps.api)
                 .with_contract_item(
                     &abstr.account.addr().clone(),
                     cw_storage_plus::Item::<ownership::Ownership<Addr>>::new(OWNERSHIP_STORAGE_KEY),
@@ -2379,7 +2382,7 @@ mod tests {
                 )
                 .build();
 
-            mock_init_with_account(&mut deps, true)?;
+            mock_init_with_account(&mut deps, false)?;
 
             let account_id = ABSTRACT_ACCOUNT_ID;
             let res = query_account_owner(

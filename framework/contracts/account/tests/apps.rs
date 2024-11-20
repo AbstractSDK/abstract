@@ -217,7 +217,7 @@ fn deploy_strategy_uploaded() -> AResult {
     deployment
         .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
-    deployment.registry.update_config(None, Some(false))?;
+    deployment.registry.update_config(None, Some(true))?;
 
     let app = MockApp::new_test(chain.clone());
     app.upload()?;
@@ -288,7 +288,7 @@ fn deploy_strategy_deployed() -> AResult {
     deployment
         .registry
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
-    deployment.registry.update_config(None, Some(false))?;
+    deployment.registry.update_config(None, Some(true))?;
 
     let app = MockApp::new_test(chain.clone());
 

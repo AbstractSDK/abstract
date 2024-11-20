@@ -63,7 +63,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             &abstr.registry,
             registry::state::CONFIG,
             &registry::Config {
-                security_disabled: true,
+                security_enabled: false,
                 namespace_registration_fee: None,
             },
         )
