@@ -97,7 +97,7 @@ expression: all_storage
   - - "\u0000\u0002ck\u0000\u0005local\u0000\u0000\u0000\u0000"
     - "\"abstract\""
   - - cfg
-    - "{\"security_disabled\":true,\"namespace_registration_fee\":null}"
+    - "{\"security_enabled\":false,\"namespace_registration_fee\":null}"
   - - ci
     - "3"
   - - contract_info
