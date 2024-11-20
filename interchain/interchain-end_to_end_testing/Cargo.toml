@@ -1,44 +1,44 @@
 [package]
-name = "abstract-interchain-tests"
-version = "0.24.1"
-edition = { workspace = true }
-license = { workspace = true }
 description = "Interchain testing library for the Abstract SDK. This is used primarily for tests but some elements are re-usable for testing apps and adapters"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "abstract-interchain-tests"
+version     = "0.24.1"
 
 [lib]
 
 [dependencies]
-cosmwasm-std = { workspace = true }
-cw2 = { workspace = true }
-cw-utils = { workspace = true }
-cw-orch = { workspace = true, features = ["daemon"] }
+cosmwasm-std       = { workspace = true }
+cw-orch            = { workspace = true, features = ["daemon"] }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
-cw-orch-proto = { workspace = true }
+cw-orch-proto      = { workspace = true }
+cw-utils           = { workspace = true }
+cw2                = { workspace = true }
 
-abstract-std = { workspace = true }
-abstract-app = { workspace = true, features = ["test-utils"] }
-abstract-sdk = { workspace = true }
-abstract-adapter = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
+abstract-adapter   = { workspace = true, features = ["test-utils"] }
+abstract-app       = { workspace = true, features = ["test-utils"] }
+abstract-client    = { workspace = true }
 abstract-interface = { workspace = true, features = ["interchain"] }
-abstract-scripts = { path = "../scripts" }
-abstract-client = { workspace = true }
+abstract-scripts   = { path = "../scripts" }
+abstract-sdk       = { workspace = true }
+abstract-std       = { workspace = true }
+abstract-testing   = { workspace = true }
 
-tokio = { workspace = true }
-log = "0.4.14"
-anyhow = { workspace = true }
+anyhow     = { workspace = true }
+dotenv     = "0.15.0"
 env_logger = "0.11.3"
-dotenv = "0.15.0"
+log        = "0.4.14"
+tokio      = { workspace = true }
 
 ibc-relayer-types = "0.29"
 
-cw-orch-polytone = { workspace = true }
-polytone = { workspace = true }
+base64                    = "0.22.1"
 cosmwasm-schema.workspace = true
-cw-controllers = { workspace = true }
+cw-controllers            = { workspace = true }
+cw-orch-polytone          = { workspace = true }
 cw-storage-plus.workspace = true
-thiserror.workspace = true
-base64 = "0.22.1"
+polytone                  = { workspace = true }
+thiserror.workspace       = true
 # Testing contract
 counter-contract = { version = "0.27.0" } # Use tag if breaks
 

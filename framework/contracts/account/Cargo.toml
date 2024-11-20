@@ -1,12 +1,12 @@
 [package]
-name = "abstract-account"
-version = "0.24.2"
-authors = { workspace = true }
-edition = { workspace = true }
+authors     = { workspace = true }
 description = "Abstract Account Contract"
-license = { workspace = true }
-readme = "README.md"
-repository = "https://github.com/AbstractSDK/abstract"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "abstract-account"
+readme      = "README.md"
+repository  = "https://github.com/AbstractSDK/abstract"
+version     = "0.24.2"
 
 exclude = ["contract.wasm", "hash.txt"]
 
@@ -14,7 +14,7 @@ exclude = ["contract.wasm", "hash.txt"]
 workspace = true
 
 [[example]]
-name = "schema"
+name              = "schema"
 required-features = ["xion"]
 
 [lib]
@@ -22,28 +22,28 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
-export = []
-xion = ["abstract-xion"]
+export  = []
+xion    = ["abstract-xion"]
 
 [package.metadata.optimizer]
+builds         = [{ name = "xion", features = ["xion"] }]
 standard-build = true
-builds = [{ name = "xion", features = ["xion"] }]
 
 [dependencies]
-cosmwasm-std = { workspace = true }
-cosmwasm-schema = { workspace = true }
-cw-controllers = { workspace = true }
-cw-storage-plus = { workspace = true }
-cw2 = { workspace = true }
-cw20 = { workspace = true }
-cw-asset = { workspace = true }
-schemars = { workspace = true }
-serde = { workspace = true }
-thiserror = { workspace = true }
-abstract-sdk = { workspace = true }
-abstract-std = { workspace = true }
-semver = { workspace = true }
 abstract-macros = { workspace = true }
+abstract-sdk    = { workspace = true }
+abstract-std    = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cosmwasm-std    = { workspace = true }
+cw-asset        = { workspace = true }
+cw-controllers  = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw2             = { workspace = true }
+cw20            = { workspace = true }
+schemars        = { workspace = true }
+semver          = { workspace = true }
+serde           = { workspace = true }
+thiserror       = { workspace = true }
 
 abstract-ica = { workspace = true }
 
@@ -56,21 +56,21 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 cw20 = { workspace = true }
 # cw721-base = { version = "0.18.0", features = ["library"] }
 # cw721 = { version = "0.18.0" }
-abstract-interface = { workspace = true }
-cw-orch = { workspace = true, features = ["snapshot-testing"] }
-anyhow = { workspace = true }
-ans-host = { workspace = true }
-registry = { workspace = true }
-module-factory = { workspace = true }
-rstest = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
-abstract-adapter = { workspace = true, features = ["test-utils"] }
-abstract-app = { workspace = true, features = ["test-utils"] }
-abstract-standalone = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
-abstract-macros = { workspace = true }
+abstract-adapter           = { workspace = true, features = ["test-utils"] }
+abstract-app               = { workspace = true, features = ["test-utils"] }
 abstract-integration-tests = { workspace = true }
-coverage-helper = { workspace = true }
+abstract-interface         = { workspace = true }
+abstract-macros            = { workspace = true }
+abstract-sdk               = { workspace = true, features = ["test-utils"] }
+abstract-standalone        = { workspace = true, features = ["test-utils"] }
+abstract-testing           = { workspace = true }
+ans-host                   = { workspace = true }
+anyhow                     = { workspace = true }
+coverage-helper            = { workspace = true }
+cw-orch                    = { workspace = true, features = ["snapshot-testing"] }
+module-factory             = { workspace = true }
+registry                   = { workspace = true }
+rstest                     = { workspace = true }
 
 base64 = { version = "0.22.1", default-features = false }
 
