@@ -1,6 +1,6 @@
 [package]
 name = "abstract-account"
-version = { workspace = true }
+version = "0.24.2"
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Abstract Account Contract"
@@ -63,7 +63,7 @@ ans-host = { workspace = true }
 registry = { workspace = true }
 module-factory = { workspace = true }
 rstest = { workspace = true }
-abstract-sdk = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-standalone = { workspace = true, features = ["test-utils"] }
