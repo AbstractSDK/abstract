@@ -1,6 +1,6 @@
 [package]
 name = "abstract-registry"
-version = "0.24.3"
+version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Abstract Registry Contract"

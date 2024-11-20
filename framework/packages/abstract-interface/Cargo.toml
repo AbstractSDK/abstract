@@ -1,6 +1,6 @@
 [package]
 name = "abstract-interface"
-version = "0.24.2"
+version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 description = "Abstract deployment helpers with cw-orchestrator"
@@ -50,12 +50,12 @@ serde_json = "1.0.79"
 rust-embed = { version = "8.3.0", features = ["include-exclude"] }
 
 # Keep these here
-module-factory = { version = "0.24.1", package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false }
-ibc-client = { version = "0.24.1", package = "abstract-ibc-client", path = "../../contracts/native/ibc-client", default-features = false }
-ibc-host = { version = "0.24.1", package = "abstract-ibc-host", path = "../../contracts/native/ibc-host", default-features = false }
-ans-host = { version = "0.24.1", package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false }
-registry = { version = "0.24.1", package = "abstract-registry", path = "../../contracts/native/registry", default-features = false }
-account = { version = "0.24.1", package = "abstract-account", path = "../../contracts/account", default-features = false }
+module-factory = { version = "0.25.0", package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false }
+ibc-client = { version = "0.25.0", package = "abstract-ibc-client", path = "../../contracts/native/ibc-client", default-features = false }
+ibc-host = { version = "0.25.0", package = "abstract-ibc-host", path = "../../contracts/native/ibc-host", default-features = false }
+ans-host = { version = "0.25.0", package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false }
+registry = { version = "0.25.0", package = "abstract-registry", path = "../../contracts/native/registry", default-features = false }
+account = { version = "0.25.0", package = "abstract-account", path = "../../contracts/account", default-features = false }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 # Predictable abstract addresses

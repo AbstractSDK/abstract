@@ -1,6 +1,6 @@
 [package]
 name = "abstract-client"
-version = "0.24.2"
+version = { workspace = true }
 description = "A client oriented package for the Abstract Framework."
 authors.workspace = true
 edition.workspace = true
@@ -26,7 +26,7 @@ interchain = [
 ]
 
 [dependencies]
-abstract-interface = { version = "0.24.1", path = "../abstract-interface" }
+abstract-interface = { version = "0.25.0", path = "../abstract-interface" }
 cosmwasm-std.workspace = true
 abstract-std.workspace = true
 cw-orch.workspace = true
