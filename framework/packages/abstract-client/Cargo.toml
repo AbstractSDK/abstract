@@ -23,6 +23,7 @@ interchain = [
   "dep:cw-orch-interchain",
   "dep:cw-orch-polytone",
   "abstract-interface/interchain",
+  "abstract-interface/testing",
 ]
 
 [dependencies]

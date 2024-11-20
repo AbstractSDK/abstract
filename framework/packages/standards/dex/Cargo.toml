@@ -17,7 +17,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-testing = ["cw-orch/daemon"]
+testing = ["cw-orch/daemon", "abstract-interface/testing"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]

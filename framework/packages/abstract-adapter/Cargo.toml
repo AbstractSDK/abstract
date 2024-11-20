@@ -14,7 +14,11 @@ workspace = true
 crate-type = ["cdylib", "rlib"]
 
 [features]
-test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
+test-utils = [
+    "dep:abstract-testing",
+    "abstract-sdk/test-utils",
+    "abstract-interface/testing",
+]
 schema = []
 stargate = ["abstract-sdk/stargate"]
 
