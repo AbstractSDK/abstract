@@ -18,10 +18,10 @@ name              = "starship-ibc-deploy"
 required-features = ["interchain"]
 
 [features]
-daemon = ["cw-orch/daemon"]
-# Disables `security_enable` on registry
+daemon     = ["cw-orch/daemon"]
 interchain = ["dep:cw-orch-interchain", "dep:cw-orch-polytone"]
-testing    = []
+# Disables `security_enable` on registry
+testing = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 abstract-std    = { workspace = true }
