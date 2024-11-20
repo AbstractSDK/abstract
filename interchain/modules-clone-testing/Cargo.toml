@@ -1,37 +1,37 @@
 [package]
-name = "abstract-modules-interchain-tests"
-version = { workspace = true }
 edition = { workspace = true }
+name    = "abstract-modules-interchain-tests"
+version = { workspace = true }
 
 [lib]
 
 [dependencies]
-cosmwasm-std = { workspace = true }
-cw-asset = { workspace = true }
-cw20 = { workspace = true }
-cw-orch = { workspace = true, features = ["daemon"] }
+cosmwasm-std          = { workspace = true }
+cw-asset              = { workspace = true }
+cw-orch               = { workspace = true, features = ["daemon"] }
 cw-orch-clone-testing = { workspace = true }
+cw20                  = { workspace = true }
 
-abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-app       = { workspace = true, features = ["test-utils"] }
+abstract-client    = { workspace = true }
 abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-client = { workspace = true }
 
-tokio = { workspace = true }
-anyhow = { workspace = true }
-env_logger = "0.11.3"
+anyhow      = { workspace = true }
+env_logger  = "0.11.3"
 lazy_static = "1.4.0"
+tokio       = { workspace = true }
 
 # # Clone testing
-abstract-dex-adapter = { workspace = true, features = [
-  "testing",
-  # "astroport",
-  # "fin",
-  "astrovault",
-] }
 abstract-cw-staking = { workspace = true, features = [
   "testing",
   # "astroport",
   # "bow",
+  "astrovault",
+] }
+abstract-dex-adapter = { workspace = true, features = [
+  "testing",
+  # "astroport",
+  # "fin",
   "astrovault",
 ] }
 abstract-money-market-adapter = { workspace = true, features = [
@@ -43,5 +43,5 @@ abstract-money-market-adapter = { workspace = true, features = [
 # kujira = { version = "0.8" }
 astrovault = { version = "0.1.4" }
 
+serde      = "1"
 serde_json = "1"
-serde = "1"

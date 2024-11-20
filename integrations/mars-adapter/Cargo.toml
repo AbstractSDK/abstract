@@ -1,14 +1,13 @@
 [package]
-name = "abstract-mars-adapter"
-version = "0.3.0"
-authors = ["Abstract Money <contact@abstract.money>"]
-edition = "2021"
+authors     = ["Abstract Money <contact@abstract.money>"]
 description = "Abstract Staking implementation for Kujira"
-license = "MIT OR Apache-2.0"
+edition     = "2021"
+license     = "MIT OR Apache-2.0"
+name        = "abstract-mars-adapter"
+version     = "0.3.0"
 
 [features]
 default = ["full_integration"]
-local = []
 full_integration = [
   "dep:mars-red-bank-types",
   "dep:cw20",
@@ -16,21 +15,22 @@ full_integration = [
   "dep:cw-utils",
   "dep:cosmwasm-schema",
 ]
+local = []
 
 [dependencies]
 
-cosmwasm-std = { workspace = true, features = ["stargate"] }
-abstract-staking-standard = { workspace = true }
-abstract-dex-standard = { workspace = true }
+abstract-dex-standard          = { workspace = true }
 abstract-money-market-standard = { workspace = true }
-abstract-sdk = { workspace = true }
-cw20 = { workspace = true, optional = true }
-cosmwasm-schema = { workspace = true, optional = true }
-cw-asset = { workspace = true, optional = true }
-cw-utils = { workspace = true, optional = true }
-mars-red-bank-types = { version = "1.0.0", optional = true }
+abstract-sdk                   = { workspace = true }
+abstract-staking-standard      = { workspace = true }
+cosmwasm-schema                = { workspace = true, optional = true }
+cosmwasm-std                   = { workspace = true, features = ["stargate"] }
+cw-asset                       = { workspace = true, optional = true }
+cw-utils                       = { workspace = true, optional = true }
+cw20                           = { workspace = true, optional = true }
+mars-red-bank-types            = { version = "1.0.0", optional = true }
 
 [dev-dependencies]
-abstract-dex-standard = { workspace = true, features = ["testing"] }
-cw-orch = { workspace = true, features = ["daemon"] }
+abstract-dex-standard     = { workspace = true, features = ["testing"] }
 cosmwasm-schema.workspace = true
+cw-orch                   = { workspace = true, features = ["daemon"] }

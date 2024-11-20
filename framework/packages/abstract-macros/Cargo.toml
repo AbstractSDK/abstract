@@ -1,12 +1,12 @@
 [package]
-name = "abstract-macros"
-version = { workspace = true }
-authors = { workspace = true }
-edition = { workspace = true }
+authors     = { workspace = true }
 description = "Macros for Abstract SDK"
-license = { workspace = true }
-readme = "README.md"
-repository = "https://github.com/AbstractSDK/abstract/tree/main/packages/abstract-macros"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "abstract-macros"
+readme      = "README.md"
+repository  = "https://github.com/AbstractSDK/abstract/tree/main/packages/abstract-macros"
+version     = { workspace = true }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,9 +15,9 @@ proc-macro = true
 
 [dependencies]
 proc-macro2 = { version = "1.0" }
-quote = { version = "1" }
-syn = { version = "1", features = ["full", "extra-traits"] }
+quote       = { version = "1" }
+syn         = { version = "1", features = ["full", "extra-traits"] }
 
 [dev-dependencies]
-cosmwasm-std = { workspace = true }
+cosmwasm-std    = { workspace = true }
 coverage-helper = { workspace = true }

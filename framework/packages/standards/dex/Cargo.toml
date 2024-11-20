@@ -1,13 +1,13 @@
 [package]
-name = "abstract-dex-standard"
 description = "The tendermint staking adapter is a Abstract adapter for interacting with usual DEX commands. It provides a common interface for all DEXes"
+name        = "abstract-dex-standard"
 
-version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
+version = { workspace = true }
 
-exclude = ["contract.wasm", "hash.txt"]
+exclude  = ["contract.wasm", "hash.txt"]
 resolver = "2"
 
 
@@ -16,26 +16,26 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
-export = []
-testing = ["cw-orch/daemon"]
+export  = []
+testing = ["cw-orch/daemon", "abstract-interface/testing"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]
-cosmwasm-std = { workspace = true }
-schemars = { workspace = true }
-serde = { workspace = true }
-cw20 = { workspace = true }
-thiserror = { workspace = true }
-cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
-cw-storage-plus = { workspace = true }
+cosmwasm-std    = { workspace = true }
 cw-address-like = { workspace = true }
+cw-asset        = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw20            = { workspace = true }
+schemars        = { workspace = true }
+serde           = { workspace = true }
+thiserror       = { workspace = true }
 
-abstract-std = { workspace = true }
-abstract-sdk = { workspace = true }
+abstract-adapter       = { version = "0.24.1", path = "../../abstract-adapter" }
 abstract-adapter-utils = { workspace = true }
-cw-orch = { workspace = true }
-abstract-adapter = { version = "0.24.1", path = "../../abstract-adapter" }
+abstract-sdk           = { workspace = true }
+abstract-std           = { workspace = true }
+cw-orch                = { workspace = true }
 
 abstract-interface = { version = "0.24.1", path = "../../abstract-interface" }
 
@@ -44,10 +44,10 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }
-semver = { workspace = true }
-anyhow = { workspace = true }
-dotenv = "0.15.0"
-env_logger = "0.11.3"
-clap = { workspace = true }
-abstract-testing = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-sdk       = { workspace = true, features = ["test-utils"] }
+abstract-testing   = { workspace = true }
+anyhow             = { workspace = true }
+clap               = { workspace = true }
+dotenv             = "0.15.0"
+env_logger         = "0.11.3"
+semver             = { workspace = true }

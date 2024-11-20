@@ -1,10 +1,10 @@
 [package]
-name = "abstract-standalone"
-version = "0.24.1"
-edition = { workspace = true }
-license = { workspace = true }
 description = "base standalone contract implementation"
-resolver = "2"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "abstract-standalone"
+resolver    = "2"
+version     = "0.24.1"
 
 [lints]
 workspace = true
@@ -13,26 +13,26 @@ workspace = true
 crate-type = ["cdylib", "rlib"]
 
 [features]
-test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
-stargate = ["abstract-sdk/stargate"]
+stargate   = ["abstract-sdk/stargate"]
+test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils", "abstract-interface/testing"]
 
 [dependencies]
-cosmwasm-std = { workspace = true }
+abstract-sdk    = { workspace = true }
+abstract-std    = { workspace = true }
 cosmwasm-schema = { workspace = true }
+cosmwasm-std    = { workspace = true }
+cw-asset        = { workspace = true }
+cw-controllers  = { workspace = true }
 cw-storage-plus = { workspace = true }
-serde = { workspace = true }
-semver = { workspace = true }
-schemars = { workspace = true }
-cw-controllers = { workspace = true }
-thiserror = { workspace = true }
-cw2 = { workspace = true }
-cw-asset = { workspace = true }
-abstract-sdk = { workspace = true }
-abstract-std = { workspace = true }
+cw2             = { workspace = true }
+schemars        = { workspace = true }
+semver          = { workspace = true }
+serde           = { workspace = true }
+thiserror       = { workspace = true }
 
 # Interface
-cw-orch = { workspace = true }
 abstract-interface = { version = "0.24.1", path = "../../packages/abstract-interface" }
+cw-orch            = { workspace = true }
 
 # Testing
 abstract-testing = { workspace = true, optional = true }
@@ -41,7 +41,7 @@ abstract-testing = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
-cosmwasm-schema = { workspace = true }
-abstract-standalone = { path = ".", features = ["test-utils"] }
 abstract-integration-tests = { workspace = true }
-coverage-helper = { workspace = true }
+abstract-standalone        = { path = ".", features = ["test-utils"] }
+cosmwasm-schema            = { workspace = true }
+coverage-helper            = { workspace = true }
