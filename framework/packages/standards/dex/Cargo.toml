@@ -31,13 +31,13 @@ schemars        = { workspace = true }
 serde           = { workspace = true }
 thiserror       = { workspace = true }
 
-abstract-adapter       = { version = "0.24.1", path = "../../abstract-adapter" }
+abstract-adapter       = { version = "0.25.0", path = "../../abstract-adapter" }
 abstract-adapter-utils = { workspace = true }
 abstract-sdk           = { workspace = true }
 abstract-std           = { workspace = true }
 cw-orch                = { workspace = true }
 
-abstract-interface = { version = "0.24.1", path = "../../abstract-interface" }
+abstract-interface = { version = "0.25.0", path = "../../abstract-interface" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }

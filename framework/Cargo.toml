@@ -28,7 +28,7 @@ homepage = "https://abstract.money"
 keywords = ["cosmos", "cosmwasm", "framework"]
 license = "LGPL-3.0"
 repository = "https://github.com/AbstractSDK/abstract"
-version = "0.24.1"
+version = "0.25.0"
 
 [workspace.dependencies]
 cosmwasm-schema = { version = "2.0" }
@@ -82,17 +82,17 @@ ibc-host   = { package = "abstract-ibc-host", path = "contracts/native/ibc-host"
 
 abstract-account = { path = "contracts/account", default-features = false }
 
-abstract-ica     = { version = "0.24.1", path = "packages/abstract-ica" }
-abstract-sdk     = { version = "0.24.1", path = "packages/abstract-sdk" }
-abstract-std     = { version = "0.24.1", path = "packages/abstract-std" }
-abstract-testing = { version = "0.24.1", path = "packages/abstract-testing" }
+abstract-ica     = { version = "0.25.0", path = "packages/abstract-ica" }
+abstract-sdk     = { version = "0.25.0", path = "packages/abstract-sdk" }
+abstract-std     = { version = "0.25.0", path = "packages/abstract-std" }
+abstract-testing = { version = "0.25.0", path = "packages/abstract-testing" }
 abstract-xion    = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = ["library"], branch = "fix-for-abstract" }
 
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.24.1", path = "packages/abstract-macros" }
+abstract-macros = { version = "0.25.0", path = "packages/abstract-macros" }
 
-abstract-adapter-utils    = { version = "0.24.1", path = "packages/standards/utils" }
+abstract-adapter-utils    = { version = "0.25.0", path = "packages/standards/utils" }
 abstract-dex-standard     = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 

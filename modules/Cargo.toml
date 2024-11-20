@@ -16,7 +16,7 @@ homepage = "https://abstract.money"
 keywords = ["cosmos", "cosmwasm", "framework"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/AbstractSDK/abstract"
-version = "0.24.1"
+version = "0.25.0"
 
 [workspace.dependencies]
 
@@ -50,18 +50,18 @@ tokio                     = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter    = { version = "0.24.1" }
-abstract-app        = { version = "0.24.1" }
-abstract-client     = { version = "0.24.1" }
-abstract-interface  = { version = "0.24.1" }
-abstract-macros     = { version = "0.24.1" }
-abstract-standalone = { version = "0.24.1" }
-abstract-testing    = { version = "0.24.1" }
+abstract-adapter    = { version = "0.25.0" }
+abstract-app        = { version = "0.25.0" }
+abstract-client     = { version = "0.25.0" }
+abstract-interface  = { version = "0.25.0" }
+abstract-macros     = { version = "0.25.0" }
+abstract-standalone = { version = "0.25.0" }
+abstract-testing    = { version = "0.25.0" }
 
-abstract-adapter-utils         = { version = "0.24.1" }
-abstract-dex-standard          = { version = "0.24.1" }
-abstract-money-market-standard = { version = "0.24.1" }
-abstract-staking-standard      = { version = "0.24.1" }
+abstract-adapter-utils         = { version = "0.25.0" }
+abstract-dex-standard          = { version = "0.25.0" }
+abstract-money-market-standard = { version = "0.25.0" }
+abstract-staking-standard      = { version = "0.25.0" }
 
 # Integrations
 abstract-astroport-adapter  = { path = "../integrations/astroport-adapter", default-features = false }

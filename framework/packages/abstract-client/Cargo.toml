@@ -9,7 +9,7 @@ license.workspace       = true
 name                    = "abstract-client"
 readme                  = "README.md"
 repository.workspace    = true
-version                 = "0.24.2"
+version                 = "0.25.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -27,7 +27,7 @@ interchain = [
 test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
 
 [dependencies]
-abstract-interface     = { version = "0.24.1", path = "../abstract-interface" }
+abstract-interface     = { version = "0.25.0", path = "../abstract-interface" }
 abstract-std.workspace = true
 cosmwasm-std.workspace = true
 cw-orch.workspace      = true
