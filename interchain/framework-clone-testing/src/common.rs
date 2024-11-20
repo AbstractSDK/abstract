@@ -14,7 +14,7 @@ pub fn setup(chain: ChainInfo) -> anyhow::Result<(Abstract<CloneTesting>, CloneT
     let abstr_deployment = Abstract::load_from(app.clone())?;
     let creator = app
         .wasm_querier()
-        .code(abstr_deployment.registry.code_id()?)?
+        .contract_info(&abstr_deployment.registry.address()?)?
         .creator;
     app.set_sender(creator.clone());
 

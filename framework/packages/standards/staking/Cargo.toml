@@ -28,7 +28,7 @@ schemars        = { workspace = true }
 serde           = { workspace = true }
 thiserror       = { workspace = true }
 
-abstract-adapter       = { version = "0.24.1", path = "../../abstract-adapter" }
+abstract-adapter       = { version = "0.25.0", path = "../../abstract-adapter" }
 abstract-adapter-utils = { workspace = true }
 abstract-sdk           = { workspace = true }
 abstract-std           = { workspace = true }
