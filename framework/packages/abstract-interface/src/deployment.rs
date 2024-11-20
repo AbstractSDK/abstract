@@ -220,9 +220,9 @@ impl<Chain: CwEnv> Abstract<Chain> {
             &abstract_std::registry::InstantiateMsg {
                 admin: admin.to_string(),
                 #[cfg(feature = "integration")]
-                security_enabled: Some(true),
-                #[cfg(not(feature = "integration"))]
                 security_enabled: Some(false),
+                #[cfg(not(feature = "integration"))]
+                security_enabled: Some(true),
                 namespace_registration_fee: None,
             },
             Some(&admin),
