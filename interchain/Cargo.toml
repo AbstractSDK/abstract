@@ -17,111 +17,109 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.24.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
   "Abstract Money <contact@abstract.money>",
 ]
+documentation = "https://docs.abstract.money/"
 edition = "2021"
 homepage = "https://abstract.money"
-documentation = "https://docs.abstract.money/"
-repository = "https://github.com/AbstractSDK/abstract"
-license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/AbstractSDK/abstract"
+version = "0.24.1"
 
 [workspace.dependencies]
-cosmwasm-std = { version = "2.0" }
 cosmwasm-schema = { version = "2.0" }
-cw-controllers = { version = "2.0" }
-cw-utils = { version = "2.0" }
+cosmwasm-std    = { version = "2.0" }
+cw-controllers  = { version = "2.0" }
 cw-storage-plus = "2.0.0"
-cw2 = { version = "2.0.0" }
-cw20 = { version = "2.0.0" }
-cw20-base = { version = "2.0.0", features = ["library"] }
+cw-utils        = { version = "2.0" }
+cw2             = { version = "2.0.0" }
+cw20            = { version = "2.0.0" }
+cw20-base       = { version = "2.0.0", features = ["library"] }
 
-cw-asset = { version = "4.0" }
-cw-ownable = { version = "2.0" }
 cw-address-like = { version = "2.0" }
+cw-asset        = { version = "4.0" }
+cw-ownable      = { version = "2.0" }
 
-schemars = "0.8"
-serde = { version = "1.0", default-features = false, features = ["derive"] }
+protobuf  = { version = "2", features = ["with-bytes"] }
+schemars  = "0.8"
+serde     = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.49" }
-protobuf = { version = "2", features = ["with-bytes"] }
 
-clap = { version = "4.0.32", features = ["derive"] }
+clap   = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-tokio = { version = "1.33.0", features = ["full"] }
+tokio  = { version = "1.33.0", features = ["full"] }
 
-polytone = { package = "abstract-polytone", version = "2.0.0" }
-polytone-note = { package = "abstract-polytone-note", version = "4.0.0" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
+polytone         = { package = "abstract-polytone", version = "2.0.0" }
+polytone-note    = { package = "abstract-polytone-note", version = "4.0.0" }
 
-cw-orch = { version = "0.27.0" }
-cw-orch-daemon = { version = "0.28.0" }
-cw-orch-interchain = { version = "0.8.0" }
+cw-orch               = { version = "0.27.0" }
 cw-orch-clone-testing = { version = "0.9.0" }
-cw-orch-proto = { version = "0.9.0" }
+cw-orch-daemon        = { version = "0.28.0" }
+cw-orch-interchain    = { version = "0.8.0" }
+cw-orch-proto         = { version = "0.9.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
+abstract-adapter   = { version = "0.24.1", path = "../framework/packages/abstract-adapter" }
+abstract-app       = { version = "0.24.1", path = "../framework/packages/abstract-app" }
+abstract-client    = { version = "0.24.1", path = "../framework/packages/abstract-client" }
 abstract-interface = { version = "0.24.1", path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.24.1", path = "../framework/packages/abstract-sdk" }
-abstract-std = { version = "0.24.1", path = "../framework/packages/abstract-std" }
-abstract-app = { version = "0.24.1", path = "../framework/packages/abstract-app" }
-abstract-adapter = { version = "0.24.1", path = "../framework/packages/abstract-adapter" }
-abstract-testing = { version = "0.24.1", path = "../framework/packages/abstract-testing" }
-abstract-client = { version = "0.24.1", path = "../framework/packages/abstract-client" }
+abstract-sdk       = { version = "0.24.1", path = "../framework/packages/abstract-sdk" }
+abstract-std       = { version = "0.24.1", path = "../framework/packages/abstract-std" }
+abstract-testing   = { version = "0.24.1", path = "../framework/packages/abstract-testing" }
 # Modules
 abstract-account = { version = "0.24.1", path = "../framework/contracts/account" }
 # croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }
 # dca-app = { path = "../modules/contracts/apps/dca" }
-abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking" }
-abstract-dex-adapter = { path = "../modules/contracts/adapters/dex" }
+abstract-cw-staking           = { path = "../modules/contracts/adapters/cw-staking" }
+abstract-dex-adapter          = { path = "../modules/contracts/adapters/dex" }
 abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market" }
 
-abstract-xion = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = [
-  "library",
-], branch = "fix-for-abstract" }
+abstract-xion = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = ["library"], branch = "fix-for-abstract" }
 
 ## Testing
-rstest = "0.17.0"
 anyhow = "1"
+rstest = "0.17.0"
 
 # Do not remove, none of interchain packages are deployed
 [patch.crates-io]
-abstract-adapter = { path = "../framework/packages/abstract-adapter" }
-abstract-app = { path = "../framework/packages/abstract-app" }
-abstract-interface = { path = "../framework/packages/abstract-interface" }
-abstract-client = { path = "../framework/packages/abstract-client" }
-abstract-sdk = { path = "../framework/packages/abstract-sdk" }
-abstract-testing = { path = "../framework/packages/abstract-testing" }
-abstract-std = { path = "../framework/packages/abstract-std" }
-abstract-macros = { path = "../framework/packages/abstract-macros" }
-abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
-abstract-dex-standard = { path = "../framework/packages/standards/dex" }
-abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+abstract-adapter               = { path = "../framework/packages/abstract-adapter" }
+abstract-adapter-utils         = { path = "../framework/packages/standards/utils" }
+abstract-app                   = { path = "../framework/packages/abstract-app" }
+abstract-client                = { path = "../framework/packages/abstract-client" }
+abstract-dex-standard          = { path = "../framework/packages/standards/dex" }
+abstract-interface             = { path = "../framework/packages/abstract-interface" }
+abstract-macros                = { path = "../framework/packages/abstract-macros" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
+abstract-sdk                   = { path = "../framework/packages/abstract-sdk" }
+abstract-staking-standard      = { path = "../framework/packages/standards/staking" }
+abstract-std                   = { path = "../framework/packages/abstract-std" }
+abstract-testing               = { path = "../framework/packages/abstract-testing" }
 
 #TODO: remove after polytone release
-abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone         = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-polytone-note    = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 # Backup release profile, will result in warnings during optimization
 
 [patch.'https://github.com/AbstractSDK/cw-orchestrator']
-cw-orch = { version = "0.26.0" }
+cw-orch            = { version = "0.26.0" }
 cw-orch-interchain = { version = "=0.7.2" }
 
 [profile.release]
-rpath = false
-lto = true
-overflow-checks = true
-opt-level = 3
-debug = false
+codegen-units    = 1
+debug            = false
 debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
+incremental      = false
+lto              = true
+opt-level        = 3
+overflow-checks  = true
+panic            = 'abort'
+rpath            = false
