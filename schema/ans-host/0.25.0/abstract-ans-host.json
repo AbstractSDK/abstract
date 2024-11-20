@@ -1,6 +1,6 @@
 {
   "contract_name": "abstract-ans-host",
-  "contract_version": "0.24.2",
+  "contract_version": "0.25.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
