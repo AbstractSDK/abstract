@@ -30,14 +30,14 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
 
     let InstantiateMsg {
         admin,
-        security_disabled,
+        security_enabled,
         namespace_registration_fee,
     } = msg;
 
     CONFIG.save(
         deps.storage,
         &Config {
-            security_disabled: security_disabled.unwrap_or(false),
+            security_enabled: security_enabled.unwrap_or(true),
             namespace_registration_fee,
         },
     )?;
@@ -78,9 +78,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             add_account(deps, info, namespace, creator)
         }
         ExecuteMsg::UpdateConfig {
-            security_disabled,
+            security_enabled,
             namespace_registration_fee,
-        } => update_config(deps, info, security_disabled, namespace_registration_fee),
+        } => update_config(deps, info, security_enabled, namespace_registration_fee),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(VcResponse, deps, env, info, action)
         }
@@ -104,7 +104,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             let config = CONFIG.load(deps.storage)?;
             let local_account_sequence = LOCAL_ACCOUNT_SEQUENCE.load(deps.storage)?;
             to_json_binary(&ConfigResponse {
-                security_disabled: config.security_disabled,
+                security_enabled: config.security_enabled,
                 namespace_registration_fee: config.namespace_registration_fee,
                 local_account_sequence,
             })
@@ -166,7 +166,7 @@ mod tests {
                 info,
                 registry::InstantiateMsg {
                     admin,
-                    security_disabled: Some(true),
+                    security_enabled: Some(true),
                     namespace_registration_fee: None,
                 },
             )
@@ -309,7 +309,7 @@ mod tests {
                     info.clone(),
                     registry::InstantiateMsg {
                         admin,
-                        security_disabled: Some(true),
+                        security_enabled: Some(true),
                         namespace_registration_fee: None,
                     },
                 )?;
