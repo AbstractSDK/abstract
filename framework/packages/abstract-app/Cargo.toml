@@ -1,10 +1,10 @@
 [package]
-name = "abstract-app"
-version = "0.24.1"
-edition = { workspace = true }
-license = { workspace = true }
 description = "base app contract implementation"
-resolver = "2"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "abstract-app"
+resolver    = "2"
+version     = "0.24.1"
 
 [lints]
 workspace = true
@@ -14,39 +14,35 @@ crate-type = ["cdylib", "rlib"]
 
 
 [features]
-test-utils = [
-    "dep:abstract-testing",
-    "abstract-sdk/test-utils",
-    "abstract-interface/testing",
-]
-schema = []
-stargate = ["abstract-sdk/stargate"]
+schema     = []
+stargate   = ["abstract-sdk/stargate"]
+test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils", "abstract-interface/testing"]
 
 [dependencies]
-cosmwasm-std = { workspace = true }
-cosmwasm-schema = { workspace = true }
-cw-storage-plus = { workspace = true }
-serde = { workspace = true }
-semver = { workspace = true }
-schemars = { workspace = true }
-cw-controllers = { workspace = true }
-thiserror = { workspace = true }
-cw2 = { workspace = true }
-cw-asset = { workspace = true }
-abstract-sdk = { workspace = true }
-abstract-std = { workspace = true }
+abstract-sdk     = { workspace = true }
+abstract-std     = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
-cw-orch = { workspace = true }
+cosmwasm-schema  = { workspace = true }
+cosmwasm-std     = { workspace = true }
+cw-asset         = { workspace = true }
+cw-controllers   = { workspace = true }
+cw-orch          = { workspace = true }
+cw-storage-plus  = { workspace = true }
+cw2              = { workspace = true }
+schemars         = { workspace = true }
+semver           = { workspace = true }
+serde            = { workspace = true }
+thiserror        = { workspace = true }
 
-abstract-interface = { version = "0.24.1", path = "../../packages/abstract-interface" }
 abstract-ibc-client = { version = "0.24.1", path = "../../contracts/native/ibc-client", default-features = false }
-abstract-ibc-host = { version = "0.24.1", path = "../../contracts/native/ibc-host", default-features = false }
+abstract-ibc-host   = { version = "0.24.1", path = "../../contracts/native/ibc-host", default-features = false }
+abstract-interface  = { version = "0.24.1", path = "../../packages/abstract-interface" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
-cosmwasm-schema = { workspace = true }
-abstract-app = { path = ".", features = ["test-utils"] }
+abstract-app               = { path = ".", features = ["test-utils"] }
 abstract-integration-tests = { workspace = true }
-coverage-helper = { workspace = true }
+cosmwasm-schema            = { workspace = true }
+coverage-helper            = { workspace = true }

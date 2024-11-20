@@ -1,15 +1,14 @@
 [package]
-name = "abstract-astroport-adapter"
-version = "2.10.0"
-authors = ["Abstract Money <contact@abstract.money>"]
-edition = "2021"
+authors     = ["Abstract Money <contact@abstract.money>"]
 description = "Abstract DexCommand implementation for Astroport"
-license = "Apache-2.0"
-repository = "https://github.com/astroport-fi/astroport"
+edition     = "2021"
+license     = "Apache-2.0"
+name        = "abstract-astroport-adapter"
+repository  = "https://github.com/astroport-fi/astroport"
+version     = "2.10.0"
 
 [features]
 default = ["full_integration"]
-local = []
 full_integration = [
   "dep:cw20",
   "dep:cosmwasm-schema",
@@ -17,20 +16,21 @@ full_integration = [
   "dep:cw-utils",
   "dep:astroport",
 ]
+local = []
 
 [dependencies]
-astroport = { version = "3.11.1", optional = true }
+astroport   = { version = "3.11.1", optional = true }
 lazy_static = "1.4.0"
 
-cosmwasm-std = { workspace = true }
+abstract-dex-standard     = { workspace = true }
+abstract-sdk              = { workspace = true }
 abstract-staking-standard = { workspace = true }
-abstract-dex-standard = { workspace = true }
-abstract-sdk = { workspace = true }
-cw20 = { workspace = true, optional = true }
-cosmwasm-schema = { workspace = true, optional = true }
-cw-asset = { workspace = true, optional = true }
-cw-utils = { workspace = true, optional = true }
+cosmwasm-schema           = { workspace = true, optional = true }
+cosmwasm-std              = { workspace = true }
+cw-asset                  = { workspace = true, optional = true }
+cw-utils                  = { workspace = true, optional = true }
+cw20                      = { workspace = true, optional = true }
 
 [dev-dependencies]
 abstract-dex-standard = { workspace = true, features = ["testing"] }
-cw-orch = { workspace = true }
+cw-orch               = { workspace = true }

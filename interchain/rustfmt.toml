@@ -1,7 +1,7 @@
 # stable
+hard_tabs     = false
 newline_style = "Unix"
-hard_tabs = false
-tab_spaces = 4
+tab_spaces    = 4
 
 # group_imports = "StdExternalCrate"
 # imports_granularity = "Crate"
