@@ -174,12 +174,11 @@ impl AccountTrace {
         let acc = if trace == LOCAL {
             Self::Local
         } else {
-            Self::Remote(
-                trace
-                    .split(CHAIN_DELIMITER)
-                    .map(TruncatedChainId::_from_str)
-                    .collect(),
-            )
+            let rev_trace: Vec<_> = trace
+                .split(CHAIN_DELIMITER)
+                .map(TruncatedChainId::_from_str)
+                .collect();
+            Self::Remote(rev_trace.into_iter().rev().collect())
         };
         acc.verify()?;
         Ok(acc)
@@ -190,15 +189,7 @@ impl TryFrom<&str> for AccountTrace {
     type Error = AbstractError;
 
     fn try_from(trace: &str) -> Result<Self, Self::Error> {
-        if trace == LOCAL {
-            Ok(Self::Local)
-        } else {
-            let chain_trace: Vec<TruncatedChainId> = trace
-                .split(CHAIN_DELIMITER)
-                .map(|t| TruncatedChainId::from_string(t.to_string()))
-                .collect::<Result<Vec<_>, _>>()?;
-            Ok(Self::Remote(chain_trace))
-        }
+        AccountTrace::from_str(trace)
     }
 }
 
@@ -212,6 +203,7 @@ impl Display for AccountTrace {
                 // "juno>terra>osmosis"
                 chain_name
                     .iter()
+                    .rev()
                     .map(|name| name.as_str())
                     .collect::<Vec<&str>>()
                     .join(CHAIN_DELIMITER)
@@ -255,25 +247,29 @@ mod test {
 
         #[coverage_helper::test]
         fn remote_multi_works() {
+            // Here the account originates from ethereum and was then bridged to bitcoin
             let trace = AccountTrace::from_str("bitcoin>ethereum").unwrap();
             assert_eq!(
                 trace,
+                // The trace vector pushes the last chains last
                 AccountTrace::Remote(vec![
+                    TruncatedChainId::from_str("ethereum").unwrap(),
                     TruncatedChainId::from_str("bitcoin").unwrap(),
-                    TruncatedChainId::from_str("ethereum").unwrap()
                 ])
             );
         }
 
         #[coverage_helper::test]
         fn remote_multi_multi_works() {
+            // Here the account originates from cosmos, and was then bridged to ethereum and was then bridged to bitcoin
             let trace = AccountTrace::from_str("bitcoin>ethereum>cosmos").unwrap();
             assert_eq!(
                 trace,
+                // The trace vector pushes the last chains last
                 AccountTrace::Remote(vec![
-                    TruncatedChainId::from_str("bitcoin").unwrap(),
-                    TruncatedChainId::from_str("ethereum").unwrap(),
                     TruncatedChainId::from_str("cosmos").unwrap(),
+                    TruncatedChainId::from_str("ethereum").unwrap(),
+                    TruncatedChainId::from_str("bitcoin").unwrap(),
                 ])
             );
         }
