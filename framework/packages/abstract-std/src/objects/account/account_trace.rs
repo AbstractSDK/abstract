@@ -156,7 +156,6 @@ impl AccountTrace {
         account_trace_from_str(&trace)
     }
 
-    #[allow(unused)]
     pub(crate) fn from_str(trace: &str) -> Result<Self, AbstractError> {
         let acc = account_trace_from_str(trace);
         acc.verify()?;
