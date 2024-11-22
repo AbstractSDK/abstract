@@ -37,7 +37,7 @@ thiserror       = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
-abstract-interface = { workspace = true, features = ["interchain"] }
+abstract-interface = { workspace = true, features = ["interchain", "testing"] }
 abstract-testing   = { workspace = true }
 cosmwasm-schema    = { workspace = true }
 cw-orch            = { workspace = true }

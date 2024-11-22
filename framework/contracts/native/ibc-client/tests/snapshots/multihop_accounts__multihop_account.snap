@@ -1,0 +1,17 @@
+---
+source: contracts/native/ibc-client/tests/multihop_accounts.rs
+expression: all_storage
+---
+"abstract:ibc-client":
+  - - "\u0000\u0002earemote"
+    - "{\"polytone_note\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\",\"remote_abstract_host\":\"host\",\"remote_proxy\":\"host\"}"
+  - - "\u0000\u0002ebmock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t"
+    - "\"remote\""
+  - - "\u0000\u0002ec\u0000\u0006remote\u0000\u0001>\u0000\u0006remote\u0000\u0004\u0000\u0000\u0000*remote"
+    - "\"remote_account\""
+  - - contract_info
+    - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.25.0\"}"
+  - - mod
+    - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.25.0\",\"dependencies\":[],\"metadata\":null}"
+  - - ownership
+    - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
