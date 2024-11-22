@@ -177,7 +177,8 @@ fn account_trace_from_str(trace: &str) -> AccountTrace {
         AccountTrace::Local
     } else {
         let rev_trace: Vec<_> = trace
-            .split(CHAIN_DELIMITER)
+            // DoubleEndedSearcher implemented for char, but not for "str"
+            .split(CHAIN_DELIMITER.chars().next().unwrap())
             .map(TruncatedChainId::_from_str)
             .collect();
         AccountTrace::Remote(rev_trace.into_iter().rev().collect())
