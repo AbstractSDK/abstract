@@ -153,33 +153,12 @@ impl AccountTrace {
     ///
     /// **only use this for deserialization**
     pub(crate) fn from_string(trace: String) -> Self {
-        let acc = if trace == LOCAL {
-            Self::Local
-        } else {
-            Self::Remote(
-                trace
-                    .split(CHAIN_DELIMITER)
-                    .map(TruncatedChainId::_from_str)
-                    .collect(),
-            )
-        };
-        acc
+        account_trace_from_str(&trace)
     }
 
-    /// **No verification is done here**
-    ///
-    /// **only use this for deserialization**
     #[allow(unused)]
     pub(crate) fn from_str(trace: &str) -> Result<Self, AbstractError> {
-        let acc = if trace == LOCAL {
-            Self::Local
-        } else {
-            let rev_trace: Vec<_> = trace
-                .split(CHAIN_DELIMITER)
-                .map(TruncatedChainId::_from_str)
-                .collect();
-            Self::Remote(rev_trace.into_iter().rev().collect())
-        };
+        let acc = account_trace_from_str(trace);
         acc.verify()?;
         Ok(acc)
     }
@@ -190,6 +169,18 @@ impl TryFrom<&str> for AccountTrace {
 
     fn try_from(trace: &str) -> Result<Self, Self::Error> {
         AccountTrace::from_str(trace)
+    }
+}
+
+fn account_trace_from_str(trace: &str) -> AccountTrace {
+    if trace == LOCAL {
+        AccountTrace::Local
+    } else {
+        let rev_trace: Vec<_> = trace
+            .split(CHAIN_DELIMITER)
+            .map(TruncatedChainId::_from_str)
+            .collect();
+        AccountTrace::Remote(rev_trace.into_iter().rev().collect())
     }
 }
 
