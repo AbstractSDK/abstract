@@ -362,8 +362,8 @@ mod test {
             assert_eq!(
                 account_id.trace,
                 AccountTrace::Remote(vec![
-                    TruncatedChainId::_from_str("ethereum"),
                     TruncatedChainId::_from_str("bitcoin"),
+                    TruncatedChainId::_from_str("ethereum"),
                 ])
             );
         }

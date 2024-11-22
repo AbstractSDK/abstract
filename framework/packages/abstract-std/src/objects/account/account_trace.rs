@@ -179,8 +179,9 @@ fn account_trace_from_str(trace: &str) -> AccountTrace {
             // DoubleEndedSearcher implemented for char, but not for "str"
             .split(CHAIN_DELIMITER.chars().next().unwrap())
             .map(TruncatedChainId::_from_str)
+            .rev()
             .collect();
-        AccountTrace::Remote(rev_trace.into_iter().rev().collect())
+        AccountTrace::Remote(rev_trace)
     }
 }
 

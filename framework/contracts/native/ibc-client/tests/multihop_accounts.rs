@@ -1,7 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_std::{
     ibc::polytone_callbacks::CallbackMessage,
-    ibc_client::{ExecuteMsgFns as _, IbcClientCallback},
+    ibc_client::{ExecuteMsgFns as _, IbcClientCallback, QueryMsgFns},
     objects::{AccountId, TruncatedChainId},
     ABSTRACT_EVENT_TYPE,
 };
@@ -41,7 +41,7 @@ fn multihop_account_snapshot() -> AResult {
         .client
         .instantiate(&abstract_std::ibc_client::InstantiateMsg {}, None, &[])?;
     deployment.ibc.client.register_infrastructure(
-        TruncatedChainId::from_chain_id("remote-1"),
+        TruncatedChainId::from_chain_id("remoteone-1"),
         "host",
         note.clone(),
     )?;
@@ -60,6 +60,13 @@ fn multihop_account_snapshot() -> AResult {
             )),
         })?;
 
+    let multihop_account_id = AccountId::new(
+        42,
+        abstract_std::objects::AccountTrace::Remote(vec![
+            TruncatedChainId::from_chain_id("remoteone-1"),
+            TruncatedChainId::from_chain_id("remotetwo-1"),
+        ]),
+    )?;
     // register account
     deployment
         .ibc
@@ -68,13 +75,7 @@ fn multihop_account_snapshot() -> AResult {
         .callback(CallbackMessage {
             initiator: deployment.ibc.client.address()?,
             initiator_msg: to_json_binary(&IbcClientCallback::CreateAccount {
-                account_id: AccountId::new(
-                    42,
-                    abstract_std::objects::AccountTrace::Remote(vec![
-                        TruncatedChainId::from_chain_id("remote-1"),
-                        TruncatedChainId::from_chain_id("remote-2"),
-                    ]),
-                )?,
+                account_id: multihop_account_id.clone(),
             })?,
             result: abstract_std::ibc::polytone_callbacks::Callback::Execute(Ok(
                 abstract_std::ibc::polytone_callbacks::ExecutionResponse {
@@ -89,6 +90,16 @@ fn multihop_account_snapshot() -> AResult {
                 },
             )),
         })?;
+    let accounts = deployment.ibc.client.list_accounts(None, None)?;
+    // Make sure we have in state exactly what we did put
+    assert_eq!(
+        accounts.accounts,
+        vec![(
+            multihop_account_id,
+            TruncatedChainId::from_chain_id("remoteone-1"),
+            "remote_account".to_owned()
+        )]
+    );
     take_storage_snapshot!(chain, "multihop_account");
     Ok(())
 }
