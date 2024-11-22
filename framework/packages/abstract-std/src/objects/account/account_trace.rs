@@ -22,6 +22,7 @@ impl KeyDeserialize for &AccountTrace {
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        let value = value.into_iter().filter(|b| *b > 32).collect();
         Ok(AccountTrace::from_string(String::from_vec(value)?))
     }
 }
@@ -39,6 +40,7 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
                 let len = chain_name.len();
                 chain_name
                     .iter()
+                    .rev()
                     .enumerate()
                     .flat_map(|(s, c)| {
                         if s == len - 1 {
@@ -339,11 +341,18 @@ mod test {
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
+            let multihop_key = mock_multi_hop_key();
             let map: Map<(&AccountTrace, Addr), u64> = Map::new("map");
 
             map.save(
                 deps.as_mut().storage,
                 (&key, Addr::unchecked("larry")),
+                &42069,
+            )
+            .unwrap();
+            map.save(
+                deps.as_mut().storage,
+                (&multihop_key, Addr::unchecked("larry")),
                 &42069,
             )
             .unwrap();
@@ -361,7 +370,7 @@ mod test {
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
 
-            assert_eq!(items.len(), 2);
+            assert_eq!(items.len(), 3);
             assert_eq!(items[0], (Addr::unchecked("jake"), 69420));
             assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
         }
