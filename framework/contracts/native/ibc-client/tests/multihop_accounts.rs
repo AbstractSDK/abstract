@@ -100,6 +100,7 @@ fn multihop_account_snapshot() -> AResult {
             "remote_account".to_owned()
         )]
     );
+
     take_storage_snapshot!(chain, "multihop_account");
     Ok(())
 }

@@ -300,23 +300,39 @@ mod test {
             AccountTrace::Remote(vec![TruncatedChainId::from_str("bitcoin").unwrap()])
         }
 
+        fn mock_multi_hop_key() -> AccountTrace {
+            AccountTrace::Remote(vec![
+                TruncatedChainId::from_str("bitcoin").unwrap(),
+                TruncatedChainId::from_str("atom").unwrap(),
+                TruncatedChainId::from_str("foo").unwrap(),
+            ])
+        }
+
         #[coverage_helper::test]
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
+            let multihop_key = mock_multi_hop_key();
             let map: Map<&AccountTrace, u64> = Map::new("map");
 
             map.save(deps.as_mut().storage, &key, &42069).unwrap();
+            map.save(deps.as_mut().storage, &multihop_key, &69420)
+                .unwrap();
 
             assert_eq!(map.load(deps.as_ref().storage, &key).unwrap(), 42069);
+            assert_eq!(
+                map.load(deps.as_ref().storage, &multihop_key).unwrap(),
+                69420
+            );
 
             let items = map
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
 
-            assert_eq!(items.len(), 1);
-            assert_eq!(items[0], (key, 42069));
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0], (multihop_key, 69420));
+            assert_eq!(items[1], (key, 42069));
         }
 
         #[coverage_helper::test]
