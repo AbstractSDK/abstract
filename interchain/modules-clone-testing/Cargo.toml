@@ -50,5 +50,11 @@ abstract-oracle-adapter = { workspace = true, features = [
   # "ghost",
 ] }
 
+# Pyth sdk
+# pyth-sdk-cw = "1.2.0"
+pyth-sdk-cw = { git = "https://github.com/lvn-hasky-dragon/pyth-crosschain", branch = "update-deps" }
+
+hex        = "0.4.3"
+reqwest    = { version = "0.12.9", features = ["blocking"] }
 serde      = "1"
 serde_json = "1"

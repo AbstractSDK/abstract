@@ -1,5 +1,7 @@
 use abstract_oracle_standard::{Identify, OracleCommand, OracleError};
 
+pub use abstract_pyth_adapter::PYTH;
+
 /// Any exchange should be identified by the adapter
 /// This allows erroring the execution before sending any IBC message to another chain
 /// This provides superior UX in case of an IBC execution

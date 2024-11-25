@@ -1,14 +1,17 @@
 use crate::{interface::OracleAdapter, ORACLE_ADAPTER_ID};
-use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, RegistryExecFns};
+use abstract_adapter::abstract_interface::{
+    AdapterDeployer, DeployStrategy, MFactoryQueryFns, RegistryExecFns,
+};
+use abstract_adapter::std::ans_host::QueryMsgFns;
 use abstract_adapter::std::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_client::{AbstractClient, Environment};
 
-use abstract_oracle_standard::msg::OracleQueryMsgFns;
+use abstract_oracle_standard::msg::{OracleQueryMsgFns, PriceResponse};
 use cw_orch::{environment::MutCwEnv, prelude::*};
 
 use cw_orch::anyhow;
 
-pub trait MockOracle {
+pub trait MockOracle<Chain: MutCwEnv> {
     const MAX_AGE: u64;
 
     /// Name of the dex
@@ -19,16 +22,16 @@ pub trait MockOracle {
 
     /// Ans setup for this oracle
     /// For instance, for Pyth, we just register pyth Contract Entry inside ans
-    fn ans_setup(&self) -> anyhow::Result<()>;
+    fn ans_setup(&self, abstr_deployment: &AbstractClient<Chain>) -> anyhow::Result<()>;
 }
 
-pub struct OracleTester<Chain: MutCwEnv, Oracle: MockOracle> {
+pub struct OracleTester<Chain: MutCwEnv, Oracle: MockOracle<Chain>> {
     pub abstr_deployment: AbstractClient<Chain>,
     pub oracle_adapter: OracleAdapter<Chain>,
     pub oracle: Oracle,
 }
 
-impl<Chain: MutCwEnv, Oracle: MockOracle> OracleTester<Chain, Oracle> {
+impl<Chain: MutCwEnv, Oracle: MockOracle<Chain>> OracleTester<Chain, Oracle> {
     pub fn new(abstr_deployment: AbstractClient<Chain>, oracle: Oracle) -> anyhow::Result<Self> {
         // Re-register dex, to make sure it's latest
         let _ = abstr_deployment
@@ -37,6 +40,7 @@ impl<Chain: MutCwEnv, Oracle: MockOracle> OracleTester<Chain, Oracle> {
                 ORACLE_ADAPTER_ID,
                 ModuleVersion::Version(crate::contract::CONTRACT_VERSION.to_owned()),
             )?);
+
         let oracle_adapter = OracleAdapter::new(abstr_deployment.environment());
         oracle_adapter.deploy(
             crate::contract::CONTRACT_VERSION.parse()?,
@@ -44,7 +48,7 @@ impl<Chain: MutCwEnv, Oracle: MockOracle> OracleTester<Chain, Oracle> {
             DeployStrategy::Force,
         )?;
 
-        oracle.ans_setup()?;
+        oracle.ans_setup(&abstr_deployment)?;
 
         Ok(Self {
             abstr_deployment,
@@ -53,15 +57,14 @@ impl<Chain: MutCwEnv, Oracle: MockOracle> OracleTester<Chain, Oracle> {
         })
     }
 
-    pub fn test_price(&self) -> anyhow::Result<()> {
+    pub fn test_price(&self) -> anyhow::Result<PriceResponse> {
         // Get the price associated with the ID
-        let _price = self.oracle_adapter.price(
-            Oracle::MAX_AGE,
-            self.oracle.name(),
-            self.oracle.price_source_key(),
-        )?;
-
-        // Price should just exist, not using it here
-        Ok(())
+        self.oracle_adapter
+            .price(
+                Oracle::MAX_AGE,
+                self.oracle.name(),
+                self.oracle.price_source_key(),
+            )
+            .map_err(Into::into)
     }
 }
