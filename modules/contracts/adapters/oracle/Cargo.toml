@@ -32,7 +32,11 @@ pyth = ["abstract-pyth-adapter/full_integration"]
 
 # Builds
 [package.metadata.optimizer]
-builds = [{ name = "pyth", features = ["pyth"] }]
+builds = [
+    { name = "xion", features = ["pyth"] },
+    { name = "neutron", features = ["pyth"] },
+    { name = "osmosis", features = ["pyth"] },
+]
 
 [dependencies]
 abstract-adapter          = { workspace = true }
