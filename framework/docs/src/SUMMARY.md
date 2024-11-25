@@ -48,6 +48,7 @@
 - [IBC](./4_get_started/10_ibc_capabilities.md)
   - [Account IBC](./ibc/account-ibc.md)
   - [Module IBC](./ibc/module-ibc.md)
+  - [EVM IBC](./ibc/evm-ibc.md)
   - [Testing](./4_get_started/11_ibc_testing.md)
 - [Metadata](./4_get_started/9_metadata.md)
 - [Modules](./modules/index.md)
