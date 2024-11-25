@@ -80,6 +80,7 @@ challenge-app = { path = "../modules/contracts/apps/challenge" }
 abstract-cw-staking           = { path = "../modules/contracts/adapters/cw-staking" }
 abstract-dex-adapter          = { path = "../modules/contracts/adapters/dex" }
 abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market" }
+abstract-oracle-adapter       = { path = "../modules/contracts/adapters/oracle" }
 
 abstract-xion = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = ["library"], branch = "fix-for-abstract" }
 
@@ -97,6 +98,7 @@ abstract-dex-standard          = { path = "../framework/packages/standards/dex" 
 abstract-interface             = { path = "../framework/packages/abstract-interface" }
 abstract-macros                = { path = "../framework/packages/abstract-macros" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
+abstract-oracle-standard       = { path = "../framework/packages/standards/oracle" }
 abstract-sdk                   = { path = "../framework/packages/abstract-sdk" }
 abstract-staking-standard      = { path = "../framework/packages/standards/staking" }
 abstract-std                   = { path = "../framework/packages/abstract-std" }

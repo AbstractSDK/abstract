@@ -7,6 +7,7 @@ members = [
   # "wyndex-adapter",
   # "kujira-adapter",
   # "mars-adapter",
+  "oracles/pyth",
 ]
 
 resolver = "2"
@@ -60,19 +61,23 @@ abstract-std       = { version = "0.25.0" }
 abstract-adapter-utils         = { version = "0.25.0" }
 abstract-dex-standard          = { version = "0.25.0" }
 abstract-money-market-standard = { version = "0.25.0" }
+abstract-oracle-standard       = { version = "0.25.0" }
 abstract-staking-standard      = { version = "0.25.0" }
 
 # TODO: REMOVE As soon as new dex-standard published
 [patch.crates-io]
-abstract-adapter               = { path = "../framework/packages/abstract-adapter" }
+abstract-macros = { path = "../framework/packages/abstract-macros" }
+abstract-sdk    = { path = "../framework/packages/abstract-sdk" }
+abstract-std    = { path = "../framework/packages/abstract-std" }
+
+abstract-adapter   = { path = "../framework/packages/abstract-adapter" }
+abstract-interface = { path = "../framework/packages/abstract-interface" }
+
 abstract-adapter-utils         = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard          = { path = "../framework/packages/standards/dex" }
-abstract-interface             = { path = "../framework/packages/abstract-interface" }
-abstract-macros                = { path = "../framework/packages/abstract-macros" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
-abstract-sdk                   = { path = "../framework/packages/abstract-sdk" }
+abstract-oracle-standard       = { path = "../framework/packages/standards/oracle" }
 abstract-staking-standard      = { path = "../framework/packages/standards/staking" }
-abstract-std                   = { path = "../framework/packages/abstract-std" }
 
 # In case polytone not released
 # abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }

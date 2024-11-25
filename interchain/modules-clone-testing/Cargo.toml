@@ -43,5 +43,12 @@ abstract-money-market-adapter = { workspace = true, features = [
 # kujira = { version = "0.8" }
 astrovault = { version = "0.1.4" }
 
+
+abstract-oracle-adapter = { workspace = true, features = [
+  "testing",
+  "pyth",
+  # "ghost",
+] }
+
 serde      = "1"
 serde_json = "1"
