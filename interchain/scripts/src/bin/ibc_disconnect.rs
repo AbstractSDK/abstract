@@ -3,7 +3,6 @@ use clap::Parser;
 use cw_orch::daemon::DaemonState;
 use cw_orch::prelude::*;
 
-use cw_orch_interchain::prelude::*;
 use networks::parse_network;
 
 fn get_daemon(
@@ -43,10 +42,7 @@ fn connect(
 
     let src_abstract = Abstract::load_from(src_daemon.clone())?;
     let dst_abstract = Abstract::load_from(dst_daemon.clone())?;
-
-    let interchain =
-        DaemonInterchain::from_daemons(vec![src_daemon, dst_daemon], &ChannelCreationValidator);
-    src_abstract.disconnect_from(&dst_abstract, &interchain)?;
+    src_abstract.disconnect_from(&dst_abstract)?;
 
     Ok(())
 }
