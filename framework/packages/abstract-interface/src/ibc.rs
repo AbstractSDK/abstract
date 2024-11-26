@@ -85,6 +85,17 @@ pub mod connection {
             connect_one_way_to(remote_abstr, self, interchain)?;
             Ok(())
         }
+
+        /// This is used for completely removing a connection between two Abstract connections.
+        pub fn disconnect_from<IBC: InterchainEnv<Chain>>(
+            &self,
+            remote_abstr: &Abstract<Chain>,
+            interchain: &IBC,
+        ) -> Result<(), AbstractInterfaceError> {
+            disconnect_one_way_from(self, remote_abstr, interchain)?;
+            disconnect_one_way_from(remote_abstr, self, interchain)?;
+            Ok(())
+        }
     }
 
     impl AbstractIbc<Daemon> {
@@ -140,6 +151,27 @@ pub mod connection {
             .ibc
             .host
             .register_chain_proxy(chain1_name, proxy_address.remote_polytone_proxy.unwrap())?;
+
+        Ok(())
+    }
+
+    pub fn disconnect_one_way_from<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
+        abstr_client: &Abstract<Chain>,
+        abstr_host: &Abstract<Chain>,
+        interchain: &IBC,
+    ) -> Result<(), AbstractInterfaceError> {
+        // First we get the chain names to remove them from host and client
+        let chain1_id = abstr_client.ibc.client.environment().chain_id();
+        let chain1_name = TruncatedChainId::from_chain_id(&chain1_id);
+
+        let chain2_id = abstr_host.ibc.client.environment().chain_id();
+        let chain2_name = TruncatedChainId::from_chain_id(&chain2_id);
+
+        // First, we remove on the client
+        abstr_client.ibc.client.remove_host(chain2_name.clone())?;
+
+        // Then we remove on the host
+        abstr_host.ibc.host.remove_chain_proxy(chain1_name)?;
 
         Ok(())
     }
