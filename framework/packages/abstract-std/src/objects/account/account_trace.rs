@@ -17,7 +17,7 @@ pub enum AccountTrace {
     Remote(Vec<TruncatedChainId>),
 }
 
-pub const ACCOUNT_TRACE_KEY_PLACEHOLDER: &str = "place-holder-key";
+pub const ACCOUNT_TRACE_KEY_PLACEHOLDER: &[u8] = b"a";
 
 impl KeyDeserialize for &AccountTrace {
     type Output = AccountTrace;
@@ -29,15 +29,16 @@ impl KeyDeserialize for &AccountTrace {
         // We parse the whole data for the MAX_TRACE_LENGTH keys
         let mut value = value.as_ref();
         for i in 0..MAX_TRACE_LENGTH - 1 {
-            let (t, remainder) = split_first_key(1, value)?;
+            let (current_chain, remainder) = split_first_key(1, value)?;
             value = remainder;
-            let chain = String::from_utf8(t)?;
+            if current_chain == ACCOUNT_TRACE_KEY_PLACEHOLDER {
+                continue;
+            }
+            let chain = String::from_utf8(current_chain)?;
             if i == 0 && chain == "local" {
                 return Ok(AccountTrace::Local);
             }
-            if chain != ACCOUNT_TRACE_KEY_PLACEHOLDER {
-                trace.push(TruncatedChainId::from_string(chain).unwrap())
-            }
+            trace.push(TruncatedChainId::from_string(chain).unwrap())
         }
 
         Ok(AccountTrace::Remote(trace))
