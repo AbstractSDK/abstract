@@ -47,7 +47,7 @@ mod test_common {
     use crate::{contract::AccountResult, error::AccountError, msg::ExecuteMsg};
 
     /// Initialize the account with the test owner as the owner
-    pub(crate) fn mock_init(
+    pub fn mock_init(
         deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>,
     ) -> AccountResult {
         let abstr = AbstractMockAddrs::new(deps.api);

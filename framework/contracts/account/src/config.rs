@@ -10,11 +10,27 @@ use abstract_std::{
         InternalConfigAction,
     },
     objects::{
-        ownership,
+        ownership::{self, GovOwnershipError},
         validation::{validate_description, validate_link, validate_name},
     },
 };
-use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdError};
+use cosmwasm_std::{Addr, Deps, DepsMut, MessageInfo, Response, StdError};
+
+/// Check that sender is admin governance
+pub(crate) fn assert_admin(deps: Deps, sender: &Addr) -> AccountResult<()> {
+    ownership::assert_nested_owner(deps.storage, &deps.querier, sender)?;
+    #[cfg(feature = "xion")]
+    {
+        if let Some(true) = crate::state::AUTH_ADMIN.may_load(deps.storage)? {
+            return Ok(());
+        }
+        return Err(AccountError::Ownership(GovOwnershipError::NotOwner));
+    }
+    #[cfg(not(feature = "xion"))]
+    {
+        Ok(())
+    }
+}
 
 pub fn update_account_status(
     deps: DepsMut,
@@ -53,7 +69,8 @@ pub fn update_internal_config(
     info: MessageInfo,
     action: InternalConfigAction,
 ) -> AccountResult {
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+    assert_admin(deps.as_ref(), &info.sender)?;
+    // ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     match action {
         InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => {
