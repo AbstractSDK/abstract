@@ -1,8 +1,5 @@
 use crate::{interface::OracleAdapter, ORACLE_ADAPTER_ID};
-use abstract_adapter::abstract_interface::{
-    AdapterDeployer, DeployStrategy, MFactoryQueryFns, RegistryExecFns,
-};
-use abstract_adapter::std::ans_host::QueryMsgFns;
+use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, RegistryExecFns};
 use abstract_adapter::std::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_client::{AbstractClient, Environment};
 
@@ -32,6 +29,7 @@ pub struct OracleTester<Chain: MutCwEnv, Oracle: MockOracle<Chain>> {
 }
 
 impl<Chain: MutCwEnv, Oracle: MockOracle<Chain>> OracleTester<Chain, Oracle> {
+    /// Used to test new code
     pub fn new(abstr_deployment: AbstractClient<Chain>, oracle: Oracle) -> anyhow::Result<Self> {
         // Re-register dex, to make sure it's latest
         let _ = abstr_deployment
@@ -53,6 +51,22 @@ impl<Chain: MutCwEnv, Oracle: MockOracle<Chain>> OracleTester<Chain, Oracle> {
         Ok(Self {
             abstr_deployment,
             oracle_adapter,
+            oracle,
+        })
+    }
+
+    /// Used to test on-chain code
+    pub fn new_live(
+        abstr_deployment: AbstractClient<Chain>,
+        oracle: Oracle,
+    ) -> anyhow::Result<Self> {
+        let account = abstr_deployment.account_builder().build()?;
+        let oracle_adapter =
+            account.install_adapter::<crate::interface::OracleAdapter<Chain>>(&[])?;
+
+        Ok(Self {
+            abstr_deployment,
+            oracle_adapter: oracle_adapter.module()?,
             oracle,
         })
     }

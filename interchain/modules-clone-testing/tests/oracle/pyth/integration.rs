@@ -1,8 +1,10 @@
 use std::str::FromStr;
 
+use super::pyth_api::PythApiResponse;
 use abstract_app::{objects::UncheckedContractEntry, std::ans_host::QueryMsgFns};
 use abstract_client::AbstractClient;
 use abstract_interface::ExecuteMsgFns;
+use abstract_oracle_adapter::interface::deployment::pyth_addresses;
 use abstract_oracle_adapter::{
     oracle_tester::{MockOracle, OracleTester},
     oracles::PYTH,
@@ -11,42 +13,13 @@ use cosmwasm_std::{Addr, Binary, Uint128};
 use cw_orch::daemon::networks::XION_TESTNET_1;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
-use pyth_api::PythApiResponse;
+use networks::{NEUTRON_1, OSMOSIS_1, OSMO_5, PION_1};
 
-pub const PYTH_XION_ADDRESS: &str =
-    "xion1w39ctwxxhxxc2kxarycjxj9rndn65gf8daek7ggarwh3rq3zl0lqqllnmt";
-
-// Use https://hermes.pyth.network/docs/#/rest/latest_price_updates to query latest update
-pub const ORACLE_PRICE_API: &str = "https://hermes.pyth.network/v2/updates/price/latest?ids%5B%5D=";
-pub const PRICE_SOURCE_KEY: &str =
-    "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43";
-
-pub mod pyth_api {
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Serialize, Deserialize)]
-    pub struct PythApiResponse {
-        pub binary: PythApiResponseBinary,
-        pub parsed: Vec<PythApiResponseparsed>,
-    }
-
-    #[derive(Serialize, Deserialize)]
-    pub struct PythApiResponseBinary {
-        pub data: Vec<String>,
-    }
-    #[derive(Serialize, Deserialize)]
-    pub struct PythApiResponseparsed {
-        pub price: PythApiResponsePrice,
-    }
-    #[derive(Serialize, Deserialize)]
-    pub struct PythApiResponsePrice {
-        pub price: String,
-    }
-}
+pub use super::{ORACLE_PRICE_API, PRICE_SOURCE_KEY};
 
 pub struct PythOracleTester {
     pub current_oracle_price_data: PythApiResponse,
-    pub chain: CloneTesting,
+    pub pyth_address: Addr,
 }
 
 impl MockOracle<CloneTesting> for PythOracleTester {
@@ -66,7 +39,7 @@ impl MockOracle<CloneTesting> for PythOracleTester {
                     protocol: PYTH.to_string(),
                     contract: "oracle".to_string(),
                 },
-                PYTH_XION_ADDRESS.to_string(),
+                self.pyth_address.to_string(),
             )],
             vec![],
         )?;
@@ -74,9 +47,12 @@ impl MockOracle<CloneTesting> for PythOracleTester {
     }
 }
 
-fn setup_clone_testing() -> anyhow::Result<OracleTester<CloneTesting, PythOracleTester>> {
-    let clone_testing = CloneTesting::new(XION_TESTNET_1)?;
-    let pyth_addr = Addr::unchecked(PYTH_XION_ADDRESS);
+fn setup_clone_testing(
+    chain: ChainInfo,
+) -> anyhow::Result<OracleTester<CloneTesting, PythOracleTester>> {
+    let clone_testing = CloneTesting::new(chain.clone())?;
+
+    let pyth_address = pyth_addresses().get(chain.chain_id).unwrap().clone();
 
     let price_data: PythApiResponse =
         reqwest::blocking::get(format!("{}{}", ORACLE_PRICE_API, PRICE_SOURCE_KEY))?.json()?;
@@ -93,7 +69,7 @@ fn setup_clone_testing() -> anyhow::Result<OracleTester<CloneTesting, PythOracle
         &pyth_sdk_cw::QueryMsg::GetUpdateFee {
             vaas: update_data.clone(),
         },
-        &pyth_addr,
+        &pyth_address,
     )?;
     clone_testing.add_balance(&clone_testing.sender, vec![update_fee.clone()])?;
     clone_testing.execute(
@@ -101,7 +77,7 @@ fn setup_clone_testing() -> anyhow::Result<OracleTester<CloneTesting, PythOracle
             data: update_data.clone(),
         },
         &[update_fee],
-        &pyth_addr,
+        &pyth_address,
     )?;
 
     let abstr_deployment = AbstractClient::new(clone_testing.clone())?;
@@ -109,15 +85,14 @@ fn setup_clone_testing() -> anyhow::Result<OracleTester<CloneTesting, PythOracle
     let abstr_deployment = abstr_deployment.call_as(&Addr::unchecked(abstract_admin));
 
     let tester = PythOracleTester {
-        chain: clone_testing,
         current_oracle_price_data: price_data,
+        pyth_address,
     };
     OracleTester::new(abstr_deployment, tester)
 }
 
-#[test]
-fn test_price_query() -> anyhow::Result<()> {
-    let oracle_tester = setup_clone_testing()?;
+fn test_price_query(chain: ChainInfo) -> anyhow::Result<()> {
+    let oracle_tester = setup_clone_testing(chain)?;
     let current_price = oracle_tester.test_price()?;
 
     let raw_price = oracle_tester.oracle.current_oracle_price_data.parsed[0]
@@ -129,4 +104,25 @@ fn test_price_query() -> anyhow::Result<()> {
     assert_eq!(current_price.price.to_uint_floor(), price);
 
     Ok(())
+}
+
+#[test]
+fn test_xion() {
+    test_price_query(XION_TESTNET_1).unwrap();
+}
+#[test]
+fn test_osmo_test() {
+    test_price_query(OSMO_5).unwrap();
+}
+#[test]
+fn test_pion() {
+    test_price_query(PION_1).unwrap();
+}
+#[test]
+fn test_osmosis() {
+    test_price_query(OSMOSIS_1).unwrap();
+}
+#[test]
+fn test_neutron() {
+    test_price_query(NEUTRON_1).unwrap();
 }

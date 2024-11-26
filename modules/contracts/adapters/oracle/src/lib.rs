@@ -87,4 +87,35 @@ pub mod interface {
             Ok(vec![])
         }
     }
+
+    pub mod deployment {
+        use cosmwasm_std::Addr;
+        use cw_orch::daemon::networks::{NEUTRON_1, OSMOSIS_1, OSMO_5, PION_1, XION_TESTNET_1};
+        use std::collections::HashMap;
+
+        pub fn pyth_addresses() -> HashMap<String, Addr> {
+            vec![
+                (XION_TESTNET_1.chain_id, PYTH_XION_TEST_ADDRESS),
+                (PION_1.chain_id, PYTH_PION_ADDRESS),
+                (OSMO_5.chain_id, PYTH_OSMO_TEST_ADDRESS),
+                (NEUTRON_1.chain_id, PYTH_NEUTRON_ADDRESS),
+                (OSMOSIS_1.chain_id, PYTH_OSMOSIS_ADDRESS),
+            ]
+            .into_iter()
+            .map(|(key, value)| (key.to_string(), Addr::unchecked(value)))
+            .collect()
+        }
+
+        pub const PYTH_XION_TEST_ADDRESS: &str =
+            "xion1w39ctwxxhxxc2kxarycjxj9rndn65gf8daek7ggarwh3rq3zl0lqqllnmt";
+        pub const PYTH_PION_ADDRESS: &str =
+            "neutron15ldst8t80982akgr8w8ekcytejzkmfpgdkeq4xgtge48qs7435jqp87u3t";
+        pub const PYTH_OSMO_TEST_ADDRESS: &str =
+            "osmo1hpdzqku55lmfmptpyj6wdlugqs5etr6teqf7r4yqjjrxjznjhtuqqu5kdh";
+
+        pub const PYTH_NEUTRON_ADDRESS: &str =
+            "neutron1m2emc93m9gpwgsrsf2vylv9xvgqh654630v7dfrhrkmr5slly53spg85wv";
+        pub const PYTH_OSMOSIS_ADDRESS: &str =
+            "osmo13ge29x4e2s63a8ytz2px8gurtyznmue4a69n5275692v3qn3ks8q7cwck7";
+    }
 }

@@ -11,8 +11,8 @@ pub type OracleResult<T = Response> = Result<T, OracleError>;
 
 pub const ORACLE_ADAPTER: OracleAdapter =
     OracleAdapter::new(ORACLE_ADAPTER_ID, CONTRACT_VERSION, None)
-        // .with_instantiate(handlers::instantiate_handler)
-        // .with_execute(handlers::execute_handler)
+        .with_instantiate(handlers::instantiate_handler)
+        .with_execute(handlers::execute_handler)
         .with_query(handlers::query_handler);
 
 #[cfg(feature = "export")]
