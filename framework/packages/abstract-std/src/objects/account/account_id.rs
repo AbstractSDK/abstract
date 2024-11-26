@@ -187,7 +187,7 @@ impl KeyDeserialize for AccountId {
 }
 
 /// This was copied from cosmwasm-std
-/// 
+///
 /// https://github.com/CosmWasm/cw-storage-plus/blob/f65cd4000a0dc1c009f3f99e23f9e10a1c256a68/src/de.rs#L173
 pub(crate) mod deser {
     use cosmwasm_std::{StdError, StdResult};
