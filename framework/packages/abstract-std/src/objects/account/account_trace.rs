@@ -1,11 +1,12 @@
 use std::fmt::Display;
 
+use super::account_id::deser::split_first_key;
 use cosmwasm_std::{ensure, Env, StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
 use crate::{constants::CHAIN_DELIMITER, objects::TruncatedChainId, AbstractError};
 
-pub const MAX_TRACE_LENGTH: usize = 6;
+pub const MAX_TRACE_LENGTH: u16 = 6;
 pub(crate) const LOCAL: &str = "local";
 
 /// The identifier of chain that triggered the account creation
@@ -16,14 +17,30 @@ pub enum AccountTrace {
     Remote(Vec<TruncatedChainId>),
 }
 
+pub const ACCOUNT_TRACE_KEY_PLACEHOLDER: &str = "place-holder-key";
+
 impl KeyDeserialize for &AccountTrace {
     type Output = AccountTrace;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = AccountTrace::KEY_ELEMS;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        let value = value.into_iter().filter(|b| *b > 32).collect();
-        Ok(AccountTrace::from_string(String::from_vec(value)?))
+        let mut trace = vec![];
+        // We parse the whole data for the MAX_TRACE_LENGTH keys
+        let mut value = value.as_ref();
+        for i in 0..MAX_TRACE_LENGTH - 1 {
+            let (t, remainder) = split_first_key(1, value)?;
+            value = remainder;
+            let chain = String::from_utf8(t)?;
+            if i == 0 && chain == "local" {
+                return Ok(AccountTrace::Local);
+            }
+            if chain != ACCOUNT_TRACE_KEY_PLACEHOLDER {
+                trace.push(TruncatedChainId::from_string(chain).unwrap())
+            }
+        }
+
+        Ok(AccountTrace::Remote(trace))
     }
 }
 
@@ -34,35 +51,27 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        match self {
+        let mut serialization_result = match self {
             AccountTrace::Local => LOCAL.key(),
-            AccountTrace::Remote(chain_name) => {
-                let len = chain_name.len();
-                chain_name
-                    .iter()
-                    .rev()
-                    .enumerate()
-                    .flat_map(|(s, c)| {
-                        if s == len - 1 {
-                            vec![c.str_ref().key()]
-                        } else {
-                            vec![c.str_ref().key(), CHAIN_DELIMITER.key()]
-                        }
-                    })
-                    .flatten()
-                    .collect::<Vec<Key>>()
-            }
+            AccountTrace::Remote(chain_name) => chain_name
+                .iter()
+                .flat_map(|c| c.str_ref().key())
+                .collect::<Vec<Key>>(),
+        };
+        for _ in serialization_result.len()..(MAX_TRACE_LENGTH as usize) {
+            serialization_result.extend(ACCOUNT_TRACE_KEY_PLACEHOLDER.key());
         }
+        serialization_result
     }
 }
 
 impl KeyDeserialize for AccountTrace {
     type Output = AccountTrace;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = MAX_TRACE_LENGTH;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(AccountTrace::from_string(String::from_vec(value)?))
+        <&AccountTrace>::from_vec(value)
     }
 }
 
@@ -80,7 +89,7 @@ impl AccountTrace {
             AccountTrace::Remote(chain_trace) => {
                 // Ensure the trace length is limited
                 ensure!(
-                    chain_trace.len() <= MAX_TRACE_LENGTH,
+                    chain_trace.len() <= MAX_TRACE_LENGTH as usize,
                     AbstractError::FormattingError {
                         object: "chain-seq".into(),
                         expected: format!("between 1 and {MAX_TRACE_LENGTH}"),
@@ -370,7 +379,7 @@ mod test {
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
 
-            assert_eq!(items.len(), 3);
+            assert_eq!(items.len(), 2);
             assert_eq!(items[0], (Addr::unchecked("jake"), 69420));
             assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
         }

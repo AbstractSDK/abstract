@@ -66,7 +66,7 @@ impl<'a> Prefixer<'a> for &DexAssetPairing {
 
 impl KeyDeserialize for &DexAssetPairing {
     type Output = DexAssetPairing;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = 3;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
