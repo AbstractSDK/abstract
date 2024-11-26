@@ -10,7 +10,9 @@ The Oracle Adapter allows developers to query a price associated with a price so
 pub enum OracleQueryMsg{
     Price{
         oracle: String,
-        price_source_key: String
+        price_source_key: String,
+        // Only successful if price is not too old
+        max_age: u64
     }
 }
 // And returns
