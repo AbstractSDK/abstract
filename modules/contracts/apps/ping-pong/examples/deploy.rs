@@ -13,12 +13,13 @@
 //! ```bash
 //! $ just deploy uni-6 osmo-test-5
 //! ```
-use abstract_interface::{AppDeployer, DeployStrategy};
 
-use challenge_app::{
-    contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
-    Challenge,
+use abstract_interface::{AppDeployer, DeployStrategy};
+use ping_pong::{
+    contract::{APP_ID, APP_VERSION},
+    AppInterface,
 };
+
 use clap::Parser;
 use cw_orch::{
     anyhow,
@@ -29,10 +30,10 @@ use semver::Version;
 fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
-        let version: Version = CHALLENGE_APP_VERSION.parse().unwrap();
+        let version: Version = APP_VERSION.parse().unwrap();
         let chain = DaemonBuilder::new(network).build()?;
 
-        let app = Challenge::new(CHALLENGE_APP_ID, chain);
+        let app = AppInterface::new(APP_ID, chain);
         app.deploy(version, DeployStrategy::Try)?;
 
         // Create an account on our front-end to install the module!

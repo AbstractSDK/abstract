@@ -19,8 +19,7 @@ fn publish(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
         // Setup
-        let rt = Runtime::new()?;
-        let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
+        let chain = DaemonBuilder::new(network).build()?;
 
         let standalone_namespace = Namespace::from_id(MY_STANDALONE_ID)?;
 

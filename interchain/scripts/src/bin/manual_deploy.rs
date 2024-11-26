@@ -5,6 +5,7 @@ use abstract_scripts::assert_wallet_balance;
 use abstract_std::objects::gov_type::GovernanceDetails;
 use clap::Parser;
 use cw_orch::{environment::NetworkInfoOwned, prelude::*};
+use cw_orch_daemon::RUNTIME;
 use reqwest::Url;
 use tokio::runtime::Runtime;
 
@@ -16,17 +17,15 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Script to deploy Abstract & polytone to a new network provided by commmand line arguments
 /// Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn manual_deploy(network: ChainInfoOwned) -> anyhow::Result<()> {
-    let rt = Runtime::new()?;
-
-    rt.block_on(assert_wallet_balance(vec![network.clone()]));
+    RUNTIME.block_on(assert_wallet_balance(vec![network.clone()]));
 
     let urls = network.grpc_urls.to_vec();
     for url in urls {
-        rt.block_on(ping_grpc(&url))?;
+        RUNTIME.block_on(ping_grpc(&url))?;
     }
 
     let chain = DaemonBuilder::new(network.clone())
-        .handle(rt.handle())
+        .handle(RUNTIME.handle())
         .build()?;
 
     let monarch = chain.sender_addr();

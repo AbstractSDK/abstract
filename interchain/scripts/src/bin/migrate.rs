@@ -9,9 +9,8 @@ use tokio::runtime::Runtime;
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
-    let rt = Runtime::new()?;
     for network in networks {
-        let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
+        let chain = DaemonBuilder::new(network).build()?;
 
         let deployment = Abstract::load_from(chain.clone())?;
 
