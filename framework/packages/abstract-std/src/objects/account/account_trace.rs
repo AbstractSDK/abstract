@@ -350,10 +350,10 @@ mod test {
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
 
-            assert_eq!(items.len(), 2);
-            assert_eq!(items[0], (multihop_key, 69420));
+            assert_eq!(items.len(), 3);
+            assert_eq!(items[0], (local_key, 159784));
             assert_eq!(items[1], (key, 42069));
-            assert_eq!(items[2], (local_key, 159784));
+            assert_eq!(items[2], (multihop_key, 69420));
         }
 
         #[coverage_helper::test]
