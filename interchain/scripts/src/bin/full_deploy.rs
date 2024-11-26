@@ -1,5 +1,6 @@
-use abstract_interface::{Abstract, AccountI};
+use abstract_interface::{Abstract, AccountI, ExecuteMsgFns};
 use abstract_std::objects::gov_type::GovernanceDetails;
+use cw_asset::AssetInfoUnchecked;
 use cw_orch_daemon::RUNTIME;
 
 use abstract_scripts::{assert_wallet_balance, SUPPORTED_CHAINS};
@@ -39,6 +40,14 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
             GovernanceDetails::Monarchy {
                 monarch: monarch.to_string(),
             },
+        )?;
+
+        // We register the gas asset of the chain to make sure there is a base asset there
+        let asset_denom = network.gas_denom;
+        let chain_name = network.network_info.chain_name;
+        deployment.ans_host.update_asset_addresses(
+            vec![(chain_name, AssetInfoUnchecked::Native(asset_denom))],
+            vec![],
         )?;
     }
 
