@@ -3,11 +3,11 @@ source: contracts/native/ibc-client/tests/multihop_accounts.rs
 expression: all_storage
 ---
 "abstract:ibc-client":
-  - - "\u0000\u0002earemote"
+  - - "\u0000\u0002earemoteone"
     - "{\"polytone_note\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\",\"remote_abstract_host\":\"host\",\"remote_proxy\":\"host\"}"
   - - "\u0000\u0002ebmock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t"
-    - "\"remote\""
-  - - "\u0000\u0002ec\u0000\u0006remote\u0000\u0001>\u0000\u0006remote\u0000\u0004\u0000\u0000\u0000*remote"
+    - "\"remoteone\""
+  - - "\u0000\u0002ec\u0000\tremoteone\u0000\tremotetwo\u0000\u0001a\u0000\u0001a\u0000\u0001a\u0000\u0001a\u0000\u0004\u0000\u0000\u0000*remoteone"
     - "\"remote_account\""
   - - contract_info
     - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.25.0\"}"
