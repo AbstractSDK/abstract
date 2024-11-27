@@ -9,18 +9,18 @@ fi
 
 starting_dir=$(pwd)
 
-# echo "Wasming framework"
-# cd ./framework
+echo "Wasming framework"
+cd ./framework
 
-# # Delete all the current wasms first
-# rm -rf ./artifacts/*.wasm
-# # Optimized builds
-# docker run --rm -v "$(pwd)":/code \
-#   --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-#   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-#   ${image}
+# Delete all the current wasms first
+rm -rf ./artifacts/*.wasm
+# Optimized builds
+docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  ${image}
 
-# cd $starting_dir
+cd $starting_dir
 
 echo "Wasming apps"
 cd ./modules
