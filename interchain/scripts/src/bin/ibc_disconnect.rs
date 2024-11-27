@@ -66,7 +66,7 @@ fn main() {
     let src_network = parse_network(&args.src).unwrap();
     let dst_network = parse_network(&args.dst).unwrap();
 
-    if let Err(ref err) = connect((src_network, None), (dst_network, None)) {
+    if let Err(ref err) = disconnect((src_network, None), (dst_network, None)) {
         log::error!("{}", err);
         err.chain()
             .skip(1)
