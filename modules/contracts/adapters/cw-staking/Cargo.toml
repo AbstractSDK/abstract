@@ -69,11 +69,7 @@ builds = [
 cosmwasm-schema = { workspace = true }
 cosmwasm-std    = { workspace = true }
 cw-asset        = { workspace = true }
-cw-controllers  = { workspace = true, optional = true }
 cw-utils        = { workspace = true }
-schemars        = { workspace = true }
-serde           = { workspace = true }
-thiserror       = { workspace = true }
 
 abstract-adapter          = { workspace = true }
 cw-orch                   = { workspace = true }

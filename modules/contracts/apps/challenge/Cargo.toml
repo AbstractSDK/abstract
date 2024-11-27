@@ -21,23 +21,22 @@ exclude = ["contract.wasm", "hash.txt"]
 crate-type = ["cdylib", "rlib"]
 
 [[example]]
-name = "schema"
+name              = "schema"
 required-features = ["schema"]
 
 [features]
 default = ["export"]
-export = []
-schema = ["abstract-app/schema"]
+export  = []
+schema  = ["abstract-app/schema"]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }
-cosmwasm-std = { workspace = true }
+cosmwasm-std    = { workspace = true }
 cw-address-like = { workspace = true }
-cw-asset = { workspace = true }
-cw-controllers = { workspace = true }
+cw-asset        = { workspace = true }
+cw-controllers  = { workspace = true }
 cw-storage-plus = { workspace = true }
-schemars = { workspace = true }
-thiserror = { workspace = true }
+thiserror       = { workspace = true }
 
 abstract-app = { workspace = true }
 
@@ -45,11 +44,11 @@ abstract-app = { workspace = true }
 cw-orch = { workspace = true }
 
 [dev-dependencies]
-abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-app       = { workspace = true, features = ["test-utils"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
-challenge-app = { path = "." }
-clap.workspace = true
-cw-orch = { workspace = true, features = ["daemon"] }
-dotenv = "0.15.0"
-env_logger = "0.11.3"
-semver = "1.0"
+challenge-app      = { path = "." }
+clap.workspace     = true
+cw-orch            = { workspace = true, features = ["daemon"] }
+dotenv             = "0.15.0"
+env_logger         = "0.11.3"
+semver             = "1.0"

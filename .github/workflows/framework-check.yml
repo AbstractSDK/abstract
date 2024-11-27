@@ -140,4 +140,4 @@ jobs:
       - name: Machete
         uses: clechasseur/rs-cargo@v2
         with:
-          command: machete framework/contracts/** framework/packages/**
+          command: "machete framework/contracts/** framework/packages/**"
