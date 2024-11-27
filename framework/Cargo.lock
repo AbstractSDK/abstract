@@ -635,7 +635,6 @@ name = "abstract-std"
 version = "0.25.0"
 dependencies = [
  "abstract-testing",
- "anybuf",
  "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",

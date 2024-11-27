@@ -1,16 +1,10 @@
 use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
-use std::{
-    fs::{self, File},
-    io::BufReader,
-    net::TcpStream,
-};
 
-use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
+use abstract_scripts::{assert_wallet_balance, SUPPORTED_CHAINS};
 
 use clap::Parser;
 use cw_orch::{daemon::networks::parse_network, prelude::*};
-use reqwest::Url;
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
