@@ -120,4 +120,5 @@ jobs:
       - name: Machete
         uses: clechasseur/rs-cargo@v2
         with:
-          command: machete modules/**
+          command: machete
+          args: modules/**
