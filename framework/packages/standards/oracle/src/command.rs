@@ -6,9 +6,9 @@ use crate::error::OracleError;
 use crate::msg::{PriceResponse, Seconds};
 
 /// # OracleCommand
-/// ensures DEX adapters support the expected functionality.
+/// ensures Oracle adapters support the expected functionality.
 ///
-/// Implements the usual DEX operations.
+/// Implements the usual Oracle operations.
 pub trait OracleCommand: Identify {
     /// Return oracle price given pair id
     fn price(

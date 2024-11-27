@@ -1,11 +1,11 @@
 #![warn(missing_docs)]
-//! # Dex Adapter API
+//! # Oracle Adapter API
 // re-export response types
 use abstract_std::adapter;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Empty};
 
-/// The name of the dex to trade on.
+/// The name of the oracle to query prices from.
 pub type OracleName = String;
 
 /// Top-level Abstract Adapter execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
@@ -17,7 +17,7 @@ pub type QueryMsg = adapter::QueryMsg<OracleQueryMsg>;
 
 impl adapter::AdapterQueryMsg for OracleQueryMsg {}
 
-/// Query messages for the dex adapter
+/// Query messages for the oracle adapter
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum OracleQueryMsg {

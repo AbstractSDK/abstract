@@ -6,6 +6,6 @@ pub(crate) fn resolve_oracle(value: &str) -> Result<Box<dyn OracleCommand>, Orac
     match value {
         #[cfg(feature = "pyth")]
         abstract_pyth_adapter::PYTH => Ok(Box::<abstract_pyth_adapter::Pyth>::default()),
-        _ => Err(OracleError::ForeignDex(value.to_owned())),
+        _ => Err(OracleError::ForeignOracle(value.to_owned())),
     }
 }
