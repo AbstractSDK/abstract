@@ -5,6 +5,7 @@ use abstract_account::contract::instantiate;
 use abstract_account::contract::AccountResult;
 use abstract_account::error::AccountError;
 use abstract_account::msg::ExecuteMsg;
+use abstract_account::state::AUTH_ADMIN;
 use abstract_std::account;
 use abstract_std::account::InstantiateMsg;
 use abstract_std::account::InternalConfigAction;
@@ -196,6 +197,7 @@ fn xion_account_auth_itself() -> anyhow::Result<()> {
     let not_whitelisted_yet = deps.api.addr_make("not_whitelisted");
 
     // We whitelist a module
+    AUTH_ADMIN.save(deps.as_mut().storage, &true)?;
     execute(
         deps.as_mut(),
         env.clone(),

@@ -14,26 +14,7 @@ use abstract_std::{
         validation::{validate_description, validate_link, validate_name},
     },
 };
-use cosmwasm_std::{Addr, Deps, DepsMut, MessageInfo, Response, StdError};
-
-/// Check that sender is admin governance
-pub(crate) fn assert_admin(deps: Deps, sender: &Addr) -> AccountResult<()> {
-    ownership::assert_nested_owner(deps.storage, &deps.querier, sender)?;
-    #[cfg(feature = "xion")]
-    {
-        if let Some(true) = crate::state::AUTH_ADMIN.may_load(deps.storage)? {
-            Ok(())
-        } else {
-            Err(AccountError::Ownership(
-                abstract_std::objects::ownership::GovOwnershipError::NotOwner,
-            ))
-        }
-    }
-    #[cfg(not(feature = "xion"))]
-    {
-        Ok(())
-    }
-}
+use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdError};
 
 pub fn update_account_status(
     deps: DepsMut,
@@ -58,7 +39,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> AccountResult {
     // only owner can update suspension status
-    assert_admin(deps.as_ref(), &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -72,7 +53,7 @@ pub fn update_internal_config(
     info: MessageInfo,
     action: InternalConfigAction,
 ) -> AccountResult {
-    assert_admin(deps.as_ref(), &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     match action {
         InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => {
@@ -122,7 +103,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> AccountResult {
-    assert_admin(deps.as_ref(), &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let mut info: AccountInfo = INFO.may_load(deps.storage)?.unwrap_or_default();
     if let Some(name) = name {

@@ -10,6 +10,7 @@ use abstract_std::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_factory::ModuleFactoryContract,
         module_reference::ModuleReference,
+        ownership,
         registry::RegistryContract,
         salt::generate_instantiate_salt,
         storage_namespaces,
@@ -25,7 +26,6 @@ use cw_storage_plus::Item;
 use semver::Version;
 
 use crate::{
-    config::assert_admin,
     contract::{AccountResponse, AccountResult, REGISTER_MODULES_DEPENDENCIES_REPLY_ID},
     error::AccountError,
 };
@@ -46,7 +46,7 @@ pub fn install_modules(
     modules: Vec<ModuleInstallConfig>,
 ) -> AccountResult {
     // only owner can call this method
-    assert_admin(deps.as_ref(), &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let abstract_code_id =
         native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
@@ -194,7 +194,7 @@ pub fn uninstall_module(
     module_id: String,
 ) -> AccountResult {
     // only owner can uninstall modules
-    assert_admin(deps.as_ref(), &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     // module can only be uninstalled if there are no dependencies on it
     let dependents = DEPENDENTS.may_load(deps.storage, &module_id)?;

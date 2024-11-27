@@ -8,6 +8,7 @@ use abstract_std::{
         dependency::Dependency,
         module::ModuleInfo,
         module_reference::ModuleReference,
+        ownership,
         registry::{RegistryContract, RegistryError},
         storage_namespaces,
     },
@@ -25,7 +26,6 @@ use super::{
     update_module_addresses,
 };
 use crate::{
-    config::assert_admin,
     contract::{AccountResponse, AccountResult, ASSERT_MODULE_DEPENDENCIES_REQUIREMENTS_REPLY_ID},
     error::AccountError,
     queries::query_module_version,
@@ -44,7 +44,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> AccountResult {
-    assert_admin(deps.as_ref(), &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
     ensure!(!modules.is_empty(), AccountError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];

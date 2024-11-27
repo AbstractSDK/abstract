@@ -17,7 +17,6 @@ use cosmwasm_std::{
 };
 
 use crate::{
-    config::assert_admin,
     contract::{AccountResponse, AccountResult},
     error::AccountError,
 };
@@ -35,7 +34,7 @@ pub fn create_sub_account(
     account_id: Option<u32>,
 ) -> AccountResult {
     // only owner can create a subaccount
-    assert_admin(deps.as_ref(), &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
     let self_code_id = deps
         .querier
         .query_wasm_contract_info(env.contract.address.clone())?
