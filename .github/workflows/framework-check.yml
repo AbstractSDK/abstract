@@ -142,4 +142,4 @@ jobs:
         with:
           command: machete
           working-directory: ./framework
-          args: ./contracts/** ./packages/**
+          args: ./contracts/* ./packages/*
