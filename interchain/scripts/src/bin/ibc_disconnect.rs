@@ -63,8 +63,6 @@ fn main() {
 
     let args = Arguments::parse();
 
-    // let networks = vec![abstract_scripts::ROLLKIT_TESTNET];
-
     let src_network = parse_network(&args.src).unwrap();
     let dst_network = parse_network(&args.dst).unwrap();
 
