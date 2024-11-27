@@ -120,18 +120,11 @@ jobs:
   # Find any unused dependencies
   unused-deps:
     runs-on: ubuntu-latest
-    name: nigtly / unused-deps
+    name: stable / unused-deps
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.5
-        with:
-          version: "v0.8.1"
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "framework -> target"
       - name: Install cargo-machete
         uses: clechasseur/rs-cargo@v2
         with:
