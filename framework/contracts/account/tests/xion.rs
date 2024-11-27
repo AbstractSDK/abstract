@@ -243,12 +243,12 @@ fn execute_from_res(deps: DepsMut, env: &Env, res: Response) -> AccountResult<Re
     // Execute all messages
     let info = message_info(&env.contract.address, &[]);
     if let CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr,
+        contract_addr: _,
         msg,
-        funds,
+        funds: _,
     }) = res.messages[0].msg.clone()
     {
-        return execute(deps, env.clone(), info, from_json(&msg)?).map_err(Into::into);
+        execute(deps, env.clone(), info, from_json(&msg)?).map_err(Into::into)
     } else {
         panic!("Wrong message received");
     }

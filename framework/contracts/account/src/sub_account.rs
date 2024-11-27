@@ -17,8 +17,7 @@ use cosmwasm_std::{
 };
 
 use crate::{
-    contract::{AccountResponse, AccountResult},
-    error::AccountError,
+    config::assert_admin, contract::{AccountResponse, AccountResult}, error::AccountError
 };
 #[allow(clippy::too_many_arguments)]
 /// Creates a sub-account for this account,
@@ -34,7 +33,7 @@ pub fn create_sub_account(
     account_id: Option<u32>,
 ) -> AccountResult {
     // only owner can create a subaccount
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+    assert_admin(deps.as_ref(), &info.sender)?;
     let self_code_id = deps
         .querier
         .query_wasm_contract_info(env.contract.address.clone())?

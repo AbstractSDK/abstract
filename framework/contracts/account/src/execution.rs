@@ -10,6 +10,7 @@ use cosmwasm_std::{
 };
 
 use crate::{
+    config::assert_admin,
     contract::{AccountResponse, AccountResult, ADMIN_ACTION_REPLY_ID, FORWARD_RESPONSE_REPLY_ID},
     error::AccountError,
     modules::load_module_addr,
@@ -90,7 +91,7 @@ pub fn admin_execute(
     addr: Addr,
     exec_msg: Binary,
 ) -> AccountResult {
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+    assert_admin(deps.as_ref(), &info.sender)?;
 
     CALLING_TO_AS_ADMIN.save(deps.storage, &addr)?;
 

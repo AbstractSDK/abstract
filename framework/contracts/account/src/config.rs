@@ -10,7 +10,7 @@ use abstract_std::{
         InternalConfigAction,
     },
     objects::{
-        ownership::{self, GovOwnershipError},
+        ownership::{self},
         validation::{validate_description, validate_link, validate_name},
     },
 };
@@ -22,9 +22,12 @@ pub(crate) fn assert_admin(deps: Deps, sender: &Addr) -> AccountResult<()> {
     #[cfg(feature = "xion")]
     {
         if let Some(true) = crate::state::AUTH_ADMIN.may_load(deps.storage)? {
-            return Ok(());
+            Ok(())
+        } else {
+            Err(AccountError::Ownership(
+                abstract_std::objects::ownership::GovOwnershipError::NotOwner,
+            ))
         }
-        return Err(AccountError::Ownership(GovOwnershipError::NotOwner));
     }
     #[cfg(not(feature = "xion"))]
     {
@@ -55,7 +58,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> AccountResult {
     // only owner can update suspension status
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+    assert_admin(deps.as_ref(), &info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -70,7 +73,6 @@ pub fn update_internal_config(
     action: InternalConfigAction,
 ) -> AccountResult {
     assert_admin(deps.as_ref(), &info.sender)?;
-    // ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     match action {
         InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => {
@@ -120,7 +122,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> AccountResult {
-    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
+    assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut info: AccountInfo = INFO.may_load(deps.storage)?.unwrap_or_default();
     if let Some(name) = name {
