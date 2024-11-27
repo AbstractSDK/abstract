@@ -1,6 +1,5 @@
 use abstract_interface::{Abstract, AccountI, ExecuteMsgFns};
 use abstract_std::objects::gov_type::GovernanceDetails;
-use cw_asset::AssetInfoUnchecked;
 use cw_orch_daemon::RUNTIME;
 
 use abstract_scripts::{assert_wallet_balance, SUPPORTED_CHAINS};
