@@ -71,9 +71,6 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
         link: None,
     };
 
-    if account_info.has_info() {
-        INFO.save(deps.storage, &account_info)?;
-    }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
     let governance = GovernanceDetails::AbstractAccount {
@@ -95,17 +92,6 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
         },
         vec![],
     )?);
-
-    // Register on account if it's sub-account
-    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
-        response = response.add_message(wasm_execute(
-            account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                id: ACCOUNT_ID.load(deps.storage)?.seq(),
-            }),
-            vec![],
-        )?);
-    }
 
     let install_modules = vec![ModuleInstallConfig::new(
         ModuleInfo::from_id_latest(IBC_CLIENT)?,
