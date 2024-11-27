@@ -127,7 +127,7 @@ pub fn add_auth_method(
     }
     #[cfg(not(feature = "xion"))]
     {
-        Ok(AccountResponse::action("add_auth"))
+        Err(AccountError::NoAuthMethods {})
     }
 }
 
@@ -138,7 +138,7 @@ pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
     }
     #[cfg(not(feature = "xion"))]
     {
-        Ok(AccountResponse::action("remove_auth"))
+        Err(AccountError::NoAuthMethods {})
     }
 }
 

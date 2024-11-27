@@ -112,6 +112,9 @@ pub enum AccountError {
         contract: String,
     },
 
+    #[error("No auth methods capabilities on this account (xion feature disabled)")]
+    NoAuthMethods {},
+
     #[error("Abstract Account don't have Authentication")]
     AbsAccNoAuth {},
 
