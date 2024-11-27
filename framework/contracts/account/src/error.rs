@@ -42,6 +42,9 @@ pub enum AccountError {
     #[error("The provided module {0} can't be installed on an Abstract account")]
     ModuleNotInstallable(String),
 
+    #[error("The module {0} needs an init msg to be installed but not was provided")]
+    InitMsgMissing(String),
+
     #[error("The name of the proposed module can not have length 0.")]
     InvalidModuleName {},
 
