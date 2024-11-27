@@ -154,7 +154,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
         #[allow(unused_mut)]
-        let mut abstr = Self::new(chain);
+        let mut abstr = Self::new(chain.clone());
         #[cfg(feature = "daemon")]
         {
             // We register all the contracts default state
@@ -164,9 +164,19 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         }
         // Check if abstract deployed, for successful load
         if let Err(CwOrchError::AddrNotInStore(_)) = abstr.registry.address() {
-            return Err(AbstractInterfaceError::NotDeployed {});
+            return Err(AbstractInterfaceError::NotDeployed(
+                chain
+                    .block_info()
+                    .map(|b| b.chain_id)
+                    .unwrap_or("chain id not available".to_string()),
+            ));
         } else if abstr.registry.item_query(cw2::CONTRACT).is_err() {
-            return Err(AbstractInterfaceError::NotDeployed {});
+            return Err(AbstractInterfaceError::NotDeployed(
+                chain
+                    .block_info()
+                    .map(|b| b.chain_id)
+                    .unwrap_or("chain id not available".to_string()),
+            ));
         }
         Ok(abstr)
     }
