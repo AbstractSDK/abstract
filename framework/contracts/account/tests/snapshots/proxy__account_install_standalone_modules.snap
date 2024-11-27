@@ -72,11 +72,11 @@ expression: all_storage
     - "{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}}"
   - - "\u0000\u0002cc\u0000\u0000\u0000\u0000\u0000\u0000\u0000\f"
     - "{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}}"
-  - - "\u0000\u0002ch\u0000\u0005local\u0000\u0001a\u0000\u0001a\u0000\u0001a\u0000\u0001a\u0000\u0001a\u0000\u0000\u0000\u0000"
+  - - "\u0000\u0002ch\u0000\u0005local\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
     - "\"mock15n6av559ra8s98xgfnhc23d7vzr207q2j2m7cht5hrchw9mjc09qag5hf6\""
   - - "\u0000\u0002cjabstract"
     - "{\"trace\":\"local\",\"seq\":0}"
-  - - "\u0000\u0002ck\u0000\u0005local\u0000\u0001a\u0000\u0001a\u0000\u0001a\u0000\u0001a\u0000\u0001a\u0000\u0000\u0000\u0000"
+  - - "\u0000\u0002ck\u0000\u0005local\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
     - "\"abstract\""
   - - cfg
     - "{\"security_enabled\":false,\"namespace_registration_fee\":null}"

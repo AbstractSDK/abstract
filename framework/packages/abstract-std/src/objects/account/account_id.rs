@@ -167,8 +167,6 @@ impl KeyDeserialize for &AccountId {
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
         let (trace, seq) = split_first_key(AccountTrace::KEY_ELEMS, value.as_ref())?;
 
-        println!("{:x?} - {:?}", trace, seq);
-
         Ok(AccountId {
             seq: AccountSequence::from_vec(seq.to_vec())?,
             trace: AccountTrace::from_vec(trace)?,

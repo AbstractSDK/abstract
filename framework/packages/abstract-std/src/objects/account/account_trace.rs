@@ -17,7 +17,7 @@ pub enum AccountTrace {
     Remote(Vec<TruncatedChainId>),
 }
 
-pub const ACCOUNT_TRACE_KEY_PLACEHOLDER: &[u8] = b"a";
+pub const ACCOUNT_TRACE_KEY_PLACEHOLDER: &[u8] = &[];
 
 impl KeyDeserialize for &AccountTrace {
     type Output = AccountTrace;
@@ -45,6 +45,16 @@ impl KeyDeserialize for &AccountTrace {
     }
 }
 
+impl KeyDeserialize for AccountTrace {
+    type Output = AccountTrace;
+    const KEY_ELEMS: u16 = MAX_TRACE_LENGTH;
+
+    #[inline(always)]
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        <&AccountTrace>::from_vec(value)
+    }
+}
+
 impl<'a> PrimaryKey<'a> for AccountTrace {
     type Prefix = ();
     type SubPrefix = ();
@@ -63,16 +73,6 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
             serialization_result.extend(ACCOUNT_TRACE_KEY_PLACEHOLDER.key());
         }
         serialization_result
-    }
-}
-
-impl KeyDeserialize for AccountTrace {
-    type Output = AccountTrace;
-    const KEY_ELEMS: u16 = MAX_TRACE_LENGTH;
-
-    #[inline(always)]
-    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        <&AccountTrace>::from_vec(value)
     }
 }
 

@@ -223,6 +223,7 @@ mod tests {
     mod multi_hop_accounts {
         use super::*;
         use abstract_std::objects::{AccountId, AccountTrace, TruncatedChainId};
+        use cosmwasm_std::Order;
         use std::str::FromStr;
 
         #[coverage_helper::test]
@@ -245,12 +246,18 @@ mod tests {
                 &remote_addr,
             )?;
 
-            let saved_addr = ACCOUNTS.load(
-                deps.as_mut().storage,
-                (account_id.trace(), account_id.seq(), &chain_name),
-            )?;
+            let saved_addr = ACCOUNTS
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .collect::<Result<Vec<_>, _>>()
+                .unwrap();
 
-            assert_eq!(remote_addr, saved_addr);
+            assert_eq!(
+                saved_addr[0],
+                (
+                    (account_id.trace().clone(), account_id.seq(), chain_name),
+                    remote_addr
+                )
+            );
 
             Ok(())
         }
