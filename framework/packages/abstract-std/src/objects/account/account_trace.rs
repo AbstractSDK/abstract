@@ -6,7 +6,7 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
 use crate::{constants::CHAIN_DELIMITER, objects::TruncatedChainId, AbstractError};
 
-pub const MAX_TRACE_LENGTH: u16 = 6;
+pub const MAX_TRACE_LENGTH: u16 = 4;
 pub(crate) const LOCAL: &str = "local";
 
 /// The identifier of chain that triggered the account creation
