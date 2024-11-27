@@ -3,27 +3,21 @@ use abstract_sdk::std::{account::state::ACCOUNT_ID, ACCOUNT};
 use abstract_std::account::ModuleInstallConfig;
 use abstract_std::objects::module::ModuleInfo;
 use abstract_std::objects::module_version::assert_contract_upgrade;
-use abstract_std::{account::MigrateMsg, objects::AccountId};
 use abstract_std::{
-    account::{
-        state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
-        UpdateSubAccountAction,
-    },
+    account::state::{WhitelistedModules, SUSPENSION_STATUS, WHITELISTED_MODULES},
     objects::{
         gov_type::GovernanceDetails,
         ownership::{self},
     },
     registry::state::LOCAL_ACCOUNT_SEQUENCE,
 };
+use abstract_std::{account::MigrateMsg, objects::AccountId};
 use abstract_std::{native_addrs, AbstractError, IBC_CLIENT};
 use cosmwasm_std::{wasm_execute, DepsMut, Env};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-use crate::{
-    modules::{_install_modules, MIGRATE_CONTEXT},
-    msg::ExecuteMsg,
-};
+use crate::modules::{_install_modules, MIGRATE_CONTEXT};
 
 use crate::contract::{AccountResponse, AccountResult, CONTRACT_VERSION};
 
@@ -64,12 +58,6 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
 
     ACCOUNT_ID.save(deps.storage, &account_id)?;
     WHITELISTED_MODULES.save(deps.storage, &WhitelistedModules(vec![]))?;
-
-    let account_info = AccountInfo {
-        name: None,
-        description: None,
-        link: None,
-    };
 
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
