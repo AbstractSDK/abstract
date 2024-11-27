@@ -129,14 +129,13 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.5
         with:
           version: "v0.8.1"
+      - name: Install stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
       - name: Install cargo-machete
-        uses: clechasseur/rs-cargo@v2
-        with:
-          command: install
-          args: cargo-machete
-      - name: Machete
-        uses: clechasseur/rs-cargo@v2
-        with:
-          command: machete
-          working-directory: ./framework
-          args: ./contracts/* ./packages/*
+        working-directory: ./framework
+        run: cargo install cargo-machete
+      - name: Install cargo-machete
+        working-directory: ./framework
+        run: cargo machete ./contracts/* ./packages/*
