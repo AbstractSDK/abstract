@@ -17,7 +17,9 @@ use cosmwasm_std::{
 };
 
 use crate::{
-    config::assert_admin, contract::{AccountResponse, AccountResult}, error::AccountError
+    config::assert_admin,
+    contract::{AccountResponse, AccountResult},
+    error::AccountError,
 };
 #[allow(clippy::too_many_arguments)]
 /// Creates a sub-account for this account,
