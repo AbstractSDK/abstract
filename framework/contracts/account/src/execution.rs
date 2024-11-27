@@ -92,6 +92,9 @@ pub fn admin_execute(
 ) -> AccountResult {
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
+    if CALLING_TO_AS_ADMIN.exists(deps.storage) {
+        return Err(AccountError::CantChainAdminCalls {});
+    }
     CALLING_TO_AS_ADMIN.save(deps.storage, &addr)?;
 
     let msg = SubMsg::reply_on_success(
