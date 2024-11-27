@@ -141,4 +141,5 @@ jobs:
         uses: clechasseur/rs-cargo@v2
         with:
           command: machete
-          args: framework/contracts/** framework/packages/**
+          working-directory: ./framework
+          args: ./contracts/** ./packages/**
