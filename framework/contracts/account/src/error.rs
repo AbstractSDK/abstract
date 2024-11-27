@@ -51,7 +51,7 @@ pub enum AccountError {
     #[error("Cannot migrate {} twice", module_id)]
     DuplicateModuleMigration { module_id: String },
 
-    #[error("{0} not upgradable")]
+    #[error("{0} not upgradeable")]
     NotUpgradeable(ModuleInfo),
 
     #[error("Cannot remove module because {0:?} depend(s) on it.")]
@@ -106,14 +106,14 @@ pub enum AccountError {
     #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
     SubAccountCreatorNotAccount { caller: String, account: String },
 
-    #[error("Abstract Account Address don't match to the Contract address")]
-    AbsAccInvalidAddr {
+    #[error("Abstract Account Address ({abstract_account}) doesn't match to the Contract address ({contract})   ")]
+    AbstractAccountInvalidAddress {
         abstract_account: String,
         contract: String,
     },
 
-    #[error("Abstract Account don't have Authentication")]
-    AbsAccNoAuth {},
+    #[error("Abstract Account doesn't have Authentication")]
+    AbstractAccountNoAuth {},
 
     #[cfg(feature = "xion")]
     #[error(transparent)]
