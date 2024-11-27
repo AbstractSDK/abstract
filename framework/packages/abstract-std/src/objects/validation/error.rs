@@ -31,6 +31,9 @@ pub enum ValidationError {
     )]
     LinkContainsDangerousCharacters {},
 
+    #[error("link is not a valid URL according to the url crate. Error: {0}")]
+    LinkInvalidUrl(url::ParseError),
+
     #[error("title/gov-type too short, must be at least {0} characters")]
     TitleInvalidShort(usize),
 

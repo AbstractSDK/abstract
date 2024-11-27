@@ -1,3 +1,5 @@
+use url::Url;
+
 use super::ValidationError;
 
 pub(crate) const MIN_DESC_LENGTH: usize = 1;
@@ -28,6 +30,8 @@ pub fn validate_link(link: Option<&str>) -> Result<(), ValidationError> {
             Err(ValidationError::LinkInvalidFormat {})
         } else if contains_dangerous_characters(link) {
             Err(ValidationError::LinkContainsDangerousCharacters {})
+        } else if let Err(e) = Url::parse(link) {
+            Err(ValidationError::LinkInvalidUrl(e))
         } else {
             Ok(())
         }
@@ -86,7 +90,8 @@ mod tests {
             case("://example.com"),
             case("example.com"),
             case("https://example.org/path?query=value"),
-            case("https:/example.com")
+            case("https:/example.com"),
+            case("http:///////////")
         )]
         fn invalid(input: &str) {
             assert!(validate_link(Some(input)).is_err());

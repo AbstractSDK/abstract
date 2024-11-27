@@ -66,7 +66,7 @@ serde = { version = "1", features = ["alloc", "derive"] }
 sha2 = { version = "0.10", features = ["oid"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn-dff4ba8e3ae991db = { package = "syn", version = "1", features = ["extra-traits", "full", "visit", "visit-mut"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit-mut"] }
+syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 tendermint-proto-f645eb7eb1285ab4 = { package = "tendermint-proto", version = "0.39", features = ["std"] }
 zeroize = { version = "1" }
@@ -98,6 +98,7 @@ either = { version = "1" }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "serde", "std"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 flex-error = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
+form_urlencoded = { version = "1" }
 futures = { version = "0.3" }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-core = { version = "0.3" }
@@ -125,6 +126,7 @@ num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
+percent-encoding = { version = "2" }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
@@ -176,6 +178,7 @@ either = { version = "1" }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "serde", "std"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 flex-error = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
+form_urlencoded = { version = "1" }
 futures = { version = "0.3" }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-core = { version = "0.3" }
@@ -203,6 +206,7 @@ num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
+percent-encoding = { version = "2" }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
@@ -215,7 +219,6 @@ serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 time = { version = "0.3", features = ["macros", "parsing"] }
 tokio-stream = { version = "0.1", features = ["net"] }
@@ -253,6 +256,7 @@ either = { version = "1" }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "serde", "std"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 flex-error = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
+form_urlencoded = { version = "1" }
 futures = { version = "0.3" }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-core = { version = "0.3" }
@@ -280,6 +284,7 @@ num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
+percent-encoding = { version = "2" }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
@@ -330,6 +335,7 @@ either = { version = "1" }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "serde", "std"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 flex-error = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
+form_urlencoded = { version = "1" }
 futures = { version = "0.3" }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-core = { version = "0.3" }
@@ -357,6 +363,7 @@ num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
+percent-encoding = { version = "2" }
 primeorder = { version = "0.13", default-features = false, features = ["serde"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
@@ -369,7 +376,6 @@ serde_json = { version = "1", features = ["alloc", "raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold", "visit"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
 time = { version = "0.3", features = ["macros", "parsing"] }
 tokio-stream = { version = "0.1", features = ["net"] }
