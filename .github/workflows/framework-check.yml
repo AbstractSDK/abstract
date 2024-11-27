@@ -132,5 +132,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "framework -> target"
+      - name: Install cargo-machete
+        uses: clechasseur/rs-cargo@v2
+        with:
+          command: install
+          args: cargo-machete
       - name: Machete
-        uses: bnjbvr/cargo-machete@main
+        uses: clechasseur/rs-cargo@v2
+        with:
+          command: machete framework/contracts/** framework/packages/**
