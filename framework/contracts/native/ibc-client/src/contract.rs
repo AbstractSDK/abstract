@@ -220,6 +220,49 @@ mod tests {
         Ok(())
     }
 
+    mod multi_hop_accounts {
+        use super::*;
+        use abstract_std::objects::{AccountId, AccountTrace, TruncatedChainId};
+        use cosmwasm_std::Order;
+        use std::str::FromStr;
+
+        #[coverage_helper::test]
+        fn accounts_storage_allows_multi_hop() -> IbcClientResult<()> {
+            let mut deps = mock_dependencies();
+            let account_id = AccountId::const_new(
+                45,
+                AccountTrace::Remote(vec![
+                    TruncatedChainId::from_str("bitcoin")?,
+                    TruncatedChainId::from_str("ethereum")?,
+                    TruncatedChainId::from_str("cosmos")?,
+                ]),
+            );
+            let remote_addr = "remote_addrress_stored".to_string();
+            let chain_name = TruncatedChainId::from_str("xion")?;
+
+            ACCOUNTS.save(
+                deps.as_mut().storage,
+                (account_id.trace(), account_id.seq(), &chain_name),
+                &remote_addr,
+            )?;
+
+            let saved_addr = ACCOUNTS
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .collect::<Result<Vec<_>, _>>()
+                .unwrap();
+
+            assert_eq!(
+                saved_addr[0],
+                (
+                    (account_id.trace().clone(), account_id.seq(), chain_name),
+                    remote_addr
+                )
+            );
+
+            Ok(())
+        }
+    }
+
     mod migrate {
         use super::*;
 

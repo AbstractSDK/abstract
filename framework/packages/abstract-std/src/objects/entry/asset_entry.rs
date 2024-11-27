@@ -111,7 +111,7 @@ impl KeyDeserialize for AssetEntry {
 
 impl KeyDeserialize for &AssetEntry {
     type Output = AssetEntry;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = AssetEntry::KEY_ELEMS;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
