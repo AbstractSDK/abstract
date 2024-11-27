@@ -11,7 +11,7 @@ use cw_orch::anyhow;
 pub trait MockOracle<Chain: MutCwEnv> {
     const MAX_AGE: u64;
 
-    /// Name of the dex
+    /// Name of the oracle
     fn name(&self) -> String;
 
     /// First asset
@@ -31,7 +31,7 @@ pub struct OracleTester<Chain: MutCwEnv, Oracle: MockOracle<Chain>> {
 impl<Chain: MutCwEnv, Oracle: MockOracle<Chain>> OracleTester<Chain, Oracle> {
     /// Used to test new code
     pub fn new(abstr_deployment: AbstractClient<Chain>, oracle: Oracle) -> anyhow::Result<Self> {
-        // Re-register dex, to make sure it's latest
+        // Re-register oracle adapter, to make sure it's latest
         let _ = abstr_deployment
             .registry()
             .remove_module(ModuleInfo::from_id(

@@ -26,7 +26,7 @@ use {
 pub const XION_TEST: &str = "xion1w39ctwxxhxxc2kxarycjxj9rndn65gf8daek7ggarwh3rq3zl0lqqllnmt";
 
 #[cfg(feature = "full_integration")]
-/// Osmosis app-chain dex implementation
+/// Pyth oracle implementation
 impl OracleCommand for Pyth {
     fn price(
         &self,

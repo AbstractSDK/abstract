@@ -9,11 +9,11 @@ use abstract_oracle_standard::msg::{OracleQueryMsg, PriceResponse};
 use cosmwasm_std::Deps;
 
 // API for Abstract SDK users
-/// Interact with the dex adapter in your module.
+/// Interact with the oracle adapter in your module.
 pub trait OracleInterface:
     AccountIdentification + Dependencies + ModuleIdentification + AbstractNameService
 {
-    /// Construct a new dex interface.
+    /// Construct a new oracle interface.
     fn oracle<'a>(&'a self, deps: Deps<'a>, name: OracleName) -> Oracle<Self> {
         Oracle {
             base: self,
@@ -36,7 +36,7 @@ pub struct Oracle<'a, T: OracleInterface> {
 }
 
 impl<'a, T: OracleInterface> Oracle<'a, T> {
-    /// returns DEX name
+    /// returns Oracle name
     pub fn oracle_name(&self) -> OracleName {
         self.name.clone()
     }

@@ -76,6 +76,13 @@ The Oracle Adapter ensures that your application remains flexible. If a new orac
 - **Safer Applications**: Build applications that leverage multiple oracles simultaneously, offering users more stability and safety for their asset value.
 - **Future-Proofing**: Ensure your application remains compatible with future oracles that emerge in the Cosmos ecosystem.
 
+## Tests
+
+Tests for this implementation can be found in different locations:
+
+- Either inside this crate for tests that can be run inside Mock or OsmosisTestTube
+- In the `/interchain/modules-clone-testing` crate for integrations that require CloneTesting (e.g. Pyth)?
+
 ## Documentation
 
 - **Oracle Interface**: For a detailed look at the oracle interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/blob/bcf26f2f446478fd2825de5b187321dc9a626341/modules/contracts/adapters/oracle/src/api.rs#L38).
