@@ -41,14 +41,6 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
                 monarch: monarch.to_string(),
             },
         )?;
-
-        // We register the gas asset of the chain to make sure there is a base asset there
-        let asset_denom = network.gas_denom;
-        let chain_name = network.network_info.chain_name;
-        deployment.ans_host.update_asset_addresses(
-            vec![(chain_name, AssetInfoUnchecked::Native(asset_denom))],
-            vec![],
-        )?;
     }
 
     // fs::copy(Path::new("~/.cw-orchestrator/state.json"), to)
