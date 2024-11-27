@@ -108,6 +108,7 @@ fn account_app_ownership() -> AResult {
     account.call_as(&sender).admin_execute(
         app.address()?,
         to_json_binary(&mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}))?,
+        &[],
     )?;
 
     // Account cannot call by itself without the CALLING_TO variable set
