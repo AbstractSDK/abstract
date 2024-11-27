@@ -120,10 +120,12 @@ pub fn admin_execute_on_module(
 pub fn add_auth_method(
     _deps: DepsMut,
     _env: Env,
+    _info: MessageInfo,
     #[allow(unused_mut)] mut _auth: crate::msg::Authenticator,
 ) -> AccountResult {
     #[cfg(feature = "xion")]
     {
+        assert_admin(_deps.as_ref(), &_info.sender)?;
         abstract_xion::execute::add_auth_method(_deps, &_env, &mut _auth).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
@@ -132,9 +134,10 @@ pub fn add_auth_method(
     }
 }
 
-pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
+pub fn remove_auth_method(_deps: DepsMut, _env: Env, _info: MessageInfo, _id: u8) -> AccountResult {
     #[cfg(feature = "xion")]
     {
+        assert_admin(_deps.as_ref(), &_info.sender)?;
         abstract_xion::execute::remove_auth_method(_deps, _env, _id).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]

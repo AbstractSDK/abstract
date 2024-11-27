@@ -354,10 +354,9 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     unreachable!("Update status case is reached above")
                 }
                 ExecuteMsg::AddAuthMethod { add_authenticator } => {
-                    add_auth_method(deps, env, add_authenticator)
+                    add_auth_method(deps, env, info, add_authenticator)
                 }
-                #[allow(unused)]
-                ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
+                ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, info, id),
             }
         }
     }?;
