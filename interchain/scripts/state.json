@@ -7,6 +7,7 @@
       "abstract:ibc-client": 11530,
       "abstract:ibc-host": 11531,
       "abstract:module-factory": 11526,
+      "abstract:oracle": 11560,
       "abstract:registry": 11527,
       "cw:blob": 11289
     },
@@ -18,6 +19,7 @@
       "abstract:ibc-client": "osmo1vnt8tpxrnukcydma2x6gy2zzawl9uxmc6las8cak9sd87q67n00qn0wkj7",
       "abstract:ibc-host": "osmo1zzgxwn88a3ec34fw4mu8ppsh9eth746l3tl8w5l7qvknrmtldldqz7saee",
       "abstract:module-factory": "osmo1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqcxdtus",
+      "abstract:oracle": "osmo15sgdmhuqs8zcfephzw60kteh6wzd6rngfwwv6a4g6g8f80zcqqgqvcvruu",
       "abstract:registry": "osmo1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqtpxd7m"
     }
   },
@@ -28,6 +30,7 @@
       "abstract:ibc-client": 8233,
       "abstract:ibc-host": 8234,
       "abstract:module-factory": 8229,
+      "abstract:oracle": 8328,
       "abstract:registry": 8230,
       "cw:blob": 7399
     },
@@ -38,6 +41,7 @@
       "abstract:ibc-client": "neutron1n9la68zja4l76plwffedj24ar3f6e5kg7j92r26hhzewncghypvs9vk28k",
       "abstract:ibc-host": "neutron1c67x66rln9mgrjum5urrgn0tjvup5k9uke8hgdm8tu7hztwrjy4s5ecrmu",
       "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
+      "abstract:oracle": "neutron1e43jgpsqeae5euc2jrzp79vn6gv3w2gwtlnw372w6tlmhwlw04jqmgklqn",
       "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7"
     }
   },
@@ -68,6 +72,7 @@
       "abstract:ibc-client": 1374,
       "abstract:ibc-host": 1375,
       "abstract:module-factory": 1370,
+      "abstract:oracle": 1395,
       "abstract:registry": 1371,
       "cw:blob": 1278
     },
@@ -78,6 +83,7 @@
       "abstract:ibc-client": "xion1e74x0upzwsjvt6p8t5wu33cdnavsn5kcl6ndf8l2hpeah9c94tfqs6lx3w",
       "abstract:ibc-host": "xion14rwy72dckjtpvtw26yppgfr6jqw4y06tf68axefzk5xjplm9ue6qvtqxjl",
       "abstract:module-factory": "xion1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqhwxljd",
+      "abstract:oracle": "xion19g9zd2vjpwr8ycfp5zpd9txtfzdryp20fa75zwrpp336uaqdazxshcud90",
       "abstract:registry": "xion1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqyfdesx"
     }
   }
