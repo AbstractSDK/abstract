@@ -108,11 +108,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
-            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.5
         with:
