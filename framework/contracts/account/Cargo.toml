@@ -35,14 +35,10 @@ abstract-sdk    = { workspace = true }
 abstract-std    = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cosmwasm-std    = { workspace = true }
-cw-asset        = { workspace = true }
 cw-controllers  = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2             = { workspace = true }
-cw20            = { workspace = true }
-schemars        = { workspace = true }
 semver          = { workspace = true }
-serde           = { workspace = true }
 thiserror       = { workspace = true }
 
 abstract-ica = { workspace = true }

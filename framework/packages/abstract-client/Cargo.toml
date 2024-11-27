@@ -20,7 +20,6 @@ workspace = true
 default = ["test-utils"]
 interchain = [
   "dep:cw-orch-interchain",
-  "dep:cw-orch-polytone",
   "abstract-interface/interchain",
   "abstract-interface/testing",
 ]
@@ -32,7 +31,6 @@ abstract-std.workspace = true
 cosmwasm-std.workspace = true
 cw-orch.workspace      = true
 cw-orch-interchain     = { workspace = true, optional = true }
-cw-orch-polytone       = { workspace = true, optional = true }
 semver.workspace       = true
 serde.workspace        = true
 thiserror.workspace    = true

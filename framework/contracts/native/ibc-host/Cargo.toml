@@ -1,11 +1,11 @@
 [package]
 description = "Abstract IBC Host Contract"
-edition     = { workspace = true }
-license     = { workspace = true }
-name        = "abstract-ibc-host"
-readme      = "README.md"
-repository  = "https://github.com/AbstractSDK/abstract"
-version     = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+name = "abstract-ibc-host"
+readme = "README.md"
+repository = "https://github.com/AbstractSDK/abstract"
+version = { workspace = true }
 
 [lints]
 workspace = true
@@ -17,35 +17,32 @@ crate-type = ["cdylib", "rlib"]
 
 # # use library feature to disable all instantiate/execute/query exports
 default = ["export"]
-export  = []
-schema  = []
+export = []
+schema = []
 
 [dependencies]
 abstract-macros = { workspace = true }
-abstract-sdk    = { workspace = true }
-abstract-std    = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
-cosmwasm-std    = { workspace = true, features = ["stargate"] }
-cw-controllers  = { workspace = true }
-cw-orch         = { workspace = true }
-cw-ownable      = { workspace = true }
-cw-paginate     = "2.0.0"
+cosmwasm-std = { workspace = true, features = ["stargate"] }
+cw-orch = { workspace = true }
+cw-ownable = { workspace = true }
+cw-paginate = "2.0.0"
 cw-storage-plus = { workspace = true }
-cw-utils        = { workspace = true }
-cw2             = { workspace = true }
-schemars        = { workspace = true }
-semver          = { workspace = true }
-serde           = { workspace = true }
-thiserror       = { workspace = true }
+cw-utils = { workspace = true }
+cw2 = { workspace = true }
+semver = { workspace = true }
+thiserror = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
-abstract-adapter   = { workspace = true, features = ["test-utils"] }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-interface = { workspace = true }
-abstract-std       = { workspace = true }
-abstract-testing   = { workspace = true }
-anyhow.workspace   = true
-coverage-helper    = { workspace = true }
-cw-orch            = { workspace = true }
+abstract-std = { workspace = true }
+abstract-testing = { workspace = true }
+anyhow.workspace = true
+coverage-helper = { workspace = true }
+cw-orch = { workspace = true }

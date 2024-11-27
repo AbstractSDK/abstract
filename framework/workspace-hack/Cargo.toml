@@ -24,12 +24,10 @@ cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
 getrandom = { version = "0.2", default-features = false, features = ["custom", "std"] }
-log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 phf_shared = { version = "0.11", default-features = false, features = ["std"] }
 ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
 prost = { version = "0.13", features = ["prost-derive"] }
-prost-types = { version = "0.13" }
 rand = { version = "0.8", features = ["small_rng"] }
 rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
 rand_core = { version = "0.6", default-features = false, features = ["std"] }
@@ -52,12 +50,10 @@ cw20-base = { version = "2", default-features = false, features = ["library"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
 getrandom = { version = "0.2", default-features = false, features = ["custom", "std"] }
-log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 phf_shared = { version = "0.11", default-features = false, features = ["std"] }
 ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
 prost = { version = "0.13", features = ["prost-derive"] }
-prost-types = { version = "0.13" }
 rand = { version = "0.8", features = ["small_rng"] }
 rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
 rand_core = { version = "0.6", default-features = false, features = ["std"] }
@@ -117,7 +113,7 @@ informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2" }
-log = { version = "0.4", default-features = false, features = ["serde"] }
+log = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
@@ -195,7 +191,7 @@ informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2" }
-log = { version = "0.4", default-features = false, features = ["serde"] }
+log = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
@@ -272,7 +268,7 @@ informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2", features = ["extra_traits"] }
-log = { version = "0.4", default-features = false, features = ["serde"] }
+log = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
@@ -349,7 +345,7 @@ informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2", features = ["extra_traits"] }
-log = { version = "0.4", default-features = false, features = ["serde"] }
+log = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }

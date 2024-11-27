@@ -1,12 +1,12 @@
 [package]
-authors     = { workspace = true }
+authors = { workspace = true }
 description = "Abstract Module Factory Contract"
-edition     = { workspace = true }
-license     = { workspace = true }
-name        = "abstract-module-factory"
-readme      = "README.md"
-repository  = "https://github.com/AbstractSDK/abstract"
-version     = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+name = "abstract-module-factory"
+readme = "README.md"
+repository = "https://github.com/AbstractSDK/abstract"
+version = { workspace = true }
 
 exclude = ["contract.wasm", "hash.txt"]
 
@@ -18,34 +18,31 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
-export  = []
+export = []
 # for quicker tests, cargo test --lib
 
 [dependencies]
 abstract-macros = { workspace = true }
-abstract-sdk    = { workspace = true }
-abstract-std    = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
-cosmwasm-std    = { workspace = true }
-cw-asset        = { workspace = true }
-cw-controllers  = { workspace = true }
-cw-ownable      = { workspace = true }
-cw-storage-plus = { workspace = true }
-cw2             = { workspace = true }
-semver          = { workspace = true }
-serde-cw-value  = { workspace = true }
-thiserror       = { workspace = true }
+cosmwasm-std = { workspace = true }
+cw-ownable = { workspace = true }
+cw2 = { workspace = true }
+semver = { workspace = true }
+serde-cw-value = { workspace = true }
+thiserror = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 abstract-integration-tests = { workspace = true }
-abstract-interface         = { workspace = true }
-abstract-testing           = { workspace = true }
-anyhow                     = { workspace = true }
-coverage-helper            = { workspace = true }
-cw-orch                    = { workspace = true }
+abstract-interface = { workspace = true }
+abstract-testing = { workspace = true }
+anyhow = { workspace = true }
+coverage-helper = { workspace = true }
+cw-orch = { workspace = true }
 
 [profile.release]
 overflow-checks = true

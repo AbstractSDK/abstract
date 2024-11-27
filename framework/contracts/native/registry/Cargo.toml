@@ -1,12 +1,12 @@
 [package]
-authors     = { workspace = true }
+authors = { workspace = true }
 description = "Abstract Registry Contract"
-edition     = { workspace = true }
-license     = { workspace = true }
-name        = "abstract-registry"
-readme      = "README.md"
-repository  = "https://github.com/AbstractSDK/abstract"
-version     = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+name = "abstract-registry"
+readme = "README.md"
+repository = "https://github.com/AbstractSDK/abstract"
+version = { workspace = true }
 
 exclude = ["contract.wasm", "hash.txt"]
 
@@ -18,31 +18,30 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
-export  = []
+export = []
 
 [dependencies]
 abstract-macros = { workspace = true }
-abstract-sdk    = { workspace = true }
-abstract-std    = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
-cosmwasm-std    = { workspace = true }
-cw-ownable      = { workspace = true }
+cosmwasm-std = { workspace = true }
+cw-ownable = { workspace = true }
 cw-storage-plus = { workspace = true }
-cw2             = { workspace = true }
-semver          = { workspace = true }
-serde           = { workspace = true }
-thiserror       = { workspace = true }
+cw2 = { workspace = true }
+semver = { workspace = true }
+thiserror = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
 abstract-interface = { workspace = true }
-abstract-testing   = { workspace = true }
-anyhow             = { workspace = true }
-cosmwasm-schema    = { workspace = true }
-coverage-helper    = { workspace = true }
-cw-orch            = { workspace = true }
+abstract-testing = { workspace = true }
+anyhow = { workspace = true }
+cosmwasm-schema = { workspace = true }
+coverage-helper = { workspace = true }
+cw-orch = { workspace = true }
 
 [profile.release]
 overflow-checks = true
