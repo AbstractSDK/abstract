@@ -10,7 +10,7 @@ use abstract_std::{
         InternalConfigAction,
     },
     objects::{
-        ownership::{self},
+        ownership,
         validation::{validate_description, validate_link, validate_name},
     },
 };
