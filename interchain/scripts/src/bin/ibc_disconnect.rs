@@ -28,7 +28,7 @@ pub fn get_deployment_id(src_chain: &ChainInfo, dst_chain: &ChainInfo) -> String
     format!("{}-->{}", src_chain.chain_id, dst_chain.chain_id)
 }
 
-fn connect(
+fn disconnect(
     (src_chain, src_mnemonic): (ChainInfo, Option<String>),
     (dst_chain, dst_mnemonic): (ChainInfo, Option<String>),
 ) -> cw_orch::anyhow::Result<()> {
