@@ -143,7 +143,7 @@ impl ModuleInfo {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &ModuleInfo {
+impl PrimaryKey<'_> for &ModuleInfo {
     /// (namespace, name)
     type Prefix = (Namespace, String);
 
@@ -300,7 +300,7 @@ impl TryInto<Version> for ModuleVersion {
     }
 }
 
-impl<'a> PrimaryKey<'a> for ModuleVersion {
+impl PrimaryKey<'_> for ModuleVersion {
     type Prefix = ();
 
     type SubPrefix = ();

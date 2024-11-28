@@ -57,7 +57,7 @@ impl Display for ChannelEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &ChannelEntry {
+impl PrimaryKey<'_> for &ChannelEntry {
     type Prefix = String;
 
     type SubPrefix = ();

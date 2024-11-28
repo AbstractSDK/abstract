@@ -36,7 +36,7 @@ impl Display for UniquePoolId {
     }
 }
 
-impl<'a> PrimaryKey<'a> for UniquePoolId {
+impl PrimaryKey<'_> for UniquePoolId {
     type Prefix = ();
     type SubPrefix = ();
     type Suffix = Self;

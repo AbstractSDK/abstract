@@ -79,7 +79,7 @@ impl Display for AssetEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AssetEntry {
+impl PrimaryKey<'_> for AssetEntry {
     type Prefix = ();
 
     type SubPrefix = ();

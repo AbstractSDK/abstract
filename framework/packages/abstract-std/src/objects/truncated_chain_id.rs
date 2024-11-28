@@ -100,7 +100,7 @@ impl FromStr for TruncatedChainId {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &TruncatedChainId {
+impl PrimaryKey<'_> for &TruncatedChainId {
     type Prefix = ();
 
     type SubPrefix = ();

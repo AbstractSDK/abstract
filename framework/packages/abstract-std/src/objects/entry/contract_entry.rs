@@ -81,7 +81,7 @@ impl Display for ContractEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &ContractEntry {
+impl PrimaryKey<'_> for &ContractEntry {
     type Prefix = String;
 
     type SubPrefix = ();

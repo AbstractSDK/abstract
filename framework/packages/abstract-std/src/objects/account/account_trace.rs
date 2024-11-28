@@ -26,7 +26,7 @@ impl KeyDeserialize for &AccountTrace {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AccountTrace {
+impl PrimaryKey<'_> for AccountTrace {
     type Prefix = ();
     type SubPrefix = ();
     type Suffix = Self;

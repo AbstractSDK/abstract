@@ -86,7 +86,7 @@ impl KeyDeserialize for &Namespace {
     }
 }
 
-impl<'a> PrimaryKey<'a> for Namespace {
+impl PrimaryKey<'_> for Namespace {
     type Prefix = ();
 
     type SubPrefix = ();

@@ -136,7 +136,7 @@ impl FromStr for AccountId {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AccountId {
+impl PrimaryKey<'_> for AccountId {
     type Prefix = AccountTrace;
 
     type SubPrefix = ();
