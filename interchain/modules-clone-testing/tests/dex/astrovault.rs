@@ -134,23 +134,11 @@ mod standard_pool_tests {
         "archway1j5vevvsrm5ayqmfvhng7rkkgjqad37pk35j3nanzmevlq4ntwpfqayv6z4";
 
     use super::*;
-    use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-    use abstract_interface::AdapterDeployer;
-    use abstract_interface::DeployStrategy;
-    use cosmwasm_std::Decimal;
 
     fn setup_standard_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
         let abstr_deployment = load_abstr(chain_info)?;
-        // Deploy the dex adapter
-        DexAdapter::new(DEX_ADAPTER_ID, abstr_deployment.environment()).deploy(
-            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
-            DexInstantiateMsg {
-                recipient_account: 0,
-                swap_fee: Decimal::permille(3),
-            },
-            DeployStrategy::Try,
-        )?;
+
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -303,23 +291,11 @@ mod xasset_stable_pool_tests {
         "archway123h0jfnk3rhhuapkytrzw22u6w4xkf563lqhy42a9r5lmv32w73s8f6ql2";
 
     use super::*;
-    use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-    use abstract_interface::AdapterDeployer;
-    use abstract_interface::DeployStrategy;
-    use cosmwasm_std::Decimal;
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
         let abstr_deployment = load_abstr(chain_info)?;
-        // Deploy the dex adapter
-        DexAdapter::new(DEX_ADAPTER_ID, abstr_deployment.environment()).deploy(
-            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
-            DexInstantiateMsg {
-                recipient_account: 0,
-                swap_fee: Decimal::permille(3),
-            },
-            DeployStrategy::Try,
-        )?;
+
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -420,23 +396,10 @@ mod stable_pool_tests {
     use cosmwasm_std::coins;
 
     use super::*;
-    use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-    use abstract_interface::AdapterDeployer;
-    use abstract_interface::DeployStrategy;
-    use cosmwasm_std::Decimal;
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
         let abstr_deployment = load_abstr(chain_info)?;
-        // Deploy the dex adapter
-        DexAdapter::new(DEX_ADAPTER_ID, abstr_deployment.environment()).deploy(
-            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
-            DexInstantiateMsg {
-                recipient_account: 0,
-                swap_fee: Decimal::permille(3),
-            },
-            DeployStrategy::Try,
-        )?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -581,10 +544,6 @@ mod ratio_pool_tests {
     use cosmwasm_std::{coins, Uint128};
 
     use super::*;
-    use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-    use abstract_interface::AdapterDeployer;
-    use abstract_interface::DeployStrategy;
-    use cosmwasm_std::Decimal;
 
     //  Astrovault ratio calculator reference
     //
@@ -634,15 +593,6 @@ mod ratio_pool_tests {
     fn setup_ratio_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
         let abstr_deployment = load_abstr(chain_info)?;
-        // Deploy the dex adapter
-        DexAdapter::new(DEX_ADAPTER_ID, abstr_deployment.environment()).deploy(
-            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
-            DexInstantiateMsg {
-                recipient_account: 0,
-                swap_fee: Decimal::permille(3),
-            },
-            DeployStrategy::Try,
-        )?;
         let chain = abstr_deployment.environment();
 
         let asset_a = (

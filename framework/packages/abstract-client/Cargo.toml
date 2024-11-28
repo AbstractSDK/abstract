@@ -17,20 +17,16 @@ version                 = "0.25.0"
 workspace = true
 
 [features]
-default = ["test-utils"]
-interchain = [
-  "dep:cw-orch-interchain",
-  "abstract-interface/interchain",
-  "abstract-interface/testing",
-]
-test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
+default    = []
+interchain = ["dep:cw-orch-interchain", "abstract-interface/interchain"]
+test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface", "abstract-interface/testing"]
 
 [dependencies]
 abstract-interface     = { version = "0.25.0", path = "../abstract-interface" }
 abstract-std.workspace = true
 cosmwasm-std.workspace = true
-cw-orch.workspace      = true
 cw-orch-interchain     = { workspace = true, optional = true }
+cw-orch.workspace      = true
 semver.workspace       = true
 serde.workspace        = true
 thiserror.workspace    = true
