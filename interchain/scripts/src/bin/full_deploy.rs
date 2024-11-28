@@ -1,4 +1,4 @@
-use abstract_interface::{Abstract, AccountI, ExecuteMsgFns};
+use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
 use cw_orch_daemon::RUNTIME;
 

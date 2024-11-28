@@ -4,7 +4,6 @@ use cw_orch::prelude::{
     networks::{parse_network, ChainInfo},
     *,
 };
-use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
