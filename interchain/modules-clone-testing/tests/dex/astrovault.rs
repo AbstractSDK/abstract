@@ -303,6 +303,10 @@ mod xasset_stable_pool_tests {
         "archway123h0jfnk3rhhuapkytrzw22u6w4xkf563lqhy42a9r5lmv32w73s8f6ql2";
 
     use super::*;
+    use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+    use abstract_interface::AdapterDeployer;
+    use abstract_interface::DeployStrategy;
+    use cosmwasm_std::Decimal;
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
@@ -416,6 +420,10 @@ mod stable_pool_tests {
     use cosmwasm_std::coins;
 
     use super::*;
+    use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+    use abstract_interface::AdapterDeployer;
+    use abstract_interface::DeployStrategy;
+    use cosmwasm_std::Decimal;
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
@@ -573,6 +581,10 @@ mod ratio_pool_tests {
     use cosmwasm_std::{coins, Uint128};
 
     use super::*;
+    use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+    use abstract_interface::AdapterDeployer;
+    use abstract_interface::DeployStrategy;
+    use cosmwasm_std::Decimal;
 
     //  Astrovault ratio calculator reference
     //

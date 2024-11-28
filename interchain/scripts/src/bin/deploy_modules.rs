@@ -11,7 +11,6 @@ use cw_orch::{
     prelude::*,
 };
 use reqwest::Url;
-use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

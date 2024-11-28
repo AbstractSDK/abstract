@@ -1,8 +1,6 @@
-use cosmos_sdk_proto::cosmos::gov::v1beta1::MsgSubmitProposalResponse;
 use cosmrs::proto::cosmos::gov::v1::MsgSubmitProposal;
 use cosmrs::proto::cosmwasm::wasm::v1::{AccessConfig, AccessType, MsgUpdateParams, Params};
 use cw_orch::prelude::*;
-use cw_orch_interchain::prelude::*;
 use networks::COSMOS_HUB_TESTNET;
 use prost::Name;
 use xionrs::tx::MessageExt;
