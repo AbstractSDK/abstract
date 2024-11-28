@@ -217,7 +217,7 @@ pub fn assert_nested_owner(
     // If current sender is owner of this account - it's the owner
     let owner_assertion = ownership.assert_owner(querier, sender);
     if owner_assertion.is_ok() {
-        // If this is a xion abstract account, we need to make sure the admin flag is set
+        // If this is a self-owned abstract account, we need to make sure the admin flag is set
         if let GovernanceDetails::AbstractAccount { .. } = ownership.owner {
             if let Some(true) = AUTH_ADMIN.may_load(store)? {
                 return Ok(());
