@@ -16,7 +16,7 @@ use crate::{
 };
 
 /// Check that sender either whitelisted or governance
-pub(crate) fn assert_whitelisted_or_owner(
+pub(crate) fn assert_whitelisted_owner_or_self(
     deps: &mut DepsMut,
     env: &Env,
     sender: &Addr,
@@ -40,7 +40,7 @@ pub fn execute_msgs(
     msg_sender: &Addr,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &env, msg_sender)?;
+    assert_whitelisted_owner_or_self(&mut deps, &env, msg_sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
@@ -53,7 +53,7 @@ pub fn execute_msgs_with_data(
     msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &env, msg_sender)?;
+    assert_whitelisted_owner_or_self(&mut deps, &env, msg_sender)?;
 
     let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
@@ -157,7 +157,7 @@ pub fn ica_action(
     msg_info: MessageInfo,
     action_query: Binary,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &env, &msg_info.sender)?;
+    assert_whitelisted_owner_or_self(&mut deps, &env, &msg_info.sender)?;
 
     let ica_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, ICA_CLIENT)?
@@ -183,11 +183,45 @@ mod test {
     use crate::contract::execute;
     use crate::error::AccountError;
     use crate::test_common::mock_init;
+    use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
     use abstract_std::account::{state::*, *};
+    use abstract_std::objects::gov_type::GovernanceDetails;
+    use abstract_std::objects::ownership::Ownership;
     use abstract_std::{account, IBC_CLIENT};
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::*;
     use cosmwasm_std::{coins, CosmosMsg, SubMsg};
+    use cosmwasm_std::{testing::*, Addr};
+    use cw_storage_plus::Item;
+
+    #[coverage_helper::test]
+    fn abstract_account_can_execute_on_itself() -> anyhow::Result<()> {
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
+        mock_init(&mut deps)?;
+
+        let env = mock_env_validated(deps.api);
+        // We set the contract as owner.
+        // We can't make it through execute msgs, because of XION signatures are too messy to reproduce in tests
+        let ownership = Ownership {
+            owner: GovernanceDetails::AbstractAccount {
+                address: env.contract.address.clone(),
+            }
+            .verify(deps.as_ref())?,
+            pending_owner: None,
+            pending_expiry: None,
+        };
+        const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+        OWNERSHIP.save(deps.as_mut().storage, &ownership)?;
+
+        // Module calls nested admin calls on account, making it admin
+        let info = message_info(&env.contract.address, &[]);
+
+        let msg = ExecuteMsg::Execute { msgs: vec![] };
+
+        execute(deps.as_mut(), env.clone(), info, msg).unwrap();
+
+        Ok(())
+    }
 
     mod execute_action {
 
