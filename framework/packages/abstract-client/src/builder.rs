@@ -147,6 +147,7 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     }
 }
 
+#[cfg(feature = "test-utils")]
 pub mod cw20_builder {
     //! # CW20 Builder
 
