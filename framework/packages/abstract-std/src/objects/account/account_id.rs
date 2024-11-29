@@ -152,7 +152,7 @@ impl PrimaryKey<'_> for AccountId {
     }
 }
 
-impl<'a> Prefixer<'a> for AccountId {
+impl Prefixer<'_> for AccountId {
     fn prefix(&self) -> Vec<Key> {
         self.key()
     }

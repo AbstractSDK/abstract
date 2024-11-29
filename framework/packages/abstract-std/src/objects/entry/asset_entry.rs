@@ -93,7 +93,7 @@ impl PrimaryKey<'_> for AssetEntry {
     }
 }
 
-impl<'a> Prefixer<'a> for AssetEntry {
+impl Prefixer<'_> for AssetEntry {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
     }

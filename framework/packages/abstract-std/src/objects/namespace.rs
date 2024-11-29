@@ -100,7 +100,7 @@ impl PrimaryKey<'_> for Namespace {
     }
 }
 
-impl<'a> Prefixer<'a> for Namespace {
+impl Prefixer<'_> for Namespace {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
     }

@@ -164,7 +164,7 @@ impl PrimaryKey<'_> for &ModuleInfo {
     }
 }
 
-impl<'a> Prefixer<'a> for &ModuleInfo {
+impl Prefixer<'_> for &ModuleInfo {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.namespace.prefix();
         res.extend(self.name.prefix());
@@ -317,7 +317,7 @@ impl PrimaryKey<'_> for ModuleVersion {
     }
 }
 
-impl<'a> Prefixer<'a> for ModuleVersion {
+impl Prefixer<'_> for ModuleVersion {
     fn prefix(&self) -> Vec<Key> {
         let self_as_bytes = match &self {
             ModuleVersion::Latest => "latest".as_bytes(),

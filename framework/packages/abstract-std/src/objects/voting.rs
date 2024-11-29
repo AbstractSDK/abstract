@@ -91,7 +91,7 @@ pub struct SimpleVoting<'a> {
     vote_config: Item<VoteConfig>,
 }
 
-impl<'a> SimpleVoting<'a> {
+impl SimpleVoting<'_> {
     pub const fn new(
         proposals_key: &'static str,
         id_key: &'static str,

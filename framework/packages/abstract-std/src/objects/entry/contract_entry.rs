@@ -97,7 +97,7 @@ impl PrimaryKey<'_> for &ContractEntry {
     }
 }
 
-impl<'a> Prefixer<'a> for &ContractEntry {
+impl Prefixer<'_> for &ContractEntry {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.protocol.prefix();
         res.extend(self.contract.prefix());

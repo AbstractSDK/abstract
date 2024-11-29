@@ -47,7 +47,7 @@ impl PrimaryKey<'_> for UniquePoolId {
     }
 }
 
-impl<'a> Prefixer<'a> for UniquePoolId {
+impl Prefixer<'_> for UniquePoolId {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
         self.0.prefix()
     }

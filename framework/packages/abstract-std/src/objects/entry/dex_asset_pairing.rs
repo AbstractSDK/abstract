@@ -58,7 +58,7 @@ impl<'a> PrimaryKey<'a> for &DexAssetPairing {
     }
 }
 
-impl<'a> Prefixer<'a> for &DexAssetPairing {
+impl Prefixer<'_> for &DexAssetPairing {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
         <(AssetEntry, AssetEntry, DexName)>::prefix(&self.0)
     }
