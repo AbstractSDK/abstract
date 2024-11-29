@@ -1,21 +1,24 @@
-#![cfg(feature = "TODO: replace wyndex_bundle")]
-
 use abstract_app::sdk::cw_helpers::Clearable;
 use abstract_app::std::{
     ans_host::ExecuteMsgFns,
-    objects::{gov_type::GovernanceDetails, AccountId, AnsAsset, AssetEntry},
+    objects::{AccountId, AnsAsset, AssetEntry},
 };
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
-    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, RegistryExecFns,
+    Abstract, AccountExecFns, AccountI, AdapterDeployer, AppDeployer, DeployStrategy,
+    RegistryExecFns,
 };
 use cosmwasm_std::{coin, coins, to_json_binary, Decimal, Uint128};
-use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
-use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
+use cw20::Cw20Coin;
+use cw20_base::msg::InstantiateMsg as Cw20InstantiateMsg;
 use cw_orch::environment::Environment;
 // Use prelude to get all the necessary imports
+use abstract_integration_tests::create_default_account;
 use cw_orch::{anyhow, prelude::*};
-use cw_plus_orch::cw20_base::Cw20Base as AbstractCw20Base;
+use cw_plus_orch::cw20_base::{
+    Cw20Base as AbstractCw20Base, ExecuteMsgInterfaceFns as _, QueryMsgInterfaceFns as _,
+};
+use mockdex_bundle::WynDex;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{
@@ -24,10 +27,9 @@ use payment_app::{
     },
     *,
 };
-use wyndex_bundle::WynDex;
 
 type PaymentTestSetup = (
-    AbstractAccount<MockBech32>,
+    AccountI<MockBech32>,
     Abstract<MockBech32>,
     PaymentAppInterface<MockBech32>,
     WynDex,
@@ -36,7 +38,7 @@ type PaymentTestSetup = (
 fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<PaymentTestSetup> {
     let app = PaymentAppInterface::new(APP_ID, mock.clone());
 
-    let abstr_deployment = Abstract::deploy_on(mock.clone(), mock.sender_addr().to_string())?;
+    let abstr_deployment = Abstract::deploy_on(mock.clone(), ())?;
 
     let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(
         abstract_dex_adapter::DEX_ADAPTER_ID,
@@ -52,12 +54,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
     )?;
 
     // Create a new account to install the app onto
-    let account =
-        abstr_deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender_addr().to_string(),
-            })?;
+    let account = create_default_account(&mock.sender_addr(), &abstr_deployment)?;
 
     // claim the namespace so app can be deployed
     abstr_deployment
@@ -67,7 +64,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
     app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
 
     // install exchange module as it's a dependency
-    account.install_adapter(&dex_adapter, None)?;
+    account.install_adapter(&dex_adapter, &[])?;
 
     let wyndex = WynDex::store_on(mock)?;
 
@@ -76,12 +73,12 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
         &AppInstantiateMsg {
             desired_asset,
             denom_asset: "Dollah".to_owned(),
-            exchanges: vec![wyndex_bundle::WYNDEX.to_owned()],
+            exchanges: vec![mockdex_bundle::WYNDEX.to_owned()],
         },
-        None,
+        &[],
     )?;
 
-    account.account.update_adapter_authorized_addresses(
+    account.update_adapter_authorized_addresses(
         abstract_dex_adapter::DEX_ADAPTER_ID,
         vec![app.address()?.to_string()],
         vec![],
@@ -113,11 +110,11 @@ fn successful_install() -> anyhow::Result<()> {
 #[test]
 fn test_update_config() -> anyhow::Result<()> {
     // Create the mock
-    let mock = MockBech32::new("sender");
+    let mock = MockBech32::new("mock");
 
     // Set up the environment and contract
     let (account, abstr, app, wyndex) =
-        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
+        setup(mock.clone(), Some(AssetEntry::new(mockdex_bundle::USD)))?;
 
     let new_target_currency = wyndex.eur_token.to_string();
 
@@ -127,17 +124,22 @@ fn test_update_config() -> anyhow::Result<()> {
         .ans_host
         .update_dexes(vec![dex_name.clone()], vec![])?;
 
-    app.call_as(&account.address()?).update_config(
-        Some("Ye-uh-roah".to_owned()),
-        Clearable::new_opt(AssetEntry::new(&new_target_currency)),
-        Some(vec![dex_name.clone()]),
+    account.admin_execute_on_module(
+        app.id(),
+        to_json_binary(&payment_app::msg::ExecuteMsg::Module(
+            msg::AppExecuteMsg::UpdateConfig {
+                denom_asset: Some("Ye-uh-roah".to_owned()),
+                desired_asset: Clearable::new_opt(AssetEntry::new(&new_target_currency)),
+                exchanges: Some(vec![dex_name.clone()]),
+            },
+        ))?,
     )?;
 
     let config = app.config()?;
     assert_eq!(
         config,
         ConfigResponse {
-            desired_asset: Some(AssetEntry::new(wyndex_bundle::EUR)),
+            desired_asset: Some(AssetEntry::new(mockdex_bundle::EUR)),
             denom_asset: "Ye-uh-roah".to_owned(),
             exchanges: vec![dex_name]
         }
@@ -177,7 +179,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
     let expected_tipper = TipperResponse {
         address: tipper.clone(),
         tip_count: 1,
-        total_amounts: vec![AnsAsset::new(wyndex_bundle::EUR, Uint128::new(100))],
+        total_amounts: vec![AnsAsset::new(mockdex_bundle::EUR, Uint128::new(100))],
     };
     assert_eq!(expected_tipper, tipper_response);
 
@@ -200,7 +202,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
     assert_eq!(
         tipper_response.total_amounts,
         vec![AnsAsset::new(
-            AssetEntry::new(wyndex_bundle::EUR),
+            AssetEntry::new(mockdex_bundle::EUR),
             Uint128::new(tip_amount)
         )]
     );
@@ -215,7 +217,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
     assert_eq!(
         tipper_response.total_amounts,
         vec![AnsAsset::new(
-            AssetEntry::new(wyndex_bundle::EUR),
+            AssetEntry::new(mockdex_bundle::EUR),
             Uint128::zero()
         )]
     );
@@ -228,7 +230,7 @@ fn test_tip_swap() -> anyhow::Result<()> {
     let mock = MockBech32::new("sender");
 
     let (account, _abstr_deployment, app, wyndex) =
-        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
+        setup(mock.clone(), Some(AssetEntry::new(mockdex_bundle::USD)))?;
 
     let WynDex {
         eur_token,
@@ -279,7 +281,7 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
     let mock = MockBech32::new("sender");
 
     let (account, abstr_deployment, app, wyndex) =
-        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
+        setup(mock.clone(), Some(AssetEntry::new(mockdex_bundle::USD)))?;
 
     let WynDex {
         eur_token,
@@ -333,7 +335,7 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     let mock = MockBech32::new("sender");
 
     let (account, abstr_deployment, app, _wyndex) =
-        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
+        setup(mock.clone(), Some(AssetEntry::new(mockdex_bundle::USD)))?;
 
     let tipper = mock.addr_make("tipper");
     let tip_amount = 100u128;
@@ -356,7 +358,7 @@ fn test_cw20_tip() -> anyhow::Result<()> {
             marketing: None,
         },
         None,
-        None,
+        &[],
     )?;
 
     // We add the currency cw20 to the abstract deployment
@@ -443,7 +445,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     let expected_tipper = TipperResponse {
         address: tipper1.clone(),
         tip_count: 1,
-        total_amounts: vec![AnsAsset::new(wyndex_bundle::EUR, Uint128::new(100))],
+        total_amounts: vec![AnsAsset::new(mockdex_bundle::EUR, Uint128::new(100))],
     };
     assert_eq!(expected_tipper, tipper_response1);
 
@@ -452,7 +454,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     let expected_tipper = TipperResponse {
         address: tipper2.clone(),
         tip_count: 1,
-        total_amounts: vec![AnsAsset::new(wyndex_bundle::EUR, Uint128::new(200))],
+        total_amounts: vec![AnsAsset::new(mockdex_bundle::EUR, Uint128::new(200))],
     };
     assert_eq!(expected_tipper, tipper_response2);
 
@@ -482,7 +484,7 @@ fn test_sent_desired_asset() -> anyhow::Result<()> {
     let mock = MockBech32::new("sender");
 
     let (_, abstr_deployment, app, wyndex) =
-        setup(mock, Some(AssetEntry::new(wyndex_bundle::USD)))?;
+        setup(mock, Some(AssetEntry::new(mockdex_bundle::USD)))?;
     let mock: MockBech32 = abstr_deployment.ans_host.environment().clone();
     let WynDex { usd_token, .. } = wyndex;
 
@@ -499,7 +501,7 @@ fn test_sent_desired_asset() -> anyhow::Result<()> {
     let expected_tipper = TipperResponse {
         address: tipper.clone(),
         tip_count: 1,
-        total_amounts: vec![AnsAsset::new(wyndex_bundle::USD, Uint128::new(100))],
+        total_amounts: vec![AnsAsset::new(mockdex_bundle::USD, Uint128::new(100))],
     };
     assert_eq!(expected_tipper, tipper_response);
 

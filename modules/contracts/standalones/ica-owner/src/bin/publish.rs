@@ -12,7 +12,7 @@ use my_standalone::MY_STANDALONE_ID;
 use abstract_client::{AbstractClient, Publisher};
 use abstract_standalone::objects::namespace::Namespace;
 use clap::Parser;
-use cw_orch::{anyhow, daemon::networks::parse_network, prelude::*, tokio::runtime::Runtime};
+use cw_orch::{anyhow, daemon::networks::parse_network, prelude::*};
 use my_standalone::MyStandaloneInterface;
 
 fn publish(networks: Vec<ChainInfo>) -> anyhow::Result<()> {

@@ -2,7 +2,7 @@
 members = [
   # "astroport-adapter",
   "astrovault-adapter",
-  # "bundles/*",
+  "bundles/*",
   "osmosis-adapter",
   "wyndex-adapter",
   "kujira-adapter",

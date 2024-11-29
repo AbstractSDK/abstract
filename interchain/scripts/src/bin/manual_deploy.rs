@@ -7,7 +7,6 @@ use clap::Parser;
 use cw_orch::{environment::NetworkInfoOwned, prelude::*};
 use cw_orch_daemon::RUNTIME;
 use reqwest::Url;
-use tokio::runtime::Runtime;
 
 use cw_orch::environment::ChainKind;
 use cw_orch_polytone::Polytone;

@@ -94,14 +94,15 @@ abstract-client = { workspace = true, optional = true }
 serde_json      = { version = "1.0", optional = true }
 
 [dev-dependencies]
-abstract-interface = { workspace = true, features = ["daemon"] }
-anyhow             = { workspace = true }
-clap               = { workspace = true }
-dotenv             = "0.15.0"
-env_logger         = "0.11.3"
-semver             = { workspace = true }
-tokio              = { workspace = true }
-# wyndex-bundle = { workspace = true }
+abstract-integration-tests = { workspace = true }
+abstract-interface         = { workspace = true, features = ["daemon"] }
+anyhow                     = { workspace = true }
+clap                       = { workspace = true }
+dotenv                     = "0.15.0"
+env_logger                 = "0.11.3"
+mockdex-bundle             = { workspace = true }
+semver                     = { workspace = true }
+tokio                      = { workspace = true }
 
 bip32 = { version = "0.5.2" }
 dex = { path = ".", features = [
@@ -115,3 +116,7 @@ dex = { path = ".", features = [
 cw-utils  = { workspace = true }
 cw20      = { workspace = true }
 cw20-base = { workspace = true }
+
+abstract-astrovault-adapter = { workspace = true, features = ["local"] }
+abstract-kujira-adapter     = { workspace = true, features = ["local"] }
+abstract-wyndex-adapter     = { workspace = true, features = ["local"] }

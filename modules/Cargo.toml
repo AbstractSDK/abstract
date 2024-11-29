@@ -50,18 +50,20 @@ tokio                     = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter    = { version = "0.25.0" }
-abstract-app        = { version = "0.25.0" }
-abstract-client     = { version = "0.25.0" }
-abstract-interface  = { version = "0.25.0" }
-abstract-macros     = { version = "0.25.0" }
-abstract-standalone = { version = "0.25.0" }
-abstract-testing    = { version = "0.25.0" }
+abstract-adapter           = { version = "0.25.0" }
+abstract-app               = { version = "0.25.0" }
+abstract-client            = { version = "0.25.0" }
+abstract-integration-tests = { version = "0.25.0" }
+abstract-interface         = { version = "0.25.0" }
+abstract-macros            = { version = "0.25.0" }
+abstract-standalone        = { version = "0.25.0" }
+abstract-testing           = { version = "0.25.0" }
 
 abstract-adapter-utils         = { version = "0.25.0" }
 abstract-dex-standard          = { version = "0.25.0" }
 abstract-money-market-standard = { version = "0.25.0" }
 abstract-staking-standard      = { version = "0.25.0" }
+
 
 # Integrations
 abstract-astroport-adapter  = { path = "../integrations/astroport-adapter", default-features = false }
@@ -71,7 +73,7 @@ abstract-mars-adapter       = { path = "../integrations/mars-adapter", default-f
 abstract-osmosis-adapter    = { path = "../integrations/osmosis-adapter", default-features = false }
 abstract-wyndex-adapter     = { path = "../integrations/wyndex-adapter", default-features = false }
 
-# wyndex-bundle = { path = "../integrations/bundles/wyndex" }
+mockdex-bundle = { path = "../integrations/bundles/mockdex" }
 
 ## Modules
 abstract-cw-staking  = { path = "./contracts/adapters/cw-staking", default-features = false }
@@ -91,6 +93,7 @@ abstract-adapter-utils         = { path = "../framework/packages/standards/utils
 abstract-app                   = { path = "../framework/packages/abstract-app" }
 abstract-client                = { path = "../framework/packages/abstract-client" }
 abstract-dex-standard          = { path = "../framework/packages/standards/dex" }
+abstract-integration-tests     = { path = "../framework/packages/abstract-integration-tests" }
 abstract-interface             = { path = "../framework/packages/abstract-interface" }
 abstract-macros                = { path = "../framework/packages/abstract-macros" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
