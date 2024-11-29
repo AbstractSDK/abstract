@@ -34,18 +34,16 @@ schema       = ["abstract-adapter/schema"]
 testing      = ["dep:abstract-client", "dep:cw20", "abstract-adapter/test-utils"]
 
 # Supported Dexes
-# wynd = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
+wynd    = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 # astroport = ["abstract-astroport-adapter/full_integration"]
-# bow = ["abstract-kujira-adapter/full_integration"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
+bow        = ["abstract-kujira-adapter/full_integration"]
 
 # Builds
 [package.metadata.optimizer]
 builds = [
-  # { name = "juno", features = [
-  #   "wynd",
-  # ] },
+  { name = "juno", features = ["wynd"] },
   # { name = "terra2", features = [
   #   "astroport",
   # ] },
@@ -53,9 +51,7 @@ builds = [
   #   "astroport",
   # ] },
   { name = "osmosis", features = ["osmosis"] },
-  # { name = "kujira", features = [
-  #   "bow",
-  # ] },
+  { name = "kujira", features = ["bow"] },
   # { name = "injective", features = [
   #   "astroport",
   # ] },
@@ -80,7 +76,8 @@ abstract-adapter-utils    = { workspace = true }
 abstract-staking-standard = { workspace = true }
 
 # # Juno dexes #
-# abstract-wyndex-adapter = { workspace = true }
+abstract-wyndex-adapter = { workspace = true }
+cw-controllers          = { workspace = true, optional = true }
 
 # # Osmosis #
 abstract-osmosis-adapter = { workspace = true }
@@ -88,8 +85,8 @@ abstract-osmosis-adapter = { workspace = true }
 # # Terra #
 # abstract-astroport-adapter = { workspace = true }
 
-# # Kujira #
-# abstract-kujira-adapter = { workspace = true }
+# Kujira #
+abstract-kujira-adapter = { workspace = true }
 
 # Astrovault #
 abstract-astrovault-adapter = { workspace = true }

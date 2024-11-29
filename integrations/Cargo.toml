@@ -4,8 +4,8 @@ members = [
   "astrovault-adapter",
   # "bundles/*",
   "osmosis-adapter",
-  # "wyndex-adapter",
-  # "kujira-adapter",
+  "wyndex-adapter",
+  "kujira-adapter",
   # "mars-adapter",
 ]
 
