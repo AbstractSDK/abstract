@@ -35,7 +35,7 @@ testing      = ["dep:abstract-client", "dep:cw20", "abstract-adapter/test-utils"
 
 # Supported Dexes
 osmosis = ["abstract-osmosis-adapter/full_integration"]
-wynd    = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
+wynd    = ["abstract-wyndex-adapter/full_integration"]
 # astroport = ["abstract-astroport-adapter/full_integration"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 bow        = ["abstract-kujira-adapter/full_integration"]
@@ -77,7 +77,6 @@ abstract-staking-standard = { workspace = true }
 
 # # Juno dexes #
 abstract-wyndex-adapter = { workspace = true }
-cw-controllers          = { workspace = true, optional = true }
 
 # # Osmosis #
 abstract-osmosis-adapter = { workspace = true }
