@@ -12,6 +12,9 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::dex::WynDex>::default())
         }
+        abstract_neutron_dex_adapter::NEUTRON => {
+            Ok(Box::<abstract_neutron_dex_adapter::dex::Neutron>::default())
+        }
         // abstract_astroport_adapter::ASTROPORT => {
         //     Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         // }
@@ -33,6 +36,10 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexEr
         #[cfg(feature = "wynd")]
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::dex::WynDex>::default())
+        }
+        #[cfg(feature = "neutron")]
+        abstract_neutron_dex_adapter::NEUTRON => {
+            Ok(Box::<abstract_neutron_dex_adapter::dex::Neutron>::default())
         }
         #[cfg(feature = "osmosis")]
         abstract_osmosis_adapter::OSMOSIS => {

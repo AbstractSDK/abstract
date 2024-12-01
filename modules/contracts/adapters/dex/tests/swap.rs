@@ -9,6 +9,7 @@ use abstract_integration_tests::create_default_account;
 use abstract_interface::Abstract;
 use cosmwasm_std::{coin, Decimal};
 use cw_orch::prelude::*;
+use cw_plus_orch::cw20_base::interfaces::QueryMsgInterfaceFns;
 use mockdex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";

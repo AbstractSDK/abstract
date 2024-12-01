@@ -1,0 +1,36 @@
+[package]
+authors = ["Abstract Money <contact@abstract.money>"]
+description = "Abstract DexCommand implementation for Astroport"
+edition = "2021"
+license = "Apache-2.0"
+name = "abstract-neutron-dex-adapter"
+repository = "https://github.com/astroport-fi/astroport"
+version = "2.10.0"
+
+[features]
+default = ["full_integration"]
+full_integration = [
+  "dep:cw20",
+  "dep:cosmwasm-schema",
+  "dep:cw-asset",
+  "dep:cw-utils",
+  "dep:neutron-std",
+]
+local = []
+
+[dependencies]
+neutron-std = { version = "5.0.1-rc0", optional = true }
+lazy_static = "1.4.0"
+
+abstract-dex-standard = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-staking-standard = { workspace = true }
+cosmwasm-schema = { workspace = true, optional = true }
+cosmwasm-std = { workspace = true }
+cw-asset = { workspace = true, optional = true }
+cw-utils = { workspace = true, optional = true }
+cw20 = { workspace = true, optional = true }
+
+[dev-dependencies]
+abstract-dex-standard = { workspace = true, features = ["testing"] }
+cw-orch = { workspace = true }
