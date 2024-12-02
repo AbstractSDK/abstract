@@ -23,9 +23,18 @@ required-features = ["schema"]
 
 [features]
 default = ["export"]
-export  = []
-schema  = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw20", "dep:serde_json", "abstract-adapter/test-utils"]
+export = []
+schema = ["abstract-adapter/schema"]
+testing = [
+  "dep:abstract-client",
+  "dep:cw20",
+  "dep:serde_json",
+  "abstract-adapter/test-utils",
+  "abstract-wyndex-adapter/local",
+  "abstract-astrovault-adapter/local",
+  "abstract-kujira-adapter/local",
+  "abstract-neutron-dex-adapter/local",
+]
 
 # Supported Dexes
 osmosis = ["abstract-osmosis-adapter/full_integration"]
