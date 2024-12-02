@@ -4,7 +4,7 @@
       "abstract:account": 11529,
       "abstract:ans-host": 11528,
       "abstract:cw-staking": 11559,
-      "abstract:dex": 11532,
+      "abstract:dex": 11694,
       "abstract:ibc-client": 11530,
       "abstract:ibc-host": 11531,
       "abstract:module-factory": 11526,
@@ -15,9 +15,11 @@
     "default": {
       "abstract:account-local-0": "osmo1hafge5xucuc03ar5lkwac0n9yctnxq6xrgygftdl9xl3tzncgghshnykry",
       "abstract:account-local-1": "osmo1v9dl0fw5s3jujn6emmlgch7w4ynt02nykj75pnzk8mdw7nmu3p4q65tczp",
+      "abstract:account-local-9": "osmo1gsk99z7x568h9894lev3muwynay65v4n0npnwn82tazsv47mq33q2v20a2",
       "abstract:ans-host": "osmo1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsepnezp",
       "abstract:cw-staking": "osmo13kp8fv0t869zcwjh9q52eygxf8w0d8anmzhgrrz5tjju9uw3fscq9mhw4u",
-      "abstract:dex": "osmo1s8nvehqc0jf99ac2qqg0sqja5ydzxlvht3eml9swl3n736tz9dsqfc4wa4",
+      "abstract:dex": "osmo1n2kmtqru87hzp905qsc20wkn8kras38eqcefddn3yjah63hza55sv4ysng",
+      "abstract:dex-local-9": "osmo1n2kmtqru87hzp905qsc20wkn8kras38eqcefddn3yjah63hza55sv4ysng",
       "abstract:ibc-client": "osmo1vnt8tpxrnukcydma2x6gy2zzawl9uxmc6las8cak9sd87q67n00qn0wkj7",
       "abstract:ibc-host": "osmo1zzgxwn88a3ec34fw4mu8ppsh9eth746l3tl8w5l7qvknrmtldldqz7saee",
       "abstract:module-factory": "osmo1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqcxdtus",
@@ -26,7 +28,7 @@
   },
   "pion-1": {
     "code_ids": {
-      "abstract:account": 8232,
+      "abstract:account": 8373,
       "abstract:ans-host": 8231,
       "abstract:dex": 8372,
       "abstract:ibc-client": 8233,
@@ -39,8 +41,10 @@
     "default": {
       "abstract:account-local-0": "neutron12x9fcuwl382vv9l22dkcvcx6uxpeqy9rq5fe3jt8cgvqkyjnj2hs5da0m4",
       "abstract:account-local-1": "neutron1mxahhvpj467088td8lvysyw7m8v880tzls0sxk0zuljn6tsufqksy8whnv",
+      "abstract:account-local-71": "neutron1pn4l8vtvvc2gtz8hj5y4rwv2r20hq2pcnn9rnamhppth4vqsyyds2hqmqp",
       "abstract:ans-host": "neutron1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsdn69ty",
       "abstract:dex": "neutron10hr9m68uh3h2qn8tgsc370zhwsu0wsjz688xpnr6jgyh567wkrpqcv5pzv",
+      "abstract:dex-local-71": "neutron10hr9m68uh3h2qn8tgsc370zhwsu0wsjz688xpnr6jgyh567wkrpqcv5pzv",
       "abstract:ibc-client": "neutron1n9la68zja4l76plwffedj24ar3f6e5kg7j92r26hhzewncghypvs9vk28k",
       "abstract:ibc-host": "neutron1c67x66rln9mgrjum5urrgn0tjvup5k9uke8hgdm8tu7hztwrjy4s5ecrmu",
       "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",

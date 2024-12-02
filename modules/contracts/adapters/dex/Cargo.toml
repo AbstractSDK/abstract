@@ -134,4 +134,7 @@ cw-orch                     = { workspace = true, features = ["daemon"] }
 cw-orch-interchain          = { workspace = true, features = ["daemon"] }
 cw-plus-orch                = { workspace = true }
 neutron-std                 = "5.0.1-rc0"
+osmosis-std                 = "0.26.0"
+prost                       = "0.12.3"
 prost-types                 = "0.13.3"
+prost_13                    = { version = "0.13.3", package = "prost" }
