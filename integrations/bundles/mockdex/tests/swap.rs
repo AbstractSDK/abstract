@@ -1,8 +1,8 @@
 use cosmwasm_std::{coin, testing::mock_env};
 use cw_orch::mock::MockBech32;
 use cw_orch::prelude::TxHandler;
+use mockdex_bundle::suite::SuiteBuilder;
 use wyndex::asset::{AssetInfo, AssetInfoExt};
-use wyndex_bundle::suite::SuiteBuilder;
 use wyndex_multi_hop::msg::SwapOperation;
 
 #[test]

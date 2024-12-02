@@ -33,14 +33,14 @@ pub trait Execution: AccountExecutor + ModuleIdentification {
         let executor: Executor<MockModule>  = module.executor(deps.as_ref());
         ```
     */
-    fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
+    fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<'a, Self> {
         Executor { base: self, deps }
     }
 }
 
 impl<T> Execution for T where T: AccountExecutor + ModuleIdentification {}
 
-impl<'a, T: Execution> AbstractApi<T> for Executor<'a, T> {
+impl<T: Execution> AbstractApi<T> for Executor<'_, T> {
     const API_ID: &'static str = "Executor";
 
     fn base(&self) -> &T {
@@ -76,7 +76,7 @@ pub struct Executor<'a, T: Execution> {
     deps: Deps<'a>,
 }
 
-impl<'a, T: Execution> Executor<'a, T> {
+impl<T: Execution> Executor<'_, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
         let msg = self.base.execute_on_account(

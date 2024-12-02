@@ -21,7 +21,7 @@ pub struct NamespaceIndexes<'a> {
     pub account_id: MultiIndex<'a, AccountId, AccountId, &'a Namespace>,
 }
 
-impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
+impl IndexList<AccountId> for NamespaceIndexes<'_> {
     fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<AccountId>> + '_> {
         let v: Vec<&dyn Index<AccountId>> = vec![&self.account_id];
         Box::new(v.into_iter())

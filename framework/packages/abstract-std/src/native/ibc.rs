@@ -228,7 +228,7 @@ pub struct ICS20PacketIdentifier {
     pub sequence: u64,
 }
 
-impl<'a> PrimaryKey<'a> for ICS20PacketIdentifier {
+impl PrimaryKey<'_> for ICS20PacketIdentifier {
     /// channel id
     type Prefix = String;
 

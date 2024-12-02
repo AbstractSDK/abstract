@@ -27,14 +27,14 @@ pub trait AdapterInterface: ModuleInterface + ModuleIdentification {
         let adapters: Adapters<MockModule>  = module.adapters(deps.as_ref());
         ```
     */
-    fn adapters<'a>(&'a self, deps: Deps<'a>) -> Adapters<Self> {
+    fn adapters<'a>(&'a self, deps: Deps<'a>) -> Adapters<'a, Self> {
         Adapters { base: self, deps }
     }
 }
 
 impl<T> AdapterInterface for T where T: ModuleInterface + ModuleIdentification {}
 
-impl<'a, T: AdapterInterface> AbstractApi<T> for Adapters<'a, T> {
+impl<T: AdapterInterface> AbstractApi<T> for Adapters<'_, T> {
     const API_ID: &'static str = "Adapters";
 
     fn base(&self) -> &T {
@@ -67,7 +67,7 @@ pub struct Adapters<'a, T: AdapterInterface> {
     deps: Deps<'a>,
 }
 
-impl<'a, T: AdapterInterface> Adapters<'a, T> {
+impl<T: AdapterInterface> Adapters<'_, T> {
     /// Interactions with Abstract Adapters
     /// Construct an adapter execute message.
     pub fn execute<M: Serialize + Into<abstract_std::adapter::ExecuteMsg<M>>>(

@@ -28,7 +28,10 @@ pub enum DexError {
     #[error(transparent)]
     AnsHostError(#[from] AnsHostError),
 
-    #[error("DEX {0} is not a known dex on this network.")]
+    #[error("DEX {dex} is not a known dex on this network ({:?}).", chain)]
+    UnknownDexOnThisPlatform { dex: String, chain: Option<String> },
+
+    #[error("DEX {0} is not a known dex by Abstract")]
     UnknownDex(String),
 
     #[error("DEX {0} is not local to this network.")]

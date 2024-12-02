@@ -1,0 +1,7 @@
+exclude = ["workspace-hack/Cargo.toml"]
+
+[formatting]
+align_entries       = true
+column_width        = 100
+inline_table_expand = false
+reorder_keys        = true

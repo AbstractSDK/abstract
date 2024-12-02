@@ -38,7 +38,7 @@ pub fn load_abstr(chain: ChainInfo) -> anyhow::Result<AbstractClient<CloneTestin
     // Allow registration of any module
     abstr_deployment
         .registry()
-        .update_config(None, Some(true))?;
+        .update_config(None, Some(false))?;
 
     Ok(abstr_deployment)
 }

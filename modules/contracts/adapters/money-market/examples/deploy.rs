@@ -10,9 +10,8 @@ use semver::Version;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
-    let rt = Runtime::new()?;
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
+    let chain = DaemonBuilder::new(network).build()?;
     let dex = MoneyMarketAdapter::new(MONEY_MARKET_ADAPTER_ID, chain);
     dex.deploy(
         version,
@@ -26,7 +25,6 @@ fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
 }
 
 use clap::Parser;
-use tokio::runtime::Runtime;
 
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]

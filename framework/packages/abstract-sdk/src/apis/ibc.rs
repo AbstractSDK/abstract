@@ -43,7 +43,7 @@ pub trait IbcInterface:
         let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
         ```
     */
-    fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
+    fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<'a, Self> {
         IbcClient { base: self, deps }
     }
 }
@@ -53,7 +53,7 @@ impl<T> IbcInterface for T where
 {
 }
 
-impl<'a, T: IbcInterface> AbstractApi<T> for IbcClient<'a, T> {
+impl<T: IbcInterface> AbstractApi<T> for IbcClient<'_, T> {
     const API_ID: &'static str = "IbcClient";
 
     fn base(&self) -> &T {
@@ -86,7 +86,7 @@ pub struct IbcClient<'a, T: IbcInterface> {
     deps: Deps<'a>,
 }
 
-impl<'a, T: IbcInterface> IbcClient<'a, T> {
+impl<T: IbcInterface> IbcClient<'_, T> {
     /// Get address of this module
     pub fn module_address(&self) -> AbstractSdkResult<Addr> {
         let modules = self.base.modules(self.deps);
@@ -206,7 +206,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     }
 }
 
-impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
+impl<T: IbcInterface + AccountExecutor> IbcClient<'_, T> {
     /// Execute on ibc client
     pub fn execute(
         &self,

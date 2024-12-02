@@ -31,7 +31,6 @@ cw-asset        = { workspace = true }
 cw-controllers  = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw20            = { workspace = true }
-schemars        = { workspace = true }
 thiserror       = { workspace = true }
 
 abstract-app = { workspace = true }
@@ -42,19 +41,21 @@ cw-orch = { workspace = true }
 
 # Dependencies for interface
 [dev-dependencies]
-abstract-app       = { workspace = true, features = ["test-utils"] }
-abstract-interface = { workspace = true, features = ["daemon"] }
-cw-orch            = { workspace = true, features = ["daemon"] }
-dotenv             = "0.15.0"
-env_logger         = "0.11.3"
-semver             = "1.0"
+abstract-app               = { workspace = true, features = ["test-utils"] }
+abstract-integration-tests = { workspace = true }
+abstract-interface         = { workspace = true, features = ["daemon"] }
+clap.workspace             = true
+cw-orch                    = { workspace = true, features = ["daemon"] }
+dotenv                     = "0.15.0"
+env_logger                 = "0.11.3"
+semver                     = "1.0"
 
 cw-plus-orch = { workspace = true }
 cw20         = { workspace = true }
 cw20-base    = { workspace = true }
 
-# wyndex-bundle = { workspace = true }
 abstract-dex-adapter = { workspace = true, features = [
   # "wynd",
   "testing",
 ] }
+mockdex-bundle = { workspace = true }

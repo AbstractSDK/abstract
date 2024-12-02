@@ -1,13 +1,9 @@
-#![cfg(feature = "TODO: replace wyndex_bundle")]
-mod common;
-
-use abstract_adapter::abstract_interface::{
-    Abstract, AbstractAccount, AdapterDeployer, DeployStrategy,
-};
+use abstract_adapter::abstract_interface::{Abstract, AccountI, AdapterDeployer, DeployStrategy};
 use abstract_adapter::std::{
     adapter::BaseQueryMsgFns,
     objects::{module_version::ModuleDataResponse, AnsAsset, AssetEntry},
 };
+use abstract_client::builder::cw20_builder::{ExecuteMsgInterfaceFns, QueryMsgInterfaceFns};
 use abstract_cw_staking::{
     contract::CONTRACT_VERSION, interface::CwStakingAdapter, msg::StakingQueryMsgFns,
 };
@@ -15,48 +11,45 @@ use abstract_staking_standard::msg::{
     Claim, RewardTokensResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Uint128};
-use cw20::msg::Cw20ExecuteMsgFns;
-use cw20_base::msg::QueryMsgFns;
 use cw_asset::AssetInfoBase;
 use cw_orch::prelude::*;
-use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
+use mockdex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
-use common::create_default_account;
+use abstract_integration_tests::create_default_account;
 
 fn setup_mock() -> anyhow::Result<(
     MockBech32,
-    wyndex_bundle::WynDex,
+    mockdex_bundle::WynDex,
     CwStakingAdapter<MockBech32>,
-    AbstractAccount<MockBech32>,
+    AccountI<MockBech32>,
 )> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
 
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
+    let wyndex = mockdex_bundle::WynDex::store_on(chain.clone())?;
 
-    let _root_os = create_default_account(&deployment.account_factory)?;
+    let _root_os = create_default_account(&sender, &deployment)?;
     let staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone());
 
     staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Try)?;
 
-    let os = create_default_account(&deployment.account_factory)?;
-    let account_addr = os.account.address()?;
-    let _account_addr = os.account.address()?;
+    let account = create_default_account(&sender, &deployment)?;
+    let account_addr = account.address()?;
 
-    // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
+    // transfer some LP tokens to the AccountI, as if it provided liquidity
     wyndex
         .eur_usd_lp
         .call_as(&chain.addr_make(WYNDEX_OWNER))
         .transfer(1000u128, account_addr.to_string())?;
 
-    // install exchange on AbstractAccount
-    os.install_adapter(&staking, None)?;
+    // install exchange on AccountI
+    account.install_adapter(&staking, &[])?;
 
-    Ok((chain, wyndex, staking, os))
+    Ok((chain, wyndex, staking, account))
 }
 
 #[test]
@@ -65,23 +58,29 @@ fn staking_inited() -> anyhow::Result<()> {
 
     // query staking info
     let staking_info = staking.info(WYNDEX.into(), vec![AssetEntry::new(EUR_USD_LP)])?;
-    assert_that!(staking_info).is_equal_to(StakingInfoResponse {
-        infos: vec![StakingInfo {
-            staking_target: wyndex.eur_usd_staking.into(),
-            staking_token: AssetInfoBase::Cw20(wyndex.eur_usd_lp.address()?),
-            unbonding_periods: Some(vec![
-                cw_utils::Duration::Time(1),
-                cw_utils::Duration::Time(2),
-            ]),
-            max_claims: None,
-        }],
-    });
+    assert_eq!(
+        staking_info,
+        StakingInfoResponse {
+            infos: vec![StakingInfo {
+                staking_target: wyndex.eur_usd_staking.into(),
+                staking_token: AssetInfoBase::Cw20(wyndex.eur_usd_lp.address()?),
+                unbonding_periods: Some(vec![
+                    cw_utils::Duration::Time(1),
+                    cw_utils::Duration::Time(2),
+                ]),
+                max_claims: None,
+            }],
+        }
+    );
 
     // query reward tokens
     let reward_tokens = staking.reward_tokens(WYNDEX.into(), vec![AssetEntry::new(EUR_USD_LP)])?;
-    assert_that!(reward_tokens).is_equal_to(RewardTokensResponse {
-        tokens: vec![vec![AssetInfoBase::Native(WYND_TOKEN.to_owned())]],
-    });
+    assert_eq!(
+        reward_tokens,
+        RewardTokensResponse {
+            tokens: vec![vec![AssetInfoBase::Native(WYND_TOKEN.to_owned())]],
+        }
+    );
 
     let module_data = staking.module_data()?;
     assert_eq!(
@@ -98,13 +97,18 @@ fn staking_inited() -> anyhow::Result<()> {
 
 #[test]
 fn stake_lp() -> anyhow::Result<()> {
-    let (_, _, staking, os) = setup_mock()?;
-    let account_addr = os.account.address()?;
+    let (_, _, staking, account) = setup_mock()?;
+    let account_addr = account.address()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
     // stake 100 EUR
-    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur, &os)?;
+    staking.stake(
+        AnsAsset::new(EUR_USD_LP, 100u128),
+        WYNDEX.into(),
+        dur,
+        &account,
+    )?;
 
     // query stake
     let staked_balance = staking.staked(
@@ -113,15 +117,15 @@ fn stake_lp() -> anyhow::Result<()> {
         vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
-    assert_that!(staked_balance.amounts[0].u128()).is_equal_to(100u128);
+    assert_eq!(staked_balance.amounts[0].u128(), 100u128);
 
     Ok(())
 }
 
 #[test]
 fn stake_lp_wthout_chain() -> anyhow::Result<()> {
-    let (_, _, staking, os) = setup_mock()?;
-    let account_addr = os.account.address()?;
+    let (_, _, staking, account) = setup_mock()?;
+    let account_addr = account.address()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
@@ -130,7 +134,7 @@ fn stake_lp_wthout_chain() -> anyhow::Result<()> {
         AnsAsset::new(EUR_USD_LP, 100u128),
         WYNDEX_WITHOUT_CHAIN.into(),
         dur,
-        &os,
+        &account,
     )?;
 
     // query stake
@@ -140,20 +144,25 @@ fn stake_lp_wthout_chain() -> anyhow::Result<()> {
         vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
-    assert_that!(staked_balance.amounts[0].u128()).is_equal_to(100u128);
+    assert_eq!(staked_balance.amounts[0].u128(), 100u128);
 
     Ok(())
 }
 
 #[test]
 fn unstake_lp() -> anyhow::Result<()> {
-    let (_, _, staking, os) = setup_mock()?;
-    let account_addr = os.account.address()?;
+    let (_, _, staking, account) = setup_mock()?;
+    let account_addr = account.address()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
     // stake 100 EUR
-    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur, &os)?;
+    staking.stake(
+        AnsAsset::new(EUR_USD_LP, 100u128),
+        WYNDEX.into(),
+        dur,
+        &account,
+    )?;
 
     // query stake
     let staked_balance = staking.staked(
@@ -162,10 +171,15 @@ fn unstake_lp() -> anyhow::Result<()> {
         vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
-    assert_that!(staked_balance.amounts[0].u128()).is_equal_to(100u128);
+    assert_eq!(staked_balance.amounts[0].u128(), 100u128);
 
     // now unbond 50
-    staking.unstake(AnsAsset::new(EUR_USD_LP, 50u128), WYNDEX.into(), dur, &os)?;
+    staking.unstake(
+        AnsAsset::new(EUR_USD_LP, 50u128),
+        WYNDEX.into(),
+        dur,
+        &account,
+    )?;
     // query stake
     let staked_balance = staking.staked(
         WYNDEX.into(),
@@ -173,14 +187,14 @@ fn unstake_lp() -> anyhow::Result<()> {
         vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
-    assert_that!(staked_balance.amounts[0].u128()).is_equal_to(50u128);
+    assert_eq!(staked_balance.amounts[0].u128(), 50u128);
     Ok(())
 }
 
 #[test]
 fn claim_unbonded_lp() -> anyhow::Result<()> {
-    let (chain, wyndex, staking, os) = setup_mock()?;
-    let account_addr = os.account.address()?;
+    let (chain, wyndex, staking, account) = setup_mock()?;
+    let account_addr = account.address()?;
 
     let dur = cw_utils::Duration::Time(2);
 
@@ -189,7 +203,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
         AnsAsset::new(EUR_USD_LP, 100u128),
         WYNDEX.into(),
         Some(dur),
-        &os,
+        &account,
     )?;
 
     // now unbond 50
@@ -197,7 +211,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
         AnsAsset::new(EUR_USD_LP, 50u128),
         WYNDEX.into(),
         Some(dur),
-        &os,
+        &account,
     )?;
 
     let unstake_block_info = chain.block_info()?;
@@ -209,35 +223,43 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
         vec![AssetEntry::new(EUR_USD_LP)],
     )?;
     let claimable_at = dur.after(&unstake_block_info);
-    assert_that!(unbonding_balance).is_equal_to(UnbondingResponse {
-        claims: vec![vec![Claim {
-            amount: Uint128::from(50u128),
-            claimable_at,
-        }]],
-    });
+    assert_eq!(
+        unbonding_balance,
+        UnbondingResponse {
+            claims: vec![vec![Claim {
+                amount: Uint128::from(50u128),
+                claimable_at,
+            }]],
+        }
+    );
 
     // forward 5 seconds
     chain.next_block()?;
 
     // now claim 50
-    staking.claim(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &os)?;
+    staking.claim(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &account)?;
 
     // query balance
     let balance = wyndex.eur_usd_lp.balance(account_addr.to_string())?;
-    assert_that!(balance.balance.u128()).is_equal_to(950u128);
+    assert_eq!(balance.balance.u128(), 950u128);
 
     Ok(())
 }
 
 #[test]
 fn claim_rewards() -> anyhow::Result<()> {
-    let (chain, mut wyndex, staking, os) = setup_mock()?;
-    let account_addr = os.account.address()?;
+    let (chain, mut wyndex, staking, account) = setup_mock()?;
+    let account_addr = account.address()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
     // stake 100 EUR
-    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur, &os)?;
+    staking.stake(
+        AnsAsset::new(EUR_USD_LP, 100u128),
+        WYNDEX.into(),
+        dur,
+        &account,
+    )?;
 
     // forward 500 seconds
     chain.wait_blocks(100)?;
@@ -249,11 +271,11 @@ fn claim_rewards() -> anyhow::Result<()> {
         .unwrap();
 
     // now claim rewards
-    staking.claim_rewards(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &os)?;
+    staking.claim_rewards(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &account)?;
 
     // query balance
     let balance = chain.query_balance(&account_addr, WYND_TOKEN)?;
-    assert_that!(balance.u128()).is_equal_to(10_000u128);
+    assert_eq!(balance.u128(), 10_000u128);
 
     Ok(())
 }

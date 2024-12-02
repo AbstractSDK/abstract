@@ -19,7 +19,7 @@
 ///     <MyAdapter as abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
 /// pub type ExecuteMsg = <MyAdapter as abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
 /// pub type QueryMsg = <MyAdapter as abstract_sdk::base::QueryEndpoint>::QueryMsg;
-
+///
 /// // Implements the trait-bounds for the abstract adapter messages, which allows them to be used in the Adapter type.
 /// // Also implements `Into<ExecuteMsg> for MyAdapterExecuteMsg` and `Into<QueryMsg> for MyAdapterQueryMsg`.
 /// // This enables the use of the `impl_into` macro of cw-orchestrator.

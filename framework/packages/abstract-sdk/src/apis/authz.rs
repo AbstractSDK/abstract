@@ -35,7 +35,7 @@ pub trait AuthZInterface: AccountExecutor {
     /// API for accessing the Cosmos SDK AuthZ module.
     /// The **granter** is the address of the user **granting** an authorization to perform an action on their behalf.
     /// By default, it is the address of the Account.
-
+    ///
     /// ```
     /// use abstract_sdk::prelude::*;
     /// # use cosmwasm_std::testing::mock_dependencies;

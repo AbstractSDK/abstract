@@ -1,44 +1,26 @@
-#![allow(unused)]
 #![cfg(feature = "osmosis-test")]
 
-mod common;
-
 mod osmosis_test {
-    use std::path::PathBuf;
-    use std::rc::Rc;
 
     use abstract_adapter::abstract_interface::{
         Abstract, AbstractInterfaceError, AccountI, AdapterDeployer, DeployStrategy,
-        RegisteredModule,
     };
-    use abstract_adapter::objects::dependency::StaticDependency;
     use abstract_adapter::std::{
-        adapter,
         ans_host::ExecuteMsgFns,
-        objects::{
-            pool_id::PoolAddressBase, AccountId, AnsAsset, AssetEntry, PoolMetadata, PoolType,
-        },
+        objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry, PoolMetadata, PoolType},
     };
-    use abstract_adapter::traits::{Dependencies, ModuleIdentification};
     use abstract_client::GovernanceDetails;
     use abstract_cw_staking::interface::CwStakingAdapter;
-    use abstract_cw_staking::{
-        contract::CONTRACT_VERSION,
-        msg::{
-            ExecuteMsg, InstantiateMsg, QueryMsg, RewardTokensResponse, StakingAction,
-            StakingExecuteMsg, StakingQueryMsgFns,
-        },
-    };
+    use abstract_cw_staking::{contract::CONTRACT_VERSION, msg::StakingQueryMsgFns};
     use abstract_staking_standard::{
         msg::{StakingInfo, StakingInfoResponse},
         CwStakingError,
     };
-    use cosmwasm_std::{coin, coins, from_json, to_json_binary, Addr, Empty, Uint128};
+    use cosmwasm_std::{coin, coins, from_json, to_json_binary, Empty, Uint128};
     use cw_asset::AssetInfoBase;
-    use cw_orch_osmosis_test_tube::osmosis_test_tube::Account;
     use cw_orch_osmosis_test_tube::osmosis_test_tube::{
         osmosis_std::{
-            shim::{Duration, Timestamp},
+            shim::Timestamp,
             types::osmosis::{
                 incentives::{MsgAddToGauge, MsgCreateGauge, QueryLockableDurationsRequest},
                 lockup::{
@@ -48,11 +30,11 @@ mod osmosis_test {
                 poolincentives::v1beta1::QueryGaugeIdsRequest,
             },
         },
-        Module, OsmosisTestApp, Runner,
+        Module, Runner,
     };
     use cw_orch_osmosis_test_tube::OsmosisTestTube;
 
-    use cw_orch::{interface, prelude::*};
+    use cw_orch::prelude::*;
 
     const OSMOSIS: &str = "osmosis";
     const DENOM: &str = "uosmo";
@@ -68,83 +50,6 @@ mod osmosis_test {
         format!("gamm/pool/{}", id)
     }
 
-    /// Stake using Abstract's OS (registered in daemon_state).
-    pub fn stake<Chain: CwEnv>(
-        stake_assets: Vec<AnsAsset>,
-        provider: String,
-        duration: Option<cw_utils::Duration>,
-        account: &AccountI<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-            account_address: None,
-            request: StakingExecuteMsg {
-                provider,
-                action: StakingAction::Stake {
-                    assets: stake_assets,
-                    unbonding_period: duration,
-                },
-            },
-        });
-        account.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg, vec![])?;
-        Ok(())
-    }
-
-    pub fn unstake<Chain: CwEnv>(
-        stake_assets: Vec<AnsAsset>,
-        provider: String,
-        duration: Option<cw_utils::Duration>,
-        account: &AccountI<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-            account_address: None,
-            request: StakingExecuteMsg {
-                provider,
-                action: StakingAction::Unstake {
-                    assets: stake_assets,
-                    unbonding_period: duration,
-                },
-            },
-        });
-        account.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg, vec![])?;
-        Ok(())
-    }
-
-    pub fn claim<Chain: CwEnv>(
-        stake_assets: Vec<AssetEntry>,
-        provider: String,
-        account: &AccountI<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-            account_address: None,
-            request: StakingExecuteMsg {
-                provider,
-                action: StakingAction::Claim {
-                    assets: stake_assets,
-                },
-            },
-        });
-        account.execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg, vec![])?;
-        Ok(())
-    }
-
-    pub fn claim_rewards<Chain: CwEnv>(
-        stake_assets: Vec<AssetEntry>,
-        provider: String,
-        account: &AccountI<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-            account_address: None,
-            request: StakingExecuteMsg {
-                provider,
-                action: StakingAction::ClaimRewards {
-                    assets: stake_assets,
-                },
-            },
-        });
-        account.execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg, vec![])?;
-        Ok(())
-    }
-
     fn setup_osmosis() -> anyhow::Result<(
         OsmosisTestTube,
         u64,
@@ -152,7 +57,7 @@ mod osmosis_test {
         AccountI<OsmosisTestTube>,
     )> {
         std::env::set_var("RUST_LOG", "debug");
-        let _ = env_logger::try_init().unwrap();
+        let _ = env_logger::try_init();
         let tube = OsmosisTestTube::new(vec![
             coin(1_000_000_000_000, ASSET_2),
             coin(1_000_000_000_000, ASSET_1),
@@ -257,17 +162,12 @@ mod osmosis_test {
 
         tube.wait_seconds(10000)?;
         // query stake
-        let res = staking.staked(
+        staking.staked(
             OSMOSIS.into(),
             account_addr.to_string(),
             vec![AssetEntry::new(LP)],
             dur,
-        );
-
-        // TODO: something needs to be version bumped for it to work
-        // It's already supported on osmosis
-        // assert_that!(res.unwrap_err().to_string())
-        //     .contains(CwStakingError::NotImplemented("osmosis".to_owned()).to_string());
+        )?;
 
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
             "/osmosis.lockup.Query/AccountLockedCoins",
@@ -382,7 +282,6 @@ mod osmosis_test {
     #[test]
     fn concentrated_liquidity() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
-        let account_addr = os.address()?;
 
         let lp = "osmosis/osmo2,atom2";
         // transfer some LP tokens to the AccountI, as if it provided liquidity
@@ -442,10 +341,9 @@ mod osmosis_test {
 
     #[test]
     fn reward_tokens_add_to_gauge() -> anyhow::Result<()> {
-        let (mut chain, pool_id, staking, os) = setup_osmosis()?;
+        let (mut chain, pool_id, staking, _account) = setup_osmosis()?;
         // For gauge
         chain.add_balance(&chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
-        let account_addr = os.address()?;
 
         let test_tube = chain.app.borrow();
         let incentives = super::incentives::Incentives::new(&*test_tube);
@@ -460,10 +358,10 @@ mod osmosis_test {
         let gauge_id_for_refill = gauge_ids.gauge_ids_with_duration[0].gauge_id;
 
         // Now incentivize pool
-        let time = test_tube.get_block_timestamp().plus_seconds(5);
-        let lockable_durations =
+        let _time = test_tube.get_block_timestamp().plus_seconds(5);
+        let _lockable_durations =
             incentives.query_lockable_durations(&QueryLockableDurationsRequest {})?;
-        let res = incentives.add_to_gauge(
+        incentives.add_to_gauge(
             MsgAddToGauge {
                 owner: chain.sender_addr().to_string(),
                 gauge_id: gauge_id_for_refill,
@@ -474,7 +372,7 @@ mod osmosis_test {
             },
             &chain.sender,
         )?;
-        chain.wait_seconds(10);
+        chain.wait_seconds(10)?;
 
         let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
         assert_eq!(res.tokens, [[AssetInfoBase::Native(ASSET_1.to_owned())]]);
@@ -484,14 +382,13 @@ mod osmosis_test {
     #[test]
     #[ignore = "Currently broken, see https://github.com/osmosis-labs/test-tube/pull/53"]
     fn reward_tokens_create_gauge() -> anyhow::Result<()> {
-        let (mut chain, pool_id, staking, os) = setup_osmosis()?;
+        let (mut chain, pool_id, staking, _account) = setup_osmosis()?;
         // For gauge
         chain.add_balance(&chain.sender_addr(), coins(1_000_000_000_000, ASSET_1))?;
-        let account_addr = os.address()?;
 
         let test_tube = chain.app.borrow();
         let incentives = super::incentives::Incentives::new(&*test_tube);
-        let poolincentives = super::poolincentives::Poolincentives::new(&*test_tube);
+        let _poolincentives = super::poolincentives::Poolincentives::new(&*test_tube);
 
         // Check that we have empty assets at start
         let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
@@ -501,7 +398,7 @@ mod osmosis_test {
         let time = test_tube.get_block_timestamp().plus_seconds(5);
         let lockable_durations =
             incentives.query_lockable_durations(&QueryLockableDurationsRequest {})?;
-        let res = incentives.create_gauge(
+        incentives.create_gauge(
             MsgCreateGauge {
                 pool_id,
                 is_perpetual: true,
@@ -524,7 +421,7 @@ mod osmosis_test {
             },
             &chain.sender,
         )?;
-        chain.wait_seconds(10);
+        chain.wait_seconds(10)?;
 
         let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
         assert_eq!(

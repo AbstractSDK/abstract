@@ -33,7 +33,10 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
         ```
     */
-    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<AccountRegistry<Self>> {
+    fn account_registry<'a>(
+        &'a self,
+        deps: Deps<'a>,
+    ) -> AbstractSdkResult<AccountRegistry<'a, Self>> {
         let vc = self.abstract_registry(deps)?;
         Ok(AccountRegistry {
             base: self,
@@ -45,7 +48,7 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
 
 impl<T> AccountVerification for T where T: AbstractRegistryAccess + ModuleIdentification {}
 
-impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
+impl<T: AccountVerification> AbstractApi<T> for AccountRegistry<'_, T> {
     const API_ID: &'static str = "AccountRegistry";
 
     fn base(&self) -> &T {
@@ -80,7 +83,7 @@ pub struct AccountRegistry<'a, T: AccountVerification> {
     registry: RegistryContract,
 }
 
-impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
+impl<T: AccountVerification> AccountRegistry<'_, T> {
     /// Verify if the provided address is indeed an Abstract Account.
     pub fn assert_is_account(&self, maybe_account: &Addr) -> AbstractSdkResult<Account> {
         self.registry

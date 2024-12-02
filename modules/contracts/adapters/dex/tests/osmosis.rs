@@ -1,6 +1,6 @@
 #![cfg(feature = "osmosis-test")]
 
-use std::{format, rc::Rc};
+use std::format;
 
 use abstract_adapter::std::{
     ans_host::ExecuteMsgFns,
@@ -23,7 +23,7 @@ use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins, Decimal, Uint128};
 use cw_asset::AssetBase;
 use cw_orch::prelude::*;
-use cw_orch_osmosis_test_tube::{osmosis_test_tube::Account, OsmosisTestTube};
+use cw_orch_osmosis_test_tube::OsmosisTestTube;
 
 /// Provide liquidity using Abstract's OS (registered in daemon_state).
 pub fn provide<Chain: CwEnv>(

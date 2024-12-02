@@ -111,6 +111,7 @@ impl SuiteBuilder {
                 min_bond: Uint128::new(1000),
                 unbonding_periods: vec![60 * 60 * 24 * 7, 60 * 60 * 24 * 14, 60 * 60 * 24 * 21],
                 max_distributions: 6,
+                converter: None,
             },
             trading_starts: None,
         }

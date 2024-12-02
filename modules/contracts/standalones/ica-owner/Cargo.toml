@@ -36,7 +36,6 @@ cosmwasm-std        = { workspace = true }
 cw-asset            = { workspace = true }
 cw-controllers      = { workspace = true }
 cw-storage-plus     = { workspace = true }
-schemars            = { workspace = true }
 thiserror           = { workspace = true }
 
 # Dependencies for interface
@@ -60,6 +59,5 @@ abstract-client     = { workspace = true }
 abstract-standalone = { workspace = true, features = ["test-utils"] }
 cw-orch             = { workspace = true, features = ["daemon"] }
 cw-orch-interchain  = { workspace = true, features = ["daemon"] }
-cw-orch-starship    = { version = "0.4.1" }
 env_logger          = { version = "0.11.3" }
 my-standalone       = { path = "." }

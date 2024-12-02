@@ -20,7 +20,7 @@
 /// pub type ExecuteMsg = <MyApp as sdk::base::ExecuteEndpoint>::ExecuteMsg;
 /// pub type QueryMsg = <MyApp as sdk::base::QueryEndpoint>::QueryMsg;
 /// pub type MigrateMsg = <MyApp as sdk::base::MigrateEndpoint>::MigrateMsg;
-
+///
 /// // Implements the trait-bounds for the abstract app messages, which allows them to be used in the App type.
 /// // Also implements `Into<ExecuteMsg> for MyAppExecuteMsg` and `Into<QueryMsg> for MyAppQueryMsg`.
 /// // This enables the use of the `impl_into` macro of cw-orchestrator.

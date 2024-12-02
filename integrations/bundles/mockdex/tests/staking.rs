@@ -2,9 +2,10 @@ use cosmwasm_std::{coin, from_json, Addr, Decimal, Uint128};
 use wyndex::{
     asset::{AssetInfo, AssetInfoExt},
     factory::PartialStakeConfig,
+    stake::ReceiveMsg,
 };
 use wyndex_stake::{
-    msg::{QueryMsg as StakeQueryMsg, ReceiveDelegationMsg, StakedResponse},
+    msg::{QueryMsg as StakeQueryMsg, StakedResponse},
     state::Config as WyndexStakeConfig,
 };
 
@@ -12,8 +13,8 @@ mod staking {
     use super::*;
     use cw_orch::mock::MockBech32;
     use cw_orch::prelude::TxHandler;
+    use mockdex_bundle::{suite::SuiteBuilder, WYNDEX_OWNER};
     use wyndex::factory::{DefaultStakeConfig, DistributionFlow};
-    use wyndex_bundle::{suite::SuiteBuilder, WYNDEX_OWNER};
 
     #[test]
     fn basic() {
@@ -40,6 +41,7 @@ mod staking {
                 min_bond: Uint128::new(1),
                 unbonding_periods: vec![1, 2],
                 max_distributions: 1,
+                converter: None,
             })
             .build(&mock);
 
@@ -92,7 +94,7 @@ mod staking {
                 &pair_info.liquidity_token,
                 1000,
                 &pair_info.staking_addr,
-                ReceiveDelegationMsg::Delegate {
+                ReceiveMsg::Delegate {
                     unbonding_period: 1,
                     delegate_as: None,
                 },
@@ -190,6 +192,7 @@ mod staking {
                 min_bond: Uint128::new(1),
                 unbonding_periods: vec![1],
                 max_distributions: 3,
+                converter: None,
             })
             .build(&mock);
 

@@ -11,16 +11,16 @@ use crate::contract::StakingResult;
 /// This provides superior UX in case of an IBC execution
 pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStakingError> {
     match value {
+        abstract_wyndex_adapter::WYNDEX => {
+            Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
+        }
         // TODO: revive integrations
-        // abstract_wyndex_adapter::WYNDEX => {
-        //     Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
-        // }
         // abstract_astroport_adapter::ASTROPORT => {
         //     Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         // }
-        // abstract_kujira_adapter::staking::BOW => {
-        //     Ok(Box::<abstract_kujira_adapter::staking::Bow>::default())
-        // }
+        abstract_kujira_adapter::staking::BOW => {
+            Ok(Box::<abstract_kujira_adapter::staking::Bow>::default())
+        }
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
         }

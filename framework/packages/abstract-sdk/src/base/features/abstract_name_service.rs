@@ -18,7 +18,7 @@ pub trait AbstractNameService: Sized {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost>;
 
     /// Construct the name service client.
-    fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameServiceClient<Self> {
+    fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameServiceClient<'a, Self> {
         AbstractNameServiceClient {
             base: self,
             deps,
@@ -36,8 +36,8 @@ pub struct AbstractNameServiceClient<'a, T: AbstractNameService> {
     pub host: AnsHost,
 }
 
-impl<'a, T: ModuleIdentification + AbstractNameService> AbstractApi<T>
-    for AbstractNameServiceClient<'a, T>
+impl<T: ModuleIdentification + AbstractNameService> AbstractApi<T>
+    for AbstractNameServiceClient<'_, T>
 {
     const API_ID: &'static str = "AbstractNameServiceClient";
 
@@ -49,7 +49,7 @@ impl<'a, T: ModuleIdentification + AbstractNameService> AbstractApi<T>
     }
 }
 
-impl<'a, T: ModuleIdentification + AbstractNameService> AbstractNameServiceClient<'a, T> {
+impl<T: ModuleIdentification + AbstractNameService> AbstractNameServiceClient<'_, T> {
     /// Query ans entry
     pub fn query<R: Resolve>(&self, entry: &R) -> AbstractSdkResult<R::Output> {
         entry

@@ -29,7 +29,7 @@ testing = ["dep:abstract-client", "dep:cw20", "abstract-adapter/test-utils"]
 
 # Supported Moneymarkets
 # mars = ["abstract-mars-adapter/full_integration"]
-# ghost = ["abstract-kujira-adapter/full_integration"]
+ghost = ["abstract-kujira-adapter/full_integration"]
 
 # osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
@@ -39,9 +39,7 @@ builds = [
   # { name = "osmosis", features = [
   #   "mars",
   # ] },
-  # { name = "kujira", features = [
-  #   "ghost",
-  # ] },
+  { name = "kujira", features = ["ghost"] },
 ]
 
 [dependencies]
@@ -50,8 +48,6 @@ cosmwasm-std    = { workspace = true }
 cw-asset        = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw20            = { workspace = true, optional = true }
-schemars        = { workspace = true }
-thiserror       = { workspace = true }
 
 abstract-adapter = { workspace = true }
 cw-orch          = { workspace = true }
@@ -61,8 +57,8 @@ cw-orch          = { workspace = true }
 abstract-adapter-utils         = { workspace = true }
 abstract-money-market-standard = { workspace = true }
 
-# # Kujira #
-# abstract-kujira-adapter = { workspace = true }
+# Kujira #
+abstract-kujira-adapter = { workspace = true }
 
 # # Mars #
 # abstract-mars-adapter = { workspace = true }
@@ -71,19 +67,19 @@ abstract-money-market-standard = { workspace = true }
 abstract-client = { workspace = true, optional = true }
 
 [dev-dependencies]
-abstract-interface = { workspace = true, features = ["daemon"] }
-anyhow             = { workspace = true }
-clap               = { workspace = true }
-dotenv             = "0.15.0"
-env_logger         = "0.11.3"
-semver             = { workspace = true }
-tokio              = { workspace = true }
-# wyndex-bundle = { workspace = true }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+anyhow = { workspace = true }
+clap = { workspace = true }
+dotenv = "0.15.0"
+env_logger = "0.11.3"
+mockdex-bundle = { workspace = true }
 money-market = { path = ".", features = [
   # "mars",
   # "ghost",
 ], package = "abstract-money-market-adapter" }
+semver = { workspace = true }
+tokio = { workspace = true }
 
 # abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 

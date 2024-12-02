@@ -12,15 +12,14 @@ use my_standalone::MY_STANDALONE_ID;
 use abstract_client::{AbstractClient, Publisher};
 use abstract_standalone::objects::namespace::Namespace;
 use clap::Parser;
-use cw_orch::{anyhow, daemon::networks::parse_network, prelude::*, tokio::runtime::Runtime};
+use cw_orch::{anyhow, daemon::networks::parse_network, prelude::*};
 use my_standalone::MyStandaloneInterface;
 
 fn publish(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
         // Setup
-        let rt = Runtime::new()?;
-        let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
+        let chain = DaemonBuilder::new(network).build()?;
 
         let standalone_namespace = Namespace::from_id(MY_STANDALONE_ID)?;
 

@@ -26,16 +26,13 @@ abstract-sdk    = { workspace = true }
 abstract-std    = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cosmwasm-std    = { workspace = true, features = ["stargate"] }
-cw-controllers  = { workspace = true }
 cw-orch         = { workspace = true }
 cw-ownable      = { workspace = true }
 cw-paginate     = "2.0.0"
 cw-storage-plus = { workspace = true }
 cw-utils        = { workspace = true }
 cw2             = { workspace = true }
-schemars        = { workspace = true }
 semver          = { workspace = true }
-serde           = { workspace = true }
 thiserror       = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

@@ -8,21 +8,25 @@ version = { workspace = true }
 
 
 [dependencies]
-cw-controllers   = "2.0.0"
-wyndex           = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-wyndex-factory   = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-wyndex-pair      = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-wyndex-stake     = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+cw-controllers = "2.0.0"
+# wyndex           = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+# wyndex-factory   = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+# wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+# wyndex-pair      = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+# wyndex-stake     = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+wyndex           = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
+wyndex-factory   = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
+wyndex-multi-hop = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
+wyndex-pair      = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
+wyndex-stake     = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
 
-abstract-interface          = { workspace = true, features = ["testing"] }
-abstract-std                = { workspace = true }
-anyhow                      = { workspace = true }
-cosmwasm-schema             = { workspace = true }
-cosmwasm-std                = { workspace = true }
-cw-asset                    = { workspace = true }
-cw-orch                     = { workspace = true }
-cw-plus-interface.workspace = true
-cw-plus-orch                = "0.25.0"
-cw20                        = { workspace = true }
-cw20-base                   = { workspace = true }
+abstract-interface = { workspace = true, features = ["testing"] }
+abstract-std       = { workspace = true }
+anyhow             = { workspace = true }
+cosmwasm-schema    = { workspace = true }
+cosmwasm-std       = { workspace = true }
+cw-asset           = { workspace = true }
+cw-orch            = { workspace = true }
+cw-plus-orch       = { workspace = true }
+cw20               = { workspace = true }
+cw20-base          = { workspace = true }

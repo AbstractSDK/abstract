@@ -86,7 +86,7 @@ impl KeyDeserialize for &Namespace {
     }
 }
 
-impl<'a> PrimaryKey<'a> for Namespace {
+impl PrimaryKey<'_> for Namespace {
     type Prefix = ();
 
     type SubPrefix = ();
@@ -100,7 +100,7 @@ impl<'a> PrimaryKey<'a> for Namespace {
     }
 }
 
-impl<'a> Prefixer<'a> for Namespace {
+impl Prefixer<'_> for Namespace {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
     }

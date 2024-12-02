@@ -38,7 +38,7 @@ use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128, Env};
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
 pub trait SplitterInterface: TransferInterface {
-    fn splitter<'a>(&'a self, deps: Deps<'a>) -> Splitter<Self> {
+    fn splitter<'a>(&'a self, deps: Deps<'a>) -> Splitter<'a, Self> {
         Splitter { base: self, deps }
     }
 }
