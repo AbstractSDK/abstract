@@ -28,7 +28,7 @@
     "code_ids": {
       "abstract:account": 8232,
       "abstract:ans-host": 8231,
-      "abstract:dex": 8326,
+      "abstract:dex": 8372,
       "abstract:ibc-client": 8233,
       "abstract:ibc-host": 8234,
       "abstract:module-factory": 8229,
@@ -40,7 +40,7 @@
       "abstract:account-local-0": "neutron12x9fcuwl382vv9l22dkcvcx6uxpeqy9rq5fe3jt8cgvqkyjnj2hs5da0m4",
       "abstract:account-local-1": "neutron1mxahhvpj467088td8lvysyw7m8v880tzls0sxk0zuljn6tsufqksy8whnv",
       "abstract:ans-host": "neutron1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsdn69ty",
-      "abstract:dex": "neutron1tfnw5arga534563m04aap52f6m7ug8frdpesjhlth89r0jakphps25xug7",
+      "abstract:dex": "neutron10hr9m68uh3h2qn8tgsc370zhwsu0wsjz688xpnr6jgyh567wkrpqcv5pzv",
       "abstract:ibc-client": "neutron1n9la68zja4l76plwffedj24ar3f6e5kg7j92r26hhzewncghypvs9vk28k",
       "abstract:ibc-host": "neutron1c67x66rln9mgrjum5urrgn0tjvup5k9uke8hgdm8tu7hztwrjy4s5ecrmu",
       "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",

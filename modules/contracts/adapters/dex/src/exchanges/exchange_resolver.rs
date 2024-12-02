@@ -70,7 +70,10 @@ pub fn is_over_ibc(env: &Env, platform_name: &str) -> Result<(String, bool), Dex
         let platform_id = identify_exchange(&local_platform_name)?;
         // We verify the adapter is available on the current chain
         if !is_available_on(platform_id, env, chain_name.as_deref()) {
-            return Err(DexError::UnknownDex(platform_name.to_string()));
+            return Err(DexError::UnknownDexOnThisPlatform {
+                dex: platform_name.to_string(),
+                chain: chain_name,
+            });
         }
         Ok((local_platform_name, false))
     }

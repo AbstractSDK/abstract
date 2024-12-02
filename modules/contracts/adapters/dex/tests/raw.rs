@@ -14,6 +14,7 @@ use abstract_interface::{AccountI, AdapterDeployer, DeployStrategy};
 use cosmwasm_std::{coin, Decimal};
 use cw_asset::{AssetBase, AssetInfoBase};
 use cw_orch::prelude::*;
+
 use mockdex_bundle::{EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";

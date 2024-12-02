@@ -364,11 +364,10 @@ impl Ghost {
         querier: &QuerierWrapper,
         denom: String,
     ) -> Result<HumanPrice, StdError> {
-        let res: ExchangeRateResponse =
-            querier.query(&cosmwasm_std::QueryRequest::Grpc(GrpcQuery {
-                path: exchange_rate_type_url(denom),
-                data: QueryExchangeRateRequest {}.encode_to_vec().into(),
-            }))?;
+        let res: ExchangeRateResponse = querier.query(&cosmwasm_std::QueryRequest::Stargate {
+            path: exchange_rate_type_url(denom),
+            data: QueryExchangeRateRequest {}.encode_to_vec().into(),
+        })?;
 
         Ok(res.rate.into())
     }
