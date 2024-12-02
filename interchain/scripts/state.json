@@ -8,6 +8,7 @@
       "abstract:ibc-client": 11530,
       "abstract:ibc-host": 11531,
       "abstract:module-factory": 11526,
+      "abstract:payment": 11735,
       "abstract:ping-pong": 11558,
       "abstract:registry": 11527,
       "cw:blob": 11289
