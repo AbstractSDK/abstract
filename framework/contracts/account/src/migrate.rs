@@ -1,34 +1,20 @@
-use abstract_sdk::feature_objects::RegistryContract;
-use abstract_sdk::std::{account::state::ACCOUNT_ID, ACCOUNT};
-use abstract_std::account::ModuleInstallConfig;
-use abstract_std::objects::module::ModuleInfo;
+use abstract_sdk::std::ACCOUNT;
+use abstract_std::account::MigrateMsg;
 use abstract_std::objects::module_version::assert_contract_upgrade;
-use abstract_std::{account::MigrateMsg, objects::AccountId};
-use abstract_std::{
-    account::{
-        state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
-        UpdateSubAccountAction,
-    },
-    objects::{
-        gov_type::GovernanceDetails,
-        ownership::{self},
-    },
-    registry::state::LOCAL_ACCOUNT_SEQUENCE,
-};
-use abstract_std::{native_addrs, AbstractError, IBC_CLIENT};
-use cosmwasm_std::{wasm_execute, DepsMut, Env};
+
+use abstract_std::AbstractError;
+use cosmwasm_std::{DepsMut, Env};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-use crate::{
-    modules::{_install_modules, MIGRATE_CONTEXT},
-    msg::ExecuteMsg,
-};
-
 use crate::contract::{AccountResponse, AccountResult, CONTRACT_VERSION};
 
+/// This migration function allows migrating from 2 types of contract
+/// - Previous Abstract Account version (This is the first part of the function)
+/// - XION Account, to allow upgrading their account to a more feature rich account (second part of the function)
+/// All other contracts cannot be migrated to this version
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
     let current_contract_version = get_contract_version(deps.storage)?;
@@ -36,17 +22,54 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
     if current_contract_version.contract == ACCOUNT {
         assert_contract_upgrade(deps.storage, ACCOUNT, version)?;
         set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
-        return Ok(AccountResponse::action("migrate"));
+        Ok(AccountResponse::action("migrate"))
+    } else {
+        #[cfg(feature = "xion")]
+        {
+            // We might want to migrate from a XION account
+            migrate_from_xion_account(deps, _env, current_contract_version)
+        }
+        #[cfg(not(feature = "xion"))]
+        {
+            Err(AbstractError::ContractNameMismatch {
+                from: current_contract_version.contract,
+                to: ACCOUNT.to_string(),
+            })?
+        }
     }
+}
 
-    // else this means that we are migrating from another contract, we assert it's `account` and create an abstract account
+#[cfg(feature = "xion")]
+pub fn migrate_from_xion_account(
+    mut deps: DepsMut,
+    env: Env,
+    current_contract_version: cw2::ContractVersion,
+) -> AccountResult {
+    use crate::modules::{_install_modules, MIGRATE_CONTEXT};
+    use ::{
+        abstract_sdk::feature_objects::RegistryContract,
+        abstract_sdk::std::account::state::ACCOUNT_ID,
+        abstract_std::account::ModuleInstallConfig,
+        abstract_std::objects::module::ModuleInfo,
+        abstract_std::objects::AccountId,
+        abstract_std::{
+            account::state::{WhitelistedModules, SUSPENSION_STATUS, WHITELISTED_MODULES},
+            objects::{
+                gov_type::GovernanceDetails,
+                ownership::{self},
+            },
+            registry::state::LOCAL_ACCOUNT_SEQUENCE,
+        },
+        abstract_std::{native_addrs, IBC_CLIENT},
+        cosmwasm_std::wasm_execute,
+    };
+
     if current_contract_version.contract != "account" {
         Err(AbstractError::ContractNameMismatch {
             from: current_contract_version.contract,
             to: ACCOUNT.to_string(),
         })?;
     }
-
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
@@ -65,15 +88,6 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
     ACCOUNT_ID.save(deps.storage, &account_id)?;
     WHITELISTED_MODULES.save(deps.storage, &WhitelistedModules(vec![]))?;
 
-    let account_info = AccountInfo {
-        name: None,
-        description: None,
-        link: None,
-    };
-
-    if account_info.has_info() {
-        INFO.save(deps.storage, &account_info)?;
-    }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
     let governance = GovernanceDetails::AbstractAccount {
@@ -95,17 +109,6 @@ pub fn migrate(mut deps: DepsMut, env: Env, _msg: MigrateMsg) -> AccountResult {
         },
         vec![],
     )?);
-
-    // Register on account if it's sub-account
-    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
-        response = response.add_message(wasm_execute(
-            account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                id: ACCOUNT_ID.load(deps.storage)?.seq(),
-            }),
-            vec![],
-        )?);
-    }
 
     let install_modules = vec![ModuleInstallConfig::new(
         ModuleInfo::from_id_latest(IBC_CLIENT)?,
