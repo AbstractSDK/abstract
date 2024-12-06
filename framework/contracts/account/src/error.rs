@@ -81,8 +81,11 @@ pub enum AccountError {
     NotWhitelisted {},
 
     // ** Sub Account ** //
-    #[error("Removing sub account failed")]
-    SubAccountRemovalFailed {},
+    #[error("Sub account doesn't exist")]
+    SubAccountDoesntExist {},
+
+    #[error("Sub account is expected to be the caller")]
+    SubAccountIsNotCaller {},
 
     #[error("Register of sub account failed")]
     SubAccountRegisterFailed {},
