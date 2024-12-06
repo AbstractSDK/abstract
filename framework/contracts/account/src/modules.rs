@@ -130,7 +130,7 @@ pub fn _install_modules(
                 add_to_account.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), Some(module_address)));
 
-                Some(init_msg.unwrap())
+                Some(init_msg.ok_or(AccountError::InitMsgMissing(module.info.id()))?)
             }
             _ => return Err(AccountError::ModuleNotInstallable(module.info.to_string())),
         };

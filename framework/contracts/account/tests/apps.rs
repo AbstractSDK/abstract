@@ -14,7 +14,7 @@ use abstract_std::{
     registry::ModuleFilter,
 };
 use abstract_testing::prelude::*;
-use cosmwasm_std::{coin, CosmosMsg};
+use cosmwasm_std::{coin, CosmosMsg, StdError};
 use cw_controllers::{AdminError, AdminResponse};
 use cw_orch::prelude::*;
 
@@ -78,6 +78,24 @@ fn account_install_app() -> AResult {
     Abstract::deploy_on(chain.clone(), ())?;
     abstract_integration_tests::account::account_install_app(chain.clone())?;
     take_storage_snapshot!(chain, "account_install_app");
+    Ok(())
+}
+
+#[test]
+fn account_install_app_without_init_msg() -> AResult {
+    let chain = MockBech32::new("mock");
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
+    let account = crate::create_default_account(&chain.sender_addr(), &deployment)?;
+
+    deployment
+        .registry
+        .claim_namespace(account.id()?, "tester".to_owned())?;
+
+    let app = MockApp::new_test(chain.clone());
+    MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
+    account
+        .install_module::<Empty>(APP_ID, None, &[])
+        .unwrap_err();
     Ok(())
 }
 
