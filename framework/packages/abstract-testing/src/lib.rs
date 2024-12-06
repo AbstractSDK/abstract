@@ -75,6 +75,16 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
                 ModuleReference::Account(1),
             ),
         )
+        .with_contract_map_entry(
+            // Adding a map module inside the registry
+            &abstr.registry,
+            REGISTERED_MODULES,
+            (
+                &ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
+                    .unwrap(),
+                ModuleReference::App(2),
+            ),
+        )
         .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &ABSTRACT_ACCOUNT_ID)
         .with_contract_version(abstr.account.addr(), ACCOUNT, TEST_VERSION)
         .with_smart_handler(&abstr.module_address, |msg| {

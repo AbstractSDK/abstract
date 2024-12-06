@@ -113,15 +113,19 @@ fn unregister_sub_account(deps: DepsMut, env: &Env, info: MessageInfo, id: u32) 
         &AccountId::local(id),
     )?;
 
-    if account.is_some_and(|a| a.addr() == info.sender) {
-        SUB_ACCOUNTS.remove(deps.storage, id);
+    if let Some(account) = account {
+        if account.addr() == info.sender {
+            SUB_ACCOUNTS.remove(deps.storage, id);
 
-        Ok(AccountResponse::new(
-            "unregister_sub_account",
-            vec![("sub_account_removed", id.to_string())],
-        ))
+            Ok(AccountResponse::new(
+                "unregister_sub_account",
+                vec![("sub_account_removed", id.to_string())],
+            ))
+        } else {
+            Err(AccountError::SubAccountIsNotCaller {})
+        }
     } else {
-        Err(AccountError::SubAccountRemovalFailed {})
+        Err(AccountError::SubAccountDoesntExist {})
     }
 }
 

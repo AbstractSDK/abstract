@@ -149,12 +149,14 @@ pub enum ExecuteMsg<Authenticator = Empty> {
         /// Funds attached from account to the module
         funds: Vec<Coin>,
     },
-    /// Execute a Wasm Message with Account Admin privileges
+    /// Execute a Wasm Message with Account Admin privileges    
+    #[cw_orch(payable)]
     AdminExecute {
         addr: String,
         msg: Binary,
     },
     /// Forward execution message to module with Account Admin privileges
+    #[cw_orch(payable)]
     AdminExecuteOnModule {
         module_id: String,
         msg: Binary,

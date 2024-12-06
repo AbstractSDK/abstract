@@ -335,6 +335,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     account_address: None,
                 },
             ))?,
+            &[],
         )?;
 
         Ok(())
