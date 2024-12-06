@@ -150,7 +150,7 @@ pub fn instantiate(
             ensure_eq!(
                 address,
                 env.contract.address,
-                AccountError::AbsAccInvalidAddr {
+                AccountError::AbstractAccountInvalidAddress {
                     abstract_account: address.to_string(),
                     contract: env.contract.address.to_string()
                 }
@@ -158,7 +158,7 @@ pub fn instantiate(
             #[cfg(feature = "xion")]
             {
                 let Some(mut add_auth) = authenticator else {
-                    return Err(AccountError::AbsAccNoAuth {});
+                    return Err(AccountError::AbstractAccountNoAuth {});
                 };
                 abstract_xion::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
 
@@ -172,7 +172,7 @@ pub fn instantiate(
             }
             // No Auth possible - error
             #[cfg(not(feature = "xion"))]
-            return Err(AccountError::AbsAccNoAuth {});
+            return Err(AccountError::AbstractAccountNoAuth {});
         }
         _ => (),
     };

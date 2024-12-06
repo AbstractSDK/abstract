@@ -115,16 +115,12 @@ pub fn migrate_from_xion_account(
         None,
     )];
 
-    if !install_modules.is_empty() {
-        let abstract_code_id =
-            native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
-        // Install modules
-        let (install_msgs, install_attribute) =
-            _install_modules(deps, install_modules, vec![], abstract_code_id)?;
-        response = response
-            .add_submessages(install_msgs)
-            .add_attribute(install_attribute.key, install_attribute.value);
-    }
+    // Install IBC Client module
+    let (install_msgs, install_attribute) =
+        _install_modules(deps, install_modules, vec![], abstract_code_id)?;
+    response = response
+        .add_submessages(install_msgs)
+        .add_attribute(install_attribute.key, install_attribute.value);
 
     Ok(response)
 }

@@ -54,7 +54,7 @@ pub enum AccountError {
     #[error("Cannot migrate {} twice", module_id)]
     DuplicateModuleMigration { module_id: String },
 
-    #[error("{0} not upgradable")]
+    #[error("{0} not upgradeable")]
     NotUpgradeable(ModuleInfo),
 
     #[error("Cannot remove module because {0:?} depend(s) on it.")]
@@ -115,8 +115,8 @@ pub enum AccountError {
     #[error("You can't chain admin calls")]
     CantChainAdminCalls {},
 
-    #[error("Abstract Account Address don't match to the Contract address")]
-    AbsAccInvalidAddr {
+    #[error("Abstract Account Address ({abstract_account}) doesn't match to the Contract address ({contract})   ")]
+    AbstractAccountInvalidAddress {
         abstract_account: String,
         contract: String,
     },
@@ -125,7 +125,7 @@ pub enum AccountError {
     NoAuthMethods {},
 
     #[error("Abstract Account don't have Authentication")]
-    AbsAccNoAuth {},
+    AbstractAccountNoAuth {},
 
     #[cfg(feature = "xion")]
     #[error(transparent)]
