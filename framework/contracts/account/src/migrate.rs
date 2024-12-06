@@ -9,6 +9,10 @@ use semver::Version;
 
 use crate::contract::{AccountResponse, AccountResult, CONTRACT_VERSION};
 
+/// This migration function allows migrating from 2 types of contract
+/// - Previous Abstract Account version (This is the first part of the function)
+/// - XION Account, to allow upgrading their account to a more feature rich account (second part of the function)
+/// All other contracts cannot be migrated to this version
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
