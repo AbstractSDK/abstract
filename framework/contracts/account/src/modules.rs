@@ -10,7 +10,7 @@ use abstract_std::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_factory::ModuleFactoryContract,
         module_reference::ModuleReference,
-        ownership::{self},
+        ownership,
         registry::RegistryContract,
         salt::generate_instantiate_salt,
         storage_namespaces,
@@ -349,7 +349,6 @@ mod tests {
     use abstract_std::objects::dependency::Dependency;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
-    use ownership::GovOwnershipError;
 
     fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
         ACCOUNT_MODULES
@@ -384,6 +383,8 @@ mod tests {
     }
 
     mod update_module_addresses {
+        use abstract_std::objects::ownership::GovOwnershipError;
+
         use super::*;
 
         #[coverage_helper::test]
