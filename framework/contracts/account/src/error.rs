@@ -42,6 +42,9 @@ pub enum AccountError {
     #[error("The provided module {0} can't be installed on an Abstract account")]
     ModuleNotInstallable(String),
 
+    #[error("The module {0} needs an init msg to be installed but not was provided")]
+    InitMsgMissing(String),
+
     #[error("The name of the proposed module can not have length 0.")]
     InvalidModuleName {},
 
@@ -78,8 +81,11 @@ pub enum AccountError {
     NotWhitelisted {},
 
     // ** Sub Account ** //
-    #[error("Removing sub account failed")]
-    SubAccountRemovalFailed {},
+    #[error("Sub account doesn't exist")]
+    SubAccountDoesntExist {},
+
+    #[error("Sub account is expected to be the caller")]
+    SubAccountIsNotCaller {},
 
     #[error("Register of sub account failed")]
     SubAccountRegisterFailed {},
@@ -106,11 +112,17 @@ pub enum AccountError {
     #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
     SubAccountCreatorNotAccount { caller: String, account: String },
 
+    #[error("You can't chain admin calls")]
+    CantChainAdminCalls {},
+
     #[error("Abstract Account Address don't match to the Contract address")]
     AbsAccInvalidAddr {
         abstract_account: String,
         contract: String,
     },
+
+    #[error("No auth methods capabilities on this account (xion feature disabled)")]
+    NoAuthMethods {},
 
     #[error("Abstract Account don't have Authentication")]
     AbsAccNoAuth {},
