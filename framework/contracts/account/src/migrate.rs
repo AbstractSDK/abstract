@@ -45,10 +45,7 @@ pub fn migrate_from_xion_account(
     env: Env,
     current_contract_version: cw2::ContractVersion,
 ) -> AccountResult {
-    use crate::{
-        modules::{_install_modules, MIGRATE_CONTEXT},
-        msg::ExecuteMsg,
-    };
+    use crate::modules::{_install_modules, MIGRATE_CONTEXT};
     use ::{
         abstract_sdk::feature_objects::RegistryContract,
         abstract_sdk::std::account::state::ACCOUNT_ID,
@@ -56,12 +53,7 @@ pub fn migrate_from_xion_account(
         abstract_std::objects::module::ModuleInfo,
         abstract_std::objects::AccountId,
         abstract_std::{
-            account::{
-                state::{
-                    AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES,
-                },
-                UpdateSubAccountAction,
-            },
+            account::state::{WhitelistedModules, SUSPENSION_STATUS, WHITELISTED_MODULES},
             objects::{
                 gov_type::GovernanceDetails,
                 ownership::{self},
@@ -96,15 +88,6 @@ pub fn migrate_from_xion_account(
     ACCOUNT_ID.save(deps.storage, &account_id)?;
     WHITELISTED_MODULES.save(deps.storage, &WhitelistedModules(vec![]))?;
 
-    let account_info = AccountInfo {
-        name: None,
-        description: None,
-        link: None,
-    };
-
-    if account_info.has_info() {
-        INFO.save(deps.storage, &account_info)?;
-    }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
     let governance = GovernanceDetails::AbstractAccount {
@@ -126,17 +109,6 @@ pub fn migrate_from_xion_account(
         },
         vec![],
     )?);
-
-    // Register on account if it's sub-account
-    if let GovernanceDetails::SubAccount { account } = cw_gov_owner.owner {
-        response = response.add_message(wasm_execute(
-            account,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                id: ACCOUNT_ID.load(deps.storage)?.seq(),
-            }),
-            vec![],
-        )?);
-    }
 
     let install_modules = vec![ModuleInstallConfig::new(
         ModuleInfo::from_id_latest(IBC_CLIENT)?,
