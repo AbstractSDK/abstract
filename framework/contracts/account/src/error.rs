@@ -106,6 +106,9 @@ pub enum AccountError {
     #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
     SubAccountCreatorNotAccount { caller: String, account: String },
 
+    #[error("You can't chain admin calls")]
+    CantChainAdminCalls {},
+
     #[error("Abstract Account Address don't match to the Contract address")]
     AbsAccInvalidAddr {
         abstract_account: String,

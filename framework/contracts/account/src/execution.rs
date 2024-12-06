@@ -91,6 +91,9 @@ pub fn admin_execute(
 ) -> AccountResult {
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
+    if CALLING_TO_AS_ADMIN.exists(deps.storage) {
+        return Err(AccountError::CantChainAdminCalls {});
+    }
     CALLING_TO_AS_ADMIN.save(deps.storage, &addr)?;
 
     let msg = SubMsg::reply_on_success(
@@ -225,9 +228,71 @@ mod test {
 
     mod execute_action {
 
-        use cosmwasm_std::{testing::MOCK_CONTRACT_ADDR, wasm_execute, CosmosMsg};
+        use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
+        use abstract_std::objects::{gov_type::GovernanceDetails, ownership::Ownership};
+        use cosmwasm_std::{
+            testing::MOCK_CONTRACT_ADDR, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty,
+            Env, Response, WasmMsg,
+        };
+        use cw_storage_plus::Item;
+
+        use crate::contract::AccountResult;
 
         use super::*;
+        fn execute_from_res(deps: DepsMut, env: Env, res: Response) -> AccountResult<Response> {
+            // Execute all messages
+            let info = message_info(&env.contract.address, &[]);
+            if let CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: _,
+                msg,
+                funds: _,
+            }) = res.messages[0].msg.clone()
+            {
+                execute(deps, env.clone(), info, from_json(&msg)?).map_err(Into::into)
+            } else {
+                panic!("Wrong message received");
+            }
+        }
+
+        #[coverage_helper::test]
+        fn admin_actions_not_chained() -> anyhow::Result<()> {
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
+            mock_init(&mut deps)?;
+            let env = mock_env_validated(deps.api);
+
+            // We set the contract as owner.
+            // We can't make it through execute msgs, because signatures are too messy to reproduce in tests
+            let ownership = Ownership {
+                owner: GovernanceDetails::AbstractAccount {
+                    address: env.contract.address.clone(),
+                }
+                .verify(deps.as_ref())?,
+                pending_owner: None,
+                pending_expiry: None,
+            };
+
+            const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+            OWNERSHIP.save(deps.as_mut().storage, &ownership)?;
+
+            let msg = ExecuteMsg::AdminExecute {
+                addr: env.contract.address.to_string(),
+                msg: to_json_binary(&ExecuteMsg::<Empty>::AdminExecute {
+                    addr: env.contract.address.to_string(),
+                    msg: Binary::new(vec![]),
+                })?,
+            };
+
+            let info = message_info(&env.contract.address, &[]);
+            let env = mock_env_validated(deps.api);
+
+            let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
+            // We simulate it's still an admin call
+            AUTH_ADMIN.save(deps.as_mut().storage, &true)?;
+            let res = execute_from_res(deps.as_mut(), env, res);
+            assert_eq!(res, Err(AccountError::CantChainAdminCalls {}));
+            Ok(())
+        }
 
         #[coverage_helper::test]
         fn only_whitelisted_can_execute() -> anyhow::Result<()> {
