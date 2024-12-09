@@ -53,6 +53,34 @@ Suppose you share an account with your friends and want to use a multisig govern
 
 With this configuration, any proposal will require approval from stakeholders with a combined voting weight of at least 60% to be executed. This ensures a more democratic decision-making process and reduces the risk of a single stakeholder making unilateral decisions.
 
+## NFT
+
+NFT governance is a structure that represents an account which ownership depends on the ownership of an NFT. This admin of the Account is the owner of the specific token. When this token is transfered, the account ownership is transferred automatically with it.
+
+```mermaid
+graph TD
+    subgraph NFT
+        A[Single Account] --> |Owns| T1[Token1]
+    end
+     A-->|Controls| C(Abstract Account Linked to Token1)
+
+```
+
+## Xion Abstract Account
+
+This XION Abstract Account governance leverages <a href="https://xion.burnt.com/" target="_blank" >Xion</a>'s techonology to authenticate user calls using other methods than the standard Wallet/Private/Public Key authentication. With this governance type, users are able to extend the XION base functionalities to work directly with Abstract.
+
+You can find more details on the <a href="https://github.com/burnt-labs/abstract-account/blob/2c933a7b2a8dacc0ae5bf4344159a7d4ab080135/README.md" target="_blank">Xion Abstract Account page</a>.
+
+```mermaid
+graph TD
+    subgraph NFT
+        A[Single Account] --> |Owns| T1[Token1]
+    end
+     A-->|Controls| C(Abstract Account Linked to Token1)
+
+```
+
 ## Sub-Accounts
 
 A Sub-Account is an Abstract Account that is owned by another Abstract Account. They are important to users as they allow users to safely experiment with different apps without the concern of those apps accessing funds from their main account or other apps.

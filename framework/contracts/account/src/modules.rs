@@ -10,7 +10,7 @@ use abstract_std::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_factory::ModuleFactoryContract,
         module_reference::ModuleReference,
-        ownership::{self},
+        ownership,
         registry::RegistryContract,
         salt::generate_instantiate_salt,
         storage_namespaces,
@@ -130,7 +130,7 @@ pub fn _install_modules(
                 add_to_account.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), Some(module_address)));
 
-                Some(init_msg.unwrap())
+                Some(init_msg.ok_or(AccountError::InitMsgMissing(module.info.id()))?)
             }
             _ => return Err(AccountError::ModuleNotInstallable(module.info.to_string())),
         };
@@ -349,7 +349,6 @@ mod tests {
     use abstract_std::objects::dependency::Dependency;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
-    use ownership::GovOwnershipError;
 
     fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
         ACCOUNT_MODULES
@@ -384,6 +383,8 @@ mod tests {
     }
 
     mod update_module_addresses {
+        use abstract_std::objects::ownership::GovOwnershipError;
+
         use super::*;
 
         #[coverage_helper::test]

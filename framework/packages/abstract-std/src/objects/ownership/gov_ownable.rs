@@ -1,7 +1,9 @@
 #![doc = include_str!("README.md")]
 
 pub use crate::objects::gov_type::{GovAction, GovernanceDetails};
-use crate::{objects::storage_namespaces::OWNERSHIP_STORAGE_KEY, AbstractError};
+use crate::{
+    account::state::AUTH_ADMIN, objects::storage_namespaces::OWNERSHIP_STORAGE_KEY, AbstractError,
+};
 
 use cosmwasm_std::{
     Addr, Attribute, BlockInfo, CustomQuery, DepsMut, QuerierWrapper, StdError, StdResult, Storage,
@@ -213,17 +215,39 @@ pub fn assert_nested_owner(
 ) -> Result<(), GovOwnershipError> {
     let ownership = OWNERSHIP.load(store)?;
     // If current sender is owner of this account - it's the owner
-    if ownership.assert_owner(querier, sender).is_ok() {
+    let owner_assertion = ownership.assert_owner(querier, sender);
+    if owner_assertion.is_ok() {
+        // If this is a self-owned abstract account, we need to make sure the admin flag is set
+        if let GovernanceDetails::AbstractAccount { .. } = ownership.owner {
+            if let Some(true) = AUTH_ADMIN.may_load(store)? {
+                return Ok(());
+            } else {
+                return Err(crate::objects::ownership::GovOwnershipError::NotOwner);
+            }
+        }
         return Ok(());
     }
     // Otherwise we need to check top level owner
     let top_level_ownership = if let GovernanceDetails::SubAccount { account } = ownership.owner {
         query_top_level_owner(querier, account)?
     } else {
-        ownership
+        return owner_assertion;
     };
     // the contract must have an owner
-    top_level_ownership.assert_owner(querier, sender)
+    match top_level_ownership.assert_owner(querier, sender) {
+        Ok(_) => {
+            // If the top level owner is an abstract account, we need to make sure the admin flag is set
+            if let GovernanceDetails::AbstractAccount { address } = top_level_ownership.owner {
+                if let Ok(true) = AUTH_ADMIN.query(querier, address) {
+                    return Ok(());
+                } else {
+                    return Err(crate::objects::ownership::GovOwnershipError::NotOwner);
+                }
+            }
+            Ok(())
+        }
+        Err(e) => Err(e),
+    }
 }
 
 /// Update the contract's ownership info based on the given action.

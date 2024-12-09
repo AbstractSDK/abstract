@@ -522,6 +522,7 @@ fn account_adapter_ownership() -> AResult {
                 to_remove: vec![],
             },
         }))?,
+        &[],
     )?;
 
     // Raw account without the calling_to_as_admin variable set, should err.
@@ -618,6 +619,7 @@ fn subaccount_adapter_ownership() -> AResult {
             account_address: Some(account_addr.to_string()),
             request: MockExecMsg {},
         }))?,
+        &[],
     )?;
 
     // Raw account without the calling_to_as_admin variable set, should err
@@ -679,6 +681,7 @@ fn subaccount_adapter_ownership() -> AResult {
                 to_remove: vec![],
             },
         }))?,
+        &[],
     )?;
 
     // Raw account without the calling_to_as_admin variable set, should err
