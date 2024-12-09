@@ -1449,7 +1449,7 @@ fn module_version_installed() -> anyhow::Result<()> {
 fn module_status() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build()?;
-    client.registry().update_config(None, Some(false))?;
+    client.registry().update_config(None, Some(true))?;
 
     let app_publisher: Publisher<MockBech32> = client
         .account_builder()

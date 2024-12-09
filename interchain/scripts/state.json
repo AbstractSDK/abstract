@@ -1,40 +1,42 @@
 {
   "osmo-test-5": {
     "code_ids": {
-      "abstract:account": 11497,
-      "abstract:ans-host": 11341,
-      "abstract:ibc-client": 11305,
-      "abstract:ibc-host": 11306,
-      "abstract:module-factory": 11301,
-      "abstract:registry": 11418,
+      "abstract:account": 11529,
+      "abstract:ans-host": 11528,
+      "abstract:dex": 11532,
+      "abstract:ibc-client": 11530,
+      "abstract:ibc-host": 11531,
+      "abstract:module-factory": 11526,
+      "abstract:registry": 11527,
       "cw:blob": 11289
     },
     "default": {
       "abstract:account-local-0": "osmo1hafge5xucuc03ar5lkwac0n9yctnxq6xrgygftdl9xl3tzncgghshnykry",
       "abstract:account-local-1": "osmo1v9dl0fw5s3jujn6emmlgch7w4ynt02nykj75pnzk8mdw7nmu3p4q65tczp",
       "abstract:ans-host": "osmo1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsepnezp",
-      "abstract:ibc-client": "osmo1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqarcqmv",
-      "abstract:ibc-host": "osmo1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqsw6nr2j",
+      "abstract:dex": "osmo1s8nvehqc0jf99ac2qqg0sqja5ydzxlvht3eml9swl3n736tz9dsqfc4wa4",
+      "abstract:ibc-client": "osmo1vnt8tpxrnukcydma2x6gy2zzawl9uxmc6las8cak9sd87q67n00qn0wkj7",
+      "abstract:ibc-host": "osmo1zzgxwn88a3ec34fw4mu8ppsh9eth746l3tl8w5l7qvknrmtldldqz7saee",
       "abstract:module-factory": "osmo1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqcxdtus",
       "abstract:registry": "osmo1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqtpxd7m"
     }
   },
   "pion-1": {
     "code_ids": {
-      "abstract:account": 8091,
-      "abstract:ans-host": 7936,
-      "abstract:ibc-client": 7694,
-      "abstract:ibc-host": 7695,
-      "abstract:module-factory": 7690,
-      "abstract:registry": 8003,
+      "abstract:account": 8232,
+      "abstract:ans-host": 8231,
+      "abstract:ibc-client": 8233,
+      "abstract:ibc-host": 8234,
+      "abstract:module-factory": 8229,
+      "abstract:registry": 8230,
       "cw:blob": 7399
     },
     "default": {
       "abstract:account-local-0": "neutron12x9fcuwl382vv9l22dkcvcx6uxpeqy9rq5fe3jt8cgvqkyjnj2hs5da0m4",
       "abstract:account-local-1": "neutron1mxahhvpj467088td8lvysyw7m8v880tzls0sxk0zuljn6tsufqksy8whnv",
       "abstract:ans-host": "neutron1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsdn69ty",
-      "abstract:ibc-client": "neutron1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqf33ujf",
-      "abstract:ibc-host": "neutron1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqs6g6lrh",
+      "abstract:ibc-client": "neutron1n9la68zja4l76plwffedj24ar3f6e5kg7j92r26hhzewncghypvs9vk28k",
+      "abstract:ibc-host": "neutron1c67x66rln9mgrjum5urrgn0tjvup5k9uke8hgdm8tu7hztwrjy4s5ecrmu",
       "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
       "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7"
     }
@@ -61,20 +63,20 @@
   },
   "xion-testnet-1": {
     "code_ids": {
-      "abstract:account": 1282,
-      "abstract:ans-host": 1298,
-      "abstract:ibc-client": 1283,
-      "abstract:ibc-host": 1284,
-      "abstract:module-factory": 1281,
-      "abstract:registry": 1309,
+      "abstract:account": 1373,
+      "abstract:ans-host": 1372,
+      "abstract:ibc-client": 1374,
+      "abstract:ibc-host": 1375,
+      "abstract:module-factory": 1370,
+      "abstract:registry": 1371,
       "cw:blob": 1278
     },
     "default": {
       "abstract:account-local-0": "xion10wvm0t3de2k23x6da6whwy30p3prt4gx3fx3klcjw36hgrjd44wsf86jwl",
       "abstract:account-local-1": "xion1dnymc7khmeq9ya3hjs45cthwp3gnvpl2gynw0dvw6hyxv7enj6uqj8mf9p",
       "abstract:ans-host": "xion1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdskfcdvu",
-      "abstract:ibc-client": "xion1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqjtn543",
-      "abstract:ibc-host": "xion1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqspjchy0",
+      "abstract:ibc-client": "xion1e74x0upzwsjvt6p8t5wu33cdnavsn5kcl6ndf8l2hpeah9c94tfqs6lx3w",
+      "abstract:ibc-host": "xion14rwy72dckjtpvtw26yppgfr6jqw4y06tf68axefzk5xjplm9ue6qvtqxjl",
       "abstract:module-factory": "xion1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqhwxljd",
       "abstract:registry": "xion1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqyfdesx"
     }

@@ -15,7 +15,7 @@ fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let (deployment, chain) = common::setup(PION_1)?;
     deployment.migrate_if_version_changed()?;
-    deployment.registry.update_config(None, Some(true))?;
+    deployment.registry.update_config(None, Some(false))?;
     Ok((deployment, chain))
 }
 
@@ -76,7 +76,7 @@ fn old_account_functions() -> anyhow::Result<()> {
             .registry
             .claim_namespace(old_account.id()?, "tester".to_owned())?;
         // Allow registration
-        abstr_deployment.registry.update_config(None, Some(true))?;
+        abstr_deployment.registry.update_config(None, Some(false))?;
         // Try to install
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;

@@ -1,19 +1,19 @@
 [package]
-name = "challenge-app"
-version = "0.4.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
   "Abstract Money <contact@abstract.money>",
   "0xmovses <richard@abstract.money>",
 ]
+documentation = ""
 edition = "2021"
 homepage = ""
-documentation = ""
-repository = ""
-license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "abstractsdk"]
+license = "GPL-3.0-or-later"
+name = "challenge-app"
+repository = ""
 resolver = "2"
+version = "0.4.0"
 
 exclude = ["contract.wasm", "hash.txt"]
 
@@ -21,23 +21,23 @@ exclude = ["contract.wasm", "hash.txt"]
 crate-type = ["cdylib", "rlib"]
 
 [[example]]
-name = "schema"
+name              = "schema"
 required-features = ["schema"]
 
 [features]
 default = ["export"]
-export = []
-schema = ["abstract-app/schema"]
+export  = []
+schema  = ["abstract-app/schema"]
 
 [dependencies]
-cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
+cosmwasm-std    = { workspace = true }
 cw-address-like = { workspace = true }
-cw-controllers = { workspace = true }
+cw-asset        = { workspace = true }
+cw-controllers  = { workspace = true }
 cw-storage-plus = { workspace = true }
-thiserror = { workspace = true }
-schemars = { workspace = true }
-cw-asset = { workspace = true }
+schemars        = { workspace = true }
+thiserror       = { workspace = true }
 
 abstract-app = { workspace = true }
 
@@ -45,9 +45,9 @@ abstract-app = { workspace = true }
 cw-orch = { workspace = true }
 
 [dev-dependencies]
+abstract-app  = { workspace = true, features = ["test-utils"] }
 challenge-app = { path = "." }
-abstract-app = { workspace = true, features = ["test-utils"] }
-semver = "1.0"
-dotenv = "0.15.0"
-env_logger = "0.11.3"
-cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch       = { workspace = true, features = ["daemon"] }
+dotenv        = "0.15.0"
+env_logger    = "0.11.3"
+semver        = "1.0"

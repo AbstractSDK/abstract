@@ -22,7 +22,7 @@ fn instantiate() -> AResult {
     let expected = abstract_std::registry::ConfigResponse {
         // Admin Account is ID 0
         local_account_sequence: 1,
-        security_disabled: true,
+        security_enabled: false,
         namespace_registration_fee: None,
     };
 
@@ -63,20 +63,10 @@ fn create_one_account() -> AResult {
     let registry_config = registry.config()?;
     let expected = registry::ConfigResponse {
         local_account_sequence: 2,
-        security_disabled: true,
+        security_enabled: false,
         namespace_registration_fee: None,
     };
-
     assert_eq!(registry_config, expected);
-
-    let vc_config = registry.config()?;
-    let expected = abstract_std::registry::ConfigResponse {
-        local_account_sequence: 2,
-        security_disabled: true,
-        namespace_registration_fee: Default::default(),
-    };
-
-    assert_eq!(vc_config, expected);
 
     let account_list = registry.account(TEST_ACCOUNT_ID)?;
 
@@ -141,7 +131,7 @@ fn create_two_accounts() -> AResult {
     let registry_config = registry.config()?;
     let expected = registry::ConfigResponse {
         namespace_registration_fee: None,
-        security_disabled: true,
+        security_enabled: false,
         // we created two accounts
         local_account_sequence: account_2_id.seq() + 1,
     };

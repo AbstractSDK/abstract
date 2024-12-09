@@ -1,72 +1,405 @@
 {
-  "contract_name": "abstract-ica-client",
-  "contract_version": "0.24.1",
+  "contract_name": "module-schema",
+  "contract_version": "0.25.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "InstantiateMsg",
-    "description": "This needs no info. Owner of the contract is whoever signed the InstantiateMsg.",
+    "description": "Instantiation message for dex adapter",
     "type": "object",
     "required": [
-      "ans_host_address",
-      "registry_address"
+      "recipient_account",
+      "swap_fee"
     ],
     "properties": {
-      "ans_host_address": {
-        "type": "string"
+      "recipient_account": {
+        "description": "Recipient account for fees.",
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0
       },
-      "registry_address": {
-        "type": "string"
+      "swap_fee": {
+        "description": "Fee charged on each swap.",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Decimal"
+          }
+        ]
       }
     },
-    "additionalProperties": false
+    "additionalProperties": false,
+    "definitions": {
+      "Decimal": {
+        "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+        "type": "string"
+      }
+    }
   },
   "execute": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "ExecuteMsg",
+    "description": "Dex Execute msg",
     "oneOf": [
       {
-        "description": "Update the contract's ownership. The `action` to be provided can be either to propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership permanently.",
+        "description": "Update the fee",
         "type": "object",
         "required": [
-          "update_ownership"
+          "update_fee"
         ],
         "properties": {
-          "update_ownership": {
-            "$ref": "#/definitions/Action"
+          "update_fee": {
+            "type": "object",
+            "properties": {
+              "recipient_account": {
+                "description": "New recipient account for fees",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint32",
+                "minimum": 0
+              },
+              "swap_fee": {
+                "description": "New fee to set",
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Decimal"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Action to perform on the DEX with raw asset denominations",
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "action",
+              "dex"
+            ],
+            "properties": {
+              "action": {
+                "description": "The action to perform",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/DexAction"
+                  }
+                ]
+              },
+              "dex": {
+                "description": "The name of the dex to interact with",
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
       }
     ],
     "definitions": {
-      "Action": {
-        "description": "Actions that can be taken to alter the contract's ownership",
+      "AssetBase_for_String": {
+        "description": "Represents a fungible asset with a known amount\n\nEach asset instance contains two values: `info`, which specifies the asset's type (CW20 or native), and its `amount`, which specifies the asset's amount.",
+        "type": "object",
+        "required": [
+          "amount",
+          "info"
+        ],
+        "properties": {
+          "amount": {
+            "description": "Specifies the asset's amount",
+            "allOf": [
+              {
+                "$ref": "#/definitions/Uint128"
+              }
+            ]
+          },
+          "info": {
+            "description": "Specifies the asset's type (CW20 or native)",
+            "allOf": [
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_String"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AssetInfoBase_for_String": {
+        "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
         "oneOf": [
           {
-            "description": "Propose to transfer the contract's ownership to another account, optionally with an expiry time.\n\nCan only be called by the contract's current owner.\n\nAny existing pending ownership transfer is overwritten.",
             "type": "object",
             "required": [
-              "transfer_ownership"
+              "native"
             ],
             "properties": {
-              "transfer_ownership": {
+              "native": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "cw20"
+            ],
+            "properties": {
+              "cw20": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Decimal": {
+        "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+        "type": "string"
+      },
+      "DexAction": {
+        "description": "Possible raw actions to perform on the DEX",
+        "oneOf": [
+          {
+            "description": "Provide arbitrary liquidity",
+            "type": "object",
+            "required": [
+              "provide_liquidity"
+            ],
+            "properties": {
+              "provide_liquidity": {
                 "type": "object",
                 "required": [
-                  "new_owner"
+                  "assets",
+                  "pool"
                 ],
                 "properties": {
-                  "expiry": {
+                  "assets": {
+                    "description": "Assets to add",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/AssetBase_for_String"
+                    }
+                  },
+                  "max_spread": {
+                    "description": "Max spread to accept, is a percentage represented as a decimal.",
                     "anyOf": [
                       {
-                        "$ref": "#/definitions/Expiration"
+                        "$ref": "#/definitions/Decimal"
                       },
                       {
                         "type": "null"
                       }
                     ]
                   },
-                  "new_owner": {
+                  "pool": {
+                    "description": "Pool to provide liquidity to",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Withdraw liquidity from a pool",
+            "type": "object",
+            "required": [
+              "withdraw_liquidity"
+            ],
+            "properties": {
+              "withdraw_liquidity": {
+                "type": "object",
+                "required": [
+                  "lp_token",
+                  "pool"
+                ],
+                "properties": {
+                  "lp_token": {
+                    "description": "The asset LP token that is provided.",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "pool": {
+                    "description": "Pool to withdraw liquidity from",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Standard swap between one asset to another",
+            "type": "object",
+            "required": [
+              "swap"
+            ],
+            "properties": {
+              "swap": {
+                "type": "object",
+                "required": [
+                  "ask_asset",
+                  "offer_asset",
+                  "pool"
+                ],
+                "properties": {
+                  "ask_asset": {
+                    "description": "The asset to receive",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetInfoBase_for_String"
+                      }
+                    ]
+                  },
+                  "belief_price": {
+                    "description": "The belief price when submitting the transaction.",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_spread": {
+                    "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "offer_asset": {
+                    "description": "The asset to offer",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "pool": {
+                    "description": "Pool used to swap",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Swap by route between multiple assets",
+            "type": "object",
+            "required": [
+              "route_swap"
+            ],
+            "properties": {
+              "route_swap": {
+                "type": "object",
+                "required": [
+                  "offer_asset",
+                  "route"
+                ],
+                "properties": {
+                  "belief_price": {
+                    "description": "The belief price when submitting the transaction.",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_spread": {
+                    "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "offer_asset": {
+                    "description": "The asset to offer",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "route": {
+                    "description": "Pool routes used to swap",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/SwapNode_for_String"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "PoolAddressBase_for_String": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "separate_addresses"
+            ],
+            "properties": {
+              "separate_addresses": {
+                "type": "object",
+                "required": [
+                  "liquidity",
+                  "swap"
+                ],
+                "properties": {
+                  "liquidity": {
+                    "type": "string"
+                  },
+                  "swap": {
                     "type": "string"
                   }
                 },
@@ -76,78 +409,62 @@
             "additionalProperties": false
           },
           {
-            "description": "Accept the pending ownership transfer.\n\nCan only be called by the pending owner.",
-            "type": "string",
-            "enum": [
-              "accept_ownership"
-            ]
-          },
-          {
-            "description": "Give up the contract's ownership and the possibility of appointing a new owner.\n\nCan only be invoked by the contract's current owner.\n\nAny existing pending ownership transfer is canceled.",
-            "type": "string",
-            "enum": [
-              "renounce_ownership"
-            ]
-          }
-        ]
-      },
-      "Expiration": {
-        "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
-        "oneOf": [
-          {
-            "description": "AtHeight will expire when `env.block.height` >= height",
             "type": "object",
             "required": [
-              "at_height"
+              "contract"
             ],
             "properties": {
-              "at_height": {
+              "contract": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "AtTime will expire when `env.block.time` >= time",
-            "type": "object",
-            "required": [
-              "at_time"
-            ],
-            "properties": {
-              "at_time": {
-                "$ref": "#/definitions/Timestamp"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Never will never expire. Used to express the empty variant",
-            "type": "object",
-            "required": [
-              "never"
-            ],
-            "properties": {
-              "never": {
-                "type": "object",
-                "additionalProperties": false
+                "minimum": 0
               }
             },
             "additionalProperties": false
           }
         ]
       },
-      "Timestamp": {
-        "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
-        "allOf": [
-          {
-            "$ref": "#/definitions/Uint64"
+      "SwapNode_for_String": {
+        "description": "Swap node for swap route",
+        "type": "object",
+        "required": [
+          "ask_asset",
+          "pool_id"
+        ],
+        "properties": {
+          "ask_asset": {
+            "description": "Asset in return from the swap",
+            "allOf": [
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_String"
+              }
+            ]
+          },
+          "pool_id": {
+            "description": "Pool id of the swap",
+            "allOf": [
+              {
+                "$ref": "#/definitions/PoolAddressBase_for_String"
+              }
+            ]
           }
-        ]
+        },
+        "additionalProperties": false
       },
-      "Uint64": {
-        "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+      "Uint128": {
+        "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
         "type": "string"
       }
     }
@@ -155,46 +472,42 @@
   "query": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "QueryMsg",
+    "description": "Query messages for the dex adapter",
     "oneOf": [
       {
-        "description": "Returns config Returns [`ConfigResponse`]",
+        "description": "Simulate a swap between two assets Returns [`SimulateSwapResponse`]",
         "type": "object",
         "required": [
-          "config"
+          "simulate_swap"
         ],
         "properties": {
-          "config": {
-            "type": "object",
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "ica_action"
-        ],
-        "properties": {
-          "ica_action": {
+          "simulate_swap": {
             "type": "object",
             "required": [
-              "account_address",
-              "actions",
-              "chain"
+              "ask_asset",
+              "dex",
+              "offer_asset"
             ],
             "properties": {
-              "account_address": {
+              "ask_asset": {
+                "description": "The asset to receive",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetEntry"
+                  }
+                ]
+              },
+              "dex": {
+                "description": "Name of the dex to simulate the swap on",
                 "type": "string"
               },
-              "actions": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/IcaAction"
-                }
-              },
-              "chain": {
-                "$ref": "#/definitions/TruncatedChainId"
+              "offer_asset": {
+                "description": "The asset to offer",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AnsAsset"
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -203,13 +516,95 @@
         "additionalProperties": false
       },
       {
-        "description": "Query the contract's ownership information",
+        "description": "Simulate a swap between two assets Returns [`SimulateSwapResponse`]",
         "type": "object",
         "required": [
-          "ownership"
+          "simulate_swap_raw"
         ],
         "properties": {
-          "ownership": {
+          "simulate_swap_raw": {
+            "type": "object",
+            "required": [
+              "ask_asset",
+              "dex",
+              "offer_asset",
+              "pool"
+            ],
+            "properties": {
+              "ask_asset": {
+                "description": "The asset to receive",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetInfoBase_for_String"
+                  }
+                ]
+              },
+              "dex": {
+                "description": "Name of the dex to simulate the swap on",
+                "type": "string"
+              },
+              "offer_asset": {
+                "description": "The asset to offer",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetBase_for_String"
+                  }
+                ]
+              },
+              "pool": {
+                "description": "Identifies of the pool to simulate the swap on.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/PoolAddressBase_for_String"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Endpoint can be used by front-end to easily interact with contracts. Returns [`GenerateMessagesResponse`]",
+        "type": "object",
+        "required": [
+          "generate_messages"
+        ],
+        "properties": {
+          "generate_messages": {
+            "type": "object",
+            "required": [
+              "addr_as_sender",
+              "message"
+            ],
+            "properties": {
+              "addr_as_sender": {
+                "description": "Sender Addr generate messages for",
+                "type": "string"
+              },
+              "message": {
+                "description": "Execute message to generate messages for",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/DexExecuteMsg"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Fee info for using the different dex actions",
+        "type": "object",
+        "required": [
+          "fees"
+        ],
+        "properties": {
+          "fees": {
             "type": "object",
             "additionalProperties": false
           }
@@ -218,84 +613,324 @@
       }
     ],
     "definitions": {
-      "Binary": {
-        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
-        "type": "string"
-      },
-      "CallbackRequest": {
-        "description": "A request for a callback.",
-        "type": "object",
-        "required": [
-          "msg",
-          "receiver"
-        ],
-        "properties": {
-          "msg": {
-            "$ref": "#/definitions/Binary"
-          },
-          "receiver": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "Coin": {
+      "AnsAsset": {
         "type": "object",
         "required": [
           "amount",
-          "denom"
+          "name"
         ],
         "properties": {
           "amount": {
             "$ref": "#/definitions/Uint128"
           },
-          "denom": {
-            "type": "string"
+          "name": {
+            "$ref": "#/definitions/AssetEntry"
           }
         },
         "additionalProperties": false
       },
-      "EvmMsg_for_String": {
-        "description": "A message to be sent to the EVM",
+      "AssetBase_for_String": {
+        "description": "Represents a fungible asset with a known amount\n\nEach asset instance contains two values: `info`, which specifies the asset's type (CW20 or native), and its `amount`, which specifies the asset's amount.",
+        "type": "object",
+        "required": [
+          "amount",
+          "info"
+        ],
+        "properties": {
+          "amount": {
+            "description": "Specifies the asset's amount",
+            "allOf": [
+              {
+                "$ref": "#/definitions/Uint128"
+              }
+            ]
+          },
+          "info": {
+            "description": "Specifies the asset's type (CW20 or native)",
+            "allOf": [
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_String"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AssetEntry": {
+        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+        "type": "string"
+      },
+      "AssetInfoBase_for_String": {
+        "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
         "oneOf": [
           {
-            "description": "Call a contract with the given data",
             "type": "object",
             "required": [
-              "call"
+              "native"
             ],
             "properties": {
-              "call": {
+              "native": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "cw20"
+            ],
+            "properties": {
+              "cw20": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Decimal": {
+        "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+        "type": "string"
+      },
+      "DexAction": {
+        "description": "Possible raw actions to perform on the DEX",
+        "oneOf": [
+          {
+            "description": "Provide arbitrary liquidity",
+            "type": "object",
+            "required": [
+              "provide_liquidity"
+            ],
+            "properties": {
+              "provide_liquidity": {
                 "type": "object",
                 "required": [
-                  "data",
-                  "to"
+                  "assets",
+                  "pool"
                 ],
                 "properties": {
-                  "allow_failure": {
-                    "description": "Don't revert entire batch when this transaction fails",
-                    "type": [
-                      "boolean",
-                      "null"
-                    ]
+                  "assets": {
+                    "description": "Assets to add",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/AssetBase_for_String"
+                    }
                   },
-                  "data": {
-                    "description": "The calldata to send to the contract",
-                    "allOf": [
+                  "max_spread": {
+                    "description": "Max spread to accept, is a percentage represented as a decimal.",
+                    "anyOf": [
                       {
-                        "$ref": "#/definitions/HexBinary"
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
                       }
                     ]
                   },
-                  "to": {
-                    "description": "The address of the contract to call, must pass checksum validation",
-                    "type": "string"
+                  "pool": {
+                    "description": "Pool to provide liquidity to",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Withdraw liquidity from a pool",
+            "type": "object",
+            "required": [
+              "withdraw_liquidity"
+            ],
+            "properties": {
+              "withdraw_liquidity": {
+                "type": "object",
+                "required": [
+                  "lp_token",
+                  "pool"
+                ],
+                "properties": {
+                  "lp_token": {
+                    "description": "The asset LP token that is provided.",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
                   },
-                  "value": {
-                    "description": "Native ETH used in the tx",
+                  "pool": {
+                    "description": "Pool to withdraw liquidity from",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Standard swap between one asset to another",
+            "type": "object",
+            "required": [
+              "swap"
+            ],
+            "properties": {
+              "swap": {
+                "type": "object",
+                "required": [
+                  "ask_asset",
+                  "offer_asset",
+                  "pool"
+                ],
+                "properties": {
+                  "ask_asset": {
+                    "description": "The asset to receive",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetInfoBase_for_String"
+                      }
+                    ]
+                  },
+                  "belief_price": {
+                    "description": "The belief price when submitting the transaction.",
                     "anyOf": [
                       {
-                        "$ref": "#/definitions/Uint128"
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_spread": {
+                    "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "offer_asset": {
+                    "description": "The asset to offer",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "pool": {
+                    "description": "Pool used to swap",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Swap by route between multiple assets",
+            "type": "object",
+            "required": [
+              "route_swap"
+            ],
+            "properties": {
+              "route_swap": {
+                "type": "object",
+                "required": [
+                  "offer_asset",
+                  "route"
+                ],
+                "properties": {
+                  "belief_price": {
+                    "description": "The belief price when submitting the transaction.",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_spread": {
+                    "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "offer_asset": {
+                    "description": "The asset to offer",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "route": {
+                    "description": "Pool routes used to swap",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/SwapNode_for_String"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "DexExecuteMsg": {
+        "description": "Dex Execute msg",
+        "oneOf": [
+          {
+            "description": "Update the fee",
+            "type": "object",
+            "required": [
+              "update_fee"
+            ],
+            "properties": {
+              "update_fee": {
+                "type": "object",
+                "properties": {
+                  "recipient_account": {
+                    "description": "New recipient account for fees",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "uint32",
+                    "minimum": 0
+                  },
+                  "swap_fee": {
+                    "description": "New fee to set",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
                       },
                       {
                         "type": "null"
@@ -309,48 +944,30 @@
             "additionalProperties": false
           },
           {
-            "description": "Delegate a call to an external contract. This is dangerous and should be used with caution.",
+            "description": "Action to perform on the DEX with raw asset denominations",
             "type": "object",
             "required": [
-              "delegate_call"
+              "action"
             ],
             "properties": {
-              "delegate_call": {
+              "action": {
                 "type": "object",
                 "required": [
-                  "data",
-                  "to"
+                  "action",
+                  "dex"
                 ],
                 "properties": {
-                  "allow_failure": {
-                    "description": "Don't revert entire batch when this transaction fails",
-                    "type": [
-                      "boolean",
-                      "null"
-                    ]
-                  },
-                  "data": {
-                    "description": "The calldata to send to the contract",
+                  "action": {
+                    "description": "The action to perform",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/HexBinary"
+                        "$ref": "#/definitions/DexAction"
                       }
                     ]
                   },
-                  "to": {
-                    "description": "The address of the contract to call, must pass checksum validation",
+                  "dex": {
+                    "description": "The name of the dex to interact with",
                     "type": "string"
-                  },
-                  "value": {
-                    "description": "Native ETH used in the tx",
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/Uint128"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
                   }
                 },
                 "additionalProperties": false
@@ -360,21 +977,29 @@
           }
         ]
       },
-      "HexBinary": {
-        "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
-        "type": "string"
-      },
-      "IcaAction": {
-        "description": "Interchain Account Action",
+      "PoolAddressBase_for_String": {
         "oneOf": [
           {
             "type": "object",
             "required": [
-              "execute"
+              "separate_addresses"
             ],
             "properties": {
-              "execute": {
-                "$ref": "#/definitions/IcaExecute"
+              "separate_addresses": {
+                "type": "object",
+                "required": [
+                  "liquidity",
+                  "swap"
+                ],
+                "properties": {
+                  "liquidity": {
+                    "type": "string"
+                  },
+                  "swap": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
               }
             },
             "additionalProperties": false
@@ -382,86 +1007,57 @@
           {
             "type": "object",
             "required": [
-              "fund"
+              "contract"
             ],
             "properties": {
-              "fund": {
-                "type": "object",
-                "required": [
-                  "funds"
-                ],
-                "properties": {
-                  "funds": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/Coin"
-                    }
-                  },
-                  "memo": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  },
-                  "receiver": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
+              "contract": {
+                "type": "string"
               }
             },
             "additionalProperties": false
-          }
-        ]
-      },
-      "IcaExecute": {
-        "oneOf": [
+          },
           {
             "type": "object",
             "required": [
-              "evm"
+              "id"
             ],
             "properties": {
-              "evm": {
-                "type": "object",
-                "required": [
-                  "msgs"
-                ],
-                "properties": {
-                  "callback": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/CallbackRequest"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "msgs": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/EvmMsg_for_String"
-                    }
-                  }
-                },
-                "additionalProperties": false
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0
               }
             },
             "additionalProperties": false
           }
         ]
       },
-      "TruncatedChainId": {
-        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
-        "type": "string"
+      "SwapNode_for_String": {
+        "description": "Swap node for swap route",
+        "type": "object",
+        "required": [
+          "ask_asset",
+          "pool_id"
+        ],
+        "properties": {
+          "ask_asset": {
+            "description": "Asset in return from the swap",
+            "allOf": [
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_String"
+              }
+            ]
+          },
+          "pool_id": {
+            "description": "Pool id of the swap",
+            "allOf": [
+              {
+                "$ref": "#/definitions/PoolAddressBase_for_String"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
       },
       "Uint128": {
         "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
@@ -472,69 +1068,37 @@
   "migrate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MigrateMsg",
-    "oneOf": [
-      {
-        "type": "object",
-        "required": [
-          "instantiate"
-        ],
-        "properties": {
-          "instantiate": {
-            "$ref": "#/definitions/InstantiateMsg"
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "type": "object",
-        "required": [
-          "migrate"
-        ],
-        "properties": {
-          "migrate": {
-            "type": "object",
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      }
-    ],
-    "definitions": {
-      "InstantiateMsg": {
-        "description": "This needs no info. Owner of the contract is whoever signed the InstantiateMsg.",
-        "type": "object",
-        "required": [
-          "ans_host_address",
-          "registry_address"
-        ],
-        "properties": {
-          "ans_host_address": {
-            "type": "string"
-          },
-          "registry_address": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      }
-    }
+    "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
+    "type": "object",
+    "additionalProperties": false
   },
   "sudo": null,
   "responses": {
-    "config": {
+    "fees": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ConfigResponse",
+      "title": "DexFeesResponse",
+      "description": "Response for Dex Fees",
       "type": "object",
       "required": [
-        "ans_host",
-        "registry_address"
+        "recipient",
+        "swap_fee"
       ],
       "properties": {
-        "ans_host": {
-          "$ref": "#/definitions/Addr"
+        "recipient": {
+          "description": "Address where all fees will go",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            }
+          ]
         },
-        "registry_address": {
-          "$ref": "#/definitions/Addr"
+        "swap_fee": {
+          "description": "Fee for using swap action",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Fee"
+            }
+          ]
         }
       },
       "additionalProperties": false,
@@ -542,19 +1106,42 @@
         "Addr": {
           "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
           "type": "string"
+        },
+        "Decimal": {
+          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+          "type": "string"
+        },
+        "Fee": {
+          "description": "A wrapper around Decimal to help handle fractional fees.",
+          "type": "object",
+          "required": [
+            "share"
+          ],
+          "properties": {
+            "share": {
+              "description": "fraction of asset to take as fee.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Decimal"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       }
     },
-    "ica_action": {
+    "generate_messages": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "IcaActionResult",
+      "title": "GenerateMessagesResponse",
+      "description": "Response from GenerateMsgs",
       "type": "object",
       "required": [
-        "msgs"
+        "messages"
       ],
       "properties": {
-        "msgs": {
-          "description": "messages that call the underlying implementations (be it polytone/cw-ica-controller/etc)",
+        "messages": {
+          "description": "Messages generated for dex action",
           "type": "array",
           "items": {
             "$ref": "#/definitions/CosmosMsg_for_Empty"
@@ -901,7 +1488,7 @@
                     "proposal_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     }
                   },
                   "additionalProperties": false
@@ -932,7 +1519,7 @@
                     "proposal_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     }
                   },
                   "additionalProperties": false
@@ -1096,13 +1683,13 @@
               "description": "block height after which the packet times out. the height within the given revision",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "revision": {
               "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -1285,7 +1872,7 @@
                     "code_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     },
                     "funds": {
                       "type": "array",
@@ -1337,7 +1924,7 @@
                     "code_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     },
                     "funds": {
                       "type": "array",
@@ -1396,7 +1983,7 @@
                       "description": "the code_id of the new logic to place in the given contract",
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     }
                   },
                   "additionalProperties": false
@@ -1472,97 +2059,205 @@
         }
       }
     },
-    "ownership": {
+    "simulate_swap": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Ownership_for_String",
-      "description": "The contract's ownership info",
+      "title": "SimulateSwapResponse_for_AssetEntry",
+      "description": "Response for simulating a swap.",
       "type": "object",
+      "required": [
+        "commission",
+        "pool",
+        "return_amount",
+        "spread_amount",
+        "usage_fee"
+      ],
       "properties": {
-        "owner": {
-          "description": "The contract's current owner. `None` if the ownership has been renounced.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "pending_expiry": {
-          "description": "The deadline for the pending owner to accept the ownership. `None` if there isn't a pending ownership transfer, or if a transfer exists and it doesn't have a deadline.",
-          "anyOf": [
+        "commission": {
+          "description": "Commission charged for the swap",
+          "type": "array",
+          "items": [
             {
-              "$ref": "#/definitions/Expiration"
+              "$ref": "#/definitions/AssetEntry"
             },
             {
-              "type": "null"
+              "$ref": "#/definitions/Uint128"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2
+        },
+        "pool": {
+          "description": "The pool on which the swap was simulated",
+          "allOf": [
+            {
+              "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
             }
           ]
         },
-        "pending_owner": {
-          "description": "The account who has been proposed to take over the ownership. `None` if there isn't a pending ownership transfer.",
-          "type": [
-            "string",
-            "null"
+        "return_amount": {
+          "description": "Amount you would receive when performing the swap.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
+        },
+        "spread_amount": {
+          "description": "Spread in ask_asset for this swap",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
+        },
+        "usage_fee": {
+          "description": "Adapter fee charged for the swap (paid in offer asset)",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
           ]
         }
       },
       "additionalProperties": false,
       "definitions": {
-        "Expiration": {
-          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
-          "oneOf": [
-            {
-              "description": "AtHeight will expire when `env.block.height` >= height",
-              "type": "object",
-              "required": [
-                "at_height"
-              ],
-              "properties": {
-                "at_height": {
-                  "type": "integer",
-                  "format": "uint64",
-                  "minimum": 0.0
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "description": "AtTime will expire when `env.block.time` >= time",
-              "type": "object",
-              "required": [
-                "at_time"
-              ],
-              "properties": {
-                "at_time": {
-                  "$ref": "#/definitions/Timestamp"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "description": "Never will never expire. Used to express the empty variant",
-              "type": "object",
-              "required": [
-                "never"
-              ],
-              "properties": {
-                "never": {
-                  "type": "object",
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
         },
-        "Timestamp": {
-          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+        "DexAssetPairing_for_AssetEntry": {
+          "description": "The key for an asset pairing Consists of the two assets and the dex name",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "Uint128": {
+          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "simulate_swap_raw": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SimulateSwapResponse_for_AssetInfoBase_for_String",
+      "description": "Response for simulating a swap.",
+      "type": "object",
+      "required": [
+        "commission",
+        "pool",
+        "return_amount",
+        "spread_amount",
+        "usage_fee"
+      ],
+      "properties": {
+        "commission": {
+          "description": "Commission charged for the swap",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            },
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2
+        },
+        "pool": {
+          "description": "The pool on which the swap was simulated",
           "allOf": [
             {
-              "$ref": "#/definitions/Uint64"
+              "$ref": "#/definitions/DexAssetPairing_for_AssetInfoBase_for_String"
             }
           ]
         },
-        "Uint64": {
-          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+        "return_amount": {
+          "description": "Amount you would receive when performing the swap.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
+        },
+        "spread_amount": {
+          "description": "Spread in ask_asset for this swap",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
+        },
+        "usage_fee": {
+          "description": "Adapter fee charged for the swap (paid in offer asset)",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "AssetInfoBase_for_String": {
+          "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "DexAssetPairing_for_AssetInfoBase_for_String": {
+          "description": "The key for an asset pairing Consists of the two assets and the dex name",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            },
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "Uint128": {
+          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
           "type": "string"
         }
       }

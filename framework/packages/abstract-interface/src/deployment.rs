@@ -10,8 +10,10 @@ use crate::{
     AnsHost, ModuleFactory, Registry,
 };
 use abstract_std::{
-    native_addrs, objects::module::ModuleInfo, registry::QueryMsgFns, ACCOUNT, ANS_HOST,
-    MODULE_FACTORY, REGISTRY,
+    native_addrs,
+    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
+    registry::QueryMsgFns,
+    ACCOUNT, ANS_HOST, MODULE_FACTORY, REGISTRY,
 };
 
 const CW_BLOB: &str = "cw:blob";
@@ -94,10 +96,10 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             &abstract_std::registry::MigrateMsg::Instantiate(
                 abstract_std::registry::InstantiateMsg {
                     admin: admin.to_string(),
-                    #[cfg(feature = "integration")]
-                    security_disabled: Some(true),
-                    #[cfg(not(feature = "integration"))]
-                    security_disabled: Some(false),
+                    #[cfg(feature = "testing")]
+                    security_enabled: Some(false),
+                    #[cfg(not(feature = "testing"))]
+                    security_enabled: Some(true),
                     namespace_registration_fee: None,
                 },
             ),
@@ -128,10 +130,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             .register_natives(deployment.contracts())?;
         deployment.registry.approve_any_abstract_modules()?;
 
-        // Create the first abstract account in integration environments
-        #[cfg(feature = "integration")]
-        use abstract_std::objects::gov_type::GovernanceDetails;
-        #[cfg(feature = "integration")]
+        // Create the first abstract account
         AccountI::create_default_account(
             &deployment,
             GovernanceDetails::Monarchy {
@@ -203,45 +202,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
             },
             blob: CwBlob::new(CW_BLOB, chain),
         }
-    }
-
-    pub fn instantiate(&mut self, admin: String) -> Result<(), AbstractInterfaceError> {
-        let admin = Addr::unchecked(admin);
-
-        self.ans_host.instantiate(
-            &abstract_std::ans_host::InstantiateMsg {
-                admin: admin.to_string(),
-            },
-            Some(&admin),
-            &[],
-        )?;
-
-        self.registry.instantiate(
-            &abstract_std::registry::InstantiateMsg {
-                admin: admin.to_string(),
-                #[cfg(feature = "integration")]
-                security_disabled: Some(true),
-                #[cfg(not(feature = "integration"))]
-                security_disabled: Some(false),
-                namespace_registration_fee: None,
-            },
-            Some(&admin),
-            &[],
-        )?;
-
-        self.module_factory.instantiate(
-            &abstract_std::module_factory::InstantiateMsg {
-                admin: admin.to_string(),
-            },
-            Some(&admin),
-            &[],
-        )?;
-
-        // We also instantiate ibc contracts
-        self.ibc.instantiate(&admin)?;
-        self.ibc.register(&self.registry)?;
-
-        Ok(())
     }
 
     pub fn contracts(&self) -> Vec<(&cw_orch::contract::Contract<Chain>, String)> {

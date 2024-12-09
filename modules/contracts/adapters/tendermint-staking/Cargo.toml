@@ -1,15 +1,15 @@
 [package]
-name = "abstract-tendermint-staking-adapter"
-version = { workspace = true }
-authors = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
+authors     = { workspace = true }
 description = "Abstract Tendermint Staking Adapter. This contract allows interacting with staking on multiple Tendermint chains"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "abstract-tendermint-staking-adapter"
+version     = { workspace = true }
 
 exclude = ["contract.wasm", "hash.txt"]
 
 [[example]]
-name = "schema"
+name              = "schema"
 required-features = ["schema"]
 
 [lib]
@@ -17,16 +17,16 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
-export = []
-schema = ["abstract-adapter/schema"]
+export  = []
+schema  = ["abstract-adapter/schema"]
 
 
 # Keep as is until TendermintStake updates.
 [dependencies]
-cosmwasm-std = { workspace = true }
-cosmwasm-schema = { workspace = true }
-thiserror = { workspace = true }
 abstract-adapter = { workspace = true }
+cosmwasm-schema  = { workspace = true }
+cosmwasm-std     = { workspace = true }
+thiserror        = { workspace = true }
 
 cw-orch = { workspace = true }
 

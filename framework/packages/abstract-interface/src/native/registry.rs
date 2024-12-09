@@ -24,7 +24,6 @@ pub struct Registry<Chain>;
 impl<Chain: CwEnv> cw_blob::interface::DeterministicInstantiation<Chain> for Registry<Chain> {}
 
 impl<Chain: CwEnv> Uploadable for Registry<Chain> {
-    #[cfg(feature = "integration")]
     fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(

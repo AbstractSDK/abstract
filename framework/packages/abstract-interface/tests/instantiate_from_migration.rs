@@ -77,7 +77,7 @@ fn registry() {
         contract,
         abstract_std::registry::InstantiateMsg {
             admin: chain.sender().to_string(),
-            security_disabled: None,
+            security_enabled: None,
             namespace_registration_fee: None,
         },
     )

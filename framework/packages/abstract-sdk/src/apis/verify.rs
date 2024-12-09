@@ -264,7 +264,7 @@ mod test {
                 &abstr.registry,
                 registry::state::CONFIG,
                 &registry::Config {
-                    security_disabled: true,
+                    security_enabled: false,
                     namespace_registration_fee: Some(Coin::new(42_u128, "foo")),
                 },
             )

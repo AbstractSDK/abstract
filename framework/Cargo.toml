@@ -17,93 +17,91 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.24.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
   "Abstract Money <contact@abstract.money>",
 ]
+documentation = "https://docs.abstract.money/"
 edition = "2021"
 homepage = "https://abstract.money"
-documentation = "https://docs.abstract.money/"
-repository = "https://github.com/AbstractSDK/abstract"
-license = "LGPL-3.0"
 keywords = ["cosmos", "cosmwasm", "framework"]
+license = "LGPL-3.0"
+repository = "https://github.com/AbstractSDK/abstract"
+version = "0.25.0"
 
 [workspace.dependencies]
-cosmwasm-std = { version = "2.0.0", features = ["cosmwasm_1_2"] }
 cosmwasm-schema = { version = "2.0" }
-cw-controllers = { version = "2.0" }
-cw-utils = { version = "2.0" }
+cosmwasm-std    = { version = "2.0.0", features = ["cosmwasm_1_2"] }
+cw-controllers  = { version = "2.0" }
 cw-storage-plus = "2.0.0"
-cw2 = { version = "2.0" }
-cw20 = { version = "2.0" }
-cw20-base = { version = "2.0", features = ["library"] }
+cw-utils        = { version = "2.0" }
+cw2             = { version = "2.0" }
+cw20            = { version = "2.0" }
+cw20-base       = { version = "2.0", features = ["library"] }
 
-cw-asset = { version = "4.0" }
-cw-ownable = { version = "2.0" }
 cw-address-like = { version = "2.0" }
-cw-clearable = { version = "0.2.0" }
-serde-cw-value = "0.7.0"
+cw-asset        = { version = "4.0" }
+cw-clearable    = { version = "0.2.0" }
+cw-ownable      = { version = "2.0" }
+serde-cw-value  = "0.7.0"
 
-schemars = "0.8"
-serde = { version = "1.0", default-features = false, features = ["derive"] }
+anybuf    = { version = "0.5.0" }
+protobuf  = { version = "2", features = ["with-bytes"] }
+schemars  = "0.8"
+serde     = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.50" }
-protobuf = { version = "2", features = ["with-bytes"] }
-anybuf = { version = "0.5.0" }
 
-clap = { version = "4.0.32", features = ["derive"] }
-semver = "1.0"
-cw-orch = { version = "0.27.0" }
+clap               = { version = "4.0.32", features = ["derive"] }
+cw-orch            = { version = "0.27.0" }
 cw-orch-interchain = { version = "0.8.1" }
-tokio = { version = "1.4", features = ["full"] }
+semver             = "1.0"
+tokio              = { version = "1.4", features = ["full"] }
 
-polytone = { package = "abstract-polytone", version = "2.0.0" }
-polytone-note = { package = "abstract-polytone-note", version = "5.0.0" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "6.0.0" }
+polytone         = { package = "abstract-polytone", version = "2.0.0" }
+polytone-note    = { package = "abstract-polytone-note", version = "5.0.0" }
 
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter = { path = "packages/abstract-adapter" }
-abstract-app = { path = "packages/abstract-app" }
+abstract-adapter    = { path = "packages/abstract-adapter" }
+abstract-app        = { path = "packages/abstract-app" }
 abstract-standalone = { path = "packages/abstract-standalone" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { path = "packages/abstract-interface" }
-module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
-ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
-registry = { package = "abstract-registry", path = "contracts/native/registry" }
+ans-host           = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
+module-factory     = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
+registry           = { package = "abstract-registry", path = "contracts/native/registry" }
 
 # Ibc
 ibc-client = { package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
-ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
+ibc-host   = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 
 abstract-account = { path = "contracts/account", default-features = false }
 
-abstract-ica = { version = "0.24.1", path = "packages/abstract-ica" }
-abstract-sdk = { version = "0.24.1", path = "packages/abstract-sdk" }
-abstract-testing = { version = "0.24.1", path = "packages/abstract-testing" }
-abstract-std = { version = "0.24.1", path = "packages/abstract-std" }
-abstract-xion = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = [
-  "library",
-], branch = "fix-for-abstract" }
+abstract-ica     = { version = "0.25.0", path = "packages/abstract-ica" }
+abstract-sdk     = { version = "0.25.0", path = "packages/abstract-sdk" }
+abstract-std     = { version = "0.25.0", path = "packages/abstract-std" }
+abstract-testing = { version = "0.25.0", path = "packages/abstract-testing" }
+abstract-xion    = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = ["library"], branch = "fix-for-abstract" }
 
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.24.1", path = "packages/abstract-macros" }
+abstract-macros = { version = "0.25.0", path = "packages/abstract-macros" }
 
-abstract-adapter-utils = { version = "0.24.1", path = "packages/standards/utils" }
-abstract-dex-standard = { path = "packages/standards/dex" }
+abstract-adapter-utils    = { version = "0.25.0", path = "packages/standards/utils" }
+abstract-dex-standard     = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 
 abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 
 ## Testing
-rstest = "0.17.0"
-anyhow = "1"
+anyhow          = "1"
 coverage-helper = { version = "0.2.2" }
+rstest          = "0.17.0"
 
 # Predictable abstract addresses
 cw-blob = { version = "=0.2.0", features = ["library"] }
@@ -115,15 +113,15 @@ opt-level = 3
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
-rpath = false
-lto = true
-overflow-checks = true
-opt-level = 's'
-debug = false
+codegen-units    = 1
+debug            = false
 debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
+incremental      = false
+lto              = true
+opt-level        = 's'
+overflow-checks  = true
+panic            = 'abort'
+rpath            = false
 
 [patch.crates-io]
 
@@ -134,10 +132,8 @@ incremental = false
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep
-normal = ["workspace-hack"]
 development = ["workspace-hack"]
+normal      = ["workspace-hack"]
 
 [workspace.lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = [
-  'cfg(coverage,coverage_nightly)',
-] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage,coverage_nightly)'] }

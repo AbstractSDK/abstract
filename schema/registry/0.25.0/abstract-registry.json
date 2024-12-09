@@ -1,6 +1,6 @@
 {
   "contract_name": "abstract-registry",
-  "contract_version": "0.24.3",
+  "contract_version": "0.25.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -24,7 +24,7 @@
           }
         ]
       },
-      "security_disabled": {
+      "security_enabled": {
         "description": "allows users to directly register modules without going through approval Also allows them to change the module reference of an existing module Also allows to claim namespaces permisionlessly SHOULD ONLY BE `true` FOR TESTING",
         "type": [
           "boolean",
@@ -302,7 +302,7 @@
                   }
                 ]
               },
-              "security_disabled": {
+              "security_enabled": {
                 "description": "Whether the contract allows direct module registration",
                 "type": [
                   "boolean",
@@ -1295,7 +1295,7 @@
               }
             ]
           },
-          "security_disabled": {
+          "security_enabled": {
             "description": "allows users to directly register modules without going through approval Also allows them to change the module reference of an existing module Also allows to claim namespaces permisionlessly SHOULD ONLY BE `true` FOR TESTING",
             "type": [
               "boolean",
@@ -1446,7 +1446,7 @@
       "type": "object",
       "required": [
         "local_account_sequence",
-        "security_disabled"
+        "security_enabled"
       ],
       "properties": {
         "local_account_sequence": {
@@ -1464,7 +1464,7 @@
             }
           ]
         },
-        "security_disabled": {
+        "security_enabled": {
           "type": "boolean"
         }
       },
