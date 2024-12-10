@@ -9,10 +9,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account::{
-        state::{
-            AccountInfo, WhitelistedModules, AUTH_ADMIN, INFO, SUSPENSION_STATUS,
-            WHITELISTED_MODULES,
-        },
+        state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
         UpdateSubAccountAction,
     },
     module_factory::SimulateInstallModulesResponse,
@@ -360,7 +357,9 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
             }
         }
     }?;
-    AUTH_ADMIN.remove(deps.storage);
+
+    #[cfg(feature = "xion")]
+    abstract_std::account::state::AUTH_ADMIN.remove(deps.storage);
     Ok(response)
 }
 
@@ -424,19 +423,19 @@ pub fn sudo(
     msg: abstract_xion::contract::AccountSudoMsg,
 ) -> abstract_xion::error::ContractResult<Response> {
     if let abstract_xion::contract::AccountSudoMsg::BeforeTx { .. } = &msg {
-        AUTH_ADMIN.save(deps.storage, &true)?;
+        abstract_std::account::state::AUTH_ADMIN.save(deps.storage, &true)?;
     };
     if let abstract_xion::contract::AccountSudoMsg::AfterTx { .. } = &msg {
-        AUTH_ADMIN.remove(deps.storage);
+        abstract_std::account::state::AUTH_ADMIN.remove(deps.storage);
     };
     abstract_xion::contract::sudo(deps, env, msg)
 }
 #[cfg(not(feature = "xion"))]
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn sudo(
-    deps: DepsMut,
-    env: Env,
-    msg: cosmwasm_std::Empty,
+    _deps: DepsMut,
+    _env: Env,
+    _msg: cosmwasm_std::Empty,
 ) -> Result<cosmwasm_std::Response, AccountError> {
     unimplemented!()
 }

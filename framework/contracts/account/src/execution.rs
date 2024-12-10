@@ -228,34 +228,33 @@ mod test {
 
     mod execute_action {
 
-        use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
-        use abstract_std::objects::{gov_type::GovernanceDetails, ownership::Ownership};
-        use cosmwasm_std::{
-            testing::MOCK_CONTRACT_ADDR, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty,
-            Env, Response, WasmMsg,
-        };
-        use cw_storage_plus::Item;
-
-        use crate::contract::AccountResult;
+        use cosmwasm_std::{testing::MOCK_CONTRACT_ADDR, wasm_execute, CosmosMsg};
 
         use super::*;
-        fn execute_from_res(deps: DepsMut, env: Env, res: Response) -> AccountResult<Response> {
-            // Execute all messages
-            let info = message_info(&env.contract.address, &[]);
-            if let CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: _,
-                msg,
-                funds: _,
-            }) = res.messages[0].msg.clone()
-            {
-                execute(deps, env.clone(), info, from_json(&msg)?).map_err(Into::into)
-            } else {
-                panic!("Wrong message received");
-            }
-        }
 
+        #[cfg(feature = "xion")]
         #[coverage_helper::test]
         fn admin_actions_not_chained() -> anyhow::Result<()> {
+            use crate::contract::AccountResult;
+            use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
+            use abstract_std::objects::{gov_type::GovernanceDetails, ownership::Ownership};
+            use cosmwasm_std::{Addr, Binary, DepsMut, Empty, Env, Response, WasmMsg};
+            use cw_storage_plus::Item;
+
+            fn execute_from_res(deps: DepsMut, env: Env, res: Response) -> AccountResult<Response> {
+                // Execute all messages
+                let info = message_info(&env.contract.address, &[]);
+                if let CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: _,
+                    msg,
+                    funds: _,
+                }) = res.messages[0].msg.clone()
+                {
+                    execute(deps, env.clone(), info, from_json(&msg)?).map_err(Into::into)
+                } else {
+                    panic!("Wrong message received");
+                }
+            }
             let mut deps = mock_dependencies();
             deps.querier = abstract_mock_querier(deps.api);
             mock_init(&mut deps)?;

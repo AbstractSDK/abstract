@@ -85,6 +85,7 @@ pub mod state {
         Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
     pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
+    #[cfg(feature = "xion")]
     /// XION temporary state. This is used to make sure that the account only has admin rights when authenticated through XION
     /// If a call originates from the top level owner account address, there are 2 cases within xion:
     /// - It's a call made from the account directly.

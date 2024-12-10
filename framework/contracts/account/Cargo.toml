@@ -23,7 +23,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export  = []
-xion    = ["abstract-xion"]
+xion    = ["abstract-xion", "abstract-std/xion"]
 
 [package.metadata.optimizer]
 builds         = [{ name = "xion", features = ["xion"] }]

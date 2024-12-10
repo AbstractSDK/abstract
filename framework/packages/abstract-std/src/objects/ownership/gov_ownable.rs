@@ -1,9 +1,7 @@
 #![doc = include_str!("README.md")]
 
 pub use crate::objects::gov_type::{GovAction, GovernanceDetails};
-use crate::{
-    account::state::AUTH_ADMIN, objects::storage_namespaces::OWNERSHIP_STORAGE_KEY, AbstractError,
-};
+use crate::{objects::storage_namespaces::OWNERSHIP_STORAGE_KEY, AbstractError};
 
 use cosmwasm_std::{
     Addr, Attribute, BlockInfo, CustomQuery, DepsMut, QuerierWrapper, StdError, StdResult, Storage,
@@ -217,9 +215,10 @@ pub fn assert_nested_owner(
     // If current sender is owner of this account - it's the owner
     let owner_assertion = ownership.assert_owner(querier, sender);
     if owner_assertion.is_ok() {
+        #[cfg(feature = "xion")]
         // If this is a self-owned abstract account, we need to make sure the admin flag is set
         if let GovernanceDetails::AbstractAccount { .. } = ownership.owner {
-            if let Some(true) = AUTH_ADMIN.may_load(store)? {
+            if let Some(true) = crate::account::state::AUTH_ADMIN.may_load(store)? {
                 return Ok(());
             } else {
                 return Err(crate::objects::ownership::GovOwnershipError::NotOwner);
@@ -236,9 +235,10 @@ pub fn assert_nested_owner(
     // the contract must have an owner
     match top_level_ownership.assert_owner(querier, sender) {
         Ok(_) => {
+            #[cfg(feature = "xion")]
             // If the top level owner is an abstract account, we need to make sure the admin flag is set
             if let GovernanceDetails::AbstractAccount { address } = top_level_ownership.owner {
-                if let Ok(true) = AUTH_ADMIN.query(querier, address) {
+                if let Ok(true) = crate::account::state::AUTH_ADMIN.query(querier, address) {
                     return Ok(());
                 } else {
                     return Err(crate::objects::ownership::GovOwnershipError::NotOwner);

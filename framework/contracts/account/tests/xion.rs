@@ -258,7 +258,7 @@ fn execute_from_res(deps: DepsMut, env: &Env, res: Response) -> AccountResult<Re
 
 mod actual_signature {
     use abstract_account::msg::InstantiateMsg;
-    use abstract_account::state::{self, AUTH_ADMIN};
+    use abstract_account::state::{self};
     use abstract_interface::{Abstract, AccountDetails, AccountExecFns, AccountI};
     use abstract_std::objects::gov_type::GovernanceDetails;
     use abstract_std::objects::salt::generate_instantiate_salt;
@@ -380,8 +380,9 @@ mod actual_signature {
         account: &AccountI<MockBech32>,
     ) -> anyhow::Result<()> {
         let mock = abstr.registry.environment().clone();
-        let sign_doc_bytes = Binary::from(HexBinary::from_hex("a527761bf3e9279be8cf")?);
-        let signature = xion_wallet()?.sign(&sign_doc_bytes).unwrap();
+        // These are random bytes
+        let mock_sign_doc_bytes = Binary::from(HexBinary::from_hex("a527761bf3e9279be8cf")?);
+        let signature = xion_wallet()?.sign(&mock_sign_doc_bytes).unwrap();
 
         let auth_id = crate::auth_id::AuthId::new(1u8, false).unwrap();
         let smart_contract_sig = auth_id.signature(signature.to_vec());
@@ -389,7 +390,7 @@ mod actual_signature {
             contract_addr: account.address()?,
             message: to_json_binary(&AccountSudoMsg::BeforeTx {
                 msgs: vec![],
-                tx_bytes: sign_doc_bytes,
+                tx_bytes: mock_sign_doc_bytes,
                 cred_bytes: Some(smart_contract_sig.into()),
                 simulate: false,
             })?,
@@ -421,10 +422,6 @@ mod actual_signature {
         let account = create_xion_account(&abstr)?;
 
         before_hook(&abstr, &account)?;
-        let test = mock
-            .wasm_querier()
-            .item_query(&account.address()?, AUTH_ADMIN)?;
-        println!("{:?}", test);
 
         // We create a subaccount
         let sub_account = account
