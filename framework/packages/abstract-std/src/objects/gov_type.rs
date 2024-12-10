@@ -36,7 +36,7 @@ pub enum GovernanceDetails<T: AddressLike> {
         governance_type: String,
     },
     /// This account is linked to an NFT collection.
-    /// The owern of the specified token_id is the owner of the account
+    /// The owner of the specified token_id is the owner of the account
     NFT {
         collection_addr: T,
         token_id: String,
