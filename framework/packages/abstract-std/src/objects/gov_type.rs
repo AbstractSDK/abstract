@@ -28,7 +28,7 @@ pub enum GovernanceDetails<T: AddressLike> {
         account: T,
     },
     /// An external governance source. This could be a cw3 contract for instance
-    /// The External Governance source still leverages one address that is admin of the contract
+    /// The `governance_address` will be the admin of the Account.
     External {
         /// The external contract address
         governance_address: T,
