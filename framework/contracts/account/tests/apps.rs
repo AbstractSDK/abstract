@@ -14,7 +14,7 @@ use abstract_std::{
     registry::ModuleFilter,
 };
 use abstract_testing::prelude::*;
-use cosmwasm_std::{coin, CosmosMsg, StdError};
+use cosmwasm_std::{coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
 use cw_orch::prelude::*;
 

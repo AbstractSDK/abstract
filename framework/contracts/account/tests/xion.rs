@@ -255,3 +255,269 @@ fn execute_from_res(deps: DepsMut, env: &Env, res: Response) -> AccountResult<Re
         panic!("Wrong message received");
     }
 }
+
+mod actual_signature {
+    use abstract_account::msg::InstantiateMsg;
+    use abstract_account::state::{self, AUTH_ADMIN};
+    use abstract_interface::{Abstract, AccountDetails, AccountExecFns, AccountI};
+    use abstract_std::objects::gov_type::GovernanceDetails;
+    use abstract_std::objects::salt::generate_instantiate_salt;
+    use abstract_std::objects::AccountId;
+    use abstract_std::registry::state::LOCAL_ACCOUNT_SEQUENCE;
+    use abstract_std::ACCOUNT;
+    use abstract_xion::contract::AccountSudoMsg;
+    use cosmwasm_std::{to_json_binary, Binary, HexBinary};
+    use cw_orch::daemon::networks::XION_TESTNET_1;
+    use cw_orch::daemon::Daemon;
+    use cw_orch::mock::cw_multi_test::{SudoMsg, WasmSudo};
+    use cw_orch::mock::MockBech32;
+    use cw_orch::prelude::{CwEnv, *};
+
+    // From https://docs.junonetwork.io/developer-guides/junod-local-dev-setup
+    pub const LOCAL_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
+    use abstract_xion::AddAuthenticator;
+
+    fn account_addr<Chain: CwEnv>(abstr: &Abstract<Chain>) -> anyhow::Result<Addr> {
+        let chain = abstr.registry.environment().clone();
+
+        // Generate salt from account id(or)
+        let salt = generate_instantiate_salt(&AccountId::local(
+            chain
+                .wasm_querier()
+                .item_query(&abstr.registry.address()?, LOCAL_ACCOUNT_SEQUENCE)?,
+        ));
+        let code_id = abstr.account_code_id().unwrap();
+        let account_addr = chain
+            .wasm_querier()
+            .instantiate2_addr(code_id, &chain.sender_addr(), salt.clone())
+            .map_err(Into::into)?;
+        Ok(Addr::unchecked(account_addr))
+    }
+
+    fn xion_wallet() -> anyhow::Result<xionrs::crypto::secp256k1::SigningKey> {
+        let daemon = Daemon::builder(XION_TESTNET_1)
+            .mnemonic(LOCAL_MNEMONIC)
+            .build()?;
+
+        let signing_key = xionrs::crypto::secp256k1::SigningKey::from_slice(
+            &daemon.sender().private_key.raw_key(),
+        )
+        .unwrap();
+
+        Ok(signing_key)
+    }
+
+    fn create_xion_account<Chain: CwEnv>(
+        abstr: &Abstract<Chain>,
+    ) -> anyhow::Result<AccountI<Chain>> {
+        let chain = abstr.registry.environment().clone();
+
+        // Generate salt from account id(or)
+        let salt = generate_instantiate_salt(&AccountId::local(
+            chain
+                .wasm_querier()
+                .item_query(&abstr.registry.address()?, LOCAL_ACCOUNT_SEQUENCE)?,
+        ));
+        let code_id = abstr.account_code_id().unwrap();
+
+        let account_addr = account_addr(&abstr)?;
+
+        let wallet = xion_wallet()?;
+        let signature = wallet.sign(account_addr.as_bytes()).unwrap();
+
+        chain
+            .instantiate2(
+                code_id,
+                &InstantiateMsg {
+                    code_id,
+                    account_id: None,
+                    owner: GovernanceDetails::AbstractAccount {
+                        address: account_addr.clone(),
+                    },
+                    namespace: None,
+                    install_modules: vec![],
+                    name: None,
+                    description: None,
+                    link: None,
+                    authenticator: Some(AddAuthenticator::Secp256K1 {
+                        id: 1,
+                        pubkey: Binary::new(wallet.public_key().to_bytes()),
+                        signature: Binary::new(signature.to_vec()),
+                    }),
+                },
+                Some("Abstract Account"),
+                Some(&account_addr),
+                &[],
+                salt,
+            )
+            .map_err(Into::into)?;
+
+        let account_id = chain
+            .wasm_querier()
+            .item_query(&account_addr, state::ACCOUNT_ID)?;
+        let contract_id = format!("{ACCOUNT}-{account_id}");
+
+        let account = AccountI::new(contract_id, chain);
+        account.set_address(&account_addr);
+        Ok(account)
+    }
+
+    #[test]
+    #[serial_test::serial]
+    fn xion_account_creation() -> anyhow::Result<()> {
+        let mock = MockBech32::new("xion");
+
+        let abstr = Abstract::deploy_on(mock, ())?;
+
+        // We create an XION abstract account
+        create_xion_account(&abstr)?;
+
+        Ok(())
+    }
+
+    fn before_hook(
+        abstr: &Abstract<MockBech32>,
+        account: &AccountI<MockBech32>,
+    ) -> anyhow::Result<()> {
+        let mock = abstr.registry.environment().clone();
+        let sign_doc_bytes = Binary::from(HexBinary::from_hex("a527761bf3e9279be8cf")?);
+        let signature = xion_wallet()?.sign(&sign_doc_bytes).unwrap();
+
+        let auth_id = crate::auth_id::AuthId::new(1u8, false).unwrap();
+        let smart_contract_sig = auth_id.signature(signature.to_vec());
+        mock.app.borrow_mut().sudo(SudoMsg::Wasm(WasmSudo {
+            contract_addr: account.address()?,
+            message: to_json_binary(&AccountSudoMsg::BeforeTx {
+                msgs: vec![],
+                tx_bytes: sign_doc_bytes,
+                cred_bytes: Some(smart_contract_sig.into()),
+                simulate: false,
+            })?,
+        }))?;
+        Ok(())
+    }
+
+    fn after_hook(
+        abstr: &Abstract<MockBech32>,
+        account: &AccountI<MockBech32>,
+    ) -> anyhow::Result<()> {
+        let mock = abstr.registry.environment().clone();
+
+        mock.app.borrow_mut().sudo(SudoMsg::Wasm(WasmSudo {
+            contract_addr: account.address()?,
+            message: to_json_binary(&AccountSudoMsg::AfterTx { simulate: false })?,
+        }))?;
+        Ok(())
+    }
+
+    #[test]
+    #[serial_test::serial]
+    fn create_sub_account() -> anyhow::Result<()> {
+        let mock = MockBech32::new("xion");
+
+        let abstr = Abstract::deploy_on(mock.clone(), ())?;
+
+        // We create an XION abstract account
+        let account = create_xion_account(&abstr)?;
+
+        before_hook(&abstr, &account)?;
+        let test = mock
+            .wasm_querier()
+            .item_query(&account.address()?, AUTH_ADMIN)?;
+        println!("{:?}", test);
+
+        // We create a subaccount
+        let sub_account = account
+            .call_as(&account.address()?)
+            .create_and_return_sub_account(
+                AccountDetails {
+                    name: "account-sub".to_string(),
+                    description: None,
+                    link: None,
+                    namespace: None,
+                    install_modules: vec![],
+                    account_id: None,
+                },
+                &[],
+            )?;
+
+        after_hook(&abstr, &account)?;
+
+        // The account should be able to create a sub account on the account
+        // This is an admin action
+        before_hook(&abstr, &account)?;
+        let sub_sub_account = sub_account
+            .call_as(&account.address()?)
+            .create_and_return_sub_account(
+                AccountDetails {
+                    name: "account-sub-sub".to_string(),
+                    description: None,
+                    link: None,
+                    namespace: None,
+                    install_modules: vec![],
+                    account_id: None,
+                },
+                &[],
+            )?;
+        after_hook(&abstr, &account)?;
+
+        // The account should be able to call admin actions on the sub-sub-account
+        sub_sub_account
+            .call_as(&account.address()?)
+            .update_status(Some(true))
+            .unwrap_err();
+
+        before_hook(&abstr, &account)?;
+        sub_sub_account
+            .call_as(&account.address()?)
+            .update_status(Some(true))
+            .unwrap();
+        after_hook(&abstr, &account)?;
+
+        Ok(())
+    }
+}
+
+pub mod auth_id {
+
+    /// Authentication id for the signature
+    #[cosmwasm_schema::cw_serde]
+    #[derive(Copy)]
+    pub struct AuthId(pub(crate) u8);
+
+    impl AuthId {
+        /// Create AuthId from signature id and flag for admin call
+        /// Note: It's helper for signer, not designed to be used inside contract
+        #[cfg(not(target_arch = "wasm32"))]
+        pub fn new(id: u8, admin: bool) -> Option<Self> {
+            let first_bit: u8 = 0b10000000;
+            // If first bit occupied - we can't create AuthId
+            if id & first_bit != 0 {
+                return None;
+            };
+
+            Some(if admin {
+                Self(id | first_bit)
+            } else {
+                Self(id)
+            })
+        }
+
+        /// Get signature bytes with this [`AuthId`]
+        /// Note: It's helper for signer, not designed to be used inside contract
+        #[cfg(not(target_arch = "wasm32"))]
+        pub fn signature(self, mut signature: Vec<u8>) -> Vec<u8> {
+            signature.insert(0, self.0);
+            signature
+        }
+
+        pub fn cred_id(self) -> (u8, bool) {
+            let first_bit: u8 = 0b10000000;
+            if self.0 & first_bit == 0 {
+                (self.0, false)
+            } else {
+                (self.0 & !first_bit, true)
+            }
+        }
+    }
+}

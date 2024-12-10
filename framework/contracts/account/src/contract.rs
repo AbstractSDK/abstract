@@ -426,7 +426,19 @@ pub fn sudo(
     if let abstract_xion::contract::AccountSudoMsg::BeforeTx { .. } = &msg {
         AUTH_ADMIN.save(deps.storage, &true)?;
     };
+    if let abstract_xion::contract::AccountSudoMsg::AfterTx { .. } = &msg {
+        AUTH_ADMIN.remove(deps.storage);
+    };
     abstract_xion::contract::sudo(deps, env, msg)
+}
+#[cfg(not(feature = "xion"))]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn sudo(
+    deps: DepsMut,
+    env: Env,
+    msg: cosmwasm_std::Empty,
+) -> Result<cosmwasm_std::Response, AccountError> {
+    unimplemented!()
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*
