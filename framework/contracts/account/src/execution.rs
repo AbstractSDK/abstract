@@ -131,7 +131,7 @@ pub fn add_auth_method(
     }
     #[cfg(not(feature = "xion"))]
     {
-        Err(AccountError::NoAuthMethods {})
+        Err(AccountError::NoAuthFeature {})
     }
 }
 
@@ -143,7 +143,7 @@ pub fn remove_auth_method(_deps: DepsMut, _env: Env, _info: MessageInfo, _id: u8
     }
     #[cfg(not(feature = "xion"))]
     {
-        Err(AccountError::NoAuthMethods {})
+        Err(AccountError::NoAuthFeature {})
     }
 }
 
@@ -286,6 +286,8 @@ mod test {
             let info = message_info(&env.contract.address, &[]);
             let env = mock_env_validated(deps.api);
 
+            // We simulate it's an admin call
+            AUTH_ADMIN.save(deps.as_mut().storage, &true)?;
             let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
             // We simulate it's still an admin call
             AUTH_ADMIN.save(deps.as_mut().storage, &true)?;

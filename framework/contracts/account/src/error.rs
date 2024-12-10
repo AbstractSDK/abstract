@@ -122,7 +122,7 @@ pub enum AccountError {
     },
 
     #[error("No auth methods capabilities on this account (xion feature disabled)")]
-    NoAuthMethods {},
+    NoAuthFeature {},
 
     #[error("Abstract Account don't have Authentication")]
     AbstractAccountNoAuth {},
