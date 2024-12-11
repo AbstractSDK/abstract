@@ -23,7 +23,7 @@
   },
   "pion-1": {
     "code_ids": {
-      "abstract:account": 8232,
+      "abstract:account": 8373,
       "abstract:ans-host": 8231,
       "abstract:ibc-client": 8233,
       "abstract:ibc-host": 8234,
