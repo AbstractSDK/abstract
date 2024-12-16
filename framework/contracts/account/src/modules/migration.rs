@@ -8,7 +8,7 @@ use abstract_std::{
         dependency::Dependency,
         module::ModuleInfo,
         module_reference::ModuleReference,
-        ownership::{self},
+        ownership,
         registry::{RegistryContract, RegistryError},
         storage_namespaces,
     },

@@ -13,7 +13,7 @@ cosmwasm-std    = { workspace = true }
 cw-orch               = { workspace = true, features = ["daemon"] }
 cw-orch-clone-testing = { workspace = true }
 
-abstract-account           = { workspace = true }
+abstract-account           = { workspace = true, features = ["xion"] }
 abstract-app               = { workspace = true, features = ["test-utils"] }
 abstract-client            = { workspace = true, features = ["test-utils"] }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
