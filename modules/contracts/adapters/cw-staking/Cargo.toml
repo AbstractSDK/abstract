@@ -115,6 +115,7 @@ mockdex-bundle = { workspace = true }
 semver = { version = "1.0" }
 serde-cw-value = "0.7.0"
 tokio = { version = "1.4", features = ["full"] }
+abstract-client = {workspace = true, features = ["test-utils"]}
 
 abstract-astrovault-adapter = { workspace = true, features = ["local"] }
 abstract-kujira-adapter     = { workspace = true, features = ["local"] }
