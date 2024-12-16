@@ -1830,7 +1830,7 @@
             "additionalProperties": false
           },
           {
-            "description": "An external governance source",
+            "description": "An external governance source. This could be a cw3 contract for instance The `governance_address` will be the admin of the Account.",
             "type": "object",
             "required": [
               "external"
@@ -1858,6 +1858,7 @@
             "additionalProperties": false
           },
           {
+            "description": "This account is linked to an NFT collection. The owner of the specified token_id is the owner of the account",
             "type": "object",
             "required": [
               "n_f_t"

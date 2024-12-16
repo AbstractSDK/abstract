@@ -81,7 +81,7 @@ impl Display for ContractEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &ContractEntry {
+impl PrimaryKey<'_> for &ContractEntry {
     type Prefix = String;
 
     type SubPrefix = ();
@@ -97,7 +97,7 @@ impl<'a> PrimaryKey<'a> for &ContractEntry {
     }
 }
 
-impl<'a> Prefixer<'a> for &ContractEntry {
+impl Prefixer<'_> for &ContractEntry {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.protocol.prefix();
         res.extend(self.contract.prefix());

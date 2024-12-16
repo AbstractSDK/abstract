@@ -27,14 +27,14 @@ pub trait AppInterface: ModuleInterface + ModuleIdentification {
         let apps: Apps<MockModule>  = module.apps(deps.as_ref());
         ```
     */
-    fn apps<'a>(&'a self, deps: Deps<'a>) -> Apps<Self> {
+    fn apps<'a>(&'a self, deps: Deps<'a>) -> Apps<'a, Self> {
         Apps { base: self, deps }
     }
 }
 
 impl<T> AppInterface for T where T: ModuleInterface + ModuleIdentification {}
 
-impl<'a, T: AppInterface> AbstractApi<T> for Apps<'a, T> {
+impl<T: AppInterface> AbstractApi<T> for Apps<'_, T> {
     const API_ID: &'static str = "Apps";
 
     fn base(&self) -> &T {
@@ -67,7 +67,7 @@ pub struct Apps<'a, T: AppInterface> {
     deps: Deps<'a>,
 }
 
-impl<'a, T: AppInterface> Apps<'a, T> {
+impl<T: AppInterface> Apps<'_, T> {
     /// Construct an app request message.
     pub fn execute<M: Serialize>(
         &self,

@@ -15,7 +15,7 @@ workspace = true
 # for quicker tests, cargo test --lib
 [features]
 default  = []
-stargate = ["dep:cosmos-sdk-proto", "dep:prost-types", "dep:ibc-proto"]
+stargate = ["dep:cosmos-sdk-proto", "dep:ibc-proto"]
 
 # Expose MockModule for testing with other Adapters
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
@@ -27,14 +27,11 @@ cosmos-sdk-proto = { version = "0.24", optional = true, default-features = false
 cosmwasm-std     = { workspace = true, features = ["iterator", "staking"] }
 cw-asset         = { workspace = true }
 cw-clearable     = { workspace = true }
-cw-controllers   = { workspace = true }
 cw-storage-plus  = { workspace = true }
 cw2              = { workspace = true }
 cw20             = { workspace = true }
 ibc-proto        = { version = "0.47.0", optional = true, default-features = false }
-prost-types      = { version = "0.13.1", optional = true }
 schemars         = { workspace = true }
-semver           = { workspace = true }
 serde            = { workspace = true }
 serde-cw-value   = { workspace = true }
 thiserror        = { workspace = true }
@@ -49,7 +46,6 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
-doc-comment     = "0.3.3"
 # Set our own feature when running tests!
 abstract-sdk = { path = ".", features = ["test-utils"] }
 cw-ownable   = { workspace = true }

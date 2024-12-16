@@ -32,7 +32,7 @@ version = "0.25.0"
 
 [workspace.dependencies]
 cosmwasm-schema = { version = "2.0" }
-cosmwasm-std    = { version = "2.0.0", features = ["cosmwasm_1_2"] }
+cosmwasm-std    = { version = "2.0.0", features = ["cosmwasm_2_0"] }
 cw-controllers  = { version = "2.0" }
 cw-storage-plus = "2.0.0"
 cw-utils        = { version = "2.0" }

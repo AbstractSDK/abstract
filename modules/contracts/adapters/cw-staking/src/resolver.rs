@@ -11,23 +11,23 @@ use crate::contract::StakingResult;
 /// This provides superior UX in case of an IBC execution
 pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStakingError> {
     match value {
+        abstract_wyndex_adapter::WYNDEX => {
+            Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
+        }
         // TODO: revive integrations
-        // abstract_wyndex_adapter::WYNDEX => {
-        //     Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
-        // }
         // abstract_astroport_adapter::ASTROPORT => {
         //     Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         // }
-        // abstract_kujira_adapter::staking::BOW => {
-        //     Ok(Box::<abstract_kujira_adapter::staking::Bow>::default())
-        // }
+        abstract_kujira_adapter::staking::BOW => {
+            Ok(Box::<abstract_kujira_adapter::staking::Bow>::default())
+        }
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
         }
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::staking::Astrovault>::default())
         }
-        _ => Err(CwStakingError::UnknownDex(value.to_string())),
+        _ => Err(CwStakingError::UnknownStaking(value.to_string())),
     }
 }
 
@@ -56,7 +56,7 @@ pub(crate) fn resolve_local_provider(
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::staking::Astrovault>::default())
         }
-        _ => Err(CwStakingError::ForeignDex(name.to_owned())),
+        _ => Err(CwStakingError::ForeignStaking(name.to_owned())),
     }
 }
 
@@ -69,7 +69,10 @@ pub fn is_over_ibc(env: &Env, platform_name: &str) -> StakingResult<(String, boo
         let platform_id = identify_provider(&local_platform_name)?;
         // We verify the adapter is available on the current chain
         if !is_available_on(platform_id, env, chain_name.as_deref()) {
-            return Err(CwStakingError::UnknownDex(platform_name.to_string()));
+            return Err(CwStakingError::UnknownStakingOnThisPlatform {
+                staking: platform_name.to_string(),
+                chain: chain_name,
+            });
         }
         Ok((local_platform_name, false))
     }

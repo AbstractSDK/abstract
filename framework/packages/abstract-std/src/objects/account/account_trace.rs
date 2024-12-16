@@ -55,7 +55,7 @@ impl KeyDeserialize for AccountTrace {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AccountTrace {
+impl PrimaryKey<'_> for AccountTrace {
     type Prefix = ();
     type SubPrefix = ();
     type Suffix = Self;
@@ -76,7 +76,7 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
     }
 }
 
-impl<'a> Prefixer<'a> for AccountTrace {
+impl Prefixer<'_> for AccountTrace {
     fn prefix(&self) -> Vec<Key> {
         self.key()
     }

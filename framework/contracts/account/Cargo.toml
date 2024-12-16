@@ -23,7 +23,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export  = []
-xion    = ["abstract-xion"]
+xion    = ["abstract-xion", "abstract-std/xion"]
 
 [package.metadata.optimizer]
 builds         = [{ name = "xion", features = ["xion"] }]
@@ -35,14 +35,10 @@ abstract-sdk    = { workspace = true }
 abstract-std    = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cosmwasm-std    = { workspace = true }
-cw-asset        = { workspace = true }
 cw-controllers  = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2             = { workspace = true }
-cw20            = { workspace = true }
-schemars        = { workspace = true }
 semver          = { workspace = true }
-serde           = { workspace = true }
 thiserror       = { workspace = true }
 
 abstract-ica = { workspace = true }
@@ -73,6 +69,11 @@ registry                   = { workspace = true }
 rstest                     = { workspace = true }
 
 base64 = { version = "0.22.1", default-features = false }
+
+## For xion tests, with signatures
+serial_test = "3.2.0"
+xionrs      = { version = "0.19.0-pre", package = "cosmrs", git = "https://github.com/CyberHoward/cosmos-rust.git", branch = "patch-1" }
+
 
 [profile.release]
 overflow-checks = true

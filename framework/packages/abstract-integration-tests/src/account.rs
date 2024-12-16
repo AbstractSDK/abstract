@@ -432,6 +432,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
                 },
             },
         ))?,
+        &[],
     )?;
 
     chain

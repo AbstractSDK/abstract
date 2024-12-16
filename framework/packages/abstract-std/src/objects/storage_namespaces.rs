@@ -22,8 +22,8 @@ pub mod account {
     pub const CALLING_TO_AS_ADMIN: &str = "aj";
 
     // XION authentificators, could be there could be not
+    #[cfg(feature = "xion")]
     pub const AUTH_ADMIN: &str = "ax";
-    pub const AUTHENTICATORS: &str = "az";
 }
 
 pub mod ans_host {
