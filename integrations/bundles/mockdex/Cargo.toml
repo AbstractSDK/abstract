@@ -9,16 +9,11 @@ version = { workspace = true }
 
 [dependencies]
 cw-controllers = "2.0.0"
-# wyndex           = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-# wyndex-factory   = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-# wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-# wyndex-pair      = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-# wyndex-stake     = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
-wyndex           = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
-wyndex-factory   = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
-wyndex-multi-hop = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
-wyndex-pair      = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
-wyndex-stake     = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9" }
+wyndex           = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", version="2.2.0" }
+wyndex-factory   = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", version="2.2.0" }
+wyndex-multi-hop = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", version="2.2.0" }
+wyndex-pair      = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", version="2.2.0" }
+wyndex-stake     = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", version="2.2.0" }
 
 abstract-interface = { workspace = true, features = ["testing"] }
 abstract-std       = { workspace = true }
