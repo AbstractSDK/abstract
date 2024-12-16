@@ -4,7 +4,6 @@
 use abstract_framework_clone_testing::common;
 use abstract_interface::{Abstract, AccountDetails, AccountI, AccountQueryFns, RegistryQueryFns};
 use abstract_std::objects::AccountId;
-use abstract_testing::TEST_VERSION;
 use anyhow::bail;
 use cw_orch::{daemon::networks::PION_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;

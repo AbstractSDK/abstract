@@ -15,7 +15,7 @@ cw-orch-clone-testing = { workspace = true }
 
 abstract-account           = { workspace = true, features = ["xion"] }
 abstract-app               = { workspace = true, features = ["test-utils"] }
-abstract-client            = { workspace = true }
+abstract-client            = { workspace = true, features = ["test-utils"] }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 abstract-interface         = { workspace = true, features = ["daemon"] }
 abstract-std               = { workspace = true }

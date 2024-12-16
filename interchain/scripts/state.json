@@ -3,18 +3,24 @@
     "code_ids": {
       "abstract:account": 11529,
       "abstract:ans-host": 11528,
-      "abstract:dex": 11532,
+      "abstract:cw-staking": 11559,
+      "abstract:dex": 11694,
       "abstract:ibc-client": 11530,
       "abstract:ibc-host": 11531,
       "abstract:module-factory": 11526,
+      "abstract:payment": 11735,
+      "abstract:ping-pong": 11558,
       "abstract:registry": 11527,
       "cw:blob": 11289
     },
     "default": {
       "abstract:account-local-0": "osmo1hafge5xucuc03ar5lkwac0n9yctnxq6xrgygftdl9xl3tzncgghshnykry",
       "abstract:account-local-1": "osmo1v9dl0fw5s3jujn6emmlgch7w4ynt02nykj75pnzk8mdw7nmu3p4q65tczp",
+      "abstract:account-local-9": "osmo1gsk99z7x568h9894lev3muwynay65v4n0npnwn82tazsv47mq33q2v20a2",
       "abstract:ans-host": "osmo1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsepnezp",
-      "abstract:dex": "osmo1s8nvehqc0jf99ac2qqg0sqja5ydzxlvht3eml9swl3n736tz9dsqfc4wa4",
+      "abstract:cw-staking": "osmo13kp8fv0t869zcwjh9q52eygxf8w0d8anmzhgrrz5tjju9uw3fscq9mhw4u",
+      "abstract:dex": "osmo1n2kmtqru87hzp905qsc20wkn8kras38eqcefddn3yjah63hza55sv4ysng",
+      "abstract:dex-local-9": "osmo1n2kmtqru87hzp905qsc20wkn8kras38eqcefddn3yjah63hza55sv4ysng",
       "abstract:ibc-client": "osmo1vnt8tpxrnukcydma2x6gy2zzawl9uxmc6las8cak9sd87q67n00qn0wkj7",
       "abstract:ibc-host": "osmo1zzgxwn88a3ec34fw4mu8ppsh9eth746l3tl8w5l7qvknrmtldldqz7saee",
       "abstract:module-factory": "osmo1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqcxdtus",
@@ -25,16 +31,21 @@
     "code_ids": {
       "abstract:account": 8373,
       "abstract:ans-host": 8231,
+      "abstract:dex": 8372,
       "abstract:ibc-client": 8233,
       "abstract:ibc-host": 8234,
       "abstract:module-factory": 8229,
+      "abstract:ping-pong": 8327,
       "abstract:registry": 8230,
       "cw:blob": 7399
     },
     "default": {
       "abstract:account-local-0": "neutron12x9fcuwl382vv9l22dkcvcx6uxpeqy9rq5fe3jt8cgvqkyjnj2hs5da0m4",
       "abstract:account-local-1": "neutron1mxahhvpj467088td8lvysyw7m8v880tzls0sxk0zuljn6tsufqksy8whnv",
+      "abstract:account-local-71": "neutron1pn4l8vtvvc2gtz8hj5y4rwv2r20hq2pcnn9rnamhppth4vqsyyds2hqmqp",
       "abstract:ans-host": "neutron1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsdn69ty",
+      "abstract:dex": "neutron10hr9m68uh3h2qn8tgsc370zhwsu0wsjz688xpnr6jgyh567wkrpqcv5pzv",
+      "abstract:dex-local-71": "neutron10hr9m68uh3h2qn8tgsc370zhwsu0wsjz688xpnr6jgyh567wkrpqcv5pzv",
       "abstract:ibc-client": "neutron1n9la68zja4l76plwffedj24ar3f6e5kg7j92r26hhzewncghypvs9vk28k",
       "abstract:ibc-host": "neutron1c67x66rln9mgrjum5urrgn0tjvup5k9uke8hgdm8tu7hztwrjy4s5ecrmu",
       "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
@@ -61,20 +72,31 @@
       "abstract:registry": "cosmos1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq7u74fa"
     }
   },
+  "uni-6": {
+    "code_ids": {},
+    "default": {}
+  },
   "xion-testnet-1": {
     "code_ids": {
       "abstract:account": 1373,
       "abstract:ans-host": 1372,
+      "abstract:calendar": 1389,
+      "abstract:challenge": 1390,
+      "abstract:dex": 1393,
       "abstract:ibc-client": 1374,
       "abstract:ibc-host": 1375,
       "abstract:module-factory": 1370,
+      "abstract:payment": 1394,
+      "abstract:ping-pong": 1391,
       "abstract:registry": 1371,
+      "abstract:subscription": 1392,
       "cw:blob": 1278
     },
     "default": {
       "abstract:account-local-0": "xion10wvm0t3de2k23x6da6whwy30p3prt4gx3fx3klcjw36hgrjd44wsf86jwl",
       "abstract:account-local-1": "xion1dnymc7khmeq9ya3hjs45cthwp3gnvpl2gynw0dvw6hyxv7enj6uqj8mf9p",
       "abstract:ans-host": "xion1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdskfcdvu",
+      "abstract:dex": "xion1rx2pvplyue5u2slmxkpzans0htmhansl47k3fk4yl6anha0nvs4qr800c3",
       "abstract:ibc-client": "xion1e74x0upzwsjvt6p8t5wu33cdnavsn5kcl6ndf8l2hpeah9c94tfqs6lx3w",
       "abstract:ibc-host": "xion14rwy72dckjtpvtw26yppgfr6jqw4y06tf68axefzk5xjplm9ue6qvtqxjl",
       "abstract:module-factory": "xion1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqhwxljd",

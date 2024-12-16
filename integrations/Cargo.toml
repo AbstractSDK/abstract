@@ -2,11 +2,12 @@
 members = [
   # "astroport-adapter",
   "astrovault-adapter",
-  # "bundles/*",
+  "bundles/*",
   "osmosis-adapter",
-  # "wyndex-adapter",
-  # "kujira-adapter",
+  "wyndex-adapter",
+  "kujira-adapter",
   # "mars-adapter",
+  "neutron-dex-adapter",
 ]
 
 resolver = "2"
@@ -27,52 +28,52 @@ version = "0.25.0"
 
 [workspace.dependencies]
 cosmwasm-schema = { version = "2.0" }
-cosmwasm-std    = { version = "2.0" }
+cosmwasm-std = { version = "2.0" }
 cw-address-like = { version = "2.0" }
-cw-asset        = { version = "4.0" }
-cw-controllers  = "2.0"
-cw-orch         = { version = "0.27.0" }
-cw-ownable      = { version = "2.0" }
-cw-plus-orch    = { version = "0.25.0" }
+cw-asset = { version = "4.0" }
+cw-controllers = "2.0"
+cw-orch = { version = "0.27.0" }
+cw-ownable = { version = "2.0" }
+cw-plus-orch = { version = "0.25.0" }
 cw-storage-plus = "2.0.0"
-cw-utils        = "2.0"
-cw2             = "2.0.0"
-cw20            = { version = "2.0.0" }
-cw20-base       = { version = "2.0.0" }
+cw-utils = "2.0"
+cw2 = "2.0.0"
+cw20 = { version = "2.0.0" }
+cw20-base = { version = "2.0.0" }
 
 anyhow = "1.0"
 
-chrono    = { version = "0.4.31", default-features = false }
-clap      = { version = "4.0.32", features = ["derive"] }
-protobuf  = { version = "2", features = ["with-bytes"] }
-schemars  = "0.8"
-semver    = "1.0"
-serde     = { version = "1.0", default-features = false, features = ["derive"] }
+chrono = { version = "0.4.31", default-features = false }
+clap = { version = "4.0.32", features = ["derive"] }
+protobuf = { version = "2", features = ["with-bytes"] }
+schemars = "0.8"
+semver = "1.0"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.50" }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter   = { version = "0.25.0" }
+abstract-adapter = { version = "0.25.0" }
 abstract-interface = { version = "0.25.0" }
-abstract-sdk       = { version = "0.25.0" }
-abstract-std       = { version = "0.25.0" }
+abstract-sdk = { version = "0.25.0" }
+abstract-std = { version = "0.25.0" }
 
-abstract-adapter-utils         = { version = "0.25.0" }
-abstract-dex-standard          = { version = "0.25.0" }
+abstract-adapter-utils = { version = "0.25.0" }
+abstract-dex-standard = { version = "0.25.0" }
 abstract-money-market-standard = { version = "0.25.0" }
-abstract-staking-standard      = { version = "0.25.0" }
+abstract-staking-standard = { version = "0.25.0" }
 
 # TODO: REMOVE As soon as new dex-standard published
 [patch.crates-io]
-abstract-adapter               = { path = "../framework/packages/abstract-adapter" }
-abstract-adapter-utils         = { path = "../framework/packages/standards/utils" }
-abstract-dex-standard          = { path = "../framework/packages/standards/dex" }
-abstract-interface             = { path = "../framework/packages/abstract-interface" }
-abstract-macros                = { path = "../framework/packages/abstract-macros" }
+abstract-adapter = { path = "../framework/packages/abstract-adapter" }
+abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
+abstract-dex-standard = { path = "../framework/packages/standards/dex" }
+abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
-abstract-sdk                   = { path = "../framework/packages/abstract-sdk" }
-abstract-staking-standard      = { path = "../framework/packages/standards/staking" }
-abstract-std                   = { path = "../framework/packages/abstract-std" }
+abstract-sdk = { path = "../framework/packages/abstract-sdk" }
+abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+abstract-std = { path = "../framework/packages/abstract-std" }
 
 # In case polytone not released
 # abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
@@ -81,12 +82,12 @@ abstract-std                   = { path = "../framework/packages/abstract-std" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
-codegen-units    = 1
-debug            = false
+codegen-units = 1
+debug = false
 debug-assertions = false
-incremental      = false
-lto              = true
-opt-level        = 3
-overflow-checks  = true
-panic            = 'abort'
-rpath            = false
+incremental = false
+lto = true
+opt-level = 3
+overflow-checks = true
+panic = 'abort'
+rpath = false

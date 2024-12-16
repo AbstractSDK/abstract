@@ -24,7 +24,7 @@ pub trait DexInterface:
     AccountIdentification + Dependencies + ModuleIdentification + AbstractNameService
 {
     /// Construct a new dex interface.
-    fn dex<'a>(&'a self, deps: Deps<'a>, env: &'a Env, name: DexName) -> Dex<Self> {
+    fn dex<'a>(&'a self, deps: Deps<'a>, env: &'a Env, name: DexName) -> Dex<'a, Self> {
         Dex {
             base: self,
             env,
@@ -34,7 +34,7 @@ pub trait DexInterface:
         }
     }
     /// Construct a new dex interface with ANS support.
-    fn ans_dex<'a>(&'a self, deps: Deps<'a>, env: &'a Env, name: DexName) -> AnsDex<Self> {
+    fn ans_dex<'a>(&'a self, deps: Deps<'a>, env: &'a Env, name: DexName) -> AnsDex<'a, Self> {
         AnsDex {
             base: self,
             env,
@@ -147,7 +147,7 @@ pub mod raw {
         }
     }
 
-    impl<'a, T: DexInterface> Dex<'a, T> {
+    impl<T: DexInterface> Dex<'_, T> {
         /// Do a query in the DEX
         fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
             let adapters = self.base.adapters(self.deps);
@@ -283,7 +283,7 @@ pub mod ans {
         }
     }
 
-    impl<'a, T: DexInterface> AnsDex<'a, T> {
+    impl<T: DexInterface> AnsDex<'_, T> {
         /// Do a query in the DEX
         fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
             let adapters = self.base.adapters(self.deps);

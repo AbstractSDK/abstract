@@ -138,6 +138,7 @@ mod standard_pool_tests {
     fn setup_standard_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
         let abstr_deployment = load_abstr(chain_info)?;
+
         let chain = abstr_deployment.environment();
 
         let asset_a = (
@@ -294,6 +295,7 @@ mod xasset_stable_pool_tests {
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
         let abstr_deployment = load_abstr(chain_info)?;
+
         let chain = abstr_deployment.environment();
 
         let asset_a = (

@@ -29,14 +29,14 @@ pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentifi
         let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
     */
-    fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<Self> {
+    fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<'a, Self> {
         Modules { base: self, deps }
     }
 }
 
 impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies + ModuleIdentification {}
 
-impl<'a, T: ModuleInterface> AbstractApi<T> for Modules<'a, T> {
+impl<T: ModuleInterface> AbstractApi<T> for Modules<'_, T> {
     const API_ID: &'static str = "Modules";
 
     fn base(&self) -> &T {
@@ -69,7 +69,7 @@ pub struct Modules<'a, T: ModuleInterface> {
     deps: Deps<'a>,
 }
 
-impl<'a, T: ModuleInterface> Modules<'a, T> {
+impl<T: ModuleInterface> Modules<'_, T> {
     /// Retrieve the address of an application in this Account.
     /// This should **not** be used to execute messages on an `Api`.
     /// Use `Modules::api_request(..)` instead.

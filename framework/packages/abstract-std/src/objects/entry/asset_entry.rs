@@ -79,7 +79,7 @@ impl Display for AssetEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AssetEntry {
+impl PrimaryKey<'_> for AssetEntry {
     type Prefix = ();
 
     type SubPrefix = ();
@@ -93,7 +93,7 @@ impl<'a> PrimaryKey<'a> for AssetEntry {
     }
 }
 
-impl<'a> Prefixer<'a> for AssetEntry {
+impl Prefixer<'_> for AssetEntry {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
     }

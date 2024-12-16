@@ -1,3 +1,5 @@
+exclude = ["workspace-hack/Cargo.toml"]
+
 [formatting]
 align_entries       = true
 column_width        = 100

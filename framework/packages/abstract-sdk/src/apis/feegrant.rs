@@ -22,7 +22,7 @@ pub trait GrantInterface: AccountExecutor {
     /// API for accessing the Cosmos SDK FeeGrant module.
     /// The **granter** is the address of the user granting an allowance of their funds.
     /// By default, it is the account address.
-
+    ///
     /// ```
     /// use abstract_sdk::prelude::*;
     /// # use cosmwasm_std::testing::mock_dependencies;

@@ -143,7 +143,7 @@ impl ModuleInfo {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &ModuleInfo {
+impl PrimaryKey<'_> for &ModuleInfo {
     /// (namespace, name)
     type Prefix = (Namespace, String);
 
@@ -164,7 +164,7 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
     }
 }
 
-impl<'a> Prefixer<'a> for &ModuleInfo {
+impl Prefixer<'_> for &ModuleInfo {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.namespace.prefix();
         res.extend(self.name.prefix());
@@ -300,7 +300,7 @@ impl TryInto<Version> for ModuleVersion {
     }
 }
 
-impl<'a> PrimaryKey<'a> for ModuleVersion {
+impl PrimaryKey<'_> for ModuleVersion {
     type Prefix = ();
 
     type SubPrefix = ();
@@ -317,7 +317,7 @@ impl<'a> PrimaryKey<'a> for ModuleVersion {
     }
 }
 
-impl<'a> Prefixer<'a> for ModuleVersion {
+impl Prefixer<'_> for ModuleVersion {
     fn prefix(&self) -> Vec<Key> {
         let self_as_bytes = match &self {
             ModuleVersion::Latest => "latest".as_bytes(),

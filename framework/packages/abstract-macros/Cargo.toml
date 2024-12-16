@@ -19,5 +19,4 @@ quote       = { version = "1" }
 syn         = { version = "1", features = ["full", "extra-traits"] }
 
 [dev-dependencies]
-cosmwasm-std    = { workspace = true }
-coverage-helper = { workspace = true }
+cosmwasm-std = { workspace = true }

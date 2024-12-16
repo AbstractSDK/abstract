@@ -136,7 +136,7 @@ impl FromStr for AccountId {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AccountId {
+impl PrimaryKey<'_> for AccountId {
     type Prefix = AccountTrace;
 
     type SubPrefix = ();
@@ -152,7 +152,7 @@ impl<'a> PrimaryKey<'a> for AccountId {
     }
 }
 
-impl<'a> Prefixer<'a> for AccountId {
+impl Prefixer<'_> for AccountId {
     fn prefix(&self) -> Vec<Key> {
         self.key()
     }

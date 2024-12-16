@@ -24,8 +24,8 @@ use ::{
         std::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     },
     cosmwasm_std::{
-        coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, StdError, StdResult,
-        Uint128,
+        coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, GrpcQuery, QuerierWrapper, StdError,
+        StdResult, Uint128,
     },
     cw_asset::{Asset, AssetInfo},
     kujira::ghost::{
@@ -76,7 +76,7 @@ impl MoneyMarketCommand for Ghost {
             &vault_msg,
             coins(
                 ((Decimal::from_ratio(asset.amount, 1u128) / status.deposit_redemption_ratio)
-                    * Uint128::one())
+                    .to_uint_floor())
                 .u128(),
                 config.receipt_denom,
             ),

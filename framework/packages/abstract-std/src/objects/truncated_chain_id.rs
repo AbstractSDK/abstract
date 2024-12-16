@@ -100,7 +100,7 @@ impl FromStr for TruncatedChainId {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &TruncatedChainId {
+impl PrimaryKey<'_> for &TruncatedChainId {
     type Prefix = ();
 
     type SubPrefix = ();
@@ -114,7 +114,7 @@ impl<'a> PrimaryKey<'a> for &TruncatedChainId {
     }
 }
 
-impl<'a> Prefixer<'a> for &TruncatedChainId {
+impl Prefixer<'_> for &TruncatedChainId {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
     }

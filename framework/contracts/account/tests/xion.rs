@@ -320,7 +320,7 @@ mod actual_signature {
         ));
         let code_id = abstr.account_code_id().unwrap();
 
-        let account_addr = account_addr(&abstr)?;
+        let account_addr = account_addr(abstr)?;
 
         let wallet = xion_wallet()?;
         let signature = wallet.sign(account_addr.as_bytes()).unwrap();

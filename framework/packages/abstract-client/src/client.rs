@@ -169,7 +169,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn sub_account_builder<'a>(
         &'a self,
         account: &'a Account<Chain>,
-    ) -> AbstractClientResult<AccountBuilder<Chain>> {
+    ) -> AbstractClientResult<AccountBuilder<'a, Chain>> {
         let mut builder = AccountBuilder::new(&self.abstr);
         builder.sub_account(account);
         builder.name("Sub Account");

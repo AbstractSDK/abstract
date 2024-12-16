@@ -26,10 +26,8 @@ abstract-std    = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cosmwasm-std    = { workspace = true, features = ["stargate", "staking"] }
 cw-ownable      = { workspace = true }
-cw-storage-plus = { workspace = true }
 cw2             = { workspace = true }
 semver          = { workspace = true }
-serde           = { workspace = true }
 thiserror       = { workspace = true }
 
 evm-note     = { version = "0.1.0", features = ["library"] }
