@@ -122,7 +122,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         deployment
             .ibc
             .instantiate(&Addr::unchecked(admin.clone()))?;
-        deployment.ibc.register(&deployment.registry)?;
 
         deployment.registry.register_base(&deployment.account)?;
         deployment
