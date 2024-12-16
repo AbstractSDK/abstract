@@ -1,6 +1,6 @@
 [package]
 authors = ["Abstract Money <contact@abstract.money>"]
-description = "Abstract DexCommand implementation for Astroport"
+description = "Abstract DexCommand implementation for Neutron's native dex"
 edition = "2021"
 license = "Apache-2.0"
 name = "abstract-neutron-dex-adapter"
