@@ -1,7 +1,8 @@
 [package]
-edition = { workspace = true }
-name    = "abstract-modules-interchain-tests"
-version = { workspace = true }
+edition  = { workspace = true }
+name     = "abstract-modules-interchain-tests"
+version  = { workspace = true }
+resolver = "2"
 
 [lib]
 

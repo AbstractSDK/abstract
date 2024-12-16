@@ -30,6 +30,8 @@ testing = [
   "dep:cw20",
   "dep:serde_json",
   "abstract-adapter/test-utils",
+]
+local = [
   "abstract-wyndex-adapter/local",
   "abstract-astrovault-adapter/local",
   "abstract-kujira-adapter/local",
@@ -122,9 +124,10 @@ tokio              = { workspace = true }
 
 bip32 = { version = "0.5.2" }
 dex = { path = ".", features = [
-  # "wynd",
+  "wynd",
   "osmosis",
   "testing",
+  "local"
 ], package = "abstract-dex-adapter" }
 
 # abstract-wyndex-adapter = { workspace = true, features = ["local"] }
@@ -133,10 +136,8 @@ cw-utils  = { workspace = true }
 cw20      = { workspace = true }
 cw20-base = { workspace = true }
 
-abstract-astrovault-adapter = { workspace = true, features = ["local"] }
 abstract-integration-tests  = { workspace = true }
-abstract-kujira-adapter     = { workspace = true, features = ["local"] }
-abstract-wyndex-adapter     = { workspace = true, features = ["local"] }
+
 cw-orch                     = { workspace = true, features = ["daemon"] }
 cw-orch-interchain          = { workspace = true, features = ["daemon"] }
 cw-plus-orch                = { workspace = true }

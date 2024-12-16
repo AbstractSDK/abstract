@@ -5,6 +5,7 @@ edition     = "2021"
 license     = "Apache-2.0"
 name        = "abstract-astrovault-adapter"
 version     = "0.2.0"
+resolver    = "2"
 
 [features]
 default          = ["full_integration"]
