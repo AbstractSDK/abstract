@@ -1,10 +1,10 @@
 [package]
 authors = ["Abstract Money <contact@abstract.money>"]
-description = "Abstract DexCommand implementation for Astroport"
+description = "Abstract DexCommand implementation for Neutron's native dex"
 edition = "2021"
 license = "Apache-2.0"
 name = "abstract-neutron-dex-adapter"
-repository = "https://github.com/astroport-fi/astroport"
+repository = "https://github.com/AbstractSDK/abstract"
 version = "2.10.0"
 
 [features]
