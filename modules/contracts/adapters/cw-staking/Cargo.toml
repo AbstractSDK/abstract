@@ -102,7 +102,7 @@ bip32 = { version = "0.5.2" }
 clap = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-staking = { path = ".", package = "abstract-cw-staking", features = [
-  # "wynd",
+  "wynd",
   "osmosis",
   "testing",
 ] }

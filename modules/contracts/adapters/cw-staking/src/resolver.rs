@@ -27,7 +27,7 @@ pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStak
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::staking::Astrovault>::default())
         }
-        _ => Err(CwStakingError::UnknownDex(value.to_string())),
+        _ => Err(CwStakingError::UnknownStaking(value.to_string())),
     }
 }
 
@@ -56,7 +56,7 @@ pub(crate) fn resolve_local_provider(
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::staking::Astrovault>::default())
         }
-        _ => Err(CwStakingError::ForeignDex(name.to_owned())),
+        _ => Err(CwStakingError::ForeignStaking(name.to_owned())),
     }
 }
 
@@ -69,7 +69,10 @@ pub fn is_over_ibc(env: &Env, platform_name: &str) -> StakingResult<(String, boo
         let platform_id = identify_provider(&local_platform_name)?;
         // We verify the adapter is available on the current chain
         if !is_available_on(platform_id, env, chain_name.as_deref()) {
-            return Err(CwStakingError::UnknownDex(platform_name.to_string()));
+            return Err(CwStakingError::UnknownStakingOnThisPlatform {
+                staking: platform_name.to_string(),
+                chain: chain_name,
+            });
         }
         Ok((local_platform_name, false))
     }

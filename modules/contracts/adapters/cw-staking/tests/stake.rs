@@ -26,7 +26,7 @@ fn setup_mock() -> anyhow::Result<(
     CwStakingAdapter<MockBech32>,
     AccountI<MockBech32>,
 )> {
-    let chain = MockBech32::new("mock");
+    let chain = MockBech32::new_with_chain_id("mock", "cosmos-testnet-6");
     let sender = chain.sender_addr();
 
     let deployment = Abstract::deploy_on(chain.clone(), ())?;
@@ -123,7 +123,7 @@ fn stake_lp() -> anyhow::Result<()> {
 }
 
 #[test]
-fn stake_lp_wthout_chain() -> anyhow::Result<()> {
+fn stake_lp_without_chain() -> anyhow::Result<()> {
     let (_, _, staking, account) = setup_mock()?;
     let account_addr = account.address()?;
 
