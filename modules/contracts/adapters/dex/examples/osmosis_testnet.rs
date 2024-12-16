@@ -1,7 +1,6 @@
 use abstract_adapter::objects::pool_id::PoolAddressBase;
 use abstract_adapter::objects::{AnsAsset, AssetEntry, PoolMetadata, UniquePoolId};
-use abstract_adapter::std::ans_host::QueryMsgFns;
-use abstract_client::{AbstractClient, Account, Application, Namespace};
+use abstract_client::{AbstractClient, Namespace};
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_standard::ans_action::DexAnsAction;
 use abstract_interface::ExecuteMsgFns;
@@ -50,7 +49,7 @@ fn setup_denom_ans(chain: Daemon) -> anyhow::Result<()> {
             exit_fee: "0".to_string(),
             smooth_weight_change_params: None,
         }),
-        pool_assets: vec![coin(100_000, OSMO), coin(100_000, new_denom(&chain))]
+        pool_assets: [coin(100_000, OSMO), coin(100_000, new_denom(&chain))]
             .iter()
             .map(|c| PoolAsset {
                 token: Some(osmosis_std::types::cosmos::base::v1beta1::Coin {
@@ -127,7 +126,7 @@ fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     let chain = Daemon::builder(OSMO_5).build()?;
-    // setup_denom_ans(chain.clone())?;
+    setup_denom_ans(chain.clone())?;
 
     let deployment = AbstractClient::new(chain.clone())?;
 

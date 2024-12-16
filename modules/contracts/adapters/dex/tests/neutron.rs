@@ -1,7 +1,5 @@
 #![cfg(feature = "neutron-test")]
 
-use std::format;
-
 use abstract_adapter::std::{
     ans_host::ExecuteMsgFns,
     objects::{
@@ -9,10 +7,7 @@ use abstract_adapter::std::{
     },
 };
 use abstract_dex_adapter::{
-    contract::CONTRACT_VERSION,
-    interface::DexAdapter,
-    msg::{DexInstantiateMsg, SwapNode},
-    DEX_ADAPTER_ID,
+    contract::CONTRACT_VERSION, interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID,
 };
 use abstract_dex_standard::ans_action::DexAnsAction;
 use abstract_interface::{
@@ -21,11 +16,7 @@ use abstract_interface::{
 use abstract_neutron_dex_adapter::NEUTRON;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins, Decimal, Uint128};
-use cw_asset::AssetBase;
 use cw_orch::prelude::*;
-use cw_orch_interchain::prelude::ChannelCreator;
-use cw_orch_interchain::prelude::InterchainEnv;
-use cw_orch_neutron_test_tube::neutron_test_tube::cosmrs::proto::traits::Message;
 use cw_orch_neutron_test_tube::{
     neutron_test_tube::{
         neutron_std::types::neutron::dex::{DepositOptions, MsgDeposit},
@@ -33,7 +24,6 @@ use cw_orch_neutron_test_tube::{
     },
     NeutronTestTube,
 };
-use neutron_std::shim::Any;
 
 /// Provide liquidity using Abstract's OS (registered in daemon_state).
 pub fn provide<Chain: CwEnv>(
@@ -60,10 +50,6 @@ pub fn provide<Chain: CwEnv>(
         ans_host,
     )?;
     Ok(())
-}
-
-fn get_pool_token(id: u64) -> String {
-    format!("gamm/pool/{}", id)
 }
 
 pub const NTRN: &str = "untrn";
@@ -199,45 +185,6 @@ fn swap() -> AnyResult<()> {
     assert_eq!(balances.len(), 1);
     let balance = chain.query_balance(&account_addr, ATOM)?;
     assert!(balance > Uint128::zero());
-
-    Ok(())
-}
-
-#[test]
-fn swap_starship() -> AnyResult<()> {
-    // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, abstr, _pool_id) = setup_starship()?;
-
-    let account_addr = os.address()?;
-
-    let swap_value = 1_000_000_000u128;
-
-    cw_orch::daemon::RUNTIME.block_on(
-        chain
-            .sender()
-            .bank_send(&account_addr, coins(swap_value, NTRN)),
-    )?;
-
-    // Before swap, we need to have 0 uosmo and swap_value uatom
-    let balances = chain.balance(&account_addr, None)?;
-    assert_eq!(balances, coins(swap_value, NTRN));
-    // swap 100_000 ntrn to atom
-    let asset = AssetEntry::new("ntrn");
-    let ask_asset = AssetEntry::new("atom");
-
-    let action = DexAnsAction::Swap {
-        offer_asset: AnsAsset::new(asset, swap_value),
-        ask_asset,
-        max_spread: Some(Decimal::percent(30)),
-        belief_price: Some(Decimal::percent(1)),
-    };
-    dex_adapter.ans_action(NEUTRON.into(), action, &os, &abstr.ans_host)?;
-
-    // Assert balances
-    let balances = chain.balance(&account_addr, None)?;
-    assert_eq!(balances.len(), 1);
-    let balance = chain.balance(&account_addr, Some(ATOM.to_string()))?;
-    assert!(balance[0].amount > Uint128::zero());
 
     Ok(())
 }

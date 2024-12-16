@@ -133,6 +133,7 @@ fn test_update_config() -> anyhow::Result<()> {
                 exchanges: Some(vec![dex_name.clone()]),
             },
         ))?,
+        &[],
     )?;
 
     let config = app.config()?;

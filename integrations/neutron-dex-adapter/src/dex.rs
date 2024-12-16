@@ -78,7 +78,7 @@ impl DexCommand for Neutron {
         swap_route: Vec<SwapNode<Addr>>,
         offer_asset: Asset,
         _belief_price: Option<Decimal>,
-        max_spread: Option<Decimal>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let swap_msg = MsgMultiHopSwap {
             creator: self
@@ -110,10 +110,10 @@ impl DexCommand for Neutron {
 
     fn provide_liquidity(
         &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        mut offer_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
+        _deps: Deps,
+        _pool_id: PoolAddress,
+        _offer_assets: Vec<Asset>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         unimplemented!();
     }
@@ -121,17 +121,17 @@ impl DexCommand for Neutron {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
-        pool_id: PoolAddress,
-        lp_token: Asset,
+        _pool_id: PoolAddress,
+        _lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         unimplemented!();
     }
 
     fn simulate_swap(
         &self,
-        deps: Deps,
-        pool_id: PoolAddress,
-        offer_asset: Asset,
+        _deps: Deps,
+        _pool_id: PoolAddress,
+        _offer_asset: Asset,
         _ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
         unimplemented!();

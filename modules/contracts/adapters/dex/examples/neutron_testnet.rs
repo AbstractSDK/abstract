@@ -1,11 +1,11 @@
 use abstract_adapter::objects::pool_id::PoolAddressBase;
 use abstract_adapter::objects::{AnsAsset, AssetEntry, PoolMetadata};
-use abstract_client::{AbstractClient, Account, Application, Namespace};
+use abstract_client::{AbstractClient, Namespace};
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_standard::ans_action::DexAnsAction;
 use abstract_interface::ExecuteMsgFns;
 use abstract_neutron_dex_adapter::NEUTRON;
-use cosmwasm_std::{coin, Decimal};
+use cosmwasm_std::Decimal;
 use cw_orch::daemon::{networks::PION_1, Daemon};
 use cw_orch::prelude::*;
 use neutron_std::types::neutron::dex::DepositOptions;
@@ -117,7 +117,7 @@ fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     let chain = Daemon::builder(PION_1).build()?;
-    // setup_denom_ans(chain.clone())?;
+    setup_denom_ans(chain.clone())?;
 
     let deployment = AbstractClient::new(chain.clone())?;
 
