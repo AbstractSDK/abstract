@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.25.0",
+  "contract_version": "0.26.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -8,23 +8,23 @@
     "description": "Instantiation message for dex adapter",
     "type": "object",
     "required": [
-      "fee",
-      "recipient_account"
+      "recipient_account",
+      "swap_fee"
     ],
     "properties": {
-      "fee": {
+      "recipient_account": {
+        "description": "Recipient account for fees.",
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0
+      },
+      "swap_fee": {
         "description": "Fee charged on each swap.",
         "allOf": [
           {
             "$ref": "#/definitions/Decimal"
           }
         ]
-      },
-      "recipient_account": {
-        "description": "Recipient account for fees.",
-        "type": "integer",
-        "format": "uint32",
-        "minimum": 0
       }
     },
     "additionalProperties": false,
@@ -38,7 +38,7 @@
   "execute": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "ExecuteMsg",
-    "description": "MoneyMarket Execute msg",
+    "description": "Dex Execute msg",
     "oneOf": [
       {
         "description": "Update the fee",
@@ -50,7 +50,16 @@
           "update_fee": {
             "type": "object",
             "properties": {
-              "money_market_fee": {
+              "recipient_account": {
+                "description": "New recipient account for fees",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint32",
+                "minimum": 0
+              },
+              "swap_fee": {
                 "description": "New fee to set",
                 "anyOf": [
                   {
@@ -60,47 +69,6 @@
                     "type": "null"
                   }
                 ]
-              },
-              "recipient_account": {
-                "description": "New recipient account for fees",
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "format": "uint32",
-                "minimum": 0
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Action to perform on the DEX with ans asset denomination",
-        "type": "object",
-        "required": [
-          "ans_action"
-        ],
-        "properties": {
-          "ans_action": {
-            "type": "object",
-            "required": [
-              "action",
-              "money_market"
-            ],
-            "properties": {
-              "action": {
-                "description": "The action to perform",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/MoneyMarketAnsAction"
-                  }
-                ]
-              },
-              "money_market": {
-                "description": "The name of the dex to interact with",
-                "type": "string"
               }
             },
             "additionalProperties": false
@@ -112,25 +80,25 @@
         "description": "Action to perform on the DEX with raw asset denominations",
         "type": "object",
         "required": [
-          "raw_action"
+          "action"
         ],
         "properties": {
-          "raw_action": {
+          "action": {
             "type": "object",
             "required": [
               "action",
-              "money_market"
+              "dex"
             ],
             "properties": {
               "action": {
                 "description": "The action to perform",
                 "allOf": [
                   {
-                    "$ref": "#/definitions/MoneyMarketRawAction"
+                    "$ref": "#/definitions/DexAction"
                   }
                 ]
               },
-              "money_market": {
+              "dex": {
                 "description": "The name of the dex to interact with",
                 "type": "string"
               }
@@ -142,22 +110,6 @@
       }
     ],
     "definitions": {
-      "AnsAsset": {
-        "type": "object",
-        "required": [
-          "amount",
-          "name"
-        ],
-        "properties": {
-          "amount": {
-            "$ref": "#/definitions/Uint128"
-          },
-          "name": {
-            "$ref": "#/definitions/AssetEntry"
-          }
-        },
-        "additionalProperties": false
-      },
       "AssetBase_for_String": {
         "description": "Represents a fungible asset with a known amount\n\nEach asset instance contains two values: `info`, which specifies the asset's type (CW20 or native), and its `amount`, which specifies the asset's amount.",
         "type": "object",
@@ -184,10 +136,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "AssetEntry": {
-        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
-        "type": "string"
       },
       "AssetInfoBase_for_String": {
         "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
@@ -222,90 +170,46 @@
         "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
         "type": "string"
       },
-      "MoneyMarketAnsAction": {
-        "description": "Possible actions to perform on a Money Market The following actions use the Abstarct Name Service",
+      "DexAction": {
+        "description": "Possible raw actions to perform on the DEX",
         "oneOf": [
           {
-            "description": "Deposit funds for lending.",
+            "description": "Provide arbitrary liquidity",
             "type": "object",
             "required": [
-              "deposit"
+              "provide_liquidity"
             ],
             "properties": {
-              "deposit": {
+              "provide_liquidity": {
                 "type": "object",
                 "required": [
-                  "lending_asset"
+                  "assets",
+                  "pool"
                 ],
                 "properties": {
-                  "lending_asset": {
-                    "description": "Asset to deposit",
-                    "allOf": [
+                  "assets": {
+                    "description": "Assets to add",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/AssetBase_for_String"
+                    }
+                  },
+                  "max_spread": {
+                    "description": "Max spread to accept, is a percentage represented as a decimal.",
+                    "anyOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Withdraw lent funds",
-            "type": "object",
-            "required": [
-              "withdraw"
-            ],
-            "properties": {
-              "withdraw": {
-                "type": "object",
-                "required": [
-                  "lent_asset"
-                ],
-                "properties": {
-                  "lent_asset": {
-                    "description": "Asset to withdraw",
-                    "allOf": [
+                        "$ref": "#/definitions/Decimal"
+                      },
                       {
-                        "$ref": "#/definitions/AnsAsset"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Deposit Collateral to borrow against",
-            "type": "object",
-            "required": [
-              "provide_collateral"
-            ],
-            "properties": {
-              "provide_collateral": {
-                "type": "object",
-                "required": [
-                  "borrowable_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrowable_asset": {
-                    "description": "Asset that identifies the market you want to deposit in",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetEntry"
+                        "type": "null"
                       }
                     ]
                   },
-                  "collateral_asset": {
-                    "description": "Asset to deposit",
+                  "pool": {
+                    "description": "Pool to provide liquidity to",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
                       }
                     ]
                   }
@@ -316,32 +220,32 @@
             "additionalProperties": false
           },
           {
-            "description": "Withdraw Collateral to borrow against",
+            "description": "Withdraw liquidity from a pool",
             "type": "object",
             "required": [
-              "withdraw_collateral"
+              "withdraw_liquidity"
             ],
             "properties": {
-              "withdraw_collateral": {
+              "withdraw_liquidity": {
                 "type": "object",
                 "required": [
-                  "borrowable_asset",
-                  "collateral_asset"
+                  "lp_token",
+                  "pool"
                 ],
                 "properties": {
-                  "borrowable_asset": {
-                    "description": "Asset that identifies the market you want to withdraw from",
+                  "lp_token": {
+                    "description": "The asset LP token that is provided.",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AssetEntry"
+                        "$ref": "#/definitions/AssetBase_for_String"
                       }
                     ]
                   },
-                  "collateral_asset": {
-                    "description": "Asset to deposit",
+                  "pool": {
+                    "description": "Pool to withdraw liquidity from",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
                       }
                     ]
                   }
@@ -352,32 +256,63 @@
             "additionalProperties": false
           },
           {
-            "description": "Borrow funds from the money market",
+            "description": "Standard swap between one asset to another",
             "type": "object",
             "required": [
-              "borrow"
+              "swap"
             ],
             "properties": {
-              "borrow": {
+              "swap": {
                 "type": "object",
                 "required": [
-                  "borrow_asset",
-                  "collateral_asset"
+                  "ask_asset",
+                  "offer_asset",
+                  "pool"
                 ],
                 "properties": {
-                  "borrow_asset": {
-                    "description": "Asset to borrow",
+                  "ask_asset": {
+                    "description": "The asset to receive",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
+                        "$ref": "#/definitions/AssetInfoBase_for_String"
                       }
                     ]
                   },
-                  "collateral_asset": {
-                    "description": "Asset that identifies the market you want to borrow from",
+                  "belief_price": {
+                    "description": "The belief price when submitting the transaction.",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_spread": {
+                    "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "offer_asset": {
+                    "description": "The asset to offer",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AssetEntry"
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "pool": {
+                    "description": "Pool used to swap",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
                       }
                     ]
                   }
@@ -388,34 +323,55 @@
             "additionalProperties": false
           },
           {
-            "description": "Repay funds to the money market",
+            "description": "Swap by route between multiple assets",
             "type": "object",
             "required": [
-              "repay"
+              "route_swap"
             ],
             "properties": {
-              "repay": {
+              "route_swap": {
                 "type": "object",
                 "required": [
-                  "borrowed_asset",
-                  "collateral_asset"
+                  "offer_asset",
+                  "route"
                 ],
                 "properties": {
-                  "borrowed_asset": {
-                    "description": "Asset to repay",
-                    "allOf": [
+                  "belief_price": {
+                    "description": "The belief price when submitting the transaction.",
+                    "anyOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
                       }
                     ]
                   },
-                  "collateral_asset": {
-                    "description": "Asset that identifies the market you want to borrow from",
-                    "allOf": [
+                  "max_spread": {
+                    "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                    "anyOf": [
                       {
-                        "$ref": "#/definitions/AssetEntry"
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
                       }
                     ]
+                  },
+                  "offer_asset": {
+                    "description": "The asset to offer",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "route": {
+                    "description": "Pool routes used to swap",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/SwapNode_for_String"
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -425,231 +381,87 @@
           }
         ]
       },
-      "MoneyMarketRawAction": {
-        "description": "Action to execute on a money_market",
+      "PoolAddressBase_for_String": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "separate_addresses"
+            ],
+            "properties": {
+              "separate_addresses": {
+                "type": "object",
+                "required": [
+                  "liquidity",
+                  "swap"
+                ],
+                "properties": {
+                  "liquidity": {
+                    "type": "string"
+                  },
+                  "swap": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "contract"
+            ],
+            "properties": {
+              "contract": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "SwapNode_for_String": {
+        "description": "Swap node for swap route",
         "type": "object",
         "required": [
-          "contract_addr",
-          "request"
+          "ask_asset",
+          "pool_id"
         ],
         "properties": {
-          "contract_addr": {
-            "description": "The contract address to execute it against",
-            "type": "string"
-          },
-          "request": {
-            "description": "The action to execute",
+          "ask_asset": {
+            "description": "Asset in return from the swap",
             "allOf": [
               {
-                "$ref": "#/definitions/MoneyMarketRawRequest"
+                "$ref": "#/definitions/AssetInfoBase_for_String"
+              }
+            ]
+          },
+          "pool_id": {
+            "description": "Pool id of the swap",
+            "allOf": [
+              {
+                "$ref": "#/definitions/PoolAddressBase_for_String"
               }
             ]
           }
         },
         "additionalProperties": false
-      },
-      "MoneyMarketRawRequest": {
-        "description": "Possible actions to perform on a Money Market This is an example using raw assets",
-        "oneOf": [
-          {
-            "description": "Deposit funds for lending.",
-            "type": "object",
-            "required": [
-              "deposit"
-            ],
-            "properties": {
-              "deposit": {
-                "type": "object",
-                "required": [
-                  "lending_asset"
-                ],
-                "properties": {
-                  "lending_asset": {
-                    "description": "Asset to deposit",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Withdraw lent funds",
-            "type": "object",
-            "required": [
-              "withdraw"
-            ],
-            "properties": {
-              "withdraw": {
-                "type": "object",
-                "required": [
-                  "lent_asset"
-                ],
-                "properties": {
-                  "lent_asset": {
-                    "description": "Asset to withdraw",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Deposit Collateral to borrow against",
-            "type": "object",
-            "required": [
-              "provide_collateral"
-            ],
-            "properties": {
-              "provide_collateral": {
-                "type": "object",
-                "required": [
-                  "borrowable_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrowable_asset": {
-                    "description": "Asset that identifies the market you want to deposit in",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetInfoBase_for_String"
-                      }
-                    ]
-                  },
-                  "collateral_asset": {
-                    "description": "Asset to deposit",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Withdraw Collateral to borrow against",
-            "type": "object",
-            "required": [
-              "withdraw_collateral"
-            ],
-            "properties": {
-              "withdraw_collateral": {
-                "type": "object",
-                "required": [
-                  "borrowable_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrowable_asset": {
-                    "description": "Asset that identifies the market you want to withdraw from",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetInfoBase_for_String"
-                      }
-                    ]
-                  },
-                  "collateral_asset": {
-                    "description": "Asset to deposit",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Borrow funds from the money market",
-            "type": "object",
-            "required": [
-              "borrow"
-            ],
-            "properties": {
-              "borrow": {
-                "type": "object",
-                "required": [
-                  "borrow_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrow_asset": {
-                    "description": "Asset to borrow",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  },
-                  "collateral_asset": {
-                    "description": "Asset that identifies the market you want to borrow from",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetInfoBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Repay funds to the money market",
-            "type": "object",
-            "required": [
-              "repay"
-            ],
-            "properties": {
-              "repay": {
-                "type": "object",
-                "required": [
-                  "borrowed_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrowed_asset": {
-                    "description": "Asset to repay",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  },
-                  "collateral_asset": {
-                    "description": "Asset that identifies the market you want to borrow from",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetInfoBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
       },
       "Uint128": {
         "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
@@ -662,6 +474,97 @@
     "title": "QueryMsg",
     "description": "Query messages for the dex adapter",
     "oneOf": [
+      {
+        "description": "Simulate a swap between two assets Returns [`SimulateSwapResponse`]",
+        "type": "object",
+        "required": [
+          "simulate_swap"
+        ],
+        "properties": {
+          "simulate_swap": {
+            "type": "object",
+            "required": [
+              "ask_asset",
+              "dex",
+              "offer_asset"
+            ],
+            "properties": {
+              "ask_asset": {
+                "description": "The asset to receive",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetEntry"
+                  }
+                ]
+              },
+              "dex": {
+                "description": "Name of the dex to simulate the swap on",
+                "type": "string"
+              },
+              "offer_asset": {
+                "description": "The asset to offer",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AnsAsset"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Simulate a swap between two assets Returns [`SimulateSwapResponse`]",
+        "type": "object",
+        "required": [
+          "simulate_swap_raw"
+        ],
+        "properties": {
+          "simulate_swap_raw": {
+            "type": "object",
+            "required": [
+              "ask_asset",
+              "dex",
+              "offer_asset",
+              "pool"
+            ],
+            "properties": {
+              "ask_asset": {
+                "description": "The asset to receive",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetInfoBase_for_String"
+                  }
+                ]
+              },
+              "dex": {
+                "description": "Name of the dex to simulate the swap on",
+                "type": "string"
+              },
+              "offer_asset": {
+                "description": "The asset to offer",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetBase_for_String"
+                  }
+                ]
+              },
+              "pool": {
+                "description": "Identifies of the pool to simulate the swap on.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/PoolAddressBase_for_String"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
       {
         "description": "Endpoint can be used by front-end to easily interact with contracts. Returns [`GenerateMessagesResponse`]",
         "type": "object",
@@ -684,556 +587,7 @@
                 "description": "Execute message to generate messages for",
                 "allOf": [
                   {
-                    "$ref": "#/definitions/MoneyMarketExecuteMsg"
-                  }
-                ]
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Query using raw asset denoms and addresses Deposited funds for lending",
-        "type": "object",
-        "required": [
-          "raw_user_deposit"
-        ],
-        "properties": {
-          "raw_user_deposit": {
-            "type": "object",
-            "required": [
-              "asset",
-              "contract_addr",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "asset": {
-                "description": "Lended asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "contract_addr": {
-                "description": "Contract Address on which you execute the query",
-                "type": "string"
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has deposited some funds",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Deposited Collateral funds",
-        "type": "object",
-        "required": [
-          "raw_user_collateral"
-        ],
-        "properties": {
-          "raw_user_collateral": {
-            "type": "object",
-            "required": [
-              "borrowed_asset",
-              "collateral_asset",
-              "contract_addr",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "borrowed_asset": {
-                "description": "Borrowed asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "collateral_asset": {
-                "description": "Collateral asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "contract_addr": {
-                "description": "Contract Address on which you execute the query",
-                "type": "string"
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has deposited some collateral",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Borrowed funds",
-        "type": "object",
-        "required": [
-          "raw_user_borrow"
-        ],
-        "properties": {
-          "raw_user_borrow": {
-            "type": "object",
-            "required": [
-              "borrowed_asset",
-              "collateral_asset",
-              "contract_addr",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "borrowed_asset": {
-                "description": "Borrowed asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "collateral_asset": {
-                "description": "Collateral asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "contract_addr": {
-                "description": "Contract Address on which you execute the query",
-                "type": "string"
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has borrowed some funds",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Current Loan-to-Value ratio Represents the borrow usage for a specific user Allows to know how much asset are currently borrowed",
-        "type": "object",
-        "required": [
-          "raw_current_l_t_v"
-        ],
-        "properties": {
-          "raw_current_l_t_v": {
-            "type": "object",
-            "required": [
-              "borrowed_asset",
-              "collateral_asset",
-              "contract_addr",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "borrowed_asset": {
-                "description": "Borrowed asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "collateral_asset": {
-                "description": "Collateral asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "contract_addr": {
-                "description": "Contract Address on which you execute the query",
-                "type": "string"
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has borrowed some funds",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Maximum Loan to Value ratio for a user Allows to know how much assets can to be borrowed",
-        "type": "object",
-        "required": [
-          "raw_max_l_t_v"
-        ],
-        "properties": {
-          "raw_max_l_t_v": {
-            "type": "object",
-            "required": [
-              "borrowed_asset",
-              "collateral_asset",
-              "contract_addr",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "borrowed_asset": {
-                "description": "Borrowed asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "collateral_asset": {
-                "description": "Collateral asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "contract_addr": {
-                "description": "Contract Address on which you execute the query",
-                "type": "string"
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has borrowed some funds",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Price of an asset compared to another asset The returned decimal corresponds to How much quote assets can be bought with 1 base asset",
-        "type": "object",
-        "required": [
-          "raw_price"
-        ],
-        "properties": {
-          "raw_price": {
-            "type": "object",
-            "required": [
-              "base",
-              "money_market",
-              "quote"
-            ],
-            "properties": {
-              "base": {
-                "description": "Base asset",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "quote": {
-                "description": "Quote asset",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetInfoBase_for_String"
-                  }
-                ]
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Query using ans assets Deposited funds for lending",
-        "type": "object",
-        "required": [
-          "ans_user_deposit"
-        ],
-        "properties": {
-          "ans_user_deposit": {
-            "type": "object",
-            "required": [
-              "asset",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "asset": {
-                "description": "Lended asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has deposited some funds",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Deposited Collateral funds",
-        "type": "object",
-        "required": [
-          "ans_user_collateral"
-        ],
-        "properties": {
-          "ans_user_collateral": {
-            "type": "object",
-            "required": [
-              "borrowed_asset",
-              "collateral_asset",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "borrowed_asset": {
-                "description": "Borrowed asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "collateral_asset": {
-                "description": "Collateral asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has deposited some collateral",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Borrowed funds",
-        "type": "object",
-        "required": [
-          "ans_user_borrow"
-        ],
-        "properties": {
-          "ans_user_borrow": {
-            "type": "object",
-            "required": [
-              "borrowed_asset",
-              "collateral_asset",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "borrowed_asset": {
-                "description": "Borrowed asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "collateral_asset": {
-                "description": "Collateral asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has borrowed some funds",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Current Loan-to-Value ratio Represents the borrow usage for a specific user Allows to know how much asset are currently borrowed",
-        "type": "object",
-        "required": [
-          "ans_current_l_t_v"
-        ],
-        "properties": {
-          "ans_current_l_t_v": {
-            "type": "object",
-            "required": [
-              "borrowed_asset",
-              "collateral_asset",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "borrowed_asset": {
-                "description": "Borrowed asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "collateral_asset": {
-                "description": "Collateral asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has borrowed some funds",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Maximum Loan to Value ratio for a user Allows to know how much assets can to be borrowed",
-        "type": "object",
-        "required": [
-          "ans_max_l_t_v"
-        ],
-        "properties": {
-          "ans_max_l_t_v": {
-            "type": "object",
-            "required": [
-              "borrowed_asset",
-              "collateral_asset",
-              "money_market",
-              "user"
-            ],
-            "properties": {
-              "borrowed_asset": {
-                "description": "Borrowed asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "collateral_asset": {
-                "description": "Collateral asset to query",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "user": {
-                "description": "User that has borrowed some funds",
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Price of an asset compared to another asset The returned decimal corresponds to How much quote assets can be bought with 1 base asset",
-        "type": "object",
-        "required": [
-          "ans_price"
-        ],
-        "properties": {
-          "ans_price": {
-            "type": "object",
-            "required": [
-              "base",
-              "money_market",
-              "quote"
-            ],
-            "properties": {
-              "base": {
-                "description": "Base asset",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                ]
-              },
-              "money_market": {
-                "description": "Name of the MoneyMarket to interact with",
-                "type": "string"
-              },
-              "quote": {
-                "description": "Quote asset",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
+                    "$ref": "#/definitions/DexExecuteMsg"
                   }
                 ]
               }
@@ -1339,90 +693,46 @@
         "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
         "type": "string"
       },
-      "MoneyMarketAnsAction": {
-        "description": "Possible actions to perform on a Money Market The following actions use the Abstarct Name Service",
+      "DexAction": {
+        "description": "Possible raw actions to perform on the DEX",
         "oneOf": [
           {
-            "description": "Deposit funds for lending.",
+            "description": "Provide arbitrary liquidity",
             "type": "object",
             "required": [
-              "deposit"
+              "provide_liquidity"
             ],
             "properties": {
-              "deposit": {
+              "provide_liquidity": {
                 "type": "object",
                 "required": [
-                  "lending_asset"
+                  "assets",
+                  "pool"
                 ],
                 "properties": {
-                  "lending_asset": {
-                    "description": "Asset to deposit",
-                    "allOf": [
+                  "assets": {
+                    "description": "Assets to add",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/AssetBase_for_String"
+                    }
+                  },
+                  "max_spread": {
+                    "description": "Max spread to accept, is a percentage represented as a decimal.",
+                    "anyOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Withdraw lent funds",
-            "type": "object",
-            "required": [
-              "withdraw"
-            ],
-            "properties": {
-              "withdraw": {
-                "type": "object",
-                "required": [
-                  "lent_asset"
-                ],
-                "properties": {
-                  "lent_asset": {
-                    "description": "Asset to withdraw",
-                    "allOf": [
+                        "$ref": "#/definitions/Decimal"
+                      },
                       {
-                        "$ref": "#/definitions/AnsAsset"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Deposit Collateral to borrow against",
-            "type": "object",
-            "required": [
-              "provide_collateral"
-            ],
-            "properties": {
-              "provide_collateral": {
-                "type": "object",
-                "required": [
-                  "borrowable_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrowable_asset": {
-                    "description": "Asset that identifies the market you want to deposit in",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetEntry"
+                        "type": "null"
                       }
                     ]
                   },
-                  "collateral_asset": {
-                    "description": "Asset to deposit",
+                  "pool": {
+                    "description": "Pool to provide liquidity to",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
                       }
                     ]
                   }
@@ -1433,32 +743,32 @@
             "additionalProperties": false
           },
           {
-            "description": "Withdraw Collateral to borrow against",
+            "description": "Withdraw liquidity from a pool",
             "type": "object",
             "required": [
-              "withdraw_collateral"
+              "withdraw_liquidity"
             ],
             "properties": {
-              "withdraw_collateral": {
+              "withdraw_liquidity": {
                 "type": "object",
                 "required": [
-                  "borrowable_asset",
-                  "collateral_asset"
+                  "lp_token",
+                  "pool"
                 ],
                 "properties": {
-                  "borrowable_asset": {
-                    "description": "Asset that identifies the market you want to withdraw from",
+                  "lp_token": {
+                    "description": "The asset LP token that is provided.",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AssetEntry"
+                        "$ref": "#/definitions/AssetBase_for_String"
                       }
                     ]
                   },
-                  "collateral_asset": {
-                    "description": "Asset to deposit",
+                  "pool": {
+                    "description": "Pool to withdraw liquidity from",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
                       }
                     ]
                   }
@@ -1469,32 +779,63 @@
             "additionalProperties": false
           },
           {
-            "description": "Borrow funds from the money market",
+            "description": "Standard swap between one asset to another",
             "type": "object",
             "required": [
-              "borrow"
+              "swap"
             ],
             "properties": {
-              "borrow": {
+              "swap": {
                 "type": "object",
                 "required": [
-                  "borrow_asset",
-                  "collateral_asset"
+                  "ask_asset",
+                  "offer_asset",
+                  "pool"
                 ],
                 "properties": {
-                  "borrow_asset": {
-                    "description": "Asset to borrow",
+                  "ask_asset": {
+                    "description": "The asset to receive",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
+                        "$ref": "#/definitions/AssetInfoBase_for_String"
                       }
                     ]
                   },
-                  "collateral_asset": {
-                    "description": "Asset that identifies the market you want to borrow from",
+                  "belief_price": {
+                    "description": "The belief price when submitting the transaction.",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_spread": {
+                    "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "offer_asset": {
+                    "description": "The asset to offer",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/AssetEntry"
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "pool": {
+                    "description": "Pool used to swap",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PoolAddressBase_for_String"
                       }
                     ]
                   }
@@ -1505,34 +846,55 @@
             "additionalProperties": false
           },
           {
-            "description": "Repay funds to the money market",
+            "description": "Swap by route between multiple assets",
             "type": "object",
             "required": [
-              "repay"
+              "route_swap"
             ],
             "properties": {
-              "repay": {
+              "route_swap": {
                 "type": "object",
                 "required": [
-                  "borrowed_asset",
-                  "collateral_asset"
+                  "offer_asset",
+                  "route"
                 ],
                 "properties": {
-                  "borrowed_asset": {
-                    "description": "Asset to repay",
-                    "allOf": [
+                  "belief_price": {
+                    "description": "The belief price when submitting the transaction.",
+                    "anyOf": [
                       {
-                        "$ref": "#/definitions/AnsAsset"
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
                       }
                     ]
                   },
-                  "collateral_asset": {
-                    "description": "Asset that identifies the market you want to borrow from",
-                    "allOf": [
+                  "max_spread": {
+                    "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
+                    "anyOf": [
                       {
-                        "$ref": "#/definitions/AssetEntry"
+                        "$ref": "#/definitions/Decimal"
+                      },
+                      {
+                        "type": "null"
                       }
                     ]
+                  },
+                  "offer_asset": {
+                    "description": "The asset to offer",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/AssetBase_for_String"
+                      }
+                    ]
+                  },
+                  "route": {
+                    "description": "Pool routes used to swap",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/SwapNode_for_String"
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -1542,8 +904,8 @@
           }
         ]
       },
-      "MoneyMarketExecuteMsg": {
-        "description": "MoneyMarket Execute msg",
+      "DexExecuteMsg": {
+        "description": "Dex Execute msg",
         "oneOf": [
           {
             "description": "Update the fee",
@@ -1555,7 +917,16 @@
               "update_fee": {
                 "type": "object",
                 "properties": {
-                  "money_market_fee": {
+                  "recipient_account": {
+                    "description": "New recipient account for fees",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "uint32",
+                    "minimum": 0
+                  },
+                  "swap_fee": {
                     "description": "New fee to set",
                     "anyOf": [
                       {
@@ -1565,47 +936,6 @@
                         "type": "null"
                       }
                     ]
-                  },
-                  "recipient_account": {
-                    "description": "New recipient account for fees",
-                    "type": [
-                      "integer",
-                      "null"
-                    ],
-                    "format": "uint32",
-                    "minimum": 0
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Action to perform on the DEX with ans asset denomination",
-            "type": "object",
-            "required": [
-              "ans_action"
-            ],
-            "properties": {
-              "ans_action": {
-                "type": "object",
-                "required": [
-                  "action",
-                  "money_market"
-                ],
-                "properties": {
-                  "action": {
-                    "description": "The action to perform",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/MoneyMarketAnsAction"
-                      }
-                    ]
-                  },
-                  "money_market": {
-                    "description": "The name of the dex to interact with",
-                    "type": "string"
                   }
                 },
                 "additionalProperties": false
@@ -1617,25 +947,25 @@
             "description": "Action to perform on the DEX with raw asset denominations",
             "type": "object",
             "required": [
-              "raw_action"
+              "action"
             ],
             "properties": {
-              "raw_action": {
+              "action": {
                 "type": "object",
                 "required": [
                   "action",
-                  "money_market"
+                  "dex"
                 ],
                 "properties": {
                   "action": {
                     "description": "The action to perform",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/MoneyMarketRawAction"
+                        "$ref": "#/definitions/DexAction"
                       }
                     ]
                   },
-                  "money_market": {
+                  "dex": {
                     "description": "The name of the dex to interact with",
                     "type": "string"
                   }
@@ -1647,115 +977,26 @@
           }
         ]
       },
-      "MoneyMarketRawAction": {
-        "description": "Action to execute on a money_market",
-        "type": "object",
-        "required": [
-          "contract_addr",
-          "request"
-        ],
-        "properties": {
-          "contract_addr": {
-            "description": "The contract address to execute it against",
-            "type": "string"
-          },
-          "request": {
-            "description": "The action to execute",
-            "allOf": [
-              {
-                "$ref": "#/definitions/MoneyMarketRawRequest"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "MoneyMarketRawRequest": {
-        "description": "Possible actions to perform on a Money Market This is an example using raw assets",
+      "PoolAddressBase_for_String": {
         "oneOf": [
           {
-            "description": "Deposit funds for lending.",
             "type": "object",
             "required": [
-              "deposit"
+              "separate_addresses"
             ],
             "properties": {
-              "deposit": {
+              "separate_addresses": {
                 "type": "object",
                 "required": [
-                  "lending_asset"
+                  "liquidity",
+                  "swap"
                 ],
                 "properties": {
-                  "lending_asset": {
-                    "description": "Asset to deposit",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Withdraw lent funds",
-            "type": "object",
-            "required": [
-              "withdraw"
-            ],
-            "properties": {
-              "withdraw": {
-                "type": "object",
-                "required": [
-                  "lent_asset"
-                ],
-                "properties": {
-                  "lent_asset": {
-                    "description": "Asset to withdraw",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Deposit Collateral to borrow against",
-            "type": "object",
-            "required": [
-              "provide_collateral"
-            ],
-            "properties": {
-              "provide_collateral": {
-                "type": "object",
-                "required": [
-                  "borrowable_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrowable_asset": {
-                    "description": "Asset that identifies the market you want to deposit in",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetInfoBase_for_String"
-                      }
-                    ]
+                  "liquidity": {
+                    "type": "string"
                   },
-                  "collateral_asset": {
-                    "description": "Asset to deposit",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
+                  "swap": {
+                    "type": "string"
                   }
                 },
                 "additionalProperties": false
@@ -1764,114 +1005,59 @@
             "additionalProperties": false
           },
           {
-            "description": "Withdraw Collateral to borrow against",
             "type": "object",
             "required": [
-              "withdraw_collateral"
+              "contract"
             ],
             "properties": {
-              "withdraw_collateral": {
-                "type": "object",
-                "required": [
-                  "borrowable_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrowable_asset": {
-                    "description": "Asset that identifies the market you want to withdraw from",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetInfoBase_for_String"
-                      }
-                    ]
-                  },
-                  "collateral_asset": {
-                    "description": "Asset to deposit",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
+              "contract": {
+                "type": "string"
               }
             },
             "additionalProperties": false
           },
           {
-            "description": "Borrow funds from the money market",
             "type": "object",
             "required": [
-              "borrow"
+              "id"
             ],
             "properties": {
-              "borrow": {
-                "type": "object",
-                "required": [
-                  "borrow_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrow_asset": {
-                    "description": "Asset to borrow",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  },
-                  "collateral_asset": {
-                    "description": "Asset that identifies the market you want to borrow from",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetInfoBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Repay funds to the money market",
-            "type": "object",
-            "required": [
-              "repay"
-            ],
-            "properties": {
-              "repay": {
-                "type": "object",
-                "required": [
-                  "borrowed_asset",
-                  "collateral_asset"
-                ],
-                "properties": {
-                  "borrowed_asset": {
-                    "description": "Asset to repay",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetBase_for_String"
-                      }
-                    ]
-                  },
-                  "collateral_asset": {
-                    "description": "Asset that identifies the market you want to borrow from",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/AssetInfoBase_for_String"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0
               }
             },
             "additionalProperties": false
           }
         ]
+      },
+      "SwapNode_for_String": {
+        "description": "Swap node for swap route",
+        "type": "object",
+        "required": [
+          "ask_asset",
+          "pool_id"
+        ],
+        "properties": {
+          "ask_asset": {
+            "description": "Asset in return from the swap",
+            "allOf": [
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_String"
+              }
+            ]
+          },
+          "pool_id": {
+            "description": "Pool id of the swap",
+            "allOf": [
+              {
+                "$ref": "#/definitions/PoolAddressBase_for_String"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
       },
       "Uint128": {
         "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
@@ -1888,177 +1074,31 @@
   },
   "sudo": null,
   "responses": {
-    "ans_current_l_t_v": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserCurrentLTVResponse",
-      "description": "Response wrapper for user current ltv query",
-      "type": "object",
-      "required": [
-        "current_ltv"
-      ],
-      "properties": {
-        "current_ltv": {
-          "description": "Current LTV",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Decimal"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Decimal": {
-          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-          "type": "string"
-        }
-      }
-    },
-    "ans_max_l_t_v": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserMaxLTVResponse",
-      "description": "Response wrapper for user max ltv query",
-      "type": "object",
-      "required": [
-        "max_ltv"
-      ],
-      "properties": {
-        "max_ltv": {
-          "description": "Maximum LTV",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Decimal"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Decimal": {
-          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-          "type": "string"
-        }
-      }
-    },
-    "ans_price": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PriceResponse",
-      "description": "Response wrapper for price query",
-      "type": "object",
-      "required": [
-        "price"
-      ],
-      "properties": {
-        "price": {
-          "description": "Price",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Decimal"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Decimal": {
-          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-          "type": "string"
-        }
-      }
-    },
-    "ans_user_borrow": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserBorrowResponse",
-      "description": "Response wrapper for user borrow query",
-      "type": "object",
-      "required": [
-        "amount"
-      ],
-      "properties": {
-        "amount": {
-          "description": "Borrow Amount",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Uint128"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Uint128": {
-          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
-          "type": "string"
-        }
-      }
-    },
-    "ans_user_collateral": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserCollateralResponse",
-      "description": "Response wrapper for user collateral query",
-      "type": "object",
-      "required": [
-        "amount"
-      ],
-      "properties": {
-        "amount": {
-          "description": "Collateral Amount",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Uint128"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Uint128": {
-          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
-          "type": "string"
-        }
-      }
-    },
-    "ans_user_deposit": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserDepositResponse",
-      "description": "Response wrapper for user deposit query",
-      "type": "object",
-      "required": [
-        "amount"
-      ],
-      "properties": {
-        "amount": {
-          "description": "Deposit Amount",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Uint128"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Uint128": {
-          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
-          "type": "string"
-        }
-      }
-    },
     "fees": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UsageFee",
-      "description": "A wrapper around Fee to help handle fee logic. Use this with `Chargeable` trait in the SDK to charge fees on asset structs.",
+      "title": "DexFeesResponse",
+      "description": "Response for Dex Fees",
       "type": "object",
       "required": [
-        "fee",
-        "recipient"
+        "recipient",
+        "swap_fee"
       ],
       "properties": {
-        "fee": {
-          "$ref": "#/definitions/Fee"
-        },
         "recipient": {
-          "$ref": "#/definitions/Addr"
+          "description": "Address where all fees will go",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            }
+          ]
+        },
+        "swap_fee": {
+          "description": "Fee for using swap action",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Fee"
+            }
+          ]
         }
       },
       "additionalProperties": false,
@@ -3019,95 +2059,59 @@
         }
       }
     },
-    "raw_current_l_t_v": {
+    "simulate_swap": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserCurrentLTVResponse",
-      "description": "Response wrapper for user current ltv query",
+      "title": "SimulateSwapResponse_for_AssetEntry",
+      "description": "Response for simulating a swap.",
       "type": "object",
       "required": [
-        "current_ltv"
+        "commission",
+        "pool",
+        "return_amount",
+        "spread_amount",
+        "usage_fee"
       ],
       "properties": {
-        "current_ltv": {
-          "description": "Current LTV",
+        "commission": {
+          "description": "Commission charged for the swap",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2
+        },
+        "pool": {
+          "description": "The pool on which the swap was simulated",
           "allOf": [
             {
-              "$ref": "#/definitions/Decimal"
+              "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
             }
           ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Decimal": {
-          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-          "type": "string"
-        }
-      }
-    },
-    "raw_max_l_t_v": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserMaxLTVResponse",
-      "description": "Response wrapper for user max ltv query",
-      "type": "object",
-      "required": [
-        "max_ltv"
-      ],
-      "properties": {
-        "max_ltv": {
-          "description": "Maximum LTV",
+        },
+        "return_amount": {
+          "description": "Amount you would receive when performing the swap.",
           "allOf": [
             {
-              "$ref": "#/definitions/Decimal"
+              "$ref": "#/definitions/Uint128"
             }
           ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Decimal": {
-          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-          "type": "string"
-        }
-      }
-    },
-    "raw_price": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PriceResponse",
-      "description": "Response wrapper for price query",
-      "type": "object",
-      "required": [
-        "price"
-      ],
-      "properties": {
-        "price": {
-          "description": "Price",
+        },
+        "spread_amount": {
+          "description": "Spread in ask_asset for this swap",
           "allOf": [
             {
-              "$ref": "#/definitions/Decimal"
+              "$ref": "#/definitions/Uint128"
             }
           ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Decimal": {
-          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-          "type": "string"
-        }
-      }
-    },
-    "raw_user_borrow": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserBorrowResponse",
-      "description": "Response wrapper for user borrow query",
-      "type": "object",
-      "required": [
-        "amount"
-      ],
-      "properties": {
-        "amount": {
-          "description": "Borrow Amount",
+        },
+        "usage_fee": {
+          "description": "Adapter fee charged for the swap (paid in offer asset)",
           "allOf": [
             {
               "$ref": "#/definitions/Uint128"
@@ -3117,23 +2121,86 @@
       },
       "additionalProperties": false,
       "definitions": {
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "DexAssetPairing_for_AssetEntry": {
+          "description": "The key for an asset pairing Consists of the two assets and the dex name",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3
+        },
         "Uint128": {
           "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
           "type": "string"
         }
       }
     },
-    "raw_user_collateral": {
+    "simulate_swap_raw": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserCollateralResponse",
-      "description": "Response wrapper for user collateral query",
+      "title": "SimulateSwapResponse_for_AssetInfoBase_for_String",
+      "description": "Response for simulating a swap.",
       "type": "object",
       "required": [
-        "amount"
+        "commission",
+        "pool",
+        "return_amount",
+        "spread_amount",
+        "usage_fee"
       ],
       "properties": {
-        "amount": {
-          "description": "Collateral Amount",
+        "commission": {
+          "description": "Commission charged for the swap",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            },
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2
+        },
+        "pool": {
+          "description": "The pool on which the swap was simulated",
+          "allOf": [
+            {
+              "$ref": "#/definitions/DexAssetPairing_for_AssetInfoBase_for_String"
+            }
+          ]
+        },
+        "return_amount": {
+          "description": "Amount you would receive when performing the swap.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
+        },
+        "spread_amount": {
+          "description": "Spread in ask_asset for this swap",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint128"
+            }
+          ]
+        },
+        "usage_fee": {
+          "description": "Adapter fee charged for the swap (paid in offer asset)",
           "allOf": [
             {
               "$ref": "#/definitions/Uint128"
@@ -3143,32 +2210,52 @@
       },
       "additionalProperties": false,
       "definitions": {
-        "Uint128": {
-          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
-          "type": "string"
-        }
-      }
-    },
-    "raw_user_deposit": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserDepositResponse",
-      "description": "Response wrapper for user deposit query",
-      "type": "object",
-      "required": [
-        "amount"
-      ],
-      "properties": {
-        "amount": {
-          "description": "Deposit Amount",
-          "allOf": [
+        "AssetInfoBase_for_String": {
+          "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
+          "oneOf": [
             {
-              "$ref": "#/definitions/Uint128"
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
             }
           ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
+        },
+        "DexAssetPairing_for_AssetInfoBase_for_String": {
+          "description": "The key for an asset pairing Consists of the two assets and the dex name",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            },
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3
+        },
         "Uint128": {
           "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
           "type": "string"

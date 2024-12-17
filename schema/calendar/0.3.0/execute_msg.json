@@ -83,7 +83,7 @@
       "additionalProperties": false
     },
     "AccountTrace": {
-      "description": "The identifier of chain that triggered the account creation",
+      "description": "The identifier of chain that triggered the account creation\n\nNote that the serialization to string and to Cw-storage-plus keys is different\n\nFor String, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `osmosis>neutron`\n\nFor cw-storage-plus-key, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `remote:[\"neutron\", \"osmosis\", \"\", \"\", \"\", \"\"]`",
       "oneOf": [
         {
           "type": "string",

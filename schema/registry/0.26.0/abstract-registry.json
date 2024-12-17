@@ -1,6 +1,6 @@
 {
   "contract_name": "abstract-registry",
-  "contract_version": "0.25.0",
+  "contract_version": "0.26.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -356,7 +356,7 @@
         "additionalProperties": false
       },
       "AccountTrace": {
-        "description": "The identifier of chain that triggered the account creation",
+        "description": "The identifier of chain that triggered the account creation\n\nNote that the serialization to string and to Cw-storage-plus keys is different\n\nFor String, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `osmosis>neutron`\n\nFor cw-storage-plus-key, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `remote:[\"neutron\", \"osmosis\", \"\", \"\", \"\", \"\"]`",
         "oneOf": [
           {
             "type": "string",
@@ -1076,7 +1076,7 @@
         "additionalProperties": false
       },
       "AccountTrace": {
-        "description": "The identifier of chain that triggered the account creation",
+        "description": "The identifier of chain that triggered the account creation\n\nNote that the serialization to string and to Cw-storage-plus keys is different\n\nFor String, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `osmosis>neutron`\n\nFor cw-storage-plus-key, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `remote:[\"neutron\", \"osmosis\", \"\", \"\", \"\", \"\"]`",
         "oneOf": [
           {
             "type": "string",
@@ -1366,7 +1366,7 @@
           "additionalProperties": false
         },
         "AccountTrace": {
-          "description": "The identifier of chain that triggered the account creation",
+          "description": "The identifier of chain that triggered the account creation\n\nNote that the serialization to string and to Cw-storage-plus keys is different\n\nFor String, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `osmosis>neutron`\n\nFor cw-storage-plus-key, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `remote:[\"neutron\", \"osmosis\", \"\", \"\", \"\", \"\"]`",
           "oneOf": [
             {
               "type": "string",
@@ -2123,7 +2123,7 @@
           "additionalProperties": false
         },
         "AccountTrace": {
-          "description": "The identifier of chain that triggered the account creation",
+          "description": "The identifier of chain that triggered the account creation\n\nNote that the serialization to string and to Cw-storage-plus keys is different\n\nFor String, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `osmosis>neutron`\n\nFor cw-storage-plus-key, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `remote:[\"neutron\", \"osmosis\", \"\", \"\", \"\", \"\"]`",
           "oneOf": [
             {
               "type": "string",
@@ -2235,7 +2235,7 @@
           "additionalProperties": false
         },
         "AccountTrace": {
-          "description": "The identifier of chain that triggered the account creation",
+          "description": "The identifier of chain that triggered the account creation\n\nNote that the serialization to string and to Cw-storage-plus keys is different\n\nFor String, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `osmosis>neutron`\n\nFor cw-storage-plus-key, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `remote:[\"neutron\", \"osmosis\", \"\", \"\", \"\", \"\"]`",
           "oneOf": [
             {
               "type": "string",
@@ -2323,7 +2323,7 @@
           "additionalProperties": false
         },
         "AccountTrace": {
-          "description": "The identifier of chain that triggered the account creation",
+          "description": "The identifier of chain that triggered the account creation\n\nNote that the serialization to string and to Cw-storage-plus keys is different\n\nFor String, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `osmosis>neutron`\n\nFor cw-storage-plus-key, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `remote:[\"neutron\", \"osmosis\", \"\", \"\", \"\", \"\"]`",
           "oneOf": [
             {
               "type": "string",
