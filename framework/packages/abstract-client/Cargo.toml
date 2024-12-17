@@ -26,8 +26,8 @@ abstract-interface     = { workspace = true }
 abstract-std.workspace = true
 cosmwasm-std.workspace = true
 cw-asset               = { workspace = true }
-cw-orch-interchain     = { workspace = true, optional = true }
 cw-orch.workspace      = true
+cw-orch-interchain     = { workspace = true, optional = true }
 semver.workspace       = true
 serde.workspace        = true
 thiserror.workspace    = true
