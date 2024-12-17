@@ -608,7 +608,7 @@ mod test {
         let yank_msg = ExecuteMsg::YankModule {
             module: module_info,
         };
-        let res = dbg!(execute_as(deps, &abstr.owner, yank_msg));
+        let res = execute_as(deps, &abstr.owner, yank_msg);
         assert!(res.is_ok());
     }
 

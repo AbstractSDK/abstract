@@ -35,7 +35,7 @@ memchr = { version = "2" }
 num-traits = { version = "0.2", default-features = false, features = ["i128", "libm"] }
 phf_shared = { version = "0.11", default-features = false, features = ["std"] }
 ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
-prost = { version = "0.13", features = ["prost-derive"] }
+prost = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
 rand = { version = "0.8", features = ["small_rng"] }
 rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
 rand_core = { version = "0.6", default-features = false, features = ["std"] }
@@ -47,7 +47,6 @@ serde_json = { version = "1", features = ["alloc"] }
 sha2 = { version = "0.10", features = ["oid"] }
 spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 subtle-encoding = { version = "0.5", features = ["bech32-preview"] }
-tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 tendermint-proto-f645eb7eb1285ab4 = { package = "tendermint-proto", version = "0.39", features = ["std"] }
 time = { version = "0.3", default-features = false, features = ["macros", "parsing", "std"] }
 zeroize = { version = "1", features = ["zeroize_derive"] }
@@ -74,7 +73,7 @@ memchr = { version = "2" }
 num-traits = { version = "0.2", default-features = false, features = ["i128", "libm"] }
 phf_shared = { version = "0.11", default-features = false, features = ["std"] }
 ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
-prost = { version = "0.13", features = ["prost-derive"] }
+prost = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
 rand = { version = "0.8", features = ["small_rng"] }
 rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
 rand_core = { version = "0.6", default-features = false, features = ["std"] }
@@ -88,7 +87,6 @@ spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
 subtle-encoding = { version = "0.5", features = ["bech32-preview"] }
 syn-dff4ba8e3ae991db = { package = "syn", version = "1", features = ["extra-traits", "full", "visit", "visit-mut"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
-tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 tendermint-proto-f645eb7eb1285ab4 = { package = "tendermint-proto", version = "0.39", features = ["std"] }
 time = { version = "0.3", default-features = false, features = ["macros", "parsing", "std"] }
 zeroize = { version = "1", features = ["zeroize_derive"] }
@@ -155,6 +153,7 @@ serde_json = { version = "1", default-features = false, features = ["raw_value"]
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
+tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 time = { version = "0.3" }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
@@ -229,6 +228,7 @@ signature = { version = "2", default-features = false, features = ["digest", "ra
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
+tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 time = { version = "0.3" }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
@@ -300,6 +300,7 @@ serde_json = { version = "1", default-features = false, features = ["raw_value"]
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
+tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 time = { version = "0.3" }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
@@ -373,6 +374,7 @@ signature = { version = "2", default-features = false, features = ["digest", "ra
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold"] }
 tendermint = { version = "0.38", features = ["secp256k1"] }
+tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 time = { version = "0.3" }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7", features = ["codec", "io", "time"] }

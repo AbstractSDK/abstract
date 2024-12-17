@@ -28,7 +28,7 @@ semver          = { workspace = true }
 thiserror       = { workspace = true }
 
 # Interface
-abstract-interface = { version = "0.25.0", path = "../../packages/abstract-interface" }
+abstract-interface = { workspace = true }
 cw-orch            = { workspace = true }
 
 # Testing

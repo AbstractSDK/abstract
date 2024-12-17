@@ -175,7 +175,7 @@ impl Prefixer<'_> for &ModuleInfo {
 
 impl KeyDeserialize for &ModuleInfo {
     type Output = ModuleInfo;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = Namespace::KEY_ELEMS + String::KEY_ELEMS + ModuleVersion::KEY_ELEMS;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {

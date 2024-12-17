@@ -1,14 +1,22 @@
 use std::fmt::Display;
 
+use super::account_id::deser::split_first_key;
 use cosmwasm_std::{ensure, Env, StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
 use crate::{constants::CHAIN_DELIMITER, objects::TruncatedChainId, AbstractError};
 
-pub const MAX_TRACE_LENGTH: usize = 6;
+pub const MAX_TRACE_LENGTH: u16 = 6;
 pub(crate) const LOCAL: &str = "local";
 
 /// The identifier of chain that triggered the account creation
+///
+/// Note that the serialization to string and to Cw-storage-plus keys is different
+///
+/// For String, `AccountTrace::Remote(vec!["neutron", "osmosis"])` will be serialized as `osmosis>neutron`
+///
+/// For cw-storage-plus-key, `AccountTrace::Remote(vec!["neutron", "osmosis"])` will be serialized as `remote:["neutron", "osmosis", "", "", "", ""]`
+
 #[cosmwasm_schema::cw_serde]
 pub enum AccountTrace {
     Local,
@@ -16,13 +24,41 @@ pub enum AccountTrace {
     Remote(Vec<TruncatedChainId>),
 }
 
+pub const ACCOUNT_TRACE_KEY_PLACEHOLDER: &[u8] = &[];
+
 impl KeyDeserialize for &AccountTrace {
     type Output = AccountTrace;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = MAX_TRACE_LENGTH;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(AccountTrace::from_string(String::from_vec(value)?))
+        let mut trace = vec![];
+        // We parse the whole data for the MAX_TRACE_LENGTH keys
+        let mut value = value.as_ref();
+        for i in 0..MAX_TRACE_LENGTH - 1 {
+            let (current_chain, remainder) = split_first_key(1, value)?;
+            value = remainder;
+            if current_chain == ACCOUNT_TRACE_KEY_PLACEHOLDER {
+                continue;
+            }
+            let chain = String::from_utf8(current_chain)?;
+            if i == 0 && chain == "local" {
+                return Ok(AccountTrace::Local);
+            }
+            trace.push(TruncatedChainId::from_string(chain).unwrap())
+        }
+
+        Ok(AccountTrace::Remote(trace))
+    }
+}
+
+impl KeyDeserialize for AccountTrace {
+    type Output = AccountTrace;
+    const KEY_ELEMS: u16 = <&AccountTrace>::KEY_ELEMS;
+
+    #[inline(always)]
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        <&AccountTrace>::from_vec(value)
     }
 }
 
@@ -33,34 +69,17 @@ impl PrimaryKey<'_> for AccountTrace {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        match self {
+        let mut serialization_result = match self {
             AccountTrace::Local => LOCAL.key(),
-            AccountTrace::Remote(chain_name) => {
-                let len = chain_name.len();
-                chain_name
-                    .iter()
-                    .enumerate()
-                    .flat_map(|(s, c)| {
-                        if s == len - 1 {
-                            vec![c.str_ref().key()]
-                        } else {
-                            vec![c.str_ref().key(), CHAIN_DELIMITER.key()]
-                        }
-                    })
-                    .flatten()
-                    .collect::<Vec<Key>>()
-            }
+            AccountTrace::Remote(chain_name) => chain_name
+                .iter()
+                .flat_map(|c| c.str_ref().key())
+                .collect::<Vec<Key>>(),
+        };
+        for _ in serialization_result.len()..(MAX_TRACE_LENGTH as usize) {
+            serialization_result.extend(ACCOUNT_TRACE_KEY_PLACEHOLDER.key());
         }
-    }
-}
-
-impl KeyDeserialize for AccountTrace {
-    type Output = AccountTrace;
-    const KEY_ELEMS: u16 = 1;
-
-    #[inline(always)]
-    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(AccountTrace::from_string(String::from_vec(value)?))
+        serialization_result
     }
 }
 
@@ -78,7 +97,7 @@ impl AccountTrace {
             AccountTrace::Remote(chain_trace) => {
                 // Ensure the trace length is limited
                 ensure!(
-                    chain_trace.len() <= MAX_TRACE_LENGTH,
+                    chain_trace.len() <= MAX_TRACE_LENGTH as usize,
                     AbstractError::FormattingError {
                         object: "chain-seq".into(),
                         expected: format!("between 1 and {MAX_TRACE_LENGTH}"),
@@ -153,34 +172,11 @@ impl AccountTrace {
     ///
     /// **only use this for deserialization**
     pub(crate) fn from_string(trace: String) -> Self {
-        let acc = if trace == LOCAL {
-            Self::Local
-        } else {
-            Self::Remote(
-                trace
-                    .split(CHAIN_DELIMITER)
-                    .map(TruncatedChainId::_from_str)
-                    .collect(),
-            )
-        };
-        acc
+        account_trace_from_str(&trace)
     }
 
-    /// **No verification is done here**
-    ///
-    /// **only use this for deserialization**
-    #[allow(unused)]
     pub(crate) fn from_str(trace: &str) -> Result<Self, AbstractError> {
-        let acc = if trace == LOCAL {
-            Self::Local
-        } else {
-            Self::Remote(
-                trace
-                    .split(CHAIN_DELIMITER)
-                    .map(TruncatedChainId::_from_str)
-                    .collect(),
-            )
-        };
+        let acc = account_trace_from_str(trace);
         acc.verify()?;
         Ok(acc)
     }
@@ -190,15 +186,21 @@ impl TryFrom<&str> for AccountTrace {
     type Error = AbstractError;
 
     fn try_from(trace: &str) -> Result<Self, Self::Error> {
-        if trace == LOCAL {
-            Ok(Self::Local)
-        } else {
-            let chain_trace: Vec<TruncatedChainId> = trace
-                .split(CHAIN_DELIMITER)
-                .map(|t| TruncatedChainId::from_string(t.to_string()))
-                .collect::<Result<Vec<_>, _>>()?;
-            Ok(Self::Remote(chain_trace))
-        }
+        AccountTrace::from_str(trace)
+    }
+}
+
+fn account_trace_from_str(trace: &str) -> AccountTrace {
+    if trace == LOCAL {
+        AccountTrace::Local
+    } else {
+        let rev_trace: Vec<_> = trace
+            // DoubleEndedSearcher implemented for char, but not for "str"
+            .split(CHAIN_DELIMITER.chars().next().unwrap())
+            .map(TruncatedChainId::_from_str)
+            .rev()
+            .collect();
+        AccountTrace::Remote(rev_trace)
     }
 }
 
@@ -212,6 +214,7 @@ impl Display for AccountTrace {
                 // "juno>terra>osmosis"
                 chain_name
                     .iter()
+                    .rev()
                     .map(|name| name.as_str())
                     .collect::<Vec<&str>>()
                     .join(CHAIN_DELIMITER)
@@ -255,25 +258,29 @@ mod test {
 
         #[coverage_helper::test]
         fn remote_multi_works() {
+            // Here the account originates from ethereum and was then bridged to bitcoin
             let trace = AccountTrace::from_str("bitcoin>ethereum").unwrap();
             assert_eq!(
                 trace,
+                // The trace vector pushes the last chains last
                 AccountTrace::Remote(vec![
+                    TruncatedChainId::from_str("ethereum").unwrap(),
                     TruncatedChainId::from_str("bitcoin").unwrap(),
-                    TruncatedChainId::from_str("ethereum").unwrap()
                 ])
             );
         }
 
         #[coverage_helper::test]
         fn remote_multi_multi_works() {
+            // Here the account originates from cosmos, and was then bridged to ethereum and was then bridged to bitcoin
             let trace = AccountTrace::from_str("bitcoin>ethereum>cosmos").unwrap();
             assert_eq!(
                 trace,
+                // The trace vector pushes the last chains last
                 AccountTrace::Remote(vec![
-                    TruncatedChainId::from_str("bitcoin").unwrap(),
-                    TruncatedChainId::from_str("ethereum").unwrap(),
                     TruncatedChainId::from_str("cosmos").unwrap(),
+                    TruncatedChainId::from_str("ethereum").unwrap(),
+                    TruncatedChainId::from_str("bitcoin").unwrap(),
                 ])
             );
         }
@@ -312,34 +319,66 @@ mod test {
             AccountTrace::Remote(vec![TruncatedChainId::from_str("bitcoin").unwrap()])
         }
 
+        fn mock_local_key() -> AccountTrace {
+            AccountTrace::Local
+        }
+
+        fn mock_multi_hop_key() -> AccountTrace {
+            AccountTrace::Remote(vec![
+                TruncatedChainId::from_str("bitcoin").unwrap(),
+                TruncatedChainId::from_str("atom").unwrap(),
+                TruncatedChainId::from_str("foo").unwrap(),
+            ])
+        }
+
         #[coverage_helper::test]
         fn storage_key_works() {
             let mut deps = mock_dependencies();
+            let local_key = mock_local_key();
             let key = mock_key();
+            let multihop_key = mock_multi_hop_key();
             let map: Map<&AccountTrace, u64> = Map::new("map");
 
+            map.save(deps.as_mut().storage, &local_key, &159784)
+                .unwrap();
             map.save(deps.as_mut().storage, &key, &42069).unwrap();
+            map.save(deps.as_mut().storage, &multihop_key, &69420)
+                .unwrap();
 
+            assert_eq!(map.load(deps.as_ref().storage, &local_key).unwrap(), 159784);
             assert_eq!(map.load(deps.as_ref().storage, &key).unwrap(), 42069);
+            assert_eq!(
+                map.load(deps.as_ref().storage, &multihop_key).unwrap(),
+                69420
+            );
 
             let items = map
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
 
-            assert_eq!(items.len(), 1);
-            assert_eq!(items[0], (key, 42069));
+            assert_eq!(items.len(), 3);
+            assert_eq!(items[0], (local_key, 159784));
+            assert_eq!(items[1], (key, 42069));
+            assert_eq!(items[2], (multihop_key, 69420));
         }
 
         #[coverage_helper::test]
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
+            let multihop_key = mock_multi_hop_key();
             let map: Map<(&AccountTrace, Addr), u64> = Map::new("map");
 
             map.save(
                 deps.as_mut().storage,
                 (&key, Addr::unchecked("larry")),
+                &42069,
+            )
+            .unwrap();
+            map.save(
+                deps.as_mut().storage,
+                (&multihop_key, Addr::unchecked("larry")),
                 &42069,
             )
             .unwrap();

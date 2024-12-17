@@ -3,19 +3,8 @@
 version = 4
 
 [[package]]
-name = "absacc"
-version = "0.0.0"
-source = "git+https://github.com/burnt-labs/abstract-account.git?rev=4e376f2f399f17e50016a932d4e5af7336d952d7#4e376f2f399f17e50016a932d4e5af7336d952d7"
-dependencies = [
- "cosmos-sdk-proto 0.23.0",
- "cosmwasm-schema",
- "cosmwasm-std",
- "prost",
-]
-
-[[package]]
 name = "abstract-account"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-adapter",
  "abstract-ans-host",
@@ -51,7 +40,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-adapter"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-adapter",
  "abstract-ibc-client",
@@ -74,7 +63,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-adapter-utils"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "cosmwasm-std",
  "cw-asset",
@@ -84,7 +73,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ans-host"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -106,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-app"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-app",
  "abstract-ibc-client",
@@ -131,7 +120,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-client"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-account",
  "abstract-adapter",
@@ -203,7 +192,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-dex-standard"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -227,7 +216,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ibc-client"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-interface",
  "abstract-macros",
@@ -254,7 +243,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ibc-host"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-adapter",
  "abstract-interface",
@@ -279,7 +268,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ica"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-sdk",
  "abstract-testing",
@@ -298,7 +287,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-ica-client"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-ica",
  "abstract-macros",
@@ -319,7 +308,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-integration-tests"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-account",
  "abstract-adapter",
@@ -339,7 +328,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-interface"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-account",
  "abstract-ans-host",
@@ -380,7 +369,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-macros"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "cosmwasm-std",
  "proc-macro2",
@@ -390,7 +379,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-module-factory"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-integration-tests",
  "abstract-interface",
@@ -413,7 +402,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-money-market-standard"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -491,7 +480,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-registry"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-interface",
  "abstract-macros",
@@ -513,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-sdk"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-macros",
  "abstract-sdk",
@@ -540,7 +529,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-staking-standard"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -564,7 +553,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-standalone"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-integration-tests",
  "abstract-interface",
@@ -586,7 +575,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-std"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-testing",
  "anyhow",
@@ -616,7 +605,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-testing"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-sdk",
  "abstract-std",
@@ -633,9 +622,8 @@ dependencies = [
 [[package]]
 name = "account"
 version = "0.1.0"
-source = "git+https://github.com/abstractsdk/xion-contracts?branch=fix-for-abstract#6493190c7fa9259f5658c3cd5e608325052aedb3"
+source = "git+https://github.com/burnt-labs/contracts#a9f1d3c752b9de4df6b87316a57b100522afef5b"
 dependencies = [
- "absacc",
  "base64 0.21.7",
  "bech32 0.9.1",
  "cosmos-sdk-proto 0.24.0-pre (git+https://github.com/burnt-labs/cosmos-rust.git?rev=75e72f446629f98330e209e2f6268250d325cccb)",
@@ -1666,17 +1654,6 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
-
-[[package]]
-name = "cosmos-sdk-proto"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b2f63ab112b8c8e7b8a29c891adc48f43145beb21c0bfbf562957072c1e0beb"
-dependencies = [
- "prost",
- "prost-types",
- "tendermint-proto 0.38.1",
-]
 
 [[package]]
 name = "cosmos-sdk-proto"
