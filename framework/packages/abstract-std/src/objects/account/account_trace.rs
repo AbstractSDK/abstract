@@ -10,6 +10,13 @@ pub const MAX_TRACE_LENGTH: u16 = 6;
 pub(crate) const LOCAL: &str = "local";
 
 /// The identifier of chain that triggered the account creation
+///
+/// Note that the serialization to string and to Cw-storage-plus keys is different
+///
+/// For String, `AccountTrace::Remote(vec!["neutron", "osmosis"])` will be serialized as `osmosis>neutron`
+///
+/// For cw-storage-plus-key, `AccountTrace::Remote(vec!["neutron", "osmosis"])` will be serialized as `remote:["neutron", "osmosis", "", "", "", ""]`
+
 #[cosmwasm_schema::cw_serde]
 pub enum AccountTrace {
     Local,
@@ -21,7 +28,7 @@ pub const ACCOUNT_TRACE_KEY_PLACEHOLDER: &[u8] = &[];
 
 impl KeyDeserialize for &AccountTrace {
     type Output = AccountTrace;
-    const KEY_ELEMS: u16 = AccountTrace::KEY_ELEMS;
+    const KEY_ELEMS: u16 = MAX_TRACE_LENGTH;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -47,7 +54,7 @@ impl KeyDeserialize for &AccountTrace {
 
 impl KeyDeserialize for AccountTrace {
     type Output = AccountTrace;
-    const KEY_ELEMS: u16 = MAX_TRACE_LENGTH;
+    const KEY_ELEMS: u16 = <&AccountTrace>::KEY_ELEMS;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -313,7 +320,7 @@ mod test {
         }
 
         fn mock_local_key() -> AccountTrace {
-            AccountTrace::Remote(vec![])
+            AccountTrace::Local
         }
 
         fn mock_multi_hop_key() -> AccountTrace {

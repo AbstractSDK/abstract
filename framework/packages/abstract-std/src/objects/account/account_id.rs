@@ -161,7 +161,7 @@ impl Prefixer<'_> for AccountId {
 
 impl KeyDeserialize for &AccountId {
     type Output = AccountId;
-    const KEY_ELEMS: u16 = AccountId::KEY_ELEMS;
+    const KEY_ELEMS: u16 = AccountTrace::KEY_ELEMS + u32::KEY_ELEMS;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -176,7 +176,7 @@ impl KeyDeserialize for &AccountId {
 
 impl KeyDeserialize for AccountId {
     type Output = AccountId;
-    const KEY_ELEMS: u16 = AccountTrace::KEY_ELEMS + u32::KEY_ELEMS;
+    const KEY_ELEMS: u16 = <&AccountId>::KEY_ELEMS;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -252,7 +252,7 @@ mod test {
         fn mock_local_key() -> AccountId {
             AccountId {
                 seq: 54,
-                trace: AccountTrace::Remote(vec![]),
+                trace: AccountTrace::Local,
             }
         }
 

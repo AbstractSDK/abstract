@@ -84,6 +84,14 @@ The remote Interchain Abstract Account will have the same account sequence but w
 Remote accounts can create other remote accounts, and their traces will be chained. For instance, the `neutron-42` account on `Osmosis` can create an account on `Stargaze` which will have the ID `osmosis>neutron-42`.
 This gives the ability to trace ICAAs back to their origin chain.
 
+```admonish warning
+Note that in code, inside the `AccountTrace` struct, the trace is defined backwards, For account `osmosis>neutron-42`, the trace will be: 
+    
+    AccountTrace::Remote(vec!["neutron", "osmosis"])
+    
+```
+
+
 
 ### Sending messages on remote accounts
 
