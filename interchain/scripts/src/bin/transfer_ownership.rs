@@ -11,7 +11,6 @@ use abstract_std::{
 };
 use cosmos_sdk_proto::traits::Message;
 use cw20::Expiration;
-use cw_orch_daemon::RUNTIME;
 
 use clap::Parser;
 use cw_orch::{daemon::networks::parse_network, prelude::*};

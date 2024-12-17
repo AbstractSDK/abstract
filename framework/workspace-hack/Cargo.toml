@@ -108,7 +108,6 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 ed25519 = { version = "2", features = ["alloc", "serde"] }
 ed25519-dalek = { version = "2", features = ["rand_core", "serde"] }
@@ -128,7 +127,6 @@ group = { version = "0.13", default-features = false, features = ["alloc"] }
 hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
 hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
 ibc-proto = { version = "0.47", features = ["serde"] }
-ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
 informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
@@ -138,7 +136,6 @@ log = { version = "0.4", default-features = false, features = ["serde"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
@@ -152,7 +149,6 @@ reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-feat
 serde_json = { version = "1", default-features = false, features = ["raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
-tendermint = { version = "0.38", features = ["secp256k1"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 time = { version = "0.3" }
 tokio-stream = { version = "0.1", features = ["net"] }
@@ -181,9 +177,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
-derive_more = { version = "0.99" }
 ed25519 = { version = "2", features = ["alloc", "serde"] }
 ed25519-dalek = { version = "2", features = ["rand_core", "serde"] }
 either = { version = "1" }
@@ -202,7 +196,6 @@ group = { version = "0.13", default-features = false, features = ["alloc"] }
 hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
 hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
 ibc-proto = { version = "0.47", features = ["serde"] }
-ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
 informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
@@ -212,7 +205,6 @@ log = { version = "0.4", default-features = false, features = ["serde"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
@@ -227,7 +219,6 @@ serde_json = { version = "1", default-features = false, features = ["raw_value"]
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold"] }
-tendermint = { version = "0.38", features = ["secp256k1"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 time = { version = "0.3" }
 tokio-stream = { version = "0.1", features = ["net"] }
@@ -255,7 +246,6 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
 ed25519 = { version = "2", features = ["alloc", "serde"] }
 ed25519-dalek = { version = "2", features = ["rand_core", "serde"] }
@@ -275,7 +265,6 @@ group = { version = "0.13", default-features = false, features = ["alloc"] }
 hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
 hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
 ibc-proto = { version = "0.47", features = ["serde"] }
-ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
 informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
@@ -285,7 +274,6 @@ log = { version = "0.4", default-features = false, features = ["serde"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
@@ -299,7 +287,6 @@ reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-feat
 serde_json = { version = "1", default-features = false, features = ["raw_value"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
-tendermint = { version = "0.38", features = ["secp256k1"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 time = { version = "0.3" }
 tokio-stream = { version = "0.1", features = ["net"] }
@@ -327,9 +314,7 @@ cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["co
 cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
 crossbeam-epoch = { version = "0.9" }
 crunchy = { version = "0.2", features = ["std"] }
-cw-orch-interchain-core = { version = "0.9", default-features = false, features = ["daemon"] }
 cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
-derive_more = { version = "0.99" }
 ed25519 = { version = "2", features = ["alloc", "serde"] }
 ed25519-dalek = { version = "2", features = ["rand_core", "serde"] }
 either = { version = "1" }
@@ -348,7 +333,6 @@ group = { version = "0.13", default-features = false, features = ["alloc"] }
 hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
 hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
 ibc-proto = { version = "0.47", features = ["serde"] }
-ibc-relayer-types = { version = "0.29", default-features = false, features = ["clock"] }
 ics23 = { version = "0.12" }
 informalsystems-pbjson = { version = "0.7" }
 k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
@@ -358,7 +342,6 @@ log = { version = "0.4", default-features = false, features = ["serde"] }
 num-bigint = { version = "0.4", features = ["serde"] }
 num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
 num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
 num-traits = { version = "0.2" }
 once_cell = { version = "1" }
 p256 = { version = "0.13", features = ["serde"] }
@@ -373,7 +356,6 @@ serde_json = { version = "1", default-features = false, features = ["raw_value"]
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold"] }
-tendermint = { version = "0.38", features = ["secp256k1"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
 time = { version = "0.3" }
 tokio-stream = { version = "0.1", features = ["net"] }
