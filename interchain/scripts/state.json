@@ -1,56 +1,45 @@
 {
   "osmo-test-5": {
     "code_ids": {
-      "abstract:account": 11529,
-      "abstract:ans-host": 11528,
-      "abstract:cw-staking": 11559,
-      "abstract:dex": 11694,
-      "abstract:ibc-client": 11530,
-      "abstract:ibc-host": 11531,
-      "abstract:module-factory": 11526,
-      "abstract:payment": 11735,
-      "abstract:ping-pong": 11558,
-      "abstract:registry": 11527,
+      "abstract:account": 11878,
+      "abstract:ans-host": 11875,
+      "abstract:ibc-client": 11879,
+      "abstract:ibc-host": 11880,
+      "abstract:module-factory": 11877,
+      "abstract:registry": 11876,
       "cw:blob": 11289
     },
     "default": {
-      "abstract:account-local-0": "osmo1hafge5xucuc03ar5lkwac0n9yctnxq6xrgygftdl9xl3tzncgghshnykry",
-      "abstract:account-local-1": "osmo1v9dl0fw5s3jujn6emmlgch7w4ynt02nykj75pnzk8mdw7nmu3p4q65tczp",
-      "abstract:account-local-9": "osmo1gsk99z7x568h9894lev3muwynay65v4n0npnwn82tazsv47mq33q2v20a2",
-      "abstract:ans-host": "osmo1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsepnezp",
-      "abstract:cw-staking": "osmo13kp8fv0t869zcwjh9q52eygxf8w0d8anmzhgrrz5tjju9uw3fscq9mhw4u",
-      "abstract:dex": "osmo1n2kmtqru87hzp905qsc20wkn8kras38eqcefddn3yjah63hza55sv4ysng",
-      "abstract:dex-local-9": "osmo1n2kmtqru87hzp905qsc20wkn8kras38eqcefddn3yjah63hza55sv4ysng",
-      "abstract:ibc-client": "osmo1vnt8tpxrnukcydma2x6gy2zzawl9uxmc6las8cak9sd87q67n00qn0wkj7",
-      "abstract:ibc-host": "osmo1zzgxwn88a3ec34fw4mu8ppsh9eth746l3tl8w5l7qvknrmtldldqz7saee",
-      "abstract:module-factory": "osmo1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqcxdtus",
-      "abstract:registry": "osmo1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqtpxd7m"
-    }
+      "abstract:account-local-0": "osmo1yqxhunvfgkzqdfqmxqdtcymwnc47lg0atwx9r8dr5c50t92deamsnf967l",
+      "abstract:account-local-1": "osmo1av9aprhswsywufds8hjkzt2plfvjk867tajylt5cy5s4jj3ydceqvqpwvh",
+      "abstract:ans-host": "osmo1phecnjjf8laqkgr86hla2z7y86ghhcefxke8t8vru535twl0zlmst7r5ug",
+      "abstract:ibc-client": "osmo1lgszd37wflh8pscc0weu6us3y3edweygvjzaflgu4g6uwdjqpr0s0ssly2",
+      "abstract:ibc-host": "osmo12zry8tafmejuyqlw800f3ygdt25hukjugaknlpe5hr7txv72qkcqqxlpug",
+      "abstract:module-factory": "osmo136099hg6u4r7evahj3w0aau9jceyhf2qm82d7d8rd9apvdyck8ssnkhte9",
+      "abstract:registry": "osmo1j33edjnk9cqkuw83fvz3f646unxpkcjkru0znjhznr0dzvpzyw7q6vf7hp"
+    },
+    "version": "0.26.0"
   },
   "pion-1": {
     "code_ids": {
-      "abstract:account": 8373,
-      "abstract:ans-host": 8231,
-      "abstract:dex": 8372,
-      "abstract:ibc-client": 8233,
-      "abstract:ibc-host": 8234,
-      "abstract:module-factory": 8229,
-      "abstract:ping-pong": 8327,
-      "abstract:registry": 8230,
+      "abstract:account": 8635,
+      "abstract:ans-host": 8632,
+      "abstract:ibc-client": 8636,
+      "abstract:ibc-host": 8637,
+      "abstract:module-factory": 8634,
+      "abstract:registry": 8633,
       "cw:blob": 7399
     },
     "default": {
-      "abstract:account-local-0": "neutron12x9fcuwl382vv9l22dkcvcx6uxpeqy9rq5fe3jt8cgvqkyjnj2hs5da0m4",
-      "abstract:account-local-1": "neutron1mxahhvpj467088td8lvysyw7m8v880tzls0sxk0zuljn6tsufqksy8whnv",
-      "abstract:account-local-71": "neutron1pn4l8vtvvc2gtz8hj5y4rwv2r20hq2pcnn9rnamhppth4vqsyyds2hqmqp",
-      "abstract:ans-host": "neutron1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsdn69ty",
-      "abstract:dex": "neutron10hr9m68uh3h2qn8tgsc370zhwsu0wsjz688xpnr6jgyh567wkrpqcv5pzv",
-      "abstract:dex-local-71": "neutron10hr9m68uh3h2qn8tgsc370zhwsu0wsjz688xpnr6jgyh567wkrpqcv5pzv",
-      "abstract:ibc-client": "neutron1n9la68zja4l76plwffedj24ar3f6e5kg7j92r26hhzewncghypvs9vk28k",
-      "abstract:ibc-host": "neutron1c67x66rln9mgrjum5urrgn0tjvup5k9uke8hgdm8tu7hztwrjy4s5ecrmu",
-      "abstract:module-factory": "neutron1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqv5yh44",
-      "abstract:registry": "neutron1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqln03h7"
-    }
+      "abstract:account-local-0": "neutron1yqxhunvfgkzqdfqmxqdtcymwnc47lg0atwx9r8dr5c50t92deams8mvxh6",
+      "abstract:account-local-1": "neutron1av9aprhswsywufds8hjkzt2plfvjk867tajylt5cy5s4jj3ydceqcjgj9j",
+      "abstract:ans-host": "neutron1phecnjjf8laqkgr86hla2z7y86ghhcefxke8t8vru535twl0zlmslv2g4d",
+      "abstract:ibc-client": "neutron18c5gvnrptlehp098sdcvmv9mp80rudhalpz5yf5eqakkxl7kzczqktwmy2",
+      "abstract:ibc-host": "neutron1rwc9kyt9ffwdfztpg6lx5307vl3u82s2nun4cs5eem5mf5gsveqsjqvv78",
+      "abstract:module-factory": "neutron136099hg6u4r7evahj3w0aau9jceyhf2qm82d7d8rd9apvdyck8ss8y7hsq",
+      "abstract:registry": "neutron1j33edjnk9cqkuw83fvz3f646unxpkcjkru0znjhznr0dzvpzyw7qw7qz7y"
+    },
+    "version": "0.26.0"
   },
   "provider": {
     "code_ids": {
@@ -70,37 +59,28 @@
       "abstract:ibc-host": "cosmos1x7q3st5m56g0h005l7eaas7ngh52tjsct2tmgs5hzcqlme0j604qwl604h",
       "abstract:module-factory": "cosmos1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqdm4ntk",
       "abstract:registry": "cosmos1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq7u74fa"
-    }
-  },
-  "uni-6": {
-    "code_ids": {},
-    "default": {}
+    },
+    "version": "0.25.0"
   },
   "xion-testnet-1": {
     "code_ids": {
-      "abstract:account": 1373,
-      "abstract:ans-host": 1372,
-      "abstract:calendar": 1389,
-      "abstract:challenge": 1390,
-      "abstract:dex": 1393,
-      "abstract:ibc-client": 1374,
-      "abstract:ibc-host": 1375,
-      "abstract:module-factory": 1370,
-      "abstract:payment": 1394,
-      "abstract:ping-pong": 1391,
-      "abstract:registry": 1371,
-      "abstract:subscription": 1392,
-      "cw:blob": 1278
+      "abstract:account": 1659,
+      "abstract:ans-host": 1656,
+      "abstract:ibc-client": 1660,
+      "abstract:ibc-host": 1661,
+      "abstract:module-factory": 1658,
+      "abstract:registry": 1657,
+      "cw:blob": 1649
     },
     "default": {
-      "abstract:account-local-0": "xion10wvm0t3de2k23x6da6whwy30p3prt4gx3fx3klcjw36hgrjd44wsf86jwl",
-      "abstract:account-local-1": "xion1dnymc7khmeq9ya3hjs45cthwp3gnvpl2gynw0dvw6hyxv7enj6uqj8mf9p",
-      "abstract:ans-host": "xion1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdskfcdvu",
-      "abstract:dex": "xion1rx2pvplyue5u2slmxkpzans0htmhansl47k3fk4yl6anha0nvs4qr800c3",
-      "abstract:ibc-client": "xion1e74x0upzwsjvt6p8t5wu33cdnavsn5kcl6ndf8l2hpeah9c94tfqs6lx3w",
-      "abstract:ibc-host": "xion14rwy72dckjtpvtw26yppgfr6jqw4y06tf68axefzk5xjplm9ue6qvtqxjl",
-      "abstract:module-factory": "xion1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqhwxljd",
-      "abstract:registry": "xion1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqyfdesx"
-    }
+      "abstract:account-local-0": "xion1skzjgc2h5ev3pyppwnqh4rxhp65sy4damgf9em07y6xxwdf3ry3srg2trl",
+      "abstract:account-local-1": "xion1w6m80muutvpl4wdxxalm434nev6xw5uj084wj0sdp4de6h3cuh9sr5ptlm",
+      "abstract:ans-host": "xion1phecnjjf8laqkgr86hla2z7y86ghhcefxke8t8vru535twl0zlmsykgqj4",
+      "abstract:ibc-client": "xion1nu72stzytgf40d5f45wxqjpq2epjjukcewl9zml2plyk72mvcg3qrqwktr",
+      "abstract:ibc-host": "xion1652e4ktmc9yhk58fz82mju7fhnwhcw2pz9h7cld6qnuyka4aqttq4x3w86",
+      "abstract:module-factory": "xion136099hg6u4r7evahj3w0aau9jceyhf2qm82d7d8rd9apvdyck8ssu7ulhc",
+      "abstract:registry": "xion1j33edjnk9cqkuw83fvz3f646unxpkcjkru0znjhznr0dzvpzyw7q4yz2eu"
+    },
+    "version": "0.26.0"
   }
 }

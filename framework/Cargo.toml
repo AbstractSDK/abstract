@@ -58,7 +58,7 @@ cw-orch-interchain = { version = "0.8.1" }
 semver             = "1.0"
 tokio              = { version = "1.4", features = ["full"] }
 
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "6.0.0" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "6.0.1" }
 polytone         = { package = "abstract-polytone", version = "2.0.0" }
 polytone-note    = { package = "abstract-polytone-note", version = "5.0.0" }
 
