@@ -1,10 +1,6 @@
 [workspace]
 exclude = ["contracts/apps/croncat", "contracts/apps/dca"]
-members = [
-  "contracts/apps/*",
-  "contracts/adapters/*",
-  "contracts/standalones/*",
-]
+members = ["contracts/apps/*", "contracts/adapters/*", "contracts/standalones/*"]
 
 resolver = "2"
 
@@ -20,73 +16,73 @@ homepage = "https://abstract.money"
 keywords = ["cosmos", "cosmwasm", "framework"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/AbstractSDK/abstract"
-version = "0.25.0"
+version = "0.26.0"
 
 [workspace.dependencies]
 
 
 cosmwasm-schema = { version = "2.0" }
-cosmwasm-std = { version = "2.0" }
+cosmwasm-std    = { version = "2.0" }
 cw-address-like = { version = "2.0" }
-cw-asset = { version = "4.0" }
-cw-controllers = { version = "2.0" }
-cw-ownable = { version = "2.0" }
-cw-plus-orch = { version = "0.25.0" }
+cw-asset        = { version = "4.0" }
+cw-controllers  = { version = "2.0" }
+cw-ownable      = { version = "2.0" }
+cw-plus-orch    = { version = "0.25.0" }
 cw-storage-plus = "2.0.0"
-cw-utils = { version = "2.0" }
-cw2 = { version = "2.0" }
-cw20 = { version = "2.0.0" }
-cw20-base = { features = ["library"], version = "2.0.0" }
+cw-utils        = { version = "2.0" }
+cw2             = { version = "2.0" }
+cw20            = { version = "2.0.0" }
+cw20-base       = { features = ["library"], version = "2.0.0" }
 
-protobuf = { version = "2", features = ["with-bytes"] }
-schemars = "0.8"
-serde = { version = "1.0", default-features = false, features = ["derive"] }
+protobuf  = { version = "2", features = ["with-bytes"] }
+schemars  = "0.8"
+serde     = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.50" }
 
 chrono = { version = "0.4.31", default-features = false }
-clap = { version = "4.0.32", features = ["derive"] }
+clap   = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 
-cw-orch = { version = "0.27.0" }
-cw-orch-interchain = { version = "0.8.0" }
-cw-orch-osmosis-test-tube = { version = "0.5.0" }
+cw-orch                   = { version = "0.27.0" }
+cw-orch-interchain        = { version = "0.8.0" }
 cw-orch-neutron-test-tube = { version = "0.2.0" }
-tokio = { version = "1.4", features = ["full"] }
+cw-orch-osmosis-test-tube = { version = "0.5.0" }
+tokio                     = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter = { version = "0.25.0" }
-abstract-app = { version = "0.25.0" }
-abstract-client = { version = "0.25.0" }
-abstract-interface = { version = "0.25.0" }
-abstract-macros = { version = "0.25.0" }
-abstract-standalone = { version = "0.25.0" }
-abstract-testing = { version = "0.25.0" }
+abstract-adapter           = { version = "0.26.0" }
+abstract-app               = { version = "0.26.0" }
+abstract-client            = { version = "0.26.0" }
 abstract-integration-tests = { path = "../framework/packages/abstract-integration-tests" }
+abstract-interface         = { version = "0.26.0" }
+abstract-macros            = { version = "0.26.0" }
+abstract-standalone        = { version = "0.26.0" }
+abstract-testing           = { version = "0.26.0" }
 
-abstract-adapter-utils = { version = "0.25.0" }
-abstract-dex-standard = { version = "0.25.0" }
-abstract-money-market-standard = { version = "0.25.0" }
-abstract-staking-standard = { version = "0.25.0" }
+abstract-adapter-utils         = { version = "0.26.0" }
+abstract-dex-standard          = { version = "0.26.0" }
+abstract-money-market-standard = { version = "0.26.0" }
+abstract-staking-standard      = { version = "0.26.0" }
 
 
 # Integrations
-abstract-astroport-adapter = { path = "../integrations/astroport-adapter", default-features = false }
-abstract-astrovault-adapter = { path = "../integrations/astrovault-adapter", default-features = false }
-abstract-kujira-adapter = { path = "../integrations/kujira-adapter", default-features = false }
-abstract-mars-adapter = { path = "../integrations/mars-adapter", default-features = false }
-abstract-osmosis-adapter = { path = "../integrations/osmosis-adapter", default-features = false }
-abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }
+abstract-astroport-adapter   = { path = "../integrations/astroport-adapter", default-features = false }
+abstract-astrovault-adapter  = { path = "../integrations/astrovault-adapter", default-features = false }
+abstract-kujira-adapter      = { path = "../integrations/kujira-adapter", default-features = false }
+abstract-mars-adapter        = { path = "../integrations/mars-adapter", default-features = false }
 abstract-neutron-dex-adapter = { path = "../integrations/neutron-dex-adapter", default-features = false }
+abstract-osmosis-adapter     = { path = "../integrations/osmosis-adapter", default-features = false }
+abstract-wyndex-adapter      = { path = "../integrations/wyndex-adapter", default-features = false }
 
 mockdex-bundle = { path = "../integrations/bundles/mockdex" }
 
 ## Modules
-abstract-cw-staking = { path = "./contracts/adapters/cw-staking", default-features = false }
+abstract-cw-staking  = { path = "./contracts/adapters/cw-staking", default-features = false }
 abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = false }
-challenge-app = { path = "./contracts/apps/challenge", default-features = false }
-croncat-app = { path = "./contracts/apps/croncat", default-features = false }
-dca-app = { path = "./contracts/apps/dca", default-features = false }
+challenge-app        = { path = "./contracts/apps/challenge", default-features = false }
+croncat-app          = { path = "./contracts/apps/croncat", default-features = false }
+dca-app              = { path = "./contracts/apps/dca", default-features = false }
 
 ## Testing
 anyhow = "1"
@@ -94,33 +90,28 @@ rstest = "0.17.0"
 
 # this ensures local compatability when compiling locally
 [patch.crates-io]
-abstract-adapter = { path = "../framework/packages/abstract-adapter" }
-abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
-abstract-app = { path = "../framework/packages/abstract-app" }
-abstract-client = { path = "../framework/packages/abstract-client" }
-abstract-dex-standard = { path = "../framework/packages/standards/dex" }
-abstract-interface = { path = "../framework/packages/abstract-interface" }
-abstract-macros = { path = "../framework/packages/abstract-macros" }
+abstract-adapter               = { path = "../framework/packages/abstract-adapter" }
+abstract-adapter-utils         = { path = "../framework/packages/standards/utils" }
+abstract-app                   = { path = "../framework/packages/abstract-app" }
+abstract-client                = { path = "../framework/packages/abstract-client" }
+abstract-dex-standard          = { path = "../framework/packages/standards/dex" }
+abstract-interface             = { path = "../framework/packages/abstract-interface" }
+abstract-macros                = { path = "../framework/packages/abstract-macros" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
-abstract-sdk = { path = "../framework/packages/abstract-sdk" }
-abstract-staking-standard = { path = "../framework/packages/standards/staking" }
-abstract-standalone = { path = "../framework/packages/abstract-standalone" }
-abstract-std = { path = "../framework/packages/abstract-std" }
-abstract-testing = { path = "../framework/packages/abstract-testing" }
-
-# In case polytone not released
-# abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
+abstract-sdk                   = { path = "../framework/packages/abstract-sdk" }
+abstract-staking-standard      = { path = "../framework/packages/standards/staking" }
+abstract-standalone            = { path = "../framework/packages/abstract-standalone" }
+abstract-std                   = { path = "../framework/packages/abstract-std" }
+abstract-testing               = { path = "../framework/packages/abstract-testing" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
-codegen-units = 1
-debug = false
+codegen-units    = 1
+debug            = false
 debug-assertions = false
-incremental = false
-lto = true
-opt-level = 3
-overflow-checks = true
-panic = 'abort'
-rpath = false
+incremental      = false
+lto              = true
+opt-level        = 3
+overflow-checks  = true
+panic            = 'abort'
+rpath            = false
