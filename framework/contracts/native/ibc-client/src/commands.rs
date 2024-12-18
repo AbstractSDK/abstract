@@ -164,7 +164,7 @@ pub fn execute_send_packet(
 
     let note_message = match &action {
         HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
-            // Verify that the sender is a account contract
+            // Verify that the sender is an account contract
             let account = registry.assert_account(&info.sender, &deps.querier)?;
 
             // get account_id
@@ -345,7 +345,7 @@ pub fn execute_register_account(
 
     let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
-    // Verify that the sender is a account contract
+    // Verify that the sender is an account contract
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
     // get account_id
@@ -393,7 +393,7 @@ pub fn execute_send_funds(
 
     let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
     let ans = AnsHost::new(deps.as_ref(), abstract_code_id)?;
-    // Verify that the sender is a account contract
+    // Verify that the sender is an account contract
 
     let account = registry.assert_account(&info.sender, &deps.querier)?;
 
@@ -443,7 +443,7 @@ pub(crate) fn execute_send_funds_with_actions(
     let coin = cw_utils::one_coin(&info)?;
 
     let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
-    // Verify that the sender is a account contract
+    // Verify that the sender is an account contract
     let abstract_code_id =
         native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
     let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
