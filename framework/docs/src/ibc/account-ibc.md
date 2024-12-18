@@ -75,7 +75,7 @@ Remember that this step is optional as accounts are created automatically when s
 
 ### Account ID structure
 
-The remote Interchain Abstract Account will have the same account sequence but will have a different trace. Let's take an example. A account on `Neutron` with account sequence `42` wants to create accounts on `Osmosis` and `Stargaze`.
+The remote Interchain Abstract Account will have the same account sequence but will have a different trace. Let's take an example. An account on `Neutron` with account sequence `42` wants to create accounts on `Osmosis` and `Stargaze`.
 
 - Their account ID on `Neutron` is `local-42`.
 - Their account ID on `Osmosis` is `neutron-42`.
