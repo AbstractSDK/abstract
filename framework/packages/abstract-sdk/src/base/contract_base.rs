@@ -37,7 +37,7 @@ pub type IbcCallbackHandlerFn<Module, Error> =
 // ANCHOR_END: ibc
 
 // ANCHOR: module_ibc
-/// Function signature for an Module to Module IBC handler.
+/// Function signature for a Module to Module IBC handler.
 pub type ModuleIbcHandlerFn<Module, Error> =
     fn(DepsMut, Env, Module, ModuleIbcInfo, Binary) -> Result<Response, Error>;
 // ANCHOR_END: module_ibc

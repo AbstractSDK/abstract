@@ -75,7 +75,7 @@ Remember that this step is optional as accounts are created automatically when s
 
 ### Account ID structure
 
-The remote Interchain Abstract Account will have the same account sequence but will have a different trace. Let's take an example. A account on `Neutron` with account sequence `42` wants to create accounts on `Osmosis` and `Stargaze`.
+The remote Interchain Abstract Account will have the same account sequence but will have a different trace. Let's take an example. An account on `Neutron` with account sequence `42` wants to create accounts on `Osmosis` and `Stargaze`.
 
 - Their account ID on `Neutron` is `local-42`.
 - Their account ID on `Osmosis` is `neutron-42`.
@@ -181,7 +181,7 @@ Interchain Abstract Accounts are traditional Abstract Accounts controlled by the
 
 When an action is triggered by a remote account, the `ibc-host` does the following verifications:
 
-- If an local account already exists on-chain for the remote account, it just dispatches the message to the account.
+- If a local account already exists on-chain for the remote account, it just dispatches the message to the account.
 - If no account exists, it creates one with default metadata and THEN dispatches the messages to this new account.
 
 The Account creation process is therefore not mandatory when interacting with Interchain Abstract Accounts. This is why when you create an Abstract Account, you automatically have an account on every connected chains!
