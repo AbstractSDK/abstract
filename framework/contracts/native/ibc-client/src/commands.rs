@@ -71,7 +71,7 @@ pub fn execute_register_infrastructure(
     REVERSE_POLYTONE_NOTE.save(deps.storage, &note, &host_chain)?;
 
     // When registering a new chain host, we need to get the remote proxy address of the local note.
-    // We do so by calling an empty message on the polytone note. This will come back in form of a execute by callback
+    // We do so by calling an empty message on the polytone note. This will come back in form of an execute by callback
 
     let note_proxy_msg = wasm_execute(
         note,
