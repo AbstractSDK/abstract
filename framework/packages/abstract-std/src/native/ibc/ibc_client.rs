@@ -118,7 +118,7 @@ pub enum ExecuteMsg {
     },
     /// Only callable by Account
     /// Register an Account on a remote chain over IBC
-    /// This action creates a account for them on the remote chain.
+    /// This action creates an account for them on the remote chain.
     Register {
         /// host chain to be executed on
         /// Example: "osmosis"
