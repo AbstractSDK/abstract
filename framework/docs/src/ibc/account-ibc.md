@@ -181,7 +181,7 @@ Interchain Abstract Accounts are traditional Abstract Accounts controlled by the
 
 When an action is triggered by a remote account, the `ibc-host` does the following verifications:
 
-- If an local account already exists on-chain for the remote account, it just dispatches the message to the account.
+- If a local account already exists on-chain for the remote account, it just dispatches the message to the account.
 - If no account exists, it creates one with default metadata and THEN dispatches the messages to this new account.
 
 The Account creation process is therefore not mandatory when interacting with Interchain Abstract Accounts. This is why when you create an Abstract Account, you automatically have an account on every connected chains!
