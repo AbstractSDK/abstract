@@ -21,4 +21,7 @@ pub enum MyStandaloneError {
 
     #[error(transparent)]
     Admin(#[from] AdminError),
+
+    #[error("channel sequence number overflow, to fix: the contract admin may migrate to close and reopen the channel")]
+    SequenceOverflow,
 }

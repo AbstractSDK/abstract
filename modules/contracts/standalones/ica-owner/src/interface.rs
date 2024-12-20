@@ -85,7 +85,7 @@ pub mod ica_controller {
         fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
             // https://github.com/srdtrk/cw-ica-controller/releases/download/v0.5.0/cw_ica_controller.wasm
             let wasm_name = "cw_ica_controller.wasm";
-            cw_orch::prelude::ArtifactsDir::new("resources/")
+            cw_orch::prelude::ArtifactsDir::env()
                 .find_wasm_path(wasm_name)
                 .unwrap()
         }

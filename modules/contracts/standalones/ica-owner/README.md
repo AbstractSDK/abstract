@@ -61,3 +61,24 @@ Delete Infrastructure:
 ```bash
     make delete
 ```
+
+# Creating Connections using Hermes Relayer.
+
+## Add the chain configurations
+
+```bash
+hermes config auto --output ~/.hermes/config.toml --chain 'testnets/archwaytestnet'  --chain 'testnets/dydxtestnet' 
+```
+
+## Add the keys
+
+```bash
+hermes keys add --chain "constantine-3" --mnemonic-file MNEMONIC_FILE
+```
+
+## Create the connection
+```bash
+hermes create connection --a-chain "constantine-3" --b-chain dydx-testnet-4
+```
+
+And note the result. 

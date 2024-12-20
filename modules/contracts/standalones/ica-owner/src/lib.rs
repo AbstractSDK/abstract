@@ -11,7 +11,7 @@ pub use error::MyStandaloneError;
 pub const STANDALONE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub const MY_NAMESPACE: &str = "yournamespace";
-pub const MY_STANDALONE_NAME: &str = "my-standalone";
+pub const MY_STANDALONE_NAME: &str = "ica-owner";
 pub const MY_STANDALONE_ID: &str = const_format::formatcp!("{MY_NAMESPACE}:{MY_STANDALONE_NAME}");
 
 /// The type of the result returned by your standalone's entry points.

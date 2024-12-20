@@ -63,8 +63,8 @@ impl<Env: CwEnv> TestEnv<Env> {
 
         let namespace = Namespace::new(MY_NAMESPACE)?;
 
-        let abs_src = AbstractClient::builder(src_env).build(src_env.sender().clone())?;
-        let abs_dst = AbstractClient::builder(dst_env).build(dst_env.sender().clone())?;
+        let abs_src = AbstractClient::builder(src_env).build()?;
+        let abs_dst = AbstractClient::builder(dst_env).build()?;
 
         // Publish the standalone
         let publisher = abs_src.publisher_builder(namespace).build()?;
@@ -150,7 +150,7 @@ fn test_bank_send() -> anyhow::Result<()> {
 
     let _ = daemon_interchain.check_ibc(
         "juno-1",
-        test_env.standalone.send_action(
+        test_env.standalone.ica_execute(
             current_ica_account_id,
             cosmwasm_std::CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
                 to_address: receiving_addr.to_string(),
@@ -194,7 +194,7 @@ fn test_bank_send() -> anyhow::Result<()> {
 
     let _ = daemon_interchain.check_ibc(
         "juno-1",
-        test_env.standalone.send_action(
+        test_env.standalone.ica_execute(
             current_ica_account_id,
             cosmwasm_std::CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
                 to_address: receiving_addr.to_string(),

@@ -1,5 +1,5 @@
 use cosmwasm_schema::{remove_schemas, write_api};
-use my_standalone::msg::{
+use ica_owner::msg::{
     MyStandaloneExecuteMsg, MyStandaloneInstantiateMsg, MyStandaloneMigrateMsg,
     MyStandaloneQueryMsg,
 };
@@ -12,11 +12,11 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
-    write_api! {
-        name: "schema",
-        instantiate: MyStandaloneInstantiateMsg,
-        query: MyStandaloneQueryMsg,
-        execute: MyStandaloneExecuteMsg,
-        migrate: MyStandaloneMigrateMsg,
-    };
+    // write_api! {
+    //     name: "schema",
+    //     instantiate: MyStandaloneInstantiateMsg,
+    //     query: MyStandaloneQueryMsg,
+    //     execute: MyStandaloneExecuteMsg,
+    //     migrate: MyStandaloneMigrateMsg,
+    // };
 }

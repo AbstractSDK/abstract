@@ -1,7 +1,5 @@
 use abstract_standalone::sdk::AbstractResponse;
-use cosmwasm_std::{
-    to_json_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, StdResult,
-};
+use cosmwasm_std::{Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryRequest, Reply, StdResult, to_json_binary};
 use cw_ica_controller::{
     helpers::{CwIcaControllerCode, CwIcaControllerContract},
     types::{
@@ -16,11 +14,13 @@ use crate::{
         ConfigResponse, ICACountResponse, MyStandaloneExecuteMsg, MyStandaloneInstantiateMsg,
         MyStandaloneMigrateMsg, MyStandaloneQueryMsg,
     },
-    state::{
-        Config, IcaContractState, IcaState, CONFIG, CONTRACT_ADDR_TO_ICA_ID, ICA_COUNT, ICA_STATES,
+    MY_STANDALONE,
+    MyStandalone, MyStandaloneResult, state::{
+        Config, CONFIG, CONTRACT_ADDR_TO_ICA_ID, ICA_COUNT, ICA_STATES, IcaContractState, IcaState,
     },
-    MyStandalone, MyStandaloneResult, MY_STANDALONE,
 };
+use crate::msg::PacketStateResponse;
+use crate::state::{EXECUTE_RECEIPTS, increment_sequence_number, QUERY_RECEIPTS};
 
 const INSTANTIATE_REPLY_ID: u64 = 0;
 
@@ -57,11 +57,14 @@ pub fn execute(
             salt,
             channel_open_init_options,
         } => create_ica_contract(deps, env, info, standalone, salt, channel_open_init_options),
+        MyStandaloneExecuteMsg::Execute { ica_id, msgs } => {
+            send_action(deps, env, info, standalone, ica_id, msgs)
+        }
+        MyStandaloneExecuteMsg::Query { ica_id, msgs } => {
+            send_queries(deps, env, info, standalone, ica_id, msgs)
+        }
         MyStandaloneExecuteMsg::ReceiveIcaCallback(callback_msg) => {
             ica_callback(deps, info, standalone, callback_msg)
-        }
-        MyStandaloneExecuteMsg::SendAction { ica_id, msg } => {
-            send_action(deps, env, info, standalone, ica_id, msg)
         }
     }
 }
@@ -125,26 +128,43 @@ pub fn ica_callback(
     let ica_id = CONTRACT_ADDR_TO_ICA_ID.load(deps.storage, info.sender)?;
     let mut ica_state = ICA_STATES.load(deps.storage, ica_id)?;
 
-    if let IcaControllerCallbackMsg::OnChannelOpenAckCallback {
-        channel,
-        ica_address,
-        tx_encoding,
-    } = callback_msg
-    {
-        ica_state.ica_state = Some(IcaState {
-            ica_id,
-            channel_state: ChannelState {
-                channel,
-                channel_status: ChannelStatus::Open,
-            },
-            ica_addr: ica_address,
-            tx_encoding,
-        });
+    let mut response = standalone.response("ica_callback");
 
-        ICA_STATES.save(deps.storage, ica_id, &ica_state)?;
+    match callback_msg {
+        IcaControllerCallbackMsg::OnChannelOpenAckCallback {
+            channel,
+            ica_address,
+            tx_encoding,
+        } =>
+            {
+                ica_state.ica_state = Some(IcaState {
+                    ica_id,
+                    channel_state: ChannelState {
+                        channel,
+                        channel_status: ChannelStatus::Open,
+                    },
+                    ica_addr: ica_address,
+                    tx_encoding,
+                });
+
+                ICA_STATES.save(deps.storage, ica_id, &ica_state)?;
+            }
+        IcaControllerCallbackMsg::OnAcknowledgementPacketCallback {
+            ica_acknowledgement, original_packet, query_result, ..
+        } => {
+            EXECUTE_RECEIPTS.save(deps.storage, (ica_id, original_packet.sequence), &ica_acknowledgement)?;
+            if let Some(query_result) = query_result {
+                // Save the query result
+                QUERY_RECEIPTS.save(deps.storage, (ica_id, original_packet.sequence), &query_result)?;
+            }
+
+            response = response.add_attribute("sequence", original_packet.sequence.to_string());
+        }
+        // Do nothing
+        _ => ()
     }
 
-    Ok(standalone.response("ica_callback"))
+    Ok(response)
 }
 
 /// Sends a predefined action to the ICA host.
@@ -154,7 +174,7 @@ pub fn send_action(
     info: MessageInfo,
     standalone: MyStandalone,
     ica_id: u64,
-    msg: CosmosMsg,
+    msgs: Vec<CosmosMsg>,
 ) -> MyStandaloneResult {
     standalone
         .admin
@@ -165,15 +185,46 @@ pub fn send_action(
     let cw_ica_contract = CwIcaControllerContract::new(Addr::unchecked(ica_state.contract_addr));
 
     let ica_controller_msg = cw_ica_controller::types::msg::ExecuteMsg::SendCosmosMsgs {
-        messages: vec![msg],
+        messages: msgs,
         queries: vec![],
         packet_memo: Some("aloha".to_string()),
         timeout_seconds: None,
     };
 
     let msg = cw_ica_contract.execute(ica_controller_msg)?;
+    let sequence = increment_sequence_number(deps.storage, ica_id)?;
 
-    Ok(standalone.response("send_action").add_message(msg))
+    Ok(standalone.response("send_action").add_message(msg).add_attribute("sequence", sequence.to_string()))
+}
+
+/// Sends a predefined action to the ICA host.
+pub fn send_queries(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    standalone: MyStandalone,
+    ica_id: u64,
+    queries: Vec<QueryRequest>,
+) -> MyStandaloneResult {
+    standalone
+        .admin
+        .assert_admin(deps.as_ref(), &env, &info.sender)?;
+
+    let ica_state = ICA_STATES.load(deps.storage, ica_id)?;
+    let cw_ica_contract = CwIcaControllerContract::new(Addr::unchecked(ica_state.contract_addr));
+
+    let ica_controller_msg = cw_ica_controller::types::msg::ExecuteMsg::SendCosmosMsgs {
+        messages: vec![],
+        queries,
+        packet_memo: Some("queries".to_string()),
+        timeout_seconds: None,
+    };
+
+    let msg = cw_ica_contract.execute(ica_controller_msg)?;
+
+    let sequence = increment_sequence_number(deps.storage, ica_id)?;
+
+    Ok(standalone.response("send_action").add_message(msg).add_attribute("sequence", sequence.to_string()))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -185,6 +236,7 @@ pub fn query(deps: Deps, _env: Env, msg: MyStandaloneQueryMsg) -> StdResult<Bina
         MyStandaloneQueryMsg::IcaContractState { ica_id } => {
             to_json_binary(&ica_state(deps, ica_id)?)
         }
+        MyStandaloneQueryMsg::PacketState { ica_id, sequence } => to_json_binary(&query_packet_state(deps, ica_id, sequence)?)
     }
 }
 
@@ -203,6 +255,15 @@ pub fn ica_state(deps: Deps, ica_id: u64) -> StdResult<IcaContractState> {
 fn query_ica_count(deps: Deps) -> StdResult<ICACountResponse> {
     let count = ICA_COUNT.load(deps.storage)?;
     Ok(ICACountResponse { count })
+}
+
+fn query_packet_state(deps: Deps, ica_id: u64, sequence: u64) -> StdResult<PacketStateResponse> {
+    let ack_data = EXECUTE_RECEIPTS.may_load(deps.storage, (ica_id, sequence))?;
+    let query_result = QUERY_RECEIPTS.may_load(deps.storage, (ica_id, sequence))?;
+    Ok(PacketStateResponse {
+        ack_data,
+        query_result,
+    })
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]

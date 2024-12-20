@@ -1,9 +1,11 @@
 use abstract_standalone::std::standalone;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::CosmosMsg;
+use cosmwasm_std::{CosmosMsg, QueryRequest};
 use cw_ica_controller::{
     helpers::ica_callback_execute, types::msg::options::ChannelOpenInitOptions,
 };
+use cw_ica_controller::ibc::types::packet::acknowledgement::Data;
+use cw_ica_controller::types::query_msg::IcaQueryResult;
 
 /// Standalone instantiate message
 #[cosmwasm_schema::cw_serde]
@@ -23,11 +25,19 @@ pub enum MyStandaloneExecuteMsg {
         salt: Option<String>,
         channel_open_init_options: ChannelOpenInitOptions,
     },
-    SendAction {
+    #[cw_orch(fn_name("ica_execute"))]
+    Execute {
         /// The ICA ID.
         ica_id: u64,
         /// Message to the ICA
-        msg: CosmosMsg,
+        msgs: Vec<CosmosMsg>,
+    },
+    #[cw_orch(fn_name("ica_query"))]
+    Query {
+        /// The ICA ID.
+        ica_id: u64,
+        /// Message to the ICA
+        msgs: Vec<QueryRequest>,
     },
 }
 
@@ -43,6 +53,8 @@ pub enum MyStandaloneQueryMsg {
     /// IcaState returns the ICA state for the given ICA ID.
     #[returns(crate::state::IcaContractState)]
     IcaContractState { ica_id: u64 },
+    #[returns(PacketStateResponse)]
+    PacketState { ica_id: u64, sequence: u64 },
     #[returns(ICACountResponse)]
     ICACount {},
 }
@@ -56,4 +68,10 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ICACountResponse {
     pub count: u64,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct PacketStateResponse {
+    pub ack_data: Option<Data>,
+    pub query_result: Option<IcaQueryResult>,
 }

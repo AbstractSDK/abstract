@@ -7,13 +7,13 @@
 //! ```bash
 //! $ just publish uni-6 osmo-test-5
 //! ```
-use my_standalone::MY_STANDALONE_ID;
+use ica_owner::MY_STANDALONE_ID;
 
 use abstract_client::{AbstractClient, Publisher};
 use abstract_standalone::objects::namespace::Namespace;
 use clap::Parser;
 use cw_orch::{anyhow, daemon::networks::parse_network, prelude::*, tokio::runtime::Runtime};
-use my_standalone::MyStandaloneInterface;
+use ica_owner::MyStandaloneInterface;
 
 fn publish(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
