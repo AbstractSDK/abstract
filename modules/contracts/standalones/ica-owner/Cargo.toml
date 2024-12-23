@@ -33,7 +33,7 @@ name = "live"
 test = false
 
 [features]
-interchain-daemon-bin = ["daemon-bin", "dep:cw-orch-interchain", "anybuf", "cosmos-sdk-proto"]
+interchain-daemon-bin = ["daemon-bin", "dep:cw-orch-interchain", "anybuf", "cosmos-sdk-proto", "dydx-proto"]
 daemon-bin = ["cw-orch/daemon", "dep:clap", "dep:abstract-client", "dep:dotenv", "dep:env_logger", "abstract-interface/daemon"]
 default    = ["export"]
 export     = []
@@ -69,6 +69,7 @@ cw-orch-interchain  = { workspace = true, features = ["daemon"], optional = true
 
 anybuf = { version = "0.5.2", optional = true }
 cosmos-sdk-proto = { version = "0.24.0", optional = true }
+dydx-proto = { version = "0.2.0", optional = true }
 
 [dev-dependencies]
 abstract-client     = { workspace = true }

@@ -71,7 +71,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let sender_addr = chain.sender_addr();
         let admin = sender_addr.to_string();
         // upload
-        let deployment = Self::store_on(chain.clone())?;
+        let deployment = Self::load_from(chain.clone())?;
         let blob_code_id = deployment.blob.code_id()?;
 
         let creator_account_id: cosmrs::AccountId = admin.as_str().parse().unwrap();
@@ -80,50 +80,49 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let expected_addr = |salt: &[u8]| -> Result<CanonicalAddr, Instantiate2AddressError> {
             instantiate2_address(&cw_blob::CHECKSUM, &canon_creator, salt)
         };
-
-        deployment.ans_host.deterministic_instantiate(
-            &abstract_std::ans_host::MigrateMsg::Instantiate(
-                abstract_std::ans_host::InstantiateMsg {
-                    admin: admin.to_string(),
-                },
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::ANS_HOST_SALT)?,
-            Binary::from(native_addrs::ANS_HOST_SALT),
-        )?;
-
-        deployment.registry.deterministic_instantiate(
-            &abstract_std::registry::MigrateMsg::Instantiate(
-                abstract_std::registry::InstantiateMsg {
-                    admin: admin.to_string(),
-                    #[cfg(feature = "testing")]
-                    security_enabled: Some(false),
-                    #[cfg(not(feature = "testing"))]
-                    security_enabled: Some(true),
-                    namespace_registration_fee: None,
-                },
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::REGISTRY_SALT)?,
-            Binary::from(native_addrs::REGISTRY_SALT),
-        )?;
-        deployment.module_factory.deterministic_instantiate(
-            &abstract_std::module_factory::MigrateMsg::Instantiate(
-                abstract_std::module_factory::InstantiateMsg {
-                    admin: admin.to_string(),
-                },
-            ),
-            blob_code_id,
-            expected_addr(native_addrs::MODULE_FACTORY_SALT)?,
-            Binary::from(native_addrs::MODULE_FACTORY_SALT),
-        )?;
+        //
+        // deployment.ans_host.deterministic_instantiate(
+        //     &abstract_std::ans_host::MigrateMsg::Instantiate(
+        //         abstract_std::ans_host::InstantiateMsg {
+        //             admin: admin.to_string(),
+        //         },
+        //     ),
+        //     blob_code_id,
+        //     expected_addr(native_addrs::ANS_HOST_SALT)?,
+        //     Binary::from(native_addrs::ANS_HOST_SALT),
+        // )?;
+        //
+        // deployment.registry.deterministic_instantiate(
+        //     &abstract_std::registry::MigrateMsg::Instantiate(
+        //         abstract_std::registry::InstantiateMsg {
+        //             admin: admin.to_string(),
+        //             #[cfg(feature = "testing")]
+        //             security_enabled: Some(false),
+        //             #[cfg(not(feature = "testing"))]
+        //             security_enabled: Some(false),
+        //             namespace_registration_fee: None,
+        //         },
+        //     ),
+        //     blob_code_id,
+        //     expected_addr(native_addrs::REGISTRY_SALT)?,
+        //     Binary::from(native_addrs::REGISTRY_SALT),
+        // )?;
+        // deployment.module_factory.deterministic_instantiate(
+        //     &abstract_std::module_factory::MigrateMsg::Instantiate(
+        //         abstract_std::module_factory::InstantiateMsg {
+        //             admin: admin.to_string(),
+        //         },
+        //     ),
+        //     blob_code_id,
+        //     expected_addr(native_addrs::MODULE_FACTORY_SALT)?,
+        //     Binary::from(native_addrs::MODULE_FACTORY_SALT),
+        // )?;
 
         // We also instantiate ibc contracts
-        deployment
-            .ibc
-            .instantiate(&Addr::unchecked(admin.clone()))?;
-        deployment.ibc.register(&deployment.registry)?;
-
+        // deployment
+        //     .ibc
+        //     .instantiate(&Addr::unchecked(admin.clone()))?;
+        // // deployment.ibc.register(&deployment.registry)?;
         deployment.registry.register_base(&deployment.account)?;
         deployment
             .registry
@@ -218,14 +217,14 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 self.module_factory.as_instance(),
                 module_factory::contract::CONTRACT_VERSION.to_string(),
             ),
-            (
-                self.ibc.client.as_instance(),
-                ibc_client::contract::CONTRACT_VERSION.to_string(),
-            ),
-            (
-                self.ibc.host.as_instance(),
-                ibc_host::contract::CONTRACT_VERSION.to_string(),
-            ),
+            // (
+            //     self.ibc.client.as_instance(),
+            //     ibc_client::contract::CONTRACT_VERSION.to_string(),
+            // ),
+            // (
+            //     self.ibc.host.as_instance(),
+            //     ibc_host::contract::CONTRACT_VERSION.to_string(),
+            // ),
         ]
     }
 

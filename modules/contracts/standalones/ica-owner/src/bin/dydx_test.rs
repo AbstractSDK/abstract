@@ -19,6 +19,7 @@ use cw_orch::daemon::TxSender;
 use cw_orch::environment::{ChainKind, NetworkInfo};
 use cw_orch::mock::cw_multi_test::IntoAddr;
 use cw_orch_interchain::prelude::*;
+use dydx_proto::cosmos_sdk_proto::traits::{MessageExt, Message, Name};
 
 #[allow(unused)]
 struct TestEnv<Env: CwEnv> {
@@ -108,9 +109,9 @@ impl<Env: CwEnv> TestEnv<Env> {
 const DYDX_TESTNET_4: ChainInfo = ChainInfo {
     kind: ChainKind::Testnet,
     chain_id: "dydx-testnet-4",
-    gas_denom: "udydx",
+    gas_denom: "adv4tnt",
     gas_price: 0.025,
-    grpc_urls: &["http://dydx-testnet-grpc.polkachu.com:23890"],
+    grpc_urls: &["https://test-dydx-grpc.kingnodes.com:443", "http://dydx-testnet-grpc.polkachu.com:23890"],
     network_info: NetworkInfo {
         chain_name: "dydx",
         pub_address_prefix: "dydx",
@@ -181,7 +182,7 @@ fn test_bank_send() -> anyhow::Result<()> {
 
     let ica_count = test_env.standalone.ica_count()?.count;
 
-    if ica_count == 0 {
+    if ica_count == 1 {
         let creation = daemon_interchain.await_and_check_packets(
             src_chain.chain_id,
             test_env.standalone.create_ica_contract(
@@ -226,9 +227,9 @@ fn test_bank_send() -> anyhow::Result<()> {
     // let amount = coins(10_000, "uosmo");
     // RUNTIME.block_on(osmosis.wallet().bank_send(&ica_addr, amount.clone()))?;
 
-    println!("Sending 5 adv4tnt from {} to {}", dst.sender().address(), ica_addr);
+    println!("Sending 5 {} from {} to {}", dst_chain.gas_denom, dst.sender().address(), ica_addr);
     // TODO: for some reason this don't work because the sender seems to take the wrong bech32 prefix (codespace sdk code 35: internal logic error: hrp does not match bech32 prefix: expected 'dydx' got 'cosmwasm')
-    // RUNTIME.block_on(dst.sender().bank_send(&ica_addr.into_addr(), coins(5, "adv4tnt")))?;
+    // RUNTIME.block_on(dst.sender().bank_send(&ica_addr.into_addr(), coins(5, dst_chain.gas_denom)))?;
 
     // TODO: bank send from wallet to ICA if not already there to test delegate
 
@@ -237,99 +238,94 @@ fn test_bank_send() -> anyhow::Result<()> {
         test_env.standalone.ica_execute(
             current_ica_account_id,
             vec![cosmwasm_std::CosmosMsg::Staking(StakingMsg::Delegate {
-                amount: coin(5, "adv4tnt"),
-                validator: "dydxvaloper1ldal0sqjf80lcepacdmgtgycunaxn9axt6l87w".to_string(),
+                amount: coin(10, dst_chain.gas_denom),
+                // Arbitrary validator
+                validator: "dydxvaloper1vhj8v39z46e0euew3ntqzftx48lca6y7kfl80g".to_string(),
             })],
         )?,
     )?);
 
-    println!("Test: {:?}", staking_test);
-
-
-    // nEeed to deposit to sub-account, though don't have testnet USDC
+    // Need to deposit to sub-account, though don't have testnet USDC
     // MsgDepositToSubaccount
 
+    // We withdraw from subaccount (frontend) first
+    // https://www.mintscan.io/dydx-testnet/tx/215EAE37ED4D73881A1C6054575A8FFF5686549A0315D4C7E662CA544C719B1A?height=27830625
 
-    /*
-    {
-  "@type": "/dydxprotocol.vault.MsgDepositToMegavault",
-  "subaccount_id": {
-    "owner": "dydx1cz7y59k4jfdudjnpm7jynp3dkxqtejkfzmpc4f",
-    "number": 0
-  },
-  "quote_quantums": "5000000"
-}
 
-export function calculateVaultQuantums(size: number): bigint {
-  return BigInt(BigNumber(size).times(1_000_000).toFixed(0, BigNumber.ROUND_FLOOR));
-}
-bigIntToBytes(calculateVaultQuantums(amountUsdc)),
-     */
-    let test = daemon_interchain.await_and_check_packets(
+    let dst_bank  = dst.bank_querier();
+    let ica_balance = RUNTIME.block_on(dst_bank._spendable_balances(&Addr::unchecked(ica_addr.clone())))?;
+    println!("ICA balance: {:?}", ica_balance);
+    let sub_account_test = daemon_interchain.await_and_check_packets(
         src_chain.chain_id,
         test_env.standalone.ica_execute(
             current_ica_account_id,
-            vec![cosmwasm_std::CosmosMsg::Stargate {
-                type_url: "/dydxprotocol.vault.MsgDepositToMegavault".to_string(),
-                value: cosmwasm_std::Binary::new(Anybuf::new()
-                    .append_bytes(1, Anybuf::new()
-                        .append_string(1, ica_addr) // owner
-                        .append_uint32(2, 0) // number
-                        .into_vec()
-                    )
-                    // https://github.com/dydxprotocol/v4-clients/blob/aa0d95d298b2b202c4fe8a8160dd8f1b63b8f009/dydxjs/packages/dydxjs/src/dydxprotocol/vault/tx.ts#L180C39-L180C52
-                    .append_bytes(2, (0u128 * 1_000_000).to_be_bytes()).into_vec()) //
-            }],
+            #[allow(deprecated)]
+            vec![
+                cosmwasm_std::CosmosMsg::Stargate {
+                    type_url: dydx_proto::dydxprotocol::sending::MsgCreateTransfer::type_url(),
+                    value: dydx_proto::dydxprotocol::sending::MsgCreateTransfer {
+                        transfer: Some(dydx_proto::dydxprotocol::sending::Transfer {
+                            sender: None,
+                            recipient: Some(dydx_proto::dydxprotocol::subaccounts::SubaccountId {
+                                owner: ica_addr.to_string(),
+                                number: 0
+                            }),
+                            asset_id: 0,
+                            amount: 69,
+                        })
+                }.encode_to_vec().into()
+            },
+                cosmwasm_std::CosmosMsg::Stargate {
+                type_url: dydx_proto::dydxprotocol::sending::MsgDepositToSubaccount::type_url(),
+                value: dydx_proto::dydxprotocol::sending::MsgDepositToSubaccount {
+                    sender: ica_addr.to_string(),
+                    recipient: Some(dydx_proto::dydxprotocol::subaccounts::SubaccountId {
+                        owner: ica_addr.to_string(),
+                        number: 0
+                    }),
+                    asset_id: 0,
+                    quantums: 69,
+                }.encode_to_vec().into()
+            }
+            ],
         )?,
     )?;
 
 
+    /*
+    {
+      "@type": "/dydxprotocol.vault.MsgDepositToMegavault",
+      "subaccount_id": {
+        "owner": "dydx1cz7y59k4jfdudjnpm7jynp3dkxqtejkfzmpc4f",
+        "number": 0
+      },
+      "quote_quantums": "5000000"
+    }
+
+    export function calculateVaultQuantums(size: number): bigint {
+      return BigInt(BigNumber(size).times(1_000_000).toFixed(0, BigNumber.ROUND_FLOOR));
+    }
+    bigIntToBytes(calculateVaultQuantums(amountUsdc)),
+     */
+    let megavault_test = daemon_interchain.await_and_check_packets(
+        src_chain.chain_id,
+        test_env.standalone.ica_execute(
+            current_ica_account_id,
+            #[allow(deprecated)]
+            vec![cosmwasm_std::CosmosMsg::Stargate {
+                type_url: dydx_proto::dydxprotocol::vault::MsgDepositToMegavault::type_url(),
+                value: dydx_proto::dydxprotocol::vault::MsgDepositToMegavault {
+                    subaccount_id: Some(dydx_proto::dydxprotocol::subaccounts::SubaccountId {
+                        owner: ica_addr.to_string(),
+                        number: 0
+                    }),
+                    quote_quantums: 42_i32.to_be_bytes().to_vec(),
+                }.encode_to_vec().into()
+            }],
+        )?,
+    )?;
 
     // let dst_account_balance = osmosis.balance(receiving_addr.clone(), None)?;
-    // assert_eq!(dst_account_balance, amount);
-    //
-    // // It's possible to use control multiple ica with same ica controller
-    //
-    // let _ = daemon_interchain.check_ibc(
-    //     src_chain.chain_id,
-    //     test_env.standalone.create_ica_contract(
-    //         ChannelOpenInitOptions {
-    //             connection_id: ibc_path.chain_1.connection_id.to_string(),
-    //             counterparty_connection_id: ibc_path.chain_2.connection_id.to_string(),
-    //             counterparty_port_id: None,
-    //             channel_ordering: Some(cosmwasm_std::IbcOrder::Ordered),
-    //         },
-    //         None,
-    //     )?,
-    // )?;
-    //
-    // current_ica_account_id += 1;
-    //
-    // // Waiting for channel to open, cw-orch not capable of waiting channel open
-    // std::thread::sleep(Duration::from_secs(15));
-    //
-    // let state = test_env
-    //     .standalone
-    //     .ica_contract_state(current_ica_account_id)?;
-    // let ica_addr = state.ica_state.unwrap().ica_addr;
-    //
-    // // Send 15_000 uosmo from ICA to some address
-    // let receiving_addr = test_env.abs_dst.name_service().addr_str()?;
-    // let amount = coins(15_000, "uosmo");
-    // RUNTIME.block_on(osmosis.wallet().bank_send(&ica_addr, amount.clone()))?;
-    //
-    // let _ = daemon_interchain.check_ibc(
-    //     src_chain.chain_id,
-    //     test_env.standalone.ica_execute(
-    //         current_ica_account_id,
-    //         cosmwasm_std::CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
-    //             to_address: receiving_addr.to_string(),
-    //             amount: amount.clone(),
-    //         }),
-    //     )?,
-    // )?;
-    //
-    // let dst_account_balance = osmosis.balance(receiving_addr, None)?;
     // assert_eq!(dst_account_balance, amount);
 
     Ok(())
