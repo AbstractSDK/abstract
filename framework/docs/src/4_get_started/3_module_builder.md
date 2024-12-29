@@ -202,7 +202,7 @@ The content of the `Module` variant is passed to your custom execute handler.
 
 ### Query
 
-The query entry point is the non-mutable entry point of the contract. Like its name implies it it used to retrieve data
+The query entry point is the non-mutable entry point of the contract. Like its name implies it is used to retrieve data
 from the contract's state. This state retrieval can have a computation component but it can not alter the contract's or
 any other state.
 

@@ -250,7 +250,7 @@ impl RegistryContract {
     }
 
     /// Get AccountId for given account address.
-    /// Also verifies that that address is indeed an account.
+    /// Also verifies that address is indeed an account.
     pub fn account_id(
         &self,
         maybe_account_addr: &Addr,
