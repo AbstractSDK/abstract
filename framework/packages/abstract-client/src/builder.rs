@@ -140,11 +140,21 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
 
     fn update_ans(&self, abstr: &Abstract<Chain>) -> AbstractClientResult<()> {
         let ans_host = &abstr.ans_host;
-        ans_host.update_dexes(self.dexes.clone(), vec![])?;
-        ans_host.update_contract_addresses(self.contracts.clone(), vec![])?;
-        ans_host.update_asset_addresses(self.assets.clone(), vec![])?;
-        ans_host.update_channels(self.channels.clone(), vec![])?;
-        ans_host.update_pools(self.pools.clone(), vec![])?;
+        if !self.dexes.is_empty() {
+            ans_host.update_dexes(self.dexes.clone(), vec![])?;
+        }
+        if !self.contracts.is_empty() {
+            ans_host.update_contract_addresses(self.contracts.clone(), vec![])?;
+        }
+        if !self.assets.is_empty() {
+            ans_host.update_asset_addresses(self.assets.clone(), vec![])?;
+        }
+        if !self.channels.is_empty() {
+            ans_host.update_channels(self.channels.clone(), vec![])?;
+        }
+        if !self.pools.is_empty() {
+            ans_host.update_pools(self.pools.clone(), vec![])?;
+        }
 
         Ok(())
     }
