@@ -81,7 +81,7 @@ abstract-cw-staking           = { path = "../modules/contracts/adapters/cw-staki
 abstract-dex-adapter          = { path = "../modules/contracts/adapters/dex" }
 abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market" }
 
-abstract-xion = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = ["library"], branch = "fix-for-abstract" }
+abstract-xion = { package = "xion-account", version = "0.1.0", features = ["library"] }
 
 ## Testing
 anyhow = "1"
