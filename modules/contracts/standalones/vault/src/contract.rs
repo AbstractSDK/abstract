@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use abstract_oracle_adapter::OracleInterface;
 use abstract_standalone::sdk::AbstractResponse;
-use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, StdResult};
+use cosmwasm_std::{
+    ensure, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, StdResult,
+};
 use cw_vault_standard::VaultStandardInfoResponse;
 
 use crate::{
@@ -74,20 +76,25 @@ fn deposit(
         .transpose()?
         .unwrap_or(info.sender.clone());
 
-    // Check every asset is whitelisted and get a price for denoms
-    let mut price_map = HashMap::new();
+    // Check every asset is whitelisted
+    // TODO: move price calculation somewhere else, we don't always rely on the oracle
+    // let mut price_map = HashMap::new();
     for coin in info.funds.iter() {
-        let denom = coin.denom.clone();
-        let price_source_key = config
-            .price_sources
-            .get(&denom)
-            .ok_or(MyStandaloneError::NotWhitelistedAsset(denom.clone()))?
-            .to_owned();
-        let price_response = module
-            .oracle(deps.as_ref(), ORACLE_NAME.to_owned())
-            .price(price_source_key, config.max_age)?;
+        ensure!(
+            config.denom_whitelist.contains(&coin.denom),
+            MyStandaloneError::NotWhitelistedAsset(coin.denom.clone())
+        );
+        //     let denom = coin.denom.clone();
+        //     let price_source_key = config
+        //         .price_sources
+        //         .get(&denom)
+        //         .ok_or(MyStandaloneError::NotWhitelistedAsset(denom.clone()))?
+        //         .to_owned();
+        //     let price_response = module
+        //         .oracle(deps.as_ref(), ORACLE_NAME.to_owned())
+        //         .price(price_source_key, config.max_age)?;
 
-        price_map.insert(denom, price_response.price);
+        //     price_map.insert(denom, price_response.price);
     }
     Ok(module.response("deposit"))
 }
