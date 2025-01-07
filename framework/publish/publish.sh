@@ -51,52 +51,52 @@ UTILS_PACKAGES="abstract-std abstract-testing abstract-sdk abstract-ica"
 NATIVE_CONTRACTS="ans-host module-factory registry ibc-host ibc-client ica-client"
 ACCOUNT_CONTRACT="account"
 
-#  for pack in $BASE_PACKAGES; do
-#    (
-#      cd "framework/packages/$pack"
-#      echo "Publishing base $pack"
-#     publish_crate
-#    )
-#  done
+ for pack in $BASE_PACKAGES; do
+   (
+     cd "framework/packages/$pack"
+     echo "Publishing base $pack"
+    publish_crate
+   )
+ done
 
-# for pack in $UTILS_PACKAGES; do
-#   (
-#     cd "framework/packages/$pack"
-#     echo "Publishing util $pack"
-#     publish_crate
-#   )
-# done
+for pack in $UTILS_PACKAGES; do
+  (
+    cd "framework/packages/$pack"
+    echo "Publishing util $pack"
+    publish_crate
+  )
+done
 
-# for con in $NATIVE_CONTRACTS; do
-#   (
-#     cd "framework/contracts/native/$con"
-#     echo "Publishing native $con"
-#     publish_crate
-#   )
-# done
+for con in $NATIVE_CONTRACTS; do
+  (
+    cd "framework/contracts/native/$con"
+    echo "Publishing native $con"
+    publish_crate
+  )
+done
 
-# for con in $ACCOUNT_CONTRACT; do
-#   (
-#     cd "framework/contracts/$con"
-#     echo "Publishing account base $con"
-#     publish_crate
-#   )
-# done
+for con in $ACCOUNT_CONTRACT; do
+  (
+    cd "framework/contracts/$con"
+    echo "Publishing account base $con"
+    publish_crate
+  )
+done
 
 echo "All the contracts are published!"
 
 # Now all the packages and standards
 
 PACKAGES="abstract-interface abstract-adapter abstract-app abstract-standalone abstract-client"
-STANDARDS=" dex money-market"
+STANDARDS="utils staking dex money-market"
 
-# for pack in $PACKAGES; do
-#   (
-#     cd "framework/packages/$pack"
-#     echo "Publishing $pack"
-#     publish_crate
-#   )
-# done
+for pack in $PACKAGES; do
+  (
+    cd "framework/packages/$pack"
+    echo "Publishing $pack"
+    publish_crate
+  )
+done
 
 for pack in $STANDARDS; do
   (
