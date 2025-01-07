@@ -65,9 +65,9 @@ polytone-note    = { package = "abstract-polytone-note", version = "5.0.0" }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter    = { path = "packages/abstract-adapter" }
-abstract-app        = { path = "packages/abstract-app" }
-abstract-standalone = { path = "packages/abstract-standalone" }
+abstract-adapter    = { path = "packages/abstract-adapter", version = "0.26.0" }
+abstract-app        = { path = "packages/abstract-app", version = "0.26.0" }
+abstract-standalone = { path = "packages/abstract-standalone", version = "0.26.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required

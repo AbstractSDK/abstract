@@ -87,16 +87,16 @@ echo "All the contracts are published!"
 
 # Now all the packages and standards
 
-PACKAGES="abstract-standalone abstract-client"
-STANDARDS="utils staking dex money-market"
+PACKAGES="abstract-interface abstract-adapter abstract-app abstract-standalone abstract-client"
+STANDARDS=" dex money-market"
 
-for pack in $PACKAGES; do
-  (
-    cd "framework/packages/$pack"
-    echo "Publishing $pack"
-    publish_crate
-  )
-done
+# for pack in $PACKAGES; do
+#   (
+#     cd "framework/packages/$pack"
+#     echo "Publishing $pack"
+#     publish_crate
+#   )
+# done
 
 for pack in $STANDARDS; do
   (
