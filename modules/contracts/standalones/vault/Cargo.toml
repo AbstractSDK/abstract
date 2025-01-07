@@ -1,0 +1,58 @@
+[package]
+authors       = []
+documentation = ""
+edition       = "2021"
+homepage      = ""
+keywords      = ["cosmos", "cosmwasm", "abstractsdk"]
+license       = "GPL-3.0-or-later"
+name          = "vault-standalone"
+repository    = ""
+resolver      = "2"
+version       = "0.0.1"
+
+exclude = ["contract.wasm", "hash.txt"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name              = "publish"
+required-features = ["daemon-bin"]
+
+[features]
+daemon-bin = ["cw-orch/daemon", "dep:clap", "dep:abstract-client", "dep:dotenv", "dep:env_logger"]
+default    = ["export", "pyth"]
+export     = []
+pyth       = ["abstract-oracle-adapter/pyth"]
+
+[dependencies]
+abstract-oracle-adapter = { workspace = true }
+abstract-standalone     = { workspace = true }
+const_format            = { version = "0.2.32" }
+cosmwasm-schema         = { workspace = true }
+cosmwasm-std            = { workspace = true }
+cw-asset                = { workspace = true }
+cw-controllers          = { workspace = true }
+cw-storage-plus         = { workspace = true }
+cw-vault-standard       = { git = "https://github.com/AbstractSDK/cw-vault-standard.git", branch = "cosmwasm-std-2.0" }
+osmosis-std             = { version = "0.27.0" }
+schemars                = { workspace = true }
+thiserror               = { workspace = true }
+
+# Dependencies for interface
+abstract-interface = { workspace = true }
+cw-orch            = { workspace = true }
+
+# Dependencies for bins
+abstract-client = { workspace = true, optional = true }
+clap            = { workspace = true, optional = true, features = ["derive"] }
+dotenv          = { version = "0.15.0", optional = true }
+env_logger      = { version = "0.11.3", optional = true }
+
+[dev-dependencies]
+abstract-client     = { workspace = true }
+abstract-standalone = { workspace = true, features = ["test-utils"] }
+cw-orch             = { workspace = true, features = ["daemon"] }
+cw-orch-interchain  = { workspace = true, features = ["daemon"] }
+env_logger          = { version = "0.11.3" }
+vault-standalone    = { path = "." }

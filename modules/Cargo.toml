@@ -75,11 +75,12 @@ abstract-wyndex-adapter     = { path = "../integrations/wyndex-adapter", default
 # wyndex-bundle = { path = "../integrations/bundles/wyndex" }
 
 ## Modules
-abstract-cw-staking  = { path = "./contracts/adapters/cw-staking", default-features = false }
-abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = false }
-challenge-app        = { path = "./contracts/apps/challenge", default-features = false }
-croncat-app          = { path = "./contracts/apps/croncat", default-features = false }
-dca-app              = { path = "./contracts/apps/dca", default-features = false }
+abstract-cw-staking     = { path = "./contracts/adapters/cw-staking", default-features = false }
+abstract-dex-adapter    = { path = "./contracts/adapters/dex", default-features = false }
+abstract-oracle-adapter = { path = "./contracts/adapters/oracle", default-features = false }
+challenge-app           = { path = "./contracts/apps/challenge", default-features = false }
+croncat-app             = { path = "./contracts/apps/croncat", default-features = false }
+dca-app                 = { path = "./contracts/apps/dca", default-features = false }
 
 ## Testing
 anyhow = "1"
