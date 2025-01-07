@@ -36,7 +36,7 @@ pub fn instantiate(
     MY_STANDALONE.instantiate(deps.branch(), info, msg.base, is_migratable)?;
 
     let config: Config = Config {
-        price_sources: msg.price_sources,
+        denom_whitelist: msg.denom_whitelist,
         max_age: msg.max_age,
     };
     CONFIG.save(deps.storage, &config)?;

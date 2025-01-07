@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use abstract_oracle_adapter::msg::Seconds;
 use abstract_standalone::std::standalone::StandaloneInstantiateMsg;
 use cosmwasm_std::Empty;
@@ -8,9 +6,7 @@ use cosmwasm_std::Empty;
 #[cosmwasm_schema::cw_serde]
 pub struct MyStandaloneInstantiateMsg {
     pub base: StandaloneInstantiateMsg,
-    /// Price source map, works as a whitelist at the same time
-    /// Denom -> price_source_key(Oracle adapter)
-    pub price_sources: HashMap<String, String>,
+    pub denom_whitelist: Vec<String>,
     /// Max price age
     pub max_age: Seconds,
 }
