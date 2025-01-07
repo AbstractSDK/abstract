@@ -21,7 +21,6 @@ dependencies = [
  "abstract-macros",
  "abstract-sdk",
  "abstract-std",
- "account 0.1.0 (git+https://github.com/burnt-labs/contracts)",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-controllers",
@@ -30,6 +29,7 @@ dependencies = [
  "semver",
  "thiserror 1.0.69",
  "workspace-hack",
+ "xion-account",
 ]
 
 [[package]]
@@ -680,7 +680,7 @@ dependencies = [
  "abstract-money-market-adapter",
  "abstract-polytone-note 4.0.1",
  "abstract-std",
- "account 0.1.0 (git+https://github.com/abstractsdk/xion-contracts?branch=fix-for-abstract)",
+ "account",
  "anyhow",
  "bitcoin 0.32.5",
  "challenge-app",
@@ -814,32 +814,6 @@ version = "0.1.0"
 source = "git+https://github.com/abstractsdk/xion-contracts?branch=fix-for-abstract#6493190c7fa9259f5658c3cd5e608325052aedb3"
 dependencies = [
  "absacc",
- "base64 0.21.7",
- "bech32 0.9.1",
- "cosmos-sdk-proto 0.24.0-pre (git+https://github.com/burnt-labs/cosmos-rust.git?rev=75e72f446629f98330e209e2f6268250d325cccb)",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus",
- "cw2",
- "getrandom",
- "hex",
- "p256",
- "phf",
- "ripemd",
- "rsa",
- "schemars",
- "serde",
- "serde_json",
- "sha2 0.10.8",
- "thiserror 1.0.69",
- "tiny-keccak",
-]
-
-[[package]]
-name = "account"
-version = "0.1.0"
-source = "git+https://github.com/burnt-labs/contracts#a9f1d3c752b9de4df6b87316a57b100522afef5b"
-dependencies = [
  "base64 0.21.7",
  "bech32 0.9.1",
  "cosmos-sdk-proto 0.24.0-pre (git+https://github.com/burnt-labs/cosmos-rust.git?rev=75e72f446629f98330e209e2f6268250d325cccb)",
@@ -9572,6 +9546,44 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05f360fc0b24296329c78fda852a1e9ae82de9cf7b27dae4b7f62f118f77b9ed"
 dependencies = [
  "tap",
+]
+
+[[package]]
+name = "xion-account"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ccc64e54f65f407b93571fb597d70c175863f5a7b627152f3716cb9e41194bb"
+dependencies = [
+ "base64 0.21.7",
+ "bech32 0.9.1",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw2",
+ "getrandom",
+ "hex",
+ "p256",
+ "ripemd",
+ "rsa",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "thiserror 1.0.69",
+ "tiny-keccak",
+ "xion-cosmos-sdk-proto",
+]
+
+[[package]]
+name = "xion-cosmos-sdk-proto"
+version = "0.26.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5950da92cdb6e0fdebe4513a1defd73b6c4af7d1fa72ae5f14780451c535bc2"
+dependencies = [
+ "informalsystems-pbjson",
+ "prost 0.13.4",
+ "serde",
+ "tendermint-proto 0.40.0",
 ]
 
 [[package]]
