@@ -479,7 +479,6 @@ name = "abstract-oracle-adapter"
 version = "0.26.0"
 dependencies = [
  "abstract-adapter",
- "abstract-adapter-utils",
  "abstract-client",
  "abstract-interface",
  "abstract-oracle-adapter",
@@ -490,19 +489,13 @@ dependencies = [
  "clap 4.5.23",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-asset",
  "cw-orch 0.27.0",
- "cw-orch-osmosis-test-tube",
- "cw-storage-plus",
  "cw-utils",
  "cw20",
  "cw20-base",
  "dotenv",
  "env_logger 0.11.5",
- "schemars",
  "semver",
- "serde_json",
- "thiserror 1.0.69",
  "tokio",
 ]
 

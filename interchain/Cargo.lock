@@ -536,19 +536,12 @@ name = "abstract-oracle-adapter"
 version = "0.26.0"
 dependencies = [
  "abstract-adapter",
- "abstract-adapter-utils",
  "abstract-client",
  "abstract-oracle-standard",
  "abstract-pyth-adapter",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-asset",
  "cw-orch 0.27.0",
- "cw-storage-plus",
- "cw20",
- "schemars",
- "serde_json",
- "thiserror 1.0.69",
 ]
 
 [[package]]
