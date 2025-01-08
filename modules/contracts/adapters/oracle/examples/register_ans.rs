@@ -5,7 +5,7 @@ use abstract_pyth_adapter::PYTH;
 use cw_orch::daemon::networks::parse_network;
 use cw_orch::prelude::*;
 
-fn deploy_oracle(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn register_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
         let chain = DaemonBuilder::new(network.clone()).build()?;
@@ -47,5 +47,5 @@ fn main() -> anyhow::Result<()> {
         .map(|n| parse_network(n).unwrap())
         .collect();
 
-    deploy_oracle(networks)
+    register_ans(networks)
 }
