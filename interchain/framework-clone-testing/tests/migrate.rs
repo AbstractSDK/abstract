@@ -198,9 +198,12 @@ mod from_xion {
         let account = AccountI::new("account-xion", chain);
         account.set_address(&addr_contract);
 
-        account
-            .call_as(&addr_contract)
-            .migrate(&MigrateMsg {}, deployment.account_code_id()?)?;
+        account.call_as(&addr_contract).migrate(
+            &MigrateMsg {
+                new_code_id: Some(deployment.account_code_id()?),
+            },
+            deployment.account_code_id()?,
+        )?;
 
         account
             .update_info(None, None, Some("brand new abstract account".to_string()))

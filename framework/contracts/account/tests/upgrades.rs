@@ -915,7 +915,9 @@ mod upgrade_account {
             ),
             (
                 ModuleInfo::from_id_latest("abstract:account")?,
-                Some(to_json_binary(&abstract_std::account::MigrateMsg {})?),
+                Some(to_json_binary(&abstract_std::account::MigrateMsg {
+                    new_code_id: None,
+                })?),
             ),
             (
                 ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID)?,

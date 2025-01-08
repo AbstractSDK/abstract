@@ -104,7 +104,11 @@ pub mod state {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub struct MigrateMsg {
+    /// This field provides the new code id of the contract
+    /// This is only necessary for migrations from XION accounts.
+    pub new_code_id: Option<u64>,
+}
 
 /// Account Instantiate Msg
 /// https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs
