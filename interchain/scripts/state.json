@@ -6,6 +6,7 @@
       "abstract:ibc-client": 11879,
       "abstract:ibc-host": 11880,
       "abstract:module-factory": 11877,
+      "abstract:oracle": 8328,
       "abstract:registry": 11876,
       "cw:blob": 11289
     },
@@ -16,6 +17,7 @@
       "abstract:ibc-client": "osmo1lgszd37wflh8pscc0weu6us3y3edweygvjzaflgu4g6uwdjqpr0s0ssly2",
       "abstract:ibc-host": "osmo12zry8tafmejuyqlw800f3ygdt25hukjugaknlpe5hr7txv72qkcqqxlpug",
       "abstract:module-factory": "osmo136099hg6u4r7evahj3w0aau9jceyhf2qm82d7d8rd9apvdyck8ssnkhte9",
+      "abstract:oracle": "neutron1e43jgpsqeae5euc2jrzp79vn6gv3w2gwtlnw372w6tlmhwlw04jqmgklqn",
       "abstract:registry": "osmo1j33edjnk9cqkuw83fvz3f646unxpkcjkru0znjhznr0dzvpzyw7q6vf7hp"
     },
     "version": "0.26.0"
@@ -69,6 +71,7 @@
       "abstract:ibc-client": 1660,
       "abstract:ibc-host": 1661,
       "abstract:module-factory": 1658,
+      "abstract:oracle": 1395,
       "abstract:registry": 1657,
       "cw:blob": 1649
     },
@@ -79,6 +82,7 @@
       "abstract:ibc-client": "xion1nu72stzytgf40d5f45wxqjpq2epjjukcewl9zml2plyk72mvcg3qrqwktr",
       "abstract:ibc-host": "xion1652e4ktmc9yhk58fz82mju7fhnwhcw2pz9h7cld6qnuyka4aqttq4x3w86",
       "abstract:module-factory": "xion136099hg6u4r7evahj3w0aau9jceyhf2qm82d7d8rd9apvdyck8ssu7ulhc",
+      "abstract:oracle": "xion19g9zd2vjpwr8ycfp5zpd9txtfzdryp20fa75zwrpp336uaqdazxshcud90",
       "abstract:registry": "xion1j33edjnk9cqkuw83fvz3f646unxpkcjkru0znjhznr0dzvpzyw7q4yz2eu"
     },
     "version": "0.26.0"
