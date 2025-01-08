@@ -1,7 +1,7 @@
 use std::{env::current_dir, fs::create_dir_all};
 
 use abstract_oracle_adapter::contract::OracleAdapter;
-use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
+use cosmwasm_schema::remove_schemas;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

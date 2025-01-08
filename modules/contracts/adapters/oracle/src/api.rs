@@ -35,7 +35,7 @@ pub struct Oracle<'a, T: OracleInterface> {
     pub(crate) deps: Deps<'a>,
 }
 
-impl<'a, T: OracleInterface> Oracle<'a, T> {
+impl<T: OracleInterface> Oracle<'_, T> {
     /// returns Oracle name
     pub fn oracle_name(&self) -> OracleName {
         self.name.clone()
