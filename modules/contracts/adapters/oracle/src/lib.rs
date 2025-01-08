@@ -93,18 +93,15 @@ pub mod interface {
         use std::collections::HashMap;
 
         pub fn pyth_addresses() -> HashMap<String, Addr> {
-            vec![
+            HashMap::from([
                 (XION_TESTNET_1.chain_id, PYTH_XION_TEST_ADDRESS),
                 (PION_1.chain_id, PYTH_PION_ADDRESS),
                 (OSMO_5.chain_id, PYTH_OSMO_TEST_ADDRESS),
                 (NEUTRON_1.chain_id, PYTH_NEUTRON_ADDRESS),
                 (OSMOSIS_1.chain_id, PYTH_OSMOSIS_ADDRESS),
-            ]
-            .into_iter()
-            .map(|(key, value)| (key.to_string(), Addr::unchecked(value)))
-            .collect()
+                ])
         }
-
+        Source: https://docs.pyth.network/price-feeds/contract-addresses/cosmwasm
         pub const PYTH_XION_TEST_ADDRESS: &str =
             "xion1w39ctwxxhxxc2kxarycjxj9rndn65gf8daek7ggarwh3rq3zl0lqqllnmt";
         pub const PYTH_PION_ADDRESS: &str =

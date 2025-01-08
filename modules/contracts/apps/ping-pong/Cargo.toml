@@ -14,19 +14,22 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 abstract-app        = { workspace = true }
-abstract-ibc-client = { version = "0.25.0", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
+abstract-ibc-client = { version = "0.26.0", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
 cosmwasm-schema     = { workspace = true }
 cosmwasm-std        = { workspace = true }
 cw-asset            = { workspace = true }
 cw-controllers      = { workspace = true }
 cw-orch             = { workspace = true }
 cw-storage-plus     = { workspace = true }
-schemars            = { workspace = true }
 thiserror           = { workspace = true }
 
 [dev-dependencies]
 abstract-client    = { workspace = true, features = ["interchain"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+clap.workspace     = true
 cw-orch            = { workspace = true, features = ["daemon"] }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw-orch-polytone   = { package = "abstract-cw-orch-polytone", version = "6.0.0" }
+dotenv             = "0.15.0"
 env_logger         = "0.11"
+semver.workspace   = true

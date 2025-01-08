@@ -42,6 +42,9 @@ pub enum AccountError {
     #[error("The provided module {0} can't be installed on an Abstract account")]
     ModuleNotInstallable(String),
 
+    #[error("The module {0} needs an init msg to be installed but not was provided")]
+    InitMsgMissing(String),
+
     #[error("The name of the proposed module can not have length 0.")]
     InvalidModuleName {},
 
@@ -51,7 +54,7 @@ pub enum AccountError {
     #[error("Cannot migrate {} twice", module_id)]
     DuplicateModuleMigration { module_id: String },
 
-    #[error("{0} not upgradable")]
+    #[error("{0} not upgradeable")]
     NotUpgradeable(ModuleInfo),
 
     #[error("Cannot remove module because {0:?} depend(s) on it.")]
@@ -78,8 +81,11 @@ pub enum AccountError {
     NotWhitelisted {},
 
     // ** Sub Account ** //
-    #[error("Removing sub account failed")]
-    SubAccountRemovalFailed {},
+    #[error("Sub account doesn't exist")]
+    SubAccountDoesntExist {},
+
+    #[error("Sub account is expected to be the caller")]
+    SubAccountIsNotCaller {},
 
     #[error("Register of sub account failed")]
     SubAccountRegisterFailed {},
@@ -106,14 +112,20 @@ pub enum AccountError {
     #[error("The caller ({caller}) is not the owner account's account ({account}). Only account can create sub-accounts for itself.", )]
     SubAccountCreatorNotAccount { caller: String, account: String },
 
-    #[error("Abstract Account Address don't match to the Contract address")]
-    AbsAccInvalidAddr {
+    #[error("You can't chain admin calls")]
+    CantChainAdminCalls {},
+
+    #[error("Abstract Account Address ({abstract_account}) doesn't match to the Contract address ({contract})   ")]
+    AbstractAccountInvalidAddress {
         abstract_account: String,
         contract: String,
     },
 
+    #[error("No auth methods capabilities on this account (xion feature disabled)")]
+    NoAuthFeature {},
+
     #[error("Abstract Account don't have Authentication")]
-    AbsAccNoAuth {},
+    AbstractAccountNoAuth {},
 
     #[cfg(feature = "xion")]
     #[error(transparent)]

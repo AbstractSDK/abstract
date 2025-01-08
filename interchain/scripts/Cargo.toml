@@ -60,3 +60,4 @@ tonic       = { version = "0.12.2", features = ["tls"] }
 
 cosmwasm-schema.workspace = true
 cw-orch-core              = "2.0.0"
+cw-ownable.workspace = true

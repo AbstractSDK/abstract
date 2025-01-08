@@ -27,13 +27,16 @@ pub enum GovernanceDetails<T: AddressLike> {
         // Account address
         account: T,
     },
-    /// An external governance source
+    /// An external governance source. This could be a cw3 contract for instance
+    /// The `governance_address` will be the admin of the Account.
     External {
         /// The external contract address
         governance_address: T,
         /// Governance type used for doing extra off-chain queries depending on the type.
         governance_type: String,
     },
+    /// This account is linked to an NFT collection.
+    /// The owner of the specified token_id is the owner of the account
     NFT {
         collection_addr: T,
         token_id: String,

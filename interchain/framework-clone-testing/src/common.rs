@@ -1,4 +1,4 @@
-use abstract_interface::Abstract;
+use abstract_interface::{Abstract, RegistryQueryFns};
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
 
@@ -12,11 +12,9 @@ pub fn setup(chain: ChainInfo) -> anyhow::Result<(Abstract<CloneTesting>, CloneT
     let mut app = CloneTesting::new(chain)?;
 
     let abstr_deployment = Abstract::load_from(app.clone())?;
-    let creator = app
-        .wasm_querier()
-        .contract_info(&abstr_deployment.registry.address()?)?
-        .creator;
-    app.set_sender(creator.clone());
+    let owner = Addr::unchecked(abstr_deployment.registry.ownership()?.owner.unwrap());
 
-    Ok((abstr_deployment.call_as(&creator), app))
+    app.set_sender(owner.clone());
+
+    Ok((abstr_deployment.call_as(&owner), app))
 }

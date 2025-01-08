@@ -13,9 +13,9 @@ workspace = true
 
 [features]
 # for quicker tests, cargo test --lib
+xion = []
 
 [dependencies]
-anybuf          = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cosmwasm-std    = { workspace = true, features = ["iterator"] }
 cw-address-like = { workspace = true }
@@ -28,7 +28,6 @@ cw-ownable      = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw-utils        = { workspace = true }
 cw2             = { workspace = true }
-cw20            = { workspace = true }
 schemars        = { workspace = true }
 semver          = { workspace = true, features = ["serde"] }
 serde           = { workspace = true }

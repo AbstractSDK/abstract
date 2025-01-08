@@ -36,7 +36,6 @@ cw-address-like = { workspace = true }
 cw-asset        = { workspace = true }
 cw-controllers  = { workspace = true }
 cw-storage-plus = { workspace = true }
-schemars        = { workspace = true }
 thiserror       = { workspace = true }
 
 abstract-app = { workspace = true }
@@ -45,9 +44,11 @@ abstract-app = { workspace = true }
 cw-orch = { workspace = true }
 
 [dev-dependencies]
-abstract-app  = { workspace = true, features = ["test-utils"] }
-challenge-app = { path = "." }
-cw-orch       = { workspace = true, features = ["daemon"] }
-dotenv        = "0.15.0"
-env_logger    = "0.11.3"
-semver        = "1.0"
+abstract-app       = { workspace = true, features = ["test-utils"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+challenge-app      = { path = "." }
+clap.workspace     = true
+cw-orch            = { workspace = true, features = ["daemon"] }
+dotenv             = "0.15.0"
+env_logger         = "0.11.3"
+semver             = "1.0"

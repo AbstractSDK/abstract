@@ -23,7 +23,6 @@ use clap::Parser;
 use cw_orch::{
     anyhow,
     prelude::{networks::parse_network, *},
-    tokio::runtime::Runtime,
 };
 use semver::Version;
 
@@ -31,8 +30,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
         let version: Version = APP_VERSION.parse().unwrap();
-        let rt = Runtime::new()?;
-        let chain = DaemonBuilder::new(network).handle(rt.handle()).build()?;
+        let chain = DaemonBuilder::new(network).build()?;
 
         let app = CalendarAppInterface::new(APP_ID, chain);
         app.deploy(version, DeployStrategy::Try)?;

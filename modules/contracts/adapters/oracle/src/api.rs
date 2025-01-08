@@ -14,7 +14,7 @@ pub trait OracleInterface:
     AccountIdentification + Dependencies + ModuleIdentification + AbstractNameService
 {
     /// Construct a new oracle interface.
-    fn oracle<'a>(&'a self, deps: Deps<'a>, name: OracleName) -> Oracle<Self> {
+    fn oracle<'a>(&'a self, deps: Deps<'a>, name: OracleName) -> Oracle<'a, Self> {
         Oracle {
             base: self,
             deps,

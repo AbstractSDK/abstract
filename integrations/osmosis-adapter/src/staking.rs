@@ -1,4 +1,3 @@
-use abstract_sdk::std::objects::registry::RegistryContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -29,7 +28,8 @@ pub mod fns {
     use std::str::FromStr;
 
     use abstract_sdk::std::objects::{
-        ans_host::AnsHost, AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
+        ans_host::AnsHost, registry::RegistryContract, AnsAsset, AnsEntryConvertor, AssetEntry,
+        PoolReference, PoolType,
     };
 
     use abstract_staking_standard::{

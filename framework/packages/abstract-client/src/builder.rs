@@ -9,11 +9,7 @@ use abstract_std::objects::{
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::*;
 
-use self::cw20_builder::Cw20Builder;
-use crate::{
-    client::{AbstractClient, AbstractClientResult},
-    Environment,
-};
+use crate::client::{AbstractClient, AbstractClientResult};
 
 impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Abstract client builder
@@ -21,14 +17,21 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         AbstractClientBuilder::new(chain)
     }
 
+    #[cfg(feature = "test-utils")]
     /// Cw20 contract builder
     pub fn cw20_builder(
         &self,
         name: impl Into<String>,
         symbol: impl Into<String>,
         decimals: u8,
-    ) -> Cw20Builder<Chain> {
-        Cw20Builder::new(self.environment(), name.into(), symbol.into(), decimals)
+    ) -> self::cw20_builder::Cw20Builder<Chain> {
+        use crate::Environment;
+        self::cw20_builder::Cw20Builder::new(
+            self.environment(),
+            name.into(),
+            symbol.into(),
+            decimals,
+        )
     }
 }
 
@@ -130,7 +133,6 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     /// Deploy abstract with current configuration
     pub fn build(&self) -> AbstractClientResult<AbstractClient<Chain>> {
         let abstr = Abstract::deploy_on(self.chain.clone(), ())?;
-        println!("quid");
         self.update_ans(&abstr)?;
 
         AbstractClient::new(self.chain.clone())
@@ -138,16 +140,27 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
 
     fn update_ans(&self, abstr: &Abstract<Chain>) -> AbstractClientResult<()> {
         let ans_host = &abstr.ans_host;
-        ans_host.update_dexes(self.dexes.clone(), vec![])?;
-        ans_host.update_contract_addresses(self.contracts.clone(), vec![])?;
-        ans_host.update_asset_addresses(self.assets.clone(), vec![])?;
-        ans_host.update_channels(self.channels.clone(), vec![])?;
-        ans_host.update_pools(self.pools.clone(), vec![])?;
+        if !self.dexes.is_empty() {
+            ans_host.update_dexes(self.dexes.clone(), vec![])?;
+        }
+        if !self.contracts.is_empty() {
+            ans_host.update_contract_addresses(self.contracts.clone(), vec![])?;
+        }
+        if !self.assets.is_empty() {
+            ans_host.update_asset_addresses(self.assets.clone(), vec![])?;
+        }
+        if !self.channels.is_empty() {
+            ans_host.update_channels(self.channels.clone(), vec![])?;
+        }
+        if !self.pools.is_empty() {
+            ans_host.update_pools(self.pools.clone(), vec![])?;
+        }
 
         Ok(())
     }
 }
 
+#[cfg(feature = "test-utils")]
 pub mod cw20_builder {
     //! # CW20 Builder
 

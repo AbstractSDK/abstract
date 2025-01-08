@@ -35,7 +35,7 @@ pub trait TransferInterface:
         let bank: Bank<MockModule>  = module.bank(deps.as_ref(), );
         ```
     */
-    fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
+    fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<'a, Self> {
         Bank { base: self, deps }
     }
 }
@@ -45,7 +45,7 @@ impl<T> TransferInterface for T where
 {
 }
 
-impl<'a, T: TransferInterface> AbstractApi<T> for Bank<'a, T> {
+impl<T: TransferInterface> AbstractApi<T> for Bank<'_, T> {
     const API_ID: &'static str = "Bank";
 
     fn base(&self) -> &T {
@@ -79,7 +79,7 @@ pub struct Bank<'a, T: TransferInterface> {
     deps: Deps<'a>,
 }
 
-impl<'a, T: TransferInterface> Bank<'a, T> {
+impl<T: TransferInterface> Bank<'_, T> {
     /// Get the balances of the provided assets.
     pub fn balances(&self, assets: &[AssetEntry]) -> AbstractSdkResult<Vec<Asset>> {
         assets
@@ -114,7 +114,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 }
 
-impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
+impl<T: TransferInterface + AccountExecutor> Bank<'_, T> {
     /// Transfer the provided funds from the Account to the recipient.
     /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo, Env};

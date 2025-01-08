@@ -28,11 +28,11 @@ homepage = "https://abstract.money"
 keywords = ["cosmos", "cosmwasm", "framework"]
 license = "LGPL-3.0"
 repository = "https://github.com/AbstractSDK/abstract"
-version = "0.25.0"
+version = "0.26.0"
 
 [workspace.dependencies]
 cosmwasm-schema = { version = "2.0" }
-cosmwasm-std    = { version = "2.0.0", features = ["cosmwasm_1_2"] }
+cosmwasm-std    = { version = "2.0.0", features = ["cosmwasm_2_0"] }
 cw-controllers  = { version = "2.0" }
 cw-storage-plus = "2.0.0"
 cw-utils        = { version = "2.0" }
@@ -58,7 +58,7 @@ cw-orch-interchain = { version = "0.8.1" }
 semver             = "1.0"
 tokio              = { version = "1.4", features = ["full"] }
 
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "6.0.0" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "6.0.1" }
 polytone         = { package = "abstract-polytone", version = "2.0.0" }
 polytone-note    = { package = "abstract-polytone-note", version = "5.0.0" }
 
@@ -82,17 +82,17 @@ ibc-host   = { package = "abstract-ibc-host", path = "contracts/native/ibc-host"
 
 abstract-account = { path = "contracts/account", default-features = false }
 
-abstract-ica     = { version = "0.25.0", path = "packages/abstract-ica" }
-abstract-sdk     = { version = "0.25.0", path = "packages/abstract-sdk" }
-abstract-std     = { version = "0.25.0", path = "packages/abstract-std" }
-abstract-testing = { version = "0.25.0", path = "packages/abstract-testing" }
-abstract-xion    = { package = "account", version = "0.1.0", git = "https://github.com/abstractsdk/xion-contracts", features = ["library"], branch = "fix-for-abstract" }
+abstract-ica     = { version = "0.26.0", path = "packages/abstract-ica" }
+abstract-sdk     = { version = "0.26.0", path = "packages/abstract-sdk" }
+abstract-std     = { version = "0.26.0", path = "packages/abstract-std" }
+abstract-testing = { version = "0.26.0", path = "packages/abstract-testing" }
+abstract-xion    = { package = "account", version = "0.1.0", git = "https://github.com/burnt-labs/contracts", features = ["library"] }
 
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.25.0", path = "packages/abstract-macros" }
+abstract-macros = { version = "0.26.0", path = "packages/abstract-macros" }
 
-abstract-adapter-utils    = { version = "0.25.0", path = "packages/standards/utils" }
+abstract-adapter-utils    = { version = "0.26.0", path = "packages/standards/utils" }
 abstract-dex-standard     = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 
@@ -123,12 +123,6 @@ overflow-checks  = true
 panic            = 'abort'
 rpath            = false
 
-[patch.crates-io]
-
-# In case Polytone not released
-# abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 [workspace.metadata.cargo-udeps.ignore]
 # ensures CI doens't flag workspace-hack as unused dep

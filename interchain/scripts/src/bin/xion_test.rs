@@ -8,8 +8,8 @@ use abstract_std::{
 };
 use abstract_xion::AddAuthenticator;
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
+use cosmwasm_std::to_json_vec;
 use cosmwasm_std::{coins, to_json_binary, Binary};
-use cosmwasm_std::{to_json_vec, Addr};
 use cw_orch::{
     daemon::{networks::xion::XION_NETWORK, Daemon, TxSender, RUNTIME},
     prelude::*,
@@ -28,28 +28,15 @@ use cw_orch_daemon::{
     CosmTxResponse, DaemonError, GrpcChannel,
 };
 use networks::ChainKind;
-use std::str::FromStr;
 use tonic::transport::Channel;
 use xion_sdk_proto::abstract_account::v1::NilPubKey;
 use xion_sdk_proto::cosmos::auth::v1beta1::QueryAccountRequest;
 use xion_sdk_proto::traits::MessageExt;
 use xion_sdk_proto::{cosmos::bank::v1beta1::MsgSend, prost::Name, traits::Message};
-use xionrs::{
-    crypto::secp256k1::SigningKey,
-    tendermint::chain::Id,
-    // tx::{self, ModeInfo, Msg, Raw, SignDoc, SignMode, SignerInfo},
-    // Any,
-};
-
-const GAS_BUFFER: f64 = 1.3;
-const BUFFER_THRESHOLD: u64 = 200_000;
-const SMALL_GAS_BUFFER: f64 = 1.4;
+use xionrs::crypto::secp256k1::SigningKey;
 
 // Xiond validator seed
 const LOCAL_MNEMONIC: &str = "clinic tube choose fade collect fish original recipe pumpkin fantasy enrich sunny pattern regret blouse organ april carpet guitar skin work moon fatigue hurdle";
-
-// Juno default mnemonics (used for deployment of mock abstract)
-const JUNO_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
 
 pub const LOCAL_XION: ChainInfo = ChainInfo {
     kind: ChainKind::Local,
@@ -214,7 +201,7 @@ fn main() -> anyhow::Result<()> {
 mod xion_sender {
     use xion_sdk_proto::cosmos::tx::v1beta1::{AuthInfo, SignDoc, SignerInfo, TxRaw};
     use xionrs::{
-        tx::{Msg, Raw, SignMode},
+        tx::{Msg, SignMode},
         Any,
     };
 
@@ -383,8 +370,8 @@ mod xion_sender {
                 .unwrap();
             let signature = self.cosmos_private_key().sign(&sign_doc_bytes)?;
 
-            let AUTHID = auth_id::AuthId::new(1u8, true).unwrap();
-            let smart_contract_sig = AUTHID.signature(signature.to_vec());
+            let auth_id = auth_id::AuthId::new(1u8, true).unwrap();
+            let smart_contract_sig = auth_id.signature(signature.to_vec());
 
             Ok(xion_sdk_proto::cosmos::tx::v1beta1::TxRaw {
                 body_bytes: sign_doc.body_bytes,
@@ -524,20 +511,6 @@ mod xion_sender {
             ChainKind::Mainnet => MAIN_MNEMONIC_ENV_NAME,
             _ => panic!("Can't set mnemonic for unspecified chainkind"),
         }
-    }
-
-    pub(crate) fn parse_cw_coins(
-        coins: &[cosmwasm_std::Coin],
-    ) -> Result<Vec<xionrs::Coin>, DaemonError> {
-        coins
-            .iter()
-            .map(|cosmwasm_std::Coin { amount, denom }| {
-                Ok(xionrs::Coin {
-                    amount: amount.u128(),
-                    denom: xionrs::Denom::from_str(denom)?,
-                })
-            })
-            .collect::<Result<Vec<_>, DaemonError>>()
     }
 }
 

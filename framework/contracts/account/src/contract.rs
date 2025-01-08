@@ -9,10 +9,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     account::{
-        state::{
-            AccountInfo, WhitelistedModules, AUTH_ADMIN, INFO, SUSPENSION_STATUS,
-            WHITELISTED_MODULES,
-        },
+        state::{AccountInfo, WhitelistedModules, INFO, SUSPENSION_STATUS, WHITELISTED_MODULES},
         UpdateSubAccountAction,
     },
     module_factory::SimulateInstallModulesResponse,
@@ -150,7 +147,7 @@ pub fn instantiate(
             ensure_eq!(
                 address,
                 env.contract.address,
-                AccountError::AbsAccInvalidAddr {
+                AccountError::AbstractAccountInvalidAddress {
                     abstract_account: address.to_string(),
                     contract: env.contract.address.to_string()
                 }
@@ -158,7 +155,7 @@ pub fn instantiate(
             #[cfg(feature = "xion")]
             {
                 let Some(mut add_auth) = authenticator else {
-                    return Err(AccountError::AbsAccNoAuth {});
+                    return Err(AccountError::AbstractAccountNoAuth {});
                 };
                 abstract_xion::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
 
@@ -172,7 +169,7 @@ pub fn instantiate(
             }
             // No Auth possible - error
             #[cfg(not(feature = "xion"))]
-            return Err(AccountError::AbsAccNoAuth {});
+            return Err(AccountError::AbstractAccountNoAuth {});
         }
         _ => (),
     };
@@ -269,24 +266,24 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
 
             match msg {
                 // ## Execution ##
-                ExecuteMsg::Execute { msgs } => execute_msgs(deps, &info.sender, msgs),
+                ExecuteMsg::Execute { msgs } => execute_msgs(deps, env, &info.sender, msgs),
                 ExecuteMsg::AdminExecute { addr, msg } => {
                     let addr = deps.api.addr_validate(&addr)?;
                     admin_execute(deps, info, addr, msg)
                 }
                 ExecuteMsg::ExecuteWithData { msg } => {
-                    execute_msgs_with_data(deps, &info.sender, msg)
+                    execute_msgs_with_data(deps, env, &info.sender, msg)
                 }
                 ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg,
                     funds,
-                } => execute_on_module(deps, info, module_id, exec_msg, funds),
+                } => execute_on_module(deps, env, info, module_id, exec_msg, funds),
                 ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
                     admin_execute_on_module(deps, info, module_id, msg)
                 }
                 ExecuteMsg::IcaAction { action_query_msg } => {
-                    ica_action(deps, info, action_query_msg)
+                    ica_action(deps, env, info, action_query_msg)
                 }
 
                 // ## Configuration ##
@@ -354,14 +351,15 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     unreachable!("Update status case is reached above")
                 }
                 ExecuteMsg::AddAuthMethod { add_authenticator } => {
-                    add_auth_method(deps, env, add_authenticator)
+                    add_auth_method(deps, env, info, add_authenticator)
                 }
-                #[allow(unused)]
-                ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
+                ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, info, id),
             }
         }
     }?;
-    AUTH_ADMIN.remove(deps.storage);
+
+    #[cfg(feature = "xion")]
+    abstract_std::account::state::AUTH_ADMIN.remove(deps.storage);
     Ok(response)
 }
 
@@ -425,9 +423,21 @@ pub fn sudo(
     msg: abstract_xion::contract::AccountSudoMsg,
 ) -> abstract_xion::error::ContractResult<Response> {
     if let abstract_xion::contract::AccountSudoMsg::BeforeTx { .. } = &msg {
-        AUTH_ADMIN.save(deps.storage, &true)?;
+        abstract_std::account::state::AUTH_ADMIN.save(deps.storage, &true)?;
+    };
+    if let abstract_xion::contract::AccountSudoMsg::AfterTx { .. } = &msg {
+        abstract_std::account::state::AUTH_ADMIN.remove(deps.storage);
     };
     abstract_xion::contract::sudo(deps, env, msg)
+}
+#[cfg(not(feature = "xion"))]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn sudo(
+    _deps: DepsMut,
+    _env: Env,
+    _msg: cosmwasm_std::Empty,
+) -> Result<cosmwasm_std::Response, AccountError> {
+    unimplemented!()
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*

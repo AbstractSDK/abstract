@@ -36,7 +36,7 @@ impl Display for UniquePoolId {
     }
 }
 
-impl<'a> PrimaryKey<'a> for UniquePoolId {
+impl PrimaryKey<'_> for UniquePoolId {
     type Prefix = ();
     type SubPrefix = ();
     type Suffix = Self;
@@ -47,7 +47,7 @@ impl<'a> PrimaryKey<'a> for UniquePoolId {
     }
 }
 
-impl<'a> Prefixer<'a> for UniquePoolId {
+impl Prefixer<'_> for UniquePoolId {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
         self.0.prefix()
     }

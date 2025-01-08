@@ -2,12 +2,13 @@
 members = [
   # "astroport-adapter",
   "astrovault-adapter",
-  # "bundles/*",
+  "bundles/*",
   "osmosis-adapter",
-  # "wyndex-adapter",
-  # "kujira-adapter",
+  "wyndex-adapter",
+  "kujira-adapter",
   # "mars-adapter",
   "oracles/pyth",
+  "neutron-dex-adapter",
 ]
 
 resolver = "2"
@@ -24,7 +25,7 @@ homepage = "https://abstract.money"
 keywords = ["cosmos", "cosmwasm", "framework"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/AbstractSDK/abstract"
-version = "0.25.0"
+version = "0.26.0"
 
 [workspace.dependencies]
 cosmwasm-schema = { version = "2.0" }
@@ -53,16 +54,16 @@ thiserror = { version = "1.0.50" }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter = { version = "0.25.0" }
-abstract-interface = { version = "0.25.0" }
-abstract-sdk = { version = "0.25.0" }
-abstract-std = { version = "0.25.0" }
+abstract-adapter   = { version = "0.26.0" }
+abstract-interface = { version = "0.26.0" }
+abstract-sdk       = { version = "0.26.0" }
+abstract-std       = { version = "0.26.0" }
 
-abstract-adapter-utils = { version = "0.25.0" }
-abstract-dex-standard = { version = "0.25.0" }
-abstract-money-market-standard = { version = "0.25.0" }
-abstract-oracle-standard = { version = "0.25.0" }
-abstract-staking-standard = { version = "0.25.0" }
+abstract-adapter-utils         = { version = "0.26.0" }
+abstract-dex-standard          = { version = "0.26.0" }
+abstract-money-market-standard = { version = "0.26.0" }
+abstract-oracle-standard       = { version = "0.26.0" }
+abstract-staking-standard      = { version = "0.26.0" }
 
 [patch.crates-io]
 abstract-macros = { path = "../framework/packages/abstract-macros" }
@@ -77,11 +78,6 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-oracle-standard = { path = "../framework/packages/standards/oracle" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
-
-# In case polytone not released
-# abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
