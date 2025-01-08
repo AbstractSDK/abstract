@@ -14,7 +14,7 @@ use crate::contract::{AccountResponse, AccountResult, CONTRACT_VERSION};
 /// - XION Account, to allow upgrading their account to a more feature rich account (second part of the function)
 /// All other contracts cannot be migrated to this version
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> AccountResult {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
     let current_contract_version = get_contract_version(deps.storage)?;
@@ -37,7 +37,7 @@ pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> AccountResult {
                 deps,
                 _env,
                 current_contract_version,
-                msg.new_code_id
+                _msg.new_code_id
                     .ok_or(crate::error::AccountError::MissingCodeIdToMigrate {})?,
             )
         }
