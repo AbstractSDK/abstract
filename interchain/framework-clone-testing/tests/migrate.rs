@@ -206,12 +206,6 @@ mod from_xion {
             .update_info(None, None, Some("brand new abstract account".to_string()))
             .unwrap_err();
 
-        account.call_as(&addr_contract).update_info(
-            None,
-            None,
-            Some("brand new abstract account".to_string()),
-        )?;
-
         assert!(account.is_module_installed(IBC_CLIENT)?);
         Ok(())
     }

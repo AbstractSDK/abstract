@@ -83,7 +83,7 @@
       "additionalProperties": false
     },
     "AccountTrace": {
-      "description": "The identifier of chain that triggered the account creation",
+      "description": "The identifier of chain that triggered the account creation\n\nNote that the serialization to string and to Cw-storage-plus keys is different\n\nFor String, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `osmosis>neutron`\n\nFor cw-storage-plus-key, `AccountTrace::Remote(vec![\"neutron\", \"osmosis\"])` will be serialized as `remote:[\"neutron\", \"osmosis\", \"\", \"\", \"\", \"\"]`",
       "oneOf": [
         {
           "type": "string",
@@ -181,6 +181,7 @@
         },
         {
           "description": "This calls into the native bank module for all denominations. Note that this may be much more expensive than Balance and should be avoided if possible. Return value is AllBalanceResponse.",
+          "deprecated": true,
           "type": "object",
           "required": [
             "all_balances"
@@ -650,7 +651,7 @@
       "additionalProperties": false
     },
     "IbcQuery": {
-      "description": "These are queries to the various IBC modules to see the state of the contract's IBC connection. These will return errors if the contract is not \"ibc enabled\"",
+      "description": "These are queries to the various IBC modules to see the state of the contract's IBC connection. Most of these will return errors if the contract is not \"ibc enabled\".",
       "oneOf": [
         {
           "description": "Gets the Port ID the current contract is bound to.\n\nReturns a `PortIdResponse`.",
@@ -668,6 +669,7 @@
         },
         {
           "description": "Lists all channels that are bound to a given port. If `port_id` is omitted, this list all channels bound to the contract's port.\n\nReturns a `ListChannelsResponse`.",
+          "deprecated": true,
           "type": "object",
           "required": [
             "list_channels"

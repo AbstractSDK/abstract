@@ -1,9 +1,9 @@
 [package]
-description = "Interchain testing library for the Abstract SDK. This is used primarily for tests but some elements are re-usable for testing apps and adapters"
-edition     = { workspace = true }
-license     = { workspace = true }
-name        = "abstract-interchain-tests"
-version     = "0.25.0"
+description       = "Interchain testing library for the Abstract SDK. This is used primarily for tests but some elements are re-usable for testing apps and adapters"
+edition           = { workspace = true }
+license           = { workspace = true }
+name              = "abstract-interchain-tests"
+version.workspace = true
 
 [lib]
 

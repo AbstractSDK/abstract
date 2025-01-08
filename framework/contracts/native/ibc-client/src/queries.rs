@@ -44,7 +44,6 @@ pub fn list_accounts(
                 Ok::<_, StdError>((AccountId::new(seq, trace).unwrap(), chain, address))
             },
         )?;
-
     Ok(ListAccountsResponse { accounts })
 }
 

@@ -95,23 +95,23 @@ created. This allows the account's owner to decide how messages should be routed
 flowchart LR
     subgraph Juno
         direction BT
-        Account([local:1])
+        Account([local-1])
     end
 
     subgraph Osmosis
         direction LR
-        Account --> ICAAOsmo([juno:1])
-        ICAAOsmo2([juno>terra>archway:1])
+        Account --> ICAAOsmo([juno-1])
+        ICAAOsmo2([archway>terra>juno-1])
     end
 
     subgraph Terra
         direction RL
-        Account --> ICAATerra([juno:1])
+        Account --> ICAATerra([juno-1])
     end
 
     subgraph Archway
         direction RL
-        ICAATerra --> ICAAArch([juno>terra:1])
+        ICAATerra --> ICAAArch([terra>juno-1])
         ICAAArch --> ICAAOsmo2
     end
 direction TB

@@ -1,7 +1,8 @@
 use std::{fmt::Display, str::FromStr};
 
-use cosmwasm_std::{StdError, StdResult};
+use cosmwasm_std::StdResult;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
+use deser::split_first_key;
 
 use super::{account_trace::AccountTrace, AccountSequence};
 use crate::{objects::TruncatedChainId, AbstractError};
@@ -136,7 +137,7 @@ impl FromStr for AccountId {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AccountId {
+impl PrimaryKey<'_> for AccountId {
     type Prefix = AccountTrace;
 
     type SubPrefix = ();
@@ -152,7 +153,7 @@ impl<'a> PrimaryKey<'a> for AccountId {
     }
 }
 
-impl<'a> Prefixer<'a> for AccountId {
+impl Prefixer<'_> for AccountId {
     fn prefix(&self) -> Vec<Key> {
         self.key()
     }
@@ -160,48 +161,70 @@ impl<'a> Prefixer<'a> for AccountId {
 
 impl KeyDeserialize for &AccountId {
     type Output = AccountId;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = AccountTrace::KEY_ELEMS + u32::KEY_ELEMS;
 
     #[inline(always)]
-    fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
-        let mut tu = value.split_off(2);
-        let t_len = parse_length(&value)?;
-        let u = tu.split_off(t_len);
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        let (trace, seq) = split_first_key(AccountTrace::KEY_ELEMS, value.as_ref())?;
 
         Ok(AccountId {
-            seq: AccountSequence::from_vec(u)?,
-            trace: AccountTrace::from_string(String::from_vec(tu)?),
+            seq: AccountSequence::from_vec(seq.to_vec())?,
+            trace: AccountTrace::from_vec(trace)?,
         })
     }
 }
 
 impl KeyDeserialize for AccountId {
     type Output = AccountId;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = <&AccountId>::KEY_ELEMS;
 
     #[inline(always)]
-    fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
-        let mut tu = value.split_off(2);
-        let t_len = parse_length(&value)?;
-        let u = tu.split_off(t_len);
-
-        Ok(AccountId {
-            seq: AccountSequence::from_vec(u)?,
-            trace: AccountTrace::from_string(String::from_vec(tu)?),
-        })
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        <&AccountId>::from_vec(value)
     }
 }
 
-#[inline(always)]
-fn parse_length(value: &[u8]) -> StdResult<usize> {
-    Ok(u16::from_be_bytes(
-        value
-            .try_into()
-            .map_err(|_| StdError::generic_err("Could not read 2 byte length"))?,
-    )
-    .into())
-}
+/// This was copied from cosmwasm-std
+///
+/// https://github.com/CosmWasm/cw-storage-plus/blob/f65cd4000a0dc1c009f3f99e23f9e10a1c256a68/src/de.rs#L173
+pub(crate) mod deser {
+    use cosmwasm_std::{StdError, StdResult};
 
+    /// Splits the first key from the value based on the provided number of key elements.
+    /// The return value is ordered as (first_key, remainder).
+    ///
+    pub fn split_first_key(key_elems: u16, value: &[u8]) -> StdResult<(Vec<u8>, &[u8])> {
+        let mut index = 0;
+        let mut first_key = Vec::new();
+
+        // Iterate over the sub keys
+        for i in 0..key_elems {
+            let len_slice = &value[index..index + 2];
+            index += 2;
+            let is_last_key = i == key_elems - 1;
+
+            if !is_last_key {
+                first_key.extend_from_slice(len_slice);
+            }
+
+            let subkey_len = parse_length(len_slice)?;
+            first_key.extend_from_slice(&value[index..index + subkey_len]);
+            index += subkey_len;
+        }
+
+        let remainder = &value[index..];
+        Ok((first_key, remainder))
+    }
+
+    fn parse_length(value: &[u8]) -> StdResult<usize> {
+        Ok(u16::from_be_bytes(
+            value
+                .try_into()
+                .map_err(|_| StdError::generic_err("Could not read 2 byte length"))?,
+        )
+        .into())
+    }
+}
 //--------------------------------------------------------------------------------------------------
 // Tests
 //--------------------------------------------------------------------------------------------------
@@ -223,6 +246,13 @@ mod test {
             AccountId {
                 seq: 1,
                 trace: AccountTrace::Remote(vec![TruncatedChainId::from_str("bitcoin").unwrap()]),
+            }
+        }
+
+        fn mock_local_key() -> AccountId {
+            AccountId {
+                seq: 54,
+                trace: AccountTrace::Local,
             }
         }
 
@@ -253,6 +283,25 @@ mod test {
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
+            let map: Map<&AccountId, u64> = Map::new("map");
+
+            map.save(deps.as_mut().storage, &key, &42069).unwrap();
+
+            assert_eq!(map.load(deps.as_ref().storage, &key).unwrap(), 42069);
+
+            let items = map
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
+
+            assert_eq!(items.len(), 1);
+            assert_eq!(items[0], (key, 42069));
+        }
+
+        #[coverage_helper::test]
+        fn storage_key_local_works() {
+            let mut deps = mock_dependencies();
+            let key = mock_local_key();
             let map: Map<&AccountId, u64> = Map::new("map");
 
             map.save(deps.as_mut().storage, &key, &42069).unwrap();
@@ -362,8 +411,8 @@ mod test {
             assert_eq!(
                 account_id.trace,
                 AccountTrace::Remote(vec![
-                    TruncatedChainId::_from_str("ethereum"),
                     TruncatedChainId::_from_str("bitcoin"),
+                    TruncatedChainId::_from_str("ethereum"),
                 ])
             );
         }
@@ -375,9 +424,9 @@ mod test {
             assert_eq!(
                 account_id.trace,
                 AccountTrace::Remote(vec![
-                    TruncatedChainId::_from_str("ethereum"),
-                    TruncatedChainId::_from_str("bitcoin"),
                     TruncatedChainId::_from_str("cosmos"),
+                    TruncatedChainId::_from_str("bitcoin"),
+                    TruncatedChainId::_from_str("ethereum"),
                 ])
             );
         }

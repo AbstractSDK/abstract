@@ -36,7 +36,10 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
         ```
     */
-    fn module_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<ModuleRegistry<Self>> {
+    fn module_registry<'a>(
+        &'a self,
+        deps: Deps<'a>,
+    ) -> AbstractSdkResult<ModuleRegistry<'a, Self>> {
         let vc = self.abstract_registry(deps)?;
         Ok(ModuleRegistry {
             base: self,
@@ -48,7 +51,7 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
 
 impl<T> ModuleRegistryInterface for T where T: AbstractRegistryAccess + ModuleIdentification {}
 
-impl<'a, T: ModuleRegistryInterface> AbstractApi<T> for ModuleRegistry<'a, T> {
+impl<T: ModuleRegistryInterface> AbstractApi<T> for ModuleRegistry<'_, T> {
     const API_ID: &'static str = "ModuleRegistry";
 
     fn base(&self) -> &T {
@@ -82,7 +85,7 @@ pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
     registry: RegistryContract,
 }
 
-impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
+impl<T: ModuleRegistryInterface> ModuleRegistry<'_, T> {
     /// Raw query for a module reference
     pub fn query_module_reference_raw(
         &self,

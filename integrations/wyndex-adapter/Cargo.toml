@@ -1,4 +1,5 @@
 [package]
+# This package is not published
 authors     = ["Abstract Money <contact@abstract.money>"]
 description = "Abstract DexCommand implementation for Wyndex"
 edition     = { workspace = true }
@@ -21,8 +22,8 @@ full_integration = [
 local = []
 
 [dependencies]
-wyndex       = { git = "https://github.com/wynddao/wynddex", tag = "v1.1.2", optional = true }
-wyndex-stake = { git = "https://github.com/wynddao/wynddex", tag = "v1.1.2", features = ["library"], optional = true }
+wyndex       = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", optional = true, version = "2.2.0" }
+wyndex-stake = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", features = ["library"], optional = true, version = "2.2.0" }
 
 abstract-dex-standard     = { workspace = true }
 abstract-sdk              = { workspace = true }

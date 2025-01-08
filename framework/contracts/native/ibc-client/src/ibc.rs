@@ -8,6 +8,7 @@ use abstract_std::{
         IbcClientCallback,
     },
     objects::TruncatedChainId,
+    ABSTRACT_EVENT_TYPE,
 };
 use cosmwasm_std::{from_json, Attribute, DepsMut, Env, MessageInfo};
 
@@ -64,7 +65,7 @@ pub fn receive_action_callback(
                 let wasm_abstract_attributes: Vec<Attribute> = account_creation_result
                     .events
                     .into_iter()
-                    .filter(|e| e.ty == "wasm-abstract")
+                    .filter(|e| e.ty == ABSTRACT_EVENT_TYPE)
                     .flat_map(|e| e.attributes)
                     .collect();
 

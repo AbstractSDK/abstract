@@ -30,14 +30,14 @@ cw-storage-plus = { workspace = true }
 cw-utils        = { workspace = true }
 cw2             = { workspace = true }
 semver          = { workspace = true }
-serde           = { workspace = true }
-thiserror       = { workspace = true }
+
+thiserror = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 
 [dev-dependencies]
-abstract-interface = { workspace = true, features = ["interchain"] }
+abstract-interface = { workspace = true, features = ["interchain", "testing"] }
 abstract-testing   = { workspace = true }
 cosmwasm-schema    = { workspace = true }
 cw-orch            = { workspace = true }

@@ -16,7 +16,7 @@ homepage = "https://abstract.money"
 keywords = ["cosmos", "cosmwasm", "framework"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/AbstractSDK/abstract"
-version = "0.25.0"
+version = "0.26.0"
 
 [workspace.dependencies]
 
@@ -45,34 +45,37 @@ semver = "1.0"
 
 cw-orch                   = { version = "0.27.0" }
 cw-orch-interchain        = { version = "0.8.0" }
-cw-orch-osmosis-test-tube = { version = "0.4.0" }
+cw-orch-neutron-test-tube = { version = "0.2.0" }
+cw-orch-osmosis-test-tube = { version = "0.5.0" }
 tokio                     = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter    = { version = "0.25.0" }
-abstract-app        = { version = "0.25.0" }
-abstract-client     = { version = "0.25.0" }
-abstract-interface  = { version = "0.25.0" }
-abstract-macros     = { version = "0.25.0" }
-abstract-standalone = { version = "0.25.0" }
-abstract-testing    = { version = "0.25.0" }
+abstract-adapter           = { version = "0.26.0" }
+abstract-app               = { version = "0.26.0" }
+abstract-client            = { version = "0.26.0" }
+abstract-integration-tests = { path = "../framework/packages/abstract-integration-tests" }
+abstract-interface         = { version = "0.26.0" }
+abstract-macros            = { version = "0.26.0" }
+abstract-standalone        = { version = "0.26.0" }
+abstract-testing           = { version = "0.26.0" }
 
-abstract-adapter-utils         = { version = "0.25.0" }
-abstract-dex-standard          = { version = "0.25.0" }
-abstract-money-market-standard = { version = "0.25.0" }
-abstract-oracle-standard       = { version = "0.25.0" }
-abstract-staking-standard      = { version = "0.25.0" }
+abstract-adapter-utils         = { version = "0.26.0" }
+abstract-dex-standard          = { version = "0.26.0" }
+abstract-money-market-standard = { version = "0.26.0" }
+abstract-staking-standard      = { version = "0.26.0" }
+abstract-oracle-standard       = { version = "0.26.0" }
 
 # Integrations
-abstract-astroport-adapter  = { path = "../integrations/astroport-adapter", default-features = false }
-abstract-astrovault-adapter = { path = "../integrations/astrovault-adapter", default-features = false }
-abstract-kujira-adapter     = { path = "../integrations/kujira-adapter", default-features = false }
-abstract-mars-adapter       = { path = "../integrations/mars-adapter", default-features = false }
-abstract-osmosis-adapter    = { path = "../integrations/osmosis-adapter", default-features = false }
-abstract-wyndex-adapter     = { path = "../integrations/wyndex-adapter", default-features = false }
+abstract-astroport-adapter   = { path = "../integrations/astroport-adapter", default-features = false }
+abstract-astrovault-adapter  = { path = "../integrations/astrovault-adapter", default-features = false }
+abstract-kujira-adapter      = { path = "../integrations/kujira-adapter", default-features = false }
+abstract-mars-adapter        = { path = "../integrations/mars-adapter", default-features = false }
+abstract-neutron-dex-adapter = { path = "../integrations/neutron-dex-adapter", default-features = false }
+abstract-osmosis-adapter     = { path = "../integrations/osmosis-adapter", default-features = false }
+abstract-wyndex-adapter      = { path = "../integrations/wyndex-adapter", default-features = false }
 
-# wyndex-bundle = { path = "../integrations/bundles/wyndex" }
+mockdex-bundle = { path = "../integrations/bundles/mockdex" }
 
 ## Modules
 abstract-cw-staking  = { path = "./contracts/adapters/cw-staking", default-features = false }
@@ -105,11 +108,6 @@ abstract-oracle-standard       = { path = "../framework/packages/standards/oracl
 abstract-staking-standard      = { path = "../framework/packages/standards/staking" }
 
 abstract-testing = { path = "../framework/packages/abstract-testing" }
-
-# In case polytone not released
-# abstract-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-polytone-note = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
-# abstract-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone.git", branch = "bump/cw2" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

@@ -30,10 +30,19 @@ pub enum CwStakingError {
     IbcQueryNotSupported,
 
     #[error("Staking provider {0} is not a known provider on this network.")]
-    UnknownDex(String),
+    UnknownStaking(String),
+
+    #[error(
+        "Staking provider {staking} is not a known provider on this network ({:?}).",
+        chain
+    )]
+    UnknownStakingOnThisPlatform {
+        staking: String,
+        chain: Option<String>,
+    },
 
     #[error("Staking provider {0} is not local to this network.")]
-    ForeignDex(String),
+    ForeignStaking(String),
 
     #[error("Cw1155 is unsupported.")]
     Cw1155Unsupported,
