@@ -469,6 +469,7 @@ dependencies = [
  "abstract-dex-adapter",
  "abstract-interface",
  "abstract-money-market-adapter",
+ "abstract-oracle-adapter",
  "anyhow",
  "astrovault",
  "cosmwasm-std",
@@ -477,7 +478,10 @@ dependencies = [
  "cw-orch-clone-testing",
  "cw20",
  "env_logger 0.11.5",
+ "hex",
  "lazy_static",
+ "pyth-sdk-cw",
+ "reqwest 0.12.9",
  "serde",
  "serde_json",
  "tokio",
@@ -525,6 +529,48 @@ dependencies = [
  "abstract-staking-standard",
  "cosmwasm-std",
  "lazy_static",
+]
+
+[[package]]
+name = "abstract-oracle-adapter"
+version = "0.26.0"
+dependencies = [
+ "abstract-adapter",
+ "abstract-adapter-utils",
+ "abstract-client",
+ "abstract-oracle-standard",
+ "abstract-pyth-adapter",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-asset",
+ "cw-orch 0.27.0",
+ "cw-storage-plus",
+ "cw20",
+ "schemars",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "abstract-oracle-standard"
+version = "0.26.0"
+dependencies = [
+ "abstract-adapter",
+ "abstract-adapter-utils",
+ "abstract-interface",
+ "abstract-sdk",
+ "abstract-std",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-address-like",
+ "cw-asset",
+ "cw-orch 0.27.0",
+ "cw-storage-plus",
+ "cw20",
+ "schemars",
+ "serde",
+ "thiserror 1.0.69",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -648,6 +694,22 @@ dependencies = [
  "cw2",
  "sha2 0.10.8",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "abstract-pyth-adapter"
+version = "0.26.0"
+dependencies = [
+ "abstract-oracle-standard",
+ "abstract-sdk",
+ "abstract-staking-standard",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-asset",
+ "cw-utils",
+ "cw20",
+ "osmosis-std",
+ "pyth-sdk-cw",
 ]
 
 [[package]]
@@ -1694,6 +1756,51 @@ name = "bnum"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e31ea183f6ee62ac8b8a8cf7feddd766317adfb13ff469de57ce033efd6a790"
+
+[[package]]
+name = "borsh"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15bf3650200d8bffa99015595e10f1fbd17de07abbc25bb067da79e769939bfa"
+dependencies = [
+ "borsh-derive",
+ "hashbrown 0.11.2",
+]
+
+[[package]]
+name = "borsh-derive"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6441c552f230375d18e3cc377677914d2ca2b0d36e52129fe15450a2dce46775"
+dependencies = [
+ "borsh-derive-internal",
+ "borsh-schema-derive-internal",
+ "proc-macro-crate",
+ "proc-macro2",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "borsh-derive-internal"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5449c28a7b352f2d1e592a8a28bf139bc71afb0764a14f3c02500935d8c44065"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "borsh-schema-derive-internal"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdbd5696d8bfa21d53d9fe39a714a18538bad11492a42d066dbbc395fb1951c0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
 
 [[package]]
 name = "bs58"
@@ -2759,7 +2866,7 @@ dependencies = [
  "sha2 0.10.8",
  "thiserror 1.0.69",
  "tokio",
- "toml",
+ "toml 0.8.19",
  "tonic",
  "uuid",
 ]
@@ -2806,7 +2913,7 @@ dependencies = [
  "sha2 0.10.8",
  "thiserror 1.0.69",
  "tokio",
- "toml",
+ "toml 0.8.19",
  "tonic",
  "uid",
 ]
@@ -2853,7 +2960,7 @@ dependencies = [
  "sha2 0.10.8",
  "thiserror 1.0.69",
  "tokio",
- "toml",
+ "toml 0.8.19",
  "tonic",
  "uid",
 ]
@@ -4397,6 +4504,15 @@ checksum = "1b43ede17f21864e81be2fa654110bf1e793774238d86ef8555c37e6519c0403"
 
 [[package]]
 name = "hashbrown"
+version = "0.11.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
+dependencies = [
+ "ahash 0.7.8",
+]
+
+[[package]]
+name = "hashbrown"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
@@ -4494,6 +4610,9 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "hex-conservative"
@@ -4940,7 +5059,7 @@ dependencies = [
  "tiny-keccak",
  "tokio",
  "tokio-stream",
- "toml",
+ "toml 0.8.19",
  "tonic",
  "tracing",
  "tracing-subscriber",
@@ -6347,6 +6466,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "proc-macro-crate"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d6ea3c4595b96363c13943497db34af4460fb474a95c43f4446ad341b8c9785"
+dependencies = [
+ "toml 0.5.11",
+]
+
+[[package]]
 name = "proc-macro-error"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6542,6 +6670,30 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "pyth-sdk"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "00bf2540203ca3c7a5712fdb8b5897534b7f6a0b6e7b0923ff00466c5f9efcb3"
+dependencies = [
+ "borsh",
+ "borsh-derive",
+ "hex",
+ "schemars",
+ "serde",
+]
+
+[[package]]
+name = "pyth-sdk-cw"
+version = "1.2.1"
+source = "git+https://github.com/lvn-hasky-dragon/pyth-crosschain?branch=update-deps#9e8a673aae1e6bf36d60b8591a6d24792ad13111"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "pyth-sdk",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -6792,6 +6944,7 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "encoding_rs",
+ "futures-channel",
  "futures-core",
  "futures-util",
  "h2 0.4.7",
@@ -7998,7 +8151,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tendermint 0.39.1",
- "toml",
+ "toml 0.8.19",
  "url",
 ]
 
@@ -8012,7 +8165,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tendermint 0.40.0",
- "toml",
+ "toml 0.8.19",
  "url",
 ]
 
@@ -8447,6 +8600,15 @@ dependencies = [
  "pin-project-lite",
  "slab",
  "tokio",
+]
+
+[[package]]
+name = "toml"
+version = "0.5.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

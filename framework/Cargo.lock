@@ -422,7 +422,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-oracle-standard"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -440,7 +440,7 @@ dependencies = [
  "cw-storage-plus",
  "cw20",
  "dotenv",
- "env_logger",
+ "env_logger 0.11.5",
  "schemars",
  "semver",
  "serde",
