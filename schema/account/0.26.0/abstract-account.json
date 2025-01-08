@@ -2804,6 +2804,17 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MigrateMsg",
     "type": "object",
+    "properties": {
+      "new_code_id": {
+        "description": "This field provides the new code id of the contract This is only necessary for migrations from XION accounts.",
+        "type": [
+          "integer",
+          "null"
+        ],
+        "format": "uint64",
+        "minimum": 0.0
+      }
+    },
     "additionalProperties": false
   },
   "sudo": null,
