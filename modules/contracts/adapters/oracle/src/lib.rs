@@ -105,7 +105,7 @@ pub mod interface {
             .map(|(key, value)| (key.to_string(), Addr::unchecked(value)))
             .collect()
         }
-
+        Source: https://docs.pyth.network/price-feeds/contract-addresses/cosmwasm
         pub const PYTH_XION_TEST_ADDRESS: &str =
             "xion1w39ctwxxhxxc2kxarycjxj9rndn65gf8daek7ggarwh3rq3zl0lqqllnmt";
         pub const PYTH_PION_ADDRESS: &str =
