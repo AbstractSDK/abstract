@@ -557,18 +557,12 @@ version = "0.26.0"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
- "abstract-interface",
  "abstract-sdk",
  "abstract-std",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-address-like",
  "cw-asset",
  "cw-orch 0.27.0",
- "cw-storage-plus",
- "cw20",
- "schemars",
- "serde",
  "thiserror 1.0.69",
  "workspace-hack",
 ]
