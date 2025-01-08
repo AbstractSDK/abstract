@@ -12,4 +12,4 @@ Pyth oracle is available on the following chains:
 - Osmosis Mainnet
 
 
-The available pariss can bd found under this link: https://www.pyth.network/developers/price-feed-ids#stable
+The available prices can be found under this link: https://www.pyth.network/developers/price-feed-ids#stable

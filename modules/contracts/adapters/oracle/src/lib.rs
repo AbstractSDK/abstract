@@ -2,7 +2,6 @@ pub mod api;
 pub mod contract;
 pub(crate) mod handlers;
 pub mod oracles;
-pub mod state;
 pub mod msg {
     pub use abstract_oracle_standard::msg::*;
 }

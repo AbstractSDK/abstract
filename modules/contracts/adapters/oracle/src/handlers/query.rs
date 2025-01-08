@@ -5,7 +5,6 @@ use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 
 use crate::contract::{OracleAdapter, OracleResult};
 use crate::oracles;
-use crate::state::CONFIG;
 
 pub fn query_handler(
     deps: Deps,
@@ -14,9 +13,6 @@ pub fn query_handler(
     msg: OracleQueryMsg,
 ) -> OracleResult<Binary> {
     match msg {
-        OracleQueryMsg::Config {} => {
-            to_json_binary(&CONFIG.load(deps.storage)?).map_err(Into::into)
-        }
         OracleQueryMsg::Price {
             price_source_key,
             oracle,

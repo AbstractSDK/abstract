@@ -21,9 +21,6 @@ impl adapter::AdapterQueryMsg for OracleQueryMsg {}
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum OracleQueryMsg {
-    /// Query the oracle adapter config
-    #[returns(Config)]
-    Config {},
     /// Query the latest price attached to the price source key
     #[returns(PriceResponse)]
     Price {

@@ -152,7 +152,7 @@ mod osmosis_test {
         AccountI<OsmosisTestTube>,
     )> {
         std::env::set_var("RUST_LOG", "debug");
-        let _ = env_logger::try_init().unwrap();
+        env_logger::try_init().unwrap();
         let tube = OsmosisTestTube::new(vec![
             coin(1_000_000_000_000, ASSET_2),
             coin(1_000_000_000_000, ASSET_1),
