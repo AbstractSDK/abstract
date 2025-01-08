@@ -26,6 +26,12 @@ pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> AccountResult {
     } else {
         #[cfg(feature = "xion")]
         {
+            if current_contract_version.contract != "account" {
+                Err(AbstractError::ContractNameMismatch {
+                    from: current_contract_version.contract.clone(),
+                    to: ACCOUNT.to_string(),
+                })?;
+            }
             // We might want to migrate from a XION account
             migrate_from_xion_account(
                 deps,
