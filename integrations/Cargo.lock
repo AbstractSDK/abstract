@@ -3548,7 +3548,7 @@ dependencies = [
  "flex-error",
  "futures",
  "http 1.1.0",
- "ibc-proto 0.51.1",
+ "ibc-proto",
  "ibc-relayer",
  "ibc-relayer-types",
  "itertools 0.13.0",
@@ -3558,24 +3558,6 @@ dependencies = [
  "tendermint-rpc 0.40.0",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "ibc-proto"
-version = "0.47.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c852d22b782d2d793f4a646f968de419be635e02bc8798d5d74a6e44eef27733"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "flex-error",
- "ics23",
- "informalsystems-pbjson",
- "prost 0.13.3",
- "serde",
- "subtle-encoding",
- "tendermint-proto 0.38.1",
- "tonic",
 ]
 
 [[package]]
@@ -3624,7 +3606,7 @@ dependencies = [
  "http 1.1.0",
  "humantime",
  "humantime-serde",
- "ibc-proto 0.51.1",
+ "ibc-proto",
  "ibc-relayer-types",
  "ibc-telemetry",
  "itertools 0.13.0",
@@ -3673,7 +3655,7 @@ dependencies = [
  "bytes",
  "derive_more 0.99.18",
  "flex-error",
- "ibc-proto 0.51.1",
+ "ibc-proto",
  "ics23",
  "itertools 0.13.0",
  "num-rational",
@@ -6618,22 +6600,6 @@ dependencies = [
 
 [[package]]
 name = "tendermint-proto"
-version = "0.38.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ed14abe3b0502a3afe21ca74ca5cdd6c7e8d326d982c26f98a394445eb31d6e"
-dependencies = [
- "bytes",
- "flex-error",
- "prost 0.13.3",
- "prost-types 0.13.3",
- "serde",
- "serde_bytes",
- "subtle-encoding",
- "time",
-]
-
-[[package]]
-name = "tendermint-proto"
 version = "0.39.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf3abf34ecf33125621519e9952688e7a59a98232d51538037ba21fbe526a802"
@@ -7814,7 +7780,6 @@ dependencies = [
  "group",
  "hex-conservative 0.1.2",
  "hyper 0.14.31",
- "ibc-proto 0.47.1",
  "ics23",
  "informalsystems-pbjson",
  "k256",
@@ -7852,7 +7817,6 @@ dependencies = [
  "subtle-encoding",
  "syn 1.0.109",
  "syn 2.0.90",
- "tendermint-proto 0.38.1",
  "tendermint-proto 0.39.1",
  "time",
  "tokio-stream",

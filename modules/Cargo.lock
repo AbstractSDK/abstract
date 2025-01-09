@@ -4275,7 +4275,6 @@ dependencies = [
  "serde",
  "subtle-encoding",
  "tendermint-proto 0.38.1",
- "tonic",
 ]
 
 [[package]]
@@ -8833,7 +8832,6 @@ dependencies = [
  "group",
  "hex-conservative 0.1.2",
  "hyper 0.14.32",
- "ibc-proto 0.47.1",
  "ics23",
  "informalsystems-pbjson",
  "k256",
@@ -8871,7 +8869,6 @@ dependencies = [
  "subtle-encoding",
  "syn 1.0.109",
  "syn 2.0.90",
- "tendermint-proto 0.38.1",
  "tendermint-proto 0.39.1",
  "time",
  "tokio-stream",
