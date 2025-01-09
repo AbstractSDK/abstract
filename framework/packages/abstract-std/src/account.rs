@@ -118,7 +118,7 @@ pub struct InstantiateMsg<Authenticator = Empty> {
     /// Code id of the account
     pub code_id: u64,
     /// The ownership structure of the Account.
-    pub owner: GovernanceDetails<String>,
+    pub owner: Option<GovernanceDetails<String>>,
     /// Optionally specify an account-id for this account.
     /// If provided must be between (u32::MAX/2)..u32::MAX range.
     pub account_id: Option<AccountId>,
@@ -395,7 +395,7 @@ mod test {
             init_msg_binary,
             InstantiateMsg {
                 code_id: 1,
-                owner: GovernanceDetails::Renounced {},
+                owner: Some(GovernanceDetails::Renounced {}),
                 authenticator: Default::default(),
                 account_id: Default::default(),
                 namespace: Default::default(),
@@ -420,9 +420,9 @@ mod test {
             init_msg_string,
             InstantiateMsg {
                 code_id: 1,
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: "bob".to_owned()
-                },
+                }),
                 authenticator: Default::default(),
                 account_id: Default::default(),
                 namespace: Default::default(),
