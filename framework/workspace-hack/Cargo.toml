@@ -14,361 +14,361 @@ publish = false
 
 ### BEGIN HAKARI SECTION
 [dependencies]
-anstream = { version = "0.6" }
-anyhow = { version = "1" }
-byteorder = { version = "1", default-features = false, features = ["i128"] }
-bytes = { version = "1", default-features = false, features = ["serde"] }
-cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
-cw-orch = { version = "0.27", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.8", features = ["daemon"] }
-cw20-base = { version = "2", default-features = false, features = ["library"] }
-der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
-deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
-digest = { version = "0.10", features = ["mac", "oid", "std"] }
-ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
-elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "serde", "std"] }
-flex-error = { version = "0.4", default-features = false, features = ["std"] }
-generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
-getrandom = { version = "0.2", default-features = false, features = ["custom", "std"] }
-log = { version = "0.4", default-features = false, features = ["std"] }
-memchr = { version = "2" }
-num-traits = { version = "0.2", default-features = false, features = ["i128", "libm"] }
-ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
-prost = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
-rand = { version = "0.8" }
-rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
-ripemd = { version = "0.1" }
-sec1 = { version = "0.7", features = ["pem", "serde", "std", "subtle"] }
-semver = { version = "1", features = ["serde"] }
-serde = { version = "1", features = ["alloc", "derive"] }
-serde_json = { version = "1", features = ["alloc"] }
-sha2 = { version = "0.10", features = ["oid"] }
-spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
-subtle-encoding = { version = "0.5", features = ["bech32-preview"] }
+anstream                          = { version = "0.6" }
+anyhow                            = { version = "1" }
+byteorder                         = { version = "1", default-features = false, features = ["i128"] }
+bytes                             = { version = "1", default-features = false, features = ["serde"] }
+cosmwasm-std                      = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
+cw-orch                           = { version = "0.27", features = ["daemon", "snapshot-testing"] }
+cw-orch-interchain                = { version = "0.8", features = ["daemon"] }
+cw20-base                         = { version = "2", default-features = false, features = ["library"] }
+der                               = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
+deranged                          = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
+digest                            = { version = "0.10", features = ["mac", "oid", "std"] }
+ecdsa                             = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
+elliptic-curve                    = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "serde", "std"] }
+flex-error                        = { version = "0.4", default-features = false, features = ["std"] }
+generic-array                     = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
+getrandom                         = { version = "0.2", default-features = false, features = ["custom", "std"] }
+log                               = { version = "0.4", default-features = false, features = ["std"] }
+memchr                            = { version = "2" }
+num-traits                        = { version = "0.2", default-features = false, features = ["i128", "libm"] }
+ppv-lite86                        = { version = "0.2", default-features = false, features = ["simd", "std"] }
+prost                             = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
+rand                              = { version = "0.8" }
+rand_chacha                       = { version = "0.3", default-features = false, features = ["std"] }
+ripemd                            = { version = "0.1" }
+sec1                              = { version = "0.7", features = ["pem", "serde", "std", "subtle"] }
+semver                            = { version = "1", features = ["serde"] }
+serde                             = { version = "1", features = ["alloc", "derive"] }
+serde_json                        = { version = "1", features = ["alloc"] }
+sha2                              = { version = "0.10", features = ["oid"] }
+spki                              = { version = "0.7", default-features = false, features = ["pem", "std"] }
+subtle-encoding                   = { version = "0.5", features = ["bech32-preview"] }
 tendermint-proto-f645eb7eb1285ab4 = { package = "tendermint-proto", version = "0.39", features = ["std"] }
-time = { version = "0.3", default-features = false, features = ["macros", "parsing", "std"] }
-zeroize = { version = "1", features = ["zeroize_derive"] }
+time                              = { version = "0.3", default-features = false, features = ["macros", "parsing", "std"] }
+zeroize                           = { version = "1", features = ["zeroize_derive"] }
 
 [build-dependencies]
-anstream = { version = "0.6" }
-anyhow = { version = "1" }
-byteorder = { version = "1", default-features = false, features = ["i128"] }
-bytes = { version = "1", default-features = false, features = ["serde"] }
-cosmwasm-std = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
-cw-orch = { version = "0.27", features = ["daemon", "snapshot-testing"] }
-cw-orch-interchain = { version = "0.8", features = ["daemon"] }
-cw20-base = { version = "2", default-features = false, features = ["library"] }
-der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
-deranged = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
-digest = { version = "0.10", features = ["mac", "oid", "std"] }
-ecdsa = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
-elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "serde", "std"] }
-flex-error = { version = "0.4", default-features = false, features = ["std"] }
-generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
-getrandom = { version = "0.2", default-features = false, features = ["custom", "std"] }
-log = { version = "0.4", default-features = false, features = ["std"] }
-memchr = { version = "2" }
-num-traits = { version = "0.2", default-features = false, features = ["i128", "libm"] }
-ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
-prost = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
-rand = { version = "0.8" }
-rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
-ripemd = { version = "0.1" }
-sec1 = { version = "0.7", features = ["pem", "serde", "std", "subtle"] }
-semver = { version = "1", features = ["serde"] }
-serde = { version = "1", features = ["alloc", "derive"] }
-serde_json = { version = "1", features = ["alloc"] }
-sha2 = { version = "0.10", features = ["oid"] }
-spki = { version = "0.7", default-features = false, features = ["pem", "std"] }
-subtle-encoding = { version = "0.5", features = ["bech32-preview"] }
-syn-dff4ba8e3ae991db = { package = "syn", version = "1", features = ["extra-traits", "full", "visit", "visit-mut"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
+anstream                          = { version = "0.6" }
+anyhow                            = { version = "1" }
+byteorder                         = { version = "1", default-features = false, features = ["i128"] }
+bytes                             = { version = "1", default-features = false, features = ["serde"] }
+cosmwasm-std                      = { version = "2", features = ["cosmwasm_2_0", "staking", "stargate"] }
+cw-orch                           = { version = "0.27", features = ["daemon", "snapshot-testing"] }
+cw-orch-interchain                = { version = "0.8", features = ["daemon"] }
+cw20-base                         = { version = "2", default-features = false, features = ["library"] }
+der                               = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
+deranged                          = { version = "0.3", default-features = false, features = ["powerfmt", "std"] }
+digest                            = { version = "0.10", features = ["mac", "oid", "std"] }
+ecdsa                             = { version = "0.16", features = ["pem", "serde", "signing", "std", "verifying"] }
+elliptic-curve                    = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "serde", "std"] }
+flex-error                        = { version = "0.4", default-features = false, features = ["std"] }
+generic-array                     = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
+getrandom                         = { version = "0.2", default-features = false, features = ["custom", "std"] }
+log                               = { version = "0.4", default-features = false, features = ["std"] }
+memchr                            = { version = "2" }
+num-traits                        = { version = "0.2", default-features = false, features = ["i128", "libm"] }
+ppv-lite86                        = { version = "0.2", default-features = false, features = ["simd", "std"] }
+prost                             = { version = "0.13", default-features = false, features = ["prost-derive", "std"] }
+rand                              = { version = "0.8" }
+rand_chacha                       = { version = "0.3", default-features = false, features = ["std"] }
+ripemd                            = { version = "0.1" }
+sec1                              = { version = "0.7", features = ["pem", "serde", "std", "subtle"] }
+semver                            = { version = "1", features = ["serde"] }
+serde                             = { version = "1", features = ["alloc", "derive"] }
+serde_json                        = { version = "1", features = ["alloc"] }
+sha2                              = { version = "0.10", features = ["oid"] }
+spki                              = { version = "0.7", default-features = false, features = ["pem", "std"] }
+subtle-encoding                   = { version = "0.5", features = ["bech32-preview"] }
+syn-dff4ba8e3ae991db              = { package = "syn", version = "1", features = ["extra-traits", "full", "visit", "visit-mut"] }
+syn-f595c2ba2a3f28df              = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
 tendermint-proto-f645eb7eb1285ab4 = { package = "tendermint-proto", version = "0.39", features = ["std"] }
-time = { version = "0.3", default-features = false, features = ["macros", "parsing", "std"] }
-zeroize = { version = "1", features = ["zeroize_derive"] }
+time                              = { version = "0.3", default-features = false, features = ["macros", "parsing", "std"] }
+zeroize                           = { version = "1", features = ["zeroize_derive"] }
 
 [target.x86_64-unknown-linux-gnu.dependencies]
-ahash = { version = "0.8" }
-aho-corasick = { version = "1" }
-base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
-bip32 = { version = "0.5" }
-bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
-bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
-bitflags = { version = "2", default-features = false, features = ["std"] }
-bs58 = { version = "0.5", features = ["check"] }
-byteorder = { version = "1" }
-bytes = { version = "1" }
-chrono = { version = "0.4", features = ["serde"] }
-console = { version = "0.15" }
-cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
-cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
-crossbeam-epoch = { version = "0.9" }
-crunchy = { version = "0.2", features = ["std"] }
-cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
-ed25519 = { version = "2", features = ["alloc", "serde"] }
-ed25519-dalek = { version = "2", features = ["rand_core", "serde"] }
-either = { version = "1" }
-ff = { version = "0.13", default-features = false, features = ["alloc"] }
-flex-error = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
-futures = { version = "0.3" }
-futures-channel = { version = "0.3", features = ["sink"] }
-futures-core = { version = "0.3" }
-futures-executor = { version = "0.3" }
-futures-io = { version = "0.3", default-features = false, features = ["std"] }
-futures-sink = { version = "0.3" }
-futures-task = { version = "0.3", default-features = false, features = ["std"] }
-futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
-getrandom = { version = "0.2", default-features = false, features = ["js"] }
-group = { version = "0.13", default-features = false, features = ["alloc"] }
-hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
-hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
-ibc-proto = { version = "0.47", features = ["serde"] }
-ics23 = { version = "0.12" }
-informalsystems-pbjson = { version = "0.7", default-features = false, features = ["std"] }
-k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
-lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
-libc = { version = "0.2" }
-log = { version = "0.4", default-features = false, features = ["serde"] }
-num-bigint = { version = "0.4", features = ["serde"] }
-num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-traits = { version = "0.2" }
-once_cell = { version = "1" }
-p256 = { version = "0.13", features = ["serde"] }
-parking_lot = { version = "0.12" }
-primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-rand = { version = "0.8", default-features = false, features = ["small_rng"] }
-rand_core = { version = "0.6", default-features = false, features = ["std"] }
-regex = { version = "1" }
-regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
-regex-syntax = { version = "0.8" }
-reqwest-5ef9efb8ec2df382 = { package = "reqwest", version = "0.12", features = ["json"] }
-reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
-serde_json = { version = "1", default-features = false, features = ["raw_value"] }
-signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
-smallvec = { version = "1", default-features = false, features = ["const_new"] }
+ahash                            = { version = "0.8" }
+aho-corasick                     = { version = "1" }
+base16ct                         = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32                            = { version = "0.5" }
+bitcoin-internals                = { version = "0.2", features = ["serde", "std"] }
+bitcoin_hashes                   = { version = "0.13", default-features = false, features = ["serde", "std"] }
+bitflags                         = { version = "2", default-features = false, features = ["std"] }
+bs58                             = { version = "0.5", features = ["check"] }
+byteorder                        = { version = "1" }
+bytes                            = { version = "1" }
+chrono                           = { version = "0.4", features = ["serde"] }
+console                          = { version = "0.15" }
+cosmos-sdk-proto                 = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
+cosmrs                           = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
+crossbeam-epoch                  = { version = "0.9" }
+crunchy                          = { version = "0.2", features = ["std"] }
+cw1-whitelist                    = { version = "2", default-features = false, features = ["library"] }
+ed25519                          = { version = "2", features = ["alloc", "serde"] }
+ed25519-dalek                    = { version = "2", features = ["rand_core", "serde"] }
+either                           = { version = "1" }
+ff                               = { version = "0.13", default-features = false, features = ["alloc"] }
+flex-error                       = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
+futures                          = { version = "0.3" }
+futures-channel                  = { version = "0.3", features = ["sink"] }
+futures-core                     = { version = "0.3" }
+futures-executor                 = { version = "0.3" }
+futures-io                       = { version = "0.3", default-features = false, features = ["std"] }
+futures-sink                     = { version = "0.3" }
+futures-task                     = { version = "0.3", default-features = false, features = ["std"] }
+futures-util                     = { version = "0.3", features = ["channel", "io", "sink"] }
+getrandom                        = { version = "0.2", default-features = false, features = ["js"] }
+group                            = { version = "0.13", default-features = false, features = ["alloc"] }
+hex-conservative                 = { version = "0.1", default-features = false, features = ["std"] }
+hyper                            = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
+ibc-proto                        = { version = "0.47", features = ["serde"] }
+ics23                            = { version = "0.12" }
+informalsystems-pbjson           = { version = "0.7", default-features = false, features = ["std"] }
+k256                             = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
+lazy_static                      = { version = "1", default-features = false, features = ["spin_no_std"] }
+libc                             = { version = "0.2" }
+log                              = { version = "0.4", default-features = false, features = ["serde"] }
+num-bigint                       = { version = "0.4", features = ["serde"] }
+num-integer                      = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-iter                         = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-traits                       = { version = "0.2" }
+once_cell                        = { version = "1" }
+p256                             = { version = "0.13", features = ["serde"] }
+parking_lot                      = { version = "0.12" }
+primeorder                       = { version = "0.13", default-features = false, features = ["serde"] }
+rand                             = { version = "0.8", default-features = false, features = ["small_rng"] }
+rand_core                        = { version = "0.6", default-features = false, features = ["std"] }
+regex                            = { version = "1" }
+regex-automata                   = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
+regex-syntax                     = { version = "0.8" }
+reqwest-5ef9efb8ec2df382         = { package = "reqwest", version = "0.12", features = ["json"] }
+reqwest-a6292c17cd707f01         = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+serde_json                       = { version = "1", default-features = false, features = ["raw_value"] }
+signature                        = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
+smallvec                         = { version = "1", default-features = false, features = ["const_new"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
-time = { version = "0.3" }
-tokio-stream = { version = "0.1", features = ["net"] }
-tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
-tonic = { version = "0.12", features = ["tls-roots"] }
-tower = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "util"] }
-tracing = { version = "0.1", features = ["log"] }
-tracing-core = { version = "0.1" }
-unicode-normalization = { version = "0.1" }
-uuid = { version = "1", features = ["v4"] }
+time                             = { version = "0.3" }
+tokio-stream                     = { version = "0.1", features = ["net"] }
+tokio-util                       = { version = "0.7", features = ["codec", "io", "time"] }
+tonic                            = { version = "0.12", features = ["tls-roots"] }
+tower                            = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "util"] }
+tracing                          = { version = "0.1", features = ["log"] }
+tracing-core                     = { version = "0.1" }
+unicode-normalization            = { version = "0.1" }
+uuid                             = { version = "1", features = ["v4"] }
 
 [target.x86_64-unknown-linux-gnu.build-dependencies]
-ahash = { version = "0.8" }
-aho-corasick = { version = "1" }
-base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
-bip32 = { version = "0.5" }
-bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
-bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
-bitflags = { version = "2", default-features = false, features = ["std"] }
-bs58 = { version = "0.5", features = ["check"] }
-byteorder = { version = "1" }
-bytes = { version = "1" }
-chrono = { version = "0.4", features = ["serde"] }
-console = { version = "0.15" }
-cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
-cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
-crossbeam-epoch = { version = "0.9" }
-crunchy = { version = "0.2", features = ["std"] }
-cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
-ed25519 = { version = "2", features = ["alloc", "serde"] }
-ed25519-dalek = { version = "2", features = ["rand_core", "serde"] }
-either = { version = "1" }
-ff = { version = "0.13", default-features = false, features = ["alloc"] }
-flex-error = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
-futures = { version = "0.3" }
-futures-channel = { version = "0.3", features = ["sink"] }
-futures-core = { version = "0.3" }
-futures-executor = { version = "0.3" }
-futures-io = { version = "0.3", default-features = false, features = ["std"] }
-futures-sink = { version = "0.3" }
-futures-task = { version = "0.3", default-features = false, features = ["std"] }
-futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
-getrandom = { version = "0.2", default-features = false, features = ["js"] }
-group = { version = "0.13", default-features = false, features = ["alloc"] }
-hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
-hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
-ibc-proto = { version = "0.47", features = ["serde"] }
-ics23 = { version = "0.12" }
-informalsystems-pbjson = { version = "0.7", default-features = false, features = ["std"] }
-k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
-lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
-libc = { version = "0.2" }
-log = { version = "0.4", default-features = false, features = ["serde"] }
-num-bigint = { version = "0.4", features = ["serde"] }
-num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-traits = { version = "0.2" }
-once_cell = { version = "1" }
-p256 = { version = "0.13", features = ["serde"] }
-parking_lot = { version = "0.12" }
-primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-rand = { version = "0.8", default-features = false, features = ["small_rng"] }
-rand_core = { version = "0.6", default-features = false, features = ["std"] }
-regex = { version = "1" }
-regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
-regex-syntax = { version = "0.8" }
-reqwest-5ef9efb8ec2df382 = { package = "reqwest", version = "0.12", features = ["json"] }
-reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
-serde_json = { version = "1", default-features = false, features = ["raw_value"] }
-signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
-smallvec = { version = "1", default-features = false, features = ["const_new"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold"] }
+ahash                            = { version = "0.8" }
+aho-corasick                     = { version = "1" }
+base16ct                         = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32                            = { version = "0.5" }
+bitcoin-internals                = { version = "0.2", features = ["serde", "std"] }
+bitcoin_hashes                   = { version = "0.13", default-features = false, features = ["serde", "std"] }
+bitflags                         = { version = "2", default-features = false, features = ["std"] }
+bs58                             = { version = "0.5", features = ["check"] }
+byteorder                        = { version = "1" }
+bytes                            = { version = "1" }
+chrono                           = { version = "0.4", features = ["serde"] }
+console                          = { version = "0.15" }
+cosmos-sdk-proto                 = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
+cosmrs                           = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
+crossbeam-epoch                  = { version = "0.9" }
+crunchy                          = { version = "0.2", features = ["std"] }
+cw1-whitelist                    = { version = "2", default-features = false, features = ["library"] }
+ed25519                          = { version = "2", features = ["alloc", "serde"] }
+ed25519-dalek                    = { version = "2", features = ["rand_core", "serde"] }
+either                           = { version = "1" }
+ff                               = { version = "0.13", default-features = false, features = ["alloc"] }
+flex-error                       = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
+futures                          = { version = "0.3" }
+futures-channel                  = { version = "0.3", features = ["sink"] }
+futures-core                     = { version = "0.3" }
+futures-executor                 = { version = "0.3" }
+futures-io                       = { version = "0.3", default-features = false, features = ["std"] }
+futures-sink                     = { version = "0.3" }
+futures-task                     = { version = "0.3", default-features = false, features = ["std"] }
+futures-util                     = { version = "0.3", features = ["channel", "io", "sink"] }
+getrandom                        = { version = "0.2", default-features = false, features = ["js"] }
+group                            = { version = "0.13", default-features = false, features = ["alloc"] }
+hex-conservative                 = { version = "0.1", default-features = false, features = ["std"] }
+hyper                            = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
+ibc-proto                        = { version = "0.47", features = ["serde"] }
+ics23                            = { version = "0.12" }
+informalsystems-pbjson           = { version = "0.7", default-features = false, features = ["std"] }
+k256                             = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
+lazy_static                      = { version = "1", default-features = false, features = ["spin_no_std"] }
+libc                             = { version = "0.2" }
+log                              = { version = "0.4", default-features = false, features = ["serde"] }
+num-bigint                       = { version = "0.4", features = ["serde"] }
+num-integer                      = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-iter                         = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-traits                       = { version = "0.2" }
+once_cell                        = { version = "1" }
+p256                             = { version = "0.13", features = ["serde"] }
+parking_lot                      = { version = "0.12" }
+primeorder                       = { version = "0.13", default-features = false, features = ["serde"] }
+rand                             = { version = "0.8", default-features = false, features = ["small_rng"] }
+rand_core                        = { version = "0.6", default-features = false, features = ["std"] }
+regex                            = { version = "1" }
+regex-automata                   = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
+regex-syntax                     = { version = "0.8" }
+reqwest-5ef9efb8ec2df382         = { package = "reqwest", version = "0.12", features = ["json"] }
+reqwest-a6292c17cd707f01         = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+serde_json                       = { version = "1", default-features = false, features = ["raw_value"] }
+signature                        = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
+smallvec                         = { version = "1", default-features = false, features = ["const_new"] }
+syn-f595c2ba2a3f28df             = { package = "syn", version = "2", default-features = false, features = ["fold"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
-time = { version = "0.3" }
-tokio-stream = { version = "0.1", features = ["net"] }
-tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
-tonic = { version = "0.12", features = ["tls-roots"] }
-tower = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "util"] }
-tracing = { version = "0.1", features = ["log"] }
-tracing-core = { version = "0.1" }
-unicode-normalization = { version = "0.1" }
-uuid = { version = "1", features = ["v4"] }
+time                             = { version = "0.3" }
+tokio-stream                     = { version = "0.1", features = ["net"] }
+tokio-util                       = { version = "0.7", features = ["codec", "io", "time"] }
+tonic                            = { version = "0.12", features = ["tls-roots"] }
+tower                            = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "util"] }
+tracing                          = { version = "0.1", features = ["log"] }
+tracing-core                     = { version = "0.1" }
+unicode-normalization            = { version = "0.1" }
+uuid                             = { version = "1", features = ["v4"] }
 
 [target.aarch64-apple-darwin.dependencies]
-ahash = { version = "0.8" }
-aho-corasick = { version = "1" }
-base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
-bip32 = { version = "0.5" }
-bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
-bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
-bs58 = { version = "0.5", features = ["check"] }
-byteorder = { version = "1" }
-bytes = { version = "1" }
-chrono = { version = "0.4", features = ["serde"] }
-console = { version = "0.15" }
-cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
-cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
-crossbeam-epoch = { version = "0.9" }
-crunchy = { version = "0.2", features = ["std"] }
-cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
-ed25519 = { version = "2", features = ["alloc", "serde"] }
-ed25519-dalek = { version = "2", features = ["rand_core", "serde"] }
-either = { version = "1" }
-ff = { version = "0.13", default-features = false, features = ["alloc"] }
-flex-error = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
-futures = { version = "0.3" }
-futures-channel = { version = "0.3", features = ["sink"] }
-futures-core = { version = "0.3" }
-futures-executor = { version = "0.3" }
-futures-io = { version = "0.3", default-features = false, features = ["std"] }
-futures-sink = { version = "0.3" }
-futures-task = { version = "0.3", default-features = false, features = ["std"] }
-futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
-getrandom = { version = "0.2", default-features = false, features = ["js"] }
-group = { version = "0.13", default-features = false, features = ["alloc"] }
-hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
-hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
-ibc-proto = { version = "0.47", features = ["serde"] }
-ics23 = { version = "0.12" }
-informalsystems-pbjson = { version = "0.7", default-features = false, features = ["std"] }
-k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
-lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
-libc = { version = "0.2", features = ["extra_traits"] }
-log = { version = "0.4", default-features = false, features = ["serde"] }
-num-bigint = { version = "0.4", features = ["serde"] }
-num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-traits = { version = "0.2" }
-once_cell = { version = "1" }
-p256 = { version = "0.13", features = ["serde"] }
-parking_lot = { version = "0.12" }
-primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-rand = { version = "0.8", default-features = false, features = ["small_rng"] }
-rand_core = { version = "0.6", default-features = false, features = ["std"] }
-regex = { version = "1" }
-regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
-regex-syntax = { version = "0.8" }
-reqwest-5ef9efb8ec2df382 = { package = "reqwest", version = "0.12", features = ["json"] }
-reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
-serde_json = { version = "1", default-features = false, features = ["raw_value"] }
-signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
-smallvec = { version = "1", default-features = false, features = ["const_new"] }
+ahash                            = { version = "0.8" }
+aho-corasick                     = { version = "1" }
+base16ct                         = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32                            = { version = "0.5" }
+bitcoin-internals                = { version = "0.2", features = ["serde", "std"] }
+bitcoin_hashes                   = { version = "0.13", default-features = false, features = ["serde", "std"] }
+bs58                             = { version = "0.5", features = ["check"] }
+byteorder                        = { version = "1" }
+bytes                            = { version = "1" }
+chrono                           = { version = "0.4", features = ["serde"] }
+console                          = { version = "0.15" }
+cosmos-sdk-proto                 = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
+cosmrs                           = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
+crossbeam-epoch                  = { version = "0.9" }
+crunchy                          = { version = "0.2", features = ["std"] }
+cw1-whitelist                    = { version = "2", default-features = false, features = ["library"] }
+ed25519                          = { version = "2", features = ["alloc", "serde"] }
+ed25519-dalek                    = { version = "2", features = ["rand_core", "serde"] }
+either                           = { version = "1" }
+ff                               = { version = "0.13", default-features = false, features = ["alloc"] }
+flex-error                       = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
+futures                          = { version = "0.3" }
+futures-channel                  = { version = "0.3", features = ["sink"] }
+futures-core                     = { version = "0.3" }
+futures-executor                 = { version = "0.3" }
+futures-io                       = { version = "0.3", default-features = false, features = ["std"] }
+futures-sink                     = { version = "0.3" }
+futures-task                     = { version = "0.3", default-features = false, features = ["std"] }
+futures-util                     = { version = "0.3", features = ["channel", "io", "sink"] }
+getrandom                        = { version = "0.2", default-features = false, features = ["js"] }
+group                            = { version = "0.13", default-features = false, features = ["alloc"] }
+hex-conservative                 = { version = "0.1", default-features = false, features = ["std"] }
+hyper                            = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
+ibc-proto                        = { version = "0.47", features = ["serde"] }
+ics23                            = { version = "0.12" }
+informalsystems-pbjson           = { version = "0.7", default-features = false, features = ["std"] }
+k256                             = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
+lazy_static                      = { version = "1", default-features = false, features = ["spin_no_std"] }
+libc                             = { version = "0.2", features = ["extra_traits"] }
+log                              = { version = "0.4", default-features = false, features = ["serde"] }
+num-bigint                       = { version = "0.4", features = ["serde"] }
+num-integer                      = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-iter                         = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-traits                       = { version = "0.2" }
+once_cell                        = { version = "1" }
+p256                             = { version = "0.13", features = ["serde"] }
+parking_lot                      = { version = "0.12" }
+primeorder                       = { version = "0.13", default-features = false, features = ["serde"] }
+rand                             = { version = "0.8", default-features = false, features = ["small_rng"] }
+rand_core                        = { version = "0.6", default-features = false, features = ["std"] }
+regex                            = { version = "1" }
+regex-automata                   = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
+regex-syntax                     = { version = "0.8" }
+reqwest-5ef9efb8ec2df382         = { package = "reqwest", version = "0.12", features = ["json"] }
+reqwest-a6292c17cd707f01         = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+serde_json                       = { version = "1", default-features = false, features = ["raw_value"] }
+signature                        = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
+smallvec                         = { version = "1", default-features = false, features = ["const_new"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
-time = { version = "0.3" }
-tokio-stream = { version = "0.1", features = ["net"] }
-tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
-tonic = { version = "0.12", features = ["tls-roots"] }
-tower = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "util"] }
-tracing = { version = "0.1", features = ["log"] }
-tracing-core = { version = "0.1" }
-unicode-normalization = { version = "0.1" }
-uuid = { version = "1", features = ["v4"] }
+time                             = { version = "0.3" }
+tokio-stream                     = { version = "0.1", features = ["net"] }
+tokio-util                       = { version = "0.7", features = ["codec", "io", "time"] }
+tonic                            = { version = "0.12", features = ["tls-roots"] }
+tower                            = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "util"] }
+tracing                          = { version = "0.1", features = ["log"] }
+tracing-core                     = { version = "0.1" }
+unicode-normalization            = { version = "0.1" }
+uuid                             = { version = "1", features = ["v4"] }
 
 [target.aarch64-apple-darwin.build-dependencies]
-ahash = { version = "0.8" }
-aho-corasick = { version = "1" }
-base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
-bip32 = { version = "0.5" }
-bitcoin-internals = { version = "0.2", features = ["serde", "std"] }
-bitcoin_hashes = { version = "0.13", default-features = false, features = ["serde", "std"] }
-bs58 = { version = "0.5", features = ["check"] }
-byteorder = { version = "1" }
-bytes = { version = "1" }
-chrono = { version = "0.4", features = ["serde"] }
-console = { version = "0.15" }
-cosmos-sdk-proto = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
-cosmrs = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
-crossbeam-epoch = { version = "0.9" }
-crunchy = { version = "0.2", features = ["std"] }
-cw1-whitelist = { version = "2", default-features = false, features = ["library"] }
-ed25519 = { version = "2", features = ["alloc", "serde"] }
-ed25519-dalek = { version = "2", features = ["rand_core", "serde"] }
-either = { version = "1" }
-ff = { version = "0.13", default-features = false, features = ["alloc"] }
-flex-error = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
-futures = { version = "0.3" }
-futures-channel = { version = "0.3", features = ["sink"] }
-futures-core = { version = "0.3" }
-futures-executor = { version = "0.3" }
-futures-io = { version = "0.3", default-features = false, features = ["std"] }
-futures-sink = { version = "0.3" }
-futures-task = { version = "0.3", default-features = false, features = ["std"] }
-futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
-getrandom = { version = "0.2", default-features = false, features = ["js"] }
-group = { version = "0.13", default-features = false, features = ["alloc"] }
-hex-conservative = { version = "0.1", default-features = false, features = ["std"] }
-hyper = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
-ibc-proto = { version = "0.47", features = ["serde"] }
-ics23 = { version = "0.12" }
-informalsystems-pbjson = { version = "0.7", default-features = false, features = ["std"] }
-k256 = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
-lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
-libc = { version = "0.2", features = ["extra_traits"] }
-log = { version = "0.4", default-features = false, features = ["serde"] }
-num-bigint = { version = "0.4", features = ["serde"] }
-num-integer = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-iter = { version = "0.1", default-features = false, features = ["i128", "std"] }
-num-traits = { version = "0.2" }
-once_cell = { version = "1" }
-p256 = { version = "0.13", features = ["serde"] }
-parking_lot = { version = "0.12" }
-primeorder = { version = "0.13", default-features = false, features = ["serde"] }
-rand = { version = "0.8", default-features = false, features = ["small_rng"] }
-rand_core = { version = "0.6", default-features = false, features = ["std"] }
-regex = { version = "1" }
-regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
-regex-syntax = { version = "0.8" }
-reqwest-5ef9efb8ec2df382 = { package = "reqwest", version = "0.12", features = ["json"] }
-reqwest-a6292c17cd707f01 = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
-serde_json = { version = "1", default-features = false, features = ["raw_value"] }
-signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
-smallvec = { version = "1", default-features = false, features = ["const_new"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", default-features = false, features = ["fold"] }
+ahash                            = { version = "0.8" }
+aho-corasick                     = { version = "1" }
+base16ct                         = { version = "0.2", default-features = false, features = ["alloc"] }
+bip32                            = { version = "0.5" }
+bitcoin-internals                = { version = "0.2", features = ["serde", "std"] }
+bitcoin_hashes                   = { version = "0.13", default-features = false, features = ["serde", "std"] }
+bs58                             = { version = "0.5", features = ["check"] }
+byteorder                        = { version = "1" }
+bytes                            = { version = "1" }
+chrono                           = { version = "0.4", features = ["serde"] }
+console                          = { version = "0.15" }
+cosmos-sdk-proto                 = { version = "0.24", default-features = false, features = ["cosmwasm", "grpc-transport"] }
+cosmrs                           = { version = "0.19", features = ["cosmwasm", "dev", "grpc"] }
+crossbeam-epoch                  = { version = "0.9" }
+crunchy                          = { version = "0.2", features = ["std"] }
+cw1-whitelist                    = { version = "2", default-features = false, features = ["library"] }
+ed25519                          = { version = "2", features = ["alloc", "serde"] }
+ed25519-dalek                    = { version = "2", features = ["rand_core", "serde"] }
+either                           = { version = "1" }
+ff                               = { version = "0.13", default-features = false, features = ["alloc"] }
+flex-error                       = { version = "0.4", default-features = false, features = ["eyre_tracer"] }
+futures                          = { version = "0.3" }
+futures-channel                  = { version = "0.3", features = ["sink"] }
+futures-core                     = { version = "0.3" }
+futures-executor                 = { version = "0.3" }
+futures-io                       = { version = "0.3", default-features = false, features = ["std"] }
+futures-sink                     = { version = "0.3" }
+futures-task                     = { version = "0.3", default-features = false, features = ["std"] }
+futures-util                     = { version = "0.3", features = ["channel", "io", "sink"] }
+getrandom                        = { version = "0.2", default-features = false, features = ["js"] }
+group                            = { version = "0.13", default-features = false, features = ["alloc"] }
+hex-conservative                 = { version = "0.1", default-features = false, features = ["std"] }
+hyper                            = { version = "0.14", features = ["client", "http1", "http2", "runtime", "server", "stream"] }
+ibc-proto                        = { version = "0.47", features = ["serde"] }
+ics23                            = { version = "0.12" }
+informalsystems-pbjson           = { version = "0.7", default-features = false, features = ["std"] }
+k256                             = { version = "0.13", default-features = false, features = ["alloc", "ecdsa"] }
+lazy_static                      = { version = "1", default-features = false, features = ["spin_no_std"] }
+libc                             = { version = "0.2", features = ["extra_traits"] }
+log                              = { version = "0.4", default-features = false, features = ["serde"] }
+num-bigint                       = { version = "0.4", features = ["serde"] }
+num-integer                      = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-iter                         = { version = "0.1", default-features = false, features = ["i128", "std"] }
+num-traits                       = { version = "0.2" }
+once_cell                        = { version = "1" }
+p256                             = { version = "0.13", features = ["serde"] }
+parking_lot                      = { version = "0.12" }
+primeorder                       = { version = "0.13", default-features = false, features = ["serde"] }
+rand                             = { version = "0.8", default-features = false, features = ["small_rng"] }
+rand_core                        = { version = "0.6", default-features = false, features = ["std"] }
+regex                            = { version = "1" }
+regex-automata                   = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
+regex-syntax                     = { version = "0.8" }
+reqwest-5ef9efb8ec2df382         = { package = "reqwest", version = "0.12", features = ["json"] }
+reqwest-a6292c17cd707f01         = { package = "reqwest", version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+serde_json                       = { version = "1", default-features = false, features = ["raw_value"] }
+signature                        = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
+smallvec                         = { version = "1", default-features = false, features = ["const_new"] }
+syn-f595c2ba2a3f28df             = { package = "syn", version = "2", default-features = false, features = ["fold"] }
 tendermint-proto-d585fab2519d2d1 = { package = "tendermint-proto", version = "0.38" }
-time = { version = "0.3" }
-tokio-stream = { version = "0.1", features = ["net"] }
-tokio-util = { version = "0.7", features = ["codec", "io", "time"] }
-tonic = { version = "0.12", features = ["tls-roots"] }
-tower = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "util"] }
-tracing = { version = "0.1", features = ["log"] }
-tracing-core = { version = "0.1" }
-unicode-normalization = { version = "0.1" }
-uuid = { version = "1", features = ["v4"] }
+time                             = { version = "0.3" }
+tokio-stream                     = { version = "0.1", features = ["net"] }
+tokio-util                       = { version = "0.7", features = ["codec", "io", "time"] }
+tonic                            = { version = "0.12", features = ["tls-roots"] }
+tower                            = { version = "0.4", features = ["balance", "buffer", "filter", "limit", "util"] }
+tracing                          = { version = "0.1", features = ["log"] }
+tracing-core                     = { version = "0.1" }
+unicode-normalization            = { version = "0.1" }
+uuid                             = { version = "1", features = ["v4"] }
 
 ### END HAKARI SECTION

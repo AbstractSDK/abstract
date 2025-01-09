@@ -107,7 +107,7 @@ pub mod state {
 pub struct MigrateMsg {
     /// This field provides the new code id of the contract
     /// This is only necessary for migrations from XION accounts.
-    pub new_code_id: Option<u64>,
+    pub code_id: Option<u64>,
 }
 
 /// Account Instantiate Msg

@@ -200,7 +200,7 @@ mod from_xion {
 
         account.call_as(&addr_contract).migrate(
             &MigrateMsg {
-                new_code_id: Some(deployment.account_code_id()?),
+                code_id: Some(deployment.account_code_id()?),
             },
             deployment.account_code_id()?,
         )?;

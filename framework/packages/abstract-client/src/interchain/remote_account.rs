@@ -348,7 +348,7 @@ impl<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<Chain, IBC
         let modules = vec![(
             ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
             Some(
-                to_json_binary(&abstract_std::account::MigrateMsg { new_code_id: None })
+                to_json_binary(&abstract_std::account::MigrateMsg { code_id: None })
                     .map_err(Into::<CwOrchError>::into)?,
             ),
         )];

@@ -37,7 +37,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountResult {
                 deps,
                 _env,
                 current_contract_version,
-                _msg.new_code_id
+                _msg.code_id
                     .ok_or(crate::error::AccountError::MissingCodeIdToMigrate {})?,
             )
         }
@@ -158,7 +158,7 @@ mod tests {
 
         let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-        let res = super::migrate(deps.as_mut(), env, MigrateMsg { new_code_id: None });
+        let res = super::migrate(deps.as_mut(), env, MigrateMsg { code_id: None });
 
         assert_eq!(
             res,
@@ -186,7 +186,7 @@ mod tests {
 
         let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-        let res = super::migrate(deps.as_mut(), env, MigrateMsg { new_code_id: None });
+        let res = super::migrate(deps.as_mut(), env, MigrateMsg { code_id: None });
 
         assert_eq!(
             res,
@@ -213,7 +213,7 @@ mod tests {
         let old_name = "old:contract";
         set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-        let res = super::migrate(deps.as_mut(), env, MigrateMsg { new_code_id: None });
+        let res = super::migrate(deps.as_mut(), env, MigrateMsg { code_id: None });
 
         assert_eq!(
             res,
@@ -245,7 +245,7 @@ mod tests {
 
         set_contract_version(deps.as_mut().storage, ACCOUNT, small_version)?;
 
-        let res = super::migrate(deps.as_mut(), env, MigrateMsg { new_code_id: None })?;
+        let res = super::migrate(deps.as_mut(), env, MigrateMsg { code_id: None })?;
         assert!(res.messages.is_empty());
 
         assert_eq!(
