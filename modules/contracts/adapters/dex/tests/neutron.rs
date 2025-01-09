@@ -1,5 +1,7 @@
 #![cfg(feature = "neutron-test")]
 
+// Warning: tests are disabled here, because Neutron swap doesn't exist for now
+
 use abstract_adapter::std::{
     ans_host::ExecuteMsgFns,
     objects::{
@@ -154,7 +156,7 @@ fn setup_mock() -> anyhow::Result<(
     Ok((chain.clone(), dex_adapter, account, deployment, 0))
 }
 
-#[test]
+// #[test]
 fn swap() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, _pool_id) = setup_mock()?;
