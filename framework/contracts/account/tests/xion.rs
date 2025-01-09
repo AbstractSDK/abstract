@@ -123,9 +123,11 @@ fn test_init_sign_arb() {
             pubkey: Binary::from(pubkey_bytes),
             signature: Binary::from(signature_bytes),
         }),
-        owner: abstract_std::objects::gov_type::GovernanceDetails::AbstractAccount {
-            address: env.contract.address.clone(),
-        },
+        owner: Some(
+            abstract_std::objects::gov_type::GovernanceDetails::AbstractAccount {
+                address: env.contract.address.clone(),
+            },
+        ),
         name: Some("account".to_owned()),
         install_modules: vec![],
         account_id: None,
@@ -159,9 +161,9 @@ pub(crate) fn mock_init(
         account::InstantiateMsg {
             code_id: 1,
             account_id: Some(AccountId::new(1, AccountTrace::Local).unwrap()),
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: abstr.owner.to_string(),
-            },
+            }),
             namespace: None,
             name: Some("test".to_string()),
             description: None,
@@ -331,9 +333,9 @@ mod actual_signature {
                 &InstantiateMsg {
                     code_id,
                     account_id: None,
-                    owner: GovernanceDetails::AbstractAccount {
+                    owner: Some(GovernanceDetails::AbstractAccount {
                         address: account_addr.clone(),
-                    },
+                    }),
                     namespace: None,
                     install_modules: vec![],
                     name: None,
