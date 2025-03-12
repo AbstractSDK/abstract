@@ -4,7 +4,7 @@
 
 ### Added
 
-- Added migration from xion accounts, must specify `code_id` field for such migration
+- Fixed migration from xion accounts, must specify `code_id` field for such migration (because new code_id is not available inside migration function)
 
 ### Changed
 
