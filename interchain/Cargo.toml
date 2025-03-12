@@ -73,7 +73,7 @@ abstract-sdk       = { version = "0.26.0", path = "../framework/packages/abstrac
 abstract-std       = { version = "0.26.0", path = "../framework/packages/abstract-std" }
 abstract-testing   = { version = "0.26.0", path = "../framework/packages/abstract-testing" }
 # Modules
-abstract-account = { version = "0.26.0", path = "../framework/contracts/account" }
+abstract-account = { version = "0.26.1", path = "../framework/contracts/account" }
 # croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }
 # dca-app = { path = "../modules/contracts/apps/dca" }
@@ -81,7 +81,7 @@ abstract-cw-staking           = { path = "../modules/contracts/adapters/cw-staki
 abstract-dex-adapter          = { path = "../modules/contracts/adapters/dex" }
 abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market" }
 
-abstract-xion = { package = "xion-account", version = "0.1.0", features = ["library"] }
+abstract-xion = { package = "xion-account", version = "=0.1.1", features = ["library"] }
 
 ## Testing
 anyhow = "1"

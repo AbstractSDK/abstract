@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "abstract-account"
-version = "0.26.0"
+version = "0.26.1"
 dependencies = [
  "abstract-adapter",
  "abstract-ans-host",
@@ -8115,9 +8115,9 @@ checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
 
 [[package]]
 name = "xion-account"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ccc64e54f65f407b93571fb597d70c175863f5a7b627152f3716cb9e41194bb"
+checksum = "6766dd1897a07b95b2ddc2bb2bb9fafe2135e1a2eea2e5bb6e036ea6d5acf9fa"
 dependencies = [
  "base64 0.21.7",
  "bech32 0.9.1",
