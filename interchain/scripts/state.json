@@ -85,7 +85,7 @@
   },
   "xion-testnet-2": {
     "code_ids": {
-      "abstract:account": 21,
+      "abstract:account": 95,
       "abstract:ans-host": 4,
       "abstract:ibc-client": 8,
       "abstract:ibc-host": 9,
