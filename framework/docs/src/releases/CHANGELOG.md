@@ -4,7 +4,16 @@
 
 ### Added
 
-- Added migration function to migrate from xion accounts
+- Added migration from xion accounts, must specify `code_id` field for such migration
+
+### Changed
+
+- Account's `InstantiationMsg` field `owner` is optional now and defaults to AbstractAccount(account_address)
+
+### Removed
+
+## [0.24.1] - 2024-10-25
+
 - Added `PfmMemoBuilder` API for building middleware forwarding memo
 - Added `HookMemoBuilder` API for building wasm ibc hook memo
 - `execute_with_funds` to Executor to attach funds to execution.
