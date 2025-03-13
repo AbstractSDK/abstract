@@ -49,9 +49,9 @@ fn create_one_account() -> AResult {
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -94,9 +94,9 @@ fn create_two_accounts() -> AResult {
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -113,9 +113,9 @@ fn create_two_accounts() -> AResult {
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -164,9 +164,9 @@ fn sender_is_not_admin_monarchy() -> AResult {
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -213,10 +213,10 @@ fn sender_is_not_admin_external() -> AResult {
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::External {
+            owner: Some(GovernanceDetails::External {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -259,10 +259,10 @@ fn create_one_account_with_namespace() -> AResult {
             namespace: Some(namespace_to_claim.to_string()),
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::External {
+            owner: Some(GovernanceDetails::External {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,

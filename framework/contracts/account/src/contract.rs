@@ -120,6 +120,9 @@ pub fn instantiate(
     }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
+    let owner = owner.unwrap_or(GovernanceDetails::AbstractAccount {
+        address: env.contract.address.clone(),
+    });
     let governance = owner.clone().verify(deps.as_ref())?;
     match governance {
         // Check if the caller is the proposed owner account when creating a sub-account.
@@ -504,9 +507,9 @@ mod tests {
             account::InstantiateMsg {
                 code_id: 1,
                 account_id: AccountId::new(1, AccountTrace::Local).ok(),
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),
-                },
+                }),
                 namespace: None,
                 name: Some("test".to_string()),
                 description: None,

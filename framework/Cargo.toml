@@ -65,9 +65,9 @@ polytone-note    = { package = "abstract-polytone-note", version = "5.0.0" }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter    = { path = "packages/abstract-adapter" }
-abstract-app        = { path = "packages/abstract-app" }
-abstract-standalone = { path = "packages/abstract-standalone" }
+abstract-adapter    = { path = "packages/abstract-adapter", version = "0.26.0" }
+abstract-app        = { path = "packages/abstract-app", version = "0.26.0" }
+abstract-standalone = { path = "packages/abstract-standalone", version = "0.26.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
@@ -86,8 +86,7 @@ abstract-ica     = { version = "0.26.0", path = "packages/abstract-ica" }
 abstract-sdk     = { version = "0.26.0", path = "packages/abstract-sdk" }
 abstract-std     = { version = "0.26.0", path = "packages/abstract-std" }
 abstract-testing = { version = "0.26.0", path = "packages/abstract-testing" }
-abstract-xion    = { package = "account", version = "0.1.0", git = "https://github.com/burnt-labs/contracts", features = ["library"] }
-
+abstract-xion    = { package = "xion-account", version = "=0.1.1", features = ["library"] }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
 abstract-macros = { version = "0.26.0", path = "packages/abstract-macros" }

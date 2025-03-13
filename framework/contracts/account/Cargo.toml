@@ -6,7 +6,7 @@ license     = { workspace = true }
 name        = "abstract-account"
 readme      = "README.md"
 repository  = "https://github.com/AbstractSDK/abstract"
-version     = { workspace = true }
+version     = "0.26.1"
 
 exclude = ["contract.wasm", "hash.txt"]
 
