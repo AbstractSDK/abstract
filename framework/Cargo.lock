@@ -421,6 +421,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "abstract-oracle-standard"
+version = "0.26.0"
+dependencies = [
+ "abstract-adapter",
+ "abstract-adapter-utils",
+ "abstract-interface",
+ "abstract-sdk",
+ "abstract-std",
+ "abstract-testing",
+ "anyhow",
+ "clap",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-asset",
+ "cw-orch 0.27.0",
+ "dotenv",
+ "env_logger 0.11.5",
+ "semver",
+ "thiserror",
+ "workspace-hack",
+]
+
+[[package]]
 name = "abstract-polytone"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
