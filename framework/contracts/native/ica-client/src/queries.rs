@@ -226,8 +226,8 @@ mod tests {
                 chain: chain_name,
                 actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
                     msgs: vec![EvmMsg::Call {
-                        to: "to".to_string(),
-                        data: vec![0x01].into(),
+                        target: "to".to_string(),
+                        call_data: vec![0x01].into(),
                         value: None,
                         allow_failure: None,
                     }],
@@ -246,8 +246,8 @@ mod tests {
                         &evm_note::msg::ExecuteMsg::Execute {
                             callback: None,
                             msgs: vec![EvmMsg::Call {
-                                to: "to".to_string(),
-                                data: vec![0x01].into(),
+                                target: "to".to_string(),
+                                call_data: vec![0x01].into(),
                                 value: None,
                                 allow_failure: None,
                             }],
@@ -367,8 +367,8 @@ mod tests {
                 chain: chain_name.clone(),
                 actions: vec![IcaAction::Execute(abstract_ica::IcaExecute::Evm {
                     msgs: vec![EvmMsg::Call {
-                        to: "to".to_string(),
-                        data: vec![0x01].into(),
+                        target: "to".to_string(),
+                        call_data: vec![0x01].into(),
                         value: None,
                         allow_failure: None,
                     }],
