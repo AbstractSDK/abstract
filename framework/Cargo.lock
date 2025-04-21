@@ -350,6 +350,7 @@ dependencies = [
  "abstract-cw-orch-polytone",
  "abstract-ibc-client",
  "abstract-ibc-host",
+ "abstract-ica-client",
  "abstract-module-factory",
  "abstract-registry",
  "abstract-sdk",

@@ -62,6 +62,32 @@
     },
     "version": "0.25.0"
   },
+  "union-testnet-10": {
+    "code_ids": {
+      "abstract:account": 73,
+      "abstract:ans-host": 70,
+      "abstract:evm-note": 79,
+      "abstract:ibc-client": 74,
+      "abstract:ibc-host": 75,
+      "abstract:ica-client": 80,
+      "abstract:module-factory": 72,
+      "abstract:registry": 71,
+      "cw:blob": 69,
+      "test:ibc-callbacks": 78
+    },
+    "default": {
+      "abstract:account-local-0": "union1udz204u47ld8lc3ekmgc4wuss7kv2rcwv84sxm38jcv7ufrz4qzs3vrqu3",
+      "abstract:ans-host": "union1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsgj44nw",
+      "abstract:evm-note": "union1uz8gd9z30thd8d8vxrch5m7s6ryeamfuxmh759tq53ww76lzj8dqkp97q5",
+      "abstract:ibc-client": "union1pplxw9myj7tskvku0h2r5jzwwyyusseavzcndr7cqwen78dgku5q3gm2qr",
+      "abstract:ibc-host": "union1v4zdknr2js7cngh4ut67uutdexcxlv2dnnuhp926c08m50aukqzs2f8eyx",
+      "abstract:ica-client": "union1lt5dwzyqz3da08v8nsjx5a8qdlrdlqvgrd3svs55hzzcdgh43zyqaaejh7",
+      "abstract:module-factory": "union1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqf4t8dl",
+      "abstract:registry": "union1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq6jqp05",
+      "test:ibc-callbacks": "union1vdrmaamhznn4ejvjwc9g9fx6cruaj36naaqtm4s40xeen07lgjsqnpmc0k",
+      "union:ibc-union": "union1hnuj8f6d3wy3fcprt55vddv7v2650t6uudnvd2hukqrteeam8wjqvcmecf"
+    }
+  },
   "xion-testnet-1": {
     "code_ids": {
       "abstract:account": 1659,
@@ -82,29 +108,5 @@
       "abstract:registry": "xion1j33edjnk9cqkuw83fvz3f646unxpkcjkru0znjhznr0dzvpzyw7q4yz2eu"
     },
     "version": "0.26.0"
-  },
-  "union-testnet-10": {
-    "code_ids": {
-      "abstract:account": 73,
-      "abstract:ans-host": 70,
-      "abstract:evm-note": 79,
-      "abstract:ibc-client": 74,
-      "abstract:ibc-host": 75,
-      "abstract:module-factory": 72,
-      "abstract:registry": 71,
-      "cw:blob": 69,
-      "test:ibc-callbacks": 78
-    },
-    "default": {
-      "abstract:account-local-0": "union1udz204u47ld8lc3ekmgc4wuss7kv2rcwv84sxm38jcv7ufrz4qzs3vrqu3",
-      "abstract:ans-host": "union1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsgj44nw",
-      "abstract:evm-note": "union1uz8gd9z30thd8d8vxrch5m7s6ryeamfuxmh759tq53ww76lzj8dqkp97q5",
-      "abstract:ibc-client": "union1pplxw9myj7tskvku0h2r5jzwwyyusseavzcndr7cqwen78dgku5q3gm2qr",
-      "abstract:ibc-host": "union1v4zdknr2js7cngh4ut67uutdexcxlv2dnnuhp926c08m50aukqzs2f8eyx",
-      "abstract:module-factory": "union1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqf4t8dl",
-      "abstract:registry": "union1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq6jqp05",
-      "test:ibc-callbacks": "union1vdrmaamhznn4ejvjwc9g9fx6cruaj36naaqtm4s40xeen07lgjsqnpmc0k",
-      "union:ibc-union": "union1hnuj8f6d3wy3fcprt55vddv7v2650t6uudnvd2hukqrteeam8wjqvcmecf"
-    }
   }
 }
