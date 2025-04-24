@@ -1,11 +1,19 @@
-use abstract_interface::{ica_client::IcaClient, Abstract, AccountI};
-use abstract_std::objects::gov_type::GovernanceDetails;
+use abstract_interface::{ica_client::IcaClient, Abstract, AccountI, RegistryExecFns};
+use abstract_std::{
+    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
+    ICA_CLIENT,
+};
 use cw_orch_daemon::RUNTIME;
 
 use abstract_scripts::{assert_wallet_balance, SUPPORTED_CHAINS};
 
 use clap::Parser;
-use cw_orch::{contract::Contract, daemon::networks::parse_network, environment::{ChainKind, NetworkInfo}, prelude::*};
+use cw_orch::{
+    contract::Contract,
+    daemon::networks::parse_network,
+    environment::{ChainKind, NetworkInfo},
+    prelude::*,
+};
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const EVM_NOTE_ID: &str = "abstract:evm-note";
@@ -22,7 +30,6 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
         let chain = DaemonBuilder::new(network.clone()).build()?;
         let abs_deployment = Abstract::load_from(chain.clone())?;
 
-        let monarch = chain.sender_addr();
         let evm_note = Contract::new(EVM_NOTE_ID, chain.clone());
         let evm_note_addr = evm_note.address().expect("No evm note address");
         let evm_note_cw2 = chain
@@ -38,13 +45,14 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
             Some(&chain.sender_addr()),
             &[],
         )?;
+        // TODO: remove it and make it multichain
         abs_deployment.registry.register_natives(vec![
             (&evm_note, evm_note_cw2.version),
-            (
-                ica_client.as_instance(),
-                abstract_ica_client::contract::CONTRACT_VERSION.to_owned(),
-            ),
         ])?;
+        abs_deployment.registry.register_services(vec![(
+            ica_client.as_instance(),
+            abstract_ica_client::contract::CONTRACT_VERSION.to_owned(),
+        )])?;
         abs_deployment.registry.approve_any_abstract_modules()?;
     }
 
@@ -59,7 +67,6 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
 //     network_ids: Vec<String>,
 // }
 
-
 pub const UNION_NET: NetworkInfo = NetworkInfo {
     chain_name: "union",
     pub_address_prefix: "union",
@@ -71,14 +78,11 @@ pub const UNION_TESTNET_10: ChainInfo = ChainInfo {
     chain_id: "union-testnet-10",
     gas_denom: "muno",
     gas_price: 1.0,
-    grpc_urls: &[
-        "https://grpc.rpc-node.union-testnet-10.union.build:443",
-    ],
+    grpc_urls: &["https://grpc.rpc-node.union-testnet-10.union.build:443"],
     network_info: UNION_NET,
     lcd_url: None,
     fcd_url: None,
 };
-
 
 fn main() {
     dotenv().ok();
