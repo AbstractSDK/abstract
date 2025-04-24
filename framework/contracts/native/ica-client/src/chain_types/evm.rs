@@ -1,13 +1,10 @@
-use abstract_ica::EVM_NOTE_ID;
-use abstract_sdk::{
-    feature_objects::{AnsHost, RegistryContract},  Resolve
-};
+use abstract_sdk::{feature_objects::AnsHost, Resolve};
 use abstract_std::{
-    ibc::PACKET_LIFETIME, ica_client::state::ICA_INFRA, native_addrs, objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId}
+    ibc::PACKET_LIFETIME,
+    native_addrs,
+    objects::{ChannelEntry, ContractEntry, TruncatedChainId},
 };
-use cosmwasm_std::{
-    wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, Env, HexBinary, QuerierWrapper, WasmMsg,
-};
+use cosmwasm_std::{wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, Env, HexBinary, WasmMsg};
 use evm_note::msg::{CallbackRequest, EvmMsg};
 
 use crate::{contract::IcaClientResult, error::IcaClientError};
