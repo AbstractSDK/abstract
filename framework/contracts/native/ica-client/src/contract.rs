@@ -1,7 +1,11 @@
 use crate::msg::*;
 use abstract_macros::abstract_response;
 use abstract_std::{
-    objects::module_version::{assert_cw_contract_upgrade, migrate_module_data},
+    ica_client::state::{IcaInfrastructure, ICA_INFRA},
+    objects::{
+        module_version::{assert_cw_contract_upgrade, migrate_module_data},
+        TruncatedChainId,
+    },
     ICA_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
@@ -36,7 +40,57 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
             Ok(IcaClientResponse::action("update_ownership"))
         }
+        ExecuteMsg::RegisterInfrastructure { chain, note} => {
+            execute_register_infrastructure(deps, info, chain, note)
+        }
+        ExecuteMsg::RemoveHost { host_chain } => execute_remove_host(deps, info, host_chain),
     }
+}
+
+/// Registers a chain to the client.
+/// This registration includes the counterparty information (note and proxy address)
+pub fn execute_register_infrastructure(
+    deps: DepsMut,
+    info: MessageInfo,
+    host_chain: TruncatedChainId,
+    note: String,
+) -> IcaClientResult {
+    host_chain.verify()?;
+
+    // auth check
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+
+    let note = deps.api.addr_validate(&note)?;
+    // Can't allow if it already exists
+    if ICA_INFRA.has(deps.storage, &host_chain) {
+        return Err(IcaClientError::ChainExists {});
+    }
+
+    ICA_INFRA.save(
+        deps.storage,
+        &host_chain,
+        &IcaInfrastructure {
+            polytone_note: note.clone(),
+        },
+    )?;
+
+    Ok(IcaClientResponse::action("register_infrastructure"))
+}
+
+// allows admins to clear host if needed
+pub fn execute_remove_host(
+    deps: DepsMut,
+    info: MessageInfo,
+    host_chain: TruncatedChainId,
+) -> IcaClientResult {
+    host_chain.verify()?;
+
+    // auth check
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+
+    ICA_INFRA.remove(deps.storage, &host_chain);
+
+    Ok(IcaClientResponse::action("remove_host"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
