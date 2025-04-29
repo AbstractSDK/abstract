@@ -6,8 +6,8 @@ use cw_orch::daemon::DeployedChains;
 use cw_orch::prelude::*;
 
 use crate::{
-    get_ibc_contracts, get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI,
-    AnsHost, ModuleFactory, Registry,
+    get_native_contracts, AbstractIbc, AbstractInterfaceError, AccountI, AnsHost, ModuleFactory,
+    Registry,
 };
 use abstract_std::{
     native_addrs,
@@ -198,17 +198,13 @@ impl<Chain: CwEnv> DeployedChains<Chain> for Abstract<Chain> {
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
         let (ans_host, registry, module_factory) = get_native_contracts(chain.clone());
-        let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
         let account = AccountI::new(ACCOUNT, chain.clone());
         Self {
             account,
             ans_host,
             registry,
             module_factory,
-            ibc: AbstractIbc {
-                client: ibc_client,
-                host: ibc_host,
-            },
+            ibc: AbstractIbc::new(&chain),
             blob: CwBlob::new(CW_BLOB, chain),
         }
     }

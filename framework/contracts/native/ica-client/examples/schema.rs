@@ -1,4 +1,4 @@
-use abstract_ica::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_std::ica_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_schema::write_api;
 
 fn main() {

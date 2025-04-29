@@ -41,6 +41,28 @@
     },
     "version": "0.26.0"
   },
+  "union-testnet-8": {
+    "code_ids": {
+      "abstract:account": 285,
+      "abstract:ans-host": 282,
+      "abstract:ibc-client": 286,
+      "abstract:ibc-host": 287,
+      "abstract:ica-client": 288,
+      "abstract:module-factory": 284,
+      "abstract:registry": 283,
+      "cw:blob": 270
+    },
+    "default": {
+      "abstract:account-local-0": "union1m2u6h87pqspk0vvuyav7hquhc7z6u6hnj2hl87vs4xz8tm9mepuslwg9js",
+      "abstract:ans-host": "union1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdsgj44nw",
+      "abstract:ibc-client": "union1g86ckugm7v9vvpadq9szg6rlf72pdl4a6n0d8apltq5t0grecpwqvs7v2r",
+      "abstract:ibc-host": "union1ldaf3e9zxja5mrcw3clcu873wggmqhwfvqw9djjcjxxjwv59crqslf40ma",
+      "abstract:ica-client": "union1kyeazk4vpt9a7h4zzxanj89tyyx6dtad98scyq8c5p5ueaa66r9splqlhd",
+      "abstract:module-factory": "union1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqf4t8dl",
+      "abstract:registry": "union1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmq6jqp05",
+      "abstract:evm-note": "union1dhzx2n0s3w609u2uuw2avkfnqn76mcjx3tj5cspng0cdv2s4tfyquuapet"
+    }
+  },
   "provider": {
     "code_ids": {
       "abstract:account": 63,

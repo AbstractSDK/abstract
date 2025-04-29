@@ -2,8 +2,8 @@
 
 pub mod contract;
 pub mod error;
-pub use abstract_ica::msg;
-mod chain_types;
+pub use abstract_std::ica_client as msg;
+pub mod chain_types;
 mod queries;
 
 #[cfg(test)]
@@ -19,10 +19,7 @@ mod test_common {
 
     pub fn mock_init(deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>) -> IcaClientResult {
         let abstr = AbstractMockAddrs::new(deps.api);
-        let msg = InstantiateMsg {
-            ans_host_address: abstr.ans_host.to_string(),
-            registry_address: abstr.registry.to_string(),
-        };
+        let msg = InstantiateMsg {};
         let info = message_info(&abstr.owner, &[]);
         let env = mock_env_validated(deps.api);
 

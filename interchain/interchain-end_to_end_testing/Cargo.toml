@@ -15,14 +15,15 @@ cw-orch-proto      = { workspace = true }
 cw-utils           = { workspace = true }
 cw2                = { workspace = true }
 
-abstract-adapter   = { workspace = true, features = ["test-utils"] }
-abstract-app       = { workspace = true, features = ["test-utils"] }
-abstract-client    = { workspace = true }
-abstract-interface = { workspace = true, features = ["interchain"] }
-abstract-scripts   = { path = "../scripts" }
-abstract-sdk       = { workspace = true }
-abstract-std       = { workspace = true }
-abstract-testing   = { workspace = true }
+abstract-adapter    = { workspace = true, features = ["test-utils"] }
+abstract-app        = { workspace = true, features = ["test-utils"] }
+abstract-client     = { workspace = true }
+abstract-ica-client = { workspace = true }
+abstract-interface  = { workspace = true, features = ["interchain"] }
+abstract-scripts    = { path = "../scripts" }
+abstract-sdk        = { workspace = true }
+abstract-std        = { workspace = true }
+abstract-testing    = { workspace = true }
 
 anyhow     = { workspace = true }
 dotenv     = "0.15.0"
@@ -39,6 +40,21 @@ cw-orch-polytone          = { workspace = true }
 cw-storage-plus.workspace = true
 polytone                  = { workspace = true }
 thiserror.workspace       = true
+
+# ICA Client specific
+
+alloy             = { version = "0.2.1", features = ["full", "signer-mnemonic", "reqwest", "provider-http"] }
+bech32            = "0.11.0"
+evm-note          = { version = "0.3.0", features = ["library"] }
+hex               = "0.4.3"
+polytone-evm      = { version = "0.3.0", features = ["bind"] }
+pretty_env_logger = "0.5.0"
+prost             = "0.13.3"
+prost-types       = "0.13.3"
+prost_union       = { package = "prost", version = "0.12.3" }
+protos            = { git = "https://github.com/unionlabs/union", features = ["proto_full", "serde"] }
+union-connector   = { git = "https://github.com/abstractsdk/evm-ibc", branch = "development/create-union-bundle" }
+
 # Testing contract
 counter-contract = { version = "0.27.0" } # Use tag if breaks
 

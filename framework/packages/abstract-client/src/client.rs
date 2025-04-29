@@ -32,7 +32,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AccountI, AnsHost, IbcClient, ModuleFactory, RegisteredModule, Registry,
+    Abstract, AccountI, AnsHost, IbcClient, IcaClient, ModuleFactory, RegisteredModule, Registry,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleStatus, ModuleVersion},
@@ -138,6 +138,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Abstract Ibc Client contract allows users to create and use Interchain Abstract Accounts
     pub fn ibc_client(&self) -> &IbcClient<Chain> {
         &self.abstr.ibc.client
+    }
+
+    /// Abstract Ica Client contract API
+    ///
+    /// The Abstract Ica Client contract allows users to query messages to send messages across chains (EVM)
+    pub fn ica_client(&self) -> &IcaClient<Chain> {
+        &self.abstr.ibc.ica_client
     }
 
     /// Service contract API

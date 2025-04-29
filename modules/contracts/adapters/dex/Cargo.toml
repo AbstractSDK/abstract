@@ -24,19 +24,14 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-schema = ["abstract-adapter/schema"]
-testing = [
-  "dep:abstract-client",
-  "dep:cw20",
-  "dep:serde_json",
-  "abstract-adapter/test-utils",
-]
 local = [
   "abstract-wyndex-adapter/local",
   "abstract-astrovault-adapter/local",
   "abstract-kujira-adapter/local",
   "abstract-neutron-dex-adapter/local",
 ]
+schema = ["abstract-adapter/schema"]
+testing = ["dep:abstract-client", "dep:cw20", "dep:serde_json", "abstract-adapter/test-utils"]
 
 # Supported Dexes
 osmosis = ["abstract-osmosis-adapter/full_integration"]
@@ -123,12 +118,7 @@ semver             = { workspace = true }
 tokio              = { workspace = true }
 
 bip32 = { version = "0.5.2" }
-dex = { path = ".", features = [
-  "wynd",
-  "osmosis",
-  "testing",
-  "local"
-], package = "abstract-dex-adapter" }
+dex   = { path = ".", features = ["wynd", "osmosis", "testing", "local"], package = "abstract-dex-adapter" }
 
 # abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 
@@ -136,13 +126,13 @@ cw-utils  = { workspace = true }
 cw20      = { workspace = true }
 cw20-base = { workspace = true }
 
-abstract-integration-tests  = { workspace = true }
+abstract-integration-tests = { workspace = true }
 
-cw-orch                     = { workspace = true, features = ["daemon"] }
-cw-orch-interchain          = { workspace = true, features = ["daemon"] }
-cw-plus-orch                = { workspace = true }
-neutron-std                 = "5.0.1-rc0"
-osmosis-std                 = "0.26.0"
-prost                       = "0.12.3"
-prost-types                 = "0.13.3"
-prost_13                    = { version = "0.13.3", package = "prost" }
+cw-orch            = { workspace = true, features = ["daemon"] }
+cw-orch-interchain = { workspace = true, features = ["daemon"] }
+cw-plus-orch       = { workspace = true }
+neutron-std        = "5.0.1-rc0"
+osmosis-std        = "0.26.0"
+prost              = "0.12.3"
+prost-types        = "0.13.3"
+prost_13           = { version = "0.13.3", package = "prost" }
