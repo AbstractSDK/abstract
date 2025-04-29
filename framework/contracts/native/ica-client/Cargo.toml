@@ -29,7 +29,7 @@ cw2             = { workspace = true }
 semver          = { workspace = true }
 thiserror       = { workspace = true }
 
-evm-note = { workspace = true }
+evm-note     = { workspace = true }
 polytone-evm = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

@@ -63,7 +63,7 @@ polytone         = { package = "abstract-polytone", version = "2.0.0" }
 polytone-note    = { package = "abstract-polytone-note", version = "5.0.0" }
 
 ## evm
-evm-note = { version = "0.3.1", features = ["library"] }
+evm-note     = { version = "0.3.1", features = ["library"] }
 polytone-evm = { version = "0.3.0" }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -74,7 +74,7 @@ abstract-standalone = { path = "packages/abstract-standalone", version = "0.26.0
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-client = { path = "packages/abstract-client" }
+abstract-client    = { path = "packages/abstract-client" }
 abstract-interface = { path = "packages/abstract-interface" }
 ans-host           = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 module-factory     = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
