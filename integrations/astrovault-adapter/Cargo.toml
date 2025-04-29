@@ -1,34 +1,30 @@
 [package]
-name = "abstract-astrovault-adapter"
-version = "0.2.0"
-authors = ["Abstract Money <contact@abstract.money>"]
-edition = "2021"
+authors     = ["Abstract Money <contact@abstract.money>"]
 description = "Abstract DexCommand implementation for Astrovault"
-license = "Apache-2.0"
+edition     = "2021"
+license     = "Apache-2.0"
+name        = "abstract-astrovault-adapter"
+version     = "0.2.0"
+resolver    = "2"
 
 [features]
-default = ["full_integration"]
-local = []
-full_integration = [
-  "dep:cw20",
-  "dep:cosmwasm-schema",
-  "dep:cw-asset",
-  "dep:cw-utils",
-]
+default          = ["full_integration"]
+full_integration = ["dep:cw20", "dep:cosmwasm-schema", "dep:cw-asset", "dep:cw-utils"]
+local            = []
 
 [dependencies]
 lazy_static = "1.4.0"
 
-cosmwasm-std = { workspace = true }
+abstract-dex-standard     = { workspace = true }
+abstract-sdk              = { workspace = true }
 abstract-staking-standard = { workspace = true }
-abstract-dex-standard = { workspace = true }
-abstract-sdk = { workspace = true }
-cw20 = { workspace = true, optional = true }
-cosmwasm-schema = { workspace = true, optional = true }
-cw-asset = { workspace = true, optional = true }
-cw-utils = { workspace = true, optional = true }
+cosmwasm-schema           = { workspace = true, optional = true }
+cosmwasm-std              = { workspace = true }
+cw-asset                  = { workspace = true, optional = true }
+cw-utils                  = { workspace = true, optional = true }
+cw20                      = { workspace = true, optional = true }
 
 [dev-dependencies]
-astrovault = { version = "0.1.1" }
 abstract-dex-standard = { workspace = true, features = ["testing"] }
-cw-orch = { workspace = true }
+astrovault            = { version = "2.0.1" }
+cw-orch               = { workspace = true }

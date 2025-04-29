@@ -38,7 +38,7 @@ use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128, Env};
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
 pub trait SplitterInterface: TransferInterface {
-    fn splitter<'a>(&'a self, deps: Deps<'a>) -> Splitter<Self> {
+    fn splitter<'a>(&'a self, deps: Deps<'a>) -> Splitter<'a, Self> {
         Splitter { base: self, deps }
     }
 }
@@ -64,7 +64,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
         };
 
         // Retrieve the bank API
-        let bank = self.base.bank(self.deps, &env);
+        let bank = self.base.bank(self.deps);
         receivers
             .iter()
             .map(|receiver| {
@@ -102,14 +102,14 @@ The API can then be used by any contract that implements its required traits, in
   #     fn module_id(&self) -> &'static str { "my_contract" }
   # }
   # impl AbstractNameService for MyContract {
-  #     fn ans_host(&self, _deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost> {
+  #     fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
   #         Ok(AnsHost{address: Addr::unchecked("just_an_example")})
   #     }
   # }
   use abstract_sdk::TransferInterface;
 
-  fn forward_deposit(deps: Deps, env: &Env, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<Vec<CosmosMsg>> {
-      let forward_deposit_msg = my_contract.bank(deps, env).deposit(message_info.funds)?;
+  fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<Vec<CosmosMsg>> {
+      let forward_deposit_msg = my_contract.bank(deps).deposit(message_info.funds)?;
 
       Ok(forward_deposit_msg)
   }

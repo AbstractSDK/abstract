@@ -24,7 +24,6 @@ use crate::objects::{
     ownership::Ownership,
     AccountId,
 };
-
 use cosmwasm_std::Addr;
 use cw2::ContractVersion;
 
@@ -86,19 +85,40 @@ pub mod state {
         Item::new(storage_namespaces::account::CALLING_TO_AS_ADMIN);
     pub const CALLING_TO_AS_ADMIN_WILD_CARD: &str = "calling-to-wild-card";
 
+    #[cfg(feature = "xion")]
+    /// XION temporary state. This is used to make sure that the account only has admin rights when authenticated through XION
+    /// If a call originates from the top level owner account address, there are 2 cases within xion:
+    /// - It's a call made from the account directly.
+    ///     In that case, the tx just got through BeforeTx and the admin_auth flag is set during that hook.
+    ///     --> [`AUTH_ADMIN`] should be true
+    /// - It's a call made from the account through another module.
+    ///     In that case, it means that the execute function on the account was executed successfully
+    ///     --> [`AUTH_ADMIN`] flag is not set anymore, because it's removed at the end of each execution
+    ///
+    /// If a module wants to have admin rights, they need to call through the account, but as soon as the account finishes execution, the Auth_Admin flag is set to false, so there is no chance to do admin actions there
+    ///
+    /// This flag can only be set in the beforeTx hook and is always removed in the AfterTx hook
+    pub const AUTH_ADMIN: Item<bool> = Item::new(storage_namespaces::account::AUTH_ADMIN);
+
     // Additional states, not listed here: cw_gov_ownable::GovOwnership, authenticators, if chain supports it
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub struct MigrateMsg {
+    /// This field provides the new code id of the contract
+    /// This is only necessary for migrations from XION accounts.
+    pub code_id: Option<u64>,
+}
 
 /// Account Instantiate Msg
 /// https://github.com/burnt-labs/contracts/blob/main/contracts/account/src/msg.rs
 #[cosmwasm_schema::cw_serde]
 // ANCHOR: init_msg
 pub struct InstantiateMsg<Authenticator = Empty> {
+    /// Code id of the account
+    pub code_id: u64,
     /// The ownership structure of the Account.
-    pub owner: GovernanceDetails<String>,
+    pub owner: Option<GovernanceDetails<String>>,
     /// Optionally specify an account-id for this account.
     /// If provided must be between (u32::MAX/2)..u32::MAX range.
     pub account_id: Option<AccountId>,
@@ -145,12 +165,14 @@ pub enum ExecuteMsg<Authenticator = Empty> {
         /// Funds attached from account to the module
         funds: Vec<Coin>,
     },
-    /// Execute a Wasm Message with Account Admin privileges
+    /// Execute a Wasm Message with Account Admin privileges    
+    #[cw_orch(payable)]
     AdminExecute {
         addr: String,
         msg: Binary,
     },
     /// Forward execution message to module with Account Admin privileges
+    #[cw_orch(payable)]
     AdminExecuteOnModule {
         module_id: String,
         msg: Binary,
@@ -368,11 +390,12 @@ mod test {
     #[coverage_helper::test]
     fn minimal_deser_instantiate_test() {
         let init_msg_binary: InstantiateMsg =
-            cosmwasm_std::from_json(br#"{"owner": {"renounced": {}}}"#).unwrap();
+            cosmwasm_std::from_json(br#"{"code_id": 1, "owner": {"renounced": {}}}"#).unwrap();
         assert_eq!(
             init_msg_binary,
             InstantiateMsg {
-                owner: GovernanceDetails::Renounced {},
+                code_id: 1,
+                owner: Some(GovernanceDetails::Renounced {}),
                 authenticator: Default::default(),
                 account_id: Default::default(),
                 namespace: Default::default(),
@@ -385,6 +408,7 @@ mod test {
 
         let init_msg_string: InstantiateMsg = cosmwasm_std::from_json(
             json!({
+                "code_id": 1,
                 "owner": GovernanceDetails::Monarchy {
                     monarch: "bob".to_owned()
                 }
@@ -395,9 +419,10 @@ mod test {
         assert_eq!(
             init_msg_string,
             InstantiateMsg {
-                owner: GovernanceDetails::Monarchy {
+                code_id: 1,
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: "bob".to_owned()
-                },
+                }),
                 authenticator: Default::default(),
                 account_id: Default::default(),
                 namespace: Default::default(),

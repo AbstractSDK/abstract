@@ -119,7 +119,9 @@ mod test {
 
         // init
         let init_msg = adapter::InstantiateMsg {
-            base: adapter::BaseInstantiateMsg {},
+            base: adapter::BaseInstantiateMsg {
+                registry_address: abstr.registry.to_string(),
+            },
             module: MockInitMsg {},
         };
         let actual_init = instantiate(
@@ -242,7 +244,9 @@ mod test {
 
         // init
         let init_msg = adapter::InstantiateMsg {
-            base: adapter::BaseInstantiateMsg {},
+            base: adapter::BaseInstantiateMsg {
+                registry_address: abstr.registry.to_string(),
+            },
             module: MockInitMsg {},
         };
         let actual_init = instantiate(

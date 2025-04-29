@@ -1,29 +1,30 @@
 [package]
-name = "abstract-framework-clone-testing"
-version = { workspace = true }
 edition = { workspace = true }
+name    = "abstract-framework-clone-testing"
+version = { workspace = true }
 
 [lib]
 
 
 [dependencies]
-cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
+cosmwasm-std    = { workspace = true }
 
-cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch               = { workspace = true, features = ["daemon"] }
 cw-orch-clone-testing = { workspace = true }
 
-abstract-std = { workspace = true }
-abstract-app = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
-abstract-client = { workspace = true }
-abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-account           = { workspace = true, features = ["xion"] }
+abstract-app               = { workspace = true, features = ["test-utils"] }
+abstract-client            = { workspace = true, features = ["test-utils"] }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
+abstract-interface         = { workspace = true, features = ["daemon"] }
+abstract-std               = { workspace = true }
+abstract-testing           = { workspace = true }
 
-tokio = { workspace = true }
-anyhow = { workspace = true }
-env_logger = "0.11.3"
+anyhow      = { workspace = true }
+env_logger  = "0.11.3"
 lazy_static = "1.4.0"
+tokio       = { workspace = true }
 
-cw2 = { workspace = true }
+cw2    = { workspace = true }
 semver = { workspace = true }

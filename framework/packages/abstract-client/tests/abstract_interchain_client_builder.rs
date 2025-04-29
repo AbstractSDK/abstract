@@ -10,7 +10,7 @@ fn abstract_interchain_client_deploys_everything() -> anyhow::Result<()> {
     // Start by deploying abstract completely
     let mock_interchain =
         MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-    let interchain_abstract = AbstractInterchainClient::deploy_mock(&mock_interchain)?;
+    let interchain_abstract = AbstractInterchainClient::deploy_on(&mock_interchain)?;
 
     // Then we load abstract from state and make sure this is the same instance
     let juno_abstract = AbstractClient::new(mock_interchain.get_chain(JUNO)?)?;

@@ -1,14 +1,14 @@
 [package]
-name = "my-standalone"
-version = "0.0.1"
-authors = []
-edition = "2021"
-homepage = ""
+authors       = []
 documentation = ""
-repository = ""
-license = "GPL-3.0-or-later"
-keywords = ["cosmos", "cosmwasm", "abstractsdk"]
-resolver = "2"
+edition       = "2021"
+homepage      = ""
+keywords      = ["cosmos", "cosmwasm", "abstractsdk"]
+license       = "GPL-3.0-or-later"
+name          = "my-standalone"
+repository    = ""
+resolver      = "2"
+version       = "0.0.1"
 
 exclude = ["contract.wasm", "hash.txt"]
 
@@ -16,7 +16,7 @@ exclude = ["contract.wasm", "hash.txt"]
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "publish"
+name              = "publish"
 required-features = ["daemon-bin"]
 
 [[test]]
@@ -24,50 +24,40 @@ name = "starship"
 test = false
 
 [features]
-default = ["export"]
-export = []
-daemon-bin = [
-    "cw-orch/daemon",
-    "dep:clap",
-    "dep:abstract-client",
-    "dep:dotenv",
-    "dep:env_logger",
-]
+daemon-bin = ["cw-orch/daemon", "dep:clap", "dep:abstract-client", "dep:dotenv", "dep:env_logger"]
+default    = ["export"]
+export     = []
 
 [dependencies]
-cosmwasm-std = { workspace = true }
-cosmwasm-schema = { workspace = true }
-cw-controllers = { workspace = true }
-cw-storage-plus = { workspace = true }
-thiserror = { workspace = true }
-schemars = { workspace = true }
-cw-asset = { workspace = true }
 abstract-standalone = { workspace = true }
-const_format = { version = "0.2.32" }
+const_format        = { version = "0.2.32" }
+cosmwasm-schema     = { workspace = true }
+cosmwasm-std        = { workspace = true }
+cw-asset            = { workspace = true }
+cw-controllers      = { workspace = true }
+cw-storage-plus     = { workspace = true }
+thiserror           = { workspace = true }
 
 # Dependencies for interface
-cw-orch = { workspace = true }
 abstract-interface = { workspace = true }
+cw-orch            = { workspace = true }
 
 # Dependencies for bins
-clap = { workspace = true, optional = true, features = ["derive"] }
 abstract-client = { workspace = true, optional = true }
-dotenv = { version = "0.15.0", optional = true }
-env_logger = { version = "0.11.3", optional = true }
+clap            = { workspace = true, optional = true, features = ["derive"] }
+dotenv          = { version = "0.15.0", optional = true }
+env_logger      = { version = "0.11.3", optional = true }
 
 # ICA controller
-cw-ica-controller = { version = "0.20.0", default-features = false, features = [
-    "query",
-] }
+cw-ica-controller = { version = "0.20.0", default-features = false, features = ["query"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 cw-ica-controller = { version = "0.20.0", features = ["export"] }
 
 [dev-dependencies]
-env_logger = { version = "0.11.3" }
-my-standalone = { path = "." }
-abstract-client = { workspace = true }
+abstract-client     = { workspace = true }
 abstract-standalone = { workspace = true, features = ["test-utils"] }
-cw-orch-interchain = { workspace = true, features = ["daemon"] }
-cw-orch-starship = { version = "0.4.1" }
-cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch             = { workspace = true, features = ["daemon"] }
+cw-orch-interchain  = { workspace = true, features = ["daemon"] }
+env_logger          = { version = "0.11.3" }
+my-standalone       = { path = "." }

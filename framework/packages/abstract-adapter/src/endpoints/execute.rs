@@ -67,7 +67,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             account_address,
             msg,
         } = message;
-        let account_registry = self.account_registry(deps.as_ref(), &env)?;
+        let account_registry = self.account_registry(deps.as_ref())?;
         let account = account_registry
             .assert_is_account_admin(&env, &info.sender)
             .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
@@ -121,7 +121,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             sender: sender.to_string(),
         };
 
-        let account_registry = self.account_registry(deps.as_ref(), &env)?;
+        let account_registry = self.account_registry(deps.as_ref())?;
 
         let account = match request.account_address {
             // The sender must either be an authorized address or account.

@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [stable, beta]
+        toolchain: [stable]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -99,7 +99,7 @@ jobs:
           --mutually-exclusive-features \
           wynd,osmosis,astroport,bow,terraswap,astrovault,testing,osmosis-test,node-tests,interface,cw-orch,schema \
           --lib --tests
-          
+
   # Find any unused dependencies
   unused-deps:
     runs-on: ubuntu-latest
@@ -108,21 +108,17 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
-            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.5
         with:
           version: "v0.8.1"
-      - name: Install nightly
-        uses: dtolnay/rust-toolchain@nightly
-      - name: cargo install cargo-udeps
-        uses: taiki-e/install-action@cargo-udeps
-      - name: cargo install cargo-workspaces
-        run: cargo +stable install cargo-workspaces
-      - name: cargo udeps modules
+      - name: Install stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: Install cargo-machete
         working-directory: ./modules
-        run: cargo workspaces exec cargo +nightly udeps
+        run: cargo install cargo-machete
+      - name: Install cargo-machete
+        working-directory: ./modules
+        run: cargo machete

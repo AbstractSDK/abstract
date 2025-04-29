@@ -63,7 +63,7 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             &abstr.registry,
             registry::state::CONFIG,
             &registry::Config {
-                security_disabled: true,
+                security_enabled: false,
                 namespace_registration_fee: None,
             },
         )
@@ -73,6 +73,16 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
             (
                 &ModuleInfo::from_id(ACCOUNT, ModuleVersion::Version(TEST_VERSION.into())).unwrap(),
                 ModuleReference::Account(1),
+            ),
+        )
+        .with_contract_map_entry(
+            // Adding a map module inside the registry
+            &abstr.registry,
+            REGISTERED_MODULES,
+            (
+                &ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
+                    .unwrap(),
+                ModuleReference::App(2),
             ),
         )
         .with_contract_item(abstr.account.addr(), ACCOUNT_ID, &ABSTRACT_ACCOUNT_ID)
@@ -122,6 +132,12 @@ pub fn abstract_mock_querier_builder(mock_api: MockApi) -> MockQuerierBuilder {
 ///   - "account_id" -> ABSTRACT_ACCOUNT_ID
 /// - REGISTRY
 ///   - "account" -> { ABSTRACT_ACCOUNT }
+///
+/// Also it returns query responses for
+/// - [`cosmwasm_std::WasmQuery::ContractInfo`]
+///   - $contract_address -> ContractInfoResponse { creator: api.addr_make([`crate::OWNER`]), code_id: 1, admin: $contract_address}
+/// - [`cosmwasm_std::WasmQuery::CodeInfo`]
+///   - $code_id -> CodeInfoResponse { code_id: $code_id, creator: api.addr_make([`crate::OWNER`]), checksum: [`abstract_std::native_addrs::BLOB_CHECKSUM`]}
 pub fn abstract_mock_querier(mock_api: MockApi) -> MockQuerier {
     abstract_mock_querier_builder(mock_api).build()
 }
@@ -140,9 +156,7 @@ pub fn mock_env_validated(mock_api: MockApi) -> Env {
 pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod addresses {
     use abstract_std::{native_addrs, registry::Account};
-    use cosmwasm_std::{testing::MockApi, Addr, Api};
-
-    use crate::mock_env_validated;
+    use cosmwasm_std::{instantiate2_address, testing::MockApi, Addr, Api};
 
     // Test addr makers
     const ADMIN_ACCOUNT: &str = "admin_account_address";
@@ -158,24 +172,34 @@ pub mod addresses {
 
     impl AbstractMockAddrs {
         pub fn new(mock_api: MockApi) -> AbstractMockAddrs {
-            let mock_env = mock_env_validated(mock_api);
-            let hrp = native_addrs::hrp_from_env(&mock_env);
+            let owner = mock_api.addr_make(crate::OWNER);
+            let owner_canon = mock_api.addr_canonicalize(owner.as_str()).unwrap();
+            let ans_host = instantiate2_address(
+                &native_addrs::BLOB_CHECKSUM,
+                &owner_canon,
+                native_addrs::ANS_HOST_SALT,
+            )
+            .unwrap();
+            let registry = instantiate2_address(
+                &native_addrs::BLOB_CHECKSUM,
+                &owner_canon,
+                native_addrs::REGISTRY_SALT,
+            )
+            .unwrap();
+            let module_factory = instantiate2_address(
+                &native_addrs::BLOB_CHECKSUM,
+                &owner_canon,
+                native_addrs::MODULE_FACTORY_SALT,
+            )
+            .unwrap();
 
             AbstractMockAddrs {
-                owner: mock_api
-                    .addr_validate(&native_addrs::creator_address(hrp).unwrap())
-                    .unwrap(),
-                ans_host: mock_api
-                    .addr_humanize(&native_addrs::ans_address(hrp, &mock_api).unwrap())
-                    .unwrap(),
-                registry: mock_api
-                    .addr_humanize(&native_addrs::registry_address(hrp, &mock_api).unwrap())
-                    .unwrap(),
-                module_factory: mock_api
-                    .addr_humanize(&native_addrs::module_factory_address(hrp, &mock_api).unwrap())
-                    .unwrap(),
-                module_address: mock_api.addr_make("module"),
+                owner,
+                ans_host: mock_api.addr_humanize(&ans_host).unwrap(),
+                registry: mock_api.addr_humanize(&registry).unwrap(),
+                module_factory: mock_api.addr_humanize(&module_factory).unwrap(),
                 account: admin_account(mock_api),
+                module_address: mock_api.addr_make("module"),
             }
         }
     }
@@ -232,5 +256,6 @@ pub mod prelude {
 
     use super::*;
     pub use super::{MockAnsHost, MockDeps, TEST_VERSION};
+    pub const OWNER: &str = "owner";
     pub const TEST_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
 }

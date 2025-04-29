@@ -10,7 +10,7 @@
 //! use cw_orch::prelude::*;
 //!
 //! # let chain = MockBech32::new("mock");
-//! # let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone()).build_mock()?;
+//! # let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone()).build()?;
 //!
 //! let alice_account: Account<MockBech32> = client
 //!     .account_builder()
@@ -65,7 +65,7 @@ use crate::{
 /// # use cw_orch::prelude::*;
 /// # use abstract_client::{AbstractClientError, Environment};
 /// # let chain = MockBech32::new("mock");
-/// # let abstr_client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
+/// # let abstr_client = abstract_client::AbstractClient::builder(chain.clone()).build().unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::{AbstractClient, Account};
 ///
@@ -529,7 +529,7 @@ impl<Chain: CwEnv> Account<Chain> {
             .upgrade(vec![(
                 ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
                 Some(
-                    to_json_binary(&abstract_std::account::MigrateMsg {})
+                    to_json_binary(&abstract_std::account::MigrateMsg { code_id: None })
                         .map_err(Into::<CwOrchError>::into)?,
                 ),
             )])
@@ -819,7 +819,7 @@ pub mod test {
     #[coverage_helper::test]
     fn namespace_after_creation() -> cw_orch::anyhow::Result<()> {
         let mock = MockBech32::new("mock");
-        let abstr = AbstractClient::builder(mock.clone()).build_mock()?;
+        let abstr = AbstractClient::builder(mock.clone()).build()?;
 
         let my_namespace = "my-namespace";
         let new_account = abstr.account_builder().build()?;

@@ -49,6 +49,12 @@ pub struct AccountDetails {
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountI<Chain>;
 
+impl<Chain> AsRef<AccountI<Chain>> for AccountI<Chain> {
+    fn as_ref(&self) -> &AccountI<Chain> {
+        self
+    }
+}
+
 impl<Chain: CwEnv> AccountI<Chain> {
     pub fn load_from(
         abstract_deployment: &Abstract<Chain>,
@@ -90,8 +96,9 @@ impl<Chain: CwEnv> AccountI<Chain> {
             .instantiate2(
                 code_id,
                 &InstantiateMsg::<Empty> {
+                    code_id,
                     account_id: details.account_id.map(AccountId::local),
-                    owner: governance_details,
+                    owner: Some(governance_details),
                     namespace: details.namespace,
                     install_modules: details.install_modules,
                     name: Some(details.name),
@@ -328,6 +335,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
                     account_address: None,
                 },
             ))?,
+            &[],
         )?;
 
         Ok(())
@@ -640,9 +648,14 @@ impl<Chain: CwEnv> AccountI<Chain> {
             )?
             .modules
             .into_iter()
-            .map(|module| {
+            .filter_map(|module| {
                 let version: Version = module.module.info.version.clone().try_into().unwrap();
-                version
+                // We add this check because the ModuleFilter doesn't work properly with beta versions
+                if version > current_module_version {
+                    Some(version)
+                } else {
+                    None
+                }
             })
             .collect::<Vec<_>>();
 
@@ -730,9 +743,11 @@ impl<Chain: CwEnv> Uploadable for AccountI<Chain> {
                 ::account::contract::query,
             )
             .with_migrate(::account::contract::migrate)
-            .with_reply(::account::contract::reply),
+            .with_reply(::account::contract::reply)
+            .with_sudo(::account::contract::sudo),
         )
     }
+
     fn wasm(chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path_with_build_postfix(

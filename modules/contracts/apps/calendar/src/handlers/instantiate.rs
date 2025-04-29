@@ -10,12 +10,12 @@ use crate::{
 
 pub fn instantiate_handler(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     _info: MessageInfo,
     module: CalendarApp,
     msg: CalendarInstantiateMsg,
 ) -> CalendarAppResult {
-    let denom = resolve_native_ans_denom(deps.as_ref(), &env, &module, msg.denom)?;
+    let denom = resolve_native_ans_denom(deps.as_ref(), &module, msg.denom)?;
 
     msg.start_time.validate()?;
     msg.end_time.validate()?;

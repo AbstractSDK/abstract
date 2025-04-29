@@ -21,7 +21,7 @@ pub trait MoneyMarketInterface:
     AccountIdentification + Dependencies + ModuleIdentification
 {
     /// Construct a new money_market interface.
-    fn money_market<'a>(&'a self, deps: Deps<'a>, name: MoneyMarketName) -> MoneyMarket<Self> {
+    fn money_market<'a>(&'a self, deps: Deps<'a>, name: MoneyMarketName) -> MoneyMarket<'a, Self> {
         MoneyMarket {
             base: self,
             deps,
@@ -34,7 +34,7 @@ pub trait MoneyMarketInterface:
         &'a self,
         deps: Deps<'a>,
         name: MoneyMarketName,
-    ) -> AnsMoneyMarket<Self> {
+    ) -> AnsMoneyMarket<'a, Self> {
         AnsMoneyMarket {
             base: self,
             deps,
@@ -191,7 +191,7 @@ pub mod raw {
         }
     }
 
-    impl<'a, T: MoneyMarketInterface> MoneyMarket<'a, T> {
+    impl<T: MoneyMarketInterface> MoneyMarket<'_, T> {
         // Queries
         pub fn user_deposit(
             &self,
@@ -396,7 +396,7 @@ pub mod ans {
         }
     }
 
-    impl<'a, T: MoneyMarketInterface> AnsMoneyMarket<'a, T> {
+    impl<T: MoneyMarketInterface> AnsMoneyMarket<'_, T> {
         // Queries
         pub fn user_deposit(&self, user: String, asset: AssetEntry) -> AbstractSdkResult<Uint128> {
             self.query(MoneyMarketQueryMsg::AnsUserDeposit {

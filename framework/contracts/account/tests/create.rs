@@ -15,14 +15,14 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
 
     let vc = deployment.registry;
     let vc_config = vc.config()?;
     let expected = abstract_std::registry::ConfigResponse {
         // Admin Account is ID 0
         local_account_sequence: 1,
-        security_disabled: true,
+        security_enabled: false,
         namespace_registration_fee: None,
     };
 
@@ -34,7 +34,7 @@ fn instantiate() -> AResult {
 fn create_one_account() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
 
     let registry = &deployment.registry;
 
@@ -42,15 +42,16 @@ fn create_one_account() -> AResult {
 
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
+            code_id: 1,
             name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -62,20 +63,10 @@ fn create_one_account() -> AResult {
     let registry_config = registry.config()?;
     let expected = registry::ConfigResponse {
         local_account_sequence: 2,
-        security_disabled: true,
+        security_enabled: false,
         namespace_registration_fee: None,
     };
-
     assert_eq!(registry_config, expected);
-
-    let vc_config = registry.config()?;
-    let expected = abstract_std::registry::ConfigResponse {
-        local_account_sequence: 2,
-        security_disabled: true,
-        namespace_registration_fee: Default::default(),
-    };
-
-    assert_eq!(vc_config, expected);
 
     let account_list = registry.account(TEST_ACCOUNT_ID)?;
 
@@ -88,7 +79,7 @@ fn create_one_account() -> AResult {
 fn create_two_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
 
     let registry = &deployment.registry;
 
@@ -96,15 +87,16 @@ fn create_two_accounts() -> AResult {
     // first account
     let account_1 = account.instantiate(
         &account::InstantiateMsg {
+            code_id: 1,
             name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -114,15 +106,16 @@ fn create_two_accounts() -> AResult {
     // second account
     let account_2 = account.instantiate(
         &account::InstantiateMsg {
+            code_id: 1,
             name: Some(String::from("second_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -138,7 +131,7 @@ fn create_two_accounts() -> AResult {
     let registry_config = registry.config()?;
     let expected = registry::ConfigResponse {
         namespace_registration_fee: None,
-        security_disabled: true,
+        security_enabled: false,
         // we created two accounts
         local_account_sequence: account_2_id.seq() + 1,
     };
@@ -158,21 +151,22 @@ fn create_two_accounts() -> AResult {
 fn sender_is_not_admin_monarchy() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let account = AccountI::new(ACCOUNT, chain);
 
     let registry = &deployment.registry;
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
+            code_id: 1,
             name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::Monarchy {
+            owner: Some(GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -206,22 +200,23 @@ fn sender_is_not_admin_monarchy() -> AResult {
 fn sender_is_not_admin_external() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let account = AccountI::new(ACCOUNT, chain);
     let registry = &deployment.registry;
 
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
+            code_id: 1,
             name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: None,
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::External {
+            owner: Some(GovernanceDetails::External {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -251,22 +246,23 @@ fn sender_is_not_admin_external() -> AResult {
 fn create_one_account_with_namespace() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender_addr();
-    let deployment = Abstract::deploy_on_mock(chain.clone())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
     let account = AccountI::new(ACCOUNT, chain);
 
     let namespace_to_claim = "namespace-to-claim";
     let account_creation = account.instantiate(
         &account::InstantiateMsg {
+            code_id: 1,
             name: Some(String::from("first_account")),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(namespace_to_claim.to_string()),
             install_modules: vec![],
             account_id: None,
-            owner: GovernanceDetails::External {
+            owner: Some(GovernanceDetails::External {
                 governance_address: sender.to_string(),
                 governance_type: "some-gov-type".to_string(),
-            },
+            }),
             authenticator: None,
         },
         None,
@@ -306,8 +302,7 @@ fn create_one_account_with_namespace() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace_fee() -> AResult {
-    let mut chain = MockBech32::new("mock");
-    Abstract::deploy_on_mock(chain.clone())?;
-    chain.set_sender(Abstract::mock_admin(&chain));
+    let chain = MockBech32::new("mock");
+    Abstract::deploy_on(chain.clone(), ())?;
     abstract_integration_tests::create::create_one_account_with_namespace_fee(chain)
 }

@@ -1,17 +1,17 @@
 use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
 use abstract_std::ica_client::{ChainType, ConfigResponse, IcaAction, IcaActionResponse};
-use abstract_std::objects::TruncatedChainId;
+use abstract_std::{native_addrs, objects::TruncatedChainId};
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
 use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
 
-/// Timeout in seconds
-pub const PACKET_LIFETIME: u64 = 60 * 60;
-
 pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+
     Ok(ConfigResponse {
-        ans_host_address: AnsHost::new(deps.api, env)?.address,
-        registry_address: RegistryContract::new(deps.api, env)?.address,
+        ans_host_address: AnsHost::new(deps, env)?.address,
+        registry_address: RegistryContract::new(deps, env)?.address,
     })
 }
 
@@ -40,7 +40,11 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
-                    let registry = RegistryContract::new(deps.api, &env)?;
+                    let abstract_code_id = native_addrs::abstract_code_id(
+                        &deps.querier,
+                        env.contract.address.clone(),
+                    )?;
+                    let registry = RegistryContract::new(deps, abstract_code_id)?;
 
                     let msg = evm::execute(&deps.querier, &registry, msgs, callback)?;
 
@@ -179,8 +183,8 @@ mod tests {
         use super::*;
         use std::str::FromStr;
 
-        use abstract_std::ica_client::QueryMsg;
-        use abstract_std::objects::TruncatedChainId;
+        use abstract_ica::msg::QueryMsg;
+        use abstract_std::{ibc::PACKET_LIFETIME, ica_client::QueryMsg, objects::TruncatedChainId};
 
         use abstract_testing::mock_env_validated;
         use cosmwasm_std::{coins, wasm_execute};

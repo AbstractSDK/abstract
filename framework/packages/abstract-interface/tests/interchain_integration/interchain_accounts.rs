@@ -216,7 +216,8 @@ mod test {
             .get_chain(STARGAZE)
             .unwrap()
             .balance(&remote_abstract_account.address()?, None)?;
-        assert_eq!(remote_account_balance, coins(100, "ibc/channel-0/ujuno"));
+        assert_eq!(remote_account_balance.len(), 1);
+        assert_eq!(remote_account_balance[0].amount.u128(), 100);
 
         Ok(())
     }
@@ -231,18 +232,14 @@ mod test {
         ]);
 
         // SETUP
-        let mut chain1 = mock_interchain.get_chain(JUNO).unwrap();
-        let mut chain2 = mock_interchain.get_chain(STARGAZE).unwrap();
-        let mut chain3 = mock_interchain.get_chain(OSMOSIS).unwrap();
-
-        chain1.set_sender(Abstract::mock_admin(&chain1));
-        chain2.set_sender(Abstract::mock_admin(&chain2));
-        chain3.set_sender(Abstract::mock_admin(&chain3));
+        let chain1 = mock_interchain.get_chain(JUNO).unwrap();
+        let chain2 = mock_interchain.get_chain(STARGAZE).unwrap();
+        let chain3 = mock_interchain.get_chain(OSMOSIS).unwrap();
 
         // Deploying abstract and the IBC abstract logic
-        let abstr_origin = Abstract::deploy_on_mock(chain1.clone())?;
-        let abstr_intermediate_remote = Abstract::deploy_on_mock(chain2.clone())?;
-        let abstr_host_remote = Abstract::deploy_on_mock(chain3.clone())?;
+        let abstr_origin = Abstract::deploy_on(chain1.clone(), ())?;
+        let abstr_intermediate_remote = Abstract::deploy_on(chain2.clone(), ())?;
+        let abstr_host_remote = Abstract::deploy_on(chain3.clone(), ())?;
 
         // Creating a connection between 2 abstract deployments
         abstr_origin.connect_to(&abstr_intermediate_remote, &mock_interchain)?;
@@ -349,7 +346,7 @@ mod test {
                 is_suspended: false,
                 module_factory_address: abstr_remote.module_factory.address()?,
                 registry_address: abstr_remote.registry.address()?,
-                whitelisted_addresses: vec![]
+                whitelisted_addresses: vec![abstr_remote.ibc.client.address()?]
             }
         );
 
@@ -385,10 +382,11 @@ mod test {
             code_id: account_code_id,
             label: "local_account_from_remote WOW".to_string(),
             msg: to_json_binary(&account::InstantiateMsg {
+                code_id: account_code_id,
                 account_id: None,
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: abstr_remote.registry.address()?.to_string(),
-                },
+                }),
                 namespace: None,
                 install_modules: vec![],
                 name: Some(account_name.clone()),
@@ -457,10 +455,11 @@ mod test {
         let res = chain.call_as(sender).instantiate2(
             account_code_id,
             &account::InstantiateMsg {
+                code_id: account_code_id,
                 account_id: Some(account_id.clone()),
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: chain.addr_make("user").to_string(),
-                },
+                }),
                 name: Some("name".to_owned()),
                 namespace: None,
                 install_modules: vec![],
@@ -527,7 +526,7 @@ mod test {
         let result = abstr_remote
             .ibc
             .host
-            .call_as(&Addr::unchecked("rando"))
+            .call_as(&Addr::unchecked("random"))
             .remove_chain_proxy(TruncatedChainId::from_chain_id(STARGAZE));
 
         assert!(result.is_err());
@@ -547,7 +546,7 @@ mod test {
         let result = abstr_remote
             .ibc
             .host
-            .call_as(&Addr::unchecked("rando"))
+            .call_as(&Addr::unchecked("random"))
             .register_chain_proxy(TruncatedChainId::from_chain_id(OSMOSIS), ACCOUNT.to_owned());
         assert!(result.is_err());
 
@@ -650,7 +649,6 @@ mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
         let origin_denom = "ujuno";
-        let remote_denom: &str = &format!("ibc/channel-0/{}", origin_denom);
 
         // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -744,8 +742,9 @@ mod test {
         // Check balance on remote chain.
         let remote_balance = mock_interchain
             .get_chain(STARGAZE)?
-            .query_balance(&remote_account.address()?, remote_denom)?;
-        assert_eq!(Uint128::from(10u128), remote_balance);
+            .query_all_balances(&remote_account.address()?)?;
+        assert_eq!(1, remote_balance.len());
+        assert_eq!(Uint128::from(10u128), remote_balance[0].amount);
 
         // Send all back.
         let send_funds_back_tx =
@@ -756,8 +755,8 @@ mod test {
         // Check balance on remote chain.
         let remote_balance = mock_interchain
             .get_chain(STARGAZE)?
-            .query_balance(&remote_account.address()?, remote_denom)?;
-        assert!(remote_balance.is_zero());
+            .query_all_balances(&remote_account.address()?)?;
+        assert!(remote_balance.is_empty());
 
         // Check balance on local chain.
         let origin_balance = mock_interchain

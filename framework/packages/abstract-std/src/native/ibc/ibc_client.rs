@@ -13,16 +13,19 @@ use crate::{
     AbstractError,
 };
 
-use super::polytone_callbacks;
+use super::{polytone_callbacks, IBCLifecycleComplete};
 
 pub mod state {
 
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{Addr, Binary, Coin};
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{
-        account::{AccountSequence, AccountTrace},
-        storage_namespaces, TruncatedChainId,
+    use crate::{
+        ibc::ICS20PacketIdentifier,
+        objects::{
+            account::{AccountSequence, AccountTrace},
+            storage_namespaces, TruncatedChainId,
+        },
     };
 
     /// Information about the deployed infrastructure we're connected to.
@@ -34,6 +37,16 @@ pub mod state {
         pub remote_abstract_host: String,
         // The remote polytone proxy address which will be called by the polytone host.
         pub remote_proxy: Option<String>,
+    }
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct AccountCallbackPayload {
+        pub channel_id: String,
+        pub account_address: Addr,
+        /// Funds sent initially
+        pub funds: Coin,
+        /// Base64 encoded `account::ExecuteMsg` to allow callback different versions of the accounts
+        pub msgs: Vec<Binary>,
     }
 
     // Saves the local note deployed contract and the remote abstract host connected
@@ -51,6 +64,10 @@ pub mod state {
 
     // For callbacks tests
     pub const ACKS: Item<Vec<String>> = Item::new(storage_namespaces::ibc_client::ACKS);
+    pub const ICS20_ACCOUNT_CALLBACKS: Map<ICS20PacketIdentifier, (Addr, Coin, Vec<Binary>)> =
+        Map::new(storage_namespaces::ibc_client::ICS20_ACCOUNT_CALLBACKS);
+    pub const ICS20_ACCOUNT_CALLBACK_PAYLOAD: Item<AccountCallbackPayload> =
+        Item::new(storage_namespaces::ibc_client::ICS20_ACCOUNT_CALLBACK_PAYLOAD);
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
@@ -86,6 +103,18 @@ pub enum ExecuteMsg {
         /// Defaults to address of the remote account
         receiver: Option<String>,
         memo: Option<String>,
+    },
+    /// Only callable by Account
+    /// Will attempt to forward the specified funds to the account
+    /// on the remote chain.
+    SendFundsWithActions {
+        /// host chain to be executed on
+        /// Example: "osmosis"
+        host_chain: TruncatedChainId,
+        /// Actions on the account that will be executed after successful transfer
+        /// Encoded with base64 to allow different versions of the account
+        /// Note: ibc-client have to be whitelisted
+        actions: Vec<Binary>,
     },
     /// Only callable by Account
     /// Register an Account on a remote chain over IBC
@@ -315,6 +344,12 @@ pub enum QueryMsg {
     ListIbcInfrastructures {},
 }
 
+#[cosmwasm_schema::cw_serde]
+pub enum SudoMsg {
+    /// For IBC hooks acknoledgments
+    #[serde(rename = "ibc_lifecycle_complete")]
+    IBCLifecycleComplete(IBCLifecycleComplete),
+}
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub ans_host: Addr,

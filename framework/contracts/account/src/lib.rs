@@ -27,7 +27,7 @@ pub mod msg {
     pub use abstract_std::account::{MigrateMsg, QueryMsg};
 
     #[cfg(feature = "xion")]
-    pub type Authenticator = crate::abstract_xion::auth::AddAuthenticator;
+    pub type Authenticator = crate::abstract_xion::AddAuthenticator;
     #[cfg(not(feature = "xion"))]
     pub type Authenticator = cosmwasm_std::Empty;
 
@@ -60,10 +60,11 @@ mod test_common {
             env,
             info,
             account::InstantiateMsg {
+                code_id: 1,
                 account_id: Some(AccountId::new(1, AccountTrace::Local).unwrap()),
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),
-                },
+                }),
                 namespace: None,
                 name: Some("test".to_string()),
                 description: None,
@@ -76,6 +77,7 @@ mod test_common {
 
     pub fn test_only_owner(msg: ExecuteMsg) -> anyhow::Result<()> {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let not_owner = deps.api.addr_make("not_owner");
         mock_init(&mut deps)?;
 

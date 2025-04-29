@@ -1,15 +1,15 @@
 [package]
-name = "abstract-wyndex-adapter"
-version = { workspace = true }
-authors = ["Abstract Money <contact@abstract.money>"]
-edition = { workspace = true }
+# This package is not published
+authors     = ["Abstract Money <contact@abstract.money>"]
 description = "Abstract DexCommand implementation for Wyndex"
-license = { workspace = true }
-repository = { workspace = true }
-homepage = "https://www.wynddao.com"
+edition     = { workspace = true }
+homepage    = "https://www.wynddao.com"
+license     = { workspace = true }
+name        = "abstract-wyndex-adapter"
+repository  = { workspace = true }
+version     = { workspace = true }
 
 [features]
-local = []
 default = ["full_integration"]
 full_integration = [
   "dep:wyndex",
@@ -19,19 +19,18 @@ full_integration = [
   "dep:cw-controllers",
   "dep:cw20",
 ]
+local = []
 
 [dependencies]
-wyndex = { git = "https://github.com/wynddao/wynddex", tag = "v1.1.2", optional = true }
-wyndex-stake = { git = "https://github.com/wynddao/wynddex", tag = "v1.1.2", features = [
-  "library",
-], optional = true }
+wyndex       = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", optional = true, version = "2.2.0" }
+wyndex-stake = { git = "https://github.com/abstractsdk/wynddex", rev = "cbe316f17c4a89d0c3938ea66747a5ff1fc5a5e9", features = ["library"], optional = true, version = "2.2.0" }
 
-cosmwasm-std = { workspace = true }
+abstract-dex-standard     = { workspace = true }
+abstract-sdk              = { workspace = true }
 abstract-staking-standard = { workspace = true }
-abstract-dex-standard = { workspace = true }
-abstract-sdk = { workspace = true }
-cw20 = { workspace = true, optional = true }
-cosmwasm-schema = { workspace = true, optional = true }
-cw-asset = { workspace = true, optional = true }
-cw-utils = { workspace = true, optional = true }
-cw-controllers = { workspace = true, optional = true }
+cosmwasm-schema           = { workspace = true, optional = true }
+cosmwasm-std              = { workspace = true }
+cw-asset                  = { workspace = true, optional = true }
+cw-controllers            = { workspace = true, optional = true }
+cw-utils                  = { workspace = true, optional = true }
+cw20                      = { workspace = true, optional = true }

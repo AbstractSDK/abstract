@@ -16,8 +16,7 @@ use abstract_dex_adapter::{
 };
 use abstract_dex_standard::ans_action::DexAnsAction;
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountFactory, AdapterDeployer, AnsHost,
-    DeployStrategy,
+    Abstract, AbstractInterfaceError, AccountI, AdapterDeployer, AnsHost, DeployStrategy,
 };
 use abstract_osmosis_adapter::OSMOSIS;
 use anyhow::Result as AnyResult;
@@ -26,22 +25,13 @@ use cw_asset::AssetBase;
 use cw_orch::prelude::*;
 use cw_orch_osmosis_test_tube::OsmosisTestTube;
 
-pub fn create_default_account<Chain: CwEnv>(
-    factory: &AccountFactory<Chain>,
-) -> anyhow::Result<AbstractAccount<Chain>> {
-    let os = factory.create_default_account(GovernanceDetails::Monarchy {
-        monarch: Addr::unchecked(factory.environment().sender_addr()).to_string(),
-    })?;
-    Ok(os)
-}
-
 /// Provide liquidity using Abstract's OS (registered in daemon_state).
 pub fn provide<Chain: CwEnv>(
     dex_adapter: &DexAdapter<Chain>,
     asset1: (&str, u128),
     asset2: (&str, u128),
     dex: String,
-    os: &AbstractAccount<Chain>,
+    os: &AccountI<Chain>,
     ans_host: &AnsHost<Chain>,
 ) -> Result<(), AbstractInterfaceError> {
     let asset_entry1 = AssetEntry::new(asset1.0);
@@ -68,7 +58,7 @@ pub fn withdraw<Chain: CwEnv>(
     lp_token: &str,
     amount: impl Into<Uint128>,
     dex: String,
-    os: &AbstractAccount<Chain>,
+    os: &AccountI<Chain>,
     ans_host: &AnsHost<Chain>,
 ) -> Result<(), AbstractInterfaceError> {
     let lp_token = AnsAsset::new(lp_token, amount.into());
@@ -90,7 +80,7 @@ fn get_pool_token(id: u64) -> String {
 fn setup_mock() -> anyhow::Result<(
     OsmosisTestTube,
     DexAdapter<OsmosisTestTube>,
-    AbstractAccount<OsmosisTestTube>,
+    AccountI<OsmosisTestTube>,
     Abstract<OsmosisTestTube>,
     u64,
 )> {
@@ -99,14 +89,19 @@ fn setup_mock() -> anyhow::Result<(
     let juno = "ujunox";
 
     let chain = OsmosisTestTube::new(vec![
-        coin(1_000_000_000_000, osmo),
         coin(1_000_000_000_000, atom),
         coin(1_000_000_000_000, juno),
+        coin(1_000_000_000_000, osmo),
     ]);
 
-    let deployment = Abstract::deploy_on(chain.clone(), chain.sender_addr().to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), ())?;
 
-    let _root_os = create_default_account(&deployment.account_factory)?;
+    let _root_os = AccountI::create_default_account(
+        &deployment,
+        GovernanceDetails::Monarchy {
+            monarch: chain.sender_addr().to_string(),
+        },
+    )?;
     let dex_adapter = DexAdapter::new(DEX_ADAPTER_ID, chain.clone());
 
     dex_adapter.deploy(
@@ -157,10 +152,15 @@ fn setup_mock() -> anyhow::Result<(
         )
         .unwrap();
 
-    let account = create_default_account(&deployment.account_factory)?;
+    let account = AccountI::create_default_account(
+        &deployment,
+        GovernanceDetails::Monarchy {
+            monarch: chain.sender_addr().to_string(),
+        },
+    )?;
 
     // install DEX_ADAPTER_ID on OS
-    account.install_adapter(&dex_adapter, None)?;
+    account.install_adapter(&dex_adapter, &[])?;
 
     Ok((chain, dex_adapter, account, deployment, pool_id))
 }
@@ -170,14 +170,14 @@ fn swap() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, _pool_id) = setup_mock()?;
 
-    let account_addr = os.account.address()?;
+    let account_addr = os.address()?;
 
     let swap_value = 1_000_000_000u128;
 
     chain.bank_send(account_addr.to_string(), coins(swap_value, "uatom"))?;
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
     dex_adapter.ans_swap(
@@ -189,9 +189,9 @@ fn swap() -> AnyResult<()> {
     )?;
 
     // Assert balances
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert_eq!(balances.len(), 1);
-    let balance = chain.query_balance(account_addr.as_ref(), "uosmo")?;
+    let balance = chain.query_balance(&account_addr, "uosmo")?;
     assert!(balance > Uint128::zero());
 
     Ok(())
@@ -202,7 +202,7 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, deployment, _pool_id) = setup_mock()?;
 
-    let account_addr = os.account.address()?;
+    let account_addr = os.address()?;
 
     let swap_value = 1_000_000_000u128;
 
@@ -246,7 +246,7 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
         .unwrap();
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
     dex_adapter.ans_swap(
@@ -258,9 +258,9 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
     )?;
 
     // Assert balances
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert_eq!(balances.len(), 1);
-    let balance = chain.query_balance(account_addr.as_ref(), "uosmo")?;
+    let balance = chain.query_balance(&account_addr, "uosmo")?;
     assert!(balance > Uint128::zero());
 
     Ok(())
@@ -271,12 +271,12 @@ fn provide_liquidity_two_sided() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, pool_id) = setup_mock()?;
 
-    let account_addr = os.account.address()?;
+    let account_addr = os.address()?;
 
     let provide_value = 1_000_000_000u128;
 
     // Before providing, we need to have no assets in the account
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert!(balances.is_empty());
     chain.bank_send(account_addr.to_string(), coins(provide_value * 2, "uatom"))?;
     chain.bank_send(account_addr.to_string(), coins(provide_value * 2, "uosmo"))?;
@@ -303,7 +303,7 @@ fn provide_liquidity_two_sided() -> AnyResult<()> {
     )?;
 
     // After providing, we need to get the liquidity token
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert_eq!(
         balances,
         coins(
@@ -320,12 +320,12 @@ fn provide_liquidity_one_sided() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, pool_id) = setup_mock()?;
 
-    let account_addr = os.account.address()?;
+    let account_addr = os.address()?;
 
     let provide_value = 1_000_000_000u128;
 
     // Before providing, we need to have no assets in the account
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert!(balances.is_empty());
     chain.bank_send(account_addr.to_string(), coins(provide_value, "uatom"))?;
     chain.bank_send(account_addr.to_string(), coins(provide_value, "uosmo"))?;
@@ -352,7 +352,7 @@ fn provide_liquidity_one_sided() -> AnyResult<()> {
     )?;
 
     // After providing, we need to get the liquidity token
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     let lp_balance = balances
         .iter()
         .find(|c| c.denom == get_pool_token(pool_id))
@@ -367,12 +367,12 @@ fn withdraw_liquidity() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, abstr, pool_id) = setup_mock()?;
 
-    let account_addr = os.account.address()?;
+    let account_addr = os.address()?;
 
     let provide_value = 1_000_000_000u128;
 
     // Before providing, we need to have no assets in the account
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert!(balances.is_empty());
     chain.bank_send(account_addr.to_string(), coins(provide_value, "uatom"))?;
     chain.bank_send(account_addr.to_string(), coins(provide_value, "uosmo"))?;
@@ -388,7 +388,7 @@ fn withdraw_liquidity() -> AnyResult<()> {
     )?;
 
     // After providing, we need to get the liquidity token
-    let balance = chain.query_balance(account_addr.as_ref(), &get_pool_token(pool_id))?;
+    let balance = chain.query_balance(&account_addr, &get_pool_token(pool_id))?;
 
     // withdraw from the pool
     withdraw(
@@ -401,7 +401,7 @@ fn withdraw_liquidity() -> AnyResult<()> {
     )?;
 
     // After withdrawing, we should get some tokens in return and have some lp token left
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert_eq!(balances.len(), 3);
 
     Ok(())
@@ -446,14 +446,14 @@ fn swap_route() -> AnyResult<()> {
         )
         .unwrap();
 
-    let account_addr = os.account.address()?;
+    let account_addr = os.address()?;
 
     let swap_value = 1_000_000_000u128;
 
     chain.bank_send(account_addr.to_string(), coins(swap_value, "uatom"))?;
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
     dex_adapter.raw_action(
@@ -477,9 +477,9 @@ fn swap_route() -> AnyResult<()> {
     )?;
 
     // Assert balances
-    let balances = chain.query_all_balances(account_addr.as_ref())?;
+    let balances = chain.query_all_balances(&account_addr)?;
     assert_eq!(balances.len(), 1);
-    let balance = chain.query_balance(account_addr.as_ref(), juno)?;
+    let balance = chain.query_balance(&account_addr, juno)?;
     assert!(balance > Uint128::zero());
 
     Ok(())

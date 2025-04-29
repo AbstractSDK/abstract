@@ -1,28 +1,25 @@
 [package]
-name = "abstract-integration-tests"
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
 description = "Package with environment-agnonstic tests"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "abstract-integration-tests"
+version     = { workspace = true }
 
 [dependencies]
-cosmwasm-std = { workspace = true }
+abstract-account   = { path = "../../contracts/account" }
+abstract-adapter   = { workspace = true, features = ["test-utils"] }
+abstract-app       = { workspace = true, features = ["test-utils"] }
 abstract-interface = { workspace = true }
-abstract-app = { workspace = true, features = ["test-utils"] }
-abstract-adapter = { workspace = true, features = ["test-utils"] }
-abstract-account = { path = "../../contracts/account" }
-semver = { workspace = true }
+cosmwasm-std       = { workspace = true }
+semver             = { workspace = true }
 
-cw-ownable = { workspace = true }
-cw-orch = { workspace = true }
-log = "0.4.14"
-abstract-std.workspace = true
-abstract-sdk.workspace = true
-anyhow.workspace = true
+abstract-sdk.workspace     = true
+abstract-std.workspace     = true
 abstract-testing.workspace = true
-cosmwasm-schema = { workspace = true }
-cw2 = { workspace = true }
-cw-asset = { workspace = true }
+anyhow.workspace           = true
+cosmwasm-schema            = { workspace = true }
+cw-orch                    = { workspace = true }
+cw2                        = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

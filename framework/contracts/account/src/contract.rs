@@ -70,6 +70,7 @@ pub fn instantiate(
     env: Env,
     info: MessageInfo,
     #[cfg_attr(not(feature = "xion"), allow(unused_variables))] InstantiateMsg {
+        code_id,
         account_id,
         owner,
         install_modules,
@@ -83,8 +84,8 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, ACCOUNT, CONTRACT_VERSION)?;
 
-    let registry = RegistryContract::new(deps.api, &env)?;
-    let module_factory = ModuleFactoryContract::new(deps.api, &env)?;
+    let registry = RegistryContract::new(deps.as_ref(), code_id)?;
+    let module_factory = ModuleFactoryContract::new(deps.as_ref(), code_id)?;
 
     let account_id = match account_id {
         Some(account_id) => account_id,
@@ -119,6 +120,9 @@ pub fn instantiate(
     }
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
+    let owner = owner.unwrap_or(GovernanceDetails::AbstractAccount {
+        address: env.contract.address.clone(),
+    });
     let governance = owner.clone().verify(deps.as_ref())?;
     match governance {
         // Check if the caller is the proposed owner account when creating a sub-account.
@@ -146,7 +150,7 @@ pub fn instantiate(
             ensure_eq!(
                 address,
                 env.contract.address,
-                AccountError::AbsAccInvalidAddr {
+                AccountError::AbstractAccountInvalidAddress {
                     abstract_account: address.to_string(),
                     contract: env.contract.address.to_string()
                 }
@@ -154,9 +158,9 @@ pub fn instantiate(
             #[cfg(feature = "xion")]
             {
                 let Some(mut add_auth) = authenticator else {
-                    return Err(AccountError::AbsAccNoAuth {});
+                    return Err(AccountError::AbstractAccountNoAuth {});
                 };
-                abstract_xion::auth::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
+                abstract_xion::execute::add_auth_method(deps.branch(), &env, &mut add_auth)?;
 
                 response = response.add_event(
                     cosmwasm_std::Event::new("create_abstract_account").add_attributes(vec![
@@ -168,7 +172,7 @@ pub fn instantiate(
             }
             // No Auth possible - error
             #[cfg(not(feature = "xion"))]
-            return Err(AccountError::AbsAccNoAuth {});
+            return Err(AccountError::AbstractAccountNoAuth {});
         }
         _ => (),
     };
@@ -226,9 +230,9 @@ pub fn instantiate(
         // Install modules
         let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
-            &env,
             install_modules,
             simulate_resp.total_required_funds,
+            code_id,
         )?;
         response = response
             .add_submessages(install_msgs)
@@ -251,37 +255,38 @@ pub fn instantiate(
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> AccountResult {
-    match msg {
+    let response = match msg {
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
-        } => update_account_status(deps, info, suspension_status),
+        } => update_account_status(deps.branch(), info, suspension_status),
         msg => {
             // Block actions if account is suspended
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
             if is_suspended {
                 return Err(AccountError::AccountSuspended {});
             }
+            let mut deps = deps.branch();
 
             match msg {
                 // ## Execution ##
-                ExecuteMsg::Execute { msgs } => execute_msgs(deps, &info.sender, msgs),
+                ExecuteMsg::Execute { msgs } => execute_msgs(deps, env, &info.sender, msgs),
                 ExecuteMsg::AdminExecute { addr, msg } => {
                     let addr = deps.api.addr_validate(&addr)?;
                     admin_execute(deps, info, addr, msg)
                 }
                 ExecuteMsg::ExecuteWithData { msg } => {
-                    execute_msgs_with_data(deps, &info.sender, msg)
+                    execute_msgs_with_data(deps, env, &info.sender, msg)
                 }
                 ExecuteMsg::ExecuteOnModule {
                     module_id,
                     exec_msg,
                     funds,
-                } => execute_on_module(deps, info, module_id, exec_msg, funds),
+                } => execute_on_module(deps, env, info, module_id, exec_msg, funds),
                 ExecuteMsg::AdminExecuteOnModule { module_id, msg } => {
                     admin_execute_on_module(deps, info, module_id, msg)
                 }
                 ExecuteMsg::IcaAction { action_query_msg } => {
-                    ica_action(deps, info, action_query_msg)
+                    ica_action(deps, env, info, action_query_msg)
                 }
 
                 // ## Configuration ##
@@ -349,13 +354,16 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     unreachable!("Update status case is reached above")
                 }
                 ExecuteMsg::AddAuthMethod { add_authenticator } => {
-                    add_auth_method(deps, env, add_authenticator)
+                    add_auth_method(deps, env, info, add_authenticator)
                 }
-                #[allow(unused)]
-                ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, id),
+                ExecuteMsg::RemoveAuthMethod { id } => remove_auth_method(deps, env, info, id),
             }
         }
-    }
+    }?;
+
+    #[cfg(feature = "xion")]
+    abstract_std::account::state::AUTH_ADMIN.remove(deps.storage);
+    Ok(response)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -392,13 +400,18 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         #[cfg_attr(not(feature = "xion"), allow(unused_variables))]
         QueryMsg::AuthenticatorByID { id } => {
             #[cfg(feature = "xion")]
-            return abstract_xion::queries::authenticator_by_id(deps.storage, id);
+            return cosmwasm_std::to_json_binary(&abstract_xion::query::authenticator_by_id(
+                deps.storage,
+                id,
+            )?);
             #[cfg(not(feature = "xion"))]
             Ok(Binary::default())
         }
         QueryMsg::AuthenticatorIDs {} => {
             #[cfg(feature = "xion")]
-            return abstract_xion::queries::authenticator_ids(deps.storage);
+            return cosmwasm_std::to_json_binary(&abstract_xion::query::authenticator_ids(
+                deps.storage,
+            )?);
             #[cfg(not(feature = "xion"))]
             Ok(Binary::default())
         }
@@ -410,9 +423,24 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 pub fn sudo(
     deps: DepsMut,
     env: Env,
-    msg: abstract_xion::AccountSudoMsg,
-) -> abstract_xion::AbstractXionResult {
-    abstract_xion::sudo::sudo(deps, env, msg)
+    msg: abstract_xion::contract::AccountSudoMsg,
+) -> abstract_xion::error::ContractResult<Response> {
+    if let abstract_xion::contract::AccountSudoMsg::BeforeTx { .. } = &msg {
+        abstract_std::account::state::AUTH_ADMIN.save(deps.storage, &true)?;
+    };
+    if let abstract_xion::contract::AccountSudoMsg::AfterTx { .. } = &msg {
+        abstract_std::account::state::AUTH_ADMIN.remove(deps.storage);
+    };
+    abstract_xion::contract::sudo(deps, env, msg)
+}
+#[cfg(not(feature = "xion"))]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn sudo(
+    _deps: DepsMut,
+    _env: Env,
+    _msg: cosmwasm_std::Empty,
+) -> Result<cosmwasm_std::Response, AccountError> {
+    unimplemented!()
 }
 
 /// Verifies that *sender* is the owner of *nft_id* of contract *nft_addr*
@@ -451,7 +479,8 @@ mod tests {
         },
     };
     use abstract_testing::{
-        abstract_mock_querier_builder, mock_env_validated, prelude::AbstractMockAddrs,
+        abstract_mock_querier, abstract_mock_querier_builder, mock_env_validated,
+        prelude::AbstractMockAddrs,
     };
     use cosmwasm_std::{
         testing::{message_info, mock_dependencies},
@@ -465,6 +494,7 @@ mod tests {
     #[coverage_helper::test]
     fn successful_instantiate() {
         let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
 
         let abstr = AbstractMockAddrs::new(deps.api);
         let info = message_info(&abstr.owner, &[]);
@@ -475,10 +505,11 @@ mod tests {
             env,
             info,
             account::InstantiateMsg {
+                code_id: 1,
                 account_id: AccountId::new(1, AccountTrace::Local).ok(),
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),
-                },
+                }),
                 namespace: None,
                 name: Some("test".to_string()),
                 description: None,

@@ -49,7 +49,6 @@ impl<Chain: CwEnv> AnsHost<Chain> {
 }
 
 impl<Chain: CwEnv> Uploadable for AnsHost<Chain> {
-    #[cfg(feature = "integration")]
     fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(

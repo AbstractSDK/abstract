@@ -12,7 +12,7 @@ use super::module_reference::ModuleReference;
 use crate::{
     error::AbstractError,
     objects::{fee::FixedFee, module_version::MODULE, namespace::Namespace},
-    AbstractResult,
+    AbstractResult, IBC_CLIENT,
 };
 
 /// ID of the module
@@ -143,7 +143,7 @@ impl ModuleInfo {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &ModuleInfo {
+impl PrimaryKey<'_> for &ModuleInfo {
     /// (namespace, name)
     type Prefix = (Namespace, String);
 
@@ -164,7 +164,7 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
     }
 }
 
-impl<'a> Prefixer<'a> for &ModuleInfo {
+impl Prefixer<'_> for &ModuleInfo {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.namespace.prefix();
         res.extend(self.name.prefix());
@@ -175,7 +175,7 @@ impl<'a> Prefixer<'a> for &ModuleInfo {
 
 impl KeyDeserialize for &ModuleInfo {
     type Output = ModuleInfo;
-    const KEY_ELEMS: u16 = 1;
+    const KEY_ELEMS: u16 = Namespace::KEY_ELEMS + String::KEY_ELEMS + ModuleVersion::KEY_ELEMS;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -300,7 +300,7 @@ impl TryInto<Version> for ModuleVersion {
     }
 }
 
-impl<'a> PrimaryKey<'a> for ModuleVersion {
+impl PrimaryKey<'_> for ModuleVersion {
     type Prefix = ();
 
     type SubPrefix = ();
@@ -317,7 +317,7 @@ impl<'a> PrimaryKey<'a> for ModuleVersion {
     }
 }
 
-impl<'a> Prefixer<'a> for ModuleVersion {
+impl Prefixer<'_> for ModuleVersion {
     fn prefix(&self) -> Vec<Key> {
         let self_as_bytes = match &self {
             ModuleVersion::Latest => "latest".as_bytes(),
@@ -369,8 +369,9 @@ impl Module {
     // Helper to know if this module supposed to be whitelisted on account contract
     pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
-            // Standalone, Service or Native(for example IBC Client) contracts not supposed to be whitelisted on account
+            // Standalone, Service or Native(exception for IBC Client for the ICS20 Callbacks) contracts not supposed to be whitelisted on account
             ModuleReference::Adapter(_) | ModuleReference::App(_) => true,
+            ModuleReference::Native(_) if self.info.id() == IBC_CLIENT => true,
             _ => false,
         }
     }

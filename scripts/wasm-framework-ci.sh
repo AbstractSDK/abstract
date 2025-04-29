@@ -4,9 +4,9 @@ set -e
 
 # Detect the architecture #
 if [[ $(arch) == "arm64" ]]; then
-  image="cosmwasm/optimizer-arm64:0.16.0"
+  image="cosmwasm/optimizer-arm64:0.16.1"
 else
-  image="cosmwasm/optimizer:0.16.0"
+  image="cosmwasm/optimizer:0.16.1"
 fi
 
 starting_dir=$(pwd)
@@ -19,9 +19,6 @@ cd ./framework
 rm packages/abstract-interface/state.json
 rm packages/abstract-interface/build.rs
 rm packages/abstract-interface/artifacts || true
-
-# Delete the current artifacts folder.
-# rm -rf ./artifacts
 
 # Create lock file if it does not exist
 if [ ! -f Cargo.lock ]; then

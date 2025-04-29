@@ -15,7 +15,7 @@ fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let (deployment, chain) = common::setup(PION_1)?;
     deployment.migrate_if_version_changed()?;
-    deployment.registry.update_config(None, Some(true))?;
+    deployment.registry.update_config(None, Some(false))?;
     Ok((deployment, chain))
 }
 
@@ -76,7 +76,7 @@ fn old_account_functions() -> anyhow::Result<()> {
             .registry
             .claim_namespace(old_account.id()?, "tester".to_owned())?;
         // Allow registration
-        abstr_deployment.registry.update_config(None, Some(true))?;
+        abstr_deployment.registry.update_config(None, Some(false))?;
         // Try to install
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
@@ -174,5 +174,42 @@ mod account_factory {
         let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
 
         create_one_account_with_namespace_fee(chain)
+    }
+}
+
+mod from_xion {
+    use super::*;
+    use abstract_interface::{AccountExecFns, AccountI};
+    use abstract_std::{account::MigrateMsg, IBC_CLIENT};
+    use networks::XION_TESTNET_1;
+
+    pub const XION_ACCOUNT: &str =
+        "xion1c8lhvl6hun9jfd7rvpjyprnf3c70utlvwvdxk94s43t5qaqcze9q6qz0y4";
+
+    #[test]
+    fn migrate_from_xion_account() -> anyhow::Result<()> {
+        let (deployment, chain) = common::setup(XION_TESTNET_1)?;
+
+        // We need to register the new code id
+        deployment.migrate_if_version_changed()?;
+
+        // This is a XION user action
+        let addr_contract = Addr::unchecked(XION_ACCOUNT);
+        let account = AccountI::new("account-xion", chain);
+        account.set_address(&addr_contract);
+
+        account.call_as(&addr_contract).migrate(
+            &MigrateMsg {
+                code_id: Some(deployment.account_code_id()?),
+            },
+            deployment.account_code_id()?,
+        )?;
+
+        account
+            .update_info(None, None, Some("brand new abstract account".to_string()))
+            .unwrap_err();
+
+        assert!(account.is_module_installed(IBC_CLIENT)?);
+        Ok(())
     }
 }

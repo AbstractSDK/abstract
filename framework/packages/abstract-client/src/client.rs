@@ -18,12 +18,14 @@
 //! use abstract_testing::prelude::*;
 //!
 //! let chain = MockBech32::new("mock");
-//! let client = AbstractClient::builder(chain.clone()).build_mock()?;
+//! let client = AbstractClient::builder(chain.clone()).build()?;
 //!
 //! let namespace = Namespace::new("tester")?;
 //! let publisher: Publisher<MockBech32> = client
-//!     .publisher_builder(namespace)
-//!     .build()?;
+//!     .account_builder()
+//!     .namespace(namespace)
+//!     .build()?
+//!     .publisher()?;
 //!
 //! publisher.publish_app::<MockAppI<MockBech32>>()?;
 //! # Ok::<(), AbstractClientError>(())
@@ -67,7 +69,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # use abstract_client::{Environment, AbstractClientError};
     /// # use cw_orch::prelude::*;
     /// # let chain = MockBech32::new("mock");
-    /// # let client = AbstractClient::builder(chain.clone()).build_mock().unwrap(); // Deploy mock abstract
+    /// # let client = AbstractClient::builder(chain.clone()).build().unwrap(); // Deploy mock abstract
     ///
     /// let client = AbstractClient::new(chain)?;
     /// # Ok::<(), AbstractClientError>(())
@@ -83,7 +85,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     /// # use abstract_client::AbstractClientError;
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
-    /// # let client = abstract_client::AbstractClient::builder(chain.clone()).build_mock().unwrap();
+    /// # let client = abstract_client::AbstractClient::builder(chain.clone()).build().unwrap();
     /// use abstract_std::objects::{module_reference::ModuleReference, module::ModuleInfo};
     /// // For getting registry address
     /// use cw_orch::prelude::*;
@@ -114,7 +116,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # let chain = MockBech32::new("mock");
     /// # let client = AbstractClient::builder(chain.clone())
     /// #     .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
-    /// #     .build_mock()?;
+    /// #     .build()?;
     ///
     /// let name_service = client.name_service();
     /// let asset_entry = AssetEntry::new(entry);
@@ -174,7 +176,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn sub_account_builder<'a>(
         &'a self,
         account: &'a Account<Chain>,
-    ) -> AbstractClientResult<AccountBuilder<Chain>> {
+    ) -> AbstractClientResult<AccountBuilder<'a, Chain>> {
         let mut builder = AccountBuilder::new(&self.abstr);
         builder.sub_account(account);
         builder.name("Sub Account");
@@ -420,12 +422,5 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         self.abstr.connect_to(&remote_abstr.abstr, ibc)?;
 
         Ok(())
-    }
-}
-
-impl<Chain: CwEnv<Sender = Addr>> AbstractClient<Chain> {
-    /// Admin of the abstract deployment
-    pub fn mock_admin(chain: &Chain) -> <Chain as TxHandler>::Sender {
-        Abstract::mock_admin(chain)
     }
 }

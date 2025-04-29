@@ -6,10 +6,10 @@ use abstract_std::{
     objects::{module::ModuleInfo, salt::generate_instantiate_salt, AccountId},
     ACCOUNT,
 };
-use abstract_xion::auth::AddAuthenticator;
+use abstract_xion::AddAuthenticator;
 use bitcoin::secp256k1::{All, Secp256k1, Signing};
+use cosmwasm_std::to_json_vec;
 use cosmwasm_std::{coins, to_json_binary, Binary};
-use cosmwasm_std::{to_json_vec, Addr};
 use cw_orch::{
     daemon::{networks::xion::XION_NETWORK, Daemon, TxSender, RUNTIME},
     prelude::*,
@@ -28,28 +28,15 @@ use cw_orch_daemon::{
     CosmTxResponse, DaemonError, GrpcChannel,
 };
 use networks::ChainKind;
-use std::str::FromStr;
 use tonic::transport::Channel;
 use xion_sdk_proto::abstract_account::v1::NilPubKey;
 use xion_sdk_proto::cosmos::auth::v1beta1::QueryAccountRequest;
 use xion_sdk_proto::traits::MessageExt;
 use xion_sdk_proto::{cosmos::bank::v1beta1::MsgSend, prost::Name, traits::Message};
-use xionrs::{
-    crypto::secp256k1::SigningKey,
-    tendermint::chain::Id,
-    // tx::{self, ModeInfo, Msg, Raw, SignDoc, SignMode, SignerInfo},
-    // Any,
-};
-
-const GAS_BUFFER: f64 = 1.3;
-const BUFFER_THRESHOLD: u64 = 200_000;
-const SMALL_GAS_BUFFER: f64 = 1.4;
+use xionrs::crypto::secp256k1::SigningKey;
 
 // Xiond validator seed
 const LOCAL_MNEMONIC: &str = "clinic tube choose fade collect fish original recipe pumpkin fantasy enrich sunny pattern regret blouse organ april carpet guitar skin work moon fatigue hurdle";
-
-// Juno default mnemonics (used for deployment of mock abstract)
-const JUNO_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
 
 pub const LOCAL_XION: ChainInfo = ChainInfo {
     kind: ChainKind::Local,
@@ -83,7 +70,7 @@ fn main() -> anyhow::Result<()> {
     ))?;
 
     let abstr = AbstractClient::new(xiond.clone())
-        .or_else(|_| AbstractClient::builder(xiond.clone()).build(abstract_sender));
+        .or_else(|_| AbstractClient::builder(xiond.clone()).build());
 
     let abstr = abstr?;
     // Create the Abstract Account because it's needed for the fees for the dex module
@@ -118,6 +105,7 @@ fn main() -> anyhow::Result<()> {
                 sender: wallet.pub_addr_str(),
                 code_id,
                 msg: to_json_binary(&abstract_std::account::InstantiateMsg {
+                    code_id,
                     authenticator: Some(AddAuthenticator::Secp256K1 {
                         id: 1,
                         pubkey: Binary::new(signing_key.public_key().to_bytes()),
@@ -125,9 +113,7 @@ fn main() -> anyhow::Result<()> {
                     }),
                     name: Some("test".to_string()),
                     account_id: Some(account_id.clone()),
-                    owner: abstract_client::GovernanceDetails::AbstractAccount {
-                        address: account_addr,
-                    },
+                    owner: None,
                     namespace: Some("test".to_string()),
                     install_modules: vec![],
                     description: Some("foo bar".to_owned()),
@@ -213,7 +199,7 @@ fn main() -> anyhow::Result<()> {
 mod xion_sender {
     use xion_sdk_proto::cosmos::tx::v1beta1::{AuthInfo, SignDoc, SignerInfo, TxRaw};
     use xionrs::{
-        tx::{Msg, Raw, SignMode},
+        tx::{Msg, SignMode},
         Any,
     };
 
@@ -382,8 +368,8 @@ mod xion_sender {
                 .unwrap();
             let signature = self.cosmos_private_key().sign(&sign_doc_bytes)?;
 
-            let AUTHID = abstract_xion::auth::AuthId::new(1u8, true).unwrap();
-            let smart_contract_sig = AUTHID.signature(signature.to_vec());
+            let auth_id = auth_id::AuthId::new(1u8, true).unwrap();
+            let smart_contract_sig = auth_id.signature(signature.to_vec());
 
             Ok(xion_sdk_proto::cosmos::tx::v1beta1::TxRaw {
                 body_bytes: sign_doc.body_bytes,
@@ -524,72 +510,48 @@ mod xion_sender {
             _ => panic!("Can't set mnemonic for unspecified chainkind"),
         }
     }
-
-    pub(crate) fn parse_cw_coins(
-        coins: &[cosmwasm_std::Coin],
-    ) -> Result<Vec<xionrs::Coin>, DaemonError> {
-        coins
-            .iter()
-            .map(|cosmwasm_std::Coin { amount, denom }| {
-                Ok(xionrs::Coin {
-                    amount: amount.u128(),
-                    denom: xionrs::Denom::from_str(denom)?,
-                })
-            })
-            .collect::<Result<Vec<_>, DaemonError>>()
-    }
 }
 
-// mod proto {
+pub mod auth_id {
 
-//     use cosmos_sdk_proto::cosmos;
-//     use cosmwasm_std::{AnyMsg, CosmosMsg};
-//     use prost::{Message, Name};
+    /// Authentication id for the signature
+    #[cosmwasm_schema::cw_serde]
+    #[derive(Copy)]
+    pub struct AuthId(pub(crate) u8);
 
-//     #[derive(Clone, PartialEq, prost::Message)]
-//     pub struct MsgRegisterAccount {
-//         #[prost(string, tag = "1")]
-//         pub sender: String,
+    impl AuthId {
+        /// Create AuthId from signature id and flag for admin call
+        /// Note: It's helper for signer, not designed to be used inside contract
+        #[cfg(not(target_arch = "wasm32"))]
+        pub fn new(id: u8, admin: bool) -> Option<Self> {
+            let first_bit: u8 = 0b10000000;
+            // If first bit occupied - we can't create AuthId
+            if id & first_bit != 0 {
+                return None;
+            };
 
-//         #[prost(uint64, tag = "2")]
-//         pub code_id: u64,
+            Some(if admin {
+                Self(id | first_bit)
+            } else {
+                Self(id)
+            })
+        }
 
-//         #[prost(bytes = "vec", tag = "3")]
-//         pub msg: Vec<u8>,
+        /// Get signature bytes with this [`AuthId`]
+        /// Note: It's helper for signer, not designed to be used inside contract
+        #[cfg(not(target_arch = "wasm32"))]
+        pub fn signature(self, mut signature: Vec<u8>) -> Vec<u8> {
+            signature.insert(0, self.0);
+            signature
+        }
 
-//         #[prost(message, repeated, tag = "4")]
-//         pub funds: Vec<cosmos::base::v1beta1::Coin>,
-
-//         #[prost(bytes = "vec", tag = "5")]
-//         pub salt: Vec<u8>,
-//     }
-
-//     impl From<MsgRegisterAccount> for CosmosMsg {
-//         fn from(msg: MsgRegisterAccount) -> Self {
-//             let any_msg: AnyMsg = AnyMsg {
-//                 type_url: MsgRegisterAccount::type_url(),
-//                 value: msg.encode_to_vec().into(),
-//             };
-//             CosmosMsg::Any(any_msg)
-//         }
-//     }
-
-//     impl Name for MsgRegisterAccount {
-//         const NAME: &'static str = "MsgRegisterAccount";
-//         const PACKAGE: &'static str = "abstractaccount.v1";
-//     }
-
-//     #[derive(Clone, PartialEq, prost::Message)]
-//     pub struct MsgRegisterAccountResponse {
-//         #[prost(string, tag = "1")]
-//         pub address: String,
-
-//         #[prost(bytes = "vec", tag = "2")]
-//         pub data: Vec<u8>,
-//     }
-
-//     impl Name for MsgRegisterAccountResponse {
-//         const NAME: &'static str = "MsgRegisterAccountResponse";
-//         const PACKAGE: &'static str = "abstractaccount.v1";
-//     }
-// }
+        pub fn cred_id(self) -> (u8, bool) {
+            let first_bit: u8 = 0b10000000;
+            if self.0 & first_bit == 0 {
+                (self.0, false)
+            } else {
+                (self.0 & !first_bit, true)
+            }
+        }
+    }
+}

@@ -43,10 +43,14 @@ workflows:
       - build-modules:
           requires:
             - build-branch
+      - build-schemas:
+          requires:
+            - build-branch
       - merge-build-branch:
           requires:
             - build-framework
             - build-modules
+            - build-schemas
 
   modules-coverage:
     when:
@@ -99,10 +103,20 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
           name: "Create build branch"
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
             git checkout -b "$CIRCLE_BRANCH-build"
@@ -110,7 +124,7 @@ jobs:
 
   build-framework:
     docker:
-      - image: cimg/rust:1.80.0
+      - image: cimg/rust:1.83.0
     resource_class: xlarge
     steps:
       - setup_remote_docker
@@ -143,20 +157,12 @@ jobs:
             git checkout "$CIRCLE_BRANCH-build"
       - restore_cache:
           keys:
-            - cargocache-v2-build-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
+            - cargocache-v2-build-rust:1.83.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Build framework WASM artifacts
           command: |
             set -e
             ./scripts/wasm-framework-ci.sh
-      - run:
-          name: Generate schemas
-          command: |
-            # Install deps
-            cargo install cargo-workspaces
-            cargo install just
-            # Run script
-            just schema
       - save_cache:
           paths:
             # Cargo registry
@@ -164,19 +170,27 @@ jobs:
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
-          key: cargocache-v2-build-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
+          key: cargocache-v2-build-rust:1.83.0-{{ checksum "framework/Cargo.lock" }}
+      - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
       - run:
           name: Commit and push framework artifacts
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull
             # Check for wasm changes
             git add framework/artifacts --force
-            # Check for schema changes
-            git add schema --force
-            git commit -m 'Update framework WASM & Schemas [skip ci]' || true
+            git commit -S -m 'Update framework WASM' || true
             git push origin "$CIRCLE_BRANCH-build" || true
       - run:
           name: Remove temporary branch if it failed during build framework
@@ -189,7 +203,7 @@ jobs:
 
   build-modules:
     docker:
-      - image: cimg/rust:1.80.0
+      - image: cimg/rust:1.83.0
     resource_class: xlarge
     steps:
       - setup_remote_docker
@@ -226,15 +240,25 @@ jobs:
             set -e
             ./scripts/wasm-modules-ci.sh
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
           name: Commit and push module artifacts
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull
             # Check for wasm changes
             git add modules/artifacts --force
-            git commit -m 'Update modules WASM [skip ci]' || true
+            git commit -S -m 'Update modules WASM [skip ci]' || true
             git push origin "$CIRCLE_BRANCH-build" || true
       - run:
           name: Remove temporary branch if it failed during building modules
@@ -245,6 +269,73 @@ jobs:
           failure_message: "**${CIRCLE_USERNAME}**'s modules WASM build failed. Please check why! 😭"
           webhook: "${DISCORD_STATUS_WEBHOOK}"
 
+  build-schemas:
+    docker:
+      - image: cimg/rust:1.83.0
+    resource_class: xlarge
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: "Check for newer workflow"
+          background: true
+          command: |
+            while true; do
+              sleep 5
+              LATEST_COMMIT=$(git ls-remote $CIRCLE_REPOSITORY_URL | grep "$CIRCLE_BRANCH$" | cut -f 1)
+              if [ "$LATEST_COMMIT" != "$CIRCLE_SHA1" ]; then
+                echo "more recent commit to branch, exiting"
+                # Remove temporary branch
+                git push origin --delete "$CIRCLE_BRANCH-build" || true
+                curl -X POST "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN"
+              fi
+            done
+      - run:
+          name: Checkout temporary branch
+          command: |
+            git fetch origin "$CIRCLE_BRANCH-build"
+            git checkout "$CIRCLE_BRANCH-build"
+      - restore_cache:
+          keys:
+            - cargocache-v2-build-rust:1.83.0-{{ checksum "framework/Cargo.lock" }}
+      - run:
+          name: Generate schemas
+          command: |
+            # Install deps
+            cargo install cargo-workspaces
+            cargo install just
+            # Run script
+            just schema
+      - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
+          name: Commit and push schemas
+          command: |
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
+            # Pull latest changes
+            git pull
+            # Check for schema changes
+            git add schema --force
+            git commit -S -m 'Update Schemas [skip ci]' || true
+            git push origin "$CIRCLE_BRANCH-build" || true
+      - run:
+          name: Remove temporary branch if it failed during build schemas
+          when: on_fail
+          command: git push origin --delete "$CIRCLE_BRANCH-build" || true
+      - discord/status:
+          fail_only: true
+          failure_message: "**${CIRCLE_USERNAME}**'s schemas build failed. Please check why! 😭"
+          webhook: "${DISCORD_STATUS_WEBHOOK}"
+
   merge-build-branch:
     docker:
       - image: cimg/base:2024.01
@@ -253,23 +344,33 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
           name: "Merge build branch"
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
             git fetch origin "$CIRCLE_BRANCH-build"
             # Merge artifacts to a branch
             git merge "origin/$CIRCLE_BRANCH-build" --squash
-            git commit -m "Update WASM & Schemas [skip ci]" || echo "No changes to commit"
+            git commit -S -m "Update WASM & Schemas [skip ci]" || echo "No changes to commit"
             git push origin $CIRCLE_BRANCH || true
             # Delete temporary branch
             git push origin --delete "$CIRCLE_BRANCH-build"
 
   tests:
     docker:
-      - image: cimg/rust:1.80.0
+      - image: cimg/rust:1.83.0
     resource_class: xlarge
     steps:
       - checkout
@@ -280,7 +381,7 @@ jobs:
             cargo generate-lockfile
       - restore_cache:
           keys:
-            - cargocache-v2-tests-rust:1.80.0-{{ checksum "modules/Cargo.lock" }}
+            - cargocache-v2-tests-rust:1.83.0-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Modules tests
           command: |
@@ -291,11 +392,11 @@ jobs:
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps
-          key: cargocache-v2-tests-rust:1.80.0-{{ checksum "modules/Cargo.lock" }}
+          key: cargocache-v2-tests-rust:1.83.0-{{ checksum "modules/Cargo.lock" }}
 
   deploy:
     docker:
-      - image: cimg/rust:1.80.0
+      - image: cimg/rust:1.83.0
     resource_class: large
     steps:
       - checkout
@@ -308,7 +409,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - cargocache-v2-deploy-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
+            - cargocache-v2-deploy-rust:1.83.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Decode and Deploy
           command: |
@@ -317,21 +418,31 @@ jobs:
             cd framework
             cargo run --bin full_deploy -- --network-ids $NETWORKS
       - run:
+          name: Import GPG Key
+          command: |
+            echo -e "$GPG_PRIVATE_KEY" | gpg --import
+            echo -e "trust\n5\ny\n" | gpg --command-fd 0 --edit-key $GPG_KEY_ID
+      - run:
+          name: Configure Git for Signing
+          command: |
+            git config --global user.signingkey $GPG_KEY_ID
+            git config --global commit.gpgSign true
+      - run:
           name: Commit and push deploy file
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             git add framework/scripts --force
-            git commit -m 'Update deploy deploy file [skip ci]'
+            git commit -S -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
       - run:
           name: Commit and push state file
           command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
             cp ~/.cw-orchestrator/state.json ./framework/scripts/
             git add ./framework/scripts/state.json
-            git commit -m 'Update deploy deploy file [skip ci]'
+            git commit -S -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
       - save_cache:
           paths:
@@ -339,11 +450,11 @@ jobs:
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
+          key: cargocache-v2-deploy-rust:1.83.0-{{ checksum "framework/Cargo.lock" }}
 
   modules-coverage:
     docker:
-      - image: cimg/rust:1.80.0
+      - image: cimg/rust:1.83.0
     resource_class: xlarge
     steps:
       - setup_remote_docker
@@ -357,7 +468,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - cargocache-v2-coverage-rust:1.80.0-{{ checksum "modules/Cargo.lock" }}
+            - cargocache-v2-coverage-rust:1.83.0-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Run tests with coverage for modules
           command: |
@@ -370,11 +481,11 @@ jobs:
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.80.0-{{ checksum "modules/Cargo.lock" }}
+          key: cargocache-v2-deploy-rust:1.83.0-{{ checksum "modules/Cargo.lock" }}
 
   framework-coverage:
     docker:
-      - image: cimg/rust:1.80.0
+      - image: cimg/rust:1.83.0
     resource_class: xlarge
     steps:
       - rust_install_nightly
@@ -389,7 +500,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - cargocache-v2-coverage-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
+            - cargocache-v2-coverage-rust:1.83.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Run tests with coverage for framework
           command: |
@@ -402,7 +513,7 @@ jobs:
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.80.0-{{ checksum "framework/Cargo.lock" }}
+          key: cargocache-v2-deploy-rust:1.83.0-{{ checksum "framework/Cargo.lock" }}
 
   pass:
     docker:

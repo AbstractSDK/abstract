@@ -4,7 +4,9 @@ use abstract_std::{
     objects::module_version::{assert_cw_contract_upgrade, migrate_module_data, set_module_data},
     IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
+use cosmwasm_std::{
+    to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Reply, Response,
+};
 use semver::Version;
 
 use crate::{commands, error::IbcClientError, ibc, queries};
@@ -12,6 +14,8 @@ use crate::{commands, error::IbcClientError, ibc, queries};
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub(crate) type IbcClientResult<T = Response> = Result<T, IbcClientError>;
+
+pub const SEND_FUNDS_WITH_ACTIONS_REPLY_ID: u64 = 1;
 
 #[abstract_response(IBC_CLIENT)]
 pub(crate) struct IbcClientResponse;
@@ -53,8 +57,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             host_chain,
             receiver,
             memo,
-        } => commands::execute_send_funds(deps, env, info, host_chain, memo, receiver)
-            .map_err(Into::into),
+        } => commands::execute_send_funds(deps, env, info, host_chain, memo, receiver),
+        ExecuteMsg::SendFundsWithActions {
+            host_chain,
+            actions,
+        } => commands::execute_send_funds_with_actions(deps, env, info, host_chain, actions),
         ExecuteMsg::Register {
             host_chain,
             namespace,
@@ -68,11 +75,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             install_modules,
         ),
         ExecuteMsg::RemoveHost { host_chain } => {
-            commands::execute_remove_host(deps, info, host_chain).map_err(Into::into)
+            commands::execute_remove_host(deps, info, host_chain)
         }
-        ExecuteMsg::Callback(c) => {
-            ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
-        }
+        ExecuteMsg::Callback(c) => ibc::receive_action_callback(deps, env, info, c),
         ExecuteMsg::ModuleIbcAction {
             host_chain,
             target_module,
@@ -128,6 +133,21 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
     cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
     Ok(IbcClientResponse::action("migrate"))
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> IbcClientResult {
+    match msg.id {
+        SEND_FUNDS_WITH_ACTIONS_REPLY_ID => crate::reply::save_callback_actions(deps, msg),
+        _ => Err(IbcClientError::UnexpectedReply {}),
+    }
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> IbcClientResult {
+    match msg {
+        SudoMsg::IBCLifecycleComplete(msg) => crate::ics20::ics20_hook_callback(deps, env, msg),
+    }
 }
 
 #[cfg(test)]
@@ -198,6 +218,49 @@ mod tests {
         assert_eq!(cw2_info.contract, IBC_CLIENT.to_string());
 
         Ok(())
+    }
+
+    mod multi_hop_accounts {
+        use super::*;
+        use abstract_std::objects::{AccountId, AccountTrace, TruncatedChainId};
+        use cosmwasm_std::Order;
+        use std::str::FromStr;
+
+        #[coverage_helper::test]
+        fn accounts_storage_allows_multi_hop() -> IbcClientResult<()> {
+            let mut deps = mock_dependencies();
+            let account_id = AccountId::const_new(
+                45,
+                AccountTrace::Remote(vec![
+                    TruncatedChainId::from_str("bitcoin")?,
+                    TruncatedChainId::from_str("ethereum")?,
+                    TruncatedChainId::from_str("cosmos")?,
+                ]),
+            );
+            let remote_addr = "remote_addrress_stored".to_string();
+            let chain_name = TruncatedChainId::from_str("xion")?;
+
+            ACCOUNTS.save(
+                deps.as_mut().storage,
+                (account_id.trace(), account_id.seq(), &chain_name),
+                &remote_addr,
+            )?;
+
+            let saved_addr = ACCOUNTS
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .collect::<Result<Vec<_>, _>>()
+                .unwrap();
+
+            assert_eq!(
+                saved_addr[0],
+                (
+                    (account_id.trace().clone(), account_id.seq(), chain_name),
+                    remote_addr
+                )
+            );
+
+            Ok(())
+        }
     }
 
     mod migrate {
@@ -608,8 +671,7 @@ mod tests {
             objects::{registry::RegistryError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
-        use cosmwasm_std::{coins, Binary, CosmosMsg, IbcMsg};
-        use prost::Name;
+        use cosmwasm_std::{coins, CosmosMsg, IbcMsg, IbcTimeout};
         use std::str::FromStr;
 
         #[coverage_helper::test]
@@ -715,32 +777,21 @@ mod tests {
 
             let res = execute_as_funds(&mut deps, account.addr(), msg, &funds)?;
 
-            use prost::Message;
-            #[allow(deprecated)]
             let transfer_msgs: Vec<CosmosMsg> = funds
                 .into_iter()
-                .map(|c| CosmosMsg::Stargate {
-                    type_url: ibc_proto::ibc::apps::transfer::v1::MsgTransfer::type_url(),
-                    value: Binary::from(
-                        ibc_proto::ibc::apps::transfer::v1::MsgTransfer {
-                            source_port: "transfer".to_owned(),
-                            source_channel: channel_id.clone(),
-                            token: Some(ibc_proto::cosmos::base::v1beta1::Coin {
-                                denom: c.denom,
-                                amount: c.amount.to_string(),
-                            }),
-                            sender: mock_env_validated(deps.api).contract.address.to_string(),
-                            receiver: remote_addr.clone(),
-                            timeout_height: None,
-                            timeout_timestamp: mock_env_validated(deps.api)
+                .map(|c| {
+                    CosmosMsg::Ibc(IbcMsg::Transfer {
+                        channel_id: channel_id.clone(),
+                        to_address: remote_addr.clone(),
+                        amount: c,
+                        timeout: IbcTimeout::with_timestamp(
+                            mock_env_validated(deps.api)
                                 .block
                                 .time
-                                .plus_seconds(PACKET_LIFETIME)
-                                .nanos(),
-                            memo: memo.clone().unwrap(),
-                        }
-                        .encode_to_vec(),
-                    ),
+                                .plus_seconds(PACKET_LIFETIME),
+                        ),
+                        memo: memo.clone(),
+                    })
                 })
                 .collect();
 

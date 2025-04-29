@@ -22,8 +22,8 @@ pub mod account {
     pub const CALLING_TO_AS_ADMIN: &str = "aj";
 
     // XION authentificators, could be there could be not
+    #[cfg(feature = "xion")]
     pub const AUTH_ADMIN: &str = "ax";
-    pub const AUTHENTICATORS: &str = "az";
 }
 
 pub mod ans_host {
@@ -58,6 +58,8 @@ pub mod ibc_client {
     pub const REVERSE_POLYTONE_NOTE: &str = "eb";
     pub const ACCOUNTS: &str = "ec";
     pub const ACKS: &str = "ed";
+    pub const ICS20_ACCOUNT_CALLBACKS: &str = "ee";
+    pub const ICS20_ACCOUNT_CALLBACK_PAYLOAD: &str = "ef";
 }
 
 pub mod ibc_host {

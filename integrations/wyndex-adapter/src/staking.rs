@@ -44,8 +44,8 @@ use {
     cw20::Cw20ExecuteMsg,
     cw_asset::{AssetInfo, AssetInfoBase},
     cw_utils::Duration,
+    wyndex::stake::ReceiveMsg,
     wyndex_stake::msg::DistributionDataResponse,
-    wyndex_stake::msg::ReceiveDelegationMsg,
     wyndex_stake::{
         msg::{BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg},
         state::{BondingInfo, STAKE},
@@ -98,7 +98,7 @@ impl CwStakingCommand for WynDex {
         unbonding_period: Option<Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)?;
-        let msg = to_json_binary(&ReceiveDelegationMsg::Delegate {
+        let msg = to_json_binary(&ReceiveMsg::Delegate {
             unbonding_period,
             delegate_as: None,
         })?;

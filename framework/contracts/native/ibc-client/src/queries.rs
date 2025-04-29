@@ -7,6 +7,7 @@ use abstract_std::{
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
         ListIbcInfrastructureResponse, ListRemoteAccountsResponse, ListRemoteHostsResponse,
     },
+    native_addrs,
     objects::{
         account::{AccountSequence, AccountTrace},
         AccountId, TruncatedChainId,
@@ -43,7 +44,6 @@ pub fn list_accounts(
                 Ok::<_, StdError>((AccountId::new(seq, trace).unwrap(), chain, address))
             },
         )?;
-
     Ok(ListAccountsResponse { accounts })
 }
 
@@ -92,9 +92,11 @@ pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructur
 }
 
 pub fn config(deps: Deps, env: &Env) -> IbcClientResult<ConfigResponse> {
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
     Ok(ConfigResponse {
-        ans_host: AnsHost::new(deps.api, env)?.address,
-        registry_address: RegistryContract::new(deps.api, env)?.address,
+        ans_host: AnsHost::new(deps, abstract_code_id)?.address,
+        registry_address: RegistryContract::new(deps, abstract_code_id)?.address,
     })
 }
 

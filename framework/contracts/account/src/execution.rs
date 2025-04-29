@@ -16,20 +16,15 @@ use crate::{
 };
 
 /// Check that sender either whitelisted or governance
-pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> AccountResult<()> {
-    #[cfg(feature = "xion")]
-    {
-        if let Some(is_admin) = crate::state::AUTH_ADMIN.may_load(deps.storage)? {
-            // Clear auth if it was set
-            crate::state::AUTH_ADMIN.remove(deps.storage);
-            if is_admin {
-                return Ok(());
-            }
-        }
-    }
+pub(crate) fn assert_whitelisted_owner_or_self(
+    deps: &mut DepsMut,
+    env: &Env,
+    sender: &Addr,
+) -> AccountResult<()> {
     let whitelisted_modules = WHITELISTED_MODULES.load(deps.storage)?;
     if whitelisted_modules.0.contains(sender)
         || ownership::assert_nested_owner(deps.storage, &deps.querier, sender).is_ok()
+        || sender == env.contract.address
     {
         Ok(())
     } else {
@@ -41,10 +36,11 @@ pub(crate) fn assert_whitelisted_or_owner(deps: &mut DepsMut, sender: &Addr) -> 
 /// Permission: Module
 pub fn execute_msgs(
     mut deps: DepsMut,
+    env: Env,
     msg_sender: &Addr,
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, msg_sender)?;
+    assert_whitelisted_owner_or_self(&mut deps, &env, msg_sender)?;
 
     Ok(AccountResponse::action("execute_module_action").add_messages(msgs))
 }
@@ -53,10 +49,11 @@ pub fn execute_msgs(
 /// Permission: Module
 pub fn execute_msgs_with_data(
     mut deps: DepsMut,
+    env: Env,
     msg_sender: &Addr,
     msg: CosmosMsg<Empty>,
 ) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, msg_sender)?;
+    assert_whitelisted_owner_or_self(&mut deps, &env, msg_sender)?;
 
     let submsg = SubMsg::reply_on_success(msg, FORWARD_RESPONSE_REPLY_ID);
 
@@ -67,6 +64,7 @@ pub fn execute_msgs_with_data(
 /// This is a simple wrapper around [`ExecuteMsg::Execute`](abstract_std::account::ExecuteMsg::Execute).
 pub fn execute_on_module(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
@@ -75,6 +73,7 @@ pub fn execute_on_module(
     let module_addr = load_module_addr(deps.storage, &module_id)?;
     execute_msgs(
         deps,
+        env,
         &info.sender,
         vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: module_addr.into(),
@@ -92,6 +91,9 @@ pub fn admin_execute(
 ) -> AccountResult {
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
+    if CALLING_TO_AS_ADMIN.exists(deps.storage) {
+        return Err(AccountError::CantChainAdminCalls {});
+    }
     CALLING_TO_AS_ADMIN.save(deps.storage, &addr)?;
 
     let msg = SubMsg::reply_on_success(
@@ -119,26 +121,29 @@ pub fn admin_execute_on_module(
 pub fn add_auth_method(
     _deps: DepsMut,
     _env: Env,
+    _info: MessageInfo,
     #[allow(unused_mut)] mut _auth: crate::msg::Authenticator,
 ) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        abstract_xion::auth::execute::add_auth_method(_deps, &_env, &mut _auth).map_err(Into::into)
+        ownership::assert_nested_owner(_deps.storage, &_deps.querier, &_info.sender)?;
+        abstract_xion::execute::add_auth_method(_deps, &_env, &mut _auth).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
-        Ok(AccountResponse::action("add_auth"))
+        Err(AccountError::NoAuthFeature {})
     }
 }
 
-pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
+pub fn remove_auth_method(_deps: DepsMut, _env: Env, _info: MessageInfo, _id: u8) -> AccountResult {
     #[cfg(feature = "xion")]
     {
-        abstract_xion::auth::execute::remove_auth_method(_deps, _env, _id).map_err(Into::into)
+        ownership::assert_nested_owner(_deps.storage, &_deps.querier, &_info.sender)?;
+        abstract_xion::execute::remove_auth_method(_deps, _env, _id).map_err(Into::into)
     }
     #[cfg(not(feature = "xion"))]
     {
-        Ok(AccountResponse::action("remove_auth"))
+        Err(AccountError::NoAuthFeature {})
     }
 }
 
@@ -149,8 +154,13 @@ pub fn remove_auth_method(_deps: DepsMut, _env: Env, _id: u8) -> AccountResult {
 /// It then fires a smart-query on that address of type [`QueryMsg::IcaAction`](abstract_ica::msg::QueryMsg).
 ///
 /// The resulting `Vec<CosmosMsg>` are then executed on the account contract.
-pub fn ica_action(mut deps: DepsMut, msg_info: MessageInfo, action_query: Binary) -> AccountResult {
-    assert_whitelisted_or_owner(&mut deps, &msg_info.sender)?;
+pub fn ica_action(
+    mut deps: DepsMut,
+    env: Env,
+    msg_info: MessageInfo,
+    action_query: Binary,
+) -> AccountResult {
+    assert_whitelisted_owner_or_self(&mut deps, &env, &msg_info.sender)?;
 
     let ica_client_address = ACCOUNT_MODULES
         .may_load(deps.storage, ICA_CLIENT)?
@@ -176,11 +186,45 @@ mod test {
     use crate::contract::execute;
     use crate::error::AccountError;
     use crate::test_common::mock_init;
+    use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
     use abstract_std::account::{state::*, *};
+    use abstract_std::objects::gov_type::GovernanceDetails;
+    use abstract_std::objects::ownership::Ownership;
     use abstract_std::{account, IBC_CLIENT};
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::*;
     use cosmwasm_std::{coins, CosmosMsg, SubMsg};
+    use cosmwasm_std::{testing::*, Addr};
+    use cw_storage_plus::Item;
+
+    #[coverage_helper::test]
+    fn abstract_account_can_execute_on_itself() -> anyhow::Result<()> {
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
+        mock_init(&mut deps)?;
+
+        let env = mock_env_validated(deps.api);
+        // We set the contract as owner.
+        // We can't make it through execute msgs, because of XION signatures are too messy to reproduce in tests
+        let ownership = Ownership {
+            owner: GovernanceDetails::AbstractAccount {
+                address: env.contract.address.clone(),
+            }
+            .verify(deps.as_ref())?,
+            pending_owner: None,
+            pending_expiry: None,
+        };
+        const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+        OWNERSHIP.save(deps.as_mut().storage, &ownership)?;
+
+        // Module calls nested admin calls on account, making it admin
+        let info = message_info(&env.contract.address, &[]);
+
+        let msg = ExecuteMsg::Execute { msgs: vec![] };
+
+        execute(deps.as_mut(), env.clone(), info, msg).unwrap();
+
+        Ok(())
+    }
 
     mod execute_action {
 
@@ -188,9 +232,73 @@ mod test {
 
         use super::*;
 
+        #[cfg(feature = "xion")]
+        #[coverage_helper::test]
+        fn admin_actions_not_chained() -> anyhow::Result<()> {
+            use crate::contract::AccountResult;
+            use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
+            use abstract_std::objects::{gov_type::GovernanceDetails, ownership::Ownership};
+            use cosmwasm_std::{Addr, Binary, DepsMut, Empty, Env, Response, WasmMsg};
+            use cw_storage_plus::Item;
+
+            fn execute_from_res(deps: DepsMut, env: Env, res: Response) -> AccountResult<Response> {
+                // Execute all messages
+                let info = message_info(&env.contract.address, &[]);
+                if let CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: _,
+                    msg,
+                    funds: _,
+                }) = res.messages[0].msg.clone()
+                {
+                    execute(deps, env.clone(), info, from_json(&msg)?).map_err(Into::into)
+                } else {
+                    panic!("Wrong message received");
+                }
+            }
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
+            mock_init(&mut deps)?;
+            let env = mock_env_validated(deps.api);
+
+            // We set the contract as owner.
+            // We can't make it through execute msgs, because signatures are too messy to reproduce in tests
+            let ownership = Ownership {
+                owner: GovernanceDetails::AbstractAccount {
+                    address: env.contract.address.clone(),
+                }
+                .verify(deps.as_ref())?,
+                pending_owner: None,
+                pending_expiry: None,
+            };
+
+            const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+            OWNERSHIP.save(deps.as_mut().storage, &ownership)?;
+
+            let msg = ExecuteMsg::AdminExecute {
+                addr: env.contract.address.to_string(),
+                msg: to_json_binary(&ExecuteMsg::<Empty>::AdminExecute {
+                    addr: env.contract.address.to_string(),
+                    msg: Binary::new(vec![]),
+                })?,
+            };
+
+            let info = message_info(&env.contract.address, &[]);
+            let env = mock_env_validated(deps.api);
+
+            // We simulate it's an admin call
+            AUTH_ADMIN.save(deps.as_mut().storage, &true)?;
+            let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
+            // We simulate it's still an admin call
+            AUTH_ADMIN.save(deps.as_mut().storage, &true)?;
+            let res = execute_from_res(deps.as_mut(), env, res);
+            assert_eq!(res, Err(AccountError::CantChainAdminCalls {}));
+            Ok(())
+        }
+
         #[coverage_helper::test]
         fn only_whitelisted_can_execute() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             mock_init(&mut deps)?;
 
             let msg = ExecuteMsg::Execute { msgs: vec![] };
@@ -206,6 +314,7 @@ mod test {
         #[coverage_helper::test]
         fn forwards_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
 
@@ -252,6 +361,7 @@ mod test {
         #[coverage_helper::test]
         fn add_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -325,6 +435,7 @@ mod test {
         #[coverage_helper::test]
         fn send_funds() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             mock_init(&mut deps)?;
             let abstr = AbstractMockAddrs::new(deps.api);
@@ -408,6 +519,7 @@ mod test {
         #[coverage_helper::test]
         fn ica_action() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let ica_client_addr = deps.api.addr_make("ica_client_addr");

@@ -30,15 +30,14 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         # let account = admin_account(deps.api);
         # let module = MockModule::new(deps.api, account);
 
-        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref(), &env).unwrap();
+        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
         ```
     */
     fn account_registry<'a>(
         &'a self,
         deps: Deps<'a>,
-        env: &Env,
-    ) -> AbstractSdkResult<AccountRegistry<Self>> {
-        let vc = self.abstract_registry(deps, env)?;
+    ) -> AbstractSdkResult<AccountRegistry<'a, Self>> {
+        let vc = self.abstract_registry(deps)?;
         Ok(AccountRegistry {
             base: self,
             deps,
@@ -49,7 +48,7 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
 
 impl<T> AccountVerification for T where T: AbstractRegistryAccess + ModuleIdentification {}
 
-impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
+impl<T: AccountVerification> AbstractApi<T> for AccountRegistry<'_, T> {
     const API_ID: &'static str = "AccountRegistry";
 
     fn base(&self) -> &T {
@@ -74,7 +73,7 @@ impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
     # let account = admin_account(deps.api);
     # let module = MockModule::new(deps.api, account);
 
-    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref(), &env).unwrap();
+    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
     ```
 */
 #[derive(Clone)]
@@ -84,7 +83,7 @@ pub struct AccountRegistry<'a, T: AccountVerification> {
     registry: RegistryContract,
 }
 
-impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
+impl<T: AccountVerification> AccountRegistry<'_, T> {
     /// Verify if the provided address is indeed an Abstract Account.
     pub fn assert_is_account(&self, maybe_account: &Addr) -> AbstractSdkResult<Account> {
         self.registry
@@ -145,8 +144,8 @@ mod test {
     struct MockBinding {}
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(&self, deps: Deps, env: &Env) -> AbstractSdkResult<RegistryContract> {
-            RegistryContract::new(deps.api, env).map_err(Into::into)
+        fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<RegistryContract> {
+            RegistryContract::new(deps, 1).map_err(Into::into)
         }
     }
 
@@ -165,7 +164,6 @@ mod test {
         #[coverage_helper::test]
         fn not_account_fails() {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             let not_account = Account::new(deps.api.addr_make("not_account"));
             let base = test_account(deps.api);
 
@@ -180,7 +178,7 @@ mod test {
             let binding = MockBinding {};
 
             let res = binding
-                .account_registry(deps.as_ref(), &env)
+                .account_registry(deps.as_ref())
                 .unwrap()
                 .assert_is_account(not_account.addr());
 
@@ -198,7 +196,6 @@ mod test {
         #[coverage_helper::test]
         fn inactive_account_fails() {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
 
             deps.querier = MockQuerierBuilder::default()
@@ -209,7 +206,7 @@ mod test {
             let binding = MockBinding {};
 
             let res = binding
-                .account_registry(deps.as_ref(), &env)
+                .account_registry(deps.as_ref())
                 .unwrap()
                 .assert_is_account(abstr.account.addr());
 
@@ -230,7 +227,6 @@ mod test {
         #[coverage_helper::test]
         fn returns_account() {
             let mut deps = mock_dependencies();
-            let env = mock_env_validated(deps.api);
             let account = test_account(deps.api);
 
             deps.querier = abstract_mock_querier_builder(deps.api)
@@ -239,7 +235,7 @@ mod test {
 
             let binding = MockBinding {};
 
-            let registry = binding.account_registry(deps.as_ref(), &env).unwrap();
+            let registry = binding.account_registry(deps.as_ref()).unwrap();
             let res = registry.assert_is_account(account.addr());
 
             assert_eq!(res, Ok(account.clone()));
@@ -252,7 +248,6 @@ mod test {
     #[coverage_helper::test]
     fn namespace_fee() {
         let mut deps = mock_dependencies();
-        let env = mock_env_validated(deps.api);
 
         deps.querier = abstract_mock_querier(deps.api);
 
@@ -260,7 +255,7 @@ mod test {
 
         // Namespace registration fee query
         {
-            let registry = binding.account_registry(deps.as_ref(), &env).unwrap();
+            let registry = binding.account_registry(deps.as_ref()).unwrap();
             let res = registry.namespace_registration_fee();
 
             assert_eq!(res, Ok(None));
@@ -272,13 +267,13 @@ mod test {
                 &abstr.registry,
                 registry::state::CONFIG,
                 &registry::Config {
-                    security_disabled: true,
+                    security_enabled: false,
                     namespace_registration_fee: Some(Coin::new(42_u128, "foo")),
                 },
             )
             .build();
 
-        let registry = binding.account_registry(deps.as_ref(), &env).unwrap();
+        let registry = binding.account_registry(deps.as_ref()).unwrap();
         let res = registry.namespace_registration_fee();
 
         assert_eq!(res, Ok(Some(Coin::new(42_u128, "foo"))));
@@ -286,11 +281,11 @@ mod test {
 
     #[coverage_helper::test]
     fn abstract_api() {
-        let deps = mock_dependencies();
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_mock_querier(deps.api);
         let module = MockBinding {};
-        let env = mock_env_validated(deps.api);
 
-        let account_registry = module.account_registry(deps.as_ref(), &env).unwrap();
+        let account_registry = module.account_registry(deps.as_ref()).unwrap();
 
         abstract_api_test(account_registry);
     }

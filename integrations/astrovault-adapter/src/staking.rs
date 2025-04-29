@@ -355,7 +355,6 @@ impl AbstractRegistryAccess for Astrovault {
     fn abstract_registry(
         &self,
         _: cosmwasm_std::Deps<'_>,
-        _: &cosmwasm_std::Env,
     ) -> std::result::Result<RegistryContract, abstract_sdk::AbstractSdkError> {
         self.registry_contract
             .clone()

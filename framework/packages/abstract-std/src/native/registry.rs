@@ -13,7 +13,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 /// Contains configuration info of registry.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
-    pub security_disabled: bool,
+    pub security_enabled: bool,
     pub namespace_registration_fee: Option<Coin>,
 }
 
@@ -117,7 +117,7 @@ pub struct InstantiateMsg {
     /// Also allows them to change the module reference of an existing module
     /// Also allows to claim namespaces permisionlessly
     /// SHOULD ONLY BE `true` FOR TESTING
-    pub security_disabled: Option<bool>,
+    pub security_enabled: Option<bool>,
     pub namespace_registration_fee: Option<Coin>,
 }
 
@@ -167,7 +167,7 @@ pub enum ExecuteMsg {
     /// Updates configuration of the Registry contract
     UpdateConfig {
         /// Whether the contract allows direct module registration
-        security_disabled: Option<bool>,
+        security_enabled: Option<bool>,
         /// The fee charged when registering a namespace
         namespace_registration_fee: Option<Clearable<Coin>>,
     },
@@ -361,7 +361,7 @@ pub struct NamespaceListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub security_disabled: bool,
+    pub security_enabled: bool,
     pub namespace_registration_fee: Option<Coin>,
     pub local_account_sequence: u32,
 }

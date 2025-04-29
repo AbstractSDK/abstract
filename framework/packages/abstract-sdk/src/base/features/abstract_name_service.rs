@@ -5,7 +5,7 @@ use abstract_std::{
     },
     objects::{ans_host::AnsHost, DexAssetPairing},
 };
-use cosmwasm_std::{Deps, Env};
+use cosmwasm_std::Deps;
 
 use super::ModuleIdentification;
 use crate::apis::AbstractApi;
@@ -15,14 +15,14 @@ use crate::{ans_resolve::Resolve, cw_helpers::ApiQuery, AbstractSdkResult};
 /// Accessor to the Abstract Name Service.
 pub trait AbstractNameService: Sized {
     /// Get the ANS host address.
-    fn ans_host(&self, deps: Deps, env: &Env) -> AbstractSdkResult<AnsHost>;
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost>;
 
     /// Construct the name service client.
-    fn name_service<'a>(&'a self, deps: Deps<'a>, env: &Env) -> AbstractNameServiceClient<Self> {
+    fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameServiceClient<'a, Self> {
         AbstractNameServiceClient {
             base: self,
             deps,
-            host: self.ans_host(deps, env).unwrap(),
+            host: self.ans_host(deps).unwrap(),
         }
     }
 }
@@ -36,8 +36,8 @@ pub struct AbstractNameServiceClient<'a, T: AbstractNameService> {
     pub host: AnsHost,
 }
 
-impl<'a, T: ModuleIdentification + AbstractNameService> AbstractApi<T>
-    for AbstractNameServiceClient<'a, T>
+impl<T: ModuleIdentification + AbstractNameService> AbstractApi<T>
+    for AbstractNameServiceClient<'_, T>
 {
     const API_ID: &'static str = "AbstractNameServiceClient";
 
@@ -49,7 +49,7 @@ impl<'a, T: ModuleIdentification + AbstractNameService> AbstractApi<T>
     }
 }
 
-impl<'a, T: ModuleIdentification + AbstractNameService> AbstractNameServiceClient<'a, T> {
+impl<T: ModuleIdentification + AbstractNameService> AbstractNameServiceClient<'_, T> {
     /// Query ans entry
     pub fn query<R: Resolve>(&self, entry: &R) -> AbstractSdkResult<R::Output> {
         entry

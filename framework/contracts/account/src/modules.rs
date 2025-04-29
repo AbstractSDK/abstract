@@ -5,11 +5,12 @@ use abstract_std::{
     },
     adapter::{AdapterBaseMsg, BaseExecuteMsg, ExecuteMsg as AdapterExecMsg},
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
+    native_addrs,
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_factory::ModuleFactoryContract,
         module_reference::ModuleReference,
-        ownership::{self},
+        ownership,
         registry::RegistryContract,
         salt::generate_instantiate_salt,
         storage_namespaces,
@@ -47,11 +48,13 @@ pub fn install_modules(
     // only owner can call this method
     ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
     let (install_msgs, install_attribute) = _install_modules(
         deps.branch(),
-        env,
         modules,
         info.funds, // We forward all the funds to the module_factory address for them to use in the install
+        abstract_code_id,
     )?;
     let response = AccountResponse::new("install_modules", std::iter::once(install_attribute))
         .add_submessages(install_msgs);
@@ -63,16 +66,16 @@ pub fn install_modules(
 /// Adds the modules to the internal store for reference and adds them to the account allowlist if applicable.
 pub fn _install_modules(
     mut deps: DepsMut,
-    env: &Env,
     modules: Vec<ModuleInstallConfig>,
     funds: Vec<Coin>,
+    abstract_code_id: u64,
 ) -> AccountResult<(Vec<SubMsg>, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut account_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
 
-    let registry = RegistryContract::new(deps.api, env)?;
-    let module_factory = ModuleFactoryContract::new(deps.api, env)?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
+    let module_factory = ModuleFactoryContract::new(deps.as_ref(), abstract_code_id)?;
 
     let canonical_module_factory = deps
         .api
@@ -127,7 +130,7 @@ pub fn _install_modules(
                 add_to_account.push((module.info.id(), module_address.clone()));
                 install_context.push((module.clone(), Some(module_address)));
 
-                Some(init_msg.unwrap())
+                Some(init_msg.ok_or(AccountError::InitMsgMissing(module.info.id()))?)
             }
             _ => return Err(AccountError::ModuleNotInstallable(module.info.to_string())),
         };
@@ -211,7 +214,9 @@ pub fn uninstall_module(
     crate::versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
     // Remove for account if needed
-    let registry = RegistryContract::new(deps.api, env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps.as_ref(), abstract_code_id)?;
 
     let module = registry.query_module(
         ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
@@ -246,7 +251,9 @@ pub fn query_module(
     old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, AccountError> {
     // Construct feature object to access registry functions
-    let registry = RegistryContract::new(deps.api, env)?;
+    let abstract_code_id =
+        native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
+    let registry = RegistryContract::new(deps, abstract_code_id)?;
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -340,10 +347,8 @@ mod tests {
     use crate::test_common::{execute_as, mock_init};
     use abstract_std::account::{ExecuteMsg, InternalConfigAction};
     use abstract_std::objects::dependency::Dependency;
-    use abstract_testing::module::TEST_MODULE_ID;
-    use abstract_testing::prelude::AbstractMockAddrs;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, Addr, Order, StdError, Storage};
-    use ownership::GovOwnershipError;
 
     fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
         ACCOUNT_MODULES
@@ -352,6 +357,7 @@ mod tests {
     }
 
     mod add_module_upgrade {
+
         use crate::modules::migration::add_module_upgrade_to_context;
 
         use super::*;
@@ -359,6 +365,7 @@ mod tests {
         #[coverage_helper::test]
         fn should_allow_migrate_msg() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             mock_init(&mut deps)?;
             let storage = deps.as_mut().storage;
 
@@ -376,11 +383,14 @@ mod tests {
     }
 
     mod update_module_addresses {
+        use abstract_std::objects::ownership::GovOwnershipError;
+
         use super::*;
 
         #[coverage_helper::test]
         fn manual_adds_module_to_account_modules() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let module1_addr = deps.api.addr_make("module1");
             let module2_addr = deps.api.addr_make("module2");
 
@@ -407,6 +417,7 @@ mod tests {
         #[coverage_helper::test]
         fn missing_id() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
 
             mock_init(&mut deps).unwrap();
 
@@ -422,6 +433,7 @@ mod tests {
         #[coverage_helper::test]
         fn manual_removes_module_from_account_modules() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             mock_init(&mut deps)?;
 
             // manually add module
@@ -446,6 +458,7 @@ mod tests {
         #[coverage_helper::test]
         fn only_account_owner() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
             let not_account_factory = deps.api.addr_make("not_account_factory");
@@ -494,6 +507,7 @@ mod tests {
         #[coverage_helper::test]
         fn errors_with_existing_dependents() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
             mock_init(&mut deps)?;
@@ -534,6 +548,7 @@ mod tests {
             };
 
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let not_owner = deps.api.addr_make("not_owner");
             mock_init(&mut deps)?;
 
@@ -551,6 +566,7 @@ mod tests {
         #[coverage_helper::test]
         fn fails_with_nonexistent_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 
@@ -572,6 +588,7 @@ mod tests {
         #[coverage_helper::test]
         fn forwards_exec_to_module() -> anyhow::Result<()> {
             let mut deps = mock_dependencies();
+            deps.querier = abstract_mock_querier(deps.api);
             let abstr = AbstractMockAddrs::new(deps.api);
             let owner = abstr.owner;
 

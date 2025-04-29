@@ -1,4 +1,4 @@
-use abstract_app::std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
+use abstract_app::std::objects::{namespace::Namespace, AssetEntry};
 use abstract_client::{AbstractClient, Application, Publisher};
 // Use prelude to get all the necessary imports
 use calendar_app::{
@@ -89,12 +89,10 @@ fn setup_with_time(
     AbstractClient<MockBech32>,
     MockBech32,
 )> {
-    let mut chain = MockBech32::new("mock");
-    let admin = AbstractClient::mock_admin(&chain);
-    chain.set_sender(admin);
+    let chain = MockBech32::new("mock");
     let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone())
         .asset(DENOM, AssetInfoUnchecked::native(DENOM))
-        .build_mock()?;
+        .build()?;
 
     client.set_balances(vec![
         (
@@ -113,12 +111,7 @@ fn setup_with_time(
 
     // Create account to install app onto as well as claim namespace.
     let publisher: Publisher<MockBech32> = client
-        .account_builder()
-        .namespace(Namespace::new("abstract")?)
-        .ownership(GovernanceDetails::Monarchy {
-            monarch: chain.sender_addr().to_string(),
-        })
-        .build()?
+        .fetch_account(Namespace::new("abstract")?)?
         .publisher()?;
 
     publisher.publish_app::<CalendarAppInterface<MockBech32>>()?;

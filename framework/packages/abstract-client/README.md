@@ -43,7 +43,7 @@ let chain = MockBech32::new("mock");
 let client: AbstractClient<MockBech32> = 
             AbstractClient::builder(chain)
             // ... Configure builder 
-            .build_mock()?;
+            .build()?;
 
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
@@ -66,7 +66,7 @@ use abstract_app::mock::{mock_app_dependency::interface::MockAppI as App, MockIn
 let chain = MockBech32::new("mock");
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build_mock()?;
+let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
 
 // Build a new account.
 let account: Account<MockBech32> = client.account_builder().build()?;
@@ -98,7 +98,7 @@ use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
 let chain = MockBech32::new("mock");
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build_mock()?;
+let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
 
 // Build a Publisher
 let publisher: Publisher<MockBech32> = client.account_builder().namespace(Namespace::new("tester")?).build()?.publisher()?;
@@ -129,7 +129,7 @@ use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
 let chain = MockBech32::new("mock");
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build_mock()?;
+let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
 
 let namespace = Namespace::new("some-namespace")?;
 

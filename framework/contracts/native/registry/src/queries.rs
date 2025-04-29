@@ -395,7 +395,7 @@ mod test {
             info,
             InstantiateMsg {
                 admin,
-                security_disabled: Some(true),
+                security_enabled: Some(false),
                 namespace_registration_fee: None,
             },
         )?;
@@ -619,7 +619,7 @@ mod test {
 
         add_namespaces(deps, vec![(TEST_ACCOUNT_ID, "cw-plus")], &abstr.owner);
         let other = deps.api.addr_make(TEST_OTHER);
-        add_namespaces(deps, vec![(TEST_OTHER_ACCOUNT_ID, "4t2")], &other);
+        add_namespaces(deps, vec![(TEST_OTHER_ACCOUNT_ID, "xion")], &other);
 
         let cw_mods = vec![
             ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
@@ -629,9 +629,9 @@ mod test {
         propose_modules(deps, cw_mods, &abstr.owner);
 
         let fortytwo_mods = vec![
-            ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
-            ModuleInfo::from_id("4t2:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
-            ModuleInfo::from_id("4t2:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
+            ModuleInfo::from_id("xion:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
+            ModuleInfo::from_id("xion:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
+            ModuleInfo::from_id("xion:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
         propose_modules(deps, fortytwo_mods, &other);
     }
@@ -1067,7 +1067,7 @@ mod test {
                 },
             );
             let NamespacesResponse { namespaces } = from_json(res.unwrap()).unwrap();
-            assert_eq!(namespaces[0].0.to_string(), "4t2".to_string());
+            assert_eq!(namespaces[0].0.to_string(), "xion".to_string());
         }
     }
 

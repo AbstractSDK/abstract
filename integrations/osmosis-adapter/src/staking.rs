@@ -1,4 +1,3 @@
-use abstract_sdk::std::objects::registry::RegistryContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -6,7 +5,6 @@ use crate::{AVAILABLE_CHAINS, OSMOSIS};
 
 #[derive(Default)]
 pub struct Osmosis {
-    pub registry_contract: Option<RegistryContract>,
     pub addr_as_sender: Option<Addr>,
     pub tokens: Vec<OsmosisTokenContext>,
 }
@@ -29,12 +27,9 @@ impl Identify for Osmosis {
 pub mod fns {
     use std::str::FromStr;
 
-    use abstract_sdk::{
-        features::AbstractRegistryAccess,
-        std::objects::{
-            ans_host::AnsHost, AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
-        },
-        AbstractSdkError,
+    use abstract_sdk::std::objects::{
+        ans_host::AnsHost, registry::RegistryContract, AnsAsset, AnsEntryConvertor, AssetEntry,
+        PoolReference, PoolType,
     };
 
     use abstract_staking_standard::{
@@ -122,18 +117,6 @@ pub mod fns {
         }
     }
 
-    impl AbstractRegistryAccess for Osmosis {
-        fn abstract_registry(
-            &self,
-            _: cosmwasm_std::Deps<'_>,
-        ) -> std::result::Result<RegistryContract, abstract_sdk::AbstractSdkError> {
-            self.registry_contract
-                .clone()
-                .ok_or(AbstractSdkError::generic_err("registry address is not set"))
-            // We need to get to the registry somehow (possible from Ans Host ?)
-        }
-    }
-
     /// Osmosis app-chain dex implementation
     impl CwStakingCommand for Osmosis {
         fn fetch_data(
@@ -142,11 +125,9 @@ pub mod fns {
             _env: Env,
             addr_as_sender: Option<Addr>,
             ans_host: &AnsHost,
-            registry_contract: RegistryContract,
+            _registry_contract: RegistryContract,
             staking_assets: Vec<AssetEntry>,
         ) -> Result<(), CwStakingError> {
-            self.registry_contract = Some(registry_contract);
-
             self.addr_as_sender = addr_as_sender;
 
             self.tokens =

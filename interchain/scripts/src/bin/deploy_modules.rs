@@ -11,14 +11,11 @@ use cw_orch::{
     prelude::*,
 };
 use reqwest::Url;
-use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy() -> anyhow::Result<()> {
-    let rt = Runtime::new()?;
-
     let deployment = Abstract::<Daemon>::get_all_deployed_chains();
     let networks: Vec<ChainInfo> = deployment
         .iter()
@@ -26,9 +23,7 @@ fn full_deploy() -> anyhow::Result<()> {
         .collect();
 
     for network in networks {
-        let chain = DaemonBuilder::new(network.clone())
-            .handle(rt.handle())
-            .build()?;
+        let chain = DaemonBuilder::new(network.clone()).build()?;
 
         // Deploy Adapters
         CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
