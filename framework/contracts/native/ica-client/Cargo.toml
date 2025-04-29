@@ -32,6 +32,12 @@ thiserror       = { workspace = true }
 evm-note     = { workspace = true }
 polytone-evm = { workspace = true }
 
+alloy                       = { version = "0.12.6", default-features = false }
+alloy-sol-types             = { version = "0.8.23", default-features = false }
+ibc-union-spec              = { git = "https://github.com/AbstractSDK/union", branch = "adair/ibc-query-responses" }
+ucs03-zkgm                  = { git = "https://github.com/AbstractSDK/union", branch = "adair/ibc-query-responses", features = ["library"] }
+ucs03-zkgm-token-minter-api = { git = "https://github.com/AbstractSDK/union", branch = "adair/ibc-query-responses" }
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 

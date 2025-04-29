@@ -10,15 +10,15 @@ pub fn config(deps: Deps, env: &Env) -> IcaClientResult<ConfigResponse> {
         native_addrs::abstract_code_id(&deps.querier, env.contract.address.clone())?;
 
     Ok(ConfigResponse {
-        ans_host_address: AnsHost::new(deps, env)?.address,
-        registry_address: RegistryContract::new(deps, env)?.address,
+        ans_host_address: AnsHost::new(deps, abstract_code_id)?.address,
+        registry_address: RegistryContract::new(deps, abstract_code_id)?.address,
     })
 }
 
 pub(crate) fn ica_action(
     deps: Deps,
     env: Env,
-    _account_address: String,
+    account_address: String,
     chain: TruncatedChainId,
     actions: Vec<IcaAction>,
 ) -> IcaClientResult<IcaActionResponse> {
@@ -27,6 +27,7 @@ pub(crate) fn ica_action(
     let chain_type = chain.chain_type().ok_or(IcaClientError::NoChainType {
         chain: chain.to_string(),
     })?;
+    let account_address = deps.api.addr_validate(&account_address)?;
 
     let process_action = |action: IcaAction| -> IcaClientResult<Vec<CosmosMsg>> {
         match action {
@@ -56,9 +57,17 @@ pub(crate) fn ica_action(
                 funds,
                 receiver,
                 memo,
+                salt,
             } => match chain_type {
                 ChainType::Evm => Ok(vec![evm::send_funds(
-                    deps, &env, &chain, funds, receiver, memo,
+                    deps,
+                    &env,
+                    &chain,
+                    &account_address,
+                    funds,
+                    receiver,
+                    memo,
+                    salt,
                 )?]),
                 _ => unimplemented!(),
             },
@@ -183,7 +192,6 @@ mod tests {
         use super::*;
         use std::str::FromStr;
 
-        use abstract_ica::msg::QueryMsg;
         use abstract_std::{ibc::PACKET_LIFETIME, ica_client::QueryMsg, objects::TruncatedChainId};
 
         use abstract_testing::mock_env_validated;

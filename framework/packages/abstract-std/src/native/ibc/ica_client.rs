@@ -115,7 +115,7 @@ mod chain_type {
 }
 
 mod action {
-    use cosmwasm_std::{Binary, Coin, CosmosMsg};
+    use cosmwasm_std::{Binary, Coin, CosmosMsg, Uint256};
 
     /// Interchain Account Action
     #[cosmwasm_schema::cw_serde]
@@ -132,6 +132,7 @@ mod action {
             // Cosmos: Addr
             receiver: Option<Binary>,
             memo: Option<String>,
+            salt: Uint256,
         },
     }
 
