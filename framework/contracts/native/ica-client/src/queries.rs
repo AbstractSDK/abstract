@@ -1,6 +1,6 @@
 use abstract_ica::{msg::ConfigResponse, ChainType, IcaAction, IcaActionResponse};
 use abstract_sdk::feature_objects::{AnsHost, RegistryContract};
-use abstract_std::{native_addrs, objects::TruncatedChainId};
+use abstract_std::{ica_client::state::ICA_INFRA, native_addrs, objects::TruncatedChainId};
 use cosmwasm_std::{ensure_eq, CosmosMsg, Deps, Env};
 
 use crate::{chain_types::evm, contract::IcaClientResult, error::IcaClientError};
@@ -28,6 +28,13 @@ pub(crate) fn ica_action(
         chain: chain.to_string(),
     })?;
 
+    let ica_infra =
+        ICA_INFRA
+            .may_load(deps.storage, &chain)?
+            .ok_or(IcaClientError::NoChainType {
+                chain: chain.to_string(),
+            })?;
+
     let process_action = |action: IcaAction| -> IcaClientResult<Vec<CosmosMsg>> {
         match action {
             IcaAction::Execute(ica_exec) => match ica_exec {
@@ -40,13 +47,8 @@ pub(crate) fn ica_action(
                             ty: chain_type.to_string()
                         }
                     );
-                    let abstract_code_id = native_addrs::abstract_code_id(
-                        &deps.querier,
-                        env.contract.address.clone(),
-                    )?;
-                    let registry = RegistryContract::new(deps, abstract_code_id)?;
 
-                    let msg = evm::execute(&deps.querier, &registry, msgs, callback)?;
+                    let msg = evm::execute(ica_infra.polytone_note.clone(), msgs, callback)?;
 
                     Ok(vec![msg.into()])
                 }
@@ -58,7 +60,13 @@ pub(crate) fn ica_action(
                 memo,
             } => match chain_type {
                 ChainType::Evm => Ok(vec![evm::send_funds(
-                    deps, &env, &chain, funds, receiver, memo,
+                    deps,
+                    &env,
+                    &ica_infra.polytone_note,
+                    &chain,
+                    funds,
+                    receiver,
+                    memo,
                 )?]),
                 _ => unimplemented!(),
             },
