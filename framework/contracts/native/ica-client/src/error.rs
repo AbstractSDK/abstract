@@ -30,4 +30,7 @@ pub enum IcaClientError {
 
     #[error("messages for chain {chain} are not of type {ty}")]
     WrongChainType { chain: String, ty: String },
+
+    #[error("Chain already registered.")]
+    ChainExists {},
 }
