@@ -81,7 +81,8 @@ abstract-cw-staking           = { path = "../modules/contracts/adapters/cw-staki
 abstract-dex-adapter          = { path = "../modules/contracts/adapters/dex" }
 abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market" }
 
-abstract-xion = { package = "xion-account", version = "=0.1.1", features = ["library"] }
+abstract-ica-client = { version = "0.26.0", path = "../framework/contracts/native/ica-client" }
+abstract-xion       = { package = "xion-account", version = "=0.1.1", features = ["library"] }
 
 ## Testing
 anyhow = "1"

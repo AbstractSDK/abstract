@@ -54,6 +54,7 @@ account        = { version = "0.26.1", package = "abstract-account", path = "../
 ans-host       = { version = "0.26.0", package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false }
 ibc-client     = { version = "0.26.0", package = "abstract-ibc-client", path = "../../contracts/native/ibc-client", default-features = false }
 ibc-host       = { version = "0.26.0", package = "abstract-ibc-host", path = "../../contracts/native/ibc-host", default-features = false }
+ica-client     = { version = "0.26.0", package = "abstract-ica-client", path = "../../contracts/native/ica-client", default-features = false }
 module-factory = { version = "0.26.0", package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false }
 registry       = { version = "0.26.0", package = "abstract-registry", path = "../../contracts/native/registry", default-features = false }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
