@@ -1,5 +1,7 @@
+use abstract_ica_client::msg::ExecuteMsgFns;
 use abstract_interface::{ica_client::IcaClient, Abstract, AccountI, RegistryExecFns};
 use abstract_std::{
+    ethereum::ETHEREUM_SEPOLIA,
     objects::{gov_type::GovernanceDetails, module::ModuleInfo},
     ICA_CLIENT,
 };
@@ -30,11 +32,15 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
         let chain = DaemonBuilder::new(network.clone()).build()?;
         let abs_deployment = Abstract::load_from(chain.clone())?;
 
-        let evm_note = Contract::new(EVM_NOTE_ID, chain.clone());
-        let evm_note_addr = evm_note.address().expect("No evm note address");
+        // Version check
+        // TODO: automate this
+        let evm_note_addr = "xion14fc3m9zaxt23jph5h3rxv9wps260jwhjqkkqye6k37w0yzyut0aqeh8t8c";
+        let expected_evm_note_version = "0.4.0";
         let evm_note_cw2 = chain
             .wasm_querier()
-            .item_query(&evm_note_addr, cw2::CONTRACT)?;
+            .item_query(&Addr::unchecked(evm_note_addr), cw2::CONTRACT)?;
+        assert_eq!(evm_note_cw2.version, expected_evm_note_version);
+
         let ica_client = IcaClient::new(chain.clone());
         ica_client.upload_if_needed();
         ica_client.instantiate(
@@ -45,10 +51,7 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
             Some(&chain.sender_addr()),
             &[],
         )?;
-        // TODO: remove it and make it multichain
-        abs_deployment.registry.register_natives(vec![
-            (&evm_note, evm_note_cw2.version),
-        ])?;
+        ica_client.register_infrastructure(ETHEREUM_SEPOLIA.parse().unwrap(), evm_note_addr);
         abs_deployment.registry.register_services(vec![(
             ica_client.as_instance(),
             abstract_ica_client::contract::CONTRACT_VERSION.to_owned(),
@@ -67,19 +70,13 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
 //     network_ids: Vec<String>,
 // }
 
-pub const UNION_NET: NetworkInfo = NetworkInfo {
-    chain_name: "union",
-    pub_address_prefix: "union",
-    coin_type: 118,
-};
-
-pub const UNION_TESTNET_10: ChainInfo = ChainInfo {
+pub const XION_TESTNET_2: ChainInfo = ChainInfo {
     kind: ChainKind::Testnet,
-    chain_id: "union-testnet-10",
-    gas_denom: "muno",
-    gas_price: 1.0,
-    grpc_urls: &["https://grpc.rpc-node.union-testnet-10.union.build:443"],
-    network_info: UNION_NET,
+    chain_id: "xion-testnet-2",
+    gas_denom: "uxion",
+    gas_price: 0.001,
+    grpc_urls: &["https://grpc.xion-testnet-2.burnt.com:443"],
+    network_info: networks::xion::XION_NETWORK,
     lcd_url: None,
     fcd_url: None,
 };
@@ -92,7 +89,7 @@ fn main() {
 
     // let args = Arguments::parse();
 
-    let networks = vec![UNION_TESTNET_10.into()];
+    let networks = vec![XION_TESTNET_2.into()];
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);
