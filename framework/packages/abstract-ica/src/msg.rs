@@ -17,10 +17,21 @@ pub enum MigrateMsg {
     Migrate {},
 }
 
+pub type EvmChainId = u64;
+
 #[cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-pub enum ExecuteMsg {}
+pub enum ExecuteMsg {
+    RegisterInfrastructure {
+        /// Chain to register the infrastructure for ("sepolia", "osmosis", "holesky", etc.)
+        chain: TruncatedChainId,
+        /// Polytone note (locally deployed)
+        note: String,
+    },
+    /// Owner method: Remove connection for remote chain
+    RemoveHost { host_chain: TruncatedChainId },
+}
 
 #[cw_ownable_query]
 #[cosmwasm_schema::cw_serde]

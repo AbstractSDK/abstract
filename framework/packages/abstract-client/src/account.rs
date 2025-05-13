@@ -529,7 +529,7 @@ impl<Chain: CwEnv> Account<Chain> {
             .upgrade(vec![(
                 ModuleInfo::from_id(abstract_std::constants::ACCOUNT, version.clone())?,
                 Some(
-                    to_json_binary(&abstract_std::account::MigrateMsg {})
+                    to_json_binary(&abstract_std::account::MigrateMsg { code_id: None })
                         .map_err(Into::<CwOrchError>::into)?,
                 ),
             )])

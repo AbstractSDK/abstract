@@ -62,9 +62,9 @@ mod test_common {
             account::InstantiateMsg {
                 code_id: 1,
                 account_id: Some(AccountId::new(1, AccountTrace::Local).unwrap()),
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: abstr.owner.to_string(),
-                },
+                }),
                 namespace: None,
                 name: Some("test".to_string()),
                 description: None,

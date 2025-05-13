@@ -127,6 +127,9 @@ pub enum AccountError {
     #[error("Abstract Account don't have Authentication")]
     AbstractAccountNoAuth {},
 
+    #[error("The new_code_id field needs to be filled when migrating from a xion account")]
+    MissingCodeIdToMigrate {},
+
     #[cfg(feature = "xion")]
     #[error(transparent)]
     AbstractXion(#[from] abstract_xion::error::ContractError),
