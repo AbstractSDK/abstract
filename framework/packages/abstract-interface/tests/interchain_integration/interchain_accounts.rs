@@ -384,9 +384,9 @@ mod test {
             msg: to_json_binary(&account::InstantiateMsg {
                 code_id: account_code_id,
                 account_id: None,
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: abstr_remote.registry.address()?.to_string(),
-                },
+                }),
                 namespace: None,
                 install_modules: vec![],
                 name: Some(account_name.clone()),
@@ -457,9 +457,9 @@ mod test {
             &account::InstantiateMsg {
                 code_id: account_code_id,
                 account_id: Some(account_id.clone()),
-                owner: GovernanceDetails::Monarchy {
+                owner: Some(GovernanceDetails::Monarchy {
                     monarch: chain.addr_make("user").to_string(),
-                },
+                }),
                 name: Some("name".to_owned()),
                 namespace: None,
                 install_modules: vec![],

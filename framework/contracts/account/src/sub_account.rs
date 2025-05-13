@@ -53,9 +53,9 @@ pub fn create_sub_account(
     let create_account_msg = abstract_std::account::InstantiateMsg {
         code_id: self_code_id,
         account_id: Some(account_id.clone()),
-        owner: GovernanceDetails::SubAccount {
+        owner: Some(GovernanceDetails::SubAccount {
             account: env.contract.address.into_string(),
-        },
+        }),
         namespace,
         install_modules,
         name,

@@ -113,9 +113,7 @@ fn main() -> anyhow::Result<()> {
                     }),
                     name: Some("test".to_string()),
                     account_id: Some(account_id.clone()),
-                    owner: abstract_client::GovernanceDetails::AbstractAccount {
-                        address: account_addr,
-                    },
+                    owner: None,
                     namespace: Some("test".to_string()),
                     install_modules: vec![],
                     description: Some("foo bar".to_owned()),

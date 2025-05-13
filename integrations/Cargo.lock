@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "abstract-account"
-version = "0.26.0"
+version = "0.26.1"
 dependencies = [
  "abstract-ica",
  "abstract-macros",
@@ -3548,7 +3548,7 @@ dependencies = [
  "flex-error",
  "futures",
  "http 1.1.0",
- "ibc-proto 0.51.1",
+ "ibc-proto",
  "ibc-relayer",
  "ibc-relayer-types",
  "itertools 0.13.0",
@@ -3558,24 +3558,6 @@ dependencies = [
  "tendermint-rpc 0.40.0",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "ibc-proto"
-version = "0.47.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c852d22b782d2d793f4a646f968de419be635e02bc8798d5d74a6e44eef27733"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "flex-error",
- "ics23",
- "informalsystems-pbjson",
- "prost 0.13.3",
- "serde",
- "subtle-encoding",
- "tendermint-proto 0.38.1",
- "tonic",
 ]
 
 [[package]]
@@ -3624,7 +3606,7 @@ dependencies = [
  "http 1.1.0",
  "humantime",
  "humantime-serde",
- "ibc-proto 0.51.1",
+ "ibc-proto",
  "ibc-relayer-types",
  "ibc-telemetry",
  "itertools 0.13.0",
@@ -3673,7 +3655,7 @@ dependencies = [
  "bytes",
  "derive_more 0.99.18",
  "flex-error",
- "ibc-proto 0.51.1",
+ "ibc-proto",
  "ics23",
  "itertools 0.13.0",
  "num-rational",
@@ -4974,15 +4956,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "phf_shared"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90fcb95eef784c2ac79119d1dd819e162b5da872ce6f3c3abe1e8ca1c082f72b"
-dependencies = [
- "siphasher",
-]
-
-[[package]]
 name = "pin-project"
 version = "1.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6217,12 +6190,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1de1d4f81173b03af4c0cbed3c898f6bff5b870e4a7f5d6f4057d62a7a4b686e"
 
 [[package]]
-name = "siphasher"
-version = "0.3.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38b58827f4464d87d377d175e90bf58eb00fd8716ff0a62f80356b5e61555d0d"
-
-[[package]]
 name = "slab"
 version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6625,22 +6592,6 @@ dependencies = [
  "num-traits",
  "prost 0.12.6",
  "prost-types 0.12.6",
- "serde",
- "serde_bytes",
- "subtle-encoding",
- "time",
-]
-
-[[package]]
-name = "tendermint-proto"
-version = "0.38.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ed14abe3b0502a3afe21ca74ca5cdd6c7e8d326d982c26f98a394445eb31d6e"
-dependencies = [
- "bytes",
- "flex-error",
- "prost 0.13.3",
- "prost-types 0.13.3",
  "serde",
  "serde_bytes",
  "subtle-encoding",
@@ -7829,7 +7780,6 @@ dependencies = [
  "group",
  "hex-conservative 0.1.2",
  "hyper 0.14.31",
- "ibc-proto 0.47.1",
  "ics23",
  "informalsystems-pbjson",
  "k256",
@@ -7844,7 +7794,6 @@ dependencies = [
  "once_cell",
  "p256",
  "parking_lot",
- "phf_shared",
  "ppv-lite86",
  "primeorder",
  "prost 0.13.3",
@@ -7868,7 +7817,6 @@ dependencies = [
  "subtle-encoding",
  "syn 1.0.109",
  "syn 2.0.90",
- "tendermint-proto 0.38.1",
  "tendermint-proto 0.39.1",
  "time",
  "tokio-stream",

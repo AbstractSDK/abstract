@@ -68,4 +68,6 @@ pub mod ibc_host {
     pub const TEMP_ACTION_AFTER_CREATION: &str = "fc";
 }
 
-pub mod ica_client {}
+pub mod ica_client {
+    pub const ICA_INFRA: &str = "ga";
+}

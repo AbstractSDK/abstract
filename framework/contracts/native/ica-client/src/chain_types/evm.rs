@@ -1,28 +1,19 @@
-use abstract_ica::EVM_NOTE_ID;
-use abstract_sdk::{
-    feature_objects::{AnsHost, RegistryContract},
-    Resolve,
-};
+use abstract_sdk::{feature_objects::AnsHost, Resolve};
 use abstract_std::{
     ibc::PACKET_LIFETIME,
     native_addrs,
-    objects::{module::ModuleInfo, ChannelEntry, ContractEntry, TruncatedChainId},
+    objects::{ChannelEntry, ContractEntry, TruncatedChainId},
 };
-use cosmwasm_std::{
-    wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, Env, HexBinary, QuerierWrapper, WasmMsg,
-};
+use cosmwasm_std::{wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, Env, HexBinary, WasmMsg};
 use evm_note::msg::{CallbackRequest, EvmMsg};
 
 use crate::{contract::IcaClientResult, error::IcaClientError};
 
 pub fn execute(
-    querier: &QuerierWrapper,
-    vc: &RegistryContract,
+    note_addr: Addr,
     msgs: Vec<EvmMsg<String>>,
     callback: Option<CallbackRequest>,
 ) -> IcaClientResult<WasmMsg> {
-    let note_addr = evm_note_addr(vc, querier)?;
-
     wasm_execute(
         note_addr,
         &evm_note::msg::ExecuteMsg::Execute {
@@ -38,6 +29,7 @@ pub fn execute(
 pub fn send_funds(
     deps: Deps,
     env: &Env,
+    note_addr: &Addr,
     evm_chain: &TruncatedChainId,
     funds: Vec<Coin>,
     receiver: Option<Binary>,
@@ -50,12 +42,9 @@ pub fn send_funds(
     let receiver: HexBinary = match receiver {
         Some(r) => r.into(),
         None => {
-            let registry = RegistryContract::new(deps, abstract_code_id)?;
-            let note_addr = evm_note_addr(&registry, &deps.querier)?;
-
             // If state objects will be public on evm_note
             let remote_acc: Option<String> = deps.querier.query_wasm_smart(
-                &note_addr,
+                note_addr,
                 &evm_note::msg::QueryMsg::RemoteAddress {
                     local_address: env.contract.address.to_string(),
                 },
@@ -98,16 +87,6 @@ pub fn send_funds(
     .into();
 
     Ok(forwarder_msg)
-}
-
-fn evm_note_addr(vc: &RegistryContract, querier: &QuerierWrapper) -> IcaClientResult<Addr> {
-    let evm_note_entry =
-        ModuleInfo::from_id(EVM_NOTE_ID, abstract_ica::POLYTONE_EVM_VERSION.parse()?)?;
-
-    vc.query_module(evm_note_entry, querier)?
-        .reference
-        .unwrap_native()
-        .map_err(Into::into)
 }
 
 pub(crate) mod types {

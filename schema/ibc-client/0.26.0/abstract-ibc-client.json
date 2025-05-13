@@ -602,6 +602,7 @@
           },
           {
             "description": "This calls into the native bank module for all denominations. Note that this may be much more expensive than Balance and should be avoided if possible. Return value is AllBalanceResponse.",
+            "deprecated": true,
             "type": "object",
             "required": [
               "all_balances"
@@ -867,7 +868,7 @@
             "additionalProperties": false
           },
           {
-            "description": "`CosmosMsg::Any` is the replaces the \"stargate message\" – a message wrapped in a [protobuf Any](https://protobuf.dev/programming-guides/proto3/#any) that is suppored by the chain. It behaves the same as `CosmosMsg::Stargate` but has a better name and slightly improved syntax.\n\nThis is feature-gated at compile time with `cosmwasm_2_0` because a chain running CosmWasm < 2.0 cannot process this.",
+            "description": "`CosmosMsg::Any` is the replaces the \"stargate message\" – a message wrapped in a [protobuf Any](https://protobuf.dev/programming-guides/proto3/#any) that is supported by the chain. It behaves the same as `CosmosMsg::Stargate` but has a better name and slightly improved syntax.\n\nThis is feature-gated at compile time with `cosmwasm_2_0` because a chain running CosmWasm < 2.0 cannot process this.",
             "type": "object",
             "required": [
               "any"
@@ -1095,7 +1096,7 @@
         ]
       },
       "Empty": {
-        "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
+        "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressible in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
         "type": "object",
         "additionalProperties": false
       },
@@ -2127,7 +2128,7 @@
         ]
       },
       "IbcQuery": {
-        "description": "These are queries to the various IBC modules to see the state of the contract's IBC connection. These will return errors if the contract is not \"ibc enabled\"",
+        "description": "These are queries to the various IBC modules to see the state of the contract's IBC connection. Most of these will return errors if the contract is not \"ibc enabled\".",
         "oneOf": [
           {
             "description": "Gets the Port ID the current contract is bound to.\n\nReturns a `PortIdResponse`.",
@@ -2145,6 +2146,7 @@
           },
           {
             "description": "Lists all channels that are bound to a given port. If `port_id` is omitted, this list all channels bound to the contract's port.\n\nReturns a `ListChannelsResponse`.",
+            "deprecated": true,
             "type": "object",
             "required": [
               "list_channels"

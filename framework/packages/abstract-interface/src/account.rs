@@ -98,7 +98,7 @@ impl<Chain: CwEnv> AccountI<Chain> {
                 &InstantiateMsg::<Empty> {
                     code_id,
                     account_id: details.account_id.map(AccountId::local),
-                    owner: governance_details,
+                    owner: Some(governance_details),
                     namespace: details.namespace,
                     install_modules: details.install_modules,
                     name: Some(details.name),

@@ -58,10 +58,12 @@ pub fn receive_register(
 
     let create_account_msg = account::InstantiateMsg::<cosmwasm_std::Empty> {
         code_id,
-        owner: abstract_std::objects::gov_type::GovernanceDetails::External {
-            governance_address: env.contract.address.into_string(),
-            governance_type: "abstract-ibc".into(), // at least 4 characters
-        },
+        owner: Some(
+            abstract_std::objects::gov_type::GovernanceDetails::External {
+                governance_address: env.contract.address.into_string(),
+                governance_type: "abstract-ibc".into(), // at least 4 characters
+            },
+        ),
         name,
         description,
         link,
