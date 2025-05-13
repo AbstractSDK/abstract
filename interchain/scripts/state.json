@@ -108,5 +108,25 @@
       "abstract:registry": "xion1j33edjnk9cqkuw83fvz3f646unxpkcjkru0znjhznr0dzvpzyw7q4yz2eu"
     },
     "version": "0.26.0"
+  },
+  "xion-testnet-2": {
+    "code_ids": {
+      "abstract:account": 95,
+      "abstract:ans-host": 4,
+      "abstract:ibc-client": 8,
+      "abstract:ibc-host": 9,
+      "abstract:module-factory": 6,
+      "abstract:registry": 5,
+      "cw:blob": 3
+    },
+    "default": {
+      "abstract:account-local-0": "xion1yduuaqd4dud9rphpe8j3heflxch04fq56gsevrkfhg98s6agwl3saahm46",
+      "abstract:account-local-1": "xion1mvgvjzz5k6994eaxys6u5q7vgdmuatg8c7t6jn68k97qcrpgwuls4su8m7",
+      "abstract:ans-host": "xion1wx0qjtlz799pfxl73y2f4dv28nukztpmq2ztavk60v534tat9cdskfcdvu",
+      "abstract:ibc-client": "xion1qeyjez6a9dwlghf9d6cy44fxmsajztw257586akk6xn6k88x0gus0hs2jp",
+      "abstract:ibc-host": "xion1jfgr0vgunezkhfmdy7krr4upu6yjhx224nxtjptll2ylkkqhyzeshq0c0s",
+      "abstract:module-factory": "xion1vnj802lyyupfaez73w7axfs3xveraxen370vhcnumaufj29r5rxqhwxljd",
+      "abstract:registry": "xion1cag6cwygef6fuddgq2l44py7crpscufrza4mt3rum2axueemenmqyfdesx"
+    }
   }
 }
