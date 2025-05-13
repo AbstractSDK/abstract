@@ -91,10 +91,7 @@
       "abstract:ibc-host": 9,
       "abstract:module-factory": 6,
       "abstract:registry": 5,
-      "cw:blob": 3,
-      "polytone:note": 10,
-      "polytone:proxy": 12,
-      "polytone:voice": 11
+      "cw:blob": 3
     },
     "default": {
       "abstract:account-local-0": "xion1yduuaqd4dud9rphpe8j3heflxch04fq56gsevrkfhg98s6agwl3saahm46",
