@@ -1,0 +1,71 @@
+[package]
+description = "The oracle adapter is an Abstract adapter for querying oracle prices. It provides a common interface for all oracles"
+name        = "abstract-oracle-adapter"
+
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+version = { workspace = true }
+
+exclude  = ["contract.wasm", "hash.txt"]
+resolver = "2"
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[example]]
+name = "deploy"
+
+[[example]]
+name              = "schema"
+required-features = ["schema"]
+
+[features]
+default = ["export"]
+export  = []
+schema  = ["abstract-adapter/schema"]
+testing = ["dep:abstract-client", "abstract-adapter/test-utils"]
+
+# Supported Oracles
+pyth = ["abstract-pyth-adapter/full_integration"]
+
+# Builds
+[package.metadata.optimizer]
+builds = [
+    { name = "xion", features = ["pyth"] },
+    { name = "neutron", features = ["pyth"] },
+    { name = "osmosis", features = ["pyth"] },
+]
+
+[dependencies]
+abstract-adapter = { workspace = true }
+cosmwasm-schema  = { workspace = true }
+cosmwasm-std     = { workspace = true }
+cw-orch          = { workspace = true, features = ["daemon"] }
+
+# Local
+abstract-oracle-standard = { workspace = true }
+
+# Pyth
+abstract-pyth-adapter = { path = "../../../../integrations/oracles/pyth" }
+
+# Testing #
+abstract-client = { workspace = true, optional = true }
+
+[dev-dependencies]
+abstract-interface = { workspace = true, features = ["daemon"] }
+anyhow             = { workspace = true }
+clap               = { workspace = true }
+dotenv             = "0.15.0"
+env_logger         = "0.11.3"
+semver             = { workspace = true }
+tokio              = { workspace = true }
+
+bip32  = { version = "0.5.2" }
+oracle = { path = ".", features = ["pyth", "testing"], package = "abstract-oracle-adapter" }
+
+
+cw-utils  = { workspace = true }
+cw20      = { workspace = true }
+cw20-base = { workspace = true }

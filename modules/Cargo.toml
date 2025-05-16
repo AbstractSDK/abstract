@@ -64,7 +64,7 @@ abstract-adapter-utils         = { version = "0.26.0" }
 abstract-dex-standard          = { version = "0.26.0" }
 abstract-money-market-standard = { version = "0.26.0" }
 abstract-staking-standard      = { version = "0.26.0" }
-
+abstract-oracle-standard       = { version = "0.26.0" }
 
 # Integrations
 abstract-astroport-adapter   = { path = "../integrations/astroport-adapter", default-features = false }
@@ -90,19 +90,24 @@ rstest = "0.17.0"
 
 # this ensures local compatability when compiling locally
 [patch.crates-io]
-abstract-adapter               = { path = "../framework/packages/abstract-adapter" }
-abstract-adapter-utils         = { path = "../framework/packages/standards/utils" }
-abstract-app                   = { path = "../framework/packages/abstract-app" }
-abstract-client                = { path = "../framework/packages/abstract-client" }
+abstract-macros = { path = "../framework/packages/abstract-macros" }
+abstract-sdk    = { path = "../framework/packages/abstract-sdk" }
+abstract-std    = { path = "../framework/packages/abstract-std" }
+
+abstract-client    = { path = "../framework/packages/abstract-client" }
+abstract-interface = { path = "../framework/packages/abstract-interface" }
+
+abstract-adapter       = { path = "../framework/packages/abstract-adapter" }
+abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
+abstract-app           = { path = "../framework/packages/abstract-app" }
+abstract-standalone    = { path = "../framework/packages/abstract-standalone" }
+
 abstract-dex-standard          = { path = "../framework/packages/standards/dex" }
-abstract-interface             = { path = "../framework/packages/abstract-interface" }
-abstract-macros                = { path = "../framework/packages/abstract-macros" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
-abstract-sdk                   = { path = "../framework/packages/abstract-sdk" }
+abstract-oracle-standard       = { path = "../framework/packages/standards/oracle" }
 abstract-staking-standard      = { path = "../framework/packages/standards/staking" }
-abstract-standalone            = { path = "../framework/packages/abstract-standalone" }
-abstract-std                   = { path = "../framework/packages/abstract-std" }
-abstract-testing               = { path = "../framework/packages/abstract-testing" }
+
+abstract-testing = { path = "../framework/packages/abstract-testing" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
