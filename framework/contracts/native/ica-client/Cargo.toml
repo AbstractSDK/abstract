@@ -30,8 +30,8 @@ cw2             = { workspace = true }
 semver          = { workspace = true }
 thiserror       = { workspace = true }
 
-evm-note     = { version = "0.1.0", features = ["library"] }
-polytone-evm = "0.1.0"
+evm-note     = { version = "0.4.0", git = "ssh://git@github.com/AbstractSDK/evm-ibc.git", features = ["library"] }
+polytone-evm = { version = "0.4.0", git = "ssh://git@github.com/AbstractSDK/evm-ibc.git" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }

@@ -6,6 +6,7 @@ version = { workspace = true }
 [lib]
 
 [dependencies]
+abstract-ica-client   = { workspace = true }
 abstract-interface    = { workspace = true, features = ["daemon"] }
 abstract-std          = { workspace = true }
 abstract-xion         = { workspace = true }
