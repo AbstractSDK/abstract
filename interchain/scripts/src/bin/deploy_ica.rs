@@ -34,7 +34,7 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
 
         // Version check
         // TODO: automate this
-        let evm_note_addr = "xion14fc3m9zaxt23jph5h3rxv9wps260jwhjqkkqye6k37w0yzyut0aqeh8t8c";
+        let evm_note_addr = "union1uz8gd9z30thd8d8vxrch5m7s6ryeamfuxmh759tq53ww76lzj8dqkp97q5";
         let expected_evm_note_version = "0.4.0";
         let evm_note_cw2 = chain
             .wasm_querier()
@@ -70,17 +70,21 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
 //     network_ids: Vec<String>,
 // }
 
-pub const XION_TESTNET_2: ChainInfo = ChainInfo {
+pub const UNION_NET: NetworkInfo = NetworkInfo {
+    chain_name: "union",
+    pub_address_prefix: "union",
+    coin_type: 118,
+};
+pub const UNION_TESTNET_10: ChainInfo = ChainInfo {
     kind: ChainKind::Testnet,
-    chain_id: "xion-testnet-2",
-    gas_denom: "uxion",
-    gas_price: 0.001,
-    grpc_urls: &["https://grpc.xion-testnet-2.burnt.com:443"],
-    network_info: networks::xion::XION_NETWORK,
+    chain_id: "union-testnet-10",
+    gas_denom: "muno",
+    gas_price: 1.0,
+    grpc_urls: &["https://grpc.rpc-node.union-testnet-10.union.build:443"],
+    network_info: UNION_NET,
     lcd_url: None,
     fcd_url: None,
 };
-
 fn main() {
     dotenv().ok();
     env_logger::init();
@@ -89,7 +93,7 @@ fn main() {
 
     // let args = Arguments::parse();
 
-    let networks = vec![XION_TESTNET_2.into()];
+    let networks = vec![UNION_TESTNET_10.into()];
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);
