@@ -1,7 +1,6 @@
 ---
 source: contracts/native/ibc-client/tests/multihop_accounts.rs
 expression: all_storage
-snapshot_kind: text
 ---
 "abstract:ibc-client":
   - - "\u0000\u0002earemoteone"
@@ -11,8 +10,8 @@ snapshot_kind: text
   - - "\u0000\u0002ec\u0000\tremoteone\u0000\tremotetwo\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004\u0000\u0000\u0000*remoteone"
     - "\"remote_account\""
   - - contract_info
-    - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.26.0\"}"
+    - "{\"contract\":\"abstract:ibc-client\",\"version\":\"0.26.1\"}"
   - - mod
-    - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.26.0\",\"dependencies\":[],\"metadata\":null}"
+    - "{\"module\":\"abstract:ibc-client\",\"version\":\"0.26.1\",\"dependencies\":[],\"metadata\":null}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
