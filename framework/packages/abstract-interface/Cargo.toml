@@ -4,7 +4,7 @@ edition     = { workspace = true }
 license     = { workspace = true }
 name        = "abstract-interface"
 repository  = "https://github.com/AbstractSDK/abstract"
-version     = "0.26.1"
+version     = { workspace = true }
 
 [lints]
 workspace = true
@@ -51,11 +51,11 @@ rust-embed = { version = "8.3.0", features = ["include-exclude"] }
 
 # Keep these here. Default features only works on the workspace Cargo.toml, so using workspace = true is not possible here
 account        = { version = "0.26.1", package = "abstract-account", path = "../../contracts/account", default-features = false }
-ans-host       = { version = "0.26.0", package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false }
-ibc-client     = { version = "0.26.0", package = "abstract-ibc-client", path = "../../contracts/native/ibc-client", default-features = false }
-ibc-host       = { version = "0.26.0", package = "abstract-ibc-host", path = "../../contracts/native/ibc-host", default-features = false }
-module-factory = { version = "0.26.0", package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false }
-registry       = { version = "0.26.0", package = "abstract-registry", path = "../../contracts/native/registry", default-features = false }
+ans-host       = { version = "0.26.1", package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false }
+ibc-client     = { version = "0.26.1", package = "abstract-ibc-client", path = "../../contracts/native/ibc-client", default-features = false }
+ibc-host       = { version = "0.26.1", package = "abstract-ibc-host", path = "../../contracts/native/ibc-host", default-features = false }
+module-factory = { version = "0.26.1", package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false }
+registry       = { version = "0.26.1", package = "abstract-registry", path = "../../contracts/native/registry", default-features = false }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 # Predictable abstract addresses
