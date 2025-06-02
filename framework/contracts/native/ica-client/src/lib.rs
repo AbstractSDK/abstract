@@ -25,7 +25,26 @@ mod test_common {
         };
         let info = message_info(&abstr.owner, &[]);
         let env = mock_env_validated(deps.api);
+        let note = deps.api.addr_make("evm_note_addr");
 
-        contract::instantiate(deps.as_mut(), env, info, msg)
+        contract::instantiate(deps.as_mut(), env.clone(), info.clone(), msg)?;
+        contract::execute(
+            deps.as_mut(),
+            env.clone(),
+            info.clone(),
+            abstract_ica::msg::ExecuteMsg::RegisterInfrastructure {
+                chain: "juno".parse().unwrap(),
+                note: note.to_string(),
+            },
+        )?;
+        contract::execute(
+            deps.as_mut(),
+            env,
+            info,
+            abstract_ica::msg::ExecuteMsg::RegisterInfrastructure {
+                chain: "bartio".parse().unwrap(),
+                note: note.into_string(),
+            },
+        )
     }
 }
