@@ -4,7 +4,7 @@ edition     = { workspace = true }
 license     = { workspace = true }
 name        = "abstract-interface"
 repository  = "https://github.com/AbstractSDK/abstract"
-version     = { workspace = true }
+version     = "0.26.1"
 
 [lints]
 workspace = true
