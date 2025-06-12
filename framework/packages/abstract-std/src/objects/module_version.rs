@@ -78,7 +78,7 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
         dependencies: dependencies.iter().map(Into::into).collect(),
         metadata: metadata.map(Into::into),
     };
-    MODULE.save(store, &val).map_err(Into::into)
+    MODULE.save(store, &val)
 }
 
 /// Assert that the new version is greater than the stored version.
@@ -179,7 +179,7 @@ pub fn migrate_module_data(
         },
     );
 
-    MODULE.save(store, &val).map_err(Into::into)
+    MODULE.save(store, &val)
 }
 
 /// This will make a raw_query to another module to determine the current version it
@@ -195,9 +195,7 @@ pub fn query_module_data<Q: Querier, T: Into<String>>(
         contract_addr: contract_addr.into(),
         key: MODULE.as_slice().into(),
     });
-    QuerierWrapper::<Empty>::new(querier)
-        .query(&req)
-        .map_err(Into::into)
+    QuerierWrapper::<Empty>::new(querier).query(&req)
 }
 
 #[cfg(test)]
