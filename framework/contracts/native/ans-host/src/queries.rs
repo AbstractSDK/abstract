@@ -221,7 +221,7 @@ pub fn list_pool_entries(
                 .filter(|e| {
                     dex_filter
                         .as_ref()
-                        .map_or(true, |f| f == e.as_ref().unwrap().0.dex())
+                        .is_none_or(|f| f == e.as_ref().unwrap().0.dex())
                 })
                 .collect::<StdResult<_>>()?
         }
@@ -280,7 +280,7 @@ pub fn list_pool_metadata_entries(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .filter(|e| {
             let pool_type = &e.as_ref().unwrap().1.pool_type;
-            pool_type_filter.as_ref().map_or(true, |f| f == pool_type)
+            pool_type_filter.as_ref().is_none_or(|f| f == pool_type)
         })
         .take(limit)
         .collect();

@@ -116,7 +116,6 @@ pub fn handle_host_action(
             }
         }
     }
-    .map_err(Into::into)
 }
 
 /// Handle actions that are passed to the IBC host contract and originate from a registered module

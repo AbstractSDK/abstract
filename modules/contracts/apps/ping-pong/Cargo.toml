@@ -14,7 +14,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 abstract-app        = { workspace = true }
-abstract-ibc-client = { version = "0.26.0", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
+abstract-ibc-client = { version = "0.26.1", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
 cosmwasm-schema     = { workspace = true }
 cosmwasm-std        = { workspace = true }
 cw-asset            = { workspace = true }
