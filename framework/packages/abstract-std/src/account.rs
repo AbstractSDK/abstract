@@ -89,12 +89,12 @@ pub mod state {
     /// XION temporary state. This is used to make sure that the account only has admin rights when authenticated through XION
     /// If a call originates from the top level owner account address, there are 2 cases within xion:
     /// - It's a call made from the account directly.
-    /// In that case, the tx just got through BeforeTx and the admin_auth flag is set during that hook.
-    /// --> [`AUTH_ADMIN`] should be true
+    ///   In that case, the tx just got through BeforeTx and the admin_auth flag is set during that hook.
+    ///   --> [`AUTH_ADMIN`] should be true
     ///
     /// - It's a call made from the account through another module.
-    /// In that case, it means that the execute function on the account was executed successfully
-    /// --> [`AUTH_ADMIN`] flag is not set anymore, because it's removed at the end of each execution
+    ///   In that case, it means that the execute function on the account was executed successfully
+    ///   --> [`AUTH_ADMIN`] flag is not set anymore, because it's removed at the end of each execution
     ///
     /// If a module wants to have admin rights, they need to call through the account, but as soon as the account finishes execution, the Auth_Admin flag is set to false, so there is no chance to do admin actions there
     ///

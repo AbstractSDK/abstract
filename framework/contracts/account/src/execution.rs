@@ -250,7 +250,7 @@ mod test {
                     funds: _,
                 }) = res.messages[0].msg.clone()
                 {
-                    execute(deps, env.clone(), info, from_json(&msg)?).map_err(Into::into)
+                    execute(deps, env.clone(), info, from_json(&msg)?)
                 } else {
                     panic!("Wrong message received");
                 }

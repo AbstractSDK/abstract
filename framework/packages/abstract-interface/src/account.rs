@@ -414,7 +414,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
             vec![],
         )
-        .map_err(Into::into)
     }
 
     pub fn set_ibc_status(
@@ -446,7 +445,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
             vec![],
         )
-        .map_err(Into::into)
     }
 
     /// Execute action on remote module.
@@ -473,7 +471,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
             }),
             vec![],
         )
-        .map_err(Into::into)
     }
 
     pub fn send_all_funds_back(
@@ -489,7 +486,6 @@ impl<Chain: CwEnv> AccountI<Chain> {
             },
             vec![],
         )
-        .map_err(Into::into)
     }
 }
 
