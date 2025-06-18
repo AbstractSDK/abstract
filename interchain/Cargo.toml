@@ -28,7 +28,7 @@ homepage = "https://abstract.money"
 keywords = ["cosmos", "cosmwasm", "framework"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/AbstractSDK/abstract"
-version = "0.26.0"
+version = "0.26.1"
 
 [workspace.dependencies]
 cosmwasm-schema = { version = "2.0" }
@@ -65,13 +65,13 @@ cw-orch-proto         = { version = "0.9.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-adapter   = { version = "0.26.0", path = "../framework/packages/abstract-adapter" }
-abstract-app       = { version = "0.26.0", path = "../framework/packages/abstract-app" }
-abstract-client    = { version = "0.26.0", path = "../framework/packages/abstract-client" }
-abstract-interface = { version = "0.26.0", path = "../framework/packages/abstract-interface" }
-abstract-sdk       = { version = "0.26.0", path = "../framework/packages/abstract-sdk" }
-abstract-std       = { version = "0.26.0", path = "../framework/packages/abstract-std" }
-abstract-testing   = { version = "0.26.0", path = "../framework/packages/abstract-testing" }
+abstract-adapter   = { version = "0.26.1", path = "../framework/packages/abstract-adapter" }
+abstract-app       = { version = "0.26.1", path = "../framework/packages/abstract-app" }
+abstract-client    = { version = "0.26.1", path = "../framework/packages/abstract-client" }
+abstract-interface = { version = "0.26.1", path = "../framework/packages/abstract-interface" }
+abstract-sdk       = { version = "0.26.1", path = "../framework/packages/abstract-sdk" }
+abstract-std       = { version = "0.26.1", path = "../framework/packages/abstract-std" }
+abstract-testing   = { version = "0.26.1", path = "../framework/packages/abstract-testing" }
 # Modules
 abstract-account = { version = "0.26.1", path = "../framework/contracts/account" }
 # croncat-app = { path = "../modules/contracts/apps/croncat" }

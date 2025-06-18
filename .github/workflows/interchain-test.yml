@@ -32,9 +32,9 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.5
+        uses: mozilla-actions/sccache-action@v0.0.9
         with:
-          version: "v0.8.1"
+          version: "v0.10.0"
       - name: Install stable
         uses: dtolnay/rust-toolchain@master
         with:
@@ -71,9 +71,9 @@ jobs:
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.5
+        uses: mozilla-actions/sccache-action@v0.0.9
         with:
-          version: "v0.8.1"
+          version: "v0.10.0"
       - name: Install stable
         uses: dtolnay/rust-toolchain@master
         with:

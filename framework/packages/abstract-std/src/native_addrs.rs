@@ -42,11 +42,8 @@ pub fn abstract_code_id(
 }
 
 pub fn creator_canon_address(deps: Deps, abstract_code_id: u64) -> StdResult<CanonicalAddr> {
-    creator_address(&deps.querier, abstract_code_id).and_then(|creator_addr| {
-        deps.api
-            .addr_canonicalize(creator_addr.as_str())
-            .map(Into::into)
-    })
+    creator_address(&deps.querier, abstract_code_id)
+        .and_then(|creator_addr| deps.api.addr_canonicalize(creator_addr.as_str()))
 }
 
 pub fn contract_canon_address(
