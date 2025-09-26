@@ -4,9 +4,9 @@
 rm -rf ./artifacts/*.wasm
 
 if [[ $(arch) == "arm64" ]]; then
-  image="cosmwasm/optimizer-arm64:0.16.1"
+  image="cosmwasm/optimizer-arm64:0.17.0"
 else
-  image="cosmwasm/optimizer:0.16.1"
+  image="cosmwasm/optimizer:0.17.0"
 fi
 
 # Optimized builds
