@@ -8,6 +8,7 @@
 
 ### Changed
 
+- Updated `cosmwasm/optimizer` to latest version (0.17.0)
 - Account's `InstantiationMsg` field `owner` is optional now and defaults to AbstractAccount(account_address)
 
 ### Removed
