@@ -8,7 +8,7 @@ The versioning setup is based on the dependency graph of the project, which is s
 > `cargo depgraph --dedup-transitive-deps --exclude abstract-interface-scripts,boot-core --build-deps | dot -Tpng > dep_graph.png`  
 > *Ensure you have [graphviz](https://graphviz.gitlab.io/download/) installed.*
 
-![Abstract's dependency graph](../docs/dep_graph.png)
+![Abstract's dependency graph](../development/dep_graph.png)
 
 From the graph we can draw some conclusions:
 
