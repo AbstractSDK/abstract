@@ -45,9 +45,12 @@ jobs:
         working-directory: ./framework
         run: just docs-build
 
+      - name: Copy robots.txt
+        run: cp framework/docs/src/robots.txt framework/docs/book/html/
+
       - name: Generate sitemap
         run: |
-          cd framework/docs/book
+          cd framework/docs/book/html
           npx sscli --no-clean --base https://docs.abstract.money
 
       - name: Upload artifact
@@ -55,7 +58,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload book repository
-          path: './framework/docs/book'
+          path: './framework/docs/book/html'
 
   # Deploy job
   deploy:
