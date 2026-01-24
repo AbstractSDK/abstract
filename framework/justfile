@@ -83,6 +83,8 @@ docs-build:
   (cd docs && mdbook build)
   cp docs/book/llms-txt/llms.txt docs/book/html/
   cp docs/book/llms-txt-full/llms-full.txt docs/book/html/
+  # Copy source markdown files for AI agents (excluding SUMMARY.md)
+  cd docs && find src -name "*.md" ! -name "SUMMARY.md" -exec sh -c 'mkdir -p "book/html/$(dirname "${1#src/}")" && cp "$1" "book/html/${1#src/}"' _ {} \;
 
 docs-install:
   cargo install mdbook --vers "0.4.28" --locked

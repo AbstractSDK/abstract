@@ -1,7 +1,15 @@
+# Regular search crawlers - block .md files to avoid duplicate content
+User-agent: Googlebot
+Disallow: /*.md$
+
+User-agent: Bingbot
+Disallow: /*.md$
+
 User-agent: *
 Allow: /
+Disallow: /*.md$
 
-# Explicitly allow AI crawlers
+# AI crawlers - allow everything including .md files
 User-agent: GPTBot
 Allow: /
 
