@@ -1,4 +1,4 @@
-# Regular search crawlers - block .md files to avoid duplicate content
+# Search crawlers - block .md files to avoid duplicate content
 User-agent: Googlebot
 Disallow: /*.md$
 
@@ -7,26 +7,3 @@ Disallow: /*.md$
 
 User-agent: *
 Allow: /
-Disallow: /*.md$
-
-# AI crawlers - allow everything including .md files
-User-agent: GPTBot
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: Claude-Web
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: Anthropic-AI
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-# Point to llms.txt for AI agents
-# See: https://llmstxt.org/

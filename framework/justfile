@@ -94,4 +94,4 @@ docs-install:
   cargo install mdbook --vers "0.4.28" --locked
   cargo install mdbook-mermaid --vers "0.12.6" --locked
   cargo install mdbook-admonish --vers "1.15.0" --locked
-  cargo install mdbook-llms-txt-tools --locked
+  cargo install mdbook-llms-txt-tools --vers "0.1.1" --locked
