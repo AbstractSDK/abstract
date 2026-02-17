@@ -1,0 +1,9 @@
+# Search crawlers - block .md files to avoid duplicate content
+User-agent: Googlebot
+Disallow: /*.md$
+
+User-agent: Bingbot
+Disallow: /*.md$
+
+User-agent: *
+Allow: /

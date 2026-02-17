@@ -45,6 +45,9 @@ jobs:
         working-directory: ./framework
         run: just docs-build
 
+      - name: Copy robots.txt
+        run: cp framework/docs/src/robots.txt framework/docs/book/
+
       - name: Generate sitemap
         run: |
           cd framework/docs/book

@@ -81,8 +81,17 @@ docs-serve *FLAGS:
 
 docs-build:
   (cd docs && mdbook build)
+  # Copy llms.txt files to html directory
+  cp docs/book/llms-txt/llms.txt docs/book/html/
+  cp docs/book/llms-txt-full/llms-full.txt docs/book/html/
+  # Copy source markdown files for AI agents (excluding SUMMARY.md)
+  cd docs && find src -name "*.md" ! -name "SUMMARY.md" -exec sh -c 'mkdir -p "book/html/$(dirname "${1#src/}")" && cp "$1" "book/html/${1#src/}"' _ {} \;
+  # Move all content from html/ to book/ root and clean up subdirectories
+  cp -r docs/book/html/. docs/book/
+  rm -rf docs/book/html docs/book/llms-txt docs/book/llms-txt-full
 
 docs-install:
   cargo install mdbook --vers "0.4.28" --locked
   cargo install mdbook-mermaid --vers "0.12.6" --locked
   cargo install mdbook-admonish --vers "1.15.0" --locked
+  cargo install mdbook-llms-txt-tools --vers "0.1.1" --locked

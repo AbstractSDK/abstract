@@ -1,7 +1,6 @@
 [book]
 authors      = ["cyberhoward"]
 language     = "en"
-multilingual = false
 src          = "src"
 title        = "Abstract Money"
 
@@ -32,3 +31,7 @@ git-repository-url   = "https://github.com/AbstractSDK/abstract/tree/main/framew
 no-section-label     = true
 preferred-dark-theme = "abstract"
 # [output.linkcheck]
+
+[output.llms-txt]
+
+[output.llms-txt-full]
